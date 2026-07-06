@@ -1,47 +1,50 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Unified Heat Design
-status: in_progress
-last_updated: "2026-07-06T19:30:00.000Z"
-last_activity: 2026-07-06 — Phases 7–12 shipped; QA sweep in progress
+milestone: v1.2
+milestone_name: Premium Brand Experience
+status: planned
+last_updated: "2026-07-06T22:00:00.000Z"
+last_activity: 2026-07-06 — M3 milestone created; per-page plans defined
 progress:
-  total_phases: 7
-  completed_phases: 6
+  total_phases: 8
+  completed_phases: 0
   total_plans: 0
   completed_plans: 0
 ---
 
 # State
 
-Milestone: **v1.1 Unified Heat Design** — approved, not started  
-Last activity: 2026-07-06 — Requirements + roadmap created; research skipped per user
+Milestone: **v1.2 Premium Brand Experience** — planned, ready for Phase 14  
+Last activity: 2026-07-06 — Requirements + roadmap + design spec created
 
 ## Current Position
 
-Phase: Not started (ready for Phase 7)  
+Phase: Not started (ready for Phase 14)  
 Plan: —  
-Status: Requirements defined, awaiting `/gsd:plan-phase 7` or `/gsd:execute-phase 7`
+Status: Milestone initialized — awaiting `/gsd:discuss-phase 14` or `/gsd:plan-phase 14`
 
 ## Project Reference
 
 See: `.planning/PROJECT.md` (updated 2026-07-06)
 
-**Core value:** One operating system feel across landing, hub, bridge, Form Forge, and Property Analyzer  
-**Current focus:** Heat design system + global nav + cross-repo reskin
+**Core value:** Post-login product feels as premium and badass as the Phuglee login page  
+**Current focus:** Extract login DNA → apply page-by-page after sign-in  
+**Locked:** Login page (`/`) — do not modify
 
-## Shipped (v1.0)
+## Prior milestone context
 
-- Landing, Command Hub, proxy, Data Bridge, health API
-- Phases 1–6 complete — see `.planning/MILESTONES.md`
+- v1.0 shipped shell + proxy + bridge
+- v1.1 (M2) Unified Heat Design — phases 7–13 (may complete in parallel or before v1.2 execution)
+- v1.2 (M3) builds on Heat foundation, adds distressed-home atmosphere + auth-modal panel treatment
 
 ## Accumulated Context
 
-- Command Hub (`heat.html`) is the canonical visual reference
-- Data Bridge already uses `shell-nav` — extend pattern everywhere
-- `rewrite.js` injects `__DISTRESS_OS_MODULE_PREFIX__` — extend for nav + CSS injection
-- Property Analyzer v1.8 shipped Aerial Command (Fraunces/amber) — v1.1 replaces with Heat
-- Form Forge uses stamp-theme (gold/serif) — v1.1 replaces with Heat
-- User locked: global nav menu across ALL pages; skip research phase
+- **Brand reference:** `index.html` + `landing.css` + `auth.css` + `phuglee-logo.svg`
+- **Distressed home stack:** `ugly-house.jpg` + `photo-wear.png` + SVG grain + vignette
+- **Login CTA:** `btn-heat` gradient + shine sweep
+- **Auth panels:** grain overlay, ember top hairline, diagonal scratch texture
+- **Post-login pages today:** functional Heat design but flat vs login cinematic feel
+- **Nav:** `phuglee-text-logo.svg` in shell-nav — upgrade chrome, not replace with full mascot
+- User wants page-by-page execution through GSD phases 14–21
 
 ---

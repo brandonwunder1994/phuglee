@@ -1,69 +1,74 @@
-# v1.1 Unified Heat Design — Requirements
+# v1.2 Premium Brand Experience — Requirements
 
-> **Milestone:** v1.1  
+> **Milestone:** v1.2  
 > **Created:** 2026-07-06  
-> **Research:** Skipped (visual reskin — no new capabilities)
+> **Research:** Skipped (visual elevation — login page is the reference)
+> **Out of scope:** Login page (`/`) — locked and approved
 
 ---
 
-## Design System
+## Premium Design System
 
-- [ ] **HEAT-01**: Canonical token file in `public/css/tokens.css` documented as single source of truth
-- [ ] **HEAT-02**: Shared typography — Anton (display), Outfit (body); JetBrains Mono retained in Analyzer for metrics/HUD only
-- [ ] **HEAT-03**: Shared atmosphere — deep brown bg (`#080605`), ember radial glow, 48px grid, hub-rise motion
-- [ ] **HEAT-04**: Shared component primitives — hub buttons, cards, eyebrows, status pills, elevated panels
-- [ ] **HEAT-05**: Design spec at `.planning/v1.1-HEAT-DESIGN.md` with token table + per-app surface inventory
+- [ ] **PREM-01**: `premium-atmosphere.css` — distressed home photo, grain, wear, vignette layers (extracted from `landing.css`)
+- [ ] **PREM-02**: `premium-components.css` — grain panels, ember hairlines, premium eyebrows, btn-heat variants
+- [ ] **PREM-03**: Logo palette tokens in `tokens.css` (`--cream`, `--stone`, `--logo-charcoal`)
+- [ ] **PREM-04**: Design spec at `.planning/v1.2-PREMIUM-BRAND.md` with per-page upgrade inventory
+- [ ] **PREM-05**: `prefers-reduced-motion` — static backdrops, no shine/loop animations
+- [ ] **PREM-06**: WCAG AA contrast maintained on all premium backdrops
 
-## Global Navigation
+## Shell & Navigation
 
-- [ ] **NAV-01**: Unified `shell-nav` on every Distress OS page (Home, Hub, Bridge, Landing)
-- [ ] **NAV-02**: Form Forge subpages accessible from nav — Records Desk, City Tracker, Coverage Map, Request PDFs, Submit Portals, Email-only, Portal Errors
-- [ ] **NAV-03**: Property Analyzer entry in nav; active state highlights current section
-- [ ] **NAV-04**: Nav injected into proxied module HTML via `rewrite.js` (works at `/forge/*` and `/analyzer/*`)
-- [ ] **NAV-05**: Nav works when modules accessed directly (`:8787`, `:3456`) — optional lightweight strip or full strip with absolute URLs to `:3000`
-- [ ] **NAV-06**: Forge/Analyzer status pills (green/red) poll `/api/health` on shell pages; degrade gracefully on standalone module ports
+- [ ] **PREM-07**: Nav bar premium chrome — glass blur, ember top hairline, cream text logo
+- [ ] **PREM-08**: Active nav states match auth-modal accent treatment
+- [ ] **PREM-09**: `rewrite.js` injects `premium-atmosphere.css` + `premium-components.css` on proxied pages
+- [ ] **PREM-10**: Content padding / z-index stacking verified with photo layers
 
-## Form Forge Reskin
+## Distress OS Shell Pages
 
-- [ ] **FORGE-01**: Replace gold/serif tokens in `style.css` with Heat token mapping
-- [ ] **FORGE-02**: Reskin all 7 HTML pages to Heat palette + atmosphere
-- [ ] **FORGE-03**: Module topbar harmonized with shell-nav (remove duplicate brand conflict when nav injected)
-- [ ] **FORGE-04**: Retire paper-grain / stamp aesthetic; adopt hub glow + grid
-- [ ] **FORGE-05**: `portal.css`, `map.css`, `request-pdfs.css`, and related modules updated
-- [ ] **FORGE-06**: Semantic colors remapped (ok/warn/danger) to heat-compatible values
+- [ ] **PREM-11**: Command Hub (`/heat`) — premium backdrop, grain panels, auth-style pricing cards
+- [ ] **PREM-12**: Command Hub hero — flame gradient headlines, text-shadow taglines
+- [ ] **PREM-13**: Command Hub steps + CTA bar — oversized Anton numbers, ember glow, grain step cards
+- [ ] **PREM-14**: Collect Records (`/collect`) — distressed hero, premium dialogs, auth-style choice cards
+- [ ] **PREM-15**: Collect Records CTAs — btn-heat shine + wear-border secondary
+- [ ] **PREM-16**: Collect Records modals — auth-modal backdrop blur + rise animation
+- [ ] **PREM-17**: Data Bridge (`/bridge`) — premium panels, step badges, restrained photo layer (~15%)
+- [ ] **PREM-18**: Data Bridge tables — dark inset rows, ember focus states, grain headers
+- [ ] **PREM-19**: Data Bridge actions — btn-heat primary, auth-error danger panel
 
-## Property Analyzer Reskin
+## Form Forge Premium Pass
 
-- [ ] **PA-01**: Replace Aerial Command tokens in `tokens.css` with Heat palette
-- [ ] **PA-02**: Swap fonts — Fraunces/DM Sans → Anton/Outfit (keep JetBrains Mono for data)
-- [ ] **PA-03**: New `heat-theme.css` layer replacing `premium-aerial.css` overrides
-- [ ] **PA-04**: Reskin sidebar, command bar, KPIs, property cards, scan progress
-- [ ] **PA-05**: Review overlay + modals match Heat chrome
-- [ ] **PA-06**: Landing page aligned to Command Hub hero style
-- [ ] **PA-07**: Remove dead cyber/aerial CSS references where superseded by heat-theme
+- [ ] **PREM-20**: All 7 Forge pages use premium-atmosphere (no paper-grain remnants)
+- [ ] **PREM-21**: Forge modals, tables, and cards match `premium-panel` + auth-checkbox patterns
+- [ ] **PREM-22**: Map page chrome reskinned (controls only); Records Desk + Tracker get hero strips
+
+## Property Analyzer Premium Pass
+
+- [ ] **PREM-23**: Sidebar, command bar, KPIs, property cards use premium chrome
+- [ ] **PREM-24**: Review overlay + modals match auth-modal treatment; tier colors preserved
+- [ ] **PREM-25**: Analyzer in-app landing hero matches Hub flame gradient when accessed via shell
 
 ## Quality Assurance
 
-- [ ] **QA-01**: Visual audit — all pages side-by-side at `http://127.0.0.1:3000`
-- [ ] **QA-02**: Distress OS `npm test` passing
-- [ ] **QA-03**: Form Forge `python scripts/gsd.py verify` — 0 issues; Analyzer `npm test` — 190+ passing
+- [ ] **PREM-26**: Visual audit — sign-in → every post-login page side-by-side
+- [ ] **PREM-27**: Distress OS `npm test` + Forge `gsd.py verify` + Analyzer `npm test` all green
+- [ ] **PREM-28**: Login page (`/`) visually unchanged — regression snapshot check
 
 ---
 
 ## Future Requirements (deferred)
 
-- **NAV-07**: Mobile hamburger collapse for 10+ nav items
-- **THEME-01**: Light mode toggle
-- **BRIDGE-02**: In-app bridge upload without leaving Analyzer
+- **PREM-29**: Animated mascot watermark on scroll
+- **PREM-30**: Per-market custom distressed photography
+- **PREM-31**: Sound design on CTA hover (wholesaler grit)
 
 ## Out of Scope
 
 | Item | Reason |
 |------|--------|
-| Form Forge / Analyzer API changes | Visual + nav only |
-| New features in child apps | Separate milestones |
-| Removing standalone direct-port access | Must keep working |
-| MapLibre style overhaul | Keep map data layers; reskin chrome only |
+| Login page (`/`) redesign | User locked — already awesome |
+| Auth flow / signup UX changes | Visual reference only |
+| Backend/API changes | CSS/HTML only |
+| New product features | Separate milestones |
 
 ---
 
@@ -71,11 +76,11 @@
 
 | Requirement | Phase |
 |-------------|-------|
-| HEAT-01–05 | 7 |
-| NAV-01–06 | 8 |
-| FORGE-01, FORGE-03, FORGE-04 | 9 |
-| FORGE-02, FORGE-05, FORGE-06 | 10 |
-| PA-01–03, PA-07 | 11 |
-| PA-04–06 | 12 |
-| QA-01–03 | 13 |
-| NAV-02–03 (polish) | 8, 10, 12 |
+| PREM-01–06 | 14 |
+| PREM-07–10 | 15 |
+| PREM-11–13 | 16 |
+| PREM-14–16 | 17 |
+| PREM-17–19 | 18 |
+| PREM-20–22 | 19 |
+| PREM-23–25 | 20 |
+| PREM-26–28 | 21 |

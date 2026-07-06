@@ -13,6 +13,35 @@
 - Auto-start child processes via launch script
 - Unit tests for rewrite, bridge schema, module proxy
 
-**What's next:** v1.1 Unified Heat Design — visual alignment + global navigation
+---
+
+## v1.1 Unified Heat Design (In progress)
+
+**Goal:** Heat tokens + global nav + Form Forge / Analyzer reskin to unified palette.
+
+**Phases:** 7–13
+
+**Design spec:** `.planning/v1.1-HEAT-DESIGN.md`
+
+**GSD doc:** `docs/gsd/milestones/M2-unified-heat-design.md`
+
+---
+
+## v1.2 Premium Brand Experience (Planned: 2026-07-06)
+
+**Goal:** Elevate every post-login page to match the Phuglee login page — distressed home atmosphere, grain panels, cream-and-ember palette, premium badass feel. Login page locked.
+
+**Phases:** 14–21
+
+**Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`
+
+**GSD doc:** `docs/gsd/milestones/M3-premium-brand-experience.md`
+
+**Page coverage:**
+- Shell: Command Hub, Collect Records, Data Bridge, global nav
+- Form Forge: 7 pages
+- Property Analyzer: all surfaces
+
+**Next step:** `/gsd:discuss-phase 14` or `/gsd:plan-phase 14`
 
 ---

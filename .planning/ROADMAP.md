@@ -4,143 +4,185 @@
 
 - ✅ **v1.0 Shell & Integration** — Phases 1–6 (shipped 2026-07-01)
 - 🔄 **v1.1 Unified Heat Design** — Phases 7–13 (in progress)
+- 📋 **v1.2 Premium Brand Experience** — Phases 14–21 (planned)
 
 ## Active Work
 
-**Phase 7** — Heat Design System (next)
+**Next milestone:** v1.2 Premium Brand Experience
 
-Start with `/gsd:plan-phase 7` or `/gsd:discuss-phase 7`
+Start with `/gsd:discuss-phase 14` or `/gsd:plan-phase 14`
+
+**Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`
 
 ---
 
-## v1.1 Unified Heat Design
+## v1.2 Premium Brand Experience
+
+> Post-login only. Login page (`/`) is locked.
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
-| 7 | Heat Design System | Extract canonical tokens + design doc | HEAT-01–05 | pending |
-| 8 | Global Navigation Shell | Unified nav menu on all pages + injection | NAV-01–06 | pending |
-| 9 | Form Forge — Tokens & Atmosphere | Token swap, topbar, hub bg | FORGE-01, FORGE-03, FORGE-04 | pending |
-| 10 | Form Forge — All Surfaces | 7 pages + portal/map/request CSS | FORGE-02, FORGE-05, FORGE-06 | pending |
-| 11 | Analyzer — Tokens & Theme Layer | Heat tokens, fonts, heat-theme.css | PA-01–03, PA-07 | pending |
-| 12 | Analyzer — All Surfaces | Sidebar, cards, review, modals, landing | PA-04–06 | pending |
-| 13 | Cross-App QA & Polish | Visual audit + all test suites | QA-01–03 | pending |
+| 14 | Premium Design System | Extract login DNA into shared CSS | PREM-01–06 | pending |
+| 15 | Shell & Navigation Polish | Premium nav chrome + injection | PREM-07–10 | pending |
+| 16 | Command Hub — How It Works | `/heat` full premium pass | PREM-11–13 | pending |
+| 17 | Collect Records | `/collect` hero + dialogs | PREM-14–16 | pending |
+| 18 | Data Bridge | `/bridge` utility premium pass | PREM-17–19 | pending |
+| 19 | Form Forge — Premium Pass | 7 pages grain + panels | PREM-20–22 | pending |
+| 20 | Analyzer — Premium Pass | All Analyzer surfaces | PREM-23–25 | pending |
+| 21 | Cross-App Premium QA | Audit + regression | PREM-26–28 | pending |
 
 ---
 
-### Phase 7: Heat Design System
+### Phase 14: Premium Design System
 
-**Goal:** Formalize Command Hub as the authoritative design system with documented token mapping for child apps.
+**Goal:** Extract distressed-home atmosphere and auth-modal panel treatment into reusable CSS shared across all apps.
 
 **Success criteria:**
-1. `v1.1-HEAT-DESIGN.md` lists every token, font, and component primitive
-2. Child-app alias table documents how Forge/Analyzer map legacy vars → Heat vars
-3. `public/css/heat-components.css` (or expanded `hub.css`) exports reusable button/card/eyebrow classes
-4. Landing + Hub + Bridge verified unchanged except token doc references
+1. `premium-atmosphere.css` renders photo + grain + wear + vignette without copying login-page-only rules
+2. `premium-components.css` exports `.premium-panel`, `.premium-eyebrow`, `.premium-bg`, btn variants
+3. Logo palette tokens documented and aliased in `tokens.css`
+4. `v1.2-PREMIUM-BRAND.md` complete with per-page inventory
+5. Login page visually unchanged when new CSS files are added (not linked on `/`)
 
 **Repo:** `distress-os`
 
 ---
 
-### Phase 8: Global Navigation Shell
+### Phase 15: Shell & Navigation Polish
 
-**Goal:** One navigation menu across every page — Distress OS shell pages and proxied module pages.
-
-**Nav structure (locked):**
-
-| Group | Links |
-|-------|-------|
-| **Core** | Home `/` · Command Hub `/heat` · Data Bridge `/bridge` |
-| **Form Forge** | Records Desk `/forge/` · City Tracker `/forge/portal` · Coverage Map `/forge/map` · Request PDFs `/forge/request-pdfs` · Submit Portals `/forge/submit-portals` · Email-only `/forge/email-only-requests` · Portal Errors `/forge/portal-errors` |
-| **Analyzer** | Property Analyzer `/analyzer/` |
-
-**Implementation:**
-- `public/js/shell-nav.js` — shared nav HTML builder + active-state logic
-- `public/css/shell-nav.css` — two-row or grouped nav with Forge dropdown/section
-- `rewrite.js` — inject nav + `tokens.css` + `shell.css` into proxied HTML `<body>`
-- Update `heat.html`, `bridge.html`, `index.html` to use shared nav partial
+**Goal:** Global nav and shell chrome match login page premium feel.
 
 **Success criteria:**
-1. Every page at `:3000` shows the same nav with correct active highlight
-2. Clicking any Forge subpage from Analyzer navigates correctly via proxy paths
-3. Module status pills show Forge/Analyzer up/down on shell pages
-4. `npm test` — rewrite tests cover nav injection
+1. Nav has ember hairline, glass blur, cream logo — feels like login page header
+2. Active states use auth-modal accent pattern
+3. `rewrite.js` injects premium CSS on `/forge/*` and `/analyzer/*`
+4. No z-index conflicts between fixed nav and photo layers
+5. `npm test` — rewrite injection tests updated
 
-**Repo:** `distress-os` (+ `rewrite.js` only)
+**Repo:** `distress-os`
 
 ---
 
-### Phase 9: Form Forge — Tokens & Atmosphere
+### Phase 16: Command Hub — How It Works
 
-**Goal:** Swap Form Forge foundation from stamp-theme to Heat.
+**Goal:** `/heat` is the flagship post-login page — full distressed atmosphere and auth-style panels.
+
+**Page plan:**
+- Premium backdrop behind existing heat-bg
+- Hero: flame gradient headline + text-shadow lead
+- Hotspot → `premium-panel` with grain
+- Steps 01–03: oversized Anton numbers, ember glow
+- Pricing → `auth-pricing-card` parity (featured badge, dashed exclusive)
+- CTA bar: ember gradient strip with grain
 
 **Success criteria:**
-1. `style.css` `:root` uses Heat palette (ember, flame, deep brown surfaces)
-2. Anton + Outfit loaded; Instrument Serif / IBM Plex retired
-3. `bg-vignette` / `bg-paper-grain` replaced with hub-style glow + grid
-4. Module topbar de-conflicted with injected shell-nav (single nav visible)
-5. `python scripts/gsd.py test` still passes
+1. Side-by-side with login page — same brand family, clearly related
+2. All hub sections readable at AA contrast
+3. Pricing cards match auth signup tier cards
+4. `npm test` passing
+
+**Repo:** `distress-os`
+
+---
+
+### Phase 17: Collect Records
+
+**Goal:** `/collect` hero feels like a battle cry; dialogs match auth modal.
+
+**Page plan:**
+- Distressed home hero (stronger than utility pages)
+- btn-heat + shine on "Start Requests"
+- Dialogs: grain panels, ember hairline, auth-checkbox radios
+- Choice cards: auth-pricing-card hover slide
+
+**Success criteria:**
+1. Hero matches landing energy without touching `/`
+2. Both dialogs (Start Requests, PDF Filler Info) premium styled
+3. Workflow radio selection visually matches auth tier selection
+
+**Repo:** `distress-os`
+
+---
+
+### Phase 18: Data Bridge
+
+**Goal:** `/bridge` utility page gets premium chrome without overwhelming the workflow.
+
+**Page plan:**
+- Subtle photo layer (~15% opacity)
+- Step panels with numbered ember badges
+- Tables: dark inset, grain headers
+- Primary download = btn-heat; errors = auth-error panel
+
+**Success criteria:**
+1. Three-step workflow visually clear and premium
+2. Column mapping + preview tables readable
+3. Bridge functionality unchanged
+
+**Repo:** `distress-os`
+
+---
+
+### Phase 19: Form Forge — Premium Pass
+
+**Goal:** All 7 Forge pages elevated to premium brand.
+
+**Per-page targets:**
+
+| Page | Key upgrades |
+|------|--------------|
+| Records Desk | Hero strip, premium status cards |
+| Request Tracker | Grain table rows, premium filter bar |
+| Coverage Map | Dark glass map controls, ember active |
+| Request PDFs | Wear-bordered preview, btn-heat send |
+| Submit Portals | Auth-style step wizard |
+| Email-only | Premium composer, signal-pill templates |
+| Portal Errors | Danger inset rows, empty state watermark |
+
+**Success criteria:**
+1. No paper-grain / stamp aesthetic remains
+2. All modals match premium-panel
+3. `python scripts/gsd.py verify` — 0 issues
 
 **Repo:** `city-list-requests`
 
 ---
 
-### Phase 10: Form Forge — All Surfaces
+### Phase 20: Analyzer — Premium Pass
 
-**Goal:** Complete Heat reskin on all 7 Form Forge pages.
+**Goal:** Analyzer feels like the premium command center for distressed deals.
 
-**Pages:** `index.html`, `portal.html`, `map.html`, `request-pdfs.html`, `submit-portals.html`, `email-only-requests.html`, `portal-errors.html`
-
-**Success criteria:**
-1. All pages visually match Command Hub color/typography
-2. Buttons, cards, modals use Heat component patterns
-3. Map page chrome reskinned (MapLibre data layers unchanged)
-4. `python scripts/gsd.py verify` — 0 issues
-
-**Repo:** `city-list-requests`
-
----
-
-### Phase 11: Property Analyzer — Tokens & Theme Layer
-
-**Goal:** Replace Aerial Command (v1.8) with Heat design foundation.
+**Surface targets:** Sidebar, command bar, KPIs, property cards, scan progress, review overlay, modals, settings, in-app landing
 
 **Success criteria:**
-1. `tokens.css` uses Heat palette; Fraunces/DM Sans → Anton/Outfit
-2. `heat-theme.css` created; `premium-aerial.css` superseded
-3. `body` class `heat-theme` replaces `aerial-theme` as active theme
+1. Tier colors semantically distinct within premium chrome
+2. Review keyboard shortcuts (1–5) unchanged
+3. JetBrains Mono retained for HUD/scan log
 4. `npm test` — 190+ passing
 
 **Repo:** `property-distress-analyzer`
 
 ---
 
-### Phase 12: Property Analyzer — All Surfaces
+### Phase 21: Cross-App Premium QA
 
-**Goal:** Reskin all Analyzer UI surfaces to Heat.
+**Goal:** End-to-end brand consistency after login.
 
-**Surfaces:** Sidebar, command bar, KPIs, property cards, scan progress, review overlay, modals, settings, landing page
+**Audit path:** Hub → Collect → Bridge → all Forge pages → Analyzer → Hub
 
 **Success criteria:**
-1. First impression matches Command Hub warmth (ember accents, Anton headlines)
-2. Tier colors remain semantically distinct within Heat palette
-3. Review keyboard shortcuts (1–5) unchanged
-4. Landing page hero matches Hub gradient title treatment
+1. Every post-login page passes visual checklist in `v1.2-PREMIUM-BRAND.md`
+2. Login page unchanged (snapshot/regression)
+3. All three repo test suites green
+4. M3 milestone ready for `/gsd:complete-milestone`
 
-**Repo:** `property-distress-analyzer`
+**Repos:** all three
 
 ---
 
-### Phase 13: Cross-App QA & Polish
+## v1.1 Unified Heat Design (reference — phases 7–13)
 
-**Goal:** End-to-end visual consistency and regression sweep.
-
-**Success criteria:**
-1. Side-by-side audit: Landing → Hub → every Forge page → Analyzer → Bridge
-2. Nav active states correct on all 12+ surfaces
-3. Distress OS `npm test`, Form Forge `gsd.py verify`, Analyzer `npm test` all green
-4. `docs/gsd` milestone marked `in_progress` → ready for close after ship
-
-**Repos:** all three
+See prior ROADMAP entries in git history. v1.1 establishes Heat tokens + global nav; v1.2 elevates to login-page premium on top.
 
 ---
 
@@ -148,10 +190,11 @@ Start with `/gsd:plan-phase 7` or `/gsd:discuss-phase 7`
 
 | Phase | Plans | Status | Completed |
 |-------|-------|--------|-----------|
-| 7. Heat Design System | 0/1 | Pending | — |
-| 8. Global Navigation Shell | 0/1 | Pending | — |
-| 9. Form Forge Tokens | 0/1 | Pending | — |
-| 10. Form Forge Surfaces | 0/1 | Pending | — |
-| 11. Analyzer Tokens | 0/1 | Pending | — |
-| 12. Analyzer Surfaces | 0/1 | Pending | — |
-| 13. Cross-App QA | 0/1 | Pending | — |
+| 14. Premium Design System | 0/1 | Pending | — |
+| 15. Shell & Nav Polish | 0/1 | Pending | — |
+| 16. Command Hub | 0/1 | Pending | — |
+| 17. Collect Records | 0/1 | Pending | — |
+| 18. Data Bridge | 0/1 | Pending | — |
+| 19. Form Forge Premium | 0/1 | Pending | — |
+| 20. Analyzer Premium | 0/1 | Pending | — |
+| 21. Cross-App QA | 0/1 | Pending | — |
