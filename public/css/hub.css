@@ -157,3 +157,14 @@ body {
   color: var(--ember);
   text-decoration: underline;
 }
+
+.hub-card-link-direct {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.hub-card-link-direct:hover {
+  color: var(--text);
+}

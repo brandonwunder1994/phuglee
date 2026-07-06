@@ -1,11 +1,9 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-
-const PORT = Number(process.env.DISTRESS_OS_PORT || 3000);
-const HOST = process.env.DISTRESS_OS_HOST || '127.0.0.1';
-const ROOT = __dirname;
-const PUBLIC = path.join(ROOT, 'public');
+const config = require('./lib/config');
+const { isForgeRequest, proxyToForge, checkForgeHealth } = require('./lib/forge-proxy');
+const { ensureForgeRunning } = require('./lib/forge-process');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -14,11 +12,6 @@ const MIME = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2'
-};
-
-const ROUTES = {
-  '/': 'index.html',
-  '/heat': 'heat.html'
 };
 
 function send(res, status, body, type) {
@@ -31,8 +24,8 @@ function send(res, status, body, type) {
 
 function serveStatic(urlPath, res) {
   const rel = urlPath.replace(/^\//, '');
-  const file = path.normalize(path.join(PUBLIC, rel));
-  if (!file.startsWith(PUBLIC)) {
+  const file = path.normalize(path.join(config.PUBLIC, rel));
+  if (!file.startsWith(config.PUBLIC)) {
     send(res, 403, 'Forbidden');
     return;
   }
@@ -44,22 +37,30 @@ function serveStatic(urlPath, res) {
   send(res, 200, fs.readFileSync(file), MIME[ext] || 'application/octet-stream');
 }
 
-const server = http.createServer((req, res) => {
+async function handleRequest(req, res) {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
-  if (req.method !== 'GET' && req.method !== 'HEAD') {
-    send(res, 405, 'Method not allowed');
-    return;
-  }
-
   if (pathname === '/api/health') {
-    send(res, 200, JSON.stringify({ ok: true, service: 'distress-os', version: '0.1.0' }), 'application/json');
+    const forge = await checkForgeHealth();
+    send(res, 200, JSON.stringify({
+      ok: true,
+      service: 'distress-os',
+      version: '0.2.0',
+      modules: {
+        formForge: forge.ok ? 'up' : 'down'
+      }
+    }), 'application/json');
     return;
   }
 
-  if (ROUTES[pathname]) {
-    const file = path.join(PUBLIC, ROUTES[pathname]);
+  if (isForgeRequest(pathname)) {
+    proxyToForge(req, res, pathname, url.search);
+    return;
+  }
+
+  if (config.DISTRESS_ROUTES[pathname]) {
+    const file = path.join(config.PUBLIC, config.DISTRESS_ROUTES[pathname]);
     if (fs.existsSync(file)) {
       const html = fs.readFileSync(file, 'utf8');
       if (req.method === 'HEAD') {
@@ -71,19 +72,36 @@ const server = http.createServer((req, res) => {
     }
   }
 
-  if (pathname.startsWith('/css/') || pathname.startsWith('/js/') || pathname.startsWith('/assets/')) {
-    if (req.method === 'HEAD') {
-      serveStatic(pathname, { writeHead: (s, h) => res.writeHead(s, h), end: () => res.end() });
-    } else {
-      serveStatic(pathname, res);
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    if (pathname.startsWith('/css/') || pathname.startsWith('/js/') || pathname.startsWith('/assets/')) {
+      if (req.method === 'HEAD') {
+        serveStatic(pathname, { writeHead: (s, h) => res.writeHead(s, h), end: () => res.end() });
+      } else {
+        serveStatic(pathname, res);
+      }
+      return;
     }
-    return;
   }
 
   send(res, 404, 'Not found');
+}
+
+const server = http.createServer((req, res) => {
+  handleRequest(req, res).catch((err) => {
+    console.error('[Distress OS] Request error:', err);
+    if (!res.headersSent) send(res, 500, 'Internal server error');
+  });
 });
 
-server.listen(PORT, HOST, () => {
-  console.log(`Distress OS running at http://${HOST}:${PORT}`);
-  console.log(`Also try http://distressos.local:${PORT} (if hosts entry exists)`);
+server.listen(config.PORT, config.HOST, async () => {
+  console.log(`Distress OS running at http://${config.HOST}:${config.PORT}`);
+  console.log(`Form Forge proxy: http://${config.HOST}:${config.PORT}${config.FORGE_PREFIX}/`);
+
+  const forge = await ensureForgeRunning({ spawnIfMissing: true });
+  if (forge.running) {
+    console.log(forge.spawned ? 'Form Forge started automatically' : 'Form Forge already running');
+  } else {
+    console.warn('Form Forge not available — open via direct port 8787 or check modules/form-forge link');
+    if (forge.error) console.warn(forge.error);
+  }
 });
