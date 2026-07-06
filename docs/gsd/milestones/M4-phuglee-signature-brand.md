@@ -1,6 +1,7 @@
 # M4 — Phuglee Signature Brand (v1.3)
 
-> **Status:** `in_progress`  
+> **Status:** `complete`  
+> **Closed:** 2026-07-06
 > **Created:** 2026-07-06  
 > **Depends on:** M3 (v1.2 Premium Brand Experience — complete)  
 > **Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`  
@@ -50,15 +51,15 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 | 28 | Analyzer — Signature Pass | BRAND-24–26 | complete |
 | 29 | States & Micro-interactions | BRAND-27–30 | complete |
 | 30 | A11y, Performance, SEO | BRAND-31–34 | complete |
-| 31 | Cross-App Signature QA | BRAND-35–37 | pending |
+| 31 | Cross-App Signature QA | BRAND-35–37 | complete |
 
 ## Cross-repo touch points
 
 | Repo | Phases |
 |------|--------|
-| `distress-os` | 22–26, 29–31 |
-| `city-list-requests` | 27, 29, 30 |
-| `property-distress-analyzer` | 28, 29, 30 |
+| `distress-os` | 22–31 |
+| `city-list-requests` | 27, 29–31 |
+| `property-distress-analyzer` | 28–31 |
 
 ## Constraints
 
@@ -76,6 +77,6 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 4. Branded loading/empty/error states on all major surfaces
 5. All test suites green (known Forge lint-imports pre-existing exception documented)
 
-## Next step
+## Closure
 
-`/gsd:discuss-phase 31` or `/gsd:plan-phase 31` — Cross-App Signature QA (BRAND-35–37)
+`docs/gsd/plans/2026-07-06-m4-milestone-closure.md` — `/gsd:complete-milestone` executed 2026-07-06.

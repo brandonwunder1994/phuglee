@@ -50,28 +50,24 @@
 
 ---
 
-## v1.3 Phuglee Signature Brand (Planned: 2026-07-06)
+## v1.3 Phuglee Signature Brand (Shipped: 2026-07-06)
 
 **Goal:** Complete signature brand rebuild — premium, edgy, artistic, dark immersive. Logo SVG palette is ground truth. **Full site including login.**
 
-**Phases:** 22–31
+**Phases:** 22–31 (complete)
 
 **Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`  
 **Site audit:** `.planning/SITE-AUDIT.md`  
 **GSD doc:** `docs/gsd/milestones/M4-phuglee-signature-brand.md`
 
-**Page coverage:**
-- Shell: Home (`/`), auth modal, Command Hub, Collect, Bridge, global nav
-- Form Forge: 7 pages
-- Property Analyzer: all surfaces + landing
-- Loading/empty/error states across all apps
+**Shipped:**
+- Phuglee design system + logo injector + pattern tiles
+- Home `/` signature rebuild + auth flows
+- Shell pages, Form Forge (7), Analyzer (all surfaces + landing)
+- Branded loading/empty/error states + micro-interactions
+- A11y, perf cache tiers, SEO/OG
+- Cross-app QA — 14 surfaces, ember grep clean
 
-**Supersedes M3:**
-- Login page unlocked for full rebuild
-- Logo orange `#E58435` replaces Heat ember `#e85d04`
-- `phuglee-logo.js` SVG integration + pattern system
-- Orchestrated motion + branded state moments
-
-**Next step:** `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
+**Closed:** 2026-07-06 — `docs/gsd/plans/2026-07-06-m4-milestone-closure.md`
 
 ---

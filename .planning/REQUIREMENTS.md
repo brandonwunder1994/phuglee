@@ -72,11 +72,11 @@
 - [x] **BRAND-33**: Lighthouse perf target 90+ on shell pages
 - [x] **BRAND-34**: SEO meta + OG on shell pages + Analyzer landing
 
-### Cross-App Signature QA (Phase 31)
+### Cross-App Signature QA (Phase 31) — validated
 
-- [ ] **BRAND-35**: Visual audit — all 13+ pages side-by-side brand checklist
-- [ ] **BRAND-36**: All test suites green (Forge lint-imports exception documented)
-- [ ] **BRAND-37**: M4 ready for `/gsd:complete-milestone`
+- [x] **BRAND-35**: Visual audit — all 13+ pages side-by-side brand checklist
+- [x] **BRAND-36**: All test suites green (Forge lint-imports exception documented)
+- [x] **BRAND-37**: M4 ready for `/gsd:complete-milestone`
 
 ---
 
