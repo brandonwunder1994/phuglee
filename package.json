@@ -1,0 +1,9 @@
+{
+  "name": "distress-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Distress OS — unified shell for Form Forge and Property Distress Analyzer",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
