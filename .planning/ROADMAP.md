@@ -31,7 +31,7 @@ Start with `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
 | 25 | Auth Flows | Modal + pricing + success overlay | BRAND-15–17 | complete |
 | 26 | Shell Pages | `/heat`, `/collect`, `/bridge` editorial pass | BRAND-18–20 | complete |
 | 27 | Form Forge — Signature Pass | 7 pages `phuglee-forge.css` | BRAND-21–23 | complete |
-| 28 | Analyzer — Signature Pass | All surfaces `phuglee-analyzer.css` | BRAND-24–26 | pending |
+| 28 | Analyzer — Signature Pass | All surfaces `phuglee-analyzer.css` | BRAND-24–26 | complete |
 | 29 | States & Micro-interactions | Loading/empty/error + hover motion | BRAND-27–30 | pending |
 | 30 | A11y, Performance, SEO | WCAG, Lighthouse, meta tags | BRAND-31–34 | pending |
 | 31 | Cross-App Signature QA | Full brand audit + regression | BRAND-35–37 | pending |

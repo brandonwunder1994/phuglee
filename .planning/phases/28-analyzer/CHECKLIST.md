@@ -2,21 +2,23 @@
 
 **Requirements:** BRAND-24–26  
 **Repo:** `property-distress-analyzer`  
-**Status:** pending
+**Status:** complete
 
 ## Checklist
 
-- [ ] Create `public/css/phuglee-analyzer.css` (extends premium-analyzer)
-- [ ] Sidebar — charcoal glass, orange active rail, cream labels
-- [ ] Command bar — orange upload CTA
-- [ ] KPIs — Anton numbers, gold deltas
-- [ ] Property cards — phuglee-panel chrome; tier colors preserved
-- [ ] Review overlay — dark blur, signal-pill tier buttons
-- [ ] Modals — panel rise + grain
-- [ ] `landing.css` — cream-to-orange hero, pattern bg
-- [ ] JetBrains Mono retained for HUD/scan log
-- [ ] Review keyboard shortcuts (1–5) unchanged
-- [ ] `npm test` — 190+ passing
+- [x] Create `public/css/phuglee-analyzer.css` (extends premium-analyzer)
+- [x] Copy `phuglee-pattern.svg` to `public/images/`
+- [x] Link on `index.html`
+- [x] Sidebar — charcoal glass, orange active rail, cream labels
+- [x] Command bar — orange upload CTA
+- [x] KPIs — Anton numbers, gold deltas (`command-kpi-pct`)
+- [x] Property cards — phuglee-panel chrome; tier colors preserved
+- [x] Review overlay — dark blur, signal-pill tier buttons
+- [x] Modals — panel rise + grain
+- [x] `landing.css` — cream-to-orange hero, pattern bg
+- [x] JetBrains Mono retained for HUD/scan log
+- [x] Review keyboard shortcuts (1–5) unchanged — no JS touched
+- [x] `npm test` — 190/190 passing
 
 ## Success criteria
 

@@ -52,11 +52,11 @@
 - [x] **BRAND-22**: Logo palette on tables, modals, map controls
 - [x] **BRAND-23**: Mascot watermark empty states
 
-### Analyzer Signature Pass (Phase 28)
+### Analyzer Signature Pass (Phase 28) — validated
 
-- [ ] **BRAND-24**: `phuglee-analyzer.css` — sidebar, command bar, KPIs
-- [ ] **BRAND-25**: Property cards + review overlay phuglee chrome; tier colors preserved
-- [ ] **BRAND-26**: Analyzer landing hero cream-to-orange + pattern bg
+- [x] **BRAND-24**: `phuglee-analyzer.css` — sidebar, command bar, KPIs
+- [x] **BRAND-25**: Property cards + review overlay phuglee chrome; tier colors preserved
+- [x] **BRAND-26**: Analyzer landing hero cream-to-orange + pattern bg
 
 ### States & Micro-interactions (Phase 29)
 

@@ -47,7 +47,7 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 | 25 | Auth Flows | BRAND-15–17 | complete |
 | 26 | Shell Pages — Hub, Collect, Bridge | BRAND-18–20 | complete |
 | 27 | Form Forge — Signature Pass | BRAND-21–23 | complete |
-| 28 | Analyzer — Signature Pass | BRAND-24–26 | pending |
+| 28 | Analyzer — Signature Pass | BRAND-24–26 | complete |
 | 29 | States & Micro-interactions | BRAND-27–30 | pending |
 | 30 | A11y, Performance, SEO | BRAND-31–34 | pending |
 | 31 | Cross-App Signature QA | BRAND-35–37 | pending |
