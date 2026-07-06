@@ -43,6 +43,11 @@ function isDistressStatic(pathname) {
   return pathname.startsWith('/css/') || pathname.startsWith('/js/') || pathname.startsWith('/assets/');
 }
 
+function serveLibAsBrowser(res, libFile, globalName) {
+  const src = fs.readFileSync(libFile, 'utf8').replace(/module\.exports\s*=\s*/, `window.${globalName}=`);
+  send(res, 200, src, 'application/javascript; charset=utf-8');
+}
+
 async function handleRequest(req, res) {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname.replace(/\/$/, '') || '/';
@@ -52,7 +57,7 @@ async function handleRequest(req, res) {
     send(res, 200, JSON.stringify({
       ok: true,
       service: 'distress-os',
-      version: '0.4.0',
+      version: '0.5.0',
       modules: {
         formForge: forge.ok ? 'up' : 'down',
         propertyAnalyzer: analyzer.ok ? 'up' : 'down'
@@ -82,6 +87,15 @@ async function handleRequest(req, res) {
       }
       return;
     }
+  }
+
+  if (pathname === '/js/bridge-schema.js' && (req.method === 'GET' || req.method === 'HEAD')) {
+    if (req.method === 'HEAD') {
+      send(res, 200, '', 'application/javascript; charset=utf-8');
+    } else {
+      serveLibAsBrowser(res, path.join(config.ROOT, 'lib', 'bridge-schema.js'), 'DistressBridgeSchema');
+    }
+    return;
   }
 
   if ((req.method === 'GET' || req.method === 'HEAD') && isDistressStatic(pathname)) {

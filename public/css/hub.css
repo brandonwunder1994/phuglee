@@ -301,6 +301,44 @@ body {
   background: rgba(255, 255, 255, 0.03);
 }
 
+.hub-bridge {
+  margin-bottom: 2rem;
+}
+
+.hub-bridge-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1.5rem 1.75rem;
+  background: var(--bg-elevated);
+  border: 1px dashed var(--border-hot);
+  border-radius: 10px;
+}
+
+.hub-bridge-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 0.35rem;
+}
+
+.hub-bridge-inner h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.hub-bridge-inner p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  max-width: 520px;
+}
+
 .hub-footer {
   text-align: center;
   padding-top: 1rem;

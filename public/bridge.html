@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distress OS — Send to Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/shell.css">
+  <link rel="stylesheet" href="/css/bridge.css">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="bridge-bg" aria-hidden="true"></div>
+
+  <nav class="shell-nav" aria-label="Distress OS">
+    <a href="/" class="shell-brand">
+      <span class="shell-brand-mark" aria-hidden="true">DO</span>
+      <span class="shell-brand-text">Distress OS</span>
+    </a>
+    <div class="shell-links">
+      <a href="/" class="shell-link">Home</a>
+      <a href="/heat" class="shell-link">Command Hub</a>
+      <a href="/bridge" class="shell-link active" aria-current="page">Data Bridge</a>
+      <a href="/forge/" class="shell-link">Form Forge</a>
+      <a href="/analyzer/" class="shell-link">Property Analyzer</a>
+    </div>
+    <div class="shell-status" aria-live="polite">
+      <span class="shell-status-pill" id="status-forge"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Forge</span></span>
+      <span class="shell-status-pill" id="status-analyzer"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Analyzer</span></span>
+    </div>
+  </nav>
+
+  <main class="bridge-main">
+    <header class="bridge-hero">
+      <p class="bridge-eyebrow">Optional · Phase 5</p>
+      <h1>Send to Analyzer</h1>
+      <p class="bridge-lead">Convert a Form Forge city response list into a Property Analyzer-ready spreadsheet. Manual upload in Analyzer still works exactly as before — this is a shortcut, not a replacement.</p>
+    </header>
+
+    <section class="bridge-panel" aria-labelledby="bridge-step-1">
+      <h2 id="bridge-step-1">1 · Pick a city list from Form Forge</h2>
+      <div class="bridge-row">
+        <label>
+          City
+          <select id="bridge-city" disabled>
+            <option value="">Loading cities…</option>
+          </select>
+        </label>
+        <label>
+          Response list file
+          <select id="bridge-file" disabled>
+            <option value="">Select a city first</option>
+          </select>
+        </label>
+      </div>
+      <p class="bridge-hint" id="bridge-file-hint">Only Excel (.xlsx, .xls) and CSV files can be converted.</p>
+    </section>
+
+    <section class="bridge-panel" id="bridge-mapping-panel" hidden aria-labelledby="bridge-step-2">
+      <h2 id="bridge-step-2">2 · Confirm column mapping</h2>
+      <div class="bridge-mapping" id="bridge-mapping"></div>
+    </section>
+
+    <section class="bridge-panel" id="bridge-preview-panel" hidden aria-labelledby="bridge-step-3">
+      <h2 id="bridge-step-3">3 · Preview &amp; export</h2>
+      <p class="bridge-preview-meta" id="bridge-preview-meta"></p>
+      <div class="bridge-preview-wrap">
+        <table class="bridge-preview" id="bridge-preview">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="bridge-actions">
+        <button type="button" class="bridge-btn bridge-btn-primary" id="bridge-download" disabled>Download Analyzer Excel</button>
+        <a href="/analyzer/" class="bridge-btn bridge-btn-ghost" id="bridge-open-analyzer">Open Property Analyzer</a>
+      </div>
+      <p class="bridge-note">After download, upload the file in Property Analyzer using <strong>Upload Excel</strong> as you normally would.</p>
+    </section>
+
+    <p class="bridge-error" id="bridge-error" hidden role="alert"></p>
+  </main>
+
+  <script src="/js/bridge-schema.js"></script>
+  <script src="/js/bridge.js"></script>
+  <script src="/js/shell.js"></script>
+</body>
+</html>
