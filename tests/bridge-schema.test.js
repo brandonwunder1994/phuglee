@@ -45,3 +45,19 @@ test('identifies spreadsheet file extensions', () => {
   assert.equal(isSpreadsheetFile('violations.xlsx'), true);
   assert.equal(isSpreadsheetFile('scan.pdf'), false);
 });
+
+test('does not map state to street when State column is absent', () => {
+  const { detectColumnMap } = require('../lib/bridge-schema');
+  const headers = ['Street Address', 'City', 'Zip', 'First Name', 'Last Name', 'Phone', 'Email'];
+  const map = detectColumnMap(headers);
+  assert.equal(map.street, 'Street Address');
+  assert.equal(map.state, null);
+});
+
+test('does not assign the same header to two fields', () => {
+  const { detectColumnMap } = require('../lib/bridge-schema');
+  const headers = ['Street Address', 'City', 'State', 'Zip', 'First Name', 'Last Name', 'Phone', 'Email'];
+  const map = detectColumnMap(headers);
+  const used = Object.values(map).filter(Boolean);
+  assert.equal(new Set(used).size, used.length);
+});

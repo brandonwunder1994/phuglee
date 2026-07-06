@@ -4,8 +4,8 @@ const path = require('path');
 const config = require('./lib/config');
 const { isForgeRequest, proxyToForge, checkForgeHealth } = require('./lib/forge-proxy');
 const { isAnalyzerRequest, proxyToAnalyzer, checkAnalyzerHealth } = require('./lib/analyzer-proxy');
-const { ensureForgeRunning } = require('./lib/forge-process');
-const { ensureAnalyzerRunning } = require('./lib/analyzer-process');
+const { ensureForgeRunning, stopForgeProcess } = require('./lib/forge-process');
+const { ensureAnalyzerRunning, stopAnalyzerProcess } = require('./lib/analyzer-process');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -141,3 +141,12 @@ server.listen(config.PORT, config.HOST, async () => {
     if (analyzer.error) console.warn(analyzer.error);
   }
 });
+
+function shutdown() {
+  stopForgeProcess();
+  stopAnalyzerProcess();
+  process.exit(0);
+}
+
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);

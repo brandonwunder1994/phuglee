@@ -47,3 +47,15 @@ test('rewrites analyzer location headers', () => {
   const out = analyzerRewriter.rewriteLocationHeader('http://127.0.0.1:3456/');
   assert.equal(out, '/analyzer/');
 });
+
+test('rewrites template literal fetch calls', () => {
+  const js = 'const res = await fetch(`/api/portal/city/${encodeURIComponent(id)}`);';
+  const out = forgeRewriter.rewriteTextBody(js, 'application/javascript');
+  assert.ok(out.includes('fetch(`/forge/api/portal/city/${encodeURIComponent(id)}`)'));
+});
+
+test('rewrites template literal postJson calls', () => {
+  const js = 'await postJson(`/api/portal/city/${id}/submit`, { notes });';
+  const out = forgeRewriter.rewriteTextBody(js, 'application/javascript');
+  assert.ok(out.includes('postJson(`/forge/api/portal/city/${id}/submit`'));
+});
