@@ -3,33 +3,33 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Phuglee Signature Brand
 status: in_progress
-last_updated: "2026-07-06T25:30:00.000Z"
-last_activity: 2026-07-06 — Phase 25 Auth flows shipped
+last_updated: "2026-07-06T26:45:00.000Z"
+last_activity: 2026-07-06 — Phase 26 Shell pages shipped
 progress:
   total_phases: 10
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # State
 
 Milestone: **v1.3 Phuglee Signature Brand** — in progress  
-Last activity: 2026-07-06 — Phase 25 complete (auth modal signature brand)
+Last activity: 2026-07-06 — Phase 26 complete (shell pages signature brand)
 
 ## Current Position
 
-Phase: 26 (pending)  
-Plan: `.planning/phases/26-shell-pages/CHECKLIST.md`  
+Phase: 27 (pending)  
+Plan: `.planning/phases/27-form-forge/CHECKLIST.md`  
 Status: Ready for approval to execute
 
-## Phase 25 Shipped
+## Phase 26 Shipped
 
-- `auth.css` full phuglee retokenize — charcoal panels, orange focus, terracotta errors
-- Pricing cards compose `phuglee-panel-featured` / `phuglee-panel-exclusive`
-- Auth CTAs — gold→orange gradient with shine sweep
-- Success overlay — logo-gold pulse animation
-- All auth.js DOM IDs preserved
+- `hub.css` + `heat.html` — cream-to-orange hero, pattern sidebar accent, phuglee pricing + CTA strip
+- `collect-records.css` + `collect.html` — poster hero, phuglee dialogs, featured choice cards
+- `bridge.css` + `bridge.html` + `bridge.js` — step badges, taupe/mono table headers, error wrap + retry
+- All three pages — `data-phuglee-reveal` stagger via `phuglee-motion.js`
+- All DOM IDs and JS hooks preserved
 
 ## Verification
 

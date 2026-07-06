@@ -1,9 +1,38 @@
+/* Collect Records — Phuglee poster energy */
+
+.collect-landing {
+  position: relative;
+}
+
+.collect-landing::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url('/images/phuglee-pattern.svg');
+  background-size: 300px 300px;
+  background-repeat: repeat;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 0%, transparent 75%);
+  z-index: 0;
+}
+
+.collect-landing .landing-inner {
+  position: relative;
+  z-index: 1;
+}
+
 .collect-landing .landing-title {
   font-size: clamp(2.75rem, 10vw, 5.5rem);
-  background: linear-gradient(180deg, var(--cream) 20%, var(--flame) 100%);
+  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.collect-landing .landing-eyebrow {
+  color: var(--phuglee-orange);
 }
 
 .collect-dialog {
@@ -17,13 +46,17 @@
 }
 
 .collect-dialog::backdrop {
-  background: rgba(8, 6, 5, 0.78);
-  backdrop-filter: blur(6px);
+  background: rgba(13, 13, 13, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .collect-dialog-card {
-  padding: 1.5rem;
   animation: rise-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.collect-dialog-card.phuglee-panel {
+  padding: 1.5rem;
 }
 
 .collect-dialog-head {
@@ -47,10 +80,10 @@
   flex-shrink: 0;
   width: 2rem;
   height: 2rem;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(174, 163, 143, 0.2);
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--phuglee-stone);
   font-size: 1.25rem;
   line-height: 1;
   cursor: pointer;
@@ -58,9 +91,9 @@
 }
 
 .collect-dialog-close:hover {
-  color: var(--text);
-  border-color: var(--border-hot);
-  background: rgba(232, 93, 4, 0.1);
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.4);
+  background: rgba(229, 132, 53, 0.12);
 }
 
 .collect-dialog-lead {
@@ -71,7 +104,7 @@
 }
 
 .collect-dialog-lead strong {
-  color: var(--flame);
+  color: var(--phuglee-orange);
   font-weight: 600;
 }
 
@@ -96,36 +129,32 @@
 .collect-choice-body {
   display: block;
   padding: 0.9rem 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(174, 163, 143, 0.16);
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.02);
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-.collect-choice input:checked + .collect-choice-body {
-  border-color: var(--border-hot);
-  background: rgba(232, 93, 4, 0.1);
-  box-shadow: 0 0 0 1px rgba(232, 93, 4, 0.2);
-}
-
-.collect-choice input:focus-visible + .collect-choice-body {
-  outline: 2px solid var(--heat-core);
-  outline-offset: 2px;
+  background: rgba(0, 0, 0, 0.28);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
 }
 
 .collect-choice:hover .collect-choice-body {
-  border-color: var(--border-hot);
+  border-color: rgba(229, 132, 53, 0.35);
   transform: translateX(4px);
-  background: rgba(232, 93, 4, 0.04);
-}
-
-.collect-choice-body {
-  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  background: rgba(229, 132, 53, 0.05);
 }
 
 .collect-choice input:checked + .collect-choice-body {
+  border-color: var(--phuglee-orange);
+  background: linear-gradient(165deg, rgba(229, 132, 53, 0.14) 0%, rgba(0, 0, 0, 0.32) 60%);
+  box-shadow: var(--shadow-glow-orange);
   transform: translateX(6px);
-  box-shadow: 0 0 24px rgba(232, 93, 4, 0.12);
+}
+
+.collect-choice input:focus-visible + .collect-choice-body {
+  outline: 2px solid var(--phuglee-gold);
+  outline-offset: 2px;
 }
 
 .collect-choice-title {
@@ -156,24 +185,24 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--phuglee-stone);
 }
 
 .collect-form input {
   font-family: var(--font-body);
   font-size: 1rem;
   padding: 0.65rem 0.75rem;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(174, 163, 143, 0.2);
   border-radius: var(--radius-sm);
-  background: var(--bg-deep);
+  background: rgba(0, 0, 0, 0.35);
   color: var(--text);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .collect-form input:focus {
   outline: none;
-  border-color: var(--border-hot);
-  box-shadow: 0 0 0 2px rgba(232, 93, 4, 0.15);
+  border-color: var(--phuglee-orange);
+  box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.15);
 }
 
 .collect-dialog-actions {
@@ -197,19 +226,19 @@
 }
 
 .collect-status.ok {
-  color: var(--heat-ok);
+  color: var(--phuglee-success);
 }
 
 .collect-status.err {
-  color: var(--heat-danger);
+  color: var(--phuglee-danger);
 }
 
 .collect-status.busy {
-  color: var(--heat-warn);
+  color: var(--phuglee-gold);
 }
 
 @media (max-width: 480px) {
-  .collect-dialog-card {
+  .collect-dialog-card.phuglee-panel {
     padding: 1.15rem;
   }
 
@@ -219,7 +248,8 @@
   }
 
   .collect-dialog-actions .btn-heat.sm,
-  .collect-dialog-actions .btn-landing-secondary {
+  .collect-dialog-actions .btn-landing-secondary,
+  .collect-dialog-actions .phuglee-btn {
     width: 100%;
     justify-content: center;
   }

@@ -35,24 +35,23 @@
 
   <div id="distress-os-nav-mount"></div>
 
-  <main class="landing collect-landing">
-    <div class="landing-inner">
+  <main class="landing collect-landing phuglee-pattern-bg phuglee-pattern-bg--medium" data-phuglee-reveal>
+    <div class="landing-inner" data-phuglee-reveal-child>
       <p class="landing-eyebrow">Collect Records</p>
       <h1 class="landing-title">Hit Up the City!</h1>
       <p class="landing-tagline premium-tagline">All the Tools You Need to Get Your Leads from The City/County</p>
       <div class="landing-actions">
-        <button type="button" class="btn-heat" id="btn-start-requests">
+        <button type="button" class="btn-heat phuglee-btn phuglee-btn-primary" id="btn-start-requests">
           <span class="btn-heat-label">Start Requests</span>
           <span class="btn-heat-shine" aria-hidden="true"></span>
         </button>
-        <button type="button" class="btn-landing-secondary" id="btn-pdf-filler-info">PDF Filler Info</button>
+        <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" id="btn-pdf-filler-info">PDF Filler Info</button>
       </div>
     </div>
   </main>
 
   <dialog class="collect-dialog" id="start-requests-dialog" aria-labelledby="start-requests-title">
-    <div class="collect-dialog-card premium-panel">
-      <span class="premium-panel-grain" aria-hidden="true"></span>
+    <div class="collect-dialog-card phuglee-panel">
       <div class="collect-dialog-head">
         <h2 id="start-requests-title">How do you want to request records?</h2>
         <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
@@ -83,7 +82,7 @@
       </div>
       <div class="collect-dialog-actions">
         <button type="button" class="btn-landing-secondary" data-close-dialog>Cancel</button>
-        <button type="button" class="btn-heat sm" id="btn-confirm-workflow">
+        <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-confirm-workflow">
           <span class="btn-heat-label">Continue</span>
         </button>
       </div>
@@ -91,8 +90,7 @@
   </dialog>
 
   <dialog class="collect-dialog" id="pdf-filler-dialog" aria-labelledby="pdf-filler-title">
-    <div class="collect-dialog-card premium-panel">
-      <span class="premium-panel-grain" aria-hidden="true"></span>
+    <div class="collect-dialog-card phuglee-panel">
       <div class="collect-dialog-head">
         <h2 id="pdf-filler-title">PDF Filler Info</h2>
         <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
@@ -118,7 +116,7 @@
       <p class="collect-status" id="pdf-filler-status" role="status" aria-live="polite"></p>
       <div class="collect-dialog-actions">
         <button type="button" class="btn-landing-secondary" data-close-dialog>Cancel</button>
-        <button type="button" class="btn-heat sm" id="btn-save-filler">
+        <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-save-filler">
           <span class="btn-heat-label">Save &amp; Update All PDFs</span>
         </button>
       </div>

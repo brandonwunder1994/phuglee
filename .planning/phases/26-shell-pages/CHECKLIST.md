@@ -2,29 +2,29 @@
 
 **Requirements:** BRAND-18–20  
 **Repo:** `distress-os`  
-**Status:** pending
+**Status:** complete
 
 ## Checklist
 
 ### `/heat` — How It Works (BRAND-18)
-- [ ] Retokenize `hub.css` — cream-to-orange hero gradient, editorial step blocks
-- [ ] Logo pattern sidebar accent
-- [ ] Pricing grid → phuglee-panel parity with auth tiers
-- [ ] CTA bar → orange gradient strip with grain
+- [x] Retokenize `hub.css` — cream-to-orange hero gradient, editorial step blocks
+- [x] Logo pattern sidebar accent
+- [x] Pricing grid → phuglee-panel parity with auth tiers
+- [x] CTA bar → orange gradient strip with grain
 
 ### `/collect` — Collect Records (BRAND-19)
-- [ ] Retokenize `collect-records.css` — poster energy, oversized Anton hero
-- [ ] Pattern bleed layer on hero
-- [ ] Dialogs → phuglee-panel + orange hairline
-- [ ] Workflow choice cards → phuglee-panel-featured hover
+- [x] Retokenize `collect-records.css` — poster energy, oversized Anton hero
+- [x] Pattern bleed layer on hero
+- [x] Dialogs → phuglee-panel + orange hairline
+- [x] Workflow choice cards → phuglee-panel-featured hover
 
 ### `/bridge` — Data Bridge (BRAND-20)
-- [ ] Retokenize `bridge.css` — restrained pattern, orange step badges
-- [ ] Table headers taupe/mono; download → phuglee-btn-primary
-- [ ] Designed error state (terracotta inset + retry ghost)
+- [x] Retokenize `bridge.css` — restrained pattern, orange step badges
+- [x] Table headers taupe/mono; download → phuglee-btn-primary
+- [x] Designed error state (terracotta inset + retry ghost)
 
-- [ ] All three pages use phuglee-motion stagger on sections
-- [ ] `npm test` passing
+- [x] All three pages use phuglee-motion stagger on sections
+- [x] `npm test` passing (16/16)
 
 ## Success criteria
 

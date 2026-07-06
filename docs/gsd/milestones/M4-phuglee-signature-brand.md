@@ -45,7 +45,7 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 | 23 | Global Chrome & Motion | BRAND-07–10 | complete |
 | 24 | Home — Signature Rebuild | BRAND-11–14 | complete |
 | 25 | Auth Flows | BRAND-15–17 | complete |
-| 26 | Shell Pages — Hub, Collect, Bridge | BRAND-18–20 | pending |
+| 26 | Shell Pages — Hub, Collect, Bridge | BRAND-18–20 | complete |
 | 27 | Form Forge — Signature Pass | BRAND-21–23 | pending |
 | 28 | Analyzer — Signature Pass | BRAND-24–26 | pending |
 | 29 | States & Micro-interactions | BRAND-27–30 | pending |

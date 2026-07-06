@@ -29,7 +29,7 @@ Start with `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
 | 23 | Global Chrome & Motion | Nav/footer + motion primitives + proxy injection | BRAND-07–10 | complete |
 | 24 | Home — Signature Rebuild | `/` full brand moment (unlocked) | BRAND-11–14 | complete |
 | 25 | Auth Flows | Modal + pricing + success overlay | BRAND-15–17 | complete |
-| 26 | Shell Pages | `/heat`, `/collect`, `/bridge` editorial pass | BRAND-18–20 | pending |
+| 26 | Shell Pages | `/heat`, `/collect`, `/bridge` editorial pass | BRAND-18–20 | complete |
 | 27 | Form Forge — Signature Pass | 7 pages `phuglee-forge.css` | BRAND-21–23 | pending |
 | 28 | Analyzer — Signature Pass | All surfaces `phuglee-analyzer.css` | BRAND-24–26 | pending |
 | 29 | States & Micro-interactions | Loading/empty/error + hover motion | BRAND-27–30 | pending |

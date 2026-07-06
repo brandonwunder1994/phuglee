@@ -40,11 +40,11 @@
 - [x] **BRAND-16**: Pricing tiers → `.phuglee-panel-featured` / exclusive dashed
 - [x] **BRAND-17**: Success overlay logo-gold pulse
 
-### Shell Pages (Phase 26)
+### Shell Pages (Phase 26) — validated
 
-- [ ] **BRAND-18**: `/heat` editorial premium pass — pattern accent, orange CTA bar
-- [ ] **BRAND-19**: `/collect` poster energy — pattern bleed, phuglee dialogs
-- [ ] **BRAND-20**: `/bridge` refined tool — orange step badges, designed errors
+- [x] **BRAND-18**: `/heat` editorial premium pass — pattern accent, orange CTA bar
+- [x] **BRAND-19**: `/collect` poster energy — pattern bleed, phuglee dialogs
+- [x] **BRAND-20**: `/bridge` refined tool — orange step badges, designed errors
 
 ### Form Forge Signature Pass (Phase 27)
 

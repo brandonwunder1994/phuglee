@@ -26,38 +26,38 @@
   </div>
   <div class="bridge-bg" aria-hidden="true"></div>
   <div id="distress-os-nav-mount"></div>
-  <main class="bridge-main">
-    <header class="bridge-hero">
+  <main class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
+    <header class="bridge-hero" data-phuglee-reveal-child>
       <p class="bridge-eyebrow">Optional · Phase 5</p>
       <h1>Send to Analyzer</h1>
       <p class="bridge-lead">Convert a Form Forge city response list into a Property Analyzer-ready spreadsheet. Manual upload in Analyzer still works exactly as before — this is a shortcut, not a replacement.</p>
     </header>
-    <section class="bridge-panel premium-panel" aria-labelledby="bridge-step-1">
-      <span class="premium-panel-grain" aria-hidden="true"></span>
-      <h2 id="bridge-step-1">1 · Pick a city list from Form Forge</h2>
+    <section class="bridge-panel phuglee-panel" aria-labelledby="bridge-step-1" data-phuglee-reveal-child>
+      <h2 id="bridge-step-1"><span class="bridge-step-badge" aria-hidden="true">1</span> Pick a city list from Form Forge</h2>
       <div class="bridge-row">
         <label>City<select id="bridge-city" disabled><option value="">Loading cities…</option></select></label>
         <label>Response list file<select id="bridge-file" disabled><option value="">Select a city first</option></select></label>
       </div>
       <p class="bridge-hint" id="bridge-file-hint">Only Excel (.xlsx, .xls) and CSV files can be converted.</p>
     </section>
-    <section class="bridge-panel premium-panel" id="bridge-mapping-panel" hidden aria-labelledby="bridge-step-2">
-      <span class="premium-panel-grain" aria-hidden="true"></span>
-      <h2 id="bridge-step-2">2 · Confirm column mapping</h2>
+    <section class="bridge-panel phuglee-panel" id="bridge-mapping-panel" hidden aria-labelledby="bridge-step-2" data-phuglee-reveal-child>
+      <h2 id="bridge-step-2"><span class="bridge-step-badge" aria-hidden="true">2</span> Confirm column mapping</h2>
       <div class="bridge-mapping" id="bridge-mapping"></div>
     </section>
-    <section class="bridge-panel premium-panel" id="bridge-preview-panel" hidden aria-labelledby="bridge-step-3">
-      <span class="premium-panel-grain" aria-hidden="true"></span>
-      <h2 id="bridge-step-3">3 · Preview &amp; export</h2>
+    <section class="bridge-panel phuglee-panel" id="bridge-preview-panel" hidden aria-labelledby="bridge-step-3" data-phuglee-reveal-child>
+      <h2 id="bridge-step-3"><span class="bridge-step-badge" aria-hidden="true">3</span> Preview &amp; export</h2>
       <p class="bridge-preview-meta" id="bridge-preview-meta"></p>
       <div class="bridge-preview-wrap"><table class="bridge-preview" id="bridge-preview"><thead></thead><tbody></tbody></table></div>
       <div class="bridge-actions">
-        <button type="button" class="bridge-btn bridge-btn-primary" id="bridge-download" disabled>Download Analyzer Excel</button>
-        <a href="/analyzer/" class="bridge-btn bridge-btn-ghost" id="bridge-open-analyzer">Open Property Analyzer</a>
+        <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-download" disabled>Download Analyzer Excel</button>
+        <a href="/analyzer/" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-open-analyzer">Open Property Analyzer</a>
       </div>
       <p class="bridge-note">After download, upload the file in Property Analyzer using <strong>Upload Excel</strong> as you normally would.</p>
     </section>
-    <p class="bridge-error" id="bridge-error" hidden role="alert"></p>
+    <div class="bridge-error-wrap" id="bridge-error-wrap" hidden role="alert">
+      <p class="bridge-error" id="bridge-error"></p>
+      <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-retry" id="bridge-retry">Try again</button>
+    </div>
   </main>
   <div id="distress-os-footer-mount"></div>
   <script src="/js/phuglee-motion.js"></script>

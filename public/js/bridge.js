@@ -8,7 +8,9 @@
   const previewMeta = document.getElementById('bridge-preview-meta');
   const previewTable = document.getElementById('bridge-preview');
   const downloadBtn = document.getElementById('bridge-download');
+  const errorWrap = document.getElementById('bridge-error-wrap');
   const errorEl = document.getElementById('bridge-error');
+  const retryBtn = document.getElementById('bridge-retry');
   const fileHint = document.getElementById('bridge-file-hint');
 
   const Schema = window.DistressBridgeSchema;
@@ -18,9 +20,11 @@
   let headers = [];
   let columnMap = {};
   let convertedRows = [];
+  let lastFailedAction = 'loadCities';
 
   function showError(msg) {
-    errorEl.hidden = !msg;
+    const hasError = Boolean(msg);
+    errorWrap.hidden = !hasError;
     errorEl.textContent = msg || '';
   }
 
@@ -31,6 +35,7 @@
   }
 
   async function loadCities() {
+    lastFailedAction = 'loadCities';
     const data = await fetchJson(`${FORGE}/api/portal/cities/summary`);
     cities = data.items || data.cities || [];
     citySelect.innerHTML = '<option value="">Select a city…</option>';
@@ -63,6 +68,7 @@
       return;
     }
 
+    lastFailedAction = 'cityChange';
     cityDetail = await fetchJson(`${FORGE}/api/portal/city/${encodeURIComponent(id)}`);
     const files = spreadsheetFiles(cityDetail.response_lists);
     fileSelect.innerHTML = files.length
@@ -133,11 +139,13 @@
       convertedRows = [];
       previewPanel.hidden = true;
       downloadBtn.disabled = true;
+      lastFailedAction = 'mapping';
       showError(err.message || 'Could not convert with this mapping.');
     }
   }
 
   async function loadSpreadsheet(url) {
+    lastFailedAction = 'fileChange';
     const res = await fetch(`${FORGE}${url}`);
     if (!res.ok) throw new Error('Could not download list file from Form Forge.');
     const buffer = await res.arrayBuffer();
@@ -178,9 +186,27 @@
     XLSX.writeFile(wb, `distress-os-${state}-${cityName}-analyzer.xlsx`.replace(/[^\w.\-]+/g, '_'));
   }
 
+  async function onRetry() {
+    showError('');
+    try {
+      if (lastFailedAction === 'cityChange') {
+        await onCityChange();
+      } else if (lastFailedAction === 'fileChange') {
+        await onFileChange();
+      } else if (lastFailedAction === 'mapping') {
+        onMappingChange();
+      } else {
+        await loadCities();
+      }
+    } catch (err) {
+      showError(err.message || 'Something went wrong. Please try again.');
+    }
+  }
+
   citySelect?.addEventListener('change', () => { onCityChange().catch((e) => showError(e.message)); });
   fileSelect?.addEventListener('change', () => { onFileChange().catch((e) => showError(e.message)); });
   downloadBtn?.addEventListener('click', onDownload);
+  retryBtn?.addEventListener('click', () => { onRetry().catch((e) => showError(e.message)); });
 
   loadCities().catch((err) => showError(err.message || 'Could not load Form Forge cities. Is Form Forge running?'));
 })();
