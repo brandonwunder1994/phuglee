@@ -44,7 +44,7 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 | 22 | Phuglee Design System | BRAND-01–06 | complete |
 | 23 | Global Chrome & Motion | BRAND-07–10 | complete |
 | 24 | Home — Signature Rebuild | BRAND-11–14 | complete |
-| 25 | Auth Flows | BRAND-15–17 | pending |
+| 25 | Auth Flows | BRAND-15–17 | complete |
 | 26 | Shell Pages — Hub, Collect, Bridge | BRAND-18–20 | pending |
 | 27 | Form Forge — Signature Pass | BRAND-21–23 | pending |
 | 28 | Analyzer — Signature Pass | BRAND-24–26 | pending |
@@ -78,4 +78,4 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 
 ## Next step
 
-`/gsd:discuss-phase 25` or `/gsd:plan-phase 25`
+`/gsd:discuss-phase 26` or `/gsd:plan-phase 26`

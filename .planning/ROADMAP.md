@@ -28,7 +28,7 @@ Start with `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
 | 22 | Phuglee Design System | Logo-ground-truth tokens + components + SVG injector | BRAND-01–06 | complete |
 | 23 | Global Chrome & Motion | Nav/footer + motion primitives + proxy injection | BRAND-07–10 | complete |
 | 24 | Home — Signature Rebuild | `/` full brand moment (unlocked) | BRAND-11–14 | complete |
-| 25 | Auth Flows | Modal + pricing + success overlay | BRAND-15–17 | pending |
+| 25 | Auth Flows | Modal + pricing + success overlay | BRAND-15–17 | complete |
 | 26 | Shell Pages | `/heat`, `/collect`, `/bridge` editorial pass | BRAND-18–20 | pending |
 | 27 | Form Forge — Signature Pass | 7 pages `phuglee-forge.css` | BRAND-21–23 | pending |
 | 28 | Analyzer — Signature Pass | All surfaces `phuglee-analyzer.css` | BRAND-24–26 | pending |
@@ -209,7 +209,7 @@ See `docs/gsd/milestones/M2-unified-heat-design.md`. Heat tokens superseded by `
 | 22. Phuglee Design System | 1/1 | Complete | 2026-07-06 |
 | 23. Global Chrome & Motion | 1/1 | Complete | 2026-07-06 |
 | 24. Home Signature Rebuild | 1/1 | Complete | 2026-07-06 |
-| 25. Auth Flows | 0/1 | Pending | — |
+| 25. Auth Flows | 1/1 | Complete | 2026-07-06 |
 | 26. Shell Pages | 0/1 | Pending | — |
 | 27. Form Forge Signature | 0/1 | Pending | — |
 | 28. Analyzer Signature | 0/1 | Pending | — |

@@ -34,11 +34,11 @@
 - [x] **BRAND-13**: CTA uses `.phuglee-btn-primary` with glow + shine
 - [x] **BRAND-14**: SEO meta description + OG tags on `/`
 
-### Auth Flows (Phase 25)
+### Auth Flows (Phase 25) — validated
 
-- [ ] **BRAND-15**: Auth modal phuglee panels (`auth.css`)
-- [ ] **BRAND-16**: Pricing tiers → `.phuglee-panel-featured` / exclusive dashed
-- [ ] **BRAND-17**: Success overlay logo-gold pulse
+- [x] **BRAND-15**: Auth modal phuglee panels (`auth.css`)
+- [x] **BRAND-16**: Pricing tiers → `.phuglee-panel-featured` / exclusive dashed
+- [x] **BRAND-17**: Success overlay logo-gold pulse
 
 ### Shell Pages (Phase 26)
 

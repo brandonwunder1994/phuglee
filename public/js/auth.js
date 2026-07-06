@@ -201,8 +201,8 @@
     return Object.keys(PLANS).map(function (key) {
       var plan = PLANS[key];
       var classes = ['auth-pricing-card'];
-      if (plan.featured) classes.push('auth-pricing-featured');
-      if (plan.exclusive) classes.push('auth-pricing-exclusive');
+      if (plan.featured) classes.push('auth-pricing-featured', 'phuglee-panel-featured');
+      if (plan.exclusive) classes.push('auth-pricing-exclusive', 'phuglee-panel-exclusive');
 
       var priceHtml = plan.period
         ? '<span class="auth-pricing-amount">' + plan.amount + '</span><span class="auth-pricing-period">' + plan.period + '</span>'
