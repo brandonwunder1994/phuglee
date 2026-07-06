@@ -103,6 +103,10 @@
       : '';
 
     return `
+<div class="shell-loading-strip" id="shell-loading-strip" hidden aria-live="polite">
+  <div class="phuglee-loading-bar" aria-hidden="true"></div>
+  <span class="phuglee-loading-copy">Heating up leads…</span>
+</div>
 <header class="shell-nav-wrap" id="distress-os-nav">
   <nav class="shell-nav" aria-label="Main navigation">
     <a href="/heat" class="shell-brand" aria-label="Phuglee home">
@@ -201,6 +205,9 @@
 
     if (window.PhugleeMotion && typeof window.PhugleeMotion.init === 'function') {
       window.PhugleeMotion.init();
+    }
+    if (window.PhugleeStates && typeof window.PhugleeStates.init === 'function') {
+      window.PhugleeStates.init();
     }
   }
 

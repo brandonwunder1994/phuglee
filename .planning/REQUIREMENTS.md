@@ -58,12 +58,12 @@
 - [x] **BRAND-25**: Property cards + review overlay phuglee chrome; tier colors preserved
 - [x] **BRAND-26**: Analyzer landing hero cream-to-orange + pattern bg
 
-### States & Micro-interactions (Phase 29)
+### States & Micro-interactions (Phase 29) — validated
 
-- [ ] **BRAND-27**: Branded loading states (orange pulse bar + Anton microcopy)
-- [ ] **BRAND-28**: Branded empty states (mascot watermark + orange CTA)
-- [ ] **BRAND-29**: Branded error states (terracotta inset + retry ghost)
-- [ ] **BRAND-30**: Micro-interactions — CTA hover, panel hover, modal rise, nav underline
+- [x] **BRAND-27**: Branded loading states (orange pulse bar + Anton microcopy)
+- [x] **BRAND-28**: Branded empty states (mascot watermark + orange CTA)
+- [x] **BRAND-29**: Branded error states (terracotta inset + retry ghost)
+- [x] **BRAND-30**: Micro-interactions — CTA hover, panel hover, modal rise, nav underline
 
 ### A11y, Performance, SEO (Phase 30)
 

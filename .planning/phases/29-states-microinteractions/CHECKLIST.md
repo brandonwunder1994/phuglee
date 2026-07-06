@@ -2,20 +2,20 @@
 
 **Requirements:** BRAND-27–30  
 **Repos:** all three  
-**Status:** pending
+**Status:** complete
 
 ## Checklist
 
-- [ ] Loading — orange pulse bar + Anton microcopy ("Heating up leads…") in shell
-- [ ] Loading states in Forge + Analyzer (scan progress, table fetch)
-- [ ] Empty — mascot watermark 8% + cream headline + orange CTA (all apps)
-- [ ] Error — terracotta inset panel + retry ghost btn (all apps)
-- [ ] CTA hover — translateY(-2px) + glow intensify (phuglee-components)
-- [ ] Panel hover — translateX(4px) + orange border
-- [ ] Modal — scale 0.96→1 + opacity rise
-- [ ] Nav active — underline grow from center
-- [ ] `prefers-reduced-motion` disables all above
-- [ ] Test suites green
+- [x] Loading — orange pulse bar + Anton microcopy ("Heating up leads…") in shell
+- [x] Loading states in Forge + Analyzer (scan progress, table fetch)
+- [x] Empty — mascot watermark 8% + cream headline + orange CTA (all apps)
+- [x] Error — terracotta inset panel + retry ghost btn (all apps)
+- [x] CTA hover — translateY(-2px) + glow intensify (phuglee-components)
+- [x] Panel hover — translateX(4px) + orange border
+- [x] Modal — scale 0.96→1 + opacity rise
+- [x] Nav active — underline grow from center
+- [x] `prefers-reduced-motion` disables all above
+- [x] Test suites green
 
 ## Success criteria
 
