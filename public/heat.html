@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Distress OS — Command Hub</title>
-  <meta name="description" content="Distress OS command hub — launch Form Forge and Property Analyzer from one dashboard.">
+  <title>Distress OS — How It Works</title>
+  <meta name="description" content="How Distress OS works — collect leads directly from city and county records, scrub them down, and analyze for premium distressed deals.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -12,11 +12,19 @@
   <link rel="stylesheet" href="/css/heat-base.css">
   <link rel="stylesheet" href="/css/heat-atmosphere.css">
   <link rel="stylesheet" href="/css/heat-components.css">
+  <link rel="stylesheet" href="/css/premium-atmosphere.css">
+  <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
   <link rel="stylesheet" href="/css/shell-nav.css">
   <link rel="stylesheet" href="/css/hub.css">
+  <script src="/js/auth-guard.js"></script>
 </head>
-<body>
+<body class="has-premium-bg">
+  <div class="premium-bg premium-bg--medium" aria-hidden="true">
+    <div class="premium-bg-photo"></div>
+    <div class="premium-bg-grain"></div>
+    <div class="premium-bg-wear"></div>
+  </div>
   <div class="heat-bg" aria-hidden="true">
     <div class="heat-glow heat-glow-a"></div>
     <div class="heat-glow heat-glow-b"></div>
@@ -27,86 +35,143 @@
 
   <main class="hub-main">
     <header class="hub-hero">
-      <p class="hub-eyebrow">Command Hub</p>
-      <h1 class="hub-title">You're in the heat.</h1>
-      <p class="hub-lead">Your distress property operating system — collect public records, analyze leads, close deals. Both tools run exactly as before, now under one roof.</p>
+      <p class="hub-eyebrow">How It Works</p>
+      <h1 class="hub-title">Leads this hot don't wait for aggregators.</h1>
+      <p class="hub-lead hub-lead-wide">We pull lists straight from city and county records — not from data warehouses that drip the same leads to everyone else weeks later. That means you get distressed properties <em>before</em> your competition even knows they exist.</p>
     </header>
 
-    <section class="hub-pipeline" aria-label="Workflow">
-      <div class="hub-pipeline-step">
-        <span class="hub-pipeline-num">01</span>
-        <span class="hub-pipeline-label">Collect</span>
-        <span class="hub-pipeline-desc">Form Forge</span>
-      </div>
-      <div class="hub-pipeline-arrow" aria-hidden="true">→</div>
-      <div class="hub-pipeline-step">
-        <span class="hub-pipeline-num">02</span>
-        <span class="hub-pipeline-label">Analyze</span>
-        <span class="hub-pipeline-desc">Property Analyzer</span>
-      </div>
-      <div class="hub-pipeline-arrow" aria-hidden="true">→</div>
-      <div class="hub-pipeline-step">
-        <span class="hub-pipeline-num">03</span>
-        <span class="hub-pipeline-label">Close</span>
-        <span class="hub-pipeline-desc">Dial-ready leads</span>
+    <section class="hub-hotspot" aria-label="Why our leads are different">
+      <div class="hub-hotspot-glow" aria-hidden="true"></div>
+      <div class="hub-hotspot-inner premium-panel">
+        <span class="premium-panel-grain" aria-hidden="true"></span>
+        <h2 class="hub-hotspot-title">Where the heat comes from</h2>
+        <p>These aren't cold lists scraped off a portal. They're real distress signals pulled from public records — code violations, water shutoffs for delinquency, probates that need to sell, foreclosures facing auction with a strict timeline, tax liens, and upcoming tax sales.</p>
+        <p>Instead of manually hunting through tens of thousands of records hoping someone wants to sell, we hand you properties that are <strong>already in distress</strong> for a variety of reasons. We provide the leads — closing them is on you — but we get you dramatically closer to a deal than starting from scratch.</p>
+        <ul class="hub-signal-list">
+          <li>Code violations</li>
+          <li>Water shutoffs</li>
+          <li>Probate sales</li>
+          <li>Foreclosure auctions</li>
+          <li>Tax liens &amp; sales</li>
+        </ul>
       </div>
     </section>
 
-    <section class="hub-cards" aria-label="Tools">
-      <article class="hub-card hub-card-forge">
-        <div class="hub-card-top">
-          <div class="hub-card-icon" aria-hidden="true">FF</div>
-          <span class="hub-card-tag">Records &amp; Coverage</span>
-        </div>
-        <h2>Form Forge</h2>
-        <p>Fill FOIA forms, track portal submissions across 554+ cities, and visualize public-records coverage on the map.</p>
-        <ul class="hub-card-features">
-          <li>Records Desk PDF editor</li>
-          <li>City Tracker &amp; email queues</li>
-          <li>Coverage Map</li>
-        </ul>
-        <div class="hub-card-actions">
-          <a href="/forge/" class="hub-btn hub-btn-primary">Launch Form Forge</a>
-          <a href="http://127.0.0.1:8787" class="hub-btn hub-btn-ghost" target="_blank" rel="noopener">Direct :8787 ↗</a>
+    <section class="hub-steps" aria-label="Three-step process">
+      <div class="hub-steps-header">
+        <p class="hub-steps-eyebrow">The playbook</p>
+        <h2>Three steps. Zero guesswork.</h2>
+      </div>
+
+      <article class="hub-step">
+        <div class="hub-step-num" aria-hidden="true">01</div>
+        <div class="hub-step-body">
+          <h3>Collect leads at the source</h3>
+          <p>Request public records directly from cities and counties. While data aggregators make you wait weeks for stale lists everyone else is buying, you're getting fresh leads right from the source — your edge on the competition starts here.</p>
+          <a href="/collect" class="hub-btn hub-btn-primary">Collect Records</a>
         </div>
       </article>
 
-      <article class="hub-card hub-card-analyzer">
-        <div class="hub-card-top">
-          <div class="hub-card-icon" aria-hidden="true">PA</div>
-          <span class="hub-card-tag">AI Lead Intelligence</span>
+      <article class="hub-step">
+        <div class="hub-step-num" aria-hidden="true">02</div>
+        <div class="hub-step-body">
+          <h3>Scrub, organize, and filter</h3>
+          <p>When your city sends data back, our tool handles it — Excel, CSV, PDF, JPG, Word docs, whatever format they throw at you. It builds a clean spreadsheet with everything you need: street address, city, state, zip, code violation, violation date, and more.</p>
+          <p>Got long descriptions in the data? We read through them and weed out anything that isn't a real distress signal. What you're left with is a scrubbed-down list of actual opportunities — ready to filter further in your lead software and skip trace.</p>
+          <div class="hub-filter-box">
+            <p class="hub-filter-label">Recommended filters after import</p>
+            <ul class="hub-filter-list">
+              <li><span>50–65%</span> equity in the home</li>
+              <li><span>Individual</span> owner (not LLC/corp)</li>
+              <li><span>Built before 2010</span></li>
+              <li><span>Estimated value</span> $500,000 or less</li>
+            </ul>
+          </div>
         </div>
-        <h2>Property Analyzer</h2>
-        <p>Upload lead lists, AI-scan Street View imagery, classify distress tiers, and export dial-ready Excel databases.</p>
-        <ul class="hub-card-features">
-          <li>Bulk Street View scanning</li>
-          <li>Distress tier classification</li>
-          <li>13-column dial-ready export</li>
-        </ul>
-        <div class="hub-card-actions">
-          <a href="/analyzer/" class="hub-btn hub-btn-primary">Launch Property Analyzer</a>
-          <a href="http://distressos.local:3456" class="hub-btn hub-btn-ghost" target="_blank" rel="noopener">Direct :3456 ↗</a>
+      </article>
+
+      <article class="hub-step">
+        <div class="hub-step-num" aria-hidden="true">03</div>
+        <div class="hub-step-body">
+          <h3>Analyze with AI — verified by humans</h3>
+          <p>Take your refined list and import it into whatever software you normally use for real estate data. Apply your filters, skip trace, then reimport into our Analyzer tool.</p>
+          <p>Our AI reviews each property and classifies distress level — then a second layer of human review double-checks the AI. AI is incredible, but it can't be the sole source of truth when you need premium lead flow and deals that haven't officially hit the market yet.</p>
+          <a href="/analyzer/" class="hub-btn hub-btn-primary">Open Property Analyzer</a>
         </div>
       </article>
     </section>
 
-    <section class="hub-bridge" aria-label="Data bridge">
-      <div class="hub-bridge-inner">
-        <div>
-          <p class="hub-bridge-eyebrow">Optional shortcut</p>
-          <h2>Send to Analyzer</h2>
-          <p>Convert a Form Forge city response spreadsheet into Property Analyzer import format. Manual upload still works exactly as before.</p>
-        </div>
-        <a href="/bridge" class="hub-btn hub-btn-primary">Open Data Bridge</a>
+    <section class="hub-pricing" aria-label="Plans and pricing">
+      <div class="hub-pricing-header">
+        <p class="hub-pricing-eyebrow">Get in the game</p>
+        <h2>Choose your access level</h2>
+        <p>Start with one market or unlock every city in the network. Same tools, same pipeline — you pick how much ground you want to cover.</p>
+      </div>
+      <div class="hub-pricing-grid">
+        <article class="hub-pricing-card">
+          <span class="hub-pricing-tier">Lite</span>
+          <div class="hub-pricing-price">
+            <span class="hub-pricing-amount">$47</span>
+            <span class="hub-pricing-period">/month</span>
+          </div>
+          <p class="hub-pricing-tagline">One city. Full pipeline.</p>
+          <ul class="hub-pricing-features">
+            <li>Pick <strong>1 city</strong> to run yourself</li>
+            <li>PDF filler, request tracker &amp; analyzer tools</li>
+            <li>Collect, scrub, and analyze on your schedule</li>
+            <li>Perfect for testing a single market</li>
+          </ul>
+          <a href="mailto:team@distressos.com?subject=Distress%20OS%20Lite%20Plan" class="hub-btn hub-btn-ghost hub-pricing-cta">Get Started</a>
+        </article>
+
+        <article class="hub-pricing-card hub-pricing-featured">
+          <span class="hub-pricing-tier">Pro</span>
+          <div class="hub-pricing-price">
+            <span class="hub-pricing-amount">$97</span>
+            <span class="hub-pricing-period">/month</span>
+          </div>
+          <p class="hub-pricing-tagline">Full access. Every city.</p>
+          <ul class="hub-pricing-features">
+            <li>Unlimited access to <strong id="hub-city-count">—</strong> cities nationwide</li>
+            <li>Every tool in the Distress OS stack</li>
+            <li>Run the full collect → scrub → analyze workflow anywhere</li>
+            <li>Best value when you're serious about volume</li>
+          </ul>
+          <a href="mailto:team@distressos.com?subject=Distress%20OS%20Pro%20Plan" class="hub-btn hub-btn-primary hub-pricing-cta">Get Started</a>
+        </article>
+
+        <article class="hub-pricing-card hub-pricing-exclusive">
+          <span class="hub-pricing-tier">Exclusivity</span>
+          <div class="hub-pricing-price hub-pricing-price-custom">
+            <span class="hub-pricing-amount">Custom</span>
+          </div>
+          <p class="hub-pricing-tagline">Own an entire city.</p>
+          <ul class="hub-pricing-features">
+            <li>City blackout — your market, your leads only</li>
+            <li>Not self-serve — we vet every applicant</li>
+            <li>Speak with our team to confirm you're the right fit</li>
+            <li>Limited availability by market</li>
+          </ul>
+          <a href="mailto:team@distressos.com?subject=Distress%20OS%20City%20Exclusivity" class="hub-btn hub-btn-ghost hub-pricing-cta">Talk to Our Team</a>
+        </article>
+      </div>
+      <p class="hub-pricing-note">Exclusivity is not automated signup — our team personally reviews every request to protect lead quality and market integrity.</p>
+    </section>
+
+    <section class="hub-cta-bar premium-cta-bar" aria-label="Get started">
+      <p>Ready to stop chasing cold leads?</p>
+      <div class="hub-cta-actions">
+        <a href="/collect" class="hub-btn hub-btn-primary">Collect Records</a>
+        <a href="/analyzer/" class="hub-btn hub-btn-ghost">Analyze Leads</a>
       </div>
     </section>
 
     <footer class="hub-footer">
-      <p>Distress OS v1.0 · Modules run unchanged on their original engines.</p>
+      <p>Distress OS · Collect. Analyze. Close.</p>
     </footer>
   </main>
 
   <script src="/js/shell-nav.js"></script>
-  <script src="/js/shell.js"></script>
+  <script src="/js/hub-pricing.js"></script>
 </body>
 </html>

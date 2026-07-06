@@ -1,6 +1,6 @@
 # M3 — Premium Brand Experience (v1.2)
 
-> **Status:** `planned`  
+> **Status:** `complete`  
 > **Created:** 2026-07-06  
 > **Depends on:** M2 (v1.1 Unified Heat Design — phases 7–13)  
 > **Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`  
@@ -28,14 +28,14 @@ Elevate every post-login page to match the **Phuglee logo page** and **auth moda
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 14 | Premium Design System | PREM-01–06 | pending |
-| 15 | Shell & Navigation Polish | PREM-07–10 | pending |
-| 16 | Command Hub — How It Works | PREM-11–13 | pending |
-| 17 | Collect Records | PREM-14–16 | pending |
-| 18 | Data Bridge | PREM-17–19 | pending |
-| 19 | Form Forge — Premium Pass | PREM-20–22 | pending |
-| 20 | Analyzer — Premium Pass | PREM-23–25 | pending |
-| 21 | Cross-App Premium QA | PREM-26–28 | pending |
+| 14 | Premium Design System | PREM-01–06 | complete |
+| 15 | Shell & Navigation Polish | PREM-07–10 | complete |
+| 16 | Command Hub — How It Works | PREM-11–13 | complete |
+| 17 | Collect Records | PREM-14–16 | complete |
+| 18 | Data Bridge | PREM-17–19 | complete |
+| 19 | Form Forge — Premium Pass | PREM-20–22 | complete |
+| 20 | Analyzer — Premium Pass | PREM-23–25 | complete |
+| 21 | Cross-App Premium QA | PREM-26–28 | complete |
 
 ## Cross-repo touch points
 
@@ -52,6 +52,10 @@ Elevate every post-login page to match the **Phuglee logo page** and **auth moda
 - Distressed photo must not reduce text contrast below WCAG AA on body copy
 - `prefers-reduced-motion`: static backdrops, no logo hover pulse
 
+## Shipped
+
+2026-07-06 — All phases executed. Login page untouched.
+
 ## Next step
 
-`/gsd:discuss-phase 14` — Premium Design System
+`/gsd:complete-milestone` — close M3, archive follow-ups

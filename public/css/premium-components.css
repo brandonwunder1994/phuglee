@@ -1,0 +1,196 @@
+/* Premium components — grain panels, typography, CTAs (from auth modal + login) */
+
+.premium-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 0.75rem;
+}
+
+.premium-tagline {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 4px 18px rgba(0, 0, 0, 0.65);
+}
+
+.premium-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 7vw, 3.5rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 0.95;
+  background: linear-gradient(180deg, var(--cream) 20%, var(--flame) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Grain panel — mirrors auth-card-face */
+.premium-panel {
+  position: relative;
+  background:
+    linear-gradient(165deg, rgba(232, 93, 4, 0.06) 0%, transparent 40%),
+    var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    0 0 48px rgba(232, 93, 4, 0.06);
+  overflow: hidden;
+}
+
+.premium-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      -3deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.008) 3px,
+      rgba(255, 255, 255, 0.008) 4px
+    );
+  opacity: 0.6;
+}
+
+.premium-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--ember), var(--flame), var(--heat-core), transparent);
+  opacity: 0.7;
+}
+
+.premium-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.premium-panel-grain {
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.1;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+.premium-panel:hover,
+.premium-panel.is-hot {
+  border-color: var(--border-hot);
+}
+
+.premium-step-num {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  line-height: 1;
+  color: var(--ember);
+  text-shadow: 0 0 32px rgba(232, 93, 4, 0.35);
+  opacity: 0.95;
+}
+
+.premium-cta-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1.5rem 1.75rem;
+  background:
+    linear-gradient(135deg, rgba(232, 93, 4, 0.18) 0%, rgba(18, 16, 13, 0.95) 55%),
+    var(--bg-elevated);
+  border: 1px solid var(--border-hot);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.premium-cta-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 186, 8, 0.06), transparent);
+  pointer-events: none;
+}
+
+.premium-cta-bar > * {
+  position: relative;
+  z-index: 1;
+}
+
+.premium-error {
+  font-size: 0.82rem;
+  color: var(--heat-danger);
+  padding: 0.65rem 0.85rem;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: var(--radius-sm);
+}
+
+.premium-signal-pill {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--flame);
+  background: rgba(232, 93, 4, 0.1);
+  border: 1px solid rgba(232, 93, 4, 0.28);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Pricing card parity with auth-pricing-card */
+.premium-pricing-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem 1.5rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.premium-pricing-card:hover {
+  border-color: var(--border-hot);
+  transform: translateX(4px);
+  background: rgba(232, 93, 4, 0.04);
+}
+
+.premium-pricing-card.is-featured {
+  border-color: rgba(232, 93, 4, 0.35);
+}
+
+.premium-pricing-card.is-featured.is-selected,
+.premium-pricing-card.is-featured:hover {
+  border-color: var(--ember);
+  background: linear-gradient(165deg, rgba(232, 93, 4, 0.14) 0%, rgba(0, 0, 0, 0.3) 60%);
+  box-shadow: 0 0 24px rgba(232, 93, 4, 0.15);
+  transform: translateX(6px);
+}
+
+.premium-pricing-card.is-exclusive {
+  border-style: dashed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .premium-pricing-card:hover,
+  .premium-pricing-card.is-featured.is-selected {
+    transform: none;
+  }
+}

@@ -2,49 +2,47 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Premium Brand Experience
-status: planned
-last_updated: "2026-07-06T22:00:00.000Z"
-last_activity: 2026-07-06 — M3 milestone created; per-page plans defined
+status: complete
+last_updated: "2026-07-06T23:30:00.000Z"
+last_activity: 2026-07-06 — Phases 14–21 executed; distress-os + analyzer tests green
 progress:
   total_phases: 8
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 8
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # State
 
-Milestone: **v1.2 Premium Brand Experience** — planned, ready for Phase 14  
-Last activity: 2026-07-06 — Requirements + roadmap + design spec created
+Milestone: **v1.2 Premium Brand Experience** — complete  
+Last activity: 2026-07-06 — All phases 14–21 shipped
 
 ## Current Position
 
-Phase: Not started (ready for Phase 14)  
+Phase: 21 (complete)  
 Plan: —  
-Status: Milestone initialized — awaiting `/gsd:discuss-phase 14` or `/gsd:plan-phase 14`
+Status: Milestone ready for `/gsd:complete-milestone`
 
-## Project Reference
+## Shipped (v1.2)
 
-See: `.planning/PROJECT.md` (updated 2026-07-06)
+- `premium-atmosphere.css` + `premium-components.css` — shared distressed-home DNA
+- Logo palette tokens (`--cream`, `--stone`, `--logo-charcoal`, etc.)
+- Premium nav chrome (ember hairline, grain, glass blur)
+- `/heat`, `/collect`, `/bridge` — full premium pass
+- Form Forge `premium-forge.css` on all 7 pages
+- Analyzer `premium-analyzer.css` + landing hero gradient
+- `rewrite.js` injects premium CSS + photo backdrop on proxied pages
 
-**Core value:** Post-login product feels as premium and badass as the Phuglee login page  
-**Current focus:** Extract login DNA → apply page-by-page after sign-in  
-**Locked:** Login page (`/`) — do not modify
+## Verification
 
-## Prior milestone context
+| Repo | Result |
+|------|--------|
+| distress-os `npm test` | 16/16 pass |
+| property-distress-analyzer `npm test` | 190/190 pass |
+| city-list-requests `gsd.py verify` | FAIL lint-imports (pre-existing, unrelated to CSS) |
 
-- v1.0 shipped shell + proxy + bridge
-- v1.1 (M2) Unified Heat Design — phases 7–13 (may complete in parallel or before v1.2 execution)
-- v1.2 (M3) builds on Heat foundation, adds distressed-home atmosphere + auth-modal panel treatment
+## Locked
 
-## Accumulated Context
-
-- **Brand reference:** `index.html` + `landing.css` + `auth.css` + `phuglee-logo.svg`
-- **Distressed home stack:** `ugly-house.jpg` + `photo-wear.png` + SVG grain + vignette
-- **Login CTA:** `btn-heat` gradient + shine sweep
-- **Auth panels:** grain overlay, ember top hairline, diagonal scratch texture
-- **Post-login pages today:** functional Heat design but flat vs login cinematic feel
-- **Nav:** `phuglee-text-logo.svg` in shell-nav — upgrade chrome, not replace with full mascot
-- User wants page-by-page execution through GSD phases 14–21
+- Login page (`/`) — unchanged
 
 ---

@@ -15,9 +15,9 @@ Get Shit Done tracking for shell integration, navigation, and cross-app design m
 |----|------|--------|
 | [M1](./milestones/M1-shell-integration.md) | Shell & Integration (v1.0) | `complete` |
 | [M2](./milestones/M2-unified-heat-design.md) | Unified Heat Design (v1.1) | `in_progress` |
-| [M3](./milestones/M3-premium-brand-experience.md) | Premium Brand Experience (v1.2) | `planned` |
+| [M3](./milestones/M3-premium-brand-experience.md) | Premium Brand Experience (v1.2) | `complete` |
 
-**Active milestone: v1.2** — Premium Brand Experience (Phases 14–21)  
+**Active milestone:** None — M3 complete. Run `/gsd:complete-milestone` to close.  
 **Prerequisite:** v1.1 Heat foundation (can overlap or complete first)
 
 **Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`  

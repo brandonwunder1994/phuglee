@@ -1,0 +1,226 @@
+.collect-landing .landing-title {
+  font-size: clamp(2.75rem, 10vw, 5.5rem);
+  background: linear-gradient(180deg, var(--cream) 20%, var(--flame) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.collect-dialog {
+  border: none;
+  padding: 0;
+  margin: auto;
+  max-width: min(560px, calc(100vw - 2rem));
+  width: 100%;
+  background: transparent;
+  color: var(--text);
+}
+
+.collect-dialog::backdrop {
+  background: rgba(8, 6, 5, 0.78);
+  backdrop-filter: blur(6px);
+}
+
+.collect-dialog-card {
+  padding: 1.5rem;
+  animation: rise-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.collect-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.collect-dialog-head h2 {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.collect-dialog-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.collect-dialog-close:hover {
+  color: var(--text);
+  border-color: var(--border-hot);
+  background: rgba(232, 93, 4, 0.1);
+}
+
+.collect-dialog-lead {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.collect-dialog-lead strong {
+  color: var(--flame);
+  font-weight: 600;
+}
+
+.collect-choice-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+}
+
+.collect-choice {
+  display: block;
+  cursor: pointer;
+}
+
+.collect-choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.collect-choice-body {
+  display: block;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.collect-choice input:checked + .collect-choice-body {
+  border-color: var(--border-hot);
+  background: rgba(232, 93, 4, 0.1);
+  box-shadow: 0 0 0 1px rgba(232, 93, 4, 0.2);
+}
+
+.collect-choice input:focus-visible + .collect-choice-body {
+  outline: 2px solid var(--heat-core);
+  outline-offset: 2px;
+}
+
+.collect-choice:hover .collect-choice-body {
+  border-color: var(--border-hot);
+  transform: translateX(4px);
+  background: rgba(232, 93, 4, 0.04);
+}
+
+.collect-choice-body {
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.collect-choice input:checked + .collect-choice-body {
+  transform: translateX(6px);
+  box-shadow: 0 0 24px rgba(232, 93, 4, 0.12);
+}
+
+.collect-choice-title {
+  display: block;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.collect-choice-desc {
+  display: block;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.collect-form {
+  display: grid;
+  gap: 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.collect-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.collect-form input {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-deep);
+  color: var(--text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.collect-form input:focus {
+  outline: none;
+  border-color: var(--border-hot);
+  box-shadow: 0 0 0 2px rgba(232, 93, 4, 0.15);
+}
+
+.collect-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.btn-heat.sm {
+  padding: 0.75rem 1.35rem;
+  font-size: 0.95rem;
+}
+
+.collect-status {
+  min-height: 1.25rem;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+}
+
+.collect-status.ok {
+  color: var(--heat-ok);
+}
+
+.collect-status.err {
+  color: var(--heat-danger);
+}
+
+.collect-status.busy {
+  color: var(--heat-warn);
+}
+
+@media (max-width: 480px) {
+  .collect-dialog-card {
+    padding: 1.15rem;
+  }
+
+  .collect-dialog-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .collect-dialog-actions .btn-heat.sm,
+  .collect-dialog-actions .btn-landing-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -27,12 +27,20 @@ if not exist "modules\property-analyzer\server.js" (
 )
 
 echo.
-echo  Landing:  http://127.0.0.1:3000/
+echo  Logo Page: http://127.0.0.1:3000/
+echo  Collect:  http://127.0.0.1:3000/collect
 echo  Hub:      http://127.0.0.1:3000/heat
 echo  Forge:    http://127.0.0.1:3000/forge/
 echo  Analyzer: http://127.0.0.1:3000/analyzer/
 echo  Bridge:   http://127.0.0.1:3000/bridge
 echo.
 
-start "" "http://127.0.0.1:3000/heat"
-node server.js
+powershell -ExecutionPolicy Bypass -File "%~dp0scripts\restart.ps1"
+if errorlevel 1 (
+  echo.
+  echo  Restart failed — trying direct start...
+  start "" "http://127.0.0.1:3000/"
+  node server.js
+) else (
+  start "" "http://127.0.0.1:3000/"
+)

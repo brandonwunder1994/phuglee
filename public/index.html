@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="logo-page-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Distress OS</title>
-  <meta name="description" content="Distress OS — Form Forge and Property Distress Analyzer under one roof.">
+  <title>Logo Page — Phuglee</title>
+  <meta name="description" content="Phuglee — Form Forge and Property Distress Analyzer under one roof.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
@@ -12,12 +12,15 @@
   <link rel="stylesheet" href="/css/heat-base.css">
   <link rel="stylesheet" href="/css/heat-atmosphere.css">
   <link rel="stylesheet" href="/css/heat-components.css">
-  <link rel="stylesheet" href="/css/shell.css">
-  <link rel="stylesheet" href="/css/shell-nav.css">
   <link rel="stylesheet" href="/css/landing.css">
+  <link rel="stylesheet" href="/css/auth.css">
 </head>
-<body>
-  <div id="distress-os-nav-mount"></div>
+<body class="logo-page">
+  <div class="logo-page-home-bg" aria-hidden="true">
+    <div class="logo-page-photo"></div>
+    <div class="logo-page-photo-grain"></div>
+    <div class="logo-page-photo-wear"></div>
+  </div>
   <div class="heat-field" aria-hidden="true">
     <div class="heat-glow heat-glow-a"></div>
     <div class="heat-glow heat-glow-b"></div>
@@ -25,23 +28,29 @@
     <div class="heat-noise"></div>
   </div>
 
-  <main class="landing">
+  <!-- Logo Page -->
+  <main class="landing logo-page">
     <div class="landing-inner">
-      <p class="landing-eyebrow">Property Intelligence Platform</p>
-      <h1 class="landing-title">Distress OS</h1>
-      <p class="landing-tagline">Collect. Analyze. Close. One operating system for distressed property workflows.</p>
-      <a href="/heat" class="btn-heat" id="btn-heat">
-        <span class="btn-heat-label">Show Me the Heat!</span>
-        <span class="btn-heat-shine" aria-hidden="true"></span>
-      </a>
+      <h1 class="landing-logo-wrap">
+        <img
+          src="/images/phuglee-logo.svg"
+          alt="Phuglee"
+          class="landing-logo"
+          width="408"
+          height="612"
+          decoding="async"
+        >
+      </h1>
+      <p class="landing-tagline">The #1 Distressed Lead Source for Wholesalers</p>
+      <div class="landing-actions">
+        <a href="/heat" class="btn-heat" id="btn-heat" role="button">
+          <span class="btn-heat-label">Start Closing Deals</span>
+          <span class="btn-heat-shine" aria-hidden="true"></span>
+        </a>
+      </div>
     </div>
-    <footer class="landing-footer">
-      <span>Form Forge</span>
-      <span class="footer-dot" aria-hidden="true"></span>
-      <span>Property Analyzer</span>
-    </footer>
   </main>
-  <script src="/js/shell-nav.js"></script>
-  <script src="/js/shell.js"></script>
+
+  <script src="/js/auth.js" defer></script>
 </body>
 </html>

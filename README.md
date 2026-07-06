@@ -1,6 +1,6 @@
 # Distress OS
 
-Unified shell for **Form Forge** (public-records form filling & tracking) and **Property Distress Analyzer** (AI lead screening). Both tools run on their original engines — Distress OS adds a landing page, command hub, reverse proxy, and an optional data bridge.
+Unified shell for **Form Forge** (public-records form filling & tracking) and **Property Distress Analyzer** (AI lead screening). Both tools run on their original engines — Phuglee adds a Logo Page, command hub, reverse proxy, and an optional data bridge.
 
 ## Requirements
 
@@ -36,7 +36,7 @@ Distress OS auto-starts Form Forge (`:8787`) and Property Analyzer (`:3456`) if 
 
 | Page | URL |
 |------|-----|
-| Landing | http://127.0.0.1:3000/ |
+| Logo Page | http://127.0.0.1:3000/ |
 | Command Hub | http://127.0.0.1:3000/heat |
 | Form Forge (proxied) | http://127.0.0.1:3000/forge/ |
 | Property Analyzer (proxied) | http://127.0.0.1:3000/analyzer/ |
@@ -180,12 +180,12 @@ This adds `distressos.local` → `127.0.0.1` to the Windows hosts file.
 ## Architecture
 
 ```
-distress-os/          Port 3000 — landing, hub, proxy, bridge
+distress-os/          Port 3000 — logo page, hub, proxy, bridge
 ├── modules/
 │   ├── form-forge/         → junction to city-list-requests (:8787)
 │   └── property-analyzer/  → junction to property-distress-analyzer (:3456)
 ├── lib/                    Proxy, rewrite, bridge schema
-└── public/                 Shell UI (landing, hub, bridge)
+└── public/                 Shell UI (logo page, hub, bridge)
 ```
 
 Proxied paths rewrite HTML/JS/CSS root URLs so `/api/*` and `/static/*` resolve under `/forge/` or `/analyzer/` without modifying either tool's source code.

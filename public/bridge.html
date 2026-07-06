@@ -9,12 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/heat-base.css">
+  <link rel="stylesheet" href="/css/premium-atmosphere.css">
+  <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
   <link rel="stylesheet" href="/css/shell-nav.css">
   <link rel="stylesheet" href="/css/bridge.css">
+  <script src="/js/auth-guard.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
-<body>
+<body class="has-premium-bg">
+  <div class="premium-bg premium-bg--subtle" aria-hidden="true">
+    <div class="premium-bg-photo"></div>
+    <div class="premium-bg-grain"></div>
+    <div class="premium-bg-wear"></div>
+  </div>
   <div class="bridge-bg" aria-hidden="true"></div>
   <div id="distress-os-nav-mount"></div>
   <main class="bridge-main">
@@ -23,7 +31,8 @@
       <h1>Send to Analyzer</h1>
       <p class="bridge-lead">Convert a Form Forge city response list into a Property Analyzer-ready spreadsheet. Manual upload in Analyzer still works exactly as before — this is a shortcut, not a replacement.</p>
     </header>
-    <section class="bridge-panel" aria-labelledby="bridge-step-1">
+    <section class="bridge-panel premium-panel" aria-labelledby="bridge-step-1">
+      <span class="premium-panel-grain" aria-hidden="true"></span>
       <h2 id="bridge-step-1">1 · Pick a city list from Form Forge</h2>
       <div class="bridge-row">
         <label>City<select id="bridge-city" disabled><option value="">Loading cities…</option></select></label>
@@ -31,11 +40,13 @@
       </div>
       <p class="bridge-hint" id="bridge-file-hint">Only Excel (.xlsx, .xls) and CSV files can be converted.</p>
     </section>
-    <section class="bridge-panel" id="bridge-mapping-panel" hidden aria-labelledby="bridge-step-2">
+    <section class="bridge-panel premium-panel" id="bridge-mapping-panel" hidden aria-labelledby="bridge-step-2">
+      <span class="premium-panel-grain" aria-hidden="true"></span>
       <h2 id="bridge-step-2">2 · Confirm column mapping</h2>
       <div class="bridge-mapping" id="bridge-mapping"></div>
     </section>
-    <section class="bridge-panel" id="bridge-preview-panel" hidden aria-labelledby="bridge-step-3">
+    <section class="bridge-panel premium-panel" id="bridge-preview-panel" hidden aria-labelledby="bridge-step-3">
+      <span class="premium-panel-grain" aria-hidden="true"></span>
       <h2 id="bridge-step-3">3 · Preview &amp; export</h2>
       <p class="bridge-preview-meta" id="bridge-preview-meta"></p>
       <div class="bridge-preview-wrap"><table class="bridge-preview" id="bridge-preview"><thead></thead><tbody></tbody></table></div>
@@ -50,6 +61,5 @@
   <script src="/js/shell-nav.js"></script>
   <script src="/js/bridge-schema.js"></script>
   <script src="/js/bridge.js"></script>
-  <script src="/js/shell.js"></script>
 </body>
 </html>

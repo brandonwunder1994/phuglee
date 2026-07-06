@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collect Records — Distress OS</title>
+  <meta name="description" content="Hit up cities and counties for distressed property leads — PDF emails, email-only requests, and online portal submissions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/heat-base.css">
+  <link rel="stylesheet" href="/css/heat-atmosphere.css">
+  <link rel="stylesheet" href="/css/landing.css">
+  <link rel="stylesheet" href="/css/premium-atmosphere.css">
+  <link rel="stylesheet" href="/css/premium-components.css">
+  <link rel="stylesheet" href="/css/shell.css">
+  <link rel="stylesheet" href="/css/shell-nav.css">
+  <link rel="stylesheet" href="/css/collect-records.css">
+  <script src="/js/auth-guard.js"></script>
+</head>
+<body class="has-premium-bg">
+  <div class="premium-bg premium-bg--strong" aria-hidden="true">
+    <div class="premium-bg-photo"></div>
+    <div class="premium-bg-grain"></div>
+    <div class="premium-bg-wear"></div>
+  </div>
+  <div class="heat-field" aria-hidden="true">
+    <div class="heat-glow heat-glow-a"></div>
+    <div class="heat-glow heat-glow-b"></div>
+    <div class="heat-grid"></div>
+    <div class="heat-noise"></div>
+  </div>
+
+  <div id="distress-os-nav-mount"></div>
+
+  <main class="landing collect-landing">
+    <div class="landing-inner">
+      <p class="landing-eyebrow">Collect Records</p>
+      <h1 class="landing-title">Hit Up the City!</h1>
+      <p class="landing-tagline premium-tagline">All the Tools You Need to Get Your Leads from The City/County</p>
+      <div class="landing-actions">
+        <button type="button" class="btn-heat" id="btn-start-requests">
+          <span class="btn-heat-label">Start Requests</span>
+          <span class="btn-heat-shine" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="btn-landing-secondary" id="btn-pdf-filler-info">PDF Filler Info</button>
+      </div>
+    </div>
+  </main>
+
+  <dialog class="collect-dialog" id="start-requests-dialog" aria-labelledby="start-requests-title">
+    <div class="collect-dialog-card premium-panel">
+      <span class="premium-panel-grain" aria-hidden="true"></span>
+      <div class="collect-dialog-head">
+        <h2 id="start-requests-title">How do you want to request records?</h2>
+        <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
+      </div>
+      <p class="collect-dialog-lead">Pick the workflow that matches how each city accepts public records requests.</p>
+      <div class="collect-choice-grid" role="radiogroup" aria-label="Request workflow">
+        <label class="collect-choice">
+          <input type="radio" name="request-workflow" value="/forge/portal/request-pdfs" checked />
+          <span class="collect-choice-body">
+            <span class="collect-choice-title">Send PDF Emails</span>
+            <span class="collect-choice-desc">Email a completed FOIA PDF attachment to the city clerk. Best when the city wants a signed form on file.</span>
+          </span>
+        </label>
+        <label class="collect-choice">
+          <input type="radio" name="request-workflow" value="/forge/portal/email-only" />
+          <span class="collect-choice-body">
+            <span class="collect-choice-title">Emails Only</span>
+            <span class="collect-choice-desc">Send a plain email request with no PDF. Use this for cities that accept email-only FOIA without a form.</span>
+          </span>
+        </label>
+        <label class="collect-choice">
+          <input type="radio" name="request-workflow" value="/forge/portal/submit-portals" />
+          <span class="collect-choice-body">
+            <span class="collect-choice-title">Online Portals</span>
+            <span class="collect-choice-desc">Submit through the city&apos;s web portal. We track each submission and walk you through the online form.</span>
+          </span>
+        </label>
+      </div>
+      <div class="collect-dialog-actions">
+        <button type="button" class="btn-landing-secondary" data-close-dialog>Cancel</button>
+        <button type="button" class="btn-heat sm" id="btn-confirm-workflow">
+          <span class="btn-heat-label">Continue</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="collect-dialog" id="pdf-filler-dialog" aria-labelledby="pdf-filler-title">
+    <div class="collect-dialog-card premium-panel">
+      <span class="premium-panel-grain" aria-hidden="true"></span>
+      <div class="collect-dialog-head">
+        <h2 id="pdf-filler-title">PDF Filler Info</h2>
+        <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
+      </div>
+      <p class="collect-dialog-lead">
+        Our city PDFs are already pre-filled with the request language and field placement — you just add your contact info once.
+        When you save, we stamp your name, phone, and email into <strong>every city PDF on file</strong> so you never retype them.
+      </p>
+      <form class="collect-form" id="pdf-filler-form">
+        <label>
+          Your name
+          <input type="text" id="filler-name" name="name" autocomplete="name" required />
+        </label>
+        <label>
+          Phone number
+          <input type="tel" id="filler-phone" name="phone" autocomplete="tel" required />
+        </label>
+        <label>
+          Email address
+          <input type="email" id="filler-email" name="email" autocomplete="email" required />
+        </label>
+      </form>
+      <p class="collect-status" id="pdf-filler-status" role="status" aria-live="polite"></p>
+      <div class="collect-dialog-actions">
+        <button type="button" class="btn-landing-secondary" data-close-dialog>Cancel</button>
+        <button type="button" class="btn-heat sm" id="btn-save-filler">
+          <span class="btn-heat-label">Save &amp; Update All PDFs</span>
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="/js/shell-nav.js"></script>
+  <script src="/js/collect-records.js"></script>
+</body>
+</html>

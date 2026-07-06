@@ -41,6 +41,10 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   margin-bottom: 0.75rem;
+  background: linear-gradient(180deg, var(--cream) 25%, var(--flame) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .bridge-lead {
@@ -50,10 +54,6 @@ body {
 }
 
 .bridge-panel {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1.5rem;
   margin-bottom: 1.25rem;
 }
 
@@ -156,12 +156,13 @@ body {
 }
 
 .bridge-preview th {
-  background: var(--bg-elevated);
+  background: rgba(0, 0, 0, 0.35);
   color: var(--text-muted);
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-size: 0.68rem;
+  border-bottom: 1px solid var(--border-hot);
 }
 
 .bridge-actions {
@@ -213,10 +214,10 @@ body {
 }
 
 .bridge-error {
-  color: #fecaca;
-  background: rgba(248, 113, 113, 0.12);
-  border: 1px solid rgba(248, 113, 113, 0.3);
-  border-radius: 6px;
+  color: var(--heat-danger);
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: var(--radius-sm);
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
 }

@@ -1,18 +1,18 @@
 (function () {
   const CORE_LINKS = [
-    { id: 'home', label: 'Home', href: '/' },
-    { id: 'heat', label: 'Command Hub', href: '/heat' },
+    { id: 'collect', label: 'Collect Records', href: '/collect' },
+    { id: 'heat', label: 'How It Works', href: '/heat' },
     { id: 'bridge', label: 'Data Bridge', href: '/bridge' }
   ];
 
   const FORGE_LINKS = [
-    { id: 'forge-desk', label: 'Records Desk', href: '/forge/' },
-    { id: 'forge-portal', label: 'City Tracker', href: '/forge/portal' },
-    { id: 'forge-map', label: 'Coverage Map', href: '/forge/map' },
-    { id: 'forge-pdfs', label: 'Request PDFs', href: '/forge/request-pdfs' },
-    { id: 'forge-submit', label: 'Submit Portals', href: '/forge/submit-portals' },
-    { id: 'forge-email', label: 'Email-only', href: '/forge/email-only-requests' },
-    { id: 'forge-errors', label: 'Portal Errors', href: '/forge/portal-errors' }
+    { id: 'forge-desk', label: 'PDF Filler', href: '/forge/' },
+    { id: 'forge-portal', label: 'Request Tracker', href: '/forge/portal' },
+    { id: 'forge-map', label: 'Map', href: '/forge/map' },
+    { id: 'forge-pdfs', label: 'Request PDFs', href: '/forge/portal/request-pdfs' },
+    { id: 'forge-submit', label: 'Submit Portals', href: '/forge/portal/submit-portals' },
+    { id: 'forge-email', label: 'Email-only', href: '/forge/portal/email-only' },
+    { id: 'forge-errors', label: 'Portal Errors', href: '/forge/portal/portal-errors' }
   ];
 
   const ANALYZER_LINK = { id: 'analyzer', label: 'Property Analyzer', href: '/analyzer/' };
@@ -38,7 +38,8 @@
 
   function activeId(path) {
     const p = normalizePath(path);
-    for (const link of FORGE_LINKS) {
+    const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
+    for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
     }
     if (matchLink(p, ANALYZER_LINK.href)) return ANALYZER_LINK.id;
@@ -67,32 +68,75 @@
     ).join('<span class="shell-nav-divider" aria-hidden="true"></span>');
 
     const analyzerClass = linkClass(ANALYZER_LINK.id, current);
+    const signOutHtml = isAuthenticated()
+      ? '<span class="shell-nav-divider shell-sign-out-divider" aria-hidden="true"></span><button type="button" class="shell-link shell-sign-out" id="shell-sign-out">Sign Out</button>'
+      : '';
 
     return `
 <header class="shell-nav-wrap" id="distress-os-nav">
-  <nav class="shell-nav" aria-label="Distress OS">
-    <a href="/" class="shell-brand">
-      <span class="shell-brand-mark" aria-hidden="true">DO</span>
-      <span class="shell-brand-text">Distress OS</span>
+  <nav class="shell-nav" aria-label="Main navigation">
+    <a href="/heat" class="shell-brand" aria-label="Phuglee home">
+      <img
+        src="/images/phuglee-text-logo.svg"
+        alt="Phuglee"
+        class="shell-brand-logo"
+        width="148"
+        height="32"
+        decoding="async"
+      >
     </a>
     <div class="shell-links">
       ${coreHtml}
       <a href="${ANALYZER_LINK.href}" class="${analyzerClass}"${current === ANALYZER_LINK.id ? ' aria-current="page"' : ''}>${ANALYZER_LINK.label}</a>
-    </div>
-    <div class="shell-status" aria-live="polite">
-      <span class="shell-status-pill" id="status-forge"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Forge</span></span>
-      <span class="shell-status-pill" id="status-analyzer"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Analyzer</span></span>
+      ${signOutHtml}
     </div>
   </nav>
-  <div class="shell-nav-row2" aria-label="Form Forge pages">
-    <span class="shell-nav-row2-label">Form Forge</span>
+  <div class="shell-nav-row2" aria-label="Tool pages">
     ${forgeHtml}
   </div>
 </header>`;
   }
 
+  function isAuthenticated() {
+    try {
+      return !!sessionStorage.getItem('phuglee_session');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function logout() {
+    try {
+      sessionStorage.removeItem('phuglee_session');
+    } catch (_) {}
+    window.location.href = '/';
+  }
+
+  function bindSignOut(root) {
+    const btn = root && root.querySelector('#shell-sign-out');
+    if (btn) {
+      btn.addEventListener('click', logout);
+    }
+  }
+
+  function guardNavLinks(root) {
+    if (!root || isAuthenticated()) return;
+    root.querySelectorAll('a[href]').forEach((link) => {
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('mailto:') || href.startsWith('#')) return;
+      const path = normalizePath(href.split('?')[0].split('#')[0]);
+      if (path === '/') return;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const returnUrl = href.startsWith('/') ? href : path;
+        window.location.href = '/?login=1&return=' + encodeURIComponent(returnUrl);
+      });
+    });
+  }
+
   function mount() {
     const path = window.location.pathname;
+    if (normalizePath(path) === '/') return;
     const existing = document.getElementById('distress-os-nav');
     const html = buildNav(path);
 
@@ -112,6 +156,8 @@
       const h = wrap.offsetHeight;
       document.documentElement.style.setProperty('--distress-nav-offset', h + 'px');
       document.body.style.paddingTop = h + 'px';
+      guardNavLinks(wrap);
+      bindSignOut(wrap);
     }
 
     if (path.startsWith('/forge')) {

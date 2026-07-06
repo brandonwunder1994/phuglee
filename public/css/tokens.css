@@ -11,6 +11,13 @@
   --heat-core: #ffba08;
   --ash: #8a7f72;
 
+  /* Logo palette (phuglee-logo.svg) */
+  --cream: #f4efe6;
+  --stone: #aea38f;
+  --logo-charcoal: #353630;
+  --logo-ember: #e58435;
+  --logo-gold: #eeb746;
+
   /* Text */
   --text: #f4efe6;
   --text-muted: #a89f92;

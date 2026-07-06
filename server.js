@@ -12,6 +12,11 @@ const MIME = {
   '.css': 'text/css; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
   '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2'
 };
@@ -40,7 +45,10 @@ function serveStatic(urlPath, res) {
 }
 
 function isDistressStatic(pathname) {
-  return pathname.startsWith('/css/') || pathname.startsWith('/js/') || pathname.startsWith('/assets/');
+  return pathname.startsWith('/css/')
+    || pathname.startsWith('/js/')
+    || pathname.startsWith('/assets/')
+    || pathname.startsWith('/images/');
 }
 
 function serveLibAsBrowser(res, libFile, globalName) {
@@ -108,6 +116,14 @@ async function handleRequest(req, res) {
   }
 
   send(res, 404, 'Not found');
+}
+
+// Hidden/redirected launches can close stdout; ignore broken-pipe writes from child modules.
+for (const stream of [process.stdout, process.stderr]) {
+  stream.on('error', (err) => {
+    if (err && err.code === 'EPIPE') return;
+    throw err;
+  });
 }
 
 const server = http.createServer((req, res) => {

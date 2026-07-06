@@ -14,35 +14,30 @@
 .shell-brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   text-decoration: none;
   color: var(--text);
   flex-shrink: 0;
+  line-height: 0;
+  transition: opacity 0.2s ease, filter 0.2s ease;
 }
 
-.shell-brand-mark {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  letter-spacing: 0.04em;
-  border: 1px solid var(--border-hot);
-  border-radius: 6px;
-  color: var(--flame);
-  background: rgba(232, 93, 4, 0.1);
+.shell-brand-logo {
+  display: block;
+  width: auto;
+  height: clamp(1.65rem, 3.2vw, 2rem);
+  max-width: min(11.5rem, 34vw);
+  object-fit: contain;
+  object-position: left center;
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45))
+    brightness(1.02);
 }
 
-.shell-brand-text {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.shell-brand:hover .shell-brand-text {
-  color: var(--flame);
+.shell-brand:hover .shell-brand-logo {
+  filter:
+    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 12px rgba(232, 93, 4, 0.25));
+  opacity: 0.95;
 }
 
 .shell-links {
@@ -50,7 +45,8 @@
   align-items: center;
   gap: 0.35rem;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .shell-link {
@@ -73,6 +69,23 @@
 .shell-link.active {
   color: var(--heat-core);
   background: rgba(232, 93, 4, 0.12);
+}
+
+.shell-sign-out {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  color: var(--ash);
+}
+
+.shell-sign-out:hover {
+  color: var(--heat-danger);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.shell-sign-out-divider {
+  height: 18px;
+  margin: 0 0.25rem;
 }
 
 .shell-status {
@@ -130,7 +143,7 @@
   .shell-links {
     order: 3;
     width: 100%;
-    justify-content: flex-start;
+    justify-content: flex-end;
     overflow-x: auto;
     padding-bottom: 0.25rem;
   }
