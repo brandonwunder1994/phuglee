@@ -46,11 +46,11 @@
 - [x] **BRAND-19**: `/collect` poster energy — pattern bleed, phuglee dialogs
 - [x] **BRAND-20**: `/bridge` refined tool — orange step badges, designed errors
 
-### Form Forge Signature Pass (Phase 27)
+### Form Forge Signature Pass (Phase 27) — validated
 
-- [ ] **BRAND-21**: `phuglee-forge.css` on all 7 pages
-- [ ] **BRAND-22**: Logo palette on tables, modals, map controls
-- [ ] **BRAND-23**: Mascot watermark empty states
+- [x] **BRAND-21**: `phuglee-forge.css` on all 7 pages
+- [x] **BRAND-22**: Logo palette on tables, modals, map controls
+- [x] **BRAND-23**: Mascot watermark empty states
 
 ### Analyzer Signature Pass (Phase 28)
 
