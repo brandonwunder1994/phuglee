@@ -21,10 +21,13 @@ const MIME = {
   '.woff2': 'font/woff2'
 };
 
-function send(res, status, body, type) {
+const { CACHE_NONE, cacheControlForExt } = require('./lib/static-cache');
+
+function send(res, status, body, type, extraHeaders = {}) {
   res.writeHead(status, {
     'Content-Type': type || 'text/plain; charset=utf-8',
-    'Cache-Control': 'no-store, no-cache, must-revalidate'
+    'Cache-Control': CACHE_NONE,
+    ...extraHeaders
   });
   res.end(body);
 }
@@ -41,7 +44,12 @@ function serveStatic(urlPath, res) {
     return;
   }
   const ext = path.extname(file).toLowerCase();
-  send(res, 200, fs.readFileSync(file), MIME[ext] || 'application/octet-stream');
+  const headers = {
+    'Content-Type': MIME[ext] || 'application/octet-stream',
+    'Cache-Control': cacheControlForExt(ext)
+  };
+  res.writeHead(200, headers);
+  res.end(fs.readFileSync(file));
 }
 
 function isDistressStatic(pathname) {

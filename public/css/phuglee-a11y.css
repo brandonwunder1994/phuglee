@@ -1,0 +1,96 @@
+/* Phuglee A11y & Performance — Phase 30 (BRAND-31–32) */
+
+:root {
+  --phuglee-focus-ring: 0 0 0 3px rgba(229, 132, 53, 0.5);
+  --phuglee-meta-text: #b0a99c;
+}
+
+/* Skip to main content */
+.phuglee-skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10000;
+  padding: 0.55rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--phuglee-black);
+  background: var(--phuglee-orange);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease;
+}
+
+.phuglee-skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+}
+
+/* Global focus rings — orange 3px glow */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible,
+summary:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+}
+
+.shell-link:focus-visible,
+.shell-sublink:focus-visible,
+.shell-brand:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+/* WCAG AA contrast — meta text on black */
+.phuglee-loading-copy,
+.shell-loading-strip .phuglee-loading-copy,
+.shell-footer-copy,
+.shell-status-label,
+.shell-sublink:not(.active),
+.shell-link:not(.active):not(.shell-sign-out) {
+  color: var(--phuglee-meta-text);
+}
+
+/* Orange CTA on charcoal passes AA for large text */
+.phuglee-btn-primary,
+.btn.seal,
+.btn.primary {
+  color: var(--phuglee-black);
+}
+
+/* Logo slot reserves space before SVG inject (CLS) */
+[data-phuglee-logo] {
+  min-height: 1px;
+}
+
+[data-phuglee-logo="hero"] {
+  min-height: clamp(200px, 40vh, 480px);
+}
+
+/* Global reduced-motion audit */
+@media (prefers-reduced-motion: reduce) {
+  .heat-glow,
+  .heat-field .heat-glow,
+  .logo-page-photo,
+  .premium-bg-photo,
+  .landing-logo,
+  .collect-choice-body,
+  .auth-overlay,
+  .auth-modal,
+  .auth-success-gold-ring {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}

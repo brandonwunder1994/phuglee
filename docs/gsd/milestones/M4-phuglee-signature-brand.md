@@ -49,7 +49,7 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 | 27 | Form Forge — Signature Pass | BRAND-21–23 | complete |
 | 28 | Analyzer — Signature Pass | BRAND-24–26 | complete |
 | 29 | States & Micro-interactions | BRAND-27–30 | complete |
-| 30 | A11y, Performance, SEO | BRAND-31–34 | pending |
+| 30 | A11y, Performance, SEO | BRAND-31–34 | complete |
 | 31 | Cross-App Signature QA | BRAND-35–37 | pending |
 
 ## Cross-repo touch points
@@ -57,8 +57,8 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 | Repo | Phases |
 |------|--------|
 | `distress-os` | 22–26, 29–31 |
-| `city-list-requests` | 27, 29 |
-| `property-distress-analyzer` | 28, 29 |
+| `city-list-requests` | 27, 29, 30 |
+| `property-distress-analyzer` | 28, 29, 30 |
 
 ## Constraints
 
@@ -78,4 +78,4 @@ Completely redesign and rebuild every pixel, interaction, page, component, and f
 
 ## Next step
 
-`/gsd:discuss-phase 30` or `/gsd:plan-phase 30` — A11y, Performance, SEO (BRAND-31–34)
+`/gsd:discuss-phase 31` or `/gsd:plan-phase 31` — Cross-App Signature QA (BRAND-35–37)

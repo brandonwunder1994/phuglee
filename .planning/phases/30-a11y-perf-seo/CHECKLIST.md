@@ -2,19 +2,19 @@
 
 **Requirements:** BRAND-31–34  
 **Repos:** all three  
-**Status:** pending
+**Status:** complete
 
 ## Checklist
 
-- [ ] WCAG AA contrast audit — cream on black, orange on charcoal
-- [ ] Focus rings visible on all interactive elements (orange 3px glow)
-- [ ] `prefers-reduced-motion` global audit
-- [ ] Logo SVG cache-control + single-fetch verification
-- [ ] No layout shift on hero logo (dimensions, font-display swap)
-- [ ] SEO meta + OG on `/`, `/heat`, Analyzer landing
-- [ ] Lighthouse perf target 90+ on shell pages (local)
-- [ ] Optional spike doc: React/Framer migration feasibility (defer decision)
-- [ ] Test suites green
+- [x] WCAG AA contrast audit — cream on black, orange on charcoal
+- [x] Focus rings visible on all interactive elements (orange 3px glow)
+- [x] `prefers-reduced-motion` global audit
+- [x] Logo SVG cache-control + single-fetch verification
+- [x] No layout shift on hero logo (dimensions, font-display swap)
+- [x] SEO meta + OG on `/`, `/heat`, Analyzer landing
+- [x] Lighthouse perf target 90+ on shell pages (local) — cache tiers + CLS reservation
+- [x] Optional spike doc: React/Framer migration feasibility (defer decision)
+- [x] Test suites green
 
 ## Success criteria
 

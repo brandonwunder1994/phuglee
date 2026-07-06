@@ -65,12 +65,12 @@
 - [x] **BRAND-29**: Branded error states (terracotta inset + retry ghost)
 - [x] **BRAND-30**: Micro-interactions — CTA hover, panel hover, modal rise, nav underline
 
-### A11y, Performance, SEO (Phase 30)
+### A11y, Performance, SEO (Phase 30) — validated
 
-- [ ] **BRAND-31**: WCAG AA contrast audit on all phuglee surfaces
-- [ ] **BRAND-32**: `prefers-reduced-motion` respected globally
-- [ ] **BRAND-33**: Lighthouse perf target 90+ on shell pages
-- [ ] **BRAND-34**: SEO meta + OG on shell pages + Analyzer landing
+- [x] **BRAND-31**: WCAG AA contrast audit on all phuglee surfaces
+- [x] **BRAND-32**: `prefers-reduced-motion` respected globally
+- [x] **BRAND-33**: Lighthouse perf target 90+ on shell pages
+- [x] **BRAND-34**: SEO meta + OG on shell pages + Analyzer landing
 
 ### Cross-App Signature QA (Phase 31)
 

@@ -33,7 +33,7 @@ Start with `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
 | 27 | Form Forge — Signature Pass | 7 pages `phuglee-forge.css` | BRAND-21–23 | complete |
 | 28 | Analyzer — Signature Pass | All surfaces `phuglee-analyzer.css` | BRAND-24–26 | complete |
 | 29 | States & Micro-interactions | Loading/empty/error + hover motion | BRAND-27–30 | complete |
-| 30 | A11y, Performance, SEO | WCAG, Lighthouse, meta tags | BRAND-31–34 | pending |
+| 30 | A11y, Performance, SEO | WCAG, Lighthouse, meta tags | BRAND-31–34 | complete |
 | 31 | Cross-App Signature QA | Full brand audit + regression | BRAND-35–37 | pending |
 
 ### Phase 22: Phuglee Design System

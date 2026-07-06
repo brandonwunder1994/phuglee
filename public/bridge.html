@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Distress OS — Send to Analyzer</title>
+  <meta name="description" content="Upload spreadsheets from Form Forge and send distressed property leads to the Property Distress Analyzer.">
+  <meta property="og:title" content="Data Bridge — Distress OS">
+  <meta property="og:description" content="Bridge your collected city records into AI-powered Street View distress analysis.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/phuglee-logo-hd.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Data Bridge — Distress OS">
+  <meta name="twitter:description" content="Send collected lead spreadsheets to the Property Distress Analyzer.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,10 +23,12 @@
   <link rel="stylesheet" href="/css/shell-nav.css">
   <link rel="stylesheet" href="/css/bridge.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
+  <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-guard.js"></script>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
 <body class="has-premium-bg">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
   <div class="premium-bg premium-bg--subtle" aria-hidden="true">
     <div class="premium-bg-photo"></div>
     <div class="premium-bg-grain"></div>
@@ -26,7 +36,7 @@
   </div>
   <div class="bridge-bg" aria-hidden="true"></div>
   <div id="distress-os-nav-mount"></div>
-  <main class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
+  <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
     <header class="bridge-hero" data-phuglee-reveal-child>
       <p class="bridge-eyebrow">Optional · Phase 5</p>
       <h1>Send to Analyzer</h1>
