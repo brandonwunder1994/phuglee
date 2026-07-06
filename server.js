@@ -57,7 +57,7 @@ async function handleRequest(req, res) {
     send(res, 200, JSON.stringify({
       ok: true,
       service: 'distress-os',
-      version: '1.0.0',
+      version: '1.1.0',
       modules: {
         formForge: forge.ok ? 'up' : 'down',
         propertyAnalyzer: analyzer.ok ? 'up' : 'down'
@@ -115,6 +115,15 @@ const server = http.createServer((req, res) => {
     console.error('[Distress OS] Request error:', err);
     if (!res.headersSent) send(res, 500, 'Internal server error');
   });
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`[Distress OS] Port ${config.PORT} is already in use. Stop the other process or set DISTRESS_OS_PORT.`);
+  } else {
+    console.error('[Distress OS] Server error:', err);
+  }
+  process.exit(1);
 });
 
 server.listen(config.PORT, config.HOST, async () => {

@@ -1,7 +1,10 @@
 /* Distress OS — global navigation (two-row with Form Forge links) */
 
 .shell-nav-wrap {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
   border-bottom: 1px solid var(--border);
   background: rgba(8, 6, 5, 0.92);
@@ -72,10 +75,6 @@ body.distress-os-embedded .topbar {
 body.distress-os-embedded.analyzer-embedded .app-sidebar {
   top: var(--distress-nav-offset, 108px);
   height: calc(100vh - var(--distress-nav-offset, 108px));
-}
-
-body.distress-os-embedded.analyzer-embedded .app-shell {
-  padding-top: var(--distress-nav-offset, 108px);
 }
 
 @media (max-width: 900px) {

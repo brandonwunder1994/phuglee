@@ -111,6 +111,7 @@
     if (wrap) {
       const h = wrap.offsetHeight;
       document.documentElement.style.setProperty('--distress-nav-offset', h + 'px');
+      document.body.style.paddingTop = h + 'px';
     }
 
     if (path.startsWith('/forge')) {

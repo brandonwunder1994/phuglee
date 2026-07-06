@@ -1,8 +1,4 @@
-/* Command Hub — page-specific layout (design system in heat-*.css) */
-
-@import url('heat-base.css');
-@import url('heat-atmosphere.css');
-@import url('heat-components.css');
+/* Command Hub — page-specific layout (heat-*.css loaded via link tags) */
 
 .hub-main {
   position: relative;

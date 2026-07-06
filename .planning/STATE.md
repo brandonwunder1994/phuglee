@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Unified Heat Design
-status: defining_requirements
-last_updated: "2026-07-06T00:00:00.000Z"
-last_activity: 2026-07-06 — Milestone v1.1 approved; research skipped
+status: in_progress
+last_updated: "2026-07-06T19:30:00.000Z"
+last_activity: 2026-07-06 — Phases 7–12 shipped; QA sweep in progress
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 6
   total_plans: 0
   completed_plans: 0
 ---
