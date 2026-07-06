@@ -3,186 +3,202 @@
 ## Milestones
 
 - ✅ **v1.0 Shell & Integration** — Phases 1–6 (shipped 2026-07-01)
-- 🔄 **v1.1 Unified Heat Design** — Phases 7–13 (in progress)
-- 📋 **v1.2 Premium Brand Experience** — Phases 14–21 (planned)
+- 🔄 **v1.1 Unified Heat Design** — Phases 7–13 (in progress — superseded by v1.3 tokens)
+- ✅ **v1.2 Premium Brand Experience** — Phases 14–21 (shipped 2026-07-06)
+- 📋 **v1.3 Phuglee Signature Brand** — Phases 22–31 (active)
 
 ## Active Work
 
-**Next milestone:** v1.2 Premium Brand Experience
+**Next milestone:** v1.3 Phuglee Signature Brand
 
-Start with `/gsd:discuss-phase 14` or `/gsd:plan-phase 14`
+Start with `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
 
-**Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`
+**Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`  
+**Site audit:** `.planning/SITE-AUDIT.md`  
+**Milestone doc:** `docs/gsd/milestones/M4-phuglee-signature-brand.md`
 
 ---
 
-## v1.2 Premium Brand Experience
+## v1.3 Phuglee Signature Brand
 
-> Post-login only. Login page (`/`) is locked.
+> **Full site** — including login (`/`). Logo SVG palette is ground truth. Premium · Edgy · Artistic.
 
 | Phase | Name | Goal | Requirements | Status |
 |-------|------|------|--------------|--------|
-| 14 | Premium Design System | Extract login DNA into shared CSS | PREM-01–06 | pending |
-| 15 | Shell & Navigation Polish | Premium nav chrome + injection | PREM-07–10 | pending |
-| 16 | Command Hub — How It Works | `/heat` full premium pass | PREM-11–13 | pending |
-| 17 | Collect Records | `/collect` hero + dialogs | PREM-14–16 | pending |
-| 18 | Data Bridge | `/bridge` utility premium pass | PREM-17–19 | pending |
-| 19 | Form Forge — Premium Pass | 7 pages grain + panels | PREM-20–22 | pending |
-| 20 | Analyzer — Premium Pass | All Analyzer surfaces | PREM-23–25 | pending |
-| 21 | Cross-App Premium QA | Audit + regression | PREM-26–28 | pending |
+| 22 | Phuglee Design System | Logo-ground-truth tokens + components + SVG injector | BRAND-01–06 | complete |
+| 23 | Global Chrome & Motion | Nav/footer + motion primitives + proxy injection | BRAND-07–10 | pending |
+| 24 | Home — Signature Rebuild | `/` full brand moment (unlocked) | BRAND-11–14 | pending |
+| 25 | Auth Flows | Modal + pricing + success overlay | BRAND-15–17 | pending |
+| 26 | Shell Pages | `/heat`, `/collect`, `/bridge` editorial pass | BRAND-18–20 | pending |
+| 27 | Form Forge — Signature Pass | 7 pages `phuglee-forge.css` | BRAND-21–23 | pending |
+| 28 | Analyzer — Signature Pass | All surfaces `phuglee-analyzer.css` | BRAND-24–26 | pending |
+| 29 | States & Micro-interactions | Loading/empty/error + hover motion | BRAND-27–30 | pending |
+| 30 | A11y, Performance, SEO | WCAG, Lighthouse, meta tags | BRAND-31–34 | pending |
+| 31 | Cross-App Signature QA | Full brand audit + regression | BRAND-35–37 | pending |
 
----
+### Phase 22: Phuglee Design System
 
-### Phase 14: Premium Design System
-
-**Goal:** Extract distressed-home atmosphere and auth-modal panel treatment into reusable CSS shared across all apps.
+**Goal:** Logo-ground-truth `--phuglee-*` tokens, component library, and reusable SVG integration.
 
 **Success criteria:**
-1. `premium-atmosphere.css` renders photo + grain + wear + vignette without copying login-page-only rules
-2. `premium-components.css` exports `.premium-panel`, `.premium-eyebrow`, `.premium-bg`, btn variants
-3. Logo palette tokens documented and aliased in `tokens.css`
-4. `v1.2-PREMIUM-BRAND.md` complete with per-page inventory
-5. Login page visually unchanged when new CSS files are added (not linked on `/`)
+1. `tokens.css` exports full logo palette; Heat ember aliased to `--phuglee-orange`
+2. `phuglee-components.css` exports `.phuglee-btn-primary`, `.phuglee-panel`, input/modal variants
+3. `phuglee-logo.js` injects SVG via `data-phuglee-logo` attributes
+4. `phuglee-pattern.svg` tile ready for hero/background use
+5. `npm test` passing
 
 **Repo:** `distress-os`
 
 ---
 
-### Phase 15: Shell & Navigation Polish
+### Phase 23: Global Chrome & Motion
 
-**Goal:** Global nav and shell chrome match login page premium feel.
+**Goal:** Floating brand bar nav, footer, and orchestrated stagger motion across shell + proxied apps.
 
 **Success criteria:**
-1. Nav has ember hairline, glass blur, cream logo — feels like login page header
-2. Active states use auth-modal accent pattern
-3. `rewrite.js` injects premium CSS on `/forge/*` and `/analyzer/*`
-4. No z-index conflicts between fixed nav and photo layers
-5. `npm test` — rewrite injection tests updated
+1. Nav: black glass, cream wordmark, orange active pill
+2. `phuglee-motion.js` stagger on `[data-phuglee-reveal]` elements
+3. `rewrite.js` injects phuglee CSS on `/forge/*` and `/analyzer/*`
+4. `prefers-reduced-motion` disables stagger
+5. `npm test` — rewrite tests updated
 
 **Repo:** `distress-os`
 
 ---
 
-### Phase 16: Command Hub — How It Works
+### Phase 24: Home — Signature Rebuild
 
-**Goal:** `/heat` is the flagship post-login page — full distressed atmosphere and auth-style panels.
+**Goal:** `/` is the signature brand moment — logo as art piece, logo-exact palette, pattern system.
 
 **Page plan:**
-- Premium backdrop behind existing heat-bg
-- Hero: flame gradient headline + text-shadow lead
-- Hotspot → `premium-panel` with grain
-- Steps 01–03: oversized Anton numbers, ember glow
-- Pricing → `auth-pricing-card` parity (featured badge, dashed exclusive)
-- CTA bar: ember gradient strip with grain
+- `#0D0D0D` ground, logo orange CTA, taupe secondary chrome
+- `phuglee-logo.js` hero with float animation
+- Deconstructed pattern layer at 3–8% opacity
+- Hero stagger via motion.js
+- SEO meta + OG tags
 
 **Success criteria:**
-1. Side-by-side with login page — same brand family, clearly related
-2. All hub sections readable at AA contrast
-3. Pricing cards match auth signup tier cards
-4. `npm test` passing
+1. Side-by-side with `phuglee-logo.svg` — one cohesive family
+2. No CLS on logo load
+3. `npm test` passing
 
 **Repo:** `distress-os`
 
 ---
 
-### Phase 17: Collect Records
+### Phase 25: Auth Flows
 
-**Goal:** `/collect` hero feels like a battle cry; dialogs match auth modal.
-
-**Page plan:**
-- Distressed home hero (stronger than utility pages)
-- btn-heat + shine on "Start Requests"
-- Dialogs: grain panels, ember hairline, auth-checkbox radios
-- Choice cards: auth-pricing-card hover slide
+**Goal:** Auth modal matches wordmark energy — condensed headlines, logo orange CTAs.
 
 **Success criteria:**
-1. Hero matches landing energy without touching `/`
-2. Both dialogs (Start Requests, PDF Filler Info) premium styled
-3. Workflow radio selection visually matches auth tier selection
+1. Pricing tiers use phuglee-panel-featured/exclusive
+2. All `auth.js` hooks preserved
+3. WCAG AA on form elements
 
 **Repo:** `distress-os`
 
 ---
 
-### Phase 18: Data Bridge
+### Phase 26: Shell Pages — Hub, Collect, Bridge
 
-**Goal:** `/bridge` utility page gets premium chrome without overwhelming the workflow.
-
-**Page plan:**
-- Subtle photo layer (~15% opacity)
-- Step panels with numbered ember badges
-- Tables: dark inset, grain headers
-- Primary download = btn-heat; errors = auth-error panel
-
-**Success criteria:**
-1. Three-step workflow visually clear and premium
-2. Column mapping + preview tables readable
-3. Bridge functionality unchanged
-
-**Repo:** `distress-os`
-
----
-
-### Phase 19: Form Forge — Premium Pass
-
-**Goal:** All 7 Forge pages elevated to premium brand.
+**Goal:** Post-login shell reads editorial/streetwear brand, not SaaS dashboard.
 
 **Per-page targets:**
 
 | Page | Key upgrades |
 |------|--------------|
-| Records Desk | Hero strip, premium status cards |
-| Request Tracker | Grain table rows, premium filter bar |
-| Coverage Map | Dark glass map controls, ember active |
-| Request PDFs | Wear-bordered preview, btn-heat send |
-| Submit Portals | Auth-style step wizard |
-| Email-only | Premium composer, signal-pill templates |
-| Portal Errors | Danger inset rows, empty state watermark |
+| `/heat` | Cream-to-orange hero, pattern sidebar, orange CTA bar |
+| `/collect` | Poster energy hero, pattern bleed, phuglee dialogs |
+| `/bridge` | Orange step badges, designed error state |
 
 **Success criteria:**
-1. No paper-grain / stamp aesthetic remains
-2. All modals match premium-panel
-3. `python scripts/gsd.py verify` — 0 issues
+1. All three pages use phuglee tokens exclusively
+2. Functionality unchanged
+3. `npm test` passing
+
+**Repo:** `distress-os`
+
+---
+
+### Phase 27: Form Forge — Signature Pass
+
+**Goal:** All 7 Forge pages elevated to Phuglee signature brand.
+
+**Success criteria:**
+1. `phuglee-forge.css` on all pages
+2. Mascot empty states on Portal Errors
+3. `gsd.py verify` — document known lint-imports exception
 
 **Repo:** `city-list-requests`
 
 ---
 
-### Phase 20: Analyzer — Premium Pass
+### Phase 28: Analyzer — Signature Pass
 
-**Goal:** Analyzer feels like the premium command center for distressed deals.
-
-**Surface targets:** Sidebar, command bar, KPIs, property cards, scan progress, review overlay, modals, settings, in-app landing
+**Goal:** Analyzer feels like premium command center within Phuglee brand.
 
 **Success criteria:**
-1. Tier colors semantically distinct within premium chrome
-2. Review keyboard shortcuts (1–5) unchanged
-3. JetBrains Mono retained for HUD/scan log
-4. `npm test` — 190+ passing
+1. Tier colors semantically distinct within phuglee chrome
+2. Review shortcuts (1–5) unchanged
+3. `npm test` — 190+ passing
 
 **Repo:** `property-distress-analyzer`
 
 ---
 
-### Phase 21: Cross-App Premium QA
+### Phase 29: States & Micro-interactions
 
-**Goal:** End-to-end brand consistency after login.
-
-**Audit path:** Hub → Collect → Bridge → all Forge pages → Analyzer → Hub
+**Goal:** Every wait, fail, and zero-data moment feels designed.
 
 **Success criteria:**
-1. Every post-login page passes visual checklist in `v1.2-PREMIUM-BRAND.md`
-2. Login page unchanged (snapshot/regression)
-3. All three repo test suites green
-4. M3 milestone ready for `/gsd:complete-milestone`
+1. Loading/empty/error patterns consistent across all three repos
+2. CTA/panel/modal hover motion in phuglee-components
+3. `prefers-reduced-motion` respected
 
 **Repos:** all three
 
 ---
 
+### Phase 30: A11y, Performance, SEO
+
+**Goal:** Technical excellence matches visual premium.
+
+**Success criteria:**
+1. WCAG AA audit pass
+2. Lighthouse 90+ on shell pages
+3. SEO meta on `/`, `/heat`, Analyzer landing
+
+**Repos:** all three
+
+---
+
+### Phase 31: Cross-App Signature QA
+
+**Goal:** Entire site feels like one high-end brand.
+
+**Audit path:** `/` → auth → Hub → Collect → Bridge → 7 Forge → Analyzer → Hub
+
+**Success criteria:**
+1. Visual checklist in `v1.3-PHUGLEE-SIGNATURE-BRAND.md` §8–9 passes
+2. No hardcoded Heat ember `#e85d04` remnants
+3. All test suites green
+4. M4 ready for `/gsd:complete-milestone`
+
+**Repos:** all three
+
+---
+
+## v1.2 Premium Brand Experience (complete — reference)
+
+Phases 14–21 shipped 2026-07-06. Post-login premium pass; login was locked (superseded by M4).
+
+See `docs/gsd/milestones/M3-premium-brand-experience.md`
+
+---
+
 ## v1.1 Unified Heat Design (reference — phases 7–13)
 
-See prior ROADMAP entries in git history. v1.1 establishes Heat tokens + global nav; v1.2 elevates to login-page premium on top.
+See `docs/gsd/milestones/M2-unified-heat-design.md`. Heat tokens superseded by `--phuglee-*` in Phase 22.
 
 ---
 
@@ -190,11 +206,13 @@ See prior ROADMAP entries in git history. v1.1 establishes Heat tokens + global 
 
 | Phase | Plans | Status | Completed |
 |-------|-------|--------|-----------|
-| 14. Premium Design System | 0/1 | Pending | — |
-| 15. Shell & Nav Polish | 0/1 | Pending | — |
-| 16. Command Hub | 0/1 | Pending | — |
-| 17. Collect Records | 0/1 | Pending | — |
-| 18. Data Bridge | 0/1 | Pending | — |
-| 19. Form Forge Premium | 0/1 | Pending | — |
-| 20. Analyzer Premium | 0/1 | Pending | — |
-| 21. Cross-App QA | 0/1 | Pending | — |
+| 22. Phuglee Design System | 1/1 | Complete | 2026-07-06 |
+| 23. Global Chrome & Motion | 0/1 | Pending | — |
+| 24. Home Signature Rebuild | 0/1 | Pending | — |
+| 25. Auth Flows | 0/1 | Pending | — |
+| 26. Shell Pages | 0/1 | Pending | — |
+| 27. Form Forge Signature | 0/1 | Pending | — |
+| 28. Analyzer Signature | 0/1 | Pending | — |
+| 29. States & Micro-interactions | 0/1 | Pending | — |
+| 30. A11y, Perf, SEO | 0/1 | Pending | — |
+| 31. Cross-App Signature QA | 0/1 | Pending | — |

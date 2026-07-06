@@ -10,7 +10,7 @@ One operating system feel: collect public records → analyze distressed leads �
 
 ## Requirements
 
-### Validated (v1.0 — shipped)
+### Validated (v1.0 — shipped 2026-07-01)
 
 - [x] Landing page with heat aesthetic (`/`)
 - [x] Command Hub dashboard (`/heat`)
@@ -20,46 +20,45 @@ One operating system feel: collect public records → analyze distressed leads �
 - [x] Auto-start child processes via `launch-distressos.bat`
 - [x] Unit tests for rewrite, bridge schema, proxy
 
+### Validated (v1.2 — shipped 2026-07-06)
+
+- [x] **PREM-01–28**: Premium brand pass on post-login surfaces (M3)
+
 ### In progress (v1.1 Unified Heat Design)
 
-- [ ] **HEAT-01–05**: Canonical Heat design system extracted from Command Hub
-- [ ] **NAV-01–06**: Global navigation menu on every page (shell + Forge subpages + Analyzer)
-- [ ] **FORGE-01–06**: Form Forge visual reskin to Heat palette
-- [ ] **PA-01–07**: Property Analyzer visual reskin to Heat palette
-- [ ] **QA-01–03**: Cross-app visual audit + regression tests
+- [ ] **HEAT-01–05**: Canonical Heat design system (superseded by v1.3 `--phuglee-*` tokens)
+- [ ] **NAV-01–06**: Global navigation menu
+- [ ] **FORGE-01–06**: Form Forge Heat reskin
+- [ ] **PA-01–07**: Property Analyzer Heat reskin
+- [ ] **QA-01–03**: Cross-app visual audit
 
-### Active (v1.2 Premium Brand Experience)
+### Active (v1.3 Phuglee Signature Brand)
 
-- [ ] **PREM-01–06**: Premium design system — distressed atmosphere + grain panels (from login page)
-- [ ] **PREM-07–10**: Shell nav premium chrome + CSS injection
-- [ ] **PREM-11–13**: Command Hub (`/heat`) premium pass
-- [ ] **PREM-14–16**: Collect Records (`/collect`) premium pass
-- [ ] **PREM-17–19**: Data Bridge (`/bridge`) premium pass
-- [ ] **PREM-20–22**: Form Forge 7-page premium pass
-- [ ] **PREM-23–25**: Property Analyzer premium pass
-- [ ] **PREM-26–28**: Cross-app premium QA + login page regression check
+- [ ] **BRAND-01–37**: Full-site signature brand rebuild — logo-ground-truth palette, design system, all pages, states, a11y
 
-### Future (post v1.2)
+### Future (post v1.3)
 
+- [ ] React/Framer Motion migration (optional)
 - [ ] Embedded bridge workflow (upload without leaving Analyzer)
 - [ ] Single sign-on / session sharing between modules
-- [ ] Animated mascot watermark, per-market photography
+- [ ] Per-market custom distressed photography
 
-### Out of Scope (v1.2)
+### Out of Scope (v1.3)
 
 | Feature | Reason |
 |---------|--------|
-| Login page (`/`) changes | User locked — already awesome |
-| Backend/API changes | Visual only |
-| New product features | Separate milestones |
+| E-commerce / cart / checkout | No shop exists |
+| Backend/API changes | Visual + motion only |
+| Full TypeScript migration | JSDoc in new modules only |
 
 ## Context
 
-**Stack:** Node.js 20+ shell (`server.js`), vanilla HTML/CSS in `public/`, child apps via junction modules.
+**Stack:** Node.js 20+ shell (`server.js`), vanilla HTML/CSS/JS in `public/`, child apps via junction modules.
 
-**Brand reference (v1.2):** Login page distressed home + Phuglee logo palette + auth modal panels.
+**Brand reference (v1.3):** `phuglee-logo.svg` palette — `#0D0D0D` bg, `#E58435` CTA, taupes, creams. Premium · Edgy · Artistic · High-end streetwear.
 
-**Design reference (v1.1):** `public/css/tokens.css`, `hub.css`, `shell.css` — Anton + Outfit, ember/flame heat palette.
+**Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`  
+**Site audit:** `.planning/SITE-AUDIT.md`
 
 **Child repos:**
 - Form Forge: `C:\Users\brand\Projects\city-list-requests` (Python Flask, port 8787)
@@ -69,17 +68,20 @@ One operating system feel: collect public records → analyze distressed leads �
 
 ---
 
-## Current Milestone: v1.2 Premium Brand Experience
+## Current Milestone: v1.3 Phuglee Signature Brand
 
-**Goal:** Make every post-login page match the login page's premium, badass Phuglee branding — distressed home atmosphere, grain texture, cream-and-ember palette, auth-style panels.
+**Goal:** Completely redesign every pixel, interaction, page, and component so the entire site feels like a premium edgy artistic high-end brand — dark, immersive, tactile, cohesive. Logo SVG is ground truth.
 
 **Target features:**
-- Shared `premium-atmosphere.css` + `premium-components.css` extracted from login page
-- Page-by-page upgrades: Hub, Collect, Bridge, 7 Forge pages, Analyzer surfaces
-- Premium nav chrome; login page untouched
-- Full visual audit after sign-in
+- `--phuglee-*` design token system + `phuglee-components.css`
+- Reusable `phuglee-logo.js` SVG injector + pattern tiles
+- Full-site rebuild including login (`/`)
+- Editorial shell pages, Forge 7 pages, Analyzer all surfaces
+- Branded loading/empty/error states + micro-interactions
+- WCAG AA, perf, SEO
 
-**Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`
+**Phases:** 22–31  
+**GSD doc:** `docs/gsd/milestones/M4-phuglee-signature-brand.md`
 
 **Last updated:** 2026-07-06
 

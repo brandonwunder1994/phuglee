@@ -1,7 +1,8 @@
 # M3 — Premium Brand Experience (v1.2)
 
-> **Status:** `complete`  
+> **Status:** `closed`  
 > **Created:** 2026-07-06  
+> **Closed:** 2026-07-06
 > **Depends on:** M2 (v1.1 Unified Heat Design — phases 7–13)  
 > **Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`  
 > **Scope:** Post-login surfaces only — login page (`/`) is locked and out of scope
@@ -56,6 +57,8 @@ Elevate every post-login page to match the **Phuglee logo page** and **auth moda
 
 2026-07-06 — All phases executed. Login page untouched.
 
-## Next step
+## Closed
 
-`/gsd:complete-milestone` — close M3, archive follow-ups
+2026-07-06 — `/gsd:complete-milestone` executed. Follow-ups moved to M4 (v1.3).
+
+**Closure doc:** `docs/gsd/plans/2026-07-06-m3-milestone-closure.md`

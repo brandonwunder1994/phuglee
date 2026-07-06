@@ -15,12 +15,15 @@ Get Shit Done tracking for shell integration, navigation, and cross-app design m
 |----|------|--------|
 | [M1](./milestones/M1-shell-integration.md) | Shell & Integration (v1.0) | `complete` |
 | [M2](./milestones/M2-unified-heat-design.md) | Unified Heat Design (v1.1) | `in_progress` |
-| [M3](./milestones/M3-premium-brand-experience.md) | Premium Brand Experience (v1.2) | `complete` |
+| [M3](./milestones/M3-premium-brand-experience.md) | Premium Brand Experience (v1.2) | `closed` |
+| [M4](./milestones/M4-phuglee-signature-brand.md) | Phuglee Signature Brand (v1.3) | `in_progress` |
 
-**Active milestone:** None — M3 complete. Run `/gsd:complete-milestone` to close.  
-**Prerequisite:** v1.1 Heat foundation (can overlap or complete first)
+**Active milestone:** M4 — Phuglee Signature Brand (v1.3)  
+**Start:** `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
 
-**Design spec:** `.planning/v1.2-PREMIUM-BRAND.md`  
+**Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`  
+**Site audit:** `.planning/SITE-AUDIT.md`  
+**v1.2 spec (reference):** `.planning/v1.2-PREMIUM-BRAND.md`  
 **v1.1 spec (reference):** `.planning/v1.1-HEAT-DESIGN.md`
 
 ## Cross-repo coordination
@@ -36,4 +39,6 @@ Get Shit Done tracking for shell integration, navigation, and cross-app design m
 docs/gsd/plans/YYYY-MM-DD-<phase-slug>.md
 ```
 
-Example: `docs/gsd/plans/2026-07-06-phase8-global-nav.md`
+Examples:
+- `docs/gsd/plans/2026-07-06-m3-premium-brand-milestone.md`
+- `docs/gsd/plans/2026-07-06-m4-phuglee-signature-brand.md`

@@ -25,11 +25,13 @@
 
 **GSD doc:** `docs/gsd/milestones/M2-unified-heat-design.md`
 
+> Note: v1.3 `--phuglee-*` tokens supersede Heat ember palette. Archive or complete v1.1 when Phase 22 lands.
+
 ---
 
-## v1.2 Premium Brand Experience (Planned: 2026-07-06)
+## v1.2 Premium Brand Experience (Shipped: 2026-07-06)
 
-**Goal:** Elevate every post-login page to match the Phuglee login page — distressed home atmosphere, grain panels, cream-and-ember palette, premium badass feel. Login page locked.
+**Goal:** Elevate every post-login page to match the Phuglee login page — distressed home atmosphere, grain panels, cream-and-ember palette. Login page was locked in M3.
 
 **Phases:** 14–21
 
@@ -37,11 +39,39 @@
 
 **GSD doc:** `docs/gsd/milestones/M3-premium-brand-experience.md`
 
-**Page coverage:**
-- Shell: Command Hub, Collect Records, Data Bridge, global nav
-- Form Forge: 7 pages
-- Property Analyzer: all surfaces
+**Shipped:**
+- `premium-atmosphere.css` + `premium-components.css`
+- Premium nav chrome + rewrite injection
+- `/heat`, `/collect`, `/bridge` full pass
+- Form Forge `premium-forge.css` (7 pages)
+- Analyzer `premium-analyzer.css`
 
-**Next step:** `/gsd:discuss-phase 14` or `/gsd:plan-phase 14`
+**Closed:** 2026-07-06 — `docs/gsd/plans/2026-07-06-m3-milestone-closure.md`
+
+---
+
+## v1.3 Phuglee Signature Brand (Planned: 2026-07-06)
+
+**Goal:** Complete signature brand rebuild — premium, edgy, artistic, dark immersive. Logo SVG palette is ground truth. **Full site including login.**
+
+**Phases:** 22–31
+
+**Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`  
+**Site audit:** `.planning/SITE-AUDIT.md`  
+**GSD doc:** `docs/gsd/milestones/M4-phuglee-signature-brand.md`
+
+**Page coverage:**
+- Shell: Home (`/`), auth modal, Command Hub, Collect, Bridge, global nav
+- Form Forge: 7 pages
+- Property Analyzer: all surfaces + landing
+- Loading/empty/error states across all apps
+
+**Supersedes M3:**
+- Login page unlocked for full rebuild
+- Logo orange `#E58435` replaces Heat ember `#e85d04`
+- `phuglee-logo.js` SVG integration + pattern system
+- Orchestrated motion + branded state moments
+
+**Next step:** `/gsd:discuss-phase 22` or `/gsd:plan-phase 22`
 
 ---

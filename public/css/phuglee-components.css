@@ -1,0 +1,367 @@
+/* Phuglee Signature Brand — components (v1.3) */
+
+/* ── Pattern background utility ── */
+.phuglee-pattern-bg {
+  position: relative;
+}
+
+.phuglee-pattern-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--phuglee-pattern-opacity, 0.06);
+  background-image: url('/images/phuglee-pattern.svg');
+  background-size: 280px 280px;
+  background-repeat: repeat;
+  z-index: 0;
+}
+
+.phuglee-pattern-bg--subtle {
+  --phuglee-pattern-opacity: 0.04;
+}
+
+.phuglee-pattern-bg--medium {
+  --phuglee-pattern-opacity: 0.07;
+}
+
+.phuglee-pattern-bg--strong {
+  --phuglee-pattern-opacity: 0.1;
+}
+
+/* ── Typography ── */
+.phuglee-eyebrow {
+  font-size: var(--text-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.75rem;
+}
+
+.phuglee-hero-title {
+  font-family: var(--font-display);
+  font-size: var(--text-display-lg);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 0.95;
+  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.phuglee-tagline {
+  font-size: var(--text-body-lg);
+  line-height: 1.65;
+  color: var(--phuglee-cream);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 4px 18px rgba(0, 0, 0, 0.65);
+}
+
+/* ── Buttons ── */
+.phuglee-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.phuglee-btn-primary {
+  position: relative;
+  overflow: hidden;
+  padding: 0.9rem 1.75rem;
+  color: var(--phuglee-black);
+  background: linear-gradient(
+    135deg,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-orange) 45%,
+    var(--phuglee-terracotta) 100%
+  );
+  box-shadow: var(--shadow-cta);
+}
+
+.phuglee-btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 60%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.5s ease;
+}
+
+.phuglee-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-cta), var(--shadow-glow-orange);
+}
+
+.phuglee-btn-primary:hover::after {
+  transform: translateX(120%);
+}
+
+.phuglee-btn-secondary {
+  padding: 0.85rem 1.5rem;
+  color: var(--phuglee-cream);
+  background: transparent;
+  border: 1px solid var(--phuglee-stone-warm);
+}
+
+.phuglee-btn-secondary:hover {
+  border-color: var(--phuglee-orange);
+  color: var(--phuglee-orange);
+  transform: translateY(-1px);
+}
+
+.phuglee-btn-ghost {
+  padding: 0.5rem 0.75rem;
+  color: var(--phuglee-cream);
+  background: transparent;
+}
+
+.phuglee-btn-ghost:hover {
+  color: var(--phuglee-orange);
+}
+
+.phuglee-btn-danger {
+  padding: 0.85rem 1.5rem;
+  color: var(--phuglee-danger);
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
+/* ── Panels ── */
+.phuglee-panel {
+  position: relative;
+  background:
+    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 40%),
+    var(--phuglee-charcoal);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-panel);
+  overflow: hidden;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.phuglee-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(
+      -3deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.008) 3px,
+      rgba(255, 255, 255, 0.008) 4px
+    );
+  opacity: 0.6;
+}
+
+.phuglee-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--phuglee-orange),
+    var(--phuglee-gold),
+    var(--phuglee-terracotta),
+    transparent
+  );
+  opacity: 0.75;
+}
+
+.phuglee-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.phuglee-panel:hover {
+  border-color: var(--border-hot);
+  transform: translateX(4px);
+}
+
+.phuglee-panel-featured {
+  border-color: rgba(229, 132, 53, 0.4);
+  box-shadow: var(--shadow-panel), var(--shadow-glow-orange);
+}
+
+.phuglee-panel-featured:hover {
+  border-color: var(--phuglee-orange);
+  transform: translateX(6px);
+}
+
+.phuglee-panel-exclusive {
+  border-style: dashed;
+  border-color: rgba(172, 107, 50, 0.55);
+}
+
+/* ── Inputs ── */
+.phuglee-input,
+.phuglee-textarea,
+.phuglee-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--phuglee-cream);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--phuglee-stone-warm);
+  border-radius: var(--radius-md);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.phuglee-input:focus,
+.phuglee-textarea:focus,
+.phuglee-select:focus {
+  outline: none;
+  border-color: var(--phuglee-orange);
+  box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.15);
+}
+
+.phuglee-input::placeholder,
+.phuglee-textarea::placeholder {
+  color: var(--phuglee-stone);
+}
+
+/* ── Modals ── */
+.phuglee-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 13, 13, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 900;
+}
+
+.phuglee-modal-panel {
+  animation: phuglee-modal-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes phuglee-modal-rise {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── States ── */
+.phuglee-error {
+  font-size: var(--text-body-sm);
+  color: var(--phuglee-danger);
+  padding: 0.65rem 0.85rem;
+  background: rgba(172, 107, 50, 0.12);
+  border: 1px solid rgba(172, 107, 50, 0.35);
+  border-radius: var(--radius-sm);
+}
+
+.phuglee-empty {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: var(--phuglee-stone);
+}
+
+.phuglee-loading-bar {
+  height: 3px;
+  background: var(--phuglee-charcoal);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.phuglee-loading-bar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--phuglee-terracotta), var(--phuglee-orange));
+  border-radius: inherit;
+  animation: phuglee-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes phuglee-loading-pulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ── Logo SVG variants (injected by phuglee-logo.js) ── */
+.phuglee-logo-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.phuglee-logo-svg--hero {
+  width: min(408px, 72vw);
+  animation: phuglee-logo-float 6s ease-in-out infinite;
+}
+
+.phuglee-logo-svg--watermark {
+  width: 120px;
+  opacity: 0.08;
+}
+
+.phuglee-logo-svg--inline {
+  width: 48px;
+}
+
+@keyframes phuglee-logo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phuglee-btn-primary::after {
+    display: none;
+  }
+
+  .phuglee-btn-primary:hover,
+  .phuglee-panel:hover,
+  .phuglee-panel-featured:hover {
+    transform: none;
+  }
+
+  .phuglee-modal-panel {
+    animation: none;
+  }
+
+  .phuglee-logo-svg--hero {
+    animation: none;
+  }
+
+  .phuglee-loading-bar::after {
+    animation: none;
+    width: 100%;
+  }
+}
