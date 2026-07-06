@@ -57,6 +57,36 @@
     return id === current ? 'shell-sublink active' : 'shell-sublink';
   }
 
+  function buildFooter() {
+    return `
+<footer class="shell-footer" id="distress-os-footer">
+  <div class="shell-footer-inner">
+    <span class="shell-footer-brand">PHUGLEE</span>
+    <span class="shell-footer-meta">Distress OS · Collect. Analyze. Close.</span>
+    <nav class="shell-footer-links" aria-label="Footer">
+      <a href="/heat" class="shell-footer-link">How It Works</a>
+      <a href="/collect" class="shell-footer-link">Collect</a>
+      <a href="/analyzer/" class="shell-footer-link">Analyzer</a>
+    </nav>
+  </div>
+</footer>`;
+  }
+
+  function mountFooter() {
+    const existing = document.getElementById('distress-os-footer');
+    const html = buildFooter();
+    if (existing) {
+      existing.outerHTML = html;
+    } else {
+      const mount = document.getElementById('distress-os-footer-mount');
+      if (mount) {
+        mount.innerHTML = html;
+      } else {
+        document.body.insertAdjacentHTML('beforeend', html);
+      }
+    }
+  }
+
   function buildNav(pathname) {
     const current = activeId(pathname);
     const coreHtml = CORE_LINKS.map((l) =>
@@ -166,8 +196,14 @@
     if (path.startsWith('/analyzer')) {
       document.body.classList.add('distress-os-embedded', 'analyzer-embedded');
     }
+
+    mountFooter();
+
+    if (window.PhugleeMotion && typeof window.PhugleeMotion.init === 'function') {
+      window.PhugleeMotion.init();
+    }
   }
 
-  window.DistressOSShellNav = { mount, buildNav, activeId };
+  window.DistressOSShellNav = { mount, buildNav, buildFooter, activeId };
   mount();
 })();

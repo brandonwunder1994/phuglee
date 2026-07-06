@@ -66,7 +66,10 @@ test('injects Distress OS shell nav into proxied HTML', () => {
   assert.ok(out.includes('distress-os-nav-mount'));
   assert.ok(out.includes('/css/shell-nav.css'));
   assert.ok(out.includes('/css/premium-atmosphere.css'));
+  assert.ok(out.includes('/css/phuglee-components.css'));
   assert.ok(out.includes('premium-bg'));
+  assert.ok(out.includes('phuglee-motion.js'));
+  assert.ok(out.includes('distress-os-footer-mount'));
   assert.ok(out.includes('shell-nav.js'));
   assert.ok(out.includes('distress-os-embedded'));
   assert.ok(out.includes('has-premium-bg'));

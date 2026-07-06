@@ -20,12 +20,12 @@
 - [x] **BRAND-05**: `phuglee-pattern.svg` — deconstructed logo path tile
 - [x] **BRAND-06**: Design spec complete at `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`
 
-### Global Chrome & Motion (Phase 23)
+### Global Chrome & Motion (Phase 23) — validated
 
-- [ ] **BRAND-07**: Shell nav retokenized — black glass, cream logo, orange active pill
-- [ ] **BRAND-08**: `phuglee-motion.js` — IntersectionObserver stagger fade-up
-- [ ] **BRAND-09**: `rewrite.js` injects phuglee CSS stack on proxied pages
-- [ ] **BRAND-10**: Global footer brand bar with earth-tone vignette
+- [x] **BRAND-07**: Shell nav retokenized — black glass, cream logo, orange active pill
+- [x] **BRAND-08**: `phuglee-motion.js` — IntersectionObserver stagger fade-up
+- [x] **BRAND-09**: `rewrite.js` injects phuglee CSS stack on proxied pages
+- [x] **BRAND-10**: Global footer brand bar with earth-tone vignette
 
 ### Home — Signature Rebuild (Phase 24)
 

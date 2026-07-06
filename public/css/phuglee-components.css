@@ -341,7 +341,32 @@
   50% { transform: translateY(-8px); }
 }
 
+/* ── Motion reveal (phuglee-motion.js) ── */
+[data-phuglee-reveal]:not(.phuglee-reveal-active) > [data-phuglee-reveal-child],
+[data-phuglee-reveal]:not(.phuglee-reveal-active) > *:not(script):not(style) {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+[data-phuglee-reveal] > [data-phuglee-reveal-child],
+[data-phuglee-reveal] > *:not(script):not(style) {
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-phuglee-reveal].phuglee-reveal-active .phuglee-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  [data-phuglee-reveal] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
   .phuglee-btn-primary::after {
     display: none;
   }
