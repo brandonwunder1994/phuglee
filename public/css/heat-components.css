@@ -1,0 +1,232 @@
+/* Distress OS Heat — reusable UI components */
+
+/* Typography */
+.heat-eyebrow,
+.hub-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 0.75rem;
+}
+
+.heat-title,
+.hub-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 7vw, 3.5rem);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 0.95;
+  margin-bottom: 1rem;
+  background: linear-gradient(180deg, var(--text) 30%, var(--flame) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.heat-lead,
+.hub-lead {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  max-width: 640px;
+}
+
+/* Buttons */
+.heat-btn,
+.hub-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.heat-btn-primary,
+.hub-btn-primary {
+  color: var(--bg-deep);
+  background: linear-gradient(135deg, var(--heat-core) 0%, var(--flame) 50%, var(--ember) 100%);
+  box-shadow: 0 4px 20px rgba(232, 93, 4, 0.35);
+}
+
+.heat-btn-primary:hover,
+.hub-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px rgba(232, 93, 4, 0.45);
+}
+
+.heat-btn-ghost,
+.hub-btn-ghost {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+}
+
+.heat-btn-ghost:hover,
+.hub-btn-ghost:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.heat-btn-hero,
+.btn-heat {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.125rem 2.75rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--bg-deep);
+  background: linear-gradient(135deg, var(--heat-core) 0%, var(--flame) 45%, var(--ember) 100%);
+  border: none;
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255, 186, 8, 0.3),
+    0 8px 32px rgba(232, 93, 4, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.heat-btn-hero:hover,
+.btn-heat:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 0 0 1px rgba(255, 186, 8, 0.5),
+    0 12px 48px rgba(232, 93, 4, 0.55),
+    0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Panels & cards */
+.heat-panel {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.25rem 1.5rem;
+}
+
+.heat-panel-dashed {
+  border-style: dashed;
+  border-color: var(--border-hot);
+  border-radius: 10px;
+}
+
+.heat-card,
+.hub-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.heat-card:hover,
+.hub-card:hover {
+  border-color: var(--border-hot);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.heat-tag,
+.hub-card-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.heat-list-dots,
+.hub-card-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.heat-list-dots li,
+.hub-card-features li {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding-left: 1.1rem;
+  position: relative;
+}
+
+.heat-list-dots li::before,
+.hub-card-features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ember);
+  opacity: 0.7;
+}
+
+/* Semantic status colors (child-app compatible) */
+.heat-ok { color: var(--heat-ok); }
+.heat-warn { color: var(--heat-warn); }
+.heat-danger { color: var(--heat-danger); }
+.heat-info { color: var(--heat-info); }
+
+.heat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+}
+
+.heat-badge-ok {
+  border-color: rgba(61, 214, 140, 0.3);
+  color: #b8f0d0;
+  background: rgba(61, 214, 140, 0.08);
+}
+
+.heat-badge-warn {
+  border-color: rgba(255, 186, 8, 0.35);
+  color: #fde68a;
+  background: rgba(255, 186, 8, 0.08);
+}
+
+.heat-badge-danger {
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.08);
+}
+
+@media (max-width: 640px) {
+  .heat-btn,
+  .hub-btn {
+    width: 100%;
+  }
+}

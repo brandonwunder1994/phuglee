@@ -1,66 +1,8 @@
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* Command Hub — page-specific layout (design system in heat-*.css) */
 
-body {
-  font-family: var(--font-body);
-  background: var(--bg-deep);
-  color: var(--text);
-  min-height: 100vh;
-}
-
-.hub-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(232, 93, 4, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(255, 107, 26, 0.08) 0%, transparent 50%),
-    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
-}
-
-.hub-glow {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(90px);
-  animation: hub-pulse 8s ease-in-out infinite;
-}
-
-.hub-glow-a {
-  width: 420px;
-  height: 280px;
-  top: -60px;
-  left: 20%;
-  background: rgba(232, 93, 4, 0.18);
-}
-
-.hub-glow-b {
-  width: 300px;
-  height: 200px;
-  bottom: 10%;
-  right: 10%;
-  background: rgba(255, 186, 8, 0.1);
-  animation-delay: -4s;
-}
-
-.hub-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: linear-gradient(180deg, black 0%, transparent 85%);
-}
-
-@keyframes hub-pulse {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.06); }
-}
+@import url('heat-base.css');
+@import url('heat-atmosphere.css');
+@import url('heat-components.css');
 
 .hub-main {
   position: relative;
@@ -68,45 +10,11 @@ body {
   max-width: 1040px;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 3.5rem;
-  animation: hub-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes hub-rise {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  animation: heat-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .hub-hero {
   margin-bottom: 2.5rem;
-}
-
-.hub-eyebrow {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--ember);
-  margin-bottom: 0.75rem;
-}
-
-.hub-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.25rem, 7vw, 3.5rem);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-  line-height: 0.95;
-  margin-bottom: 1rem;
-  background: linear-gradient(180deg, var(--text) 30%, var(--flame) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.hub-lead {
-  color: var(--text-muted);
-  font-size: 1.05rem;
-  line-height: 1.65;
-  max-width: 640px;
 }
 
 .hub-pipeline {
@@ -160,23 +68,6 @@ body {
   margin-bottom: 2.5rem;
 }
 
-.hub-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.hub-card:hover {
-  border-color: var(--border-hot);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-}
-
 .hub-card-top {
   display: flex;
   align-items: center;
@@ -208,17 +99,6 @@ body {
   border: 1px solid rgba(232, 93, 4, 0.3);
 }
 
-.hub-card-tag {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  padding: 0.3rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-}
-
 .hub-card h2 {
   font-size: 1.35rem;
   font-weight: 700;
@@ -231,30 +111,7 @@ body {
 }
 
 .hub-card-features {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
   flex: 1;
-}
-
-.hub-card-features li {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  padding-left: 1.1rem;
-  position: relative;
-}
-
-.hub-card-features li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--ember);
-  opacity: 0.7;
 }
 
 .hub-card-actions {
@@ -262,43 +119,6 @@ body {
   flex-wrap: wrap;
   gap: 0.65rem;
   margin-top: 0.5rem;
-}
-
-.hub-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border-radius: 5px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-
-.hub-btn-primary {
-  color: var(--bg-deep);
-  background: linear-gradient(135deg, var(--heat-core) 0%, var(--flame) 50%, var(--ember) 100%);
-  box-shadow: 0 4px 20px rgba(232, 93, 4, 0.35);
-}
-
-.hub-btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 28px rgba(232, 93, 4, 0.45);
-}
-
-.hub-btn-ghost {
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px solid var(--border);
-}
-
-.hub-btn-ghost:hover {
-  color: var(--text);
-  border-color: rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.03);
 }
 
 .hub-bridge {
@@ -364,9 +184,5 @@ body {
 
   .hub-card-actions {
     flex-direction: column;
-  }
-
-  .hub-btn {
-    width: 100%;
   }
 }

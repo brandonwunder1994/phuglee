@@ -1,18 +1,63 @@
 :root {
+  /* Surfaces */
   --bg-deep: #080605;
   --bg-mid: #14100c;
   --bg-card: #12100d;
   --bg-elevated: #1a1612;
+
+  /* Heat accents */
   --ember: #e85d04;
   --flame: #ff6b1a;
   --heat-core: #ffba08;
   --ash: #8a7f72;
+
+  /* Text */
   --text: #f4efe6;
   --text-muted: #a89f92;
+
+  /* Chrome */
   --border: rgba(255, 255, 255, 0.08);
   --border-hot: rgba(232, 93, 4, 0.35);
+
+  /* Status */
   --status-up: #3dd68c;
   --status-down: #f87171;
+  --heat-ok: #3dd68c;
+  --heat-warn: #ffba08;
+  --heat-danger: #f87171;
+  --heat-info: #6ba3b8;
+
+  /* Typography */
   --font-display: 'Anton', sans-serif;
   --font-body: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+  /* Layout */
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --nav-h: auto;
+
+  /* Form Forge legacy aliases */
+  --bg: var(--bg-deep);
+  --surface: var(--bg-card);
+  --surface2: var(--bg-elevated);
+  --surface3: var(--bg-mid);
+  --muted: var(--text-muted);
+  --gold: var(--ember);
+  --gold-bright: var(--flame);
+  --gold-dim: #9a4a02;
+  --cream: var(--text);
+  --display: var(--font-display);
+  --body: var(--font-body);
+
+  /* Property Analyzer legacy aliases */
+  --background: var(--bg-deep);
+  --foreground: var(--text);
+  --card: var(--bg-card);
+  --accent: var(--ember);
+  --accent-foreground: var(--bg-deep);
+  --accent-cool: #5eb3c8;
+  --ring: var(--ember);
+  --radius: 12px;
 }

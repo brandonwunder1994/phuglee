@@ -59,3 +59,19 @@ test('rewrites template literal postJson calls', () => {
   const out = forgeRewriter.rewriteTextBody(js, 'application/javascript');
   assert.ok(out.includes('postJson(`/forge/api/portal/city/${id}/submit`'));
 });
+
+test('injects Distress OS shell nav into proxied HTML', () => {
+  const html = '<!DOCTYPE html><html><head><title>FF</title></head><body class="stamp-theme"><main>x</main></body></html>';
+  const out = forgeRewriter.rewriteTextBody(html, 'text/html');
+  assert.ok(out.includes('distress-os-nav-mount'));
+  assert.ok(out.includes('/css/shell-nav.css'));
+  assert.ok(out.includes('shell-nav.js'));
+  assert.ok(out.includes('distress-os-embedded'));
+  assert.ok(out.includes('stamp-theme'));
+});
+
+test('injects analyzer-embedded class for analyzer proxy', () => {
+  const html = '<body class="cyber-theme"><div id="app"></div></body>';
+  const out = analyzerRewriter.rewriteTextBody(html, 'text/html');
+  assert.ok(out.includes('analyzer-embedded'));
+});

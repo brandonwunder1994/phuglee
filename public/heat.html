@@ -10,32 +10,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/shell.css">
+  <link rel="stylesheet" href="/css/shell-nav.css">
   <link rel="stylesheet" href="/css/hub.css">
 </head>
 <body>
-  <div class="hub-bg" aria-hidden="true">
-    <div class="hub-glow hub-glow-a"></div>
-    <div class="hub-glow hub-glow-b"></div>
-    <div class="hub-grid"></div>
+  <div class="heat-bg" aria-hidden="true">
+    <div class="heat-glow heat-glow-a"></div>
+    <div class="heat-glow heat-glow-b"></div>
+    <div class="heat-grid"></div>
   </div>
 
-  <nav class="shell-nav" aria-label="Distress OS">
-    <a href="/" class="shell-brand">
-      <span class="shell-brand-mark" aria-hidden="true">DO</span>
-      <span class="shell-brand-text">Distress OS</span>
-    </a>
-    <div class="shell-links">
-      <a href="/" class="shell-link">Home</a>
-      <a href="/heat" class="shell-link active" aria-current="page">Command Hub</a>
-      <a href="/bridge" class="shell-link">Data Bridge</a>
-      <a href="/forge/" class="shell-link">Form Forge</a>
-      <a href="/analyzer/" class="shell-link">Property Analyzer</a>
-    </div>
-    <div class="shell-status" aria-live="polite">
-      <span class="shell-status-pill" id="status-forge"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Forge</span></span>
-      <span class="shell-status-pill" id="status-analyzer"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Analyzer</span></span>
-    </div>
-  </nav>
+  <div id="distress-os-nav-mount"></div>
 
   <main class="hub-main">
     <header class="hub-hero">
@@ -118,6 +103,7 @@
     </footer>
   </main>
 
+  <script src="/js/shell-nav.js"></script>
   <script src="/js/shell.js"></script>
 </body>
 </html>

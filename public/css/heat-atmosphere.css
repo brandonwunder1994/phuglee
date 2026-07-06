@@ -1,0 +1,108 @@
+/* Distress OS Heat — shared atmospheric background */
+
+.heat-bg,
+.hub-bg,
+.heat-field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(232, 93, 4, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(255, 107, 26, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+}
+
+.heat-field {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(232, 93, 4, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(255, 107, 26, 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+}
+
+.heat-glow,
+.hub-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  animation: heat-pulse 8s ease-in-out infinite;
+}
+
+.heat-glow-a,
+.hub-glow-a {
+  width: 420px;
+  height: 280px;
+  top: -60px;
+  left: 20%;
+  background: rgba(232, 93, 4, 0.18);
+}
+
+.heat-glow-b,
+.hub-glow-b {
+  width: 300px;
+  height: 200px;
+  bottom: 10%;
+  right: 10%;
+  background: rgba(255, 186, 8, 0.1);
+  animation-delay: -4s;
+}
+
+.heat-field .heat-glow-a {
+  width: 480px;
+  height: 320px;
+  top: auto;
+  bottom: -80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(232, 93, 4, 0.35);
+  animation: heat-pulse-landing 6s ease-in-out infinite;
+}
+
+.heat-field .heat-glow-b {
+  width: 280px;
+  height: 200px;
+  bottom: 40px;
+  right: 15%;
+}
+
+.heat-grid,
+.hub-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(180deg, black 0%, transparent 85%);
+}
+
+.heat-field .heat-grid {
+  background-size: 64px 64px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 40%, black 70%, transparent 100%);
+}
+
+.heat-noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes heat-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.06); }
+}
+
+@keyframes heat-pulse-landing {
+  0%, 100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+  50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+}
+
+@keyframes heat-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.heat-rise {
+  animation: heat-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

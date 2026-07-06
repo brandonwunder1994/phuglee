@@ -1,0 +1,5 @@
+/* Distress OS Heat Design System — full bundle for child apps */
+@import url('tokens.css');
+@import url('heat-base.css');
+@import url('heat-atmosphere.css');
+@import url('heat-components.css');
