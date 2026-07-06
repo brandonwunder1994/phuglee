@@ -27,12 +27,12 @@
 - [x] **BRAND-09**: `rewrite.js` injects phuglee CSS stack on proxied pages
 - [x] **BRAND-10**: Global footer brand bar with earth-tone vignette
 
-### Home — Signature Rebuild (Phase 24)
+### Home — Signature Rebuild (Phase 24) — validated
 
-- [ ] **BRAND-11**: Landing page retokenized to logo palette (`landing.css`)
-- [ ] **BRAND-12**: Hero pattern layer + logo float via `phuglee-logo.js`
-- [ ] **BRAND-13**: CTA uses `.phuglee-btn-primary` with glow + shine
-- [ ] **BRAND-14**: SEO meta description + OG tags on `/`
+- [x] **BRAND-11**: Landing page retokenized to logo palette (`landing.css`)
+- [x] **BRAND-12**: Hero pattern layer + logo float via `phuglee-logo.js`
+- [x] **BRAND-13**: CTA uses `.phuglee-btn-primary` with glow + shine
+- [x] **BRAND-14**: SEO meta description + OG tags on `/`
 
 ### Auth Flows (Phase 25)
 

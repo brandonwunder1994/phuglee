@@ -3,8 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logo Page — Phuglee</title>
-  <meta name="description" content="Phuglee — Form Forge and Property Distress Analyzer under one roof.">
+  <title>Phuglee — Distressed Lead OS</title>
+  <meta name="description" content="Phuglee — collect public records, analyze distressed leads, and close deals. Form Forge and Property Distress Analyzer under one premium roof.">
+  <meta property="og:title" content="Phuglee — Distressed Lead OS">
+  <meta property="og:description" content="The #1 distressed lead source for wholesalers. Collect city records, analyze deals, export dial-ready lists.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/phuglee-logo-hd.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Phuglee — Distressed Lead OS">
+  <meta name="twitter:description" content="Collect. Analyze. Close. Premium distressed lead workflow for wholesalers.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,6 +26,7 @@
 <body class="logo-page">
   <div class="logo-page-home-bg" aria-hidden="true">
     <div class="logo-page-photo"></div>
+    <div class="logo-page-pattern phuglee-pattern-bg phuglee-pattern-bg--subtle"></div>
     <div class="logo-page-photo-grain"></div>
     <div class="logo-page-photo-wear"></div>
   </div>
@@ -29,29 +37,28 @@
     <div class="heat-noise"></div>
   </div>
 
-  <!-- Logo Page -->
   <main class="landing logo-page">
-    <div class="landing-inner">
-      <h1 class="landing-logo-wrap">
-        <img
-          src="/images/phuglee-logo.svg"
-          alt="Phuglee"
-          class="landing-logo"
-          width="408"
-          height="612"
-          decoding="async"
-        >
+    <div class="landing-inner" data-phuglee-reveal>
+      <h1 class="landing-logo-wrap" data-phuglee-reveal-child>
+        <span
+          class="landing-logo-slot"
+          data-phuglee-logo="hero"
+          data-phuglee-label="Phuglee"
+          role="img"
+          aria-label="Phuglee"
+        ></span>
       </h1>
-      <p class="landing-tagline">The #1 Distressed Lead Source for Wholesalers</p>
-      <div class="landing-actions">
-        <a href="/heat" class="btn-heat" id="btn-heat" role="button">
-          <span class="btn-heat-label">Start Closing Deals</span>
-          <span class="btn-heat-shine" aria-hidden="true"></span>
+      <p class="landing-tagline" data-phuglee-reveal-child>The #1 Distressed Lead Source for Wholesalers</p>
+      <div class="landing-actions" data-phuglee-reveal-child>
+        <a href="/heat" class="phuglee-btn phuglee-btn-primary landing-cta" id="btn-heat" role="button">
+          Start Closing Deals
         </a>
       </div>
     </div>
   </main>
 
+  <script src="/js/phuglee-logo.js" defer></script>
+  <script src="/js/phuglee-motion.js" defer></script>
   <script src="/js/auth.js" defer></script>
 </body>
 </html>

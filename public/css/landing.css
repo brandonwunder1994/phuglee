@@ -13,8 +13,8 @@ body {
 
 body {
   font-family: var(--font-body);
-  background: var(--bg-deep);
-  color: var(--text);
+  background: var(--phuglee-black);
+  color: var(--phuglee-cream);
   overflow-x: hidden;
 }
 
@@ -24,9 +24,9 @@ body {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(232, 93, 4, 0.22) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(255, 107, 26, 0.12) 0%, transparent 50%),
-    linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(229, 132, 53, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(172, 107, 50, 0.1) 0%, transparent 50%),
+    linear-gradient(180deg, var(--phuglee-black) 0%, var(--phuglee-olive) 100%);
 }
 
 .heat-glow {
@@ -42,7 +42,7 @@ body {
   bottom: -80px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(232, 93, 4, 0.35);
+  background: rgba(229, 132, 53, 0.32);
 }
 
 .heat-glow-b {
@@ -50,7 +50,7 @@ body {
   height: 200px;
   bottom: 40px;
   right: 15%;
-  background: rgba(255, 186, 8, 0.15);
+  background: rgba(238, 183, 70, 0.12);
   animation-delay: -3s;
 }
 
@@ -94,6 +94,10 @@ body {
   animation: rise-in 1s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.logo-page .landing-inner {
+  animation: none;
+}
+
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -133,7 +137,22 @@ body {
   margin: 0;
   line-height: 0;
   position: relative;
-  animation: logo-hover 5s ease-in-out 1.2s infinite;
+}
+
+.landing-logo-slot {
+  display: block;
+  width: min(1080px, 95vw);
+  aspect-ratio: 408 / 612;
+  max-height: calc(100dvh - 14rem);
+  margin: 0 auto;
+}
+
+.logo-page .landing-logo-slot .phuglee-logo-svg--hero {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100dvh - 14rem);
+  transform: scale(1.5);
+  transform-origin: center bottom;
 }
 
 .landing-logo {
@@ -195,8 +214,15 @@ body.logo-page {
   z-index: 0;
   background:
     url('/images/ugly-house.jpg') center 16% / cover no-repeat;
-  opacity: 0.5;
-  filter: grayscale(22%) contrast(1.16) brightness(0.5) saturate(0.74);
+  opacity: 0.48;
+  filter: grayscale(28%) contrast(1.14) brightness(0.48) saturate(0.68) sepia(0.12);
+}
+
+.logo-page-pattern {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* Film grain — above vignette so it stays visible on the dark photo */
@@ -230,8 +256,8 @@ body.logo-page {
       ellipse 74% 54% at 50% 38%,
       transparent 0%,
       transparent 34%,
-      rgba(0, 0, 0, 0.36) 64%,
-      rgba(0, 0, 0, 0.58) 100%
+      rgba(36, 24, 10, 0.42) 64%,
+      rgba(13, 13, 13, 0.62) 100%
     );
 }
 
@@ -244,25 +270,25 @@ body.logo-page {
   background:
     linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.88) 0%,
-      rgba(0, 0, 0, 0.58) 10%,
-      rgba(0, 0, 0, 0.3) 18%,
+      rgba(13, 13, 13, 0.9) 0%,
+      rgba(36, 24, 10, 0.55) 10%,
+      rgba(36, 24, 10, 0.28) 18%,
       transparent 38%
     ),
     linear-gradient(
       0deg,
-      rgba(0, 0, 0, 0.9) 0%,
-      rgba(0, 0, 0, 0.6) 12%,
-      rgba(0, 0, 0, 0.3) 22%,
+      rgba(13, 13, 13, 0.92) 0%,
+      rgba(36, 24, 10, 0.58) 12%,
+      rgba(36, 24, 10, 0.3) 22%,
       transparent 40%
     ),
     radial-gradient(
       ellipse 142% 122% at 50% 38%,
       transparent 0%,
       transparent 22%,
-      rgba(0, 0, 0, 0.34) 54%,
-      rgba(0, 0, 0, 0.62) 80%,
-      rgba(0, 0, 0, 0.78) 100%
+      rgba(36, 24, 10, 0.38) 54%,
+      rgba(13, 13, 13, 0.65) 80%,
+      rgba(13, 13, 13, 0.82) 100%
     );
 }
 
@@ -273,9 +299,9 @@ body.logo-page .heat-grid {
 body.logo-page .heat-field {
   z-index: 1;
   background:
-    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(232, 93, 4, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(255, 107, 26, 0.04) 0%, transparent 50%),
-    linear-gradient(180deg, rgba(8, 6, 5, 0.1) 0%, rgba(20, 16, 12, 0.18) 100%);
+    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(229, 132, 53, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(172, 107, 50, 0.04) 0%, transparent 50%),
+    linear-gradient(180deg, rgba(13, 13, 13, 0.12) 0%, rgba(40, 40, 39, 0.2) 100%);
 }
 
 body.logo-page .heat-field::after {
@@ -332,6 +358,10 @@ body.logo-page .heat-field::after {
   animation: logo-rise-page 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
 
+.logo-page .landing-logo-slot {
+  max-height: calc(100dvh - 14rem);
+}
+
 @keyframes logo-rise-page {
   from {
     opacity: 0;
@@ -350,12 +380,12 @@ body.logo-page .heat-field::after {
   font-weight: 700;
   line-height: 1.4;
   letter-spacing: 0.03em;
-  color: var(--text);
+  color: var(--phuglee-cream);
   max-width: 34rem;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.85),
     0 4px 18px rgba(0, 0, 0, 0.65),
-    0 0 32px rgba(0, 0, 0, 0.45);
+    0 0 32px rgba(36, 24, 10, 0.5);
 }
 
 .logo-page .landing-actions {
@@ -371,9 +401,10 @@ body.logo-page .heat-field::after {
   width: 100%;
 }
 
-.logo-page .btn-heat {
-  padding: clamp(0.8rem, 1.8vh, 1rem) clamp(1.75rem, 4vw, 2.5rem);
+.logo-page .landing-cta {
+  padding: clamp(0.85rem, 1.8vh, 1.05rem) clamp(1.85rem, 4vw, 2.6rem);
   font-size: clamp(1rem, 2.2vh, 1.2rem);
+  min-width: min(320px, 88vw);
 }
 
 .landing-tagline {
@@ -418,9 +449,9 @@ body.logo-page .heat-field::after {
 }
 
 .btn-landing-secondary:hover {
-  color: var(--text);
-  border-color: rgba(232, 93, 4, 0.35);
-  background: rgba(232, 93, 4, 0.08);
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.08);
   transform: translateY(-1px);
 }
 
@@ -488,12 +519,25 @@ body.logo-page .heat-field::after {
   85% { transform: translateX(100%); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .landing-inner,
+  .landing-logo,
+  .logo-page .landing-logo-wrap {
+    animation: none !important;
+  }
+
+  .logo-page .landing-logo-slot .phuglee-logo-svg--hero {
+    animation: none !important;
+  }
+}
+
 @media (max-width: 480px) {
   .logo-page .landing-logo-wrap {
     max-height: calc(100dvh - 15rem);
   }
 
-  .logo-page .landing-logo {
+  .logo-page .landing-logo,
+  .logo-page .landing-logo-slot .phuglee-logo-svg--hero {
     width: min(840px, 95vw);
     max-height: calc(100dvh - 15.5rem);
     transform: scale(1.5);
@@ -513,7 +557,8 @@ body.logo-page .heat-field::after {
     font-size: 1rem;
   }
 
-  .btn-heat {
+  .btn-heat,
+  .logo-page .landing-cta {
     width: 100%;
     max-width: 320px;
   }
