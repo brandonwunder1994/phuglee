@@ -6,10 +6,19 @@ Form Forge and Property Analyzer live in their own repos. Distress OS links to t
 
 **Source:** `C:\Users\brand\Projects\city-list-requests`
 
-Create the junction (run once from an elevated prompt if needed):
-
 ```bat
 mklink /J "%~dp0form-forge" "C:\Users\brand\Projects\city-list-requests"
 ```
 
-Or set `FORM_FORGE_PATH` in the environment to point at your Form Forge folder.
+## Property Analyzer
+
+**Source:** `C:\Users\brand\Projects\property-distress-analyzer`
+
+```bat
+mklink /J "%~dp0property-analyzer" "C:\Users\brand\Projects\property-distress-analyzer"
+```
+
+Or set environment variables:
+
+- `FORM_FORGE_PATH`
+- `PROPERTY_ANALYZER_PATH`

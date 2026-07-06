@@ -3,7 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const config = require('./lib/config');
 const { isForgeRequest, proxyToForge, checkForgeHealth } = require('./lib/forge-proxy');
+const { isAnalyzerRequest, proxyToAnalyzer, checkAnalyzerHealth } = require('./lib/analyzer-proxy');
 const { ensureForgeRunning } = require('./lib/forge-process');
+const { ensureAnalyzerRunning } = require('./lib/analyzer-process');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -37,18 +39,23 @@ function serveStatic(urlPath, res) {
   send(res, 200, fs.readFileSync(file), MIME[ext] || 'application/octet-stream');
 }
 
+function isDistressStatic(pathname) {
+  return pathname.startsWith('/css/') || pathname.startsWith('/js/') || pathname.startsWith('/assets/');
+}
+
 async function handleRequest(req, res) {
   const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
   if (pathname === '/api/health') {
-    const forge = await checkForgeHealth();
+    const [forge, analyzer] = await Promise.all([checkForgeHealth(), checkAnalyzerHealth()]);
     send(res, 200, JSON.stringify({
       ok: true,
       service: 'distress-os',
-      version: '0.2.0',
+      version: '0.3.0',
       modules: {
-        formForge: forge.ok ? 'up' : 'down'
+        formForge: forge.ok ? 'up' : 'down',
+        propertyAnalyzer: analyzer.ok ? 'up' : 'down'
       }
     }), 'application/json');
     return;
@@ -56,6 +63,11 @@ async function handleRequest(req, res) {
 
   if (isForgeRequest(pathname)) {
     proxyToForge(req, res, pathname, url.search);
+    return;
+  }
+
+  if (isAnalyzerRequest(pathname)) {
+    proxyToAnalyzer(req, res, pathname, url.search);
     return;
   }
 
@@ -72,15 +84,13 @@ async function handleRequest(req, res) {
     }
   }
 
-  if (req.method === 'GET' || req.method === 'HEAD') {
-    if (pathname.startsWith('/css/') || pathname.startsWith('/js/') || pathname.startsWith('/assets/')) {
-      if (req.method === 'HEAD') {
-        serveStatic(pathname, { writeHead: (s, h) => res.writeHead(s, h), end: () => res.end() });
-      } else {
-        serveStatic(pathname, res);
-      }
-      return;
+  if ((req.method === 'GET' || req.method === 'HEAD') && isDistressStatic(pathname)) {
+    if (req.method === 'HEAD') {
+      serveStatic(pathname, { writeHead: (s, h) => res.writeHead(s, h), end: () => res.end() });
+    } else {
+      serveStatic(pathname, res);
     }
+    return;
   }
 
   send(res, 404, 'Not found');
@@ -96,12 +106,24 @@ const server = http.createServer((req, res) => {
 server.listen(config.PORT, config.HOST, async () => {
   console.log(`Distress OS running at http://${config.HOST}:${config.PORT}`);
   console.log(`Form Forge proxy: http://${config.HOST}:${config.PORT}${config.FORGE_PREFIX}/`);
+  console.log(`Property Analyzer proxy: http://${config.HOST}:${config.PORT}${config.ANALYZER_PREFIX}/`);
 
-  const forge = await ensureForgeRunning({ spawnIfMissing: true });
+  const [forge, analyzer] = await Promise.all([
+    ensureForgeRunning({ spawnIfMissing: true }),
+    ensureAnalyzerRunning({ spawnIfMissing: true })
+  ]);
+
   if (forge.running) {
     console.log(forge.spawned ? 'Form Forge started automatically' : 'Form Forge already running');
   } else {
-    console.warn('Form Forge not available — open via direct port 8787 or check modules/form-forge link');
+    console.warn('Form Forge not available — check modules/form-forge link');
     if (forge.error) console.warn(forge.error);
+  }
+
+  if (analyzer.running) {
+    console.log(analyzer.spawned ? 'Property Analyzer started automatically' : 'Property Analyzer already running');
+  } else {
+    console.warn('Property Analyzer not available — check modules/property-analyzer link');
+    if (analyzer.error) console.warn(analyzer.error);
   }
 });

@@ -1,26 +1,49 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { rewriteTextBody, rewriteLocationHeader } = require('../lib/rewrite');
+const { createRewriter } = require('../lib/rewrite');
+
+const forgeRewriter = createRewriter({
+  prefix: '/forge',
+  targetHost: '127.0.0.1',
+  targetPort: 8787
+});
+
+const analyzerRewriter = createRewriter({
+  prefix: '/analyzer',
+  targetHost: '127.0.0.1',
+  targetPort: 3456
+});
 
 test('rewrites HTML root-relative asset paths', () => {
   const html = '<link rel="stylesheet" href="/static/style.css" />';
-  const out = rewriteTextBody(html, 'text/html');
+  const out = forgeRewriter.rewriteTextBody(html, 'text/html');
   assert.ok(out.includes('href="/forge/static/style.css"'));
 });
 
 test('rewrites JS fetch calls', () => {
   const js = 'const res = await fetch("/api/forms");';
-  const out = rewriteTextBody(js, 'application/javascript');
+  const out = forgeRewriter.rewriteTextBody(js, 'application/javascript');
   assert.ok(out.includes('fetch("/forge/api/forms"'));
+});
+
+test('rewrites apiFetch calls for Property Analyzer', () => {
+  const js = "const res = await apiFetch('/api/session-backup');";
+  const out = analyzerRewriter.rewriteTextBody(js, 'application/javascript');
+  assert.ok(out.includes("apiFetch('/analyzer/api/session-backup'"));
 });
 
 test('does not double-prefix paths', () => {
   const html = '<a href="/forge/portal">x</a>';
-  const out = rewriteTextBody(html, 'text/html');
+  const out = forgeRewriter.rewriteTextBody(html, 'text/html');
   assert.equal(out.match(/\/forge\/forge\//g), null);
 });
 
-test('rewrites forge location headers', () => {
-  const out = rewriteLocationHeader('http://127.0.0.1:8787/portal');
+test('rewrites module location headers', () => {
+  const out = forgeRewriter.rewriteLocationHeader('http://127.0.0.1:8787/portal');
   assert.equal(out, '/forge/portal');
+});
+
+test('rewrites analyzer location headers', () => {
+  const out = analyzerRewriter.rewriteLocationHeader('http://127.0.0.1:3456/');
+  assert.equal(out, '/analyzer/');
 });
