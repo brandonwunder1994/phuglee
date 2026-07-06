@@ -52,7 +52,7 @@ async function handleRequest(req, res) {
     send(res, 200, JSON.stringify({
       ok: true,
       service: 'distress-os',
-      version: '0.3.0',
+      version: '0.4.0',
       modules: {
         formForge: forge.ok ? 'up' : 'down',
         propertyAnalyzer: analyzer.ok ? 'up' : 'down'

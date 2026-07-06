@@ -1,0 +1,18 @@
+:root {
+  --bg-deep: #080605;
+  --bg-mid: #14100c;
+  --bg-card: #12100d;
+  --bg-elevated: #1a1612;
+  --ember: #e85d04;
+  --flame: #ff6b1a;
+  --heat-core: #ffba08;
+  --ash: #8a7f72;
+  --text: #f4efe6;
+  --text-muted: #a89f92;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hot: rgba(232, 93, 4, 0.35);
+  --status-up: #3dd68c;
+  --status-down: #f87171;
+  --font-display: 'Anton', sans-serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+}

@@ -1,0 +1,141 @@
+.shell-nav {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8, 6, 5, 0.82);
+  backdrop-filter: blur(12px);
+}
+
+.shell-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.shell-brand-mark {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border-hot);
+  border-radius: 6px;
+  color: var(--flame);
+  background: rgba(232, 93, 4, 0.1);
+}
+
+.shell-brand-text {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.shell-brand:hover .shell-brand-text {
+  color: var(--flame);
+}
+
+.shell-links {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.shell-link {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.shell-link:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.shell-link.active {
+  color: var(--heat-core);
+  background: rgba(232, 93, 4, 0.12);
+}
+
+.shell-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.shell-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.shell-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ash);
+}
+
+.shell-status-pill.up {
+  border-color: rgba(61, 214, 140, 0.3);
+  color: #b8f0d0;
+}
+
+.shell-status-pill.up .shell-status-dot {
+  background: var(--status-up);
+  box-shadow: 0 0 8px rgba(61, 214, 140, 0.6);
+}
+
+.shell-status-pill.down {
+  border-color: rgba(248, 113, 113, 0.3);
+  color: #fecaca;
+}
+
+.shell-status-pill.down .shell-status-dot {
+  background: var(--status-down);
+}
+
+@media (max-width: 768px) {
+  .shell-nav {
+    flex-wrap: wrap;
+  }
+
+  .shell-links {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .shell-status {
+    margin-left: auto;
+  }
+}

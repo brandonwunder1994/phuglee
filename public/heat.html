@@ -4,40 +4,108 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Distress OS — Command Hub</title>
+  <meta name="description" content="Distress OS command hub — launch Form Forge and Property Analyzer from one dashboard.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/shell.css">
   <link rel="stylesheet" href="/css/hub.css">
 </head>
 <body>
-  <div class="hub-bg" aria-hidden="true"></div>
+  <div class="hub-bg" aria-hidden="true">
+    <div class="hub-glow hub-glow-a"></div>
+    <div class="hub-glow hub-glow-b"></div>
+    <div class="hub-grid"></div>
+  </div>
 
-  <header class="hub-header">
-    <a href="/" class="hub-brand">Distress OS</a>
-    <span class="hub-phase">Command Hub · Phase 4 preview</span>
-  </header>
+  <nav class="shell-nav" aria-label="Distress OS">
+    <a href="/" class="shell-brand">
+      <span class="shell-brand-mark" aria-hidden="true">DO</span>
+      <span class="shell-brand-text">Distress OS</span>
+    </a>
+    <div class="shell-links">
+      <a href="/" class="shell-link">Home</a>
+      <a href="/heat" class="shell-link active" aria-current="page">Command Hub</a>
+      <a href="/forge/" class="shell-link">Form Forge</a>
+      <a href="/analyzer/" class="shell-link">Property Analyzer</a>
+    </div>
+    <div class="shell-status" aria-live="polite">
+      <span class="shell-status-pill" id="status-forge"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Forge</span></span>
+      <span class="shell-status-pill" id="status-analyzer"><span class="shell-status-dot" aria-hidden="true"></span><span class="shell-status-label">Analyzer</span></span>
+    </div>
+  </nav>
 
   <main class="hub-main">
-    <h1 class="hub-title">You're in the heat.</h1>
-    <p class="hub-lead">Tool integrations arrive in Phases 2–4. For now, launch each app directly.</p>
+    <header class="hub-hero">
+      <p class="hub-eyebrow">Command Hub</p>
+      <h1 class="hub-title">You're in the heat.</h1>
+      <p class="hub-lead">Your distress property operating system — collect public records, analyze leads, close deals. Both tools run exactly as before, now under one roof.</p>
+    </header>
 
-    <div class="hub-cards">
+    <section class="hub-pipeline" aria-label="Workflow">
+      <div class="hub-pipeline-step">
+        <span class="hub-pipeline-num">01</span>
+        <span class="hub-pipeline-label">Collect</span>
+        <span class="hub-pipeline-desc">Form Forge</span>
+      </div>
+      <div class="hub-pipeline-arrow" aria-hidden="true">→</div>
+      <div class="hub-pipeline-step">
+        <span class="hub-pipeline-num">02</span>
+        <span class="hub-pipeline-label">Analyze</span>
+        <span class="hub-pipeline-desc">Property Analyzer</span>
+      </div>
+      <div class="hub-pipeline-arrow" aria-hidden="true">→</div>
+      <div class="hub-pipeline-step">
+        <span class="hub-pipeline-num">03</span>
+        <span class="hub-pipeline-label">Close</span>
+        <span class="hub-pipeline-desc">Dial-ready leads</span>
+      </div>
+    </section>
+
+    <section class="hub-cards" aria-label="Tools">
       <article class="hub-card hub-card-forge">
-        <div class="hub-card-icon" aria-hidden="true">FF</div>
+        <div class="hub-card-top">
+          <div class="hub-card-icon" aria-hidden="true">FF</div>
+          <span class="hub-card-tag">Records &amp; Coverage</span>
+        </div>
         <h2>Form Forge</h2>
-        <p>Fill FOIA forms, track portal submissions, and map public-records coverage across 554+ cities.</p>
-        <a href="/forge/" class="hub-card-link">Open Form Forge →</a>
-        <a href="http://127.0.0.1:8787" class="hub-card-link hub-card-link-direct" target="_blank" rel="noopener">Direct port 8787 ↗</a>
+        <p>Fill FOIA forms, track portal submissions across 554+ cities, and visualize public-records coverage on the map.</p>
+        <ul class="hub-card-features">
+          <li>Records Desk PDF editor</li>
+          <li>City Tracker &amp; email queues</li>
+          <li>Coverage Map</li>
+        </ul>
+        <div class="hub-card-actions">
+          <a href="/forge/" class="hub-btn hub-btn-primary">Launch Form Forge</a>
+          <a href="http://127.0.0.1:8787" class="hub-btn hub-btn-ghost" target="_blank" rel="noopener">Direct :8787 ↗</a>
+        </div>
       </article>
 
       <article class="hub-card hub-card-analyzer">
-        <div class="hub-card-icon" aria-hidden="true">PA</div>
+        <div class="hub-card-top">
+          <div class="hub-card-icon" aria-hidden="true">PA</div>
+          <span class="hub-card-tag">AI Lead Intelligence</span>
+        </div>
         <h2>Property Analyzer</h2>
-        <p>Upload lead lists, AI-scan Street View imagery, classify distress tiers, and export dial-ready Excel.</p>
-        <a href="/analyzer/" class="hub-card-link">Open Property Analyzer →</a>
-        <a href="http://distressos.local:3456" class="hub-card-link hub-card-link-direct" target="_blank" rel="noopener">Direct port 3456 ↗</a>
+        <p>Upload lead lists, AI-scan Street View imagery, classify distress tiers, and export dial-ready Excel databases.</p>
+        <ul class="hub-card-features">
+          <li>Bulk Street View scanning</li>
+          <li>Distress tier classification</li>
+          <li>13-column dial-ready export</li>
+        </ul>
+        <div class="hub-card-actions">
+          <a href="/analyzer/" class="hub-btn hub-btn-primary">Launch Property Analyzer</a>
+          <a href="http://distressos.local:3456" class="hub-btn hub-btn-ghost" target="_blank" rel="noopener">Direct :3456 ↗</a>
+        </div>
       </article>
-    </div>
+    </section>
+
+    <footer class="hub-footer">
+      <p>Distress OS v0.4 · Modules run unchanged on their original engines.</p>
+    </footer>
   </main>
+
+  <script src="/js/shell.js"></script>
 </body>
 </html>
