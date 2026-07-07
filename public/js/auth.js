@@ -14,6 +14,7 @@
       tagline: 'One city. Full pipeline.',
       featured: false,
       exclusive: false,
+      vault: false,
       features: [
         'Pick <strong>1 city</strong> to run yourself',
         'PDF filler, request tracker &amp; analyzer tools',
@@ -29,11 +30,28 @@
       tagline: 'Full access. Every city.',
       featured: true,
       exclusive: false,
+      vault: false,
       features: [
         'Unlimited access to <strong data-coverage-city-count>500+</strong> cities nationwide',
         'Every tool in the Distress OS stack',
         'Run the full collect → scrub → analyze workflow anywhere',
         'Best value when you\'re serious about volume'
+      ]
+    },
+    max: {
+      id: 'max',
+      tier: 'Max',
+      amount: '$297',
+      period: '/month',
+      tagline: 'Skip DIY. Start dialing.',
+      featured: false,
+      exclusive: false,
+      vault: true,
+      features: [
+        'Everything in <strong>Pro</strong>, plus <strong>The Vault</strong>',
+        'Pre-scrubbed leads by city — we did the collect &amp; filter',
+        'Filter markets and pull ranked seller-ready lists',
+        'Get straight to calling — save hours every week'
       ]
     },
     exclusivity: {
@@ -44,6 +62,7 @@
       tagline: 'Own an entire city.',
       featured: false,
       exclusive: true,
+      vault: false,
       features: [
         'City blackout — your market, your leads only',
         'Not self-serve — we vet every applicant',
@@ -235,6 +254,7 @@
       var classes = ['auth-pricing-card'];
       if (plan.featured) classes.push('auth-pricing-featured', 'phuglee-panel-featured');
       if (plan.exclusive) classes.push('auth-pricing-exclusive', 'phuglee-panel-exclusive');
+      if (plan.vault) classes.push('auth-pricing-vault', 'phuglee-panel-vault');
 
       var priceHtml = plan.period
         ? '<span class="auth-pricing-amount">' + plan.amount + '</span><span class="auth-pricing-period">' + plan.period + '</span>'

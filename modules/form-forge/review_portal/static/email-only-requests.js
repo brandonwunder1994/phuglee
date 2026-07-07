@@ -1,4 +1,5 @@
 const $ = (s) => document.querySelector(s);
+const { filterByCollectSelection, collectSelectionCount } = window.PortalShared;
 
 const BULK_SEND_INTERVAL_MS = 10000;
 
@@ -337,13 +338,16 @@ async function loadQueue() {
   const res = await fetch("/api/portal/pending-email-only-requests");
   if (!res.ok) throw new Error(`Server returned ${res.status}`);
   queueData = await res.json();
-  pendingItems = queueData.items || [];
-  blockedItems = queueData.blocked || [];
+  pendingItems = filterByCollectSelection(queueData.items || []);
+  blockedItems = filterByCollectSelection(queueData.blocked || []);
   currentIndex = 0;
   sentThisSession = 0;
   skippedIds = new Set();
 
-  $("#page-subtitle").textContent = `${queueData.current_month_label || "This month"} — plain email requests, no PDF.`;
+  const selectionNote = collectSelectionCount()
+    ? ` — ${collectSelectionCount()} cities from Collect`
+    : "";
+  $("#page-subtitle").textContent = `${queueData.current_month_label || "This month"} — plain email requests, no PDF.${selectionNote}`;
   renderBlockedList();
   renderCurrentCity();
 }

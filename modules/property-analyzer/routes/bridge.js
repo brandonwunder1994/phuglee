@@ -49,7 +49,7 @@ function register(ctx) {
     if (!session || typeof session !== 'object') session = {};
 
     const merged = appendRecordsToSession(session, records);
-    merged.session.fileName = String(body.sourceFile || merged.session.fileName || 'Data Bridge import').trim();
+    merged.session.fileName = String(body.sourceFile || merged.session.fileName || 'Filter import').trim();
     if (body.uploadType) {
       merged.session.importLeadType = String(body.uploadType).trim();
     }

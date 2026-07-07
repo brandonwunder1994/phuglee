@@ -3,6 +3,41 @@ body.request-pdfs-page {
   min-height: 100vh;
 }
 
+.pdf-info-gate-form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.pdf-info-gate-field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.pdf-info-gate-field .label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.pdf-info-gate-field input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  color: var(--text);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.pdf-info-gate-field input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(238, 183, 70, 0.2);
+}
+
 .request-pdfs-layout {
   position: relative;
   z-index: 1;

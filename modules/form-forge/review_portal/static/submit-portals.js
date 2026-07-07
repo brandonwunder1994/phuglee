@@ -1,4 +1,12 @@
-const { escHtml, formatDayDate, isPdfLinkUrl, postJson, showToast } = window.PortalShared;
+const {
+  escHtml,
+  formatDayDate,
+  isPdfLinkUrl,
+  postJson,
+  showToast,
+  filterByCollectSelection,
+  collectSelectionCount,
+} = window.PortalShared;
 const {
   buildMessage,
   defaultVariantIndex,
@@ -561,16 +569,19 @@ async function loadQueue() {
   }
   if (!res.ok) throw new Error(`Server returned ${res.status}`);
   queueData = await res.json();
-  pendingItems = queueData.items || [];
-  blockedItems = queueData.blocked || [];
+  pendingItems = filterByCollectSelection(queueData.items || []);
+  blockedItems = filterByCollectSelection(queueData.blocked || []);
   currentIndex = 0;
   sentThisSession = 0;
   loadSkippedFromStorage();
   messageVariantIndex = loadMessageVariantIndex();
 
+  const selectionNote = collectSelectionCount()
+    ? ` — ${collectSelectionCount()} cities from Collect`
+    : "";
   const subtitle = document.querySelector("#page-subtitle");
   if (subtitle) {
-    subtitle.textContent = `${queueData.current_month_label || "This month"} — open each portal and we'll log today's submission.`;
+    subtitle.textContent = `${queueData.current_month_label || "This month"} — open each portal and we'll log today's submission.${selectionNote}`;
   }
 
   renderBlockedList();

@@ -224,6 +224,16 @@
   border-color: rgba(172, 107, 50, 0.55);
 }
 
+.phuglee-panel-vault {
+  border-color: rgba(201, 162, 39, 0.45);
+  box-shadow: var(--shadow-panel), 0 0 28px rgba(201, 162, 39, 0.12);
+}
+
+.phuglee-panel-vault:hover {
+  border-color: #c9a227;
+  transform: translateX(6px);
+}
+
 /* ── Inputs ── */
 .phuglee-input,
 .phuglee-textarea,

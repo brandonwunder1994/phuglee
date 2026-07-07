@@ -174,9 +174,12 @@
 /* Primary action tiles */
 .collect-hub-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-bottom: 2.25rem;
+  max-width: 720px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .collect-hub-tile {
@@ -398,6 +401,10 @@
 }
 
 @media (max-width: 720px) {
+  .collect-hub-grid {
+    grid-template-columns: 1fr;
+  }
+
   .collect-proof-rail {
     grid-template-columns: 1fr;
   }

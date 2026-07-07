@@ -16,10 +16,10 @@
       const data = await res.json();
       const modules = data.modules || {};
       setPill(forgePill, modules.formForge === 'up', 'Forge');
-      setPill(analyzerPill, modules.propertyAnalyzer === 'up', 'Analyzer');
+      setPill(analyzerPill, modules.propertyAnalyzer === 'up', 'Analyze');
     } catch (_) {
       setPill(forgePill, false, 'Forge');
-      setPill(analyzerPill, false, 'Analyzer');
+      setPill(analyzerPill, false, 'Analyze');
     }
   }
 

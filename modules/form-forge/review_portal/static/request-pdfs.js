@@ -1,5 +1,14 @@
-const { $, formatDayDate, cityPdfUrl, pdfPreviewUrl, postJson, showToast, isValidContactEmail } =
-  window.PortalShared;
+const {
+  $,
+  formatDayDate,
+  cityPdfUrl,
+  pdfPreviewUrl,
+  postJson,
+  showToast,
+  isValidContactEmail,
+  filterByCollectSelection,
+  collectSelectionCount,
+} = window.PortalShared;
 
 const BULK_SEND_INTERVAL_MS = 5000;
 
@@ -436,16 +445,19 @@ async function loadQueue() {
   }
   if (!res.ok) throw new Error(`Server returned ${res.status}`);
   queueData = await res.json();
-  pendingItems = queueData.items || [];
-  blockedItems = queueData.blocked || [];
+  pendingItems = filterByCollectSelection(queueData.items || []);
+  blockedItems = filterByCollectSelection(queueData.blocked || []);
   currentIndex = 0;
   sentThisSession = 0;
   loadSkippedFromStorage();
 
+  const selectionNote = collectSelectionCount()
+    ? ` — ${collectSelectionCount()} cities from Collect`
+    : "";
   const apologyCount = queueData.total_apology_pending || 0;
   const subtitle = apologyCount
-    ? `${queueData.current_month_label || "This month"} — ${apologyCount} need corrected PDF apology first.`
-    : `${queueData.current_month_label || "This month"} — work through unsent PDF cities.`;
+    ? `${queueData.current_month_label || "This month"} — ${apologyCount} need corrected PDF apology first.${selectionNote}`
+    : `${queueData.current_month_label || "This month"} — work through unsent PDF cities.${selectionNote}`;
   $("#page-subtitle").textContent = subtitle;
 
   renderBlockedList();
@@ -815,11 +827,79 @@ function bindEvents() {
   $("#pdf-preview-dialog")?.addEventListener("close", closePdfPreview);
 }
 
+async function loadPdfInfoSettings() {
+  const res = await fetch("/api/settings");
+  if (!res.ok) return { name: "", phone: "", email: "" };
+  return res.json();
+}
+
+async function ensurePdfInfoGate() {
+  const dialog = $("#pdf-info-gate-dialog");
+  const form = $("#pdf-info-gate-form");
+  const statusEl = $("#pdf-info-gate-status");
+  const nameInput = $("#pdf-info-name");
+  const phoneInput = $("#pdf-info-phone");
+  const emailInput = $("#pdf-info-email");
+  if (!dialog || !form) return;
+
+  const settings = await loadPdfInfoSettings();
+  if (nameInput) nameInput.value = settings.name || "";
+  if (phoneInput) phoneInput.value = settings.phone || "";
+  if (emailInput) emailInput.value = settings.email || "";
+  if (statusEl) statusEl.textContent = "";
+
+  return new Promise((resolve, reject) => {
+    function cleanup() {
+      $("#pdf-info-gate-cancel")?.removeEventListener("click", onCancel);
+      $("#pdf-info-gate-confirm")?.removeEventListener("click", onConfirm);
+      dialog.removeEventListener("cancel", onCancel);
+    }
+
+    function onCancel() {
+      cleanup();
+      if (dialog.open) dialog.close();
+      reject(new Error("PDF contact info not confirmed"));
+    }
+
+    async function onConfirm() {
+      if (!form.reportValidity()) return;
+      const name = nameInput?.value.trim() || "";
+      const phone = phoneInput?.value.trim() || "";
+      const email = emailInput?.value.trim() || "";
+      const confirmBtn = $("#pdf-info-gate-confirm");
+      if (statusEl) statusEl.textContent = "Saving your info and updating PDFs…";
+      if (confirmBtn) confirmBtn.disabled = true;
+      try {
+        await postJson("/api/settings", { name, phone, email });
+        await postJson("/api/settings/bulk-apply", { name, phone, email });
+        cleanup();
+        if (dialog.open) dialog.close();
+        resolve();
+      } catch (err) {
+        if (statusEl) statusEl.textContent = err.message || "Could not save your info.";
+        if (confirmBtn) confirmBtn.disabled = false;
+      }
+    }
+
+    $("#pdf-info-gate-cancel")?.addEventListener("click", onCancel);
+    $("#pdf-info-gate-confirm")?.addEventListener("click", onConfirm);
+    dialog.addEventListener("cancel", onCancel);
+    dialog.showModal();
+    nameInput?.focus();
+  });
+}
+
 async function init() {
   bindEvents();
   try {
+    await ensurePdfInfoGate();
     await loadQueue();
   } catch (err) {
+    if (err.message === "PDF contact info not confirmed") {
+      $("#request-loading").innerHTML =
+        '<p class="load-error">Confirm your PDF contact info to start sending requests. <a href="/collect">Back to Collect</a></p>';
+      return;
+    }
     const msg =
       err.name === "AbortError"
         ? "Loading timed out — restart the portal server and try again."

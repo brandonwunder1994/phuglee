@@ -18,6 +18,7 @@
     { "source": "/command", "destination": "/command.html" },
     { "source": "/heat", "destination": "/heat.html" },
     { "source": "/collect", "destination": "/collect.html" },
-    { "source": "/bridge", "destination": "/bridge.html" }
+    { "source": "/bridge", "destination": "/bridge.html" },
+    { "source": "/vault", "destination": "/vault.html" }
   ]
 }

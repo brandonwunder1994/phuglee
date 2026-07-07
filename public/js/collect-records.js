@@ -1,23 +1,196 @@
 (function () {
+  'use strict';
+
   const FORGE = '/forge';
+  const SELECTION_KEY = 'phuglee-collect-selected-cities';
 
   const startDialog = document.getElementById('start-requests-dialog');
-  const fillerDialog = document.getElementById('pdf-filler-dialog');
-  const fillerStatus = document.getElementById('pdf-filler-status');
-  const fillerForm = document.getElementById('pdf-filler-form');
+  const stepCities = document.getElementById('collect-step-cities');
+  const stepWorkflow = document.getElementById('collect-step-workflow');
+  const cityListEl = document.getElementById('collect-city-list');
+  const citySearchEl = document.getElementById('collect-city-search');
+  const cityCountLabel = document.getElementById('collect-city-count-label');
+  const cityStatusEl = document.getElementById('collect-city-status');
+  const titleEl = document.getElementById('start-requests-title');
+  const btnCitiesContinue = document.getElementById('btn-collect-step-cities');
+
+  let allCities = [];
+  let selectedIds = new Set();
+  let searchQuery = '';
 
   function openDialog(dialog) {
     if (!dialog) return;
-    if (typeof dialog.showModal === 'function') {
-      dialog.showModal();
-    }
+    if (typeof dialog.showModal === 'function') dialog.showModal();
   }
 
   function closeDialog(dialog) {
     if (!dialog) return;
-    if (typeof dialog.close === 'function') {
-      dialog.close();
+    if (typeof dialog.close === 'function') dialog.close();
+  }
+
+  function setCityStatus(message, tone) {
+    if (!cityStatusEl) return;
+    cityStatusEl.textContent = message || '';
+    cityStatusEl.className = 'collect-status' + (tone ? ' ' + tone : '');
+  }
+
+  function pathwayLabel(city) {
+    if (city.is_email_only) return 'Email only';
+    if (city.has_completed_pdf || city.pathway === 'email_pdf') return 'PDF email';
+    if (city.pathway === 'hybrid') return 'Portal + PDF';
+    return 'Portal';
+  }
+
+  function pathwayClass(city) {
+    if (city.is_email_only) return 'collect-city-badge--email';
+    if (city.has_completed_pdf || city.pathway === 'email_pdf') return 'collect-city-badge--pdf';
+    return 'collect-city-badge--portal';
+  }
+
+  function filteredCities() {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return allCities;
+    return allCities.filter(function (city) {
+      return (
+        city.city.toLowerCase().includes(q) ||
+        city.state.toLowerCase().includes(q) ||
+        city.id.toLowerCase().includes(q)
+      );
+    });
+  }
+
+  function updateSelectionLabel() {
+    if (!cityCountLabel) return;
+    const n = selectedIds.size;
+    const visible = filteredCities().length;
+    if (!allCities.length) {
+      cityCountLabel.textContent = 'No cities available';
+      return;
     }
+    cityCountLabel.textContent =
+      n + ' selected · ' + visible + ' shown of ' + allCities.length + ' cities';
+    if (btnCitiesContinue) btnCitiesContinue.disabled = n === 0;
+  }
+
+  function renderCityList() {
+    if (!cityListEl) return;
+    const cities = filteredCities();
+
+    if (!allCities.length) {
+      cityListEl.innerHTML = '<p class="collect-city-empty">No cities loaded yet.</p>';
+      updateSelectionLabel();
+      return;
+    }
+
+    if (!cities.length) {
+      cityListEl.innerHTML = '<p class="collect-city-empty">No cities match your search.</p>';
+      updateSelectionLabel();
+      return;
+    }
+
+    const byState = {};
+    cities.forEach(function (city) {
+      if (!byState[city.state]) byState[city.state] = [];
+      byState[city.state].push(city);
+    });
+
+    const states = Object.keys(byState).sort(function (a, b) {
+      return a.localeCompare(b, 'en', { sensitivity: 'base' });
+    });
+
+    let html = '';
+    states.forEach(function (state) {
+      html += '<section class="collect-city-state-group">';
+      html += '<h3 class="collect-city-state-name">' + escapeHtml(state) + '</h3>';
+      html += '<ul class="collect-city-state-list">';
+      byState[state]
+        .sort(function (a, b) {
+          return a.city.localeCompare(b.city, 'en', { sensitivity: 'base' });
+        })
+        .forEach(function (city) {
+          const checked = selectedIds.has(city.id) ? ' checked' : '';
+          const badgeClass = pathwayClass(city);
+          html +=
+            '<li>' +
+            '<label class="collect-city-row">' +
+            '<input type="checkbox" class="collect-city-check" data-city-id="' +
+            escapeHtml(city.id) +
+            '"' +
+            checked +
+            ' />' +
+            '<span class="collect-city-row-body">' +
+            '<span class="collect-city-name">' +
+            escapeHtml(city.city) +
+            '</span>' +
+            '<span class="collect-city-badge ' +
+            badgeClass +
+            '">' +
+            escapeHtml(pathwayLabel(city)) +
+            '</span>' +
+            '</span>' +
+            '</label>' +
+            '</li>';
+        });
+      html += '</ul></section>';
+    });
+
+    cityListEl.innerHTML = html;
+    updateSelectionLabel();
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function showWizardStep(step) {
+    const isCities = step === 'cities';
+    if (stepCities) stepCities.hidden = !isCities;
+    if (stepWorkflow) stepWorkflow.hidden = isCities;
+    if (titleEl) {
+      titleEl.textContent = isCities ? 'Choose your cities' : 'Pick your workflow';
+    }
+  }
+
+  async function loadCities() {
+    setCityStatus('Loading cities…', 'busy');
+    if (cityListEl) {
+      cityListEl.innerHTML = '<p class="collect-city-loading">Loading cities…</p>';
+    }
+
+    try {
+      const res = await fetch(FORGE + '/api/portal/cities/summary', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Could not load cities');
+      const data = await res.json();
+      allCities = (data.items || []).slice().sort(function (a, b) {
+        if (a.state !== b.state) {
+          return a.state.localeCompare(b.state, 'en', { sensitivity: 'base' });
+        }
+        return a.city.localeCompare(b.city, 'en', { sensitivity: 'base' });
+      });
+      setCityStatus('');
+      renderCityList();
+    } catch (err) {
+      allCities = [];
+      if (cityListEl) {
+        cityListEl.innerHTML =
+          '<p class="collect-city-empty">Could not load cities. Make sure Form Forge is running.</p>';
+      }
+      setCityStatus(err.message || 'Failed to load cities', 'err');
+      updateSelectionLabel();
+    }
+  }
+
+  function openStartRequestsDialog() {
+    selectedIds = new Set();
+    searchQuery = '';
+    if (citySearchEl) citySearchEl.value = '';
+    showWizardStep('cities');
+    openDialog(startDialog);
+    loadCities();
   }
 
   function selectedWorkflowHref() {
@@ -25,101 +198,76 @@
     return picked ? picked.value : '/forge/portal/request-pdfs';
   }
 
-  function setFillerStatus(message, tone) {
-    if (!fillerStatus) return;
-    fillerStatus.textContent = message || '';
-    fillerStatus.className = 'collect-status' + (tone ? ' ' + tone : '');
-  }
-
-  async function loadCurrentSettings() {
+  function persistSelection() {
     try {
-      const res = await fetch(`${FORGE}/api/settings`);
-      if (!res.ok) return;
-      const data = await res.json();
-      const nameInput = document.getElementById('filler-name');
-      const phoneInput = document.getElementById('filler-phone');
-      const emailInput = document.getElementById('filler-email');
-      if (nameInput) nameInput.value = data.name || '';
-      if (phoneInput) phoneInput.value = data.phone || '';
-      if (emailInput) emailInput.value = data.email || '';
+      sessionStorage.setItem(SELECTION_KEY, JSON.stringify([...selectedIds]));
     } catch (_) {
-      /* forge may be starting — fields stay empty */
+      /* ignore quota errors */
     }
   }
 
-  document.getElementById('btn-start-requests')?.addEventListener('click', () => {
-    openDialog(startDialog);
+  document.getElementById('btn-start-requests')?.addEventListener('click', openStartRequestsDialog);
+
+  document.getElementById('btn-collect-step-cities')?.addEventListener('click', function () {
+    if (!selectedIds.size) return;
+    showWizardStep('workflow');
   });
 
-  document.getElementById('btn-pdf-filler')?.addEventListener('click', () => {
-    openPdfFillerDialog();
+  document.getElementById('btn-collect-step-back')?.addEventListener('click', function () {
+    showWizardStep('cities');
   });
 
-  async function openPdfFillerDialog() {
-    setFillerStatus('');
-    await loadCurrentSettings();
-    openDialog(fillerDialog);
-  }
-
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('open') === 'pdf-filler') {
-    window.setTimeout(() => openPdfFillerDialog(), 100);
-  }
-
-  document.getElementById('btn-confirm-workflow')?.addEventListener('click', () => {
+  document.getElementById('btn-confirm-workflow')?.addEventListener('click', function () {
+    if (!selectedIds.size) return;
+    persistSelection();
     const href = selectedWorkflowHref();
     closeDialog(startDialog);
     window.location.href = href;
   });
 
-  document.querySelectorAll('[data-close-dialog]').forEach((btn) => {
-    btn.addEventListener('click', () => {
+  citySearchEl?.addEventListener('input', function () {
+    searchQuery = citySearchEl.value || '';
+    renderCityList();
+  });
+
+  document.getElementById('collect-city-select-all')?.addEventListener('click', function () {
+    filteredCities().forEach(function (city) {
+      selectedIds.add(city.id);
+    });
+    renderCityList();
+  });
+
+  document.getElementById('collect-city-clear')?.addEventListener('click', function () {
+    selectedIds.clear();
+    renderCityList();
+  });
+
+  cityListEl?.addEventListener('change', function (event) {
+    const input = event.target;
+    if (!input.classList.contains('collect-city-check')) return;
+    const id = input.getAttribute('data-city-id');
+    if (!id) return;
+    if (input.checked) selectedIds.add(id);
+    else selectedIds.delete(id);
+    updateSelectionLabel();
+  });
+
+  document.querySelectorAll('[data-close-dialog]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
       const dialog = btn.closest('dialog');
       closeDialog(dialog);
     });
   });
 
-  [startDialog, fillerDialog].forEach((dialog) => {
-    dialog?.addEventListener('click', (event) => {
-      if (event.target === dialog) closeDialog(dialog);
-    });
+  startDialog?.addEventListener('click', function (event) {
+    if (event.target === startDialog) closeDialog(startDialog);
   });
 
-  document.getElementById('btn-save-filler')?.addEventListener('click', async () => {
-    if (!fillerForm?.reportValidity()) return;
-
-    const name = document.getElementById('filler-name')?.value.trim() || '';
-    const phone = document.getElementById('filler-phone')?.value.trim() || '';
-    const email = document.getElementById('filler-email')?.value.trim() || '';
-    const saveBtn = document.getElementById('btn-save-filler');
-
-    setFillerStatus('Updating all city PDFs with your info — this may take a minute…', 'busy');
-    if (saveBtn) saveBtn.disabled = true;
-
-    try {
-      const res = await fetch(`${FORGE}/api/settings/bulk-apply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, phone, email }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.error || 'Could not update PDFs');
-      }
-
-      const count = data.results?.updated_count ?? 0;
-      const skipped = data.results?.skipped_count ?? 0;
-      const errors = data.results?.error_count ?? 0;
-      let message = `Done! Updated ${count} city PDF${count === 1 ? '' : 's'} with your contact info.`;
-      if (skipped) message += ` ${skipped} skipped (no form on file yet).`;
-      if (errors) message += ` ${errors} had errors — check Records Desk.`;
-      setFillerStatus(message, errors ? 'err' : 'ok');
-
-      window.setTimeout(() => closeDialog(fillerDialog), 2200);
-    } catch (err) {
-      setFillerStatus(err.message || 'Something went wrong. Try again.', 'err');
-    } finally {
-      if (saveBtn) saveBtn.disabled = false;
+  window.PhugleeCollectSelection = {
+    key: SELECTION_KEY,
+    save: persistSelection,
+    getIds: function () {
+      return [...selectedIds];
     }
-  });
+  };
 })();

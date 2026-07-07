@@ -156,6 +156,33 @@
     </section>
   </main>
 
+  <dialog class="portal-dialog portal-dialog-centered" id="pdf-info-gate-dialog" aria-labelledby="pdf-info-gate-title">
+    <div class="confirm-dialog-body">
+      <h2 id="pdf-info-gate-title">Confirm your PDF contact info</h2>
+      <p class="confirm-dialog-lead">Before you send PDF email requests, confirm the name, phone, and email we stamp on every city FOIA form.</p>
+      <form class="pdf-info-gate-form" id="pdf-info-gate-form">
+        <label class="pdf-info-gate-field">
+          <span class="label">Your name</span>
+          <input type="text" id="pdf-info-name" name="name" autocomplete="name" required />
+        </label>
+        <label class="pdf-info-gate-field">
+          <span class="label">Phone number</span>
+          <input type="tel" id="pdf-info-phone" name="phone" autocomplete="tel" required />
+        </label>
+        <label class="pdf-info-gate-field">
+          <span class="label">Email address</span>
+          <input type="email" id="pdf-info-email" name="email" autocomplete="email" required />
+        </label>
+      </form>
+      <p class="confirm-dialog-tip">We'll save this to your settings and update every city PDF on file before you start.</p>
+      <p class="action-msg" id="pdf-info-gate-status" role="status" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" id="pdf-info-gate-cancel">Cancel</button>
+        <button type="button" class="btn seal" id="pdf-info-gate-confirm">Confirm &amp; continue</button>
+      </div>
+    </div>
+  </dialog>
+
   <dialog class="portal-dialog portal-dialog-centered" id="email-confirm-dialog" aria-labelledby="email-confirm-title">
     <div class="confirm-dialog-body">
       <h2 id="email-confirm-title">Send email request?</h2>
@@ -192,9 +219,9 @@
   </dialog>
 
   <script src="/static/phuglee-states.js"></script>
-  <script src="/static/portal-shared.js?v=2"></script>
+  <script src="/static/portal-shared.js?v=3"></script>
   <script src="/static/settings-menu.js?v=3"></script>
-  <script src="/static/request-pdfs.js?v=12"></script>
+  <script src="/static/request-pdfs.js?v=13"></script>
   <script>window.FormForgeSettings?.init();</script>
   <p class="forge-trust-line">Public records only · Your data stays on your machine</p>
 </body>

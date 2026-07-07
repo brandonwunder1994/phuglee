@@ -53,12 +53,11 @@
           '<span class="distress-status-dot ' + (forge ? 'is-up' : 'is-down') + '"></span> Forge' +
         '</span>' +
         '<span class="distress-status-pill">' +
-          '<span class="distress-status-dot ' + (analyzer ? 'is-up' : 'is-down') + '"></span> Analyzer' +
+          '<span class="distress-status-dot ' + (analyzer ? 'is-up' : 'is-down') + '"></span> Analyze' +
         '</span>' +
       '</div>' +
       '<div class="distress-status-right">' +
-        '<span class="distress-status-pill">' + planLabel() + ' · Collect. Bridge. Analyze.</span>' +
-        '<span class="distress-status-pill">⌘K command</span>' +
+        '<span class="distress-status-pill">' + planLabel() + ' · Collect. Filter. Analyze.</span>' +
       '</div>';
   }
 

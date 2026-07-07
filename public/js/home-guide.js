@@ -23,6 +23,7 @@
       tagline: 'One city. Full pipeline.',
       featured: false,
       exclusive: false,
+      vault: false,
       mailto: 'mailto:team@distressos.com?subject=Distress%20OS%20Lite%20Plan',
       features: [
         'Pick <strong>1 city</strong> to run yourself',
@@ -39,12 +40,30 @@
       tagline: 'Full access. Every city.',
       featured: true,
       exclusive: false,
+      vault: false,
       mailto: 'mailto:team@distressos.com?subject=Distress%20OS%20Pro%20Plan',
       features: [
         'Unlimited access to <strong data-coverage-city-count>500+</strong> cities nationwide',
         'Every tool in the Distress OS stack',
         'Run the full collect → scrub → analyze workflow anywhere',
         'Best value when you\'re serious about volume'
+      ]
+    },
+    {
+      id: 'max',
+      tier: 'Max',
+      amount: '$297',
+      period: '/month',
+      tagline: 'Skip DIY. Start dialing.',
+      featured: false,
+      exclusive: false,
+      vault: true,
+      mailto: 'mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan',
+      features: [
+        'Everything in <strong>Pro</strong>, plus <strong>The Vault</strong>',
+        'Pre-scrubbed leads by city — we did the collect &amp; filter',
+        'Filter markets and pull ranked seller-ready lists',
+        'Get straight to calling — save hours every week'
       ]
     },
     {
@@ -55,6 +74,7 @@
       tagline: 'Own an entire city.',
       featured: false,
       exclusive: true,
+      vault: false,
       mailto: 'mailto:team@distressos.com?subject=Distress%20OS%20City%20Exclusivity',
       features: [
         'City blackout — your market, your leads only',
@@ -70,6 +90,7 @@
       var classes = ['guide-pricing-card'];
       if (plan.featured) classes.push('guide-pricing-card--featured');
       if (plan.exclusive) classes.push('guide-pricing-card--exclusive');
+      if (plan.vault) classes.push('guide-pricing-card--vault');
 
       var priceHtml = plan.period
         ? '<span class="guide-pricing-amount">' + plan.amount + '</span><span class="guide-pricing-period">' + plan.period + '</span>'
@@ -124,7 +145,7 @@
                     '<div class="guide-vs-panel guide-vs-panel--fresh">' +
                       '<span class="guide-vs-badge">Your edge</span>' +
                       '<h3>Phuglee pipeline</h3>' +
-                      '<p>City clerk → your inbox → Bridge scrubs → Analyzer ranks → you dial. <strong>Days.</strong> Nobody else has seen this list.</p>' +
+                      '<p>City clerk → your inbox → Filter scrubs → Analyze ranks → you dial. <strong>Days.</strong> Nobody else has seen this list.</p>' +
                     '</div>' +
                     '<div class="guide-vs-panel guide-vs-panel--stale">' +
                       '<span class="guide-vs-badge">Everyone else</span>' +
@@ -144,7 +165,7 @@
                     '<li class="guide-step">' +
                       '<span class="guide-step-num">02</span>' +
                       '<div>' +
-                        '<h4>Scrub with Data Bridge</h4>' +
+                        '<h4>Scrub with Filter</h4>' +
                         '<p>Drop in whatever the city sends — Excel, CSV, PDF, even photos. We normalize, tag distress signals, and build a clean spreadsheet ready to filter and skip trace.</p>' +
                       '</div>' +
                     '</li>' +

@@ -405,7 +405,7 @@ body.guide-modal-open {
 
 .guide-pricing-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.65rem;
   margin-bottom: 1rem;
 }
@@ -428,6 +428,15 @@ body.guide-modal-open {
 .guide-pricing-card--exclusive {
   border-style: dashed;
   border-color: rgba(172, 107, 50, 0.45);
+}
+
+.guide-pricing-card--vault {
+  border-color: rgba(201, 162, 39, 0.45);
+  box-shadow: 0 0 20px rgba(201, 162, 39, 0.1);
+}
+
+.guide-pricing-card--vault .guide-pricing-amount {
+  color: #c9a227;
 }
 
 .guide-pricing-tier {

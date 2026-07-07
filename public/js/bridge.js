@@ -7,8 +7,8 @@
     'Normalizing addresses…',
     'Tagging distressed signals…',
     'Deduplicating upload…',
-    'Cross-checking Property Analyzer…',
-    'Pushing new leads to Property Analyzer…'
+    'Cross-checking Analyze…',
+    'Pushing new leads to Analyze…'
   ];
   const EXPORT_COLUMNS = [
     ['streetAddress', 'Street Address'],
@@ -265,7 +265,7 @@
     cityLabel.textContent = `${selectedCity.city}, ${selectedCity.state}`;
     cityContext.hidden = false;
     typePanel.hidden = false;
-    historyLead.textContent = `Prior Data Bridge datasets for ${selectedCity.city}, ${selectedCity.state}.`;
+    historyLead.textContent = `Prior Filter datasets for ${selectedCity.city}, ${selectedCity.state}.`;
     loadHistory(selectedCity.id).catch(() => {});
     setPipelineStep('type');
   }
@@ -298,8 +298,8 @@
     const cards = [
       { label: 'Kept', value: stats.kept, accent: true },
       { label: 'Discarded', value: stats.discarded },
-      { label: 'Already in Analyzer', value: stats.alreadyImported },
-      { label: 'Pushed to Analyzer', value: stats.pushedToAnalyzer },
+      { label: 'Already in Analyze', value: stats.alreadyImported },
+      { label: 'Pushed to Analyze', value: stats.pushedToAnalyzer },
       { label: 'Needs review', value: stats.needsReview || stats.lowConfidence },
       { label: 'Deduped', value: stats.deduplicated }
     ];
@@ -471,7 +471,7 @@
     const parserLabel = data.processingMeta?.parser ? ` · ${data.processingMeta.parser} parser` : '';
     const indexCount = data.processingMeta?.importIndexCount;
     const indexLabel = Number.isFinite(indexCount) && indexCount > 0
-      ? ` · ${indexCount.toLocaleString()} address(es) in Analyzer`
+      ? ` · ${indexCount.toLocaleString()} address(es) in Analyze`
       : '';
     resultsMeta.textContent =
       `${rows.length.toLocaleString()} record(s) kept from ${data.sourceFile} · ${uploadLabel} · ${data.city.city}, ${data.city.state}${parserLabel}${indexLabel}`;
@@ -505,10 +505,10 @@
           ? ` ${data.stats.needsReview} row(s) flagged for review (low-confidence extraction).`
           : '';
         const importedNote = data.stats.alreadyImported
-          ? ` ${data.stats.alreadyImported} already in Property Analyzer.`
+          ? ` ${data.stats.alreadyImported} already in Analyze.`
           : '';
         const pushedNote = data.analyzerPush?.added
-          ? ` ${data.analyzerPush.added} new lead(s) pushed to Property Analyzer.`
+          ? ` ${data.analyzerPush.added} new lead(s) pushed to Analyze.`
           : '';
         stubNote.textContent = data.stats.discarded
           ? `${data.stats.discarded} row(s) discarded.${importedNote}${pushedNote}${reviewNote}`

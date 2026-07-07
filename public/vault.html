@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — The Vault</title>
+  <meta name="description" content="Pre-scrubbed distressed leads by city — skip the DIY pipeline and get straight to calling sellers. Max plan only.">
+  <meta property="og:title" content="Phuglee — The Vault">
+  <meta property="og:description" content="Filter cities for leads already scrubbed by our team. Upgrade to Max and start dialing.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/phuglee-logo-hd.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Phuglee — The Vault">
+  <meta name="twitter:description" content="Pre-scrubbed distressed leads — Max plan access. Skip DIY, start calling sellers.">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/distress-glass.css">
+  <link rel="stylesheet" href="/css/heat-base.css">
+  <link rel="stylesheet" href="/css/heat-atmosphere.css">
+  <link rel="stylesheet" href="/css/premium-atmosphere.css?v=distress3">
+  <link rel="stylesheet" href="/css/premium-components.css">
+  <link rel="stylesheet" href="/css/shell.css">
+  <link rel="stylesheet" href="/css/shell-nav.css?v=3">
+  <link rel="stylesheet" href="/css/settings-menu.css">
+  <link rel="stylesheet" href="/css/command-palette.css">
+  <link rel="stylesheet" href="/css/distress-status.css">
+  <link rel="stylesheet" href="/css/vault.css?v=1">
+  <link rel="stylesheet" href="/css/phuglee-components.css">
+  <link rel="stylesheet" href="/css/phuglee-a11y.css">
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js"></script>
+</head>
+<body class="has-premium-bg vault-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="premium-bg premium-bg--subtle" aria-hidden="true">
+    <div class="premium-bg-photo"></div>
+    <div class="premium-bg-grain"></div>
+    <div class="premium-bg-wear"></div>
+  </div>
+  <div class="heat-field" aria-hidden="true">
+    <div class="heat-glow heat-glow-a"></div>
+    <div class="heat-glow heat-glow-b"></div>
+    <div class="heat-grid"></div>
+    <div class="heat-noise"></div>
+  </div>
+
+  <div id="distress-os-nav-mount"></div>
+
+  <main id="main" class="vault-main">
+    <div class="vault-stage" aria-hidden="true">
+      <div class="vault-data-layer">
+        <header class="vault-mock-toolbar">
+          <div class="vault-mock-filters">
+            <span class="vault-mock-chip vault-mock-chip--active">All cities</span>
+            <span class="vault-mock-chip">Tax delinquent</span>
+            <span class="vault-mock-chip">Pre-foreclosure</span>
+            <span class="vault-mock-chip">Vacant</span>
+            <span class="vault-mock-chip">Code violation</span>
+          </div>
+          <div class="vault-mock-search">Search address, owner, or parcel…</div>
+        </header>
+
+        <div class="vault-mock-table">
+          <div class="vault-mock-row vault-mock-row--head">
+            <span>Address</span>
+            <span>City</span>
+            <span>Signal</span>
+            <span>Score</span>
+            <span>Owner</span>
+            <span>Phone</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>1842 Oakridge Dr</span>
+            <span>Memphis, TN</span>
+            <span class="vault-mock-signal vault-mock-signal--hot">Pre-foreclosure</span>
+            <span class="vault-mock-score">94</span>
+            <span>M. Henderson</span>
+            <span>(901) 555-0142</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>309 W Belmont Ave</span>
+            <span>Nashville, TN</span>
+            <span class="vault-mock-signal">Tax delinquent</span>
+            <span class="vault-mock-score">88</span>
+            <span>R. &amp; S. Patel</span>
+            <span>(615) 555-0198</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>7714 Cypress Ln</span>
+            <span>Birmingham, AL</span>
+            <span class="vault-mock-signal vault-mock-signal--hot">Vacant</span>
+            <span class="vault-mock-score">91</span>
+            <span>Estate of J. Cole</span>
+            <span>(205) 555-0133</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>5520 Magnolia Blvd</span>
+            <span>Jackson, MS</span>
+            <span class="vault-mock-signal">Code violation</span>
+            <span class="vault-mock-score">82</span>
+            <span>L. Washington</span>
+            <span>(601) 555-0177</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>118 Harbor View Ct</span>
+            <span>Mobile, AL</span>
+            <span class="vault-mock-signal vault-mock-signal--hot">Pre-foreclosure</span>
+            <span class="vault-mock-score">96</span>
+            <span>D. Nguyen</span>
+            <span>(251) 555-0164</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>9401 Ridgewood St</span>
+            <span>Little Rock, AR</span>
+            <span class="vault-mock-signal">Tax delinquent</span>
+            <span class="vault-mock-score">79</span>
+            <span>B. &amp; C. Morris</span>
+            <span>(501) 555-0129</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>2205 Peachtree Rd NE</span>
+            <span>Atlanta, GA</span>
+            <span class="vault-mock-signal vault-mock-signal--hot">Vacant</span>
+            <span class="vault-mock-score">93</span>
+            <span>Harbor Holdings LLC</span>
+            <span>(404) 555-0181</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>67 Sycamore Way</span>
+            <span>Chattanooga, TN</span>
+            <span class="vault-mock-signal">Code violation</span>
+            <span class="vault-mock-score">85</span>
+            <span>K. Simmons</span>
+            <span>(423) 555-0156</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>4410 Elmwood Park</span>
+            <span>Shreveport, LA</span>
+            <span class="vault-mock-signal vault-mock-signal--hot">Pre-foreclosure</span>
+            <span class="vault-mock-score">97</span>
+            <span>T. &amp; M. Brooks</span>
+            <span>(318) 555-0148</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>883 Lakeview Terrace</span>
+            <span>Montgomery, AL</span>
+            <span class="vault-mock-signal">Tax delinquent</span>
+            <span class="vault-mock-score">81</span>
+            <span>P. Alvarez</span>
+            <span>(334) 555-0192</span>
+          </div>
+          <div class="vault-mock-row">
+            <span>1590 Brookside Ave</span>
+            <span>Knoxville, TN</span>
+            <span class="vault-mock-signal vault-mock-signal--hot">Vacant</span>
+            <span class="vault-mock-score">90</span>
+            <span>S. Whitfield</span>
+            <span>(865) 555-0137</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="vault-frost"></div>
+      <div class="vault-scanlines" aria-hidden="true"></div>
+    </div>
+
+    <section class="vault-gate distress-glass" aria-labelledby="vault-gate-title">
+      <div class="vault-gate-inner">
+        <p class="vault-eyebrow">The Vault</p>
+        <h1 id="vault-gate-title" class="vault-title">MAX PLAN ONLY</h1>
+        <p class="vault-lead">
+          Upgrade to the Max plan and skip the DIY process entirely. Filter through cities and pull leads
+          our team has already collected, scrubbed, and ranked — so you can get right into calling sellers
+          instead of wrestling with portals and spreadsheets.
+        </p>
+        <ul class="vault-perks">
+          <li>Pre-scrubbed leads by city — no collect or filter step</li>
+          <li>Distress signals already tagged and scored</li>
+          <li>Owner contact info ready when available</li>
+          <li>Hours back every week — spend them on the phone</li>
+        </ul>
+        <div class="vault-cta-row">
+          <a
+            href="mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan"
+            class="phuglee-btn phuglee-btn-primary vault-upgrade-btn"
+          >Upgrade to Max — $297/mo</a>
+          <p class="vault-price-note">Full DIY toolkit on Pro · Done-for-you leads on Max</p>
+        </div>
+      </div>
+      <div class="vault-lock-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 24V16a14 14 0 1 1 28 0v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          <rect x="6" y="24" width="36" height="28" rx="4" stroke="currentColor" stroke-width="2.5"/>
+          <circle cx="24" cy="36" r="3" fill="currentColor"/>
+          <path d="M24 39v6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </section>
+  </main>
+
+  <div id="distress-os-footer-mount"></div>
+  <script src="/js/phuglee-motion.js"></script>
+  <script src="/js/phuglee-states.js"></script>
+  <script src="/js/settings-menu.js"></script>
+  <script src="/js/command-palette.js"></script>
+  <script src="/js/distress-status.js"></script>
+  <script src="/js/shell-nav.js?v=6"></script>
+</body>
+</html>

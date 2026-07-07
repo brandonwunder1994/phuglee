@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/collect-records.css?v=distress3">
-  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=4">
+  <link rel="stylesheet" href="/css/collect-records.css?v=4">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=5">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-config.js"></script>
@@ -59,187 +59,90 @@
         <p class="landing-tagline premium-tagline">Pull distressed property lists straight from public records — days before aggregators drip the same addresses to everyone else.</p>
       </header>
 
-      <section class="collect-proof-rail phuglee-panel" aria-label="Coverage and signals" data-phuglee-reveal-child>
-        <article class="collect-proof-item collect-proof-item--featured">
-          <span class="collect-proof-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
-          </span>
-          <div class="collect-proof-copy">
-            <span class="collect-proof-kicker">Coverage</span>
-            <p class="collect-proof-metric">
-              <span class="collect-proof-num collect-proof-num--gold" id="collect-city-count">—</span>
-              <span class="collect-proof-unit">cities</span>
-              <span class="collect-proof-join">in</span>
-              <span class="collect-proof-num" id="collect-state-count">—</span>
-              <span class="collect-proof-unit">states</span>
-            </p>
-          </div>
-        </article>
-        <article class="collect-proof-item">
-          <span class="collect-proof-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M3 10h18"/><path d="M6 10V7l3-4h6l3 4v3"/><path d="M8 21v-6"/><path d="M16 21v-6"/><path d="M10 14h4"/></svg>
-          </span>
-          <div class="collect-proof-copy">
-            <span class="collect-proof-kicker">Distress signals</span>
-            <p class="collect-proof-metric">
-              <span class="collect-proof-num collect-proof-num--gold">5</span>
-              <span class="collect-proof-unit">lead types</span>
-            </p>
-            <p class="collect-proof-detail">Violations · shutoffs · probate · foreclosure · tax</p>
-          </div>
-        </article>
-        <article class="collect-proof-item">
-          <span class="collect-proof-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
-          </span>
-          <div class="collect-proof-copy">
-            <span class="collect-proof-kicker">Workflows</span>
-            <p class="collect-proof-metric">
-              <span class="collect-proof-num collect-proof-num--gold">3</span>
-              <span class="collect-proof-unit">ways in</span>
-            </p>
-            <p class="collect-proof-detail">PDF email · plain email · online portal</p>
-          </div>
-        </article>
-      </section>
-
       <div class="collect-hub-grid" data-phuglee-reveal-child>
         <button type="button" class="collect-hub-tile phuglee-panel is-interactive" id="btn-start-requests">
           <span class="collect-hub-tile-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
           </span>
           <span class="collect-hub-tile-title">Start Requests</span>
-          <p class="collect-hub-tile-desc">PDF emails, plain email FOIA, or online portal — pick what each city accepts and launch.</p>
-          <span class="collect-hub-tile-cta">Choose workflow →</span>
+          <p class="collect-hub-tile-desc">Pick your cities, choose PDF email, plain email, or portal — then launch your batch.</p>
+          <span class="collect-hub-tile-cta">Choose cities →</span>
         </button>
-        <a href="/forge/map" class="collect-hub-tile phuglee-panel collect-hub-tile--map is-interactive">
-          <span class="collect-hub-tile-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
-          </span>
-          <span class="collect-hub-tile-title">Coverage Map</span>
-          <p class="collect-hub-tile-desc">Drill state → city, check what's live, and launch requests from the map.</p>
-          <span class="collect-hub-tile-cta">Open map →</span>
-        </a>
         <a href="/forge/portal" class="collect-hub-tile phuglee-panel collect-hub-tile--tracker is-interactive">
           <span class="collect-hub-tile-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
           </span>
-          <span class="collect-hub-tile-title">Request Tracker</span>
+          <span class="collect-hub-tile-title">Track Requests</span>
           <p class="collect-hub-tile-desc">See what's pending, what's answered, and what's ready to bridge into your pipeline.</p>
           <span class="collect-hub-tile-cta">View tracker →</span>
         </a>
       </div>
 
-      <section class="collect-tools" aria-labelledby="collect-tools-title" data-phuglee-reveal-child>
-        <div class="collect-tools-head">
-          <p class="collect-tools-eyebrow" id="collect-tools-title">Form Forge</p>
-          <h2 class="collect-tools-title">Quick tools</h2>
-        </div>
-        <div class="collect-tools-grid">
-          <button type="button" class="collect-tool-card phuglee-panel is-interactive" id="btn-pdf-filler">
-            <span class="collect-tool-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4"/><path d="M10 17h4"/></svg>
-            </span>
-            <span class="collect-tool-name">PDF Filler</span>
-            <span class="collect-tool-desc">Stamp your contact info on every city PDF</span>
-          </button>
-          <a href="/forge/portal/request-pdfs" class="collect-tool-card phuglee-panel is-interactive">
-            <span class="collect-tool-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
-            </span>
-            <span class="collect-tool-name">Request PDFs</span>
-            <span class="collect-tool-desc">Queue PDF email FOIA batches</span>
-          </a>
-          <a href="/forge/portal/email-only" class="collect-tool-card phuglee-panel is-interactive">
-            <span class="collect-tool-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="m22 6-10 7L2 6"/></svg>
-            </span>
-            <span class="collect-tool-name">Email-only</span>
-            <span class="collect-tool-desc">Plain email requests, no PDF</span>
-          </a>
-          <a href="/forge/portal/portal-errors" class="collect-tool-card phuglee-panel is-interactive">
-            <span class="collect-tool-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-            </span>
-            <span class="collect-tool-name">Portal Errors</span>
-            <span class="collect-tool-desc">Fix broken portal submissions</span>
-          </a>
-        </div>
-      </section>
-
       <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
     </div>
   </main>
 
-  <dialog class="collect-dialog" id="start-requests-dialog" aria-labelledby="start-requests-title">
+  <dialog class="collect-dialog collect-dialog--wizard" id="start-requests-dialog" aria-labelledby="start-requests-title">
     <div class="collect-dialog-card phuglee-panel distress-glass--float">
       <div class="collect-dialog-head">
-        <h2 id="start-requests-title">Pick your workflow</h2>
+        <h2 id="start-requests-title">Choose your cities</h2>
         <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
       </div>
-      <p class="collect-dialog-lead">Pick the workflow that matches how each city accepts public records requests.</p>
-      <div class="collect-choice-grid" role="radiogroup" aria-label="Request workflow">
-        <label class="collect-choice">
-          <input type="radio" name="request-workflow" value="/forge/portal/request-pdfs" checked />
-          <span class="collect-choice-body distress-glass-card">
-            <span class="collect-choice-title"><span class="collect-choice-icon">📄</span>Send PDF Emails</span>
-            <span class="collect-choice-desc">Email a completed FOIA PDF attachment to the city clerk. Best when the city wants a signed form on file.</span>
-          </span>
-        </label>
-        <label class="collect-choice">
-          <input type="radio" name="request-workflow" value="/forge/portal/email-only" />
-          <span class="collect-choice-body distress-glass-card">
-            <span class="collect-choice-title"><span class="collect-choice-icon">✉</span>Emails Only</span>
-            <span class="collect-choice-desc">Send a plain email request with no PDF. Use this for cities that accept email-only FOIA without a form.</span>
-          </span>
-        </label>
-        <label class="collect-choice">
-          <input type="radio" name="request-workflow" value="/forge/portal/submit-portals" />
-          <span class="collect-choice-body distress-glass-card">
-            <span class="collect-choice-title"><span class="collect-choice-icon">🌐</span>Online Portals</span>
-            <span class="collect-choice-desc">Submit through the city&apos;s web portal. We track each submission and walk you through the online form.</span>
-          </span>
-        </label>
-      </div>
-      <div class="collect-dialog-actions">
-        <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" data-close-dialog>Cancel</button>
-        <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-confirm-workflow">
-          <span class="btn-heat-label">Continue</span>
-        </button>
-      </div>
-    </div>
-  </dialog>
 
-  <dialog class="collect-dialog" id="pdf-filler-dialog" aria-labelledby="pdf-filler-title">
-    <div class="collect-dialog-card phuglee-panel distress-glass--float">
-      <div class="collect-dialog-head">
-        <h2 id="pdf-filler-title">PDF Filler</h2>
-        <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
+      <div class="collect-wizard-step" id="collect-step-cities" data-wizard-step="cities">
+        <p class="collect-dialog-lead">Select which cities you want to request records from. Next you'll pick how each batch gets sent.</p>
+        <div class="collect-city-toolbar">
+          <label class="collect-city-search-wrap">
+            <span class="visually-hidden">Search cities</span>
+            <input type="search" class="collect-city-search" id="collect-city-search" placeholder="Search city or state…" autocomplete="off" />
+          </label>
+          <div class="collect-city-toolbar-actions">
+            <button type="button" class="collect-city-toolbar-btn" id="collect-city-select-all">Select all</button>
+            <button type="button" class="collect-city-toolbar-btn" id="collect-city-clear">Clear</button>
+          </div>
+        </div>
+        <p class="collect-city-count" id="collect-city-count-label" aria-live="polite">Loading cities…</p>
+        <div class="collect-city-list-wrap" id="collect-city-list" role="group" aria-label="Cities to request"></div>
+        <p class="collect-status" id="collect-city-status" role="status" aria-live="polite"></p>
+        <div class="collect-dialog-actions">
+          <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" data-close-dialog>Cancel</button>
+          <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-collect-step-cities" disabled>
+            <span class="btn-heat-label">Continue</span>
+          </button>
+        </div>
       </div>
-      <p class="collect-dialog-lead">
-        Our city PDFs are already pre-filled with the request language and field placement — you just add your contact info once.
-        When you save, we stamp your name, phone, and email into <strong>every city PDF on file</strong> so you never retype them.
-      </p>
-      <form class="collect-form" id="pdf-filler-form">
-        <label>
-          Your name
-          <input type="text" id="filler-name" name="name" autocomplete="name" required />
-        </label>
-        <label>
-          Phone number
-          <input type="tel" id="filler-phone" name="phone" autocomplete="tel" required />
-        </label>
-        <label>
-          Email address
-          <input type="email" id="filler-email" name="email" autocomplete="email" required />
-        </label>
-      </form>
-      <p class="collect-status" id="pdf-filler-status" role="status" aria-live="polite"></p>
-      <div class="collect-dialog-actions">
-        <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" data-close-dialog>Cancel</button>
-        <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-save-filler">
-          <span class="btn-heat-label">Save &amp; Update All PDFs</span>
-        </button>
+
+      <div class="collect-wizard-step" id="collect-step-workflow" data-wizard-step="workflow" hidden>
+        <p class="collect-dialog-lead">Pick the workflow that matches how your selected cities accept public records requests.</p>
+        <div class="collect-choice-grid" role="radiogroup" aria-label="Request workflow">
+          <label class="collect-choice">
+            <input type="radio" name="request-workflow" value="/forge/portal/request-pdfs" checked />
+            <span class="collect-choice-body distress-glass-card">
+              <span class="collect-choice-title"><span class="collect-choice-icon">📄</span>Send PDF Emails</span>
+              <span class="collect-choice-desc">Email a completed FOIA PDF attachment to the city clerk. Best when the city wants a signed form on file.</span>
+            </span>
+          </label>
+          <label class="collect-choice">
+            <input type="radio" name="request-workflow" value="/forge/portal/email-only" />
+            <span class="collect-choice-body distress-glass-card">
+              <span class="collect-choice-title"><span class="collect-choice-icon">✉</span>Emails Only</span>
+              <span class="collect-choice-desc">Send a plain email request with no PDF. Use this for cities that accept email-only FOIA without a form.</span>
+            </span>
+          </label>
+          <label class="collect-choice">
+            <input type="radio" name="request-workflow" value="/forge/portal/submit-portals" />
+            <span class="collect-choice-body distress-glass-card">
+              <span class="collect-choice-title"><span class="collect-choice-icon">🌐</span>Online Portals</span>
+              <span class="collect-choice-desc">Submit through the city&apos;s web portal. We track each submission and walk you through the online form.</span>
+            </span>
+          </label>
+        </div>
+        <div class="collect-dialog-actions">
+          <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" id="btn-collect-step-back">Back</button>
+          <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-confirm-workflow">
+            <span class="btn-heat-label">Start requesting</span>
+          </button>
+        </div>
       </div>
     </div>
   </dialog>
@@ -250,8 +153,7 @@
   <script src="/js/settings-menu.js"></script>
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
-  <script src="/js/shell-nav.js?v=4"></script>
-  <script src="/js/home-coverage.js?v=2"></script>
-  <script src="/js/collect-records.js?v=3"></script>
+  <script src="/js/shell-nav.js?v=6"></script>
+  <script src="/js/collect-records.js?v=4"></script>
 </body>
 </html>

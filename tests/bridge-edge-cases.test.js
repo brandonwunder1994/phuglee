@@ -20,7 +20,7 @@ test('noUsableRowsMessage for all-already-imported scenario', () => {
     deduplicated: 0,
     alreadyImported: 5
   });
-  assert.match(msg, /already in your Property Analyzer/i);
+  assert.match(msg, /already in your Analyze session/i);
 });
 
 test('noUsableRowsMessage for generic empty parse', () => {
@@ -142,7 +142,7 @@ test('processUpload returns 422 details when all rows already imported', async (
       }),
       (err) => {
         assert.equal(err.code, 'NO_USABLE_ROWS');
-        assert.match(err.message, /already in your Property Analyzer/i);
+        assert.match(err.message, /already in your Analyze session/i);
         assert.equal(err.details.stats.alreadyImported, 1);
         return true;
       }

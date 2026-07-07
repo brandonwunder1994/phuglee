@@ -73,6 +73,31 @@ window.PortalShared = {
     return data;
   },
 
+  COLLECT_SELECTION_KEY: "phuglee-collect-selected-cities",
+
+  getCollectCitySelection() {
+    try {
+      const raw = sessionStorage.getItem(this.COLLECT_SELECTION_KEY);
+      if (!raw) return null;
+      const ids = JSON.parse(raw);
+      if (!Array.isArray(ids) || !ids.length) return null;
+      return new Set(ids);
+    } catch (_) {
+      return null;
+    }
+  },
+
+  filterByCollectSelection(items) {
+    const selection = this.getCollectCitySelection();
+    if (!selection) return items || [];
+    return (items || []).filter((item) => selection.has(item.id));
+  },
+
+  collectSelectionCount() {
+    const selection = this.getCollectCitySelection();
+    return selection ? selection.size : 0;
+  },
+
   showToast(message, { ok = true, duration = 5000 } = {}) {
     if (!message) return;
     let root = document.getElementById("portal-toast-root");

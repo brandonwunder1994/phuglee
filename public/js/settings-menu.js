@@ -8,6 +8,7 @@
   var PLANS = {
     lite: { label: 'Lite', price: '$47/mo' },
     pro: { label: 'Pro', price: '$97/mo' },
+    max: { label: 'Max', price: '$297/mo' },
     exclusivity: { label: 'Exclusivity', price: 'Custom' }
   };
 

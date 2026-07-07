@@ -2,7 +2,7 @@
   const CORE_LINKS = [
     { id: 'command', label: 'Dashboard', href: '/command' },
     { id: 'collect', label: 'Collect', href: '/collect' },
-    { id: 'bridge', label: 'Data Bridge', href: '/bridge' }
+    { id: 'bridge', label: 'Filter', href: '/bridge' }
   ];
 
   const FORGE_LINKS = [
@@ -15,7 +15,8 @@
     { id: 'forge-errors', label: 'Portal Errors', href: '/forge/portal/portal-errors' }
   ];
 
-  const ANALYZER_LINK = { id: 'analyzer', label: 'Analyzer', href: '/analyzer/' };
+  const VAULT_LINK = { id: 'vault', label: 'The Vault', href: '/vault' };
+  const ANALYZER_LINK = { id: 'analyzer', label: 'Analyze', href: '/analyzer/' };
 
   function normalizePath(pathname) {
     if (!pathname) return '/';
@@ -39,6 +40,7 @@
   function activeId(path) {
     const p = normalizePath(path);
     if (p === '/command') return 'command';
+    if (p === '/vault') return 'vault';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
@@ -60,13 +62,14 @@
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">Distress OS · Collect. Bridge. Analyze.</span>
+      <span class="shell-footer-meta">Distress OS · Collect. Filter. Analyze.</span>
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Collect</a>
-      <a href="/bridge" class="shell-footer-link">Bridge</a>
-      <a href="/analyzer/" class="shell-footer-link">Analyzer</a>
+      <a href="/bridge" class="shell-footer-link">Filter</a>
+      <a href="/analyzer/" class="shell-footer-link">Analyze</a>
+      <a href="/vault" class="shell-footer-link">The Vault</a>
     </nav>
   </div>
   <p class="shell-footer-trust">Public records only · Your data stays on your machine</p>
@@ -95,10 +98,10 @@
     ).join('');
 
     const analyzerClass = linkClass(ANALYZER_LINK.id, current);
+    const vaultClass = linkClass(VAULT_LINK.id, current);
 
     const actionsHtml = isAuthenticated()
       ? `<div class="shell-nav-actions">
-          <button type="button" class="shell-cmd-hint" id="shell-cmd-hint" title="Command palette"><kbd>⌘</kbd><kbd>K</kbd></button>
           <div id="shell-settings-slot"></div>
         </div>`
       : '';
@@ -123,6 +126,7 @@
     <div class="shell-links">
       ${coreHtml}
       <a href="${ANALYZER_LINK.href}" class="${analyzerClass}"${current === ANALYZER_LINK.id ? ' aria-current="page"' : ''}>${ANALYZER_LINK.label}</a>
+      <a href="${VAULT_LINK.href}" class="${vaultClass}"${current === VAULT_LINK.id ? ' aria-current="page"' : ''}>${VAULT_LINK.label}</a>
       ${actionsHtml}
     </div>
   </nav>
@@ -150,15 +154,6 @@
         window.location.href = '/?login=1&return=' + encodeURIComponent(returnUrl);
       });
     });
-  }
-
-  function bindChrome(root) {
-    const cmdHint = root && root.querySelector('#shell-cmd-hint');
-    if (cmdHint) {
-      cmdHint.addEventListener('click', () => {
-        if (window.PhugleeCommandPalette) window.PhugleeCommandPalette.open();
-      });
-    }
   }
 
   function mount() {
@@ -190,7 +185,6 @@
         document.body.style.paddingTop = h + 'px';
       }
       guardNavLinks(wrap);
-      bindChrome(wrap);
     }
 
     if (path.startsWith('/forge')) {
