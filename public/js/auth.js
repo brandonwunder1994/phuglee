@@ -621,8 +621,21 @@
     if (btn) {
       if (isAuthenticated()) {
         btn.setAttribute('href', state.returnUrl || '/heat');
+        btn.textContent = 'Enter the Platform';
       } else {
         btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          openModal();
+        });
+      }
+    }
+
+    var signInBtn = document.getElementById('btn-sign-in');
+    if (signInBtn) {
+      if (isAuthenticated()) {
+        signInBtn.hidden = true;
+      } else {
+        signInBtn.addEventListener('click', function (e) {
           e.preventDefault();
           openModal();
         });

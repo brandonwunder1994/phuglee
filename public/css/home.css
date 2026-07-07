@@ -1,0 +1,446 @@
+/* Phuglee Home — signature gate (v2) */
+
+body.home-page {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+html.home-page-root {
+  height: auto;
+  min-height: 100%;
+}
+
+body.home-page.logo-page {
+  height: auto;
+  min-height: 100dvh;
+  overflow-y: auto;
+}
+
+/* ── Top bar ── */
+.home-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.5rem;
+  background: linear-gradient(180deg, rgba(13, 13, 13, 0.92) 0%, rgba(13, 13, 13, 0.55) 70%, transparent 100%);
+  pointer-events: none;
+}
+
+.home-topbar > * {
+  pointer-events: auto;
+}
+
+.home-topbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: var(--phuglee-cream);
+}
+
+.home-topbar-logo {
+  display: block;
+  height: 26px;
+  width: auto;
+}
+
+.home-topbar-tag {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe);
+  padding-left: 0.65rem;
+  border-left: 1px solid rgba(174, 163, 143, 0.35);
+}
+
+.home-topbar-signin {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--phuglee-taupe);
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  border-radius: var(--radius-sm);
+  background: rgba(13, 13, 13, 0.45);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.home-topbar-signin:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.45);
+  background: rgba(229, 132, 53, 0.08);
+}
+
+.home-topbar-signin[hidden] {
+  display: none;
+}
+
+/* ── Page shell ── */
+.home-page.landing {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.home-shell {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4.5rem 1.25rem 0;
+}
+
+/* ── Hero ── */
+.home-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-height: min(78dvh, 720px);
+  justify-content: center;
+  padding-bottom: 1.5rem;
+}
+
+.home-eyebrow {
+  font-size: var(--text-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: clamp(0.5rem, 1.5vh, 0.85rem);
+}
+
+.home-page .landing-logo-wrap {
+  max-height: min(52dvh, 480px);
+  margin-bottom: 0;
+}
+
+.home-page .landing-logo-slot {
+  max-height: min(52dvh, 480px);
+}
+
+.home-page .landing-logo-slot .phuglee-logo-svg--hero {
+  width: min(480px, 72vw);
+  max-height: min(52dvh, 480px);
+  transform: scale(1.12);
+  transform-origin: center center;
+}
+
+.home-page .landing-tagline {
+  margin: clamp(0.65rem, 2vh, 1.1rem) auto 0;
+  font-size: clamp(1rem, 2.2vh, 1.2rem);
+  font-weight: 500;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-cream);
+  max-width: 28rem;
+}
+
+.home-page .landing-actions {
+  flex: 0;
+  padding-top: clamp(1rem, 2.5vh, 1.5rem);
+  gap: 0.85rem;
+}
+
+.home-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.home-page .landing-cta {
+  min-width: min(260px, 88vw);
+}
+
+.home-cta-secondary {
+  min-width: min(200px, 88vw);
+}
+
+/* ── Proof strip ── */
+.home-proof {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(174, 163, 143, 0.18);
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-panel);
+}
+
+.home-stat {
+  position: relative;
+  padding: 1.15rem 1rem;
+  text-align: center;
+  background: rgba(53, 54, 48, 0.72);
+}
+
+.home-stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--phuglee-orange), transparent);
+  opacity: 0.55;
+}
+
+.home-stat-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.35rem);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--phuglee-cream);
+  margin-bottom: 0.35rem;
+}
+
+.home-stat-value--accent {
+  background: linear-gradient(180deg, var(--phuglee-cream) 30%, var(--phuglee-gold) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home-stat-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe);
+  line-height: 1.4;
+}
+
+/* ── Pipeline glimpse ── */
+.home-pipeline {
+  margin-bottom: 1.5rem;
+}
+
+.home-pipeline-head {
+  text-align: center;
+  margin-bottom: 0.85rem;
+}
+
+.home-pipeline-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.home-pipeline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-pipeline-step {
+  position: relative;
+  padding: 1.1rem 0.9rem 1rem;
+  text-align: center;
+  background: rgba(40, 40, 39, 0.65);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: var(--radius-md);
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-pipeline-step::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: url('/images/phuglee-pattern.svg') center / 200px repeat;
+  opacity: 0.035;
+  pointer-events: none;
+}
+
+.home-pipeline-step:hover {
+  border-color: rgba(229, 132, 53, 0.45);
+  transform: translateY(-2px);
+}
+
+.home-pipeline-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 auto 0.65rem;
+  color: var(--phuglee-orange);
+}
+
+.home-pipeline-icon svg {
+  width: 1.65rem;
+  height: 1.65rem;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-pipeline-num {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  color: var(--phuglee-gold);
+  margin-bottom: 0.25rem;
+}
+
+.home-pipeline-name {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+  margin-bottom: 0.35rem;
+}
+
+.home-pipeline-desc {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--phuglee-stone);
+  margin: 0;
+}
+
+/* Connector chevrons between steps (desktop) */
+@media (min-width: 641px) {
+  .home-pipeline-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -0.55rem;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-top: 2px solid var(--phuglee-orange);
+    border-right: 2px solid var(--phuglee-orange);
+    transform: translateY(-50%) rotate(45deg);
+    z-index: 1;
+    opacity: 0.7;
+  }
+}
+
+/* ── Footer ── */
+.home-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.25rem 0 2rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.15);
+  margin-top: 0.25rem;
+}
+
+.home-footer-brand {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  color: var(--phuglee-cream);
+}
+
+.home-footer-meta {
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--phuglee-stone);
+}
+
+.home-footer-link {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--phuglee-taupe);
+  transition: color 0.2s ease;
+}
+
+.home-footer-link:hover {
+  color: var(--phuglee-orange);
+}
+
+/* ── Responsive ── */
+@media (max-width: 720px) {
+  .home-proof {
+    grid-template-columns: 1fr;
+  }
+
+  .home-stat + .home-stat {
+    border-top: 1px solid rgba(174, 163, 143, 0.12);
+  }
+
+  .home-pipeline-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-pipeline-step:not(:last-child)::after {
+    display: none;
+  }
+
+  .home-footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .home-topbar-tag {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-shell {
+    padding-top: 4rem;
+  }
+
+  .home-page .landing-logo-slot .phuglee-logo-svg--hero {
+    width: min(380px, 82vw);
+    transform: scale(1.05);
+  }
+
+  .home-cta-row {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .home-page .landing-cta,
+  .home-cta-secondary {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-pipeline-step:hover {
+    transform: none;
+  }
+}
