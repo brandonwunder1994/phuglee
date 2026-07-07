@@ -33,8 +33,11 @@ RUN python3 -c "import sys; sys.path.insert(0,'modules/form-forge'); from review
 
 ENV NODE_ENV=production
 ENV DISTRESS_OS_HOST=0.0.0.0
+ENV FORM_FORGE_HOST=0.0.0.0
+ENV PROPERTY_ANALYZER_HOST=0.0.0.0
 ENV FORGE_BUNDLED_FALLBACK=1
 ENV FORGE_LOG_INHERIT=1
+ENV FORGE_BOOT_LOG=/tmp/forge-boot.log
 
 EXPOSE 3000
 

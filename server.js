@@ -85,6 +85,38 @@ async function handleRequest(req, res) {
   const url = new URL(req.url || '/', `http://${requestHost(req)}`);
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
+  if (pathname === '/api/forge-diagnostics' && req.method === 'GET') {
+    const fs = require('fs');
+    const bootLogPath = process.env.FORGE_BOOT_LOG || '/tmp/forge-boot.log';
+    let bootLog = '';
+    try {
+      if (fs.existsSync(bootLogPath)) {
+        bootLog = fs.readFileSync(bootLogPath, 'utf8').slice(-8000);
+      }
+    } catch (_) {}
+    const [forge, analyzer] = await Promise.all([
+      checkForgeHealth(),
+      runtime.useEmbeddedAnalyzer()
+        ? Promise.resolve({ ok: true, mode: 'embedded' })
+        : checkAnalyzerHealth()
+    ]);
+    send(res, 200, JSON.stringify({
+      ok: true,
+      forge,
+      analyzer,
+      bootLog,
+      bootLogPath,
+      env: {
+        NODE_ENV: process.env.NODE_ENV || null,
+        FORM_FORGE_HOST: config.FORGE_HOST,
+        FORM_FORGE_PORT: config.FORGE_PORT,
+        PROPERTY_ANALYZER_HOST: config.ANALYZER_HOST,
+        PROPERTY_ANALYZER_PORT: config.ANALYZER_PORT
+      }
+    }), 'application/json');
+    return;
+  }
+
   if (pathname === '/api/health') {
     let analyzerHealth;
     if (runtime.useEmbeddedAnalyzer()) {
