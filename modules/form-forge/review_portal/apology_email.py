@@ -101,7 +101,7 @@ def apology_body(city_name: str, state: str) -> str:
     phone = (settings.get("phone") or "").strip()
     email = (settings.get("email") or "").strip()
     contact_lines = [line for line in (phone, email) if line]
-    contact_block = f"\n{'\n'.join(contact_lines)}" if contact_lines else ""
+    contact_block = "\n" + "\n".join(contact_lines) if contact_lines else ""
 
     return (
         f"Hi,\n\n"
