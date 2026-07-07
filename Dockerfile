@@ -38,7 +38,10 @@ ENV PROPERTY_ANALYZER_HOST=0.0.0.0
 ENV FORGE_BUNDLED_FALLBACK=1
 ENV FORGE_LOG_INHERIT=1
 ENV FORGE_BOOT_LOG=/tmp/forge-boot.log
+ENV FORGE_EXTERNAL_BOOT=1
+
+RUN chmod +x scripts/docker-entrypoint.sh
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["sh", "scripts/docker-entrypoint.sh"]
