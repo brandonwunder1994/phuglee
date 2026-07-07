@@ -19,19 +19,22 @@ body.analyzer-embedded.cyber-theme::before {
 }
 
 body.analyzer-embedded .app-sidebar {
-  display: none !important;
+  display: flex !important;
+  top: var(--distress-nav-offset, 108px);
+  height: calc(100vh - var(--distress-nav-offset, 108px));
+  z-index: 900;
 }
 
 body.analyzer-embedded .app-shell {
-  padding-left: 0 !important;
-  margin-left: 0 !important;
   min-height: calc(100vh - var(--distress-nav-offset, 56px) - 28px);
 }
 
 body.analyzer-embedded .app-shell-main {
-  margin-left: 0 !important;
-  width: 100% !important;
+  margin-left: var(--sidebar-w, 220px) !important;
+  width: auto !important;
   max-width: none !important;
+  padding-top: var(--distress-nav-offset, 108px);
+  min-height: calc(100vh - var(--distress-nav-offset, 108px));
 }
 
 body.analyzer-embedded .app-main,

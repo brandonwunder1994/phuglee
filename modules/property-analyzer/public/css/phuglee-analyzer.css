@@ -523,10 +523,12 @@ body.heat-theme.cyber-theme .scan-issue-alert {
   100% { transform: translateX(350%); }
 }
 
-/* Distress OS embedded — keep main content aligned when shell hides sidebar */
+/* Distress OS embedded — keep analyzer sidebar + offset main for shell nav */
 body.analyzer-embedded .app-shell-main {
-  margin-left: 0 !important;
-  width: 100% !important;
+  margin-left: var(--sidebar-w, 220px);
+  width: auto;
+  max-width: none;
+  padding-top: var(--distress-nav-offset, 108px);
 }
 
 body.analyzer-embedded .app-shell .app {
