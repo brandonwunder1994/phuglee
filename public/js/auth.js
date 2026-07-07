@@ -74,19 +74,35 @@
     localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
   }
 
+  var BOOTSTRAP_ADMIN = {
+    username: 'admin',
+    password: 'wunderhaus',
+    fullName: 'Administrator',
+    email: 'admin@phuglee.com',
+    plan: 'pro'
+  };
+
   function seedAdmin() {
-    var users = readUsers();
-    if (!users.admin) {
+    try {
+      var users = readUsers();
+      var existing = users.admin || {};
       users.admin = {
         username: 'admin',
         password: 'wunderhaus',
-        fullName: 'Administrator',
-        email: 'admin@phuglee.com',
-        plan: 'pro',
-        createdAt: Date.now()
+        fullName: existing.fullName || BOOTSTRAP_ADMIN.fullName,
+        email: existing.email || BOOTSTRAP_ADMIN.email,
+        plan: existing.plan || BOOTSTRAP_ADMIN.plan,
+        createdAt: existing.createdAt || Date.now()
       };
       writeUsers(users);
+    } catch (_) {
+      /* localStorage blocked — login() still accepts bootstrap admin */
     }
+  }
+
+  function isBootstrapAdmin(username, password) {
+    var key = (username || '').trim().toLowerCase();
+    return (key === 'admin' || key === 'admin@phuglee.com') && password === 'wunderhaus';
   }
 
   function isAuthenticated() {
@@ -106,7 +122,12 @@
   }
 
   function setSession(username) {
-    sessionStorage.setItem(SESSION_KEY, username);
+    try {
+      sessionStorage.setItem(SESSION_KEY, username);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function clearSession() {
@@ -135,13 +156,24 @@
   }
 
   function login(username, password) {
-    var users = readUsers();
     var key = username.trim().toLowerCase();
+
+    if (isBootstrapAdmin(username, password)) {
+      if (!setSession('admin')) {
+        return { ok: false, error: 'Could not save login session. Allow cookies/storage for this site and try again.' };
+      }
+      try { seedAdmin(); } catch (_) {}
+      return { ok: true, user: Object.assign({}, BOOTSTRAP_ADMIN) };
+    }
+
+    var users = readUsers();
     var user = users[key];
     if (!user || user.password !== password) {
       return { ok: false, error: 'Invalid username or password.' };
     }
-    setSession(key);
+    if (!setSession(key)) {
+      return { ok: false, error: 'Could not save login session. Allow cookies/storage for this site and try again.' };
+    }
     return { ok: true, user: user };
   }
 

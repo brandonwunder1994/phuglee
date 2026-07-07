@@ -2,10 +2,12 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const config = require('./lib/config');
+const runtime = require('./lib/runtime');
 const { isForgeRequest, proxyToForge, checkForgeHealth } = require('./lib/forge-proxy');
 const { isAnalyzerRequest, proxyToAnalyzer, checkAnalyzerHealth } = require('./lib/analyzer-proxy');
 const { ensureForgeRunning, stopForgeProcess } = require('./lib/forge-process');
 const { ensureAnalyzerRunning, stopAnalyzerProcess } = require('./lib/analyzer-process');
+const embeddedAnalyzer = require('./lib/embedded-analyzer');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -70,7 +72,10 @@ async function handleRequest(req, res) {
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
   if (pathname === '/api/health') {
-    const [forge, analyzer] = await Promise.all([checkForgeHealth(), checkAnalyzerHealth()]);
+    const analyzerHealth = runtime.useEmbeddedAnalyzer()
+      ? embeddedAnalyzer.checkEmbeddedAnalyzerHealth()
+      : checkAnalyzerHealth();
+    const [forge, analyzer] = await Promise.all([checkForgeHealth(), analyzerHealth]);
     send(res, 200, JSON.stringify({
       ok: true,
       service: 'distress-os',
@@ -94,6 +99,10 @@ async function handleRequest(req, res) {
   }
 
   if (isAnalyzerRequest(pathname)) {
+    if (runtime.useEmbeddedAnalyzer()) {
+      await embeddedAnalyzer.dispatchEmbeddedAnalyzer(req, res, pathname, url.search);
+      return;
+    }
     proxyToAnalyzer(req, res, pathname, url.search);
     return;
   }
@@ -156,10 +165,23 @@ server.on('error', (err) => {
   process.exit(1);
 });
 
-server.listen(config.PORT, config.HOST, async () => {
-  console.log(`Distress OS running at http://${config.HOST}:${config.PORT}`);
-  console.log(`Form Forge proxy: http://${config.HOST}:${config.PORT}${config.FORGE_PREFIX}/`);
-  console.log(`Property Analyzer proxy: http://${config.HOST}:${config.PORT}${config.ANALYZER_PREFIX}/`);
+async function bootModules() {
+  if (runtime.useEmbeddedAnalyzer()) {
+    try {
+      await embeddedAnalyzer.checkEmbeddedAnalyzerHealth();
+      console.log('Property Analyzer embedded in-process (Vercel/serverless mode)');
+    } catch (err) {
+      console.warn('Property Analyzer embed failed:', err.message);
+    }
+  }
+
+  if (runtime.skipChildProcesses()) {
+    if (!runtime.useEmbeddedAnalyzer()) {
+      console.warn('Property Analyzer unavailable — serverless mode requires embedded analyzer');
+    }
+    console.warn('Form Forge unavailable on Vercel — deploy full stack to Railway for Form Forge');
+    return;
+  }
 
   const [forge, analyzer] = await Promise.all([
     ensureForgeRunning({ spawnIfMissing: true }),
@@ -169,17 +191,34 @@ server.listen(config.PORT, config.HOST, async () => {
   if (forge.running) {
     console.log(forge.spawned ? 'Form Forge started automatically' : 'Form Forge already running');
   } else {
-    console.warn('Form Forge not available — check modules/form-forge link');
+    console.warn('Form Forge not available — check modules/form-forge');
     if (forge.error) console.warn(forge.error);
   }
 
   if (analyzer.running) {
     console.log(analyzer.spawned ? 'Property Analyzer started automatically' : 'Property Analyzer already running');
   } else {
-    console.warn('Property Analyzer not available — check modules/property-analyzer link');
+    console.warn('Property Analyzer not available — check modules/property-analyzer');
     if (analyzer.error) console.warn(analyzer.error);
   }
-});
+}
+
+function startStandaloneServer() {
+  server.listen(config.PORT, config.HOST, async () => {
+    console.log(`Distress OS running at http://${config.HOST}:${config.PORT}`);
+    console.log(`Form Forge proxy: http://${config.HOST}:${config.PORT}${config.FORGE_PREFIX}/`);
+    console.log(`Property Analyzer proxy: http://${config.HOST}:${config.PORT}${config.ANALYZER_PREFIX}/`);
+    await bootModules();
+  });
+}
+
+if (runtime.isVercel()) {
+  bootModules().catch((err) => console.warn('[Distress OS] Vercel boot:', err.message));
+} else {
+  startStandaloneServer();
+}
+
+module.exports = server;
 
 function shutdown() {
   stopForgeProcess();

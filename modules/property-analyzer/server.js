@@ -185,7 +185,7 @@ mapsModule.register(ctx);
 require('./routes/imagery').register(ctx);
 geminiModule.register(ctx);
 
-const server = http.createServer(async (req, res) => {
+async function handleAnalyzerRequest(req, res) {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
   if (req.method === 'OPTIONS') {
@@ -217,6 +217,12 @@ const server = http.createServer(async (req, res) => {
   } catch (err) {
     sendJson(res, 500, { ok: false, error: err.message });
   }
+}
+
+const server = http.createServer((req, res) => {
+  handleAnalyzerRequest(req, res).catch((err) => {
+    sendJson(res, 500, { ok: false, error: err.message });
+  });
 });
 
 function logServerFault(label, err) {
@@ -270,10 +276,15 @@ process.on('unhandledRejection', (err) => {
   logServerFault('unhandledRejection', err);
 });
 
-process.on('SIGINT', () => shutdownServer('SIGINT'));
-process.on('SIGTERM', () => shutdownServer('SIGTERM'));
+const isEmbedded = process.env.ANALYZER_EMBEDDED === '1';
 
-server.listen(PORT, '127.0.0.1', () => {
+if (!isEmbedded) {
+  process.on('SIGINT', () => shutdownServer('SIGINT'));
+  process.on('SIGTERM', () => shutdownServer('SIGTERM'));
+}
+
+function bootStandaloneServer() {
+  server.listen(PORT, '127.0.0.1', () => {
   writePidFile();
   const promoteResult = backups.promoteIncrementalToLatest('startup');
   safety.safetyState.lastStartupPromote = {
@@ -314,4 +325,15 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log('');
   setInterval(safety.runAutoSafetyTick, AUTO_SAFETY_TICK_MS);
   setTimeout(safety.runAutoSafetyTick, 12000);
-});
+  });
+}
+
+if (!isEmbedded) {
+  bootStandaloneServer();
+}
+
+module.exports = {
+  handleAnalyzerRequest,
+  server,
+  getApiStatus
+};

@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "installCommand": "npm install && npm install --prefix modules/property-analyzer --omit=dev",
+  "buildCommand": "",
+  "functions": {
+    "api/server.js": {
+      "maxDuration": 60,
+      "includeFiles": "modules/property-analyzer/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api/server" }
+  ]
+}
