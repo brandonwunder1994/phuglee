@@ -1,4 +1,8 @@
 // Vercel serverless entry — all dynamic routes.
+// Force serverless mode before loading the shell (some deployments omit VERCEL env at cold start).
+process.env.VERCEL = process.env.VERCEL || '1';
+process.env.ANALYZER_EMBEDDED = '1';
+
 const { handleRequest } = require('../server');
 
 module.exports = async (req, res) => {

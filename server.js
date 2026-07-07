@@ -197,7 +197,11 @@ async function bootModules() {
     if (!runtime.useEmbeddedAnalyzer()) {
       console.warn('Property Analyzer unavailable — serverless mode requires embedded analyzer');
     }
-    console.warn('Form Forge unavailable on Vercel — deploy full stack to Railway for Form Forge');
+    if (runtime.remoteForgeUrl()) {
+      console.log(`Form Forge remote proxy: ${runtime.remoteForgeUrl()}`);
+    } else {
+      console.warn('Form Forge unavailable on Vercel — set FORM_FORGE_URL to a Railway/Render deploy');
+    }
     return;
   }
 
