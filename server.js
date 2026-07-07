@@ -186,7 +186,7 @@ server.on('error', (err) => {
 async function bootModules() {
   if (runtime.useEmbeddedAnalyzer()) {
     try {
-      await embeddedAnalyzer.checkEmbeddedAnalyzerHealth();
+      await getEmbeddedAnalyzer().checkEmbeddedAnalyzerHealth();
       console.log('Property Analyzer embedded in-process (Vercel/serverless mode)');
     } catch (err) {
       console.warn('Property Analyzer embed failed:', err.message);
@@ -226,13 +226,24 @@ async function bootModules() {
 }
 
 function startStandaloneServer() {
-  server.listen(config.PORT, config.HOST, async () => {
+  server.listen(config.PORT, config.HOST, () => {
     console.log(`Distress OS running at http://${config.HOST}:${config.PORT}`);
+    console.log(`Railway PORT env: ${process.env.PORT || '(unset)'} | bound: ${config.PORT}`);
     console.log(`Form Forge proxy: http://${config.HOST}:${config.PORT}${config.FORGE_PREFIX}/`);
     console.log(`Property Analyzer proxy: http://${config.HOST}:${config.PORT}${config.ANALYZER_PREFIX}/`);
-    await bootModules();
+    bootModules().catch((err) => {
+      console.error('[Distress OS] Module boot error:', err);
+    });
   });
 }
+
+process.on('unhandledRejection', (err) => {
+  console.error('[Distress OS] Unhandled rejection:', err);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[Distress OS] Uncaught exception:', err);
+});
 
 if (runtime.isVercel()) {
   /* Analyzer loads lazily on first /analyzer request */
