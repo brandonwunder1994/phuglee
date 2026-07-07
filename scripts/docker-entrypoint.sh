@@ -14,6 +14,21 @@ export PYTHONUNBUFFERED=1
 export PDA_DATA_ROOT="${PDA_DATA_ROOT:-/app/pda-data}"
 mkdir -p "${PDA_DATA_ROOT}"
 
+SEED_SESSION="/app/scripts/seed-data/distressAnalyzerSession_LATEST.json"
+LIVE_SESSION="${PDA_DATA_ROOT}/distressAnalyzerSession_LATEST.json"
+if [ -f "${SEED_SESSION}" ]; then
+  SEED_BYTES="$(wc -c < "${SEED_SESSION}")"
+  LIVE_BYTES=0
+  if [ -f "${LIVE_SESSION}" ]; then
+    LIVE_BYTES="$(wc -c < "${LIVE_SESSION}")"
+  fi
+  # Seed when volume is empty or only has a stub session from a prior boot.
+  if [ ! -f "${LIVE_SESSION}" ] || [ "${LIVE_BYTES}" -lt "${SEED_BYTES}" ]; then
+    echo "[entrypoint] Seeding Property Analyzer session (${SEED_BYTES} bytes; live=${LIVE_BYTES})"
+    cp "${SEED_SESSION}" "${LIVE_SESSION}"
+  fi
+fi
+
 # Save Railway's public port for the shell proxy; child modules use their own ports.
 PUBLIC_PORT="${PORT:-3000}"
 
