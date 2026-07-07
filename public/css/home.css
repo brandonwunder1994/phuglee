@@ -102,7 +102,7 @@ body.home-page.logo-page {
   width: 100%;
   max-width: 1100px;
   margin: 0 auto;
-  padding: 4.5rem 1.25rem 0;
+  padding: 4.5rem 1.25rem 3.5rem;
 }
 
 /* ── Hero ── */
@@ -183,7 +183,8 @@ body.home-page.logo-page {
   border: 1px solid rgba(174, 163, 143, 0.22);
   border-radius: var(--radius-md);
   overflow: hidden;
-  margin-bottom: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 2.75rem;
   box-shadow: var(--shadow-panel);
 }
 
@@ -220,6 +221,13 @@ body.home-page.logo-page {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+.home-stat-value--phrase {
+  font-size: clamp(1.15rem, 2.8vw, 1.55rem);
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  padding: 0.35rem 0.25rem 0;
 }
 
 .home-stat-label {
@@ -356,9 +364,9 @@ body.home-page.logo-page {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 1.25rem 0 2rem;
+  padding: 1.75rem 0 1rem;
   border-top: 1px solid rgba(174, 163, 143, 0.15);
-  margin-top: 0.25rem;
+  margin-top: 1.5rem;
 }
 
 .home-footer-brand {
