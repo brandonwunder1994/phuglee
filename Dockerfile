@@ -5,6 +5,7 @@ FROM node:20-bookworm-slim
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends python3 python3-pip \
+  && ln -sf /usr/bin/python3 /usr/bin/python \
   && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
