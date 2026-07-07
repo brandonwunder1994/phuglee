@@ -6,7 +6,7 @@
   "functions": {
     "api/server.js": {
       "maxDuration": 60,
-      "includeFiles": "modules/property-analyzer/**"
+      "includeFiles": "modules/property-analyzer/**,modules/form-forge/data/**"
     }
   },
   "rewrites": [
