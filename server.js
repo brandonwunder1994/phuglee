@@ -67,15 +67,27 @@ function serveLibAsBrowser(res, libFile, globalName) {
   send(res, 200, src, 'application/javascript; charset=utf-8');
 }
 
+function requestHost(req) {
+  const headers = req.headers || {};
+  return headers.host || headers['x-forwarded-host'] || process.env.VERCEL_URL || 'localhost';
+}
+
 async function handleRequest(req, res) {
-  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+  const url = new URL(req.url || '/', `http://${requestHost(req)}`);
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
   if (pathname === '/api/health') {
-    const analyzerHealth = runtime.useEmbeddedAnalyzer()
-      ? embeddedAnalyzer.checkEmbeddedAnalyzerHealth()
-      : checkAnalyzerHealth();
-    const [forge, analyzer] = await Promise.all([checkForgeHealth(), analyzerHealth]);
+    let analyzerHealth;
+    if (runtime.useEmbeddedAnalyzer()) {
+      try {
+        analyzerHealth = await embeddedAnalyzer.checkEmbeddedAnalyzerHealth();
+      } catch (err) {
+        analyzerHealth = { ok: false, error: err.message };
+      }
+    } else {
+      analyzerHealth = await checkAnalyzerHealth();
+    }
+    const [forge, analyzer] = await Promise.all([checkForgeHealth(), Promise.resolve(analyzerHealth)]);
     send(res, 200, JSON.stringify({
       ok: true,
       service: 'distress-os',
@@ -162,7 +174,7 @@ server.on('error', (err) => {
   } else {
     console.error('[Distress OS] Server error:', err);
   }
-  process.exit(1);
+  if (!runtime.isVercel()) process.exit(1);
 });
 
 async function bootModules() {
@@ -213,12 +225,13 @@ function startStandaloneServer() {
 }
 
 if (runtime.isVercel()) {
-  bootModules().catch((err) => console.warn('[Distress OS] Vercel boot:', err.message));
+  /* Analyzer loads lazily on first /analyzer request */
 } else {
   startStandaloneServer();
 }
 
 module.exports = server;
+module.exports.handleRequest = handleRequest;
 
 function shutdown() {
   stopForgeProcess();
