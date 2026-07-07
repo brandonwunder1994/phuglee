@@ -28,6 +28,9 @@ RUN pip3 install --no-cache-dir -r modules/form-forge/requirements.txt --break-s
 
 COPY . .
 
+RUN python3 -c "import sys; sys.path.insert(0,'modules/form-forge'); from review_portal.app import app; print('form-forge import ok')" \
+  && python3 -c "from waitress import serve; print('waitress ok')"
+
 ENV NODE_ENV=production
 ENV DISTRESS_OS_HOST=0.0.0.0
 ENV FORGE_BUNDLED_FALLBACK=1
