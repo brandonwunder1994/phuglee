@@ -12,17 +12,17 @@ export FORGE_BOOT_LOG="${FORGE_BOOT_LOG:-/tmp/forge-boot.log}"
 export FORGE_EXTERNAL_BOOT=1
 export PYTHONUNBUFFERED=1
 
-# Drop Railway public PORT so child modules never inherit it.
-unset PORT || true
+# Save Railway's public port for the shell proxy; child modules use their own ports.
+PUBLIC_PORT="${PORT:-3000}"
 
 echo "[entrypoint] Starting Form Forge on ${FORM_FORGE_HOST}:${FORM_FORGE_PORT}"
-/usr/bin/python3 -u scripts/start-form-forge.py >>"${FORGE_BOOT_LOG}" 2>&1 &
+env -u PORT /usr/bin/python3 -u scripts/start-form-forge.py >>"${FORGE_BOOT_LOG}" 2>&1 &
 FORGE_PID=$!
 echo "[entrypoint] Form Forge pid=${FORGE_PID}"
 
 echo "[entrypoint] Starting Property Analyzer on ${PROPERTY_ANALYZER_HOST}:${PROPERTY_ANALYZER_PORT}"
 cd modules/property-analyzer
-node server.js >>/tmp/analyzer-boot.log 2>&1 &
+env -u PORT node server.js >>/tmp/analyzer-boot.log 2>&1 &
 ANALYZER_PID=$!
 cd /app
 echo "[entrypoint] Property Analyzer pid=${ANALYZER_PID}"
@@ -30,5 +30,7 @@ echo "[entrypoint] Property Analyzer pid=${ANALYZER_PID}"
 # Give modules a moment to bind before the shell proxy accepts traffic.
 sleep 2
 
-echo "[entrypoint] Starting Distress OS on ${DISTRESS_OS_HOST:-0.0.0.0}:${DISTRESS_OS_PORT:-3000}"
+export PORT="${PUBLIC_PORT}"
+export DISTRESS_OS_PORT="${PUBLIC_PORT}"
+echo "[entrypoint] Starting Distress OS on ${DISTRESS_OS_HOST:-0.0.0.0}:${PUBLIC_PORT}"
 exec node server.js
