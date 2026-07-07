@@ -38,25 +38,19 @@ body.home-page.logo-page {
 .home-topbar-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.65rem;
   text-decoration: none;
   color: var(--phuglee-cream);
+  transition: opacity 0.2s ease;
+}
+
+.home-topbar-brand:hover {
+  opacity: 0.88;
 }
 
 .home-topbar-logo {
   display: block;
-  height: 26px;
+  height: 28px;
   width: auto;
-}
-
-.home-topbar-tag {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--phuglee-taupe);
-  padding-left: 0.65rem;
-  border-left: 1px solid rgba(174, 163, 143, 0.35);
 }
 
 .home-topbar-signin {
@@ -419,9 +413,6 @@ body.home-page.logo-page {
     text-align: center;
   }
 
-  .home-topbar-tag {
-    display: none;
-  }
 }
 
 @media (max-width: 480px) {
