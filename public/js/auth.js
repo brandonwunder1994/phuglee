@@ -106,6 +106,7 @@
   }
 
   function isAuthenticated() {
+    if (window.__PHUGLEE_AUTH_DISABLED__) return true;
     try {
       return !!sessionStorage.getItem(SESSION_KEY);
     } catch (_) {

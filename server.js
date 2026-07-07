@@ -170,6 +170,23 @@ async function handleRequest(req, res) {
     }
   }
 
+  if (pathname === '/js/auth-config.js' && (req.method === 'GET' || req.method === 'HEAD')) {
+    const body = [
+      '(function () {',
+      `  window.__PHUGLEE_AUTH_DISABLED__ = ${config.AUTH_DISABLED ? 'true' : 'false'};`,
+      '  if (!window.__PHUGLEE_AUTH_DISABLED__) return;',
+      "  try { if (!sessionStorage.getItem('phuglee_session')) sessionStorage.setItem('phuglee_session', 'dev'); } catch (_) {}",
+      '})();',
+      ''
+    ].join('\n');
+    if (req.method === 'HEAD') {
+      send(res, 200, '', 'application/javascript; charset=utf-8');
+    } else {
+      send(res, 200, body, 'application/javascript; charset=utf-8');
+    }
+    return;
+  }
+
   if (pathname === '/js/bridge-schema.js' && (req.method === 'GET' || req.method === 'HEAD')) {
     if (req.method === 'HEAD') {
       send(res, 200, '', 'application/javascript; charset=utf-8');

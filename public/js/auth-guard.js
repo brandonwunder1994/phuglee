@@ -1,4 +1,6 @@
 (function () {
+  if (window.__PHUGLEE_AUTH_DISABLED__) return;
+
   var path = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
   if (path === '/' || path === '/index.html') return;
 
