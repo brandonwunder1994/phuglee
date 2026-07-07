@@ -46,7 +46,12 @@ R.scanSaveHeartbeatMs = function scanSaveHeartbeatMs() {
 R.SAT_VACANT_SKIP_CONFIDENCE = 70;
 R.LOCAL_APP_HOST = 'distressos.local';
 R.LOCAL_APP_URL = 'http://distressos.local:3456';
-R.USE_PROXY = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === R.LOCAL_APP_HOST;
+R.MODULE_PREFIX = (typeof window.__DISTRESS_OS_MODULE_PREFIX__ === 'string' && window.__DISTRESS_OS_MODULE_PREFIX__) || '';
+R.IS_EMBEDDED = !!R.MODULE_PREFIX;
+R.USE_PROXY = location.hostname === 'localhost'
+  || location.hostname === '127.0.0.1'
+  || location.hostname === R.LOCAL_APP_HOST
+  || R.IS_EMBEDDED;
 R.serverHasMapsKey = false;
 R.serverConfig = { hasMapsKey: false, hasGeminiKey: false, mapsKeyTail: null, geminiKeyTail: null };
 
@@ -54,11 +59,28 @@ R.getAuthToken = function getAuthToken() {
   return typeof window.__PDA_AUTH_TOKEN__ === 'string' ? window.__PDA_AUTH_TOKEN__ : '';
 }
 
+R.resolveModuleApiUrl = function resolveModuleApiUrl(url) {
+  if (typeof url !== 'string' || !url.startsWith('/')) return url;
+  const prefix = R.MODULE_PREFIX;
+  if (!prefix || url.startsWith(prefix + '/')) return url;
+  if (url.startsWith('/api/') || url === '/api') return `${prefix}${url}`;
+  return url;
+}
+
 R.apiFetch = function apiFetch(url, opts = {}) {
   const headers = { ...(opts.headers || {}) };
   const token = getAuthToken();
   if (token) headers['X-PDA-Token'] = token;
-  return fetch(url, { ...opts, headers });
+  return fetch(R.resolveModuleApiUrl(url), { ...opts, headers });
+}
+
+if (R.IS_EMBEDDED && typeof window !== 'undefined' && !window.__PDA_FETCH_PATCHED__) {
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = function pdaFetch(input, init) {
+    if (typeof input === 'string') input = R.resolveModuleApiUrl(input);
+    return nativeFetch(input, init);
+  };
+  window.__PDA_FETCH_PATCHED__ = true;
 }
   window.apiFetch = R.apiFetch;
   global.apiFetch = R.apiFetch;
@@ -1523,7 +1545,7 @@ clearKeysBtn.addEventListener('click', async () => {
 updateKeyStatusUi();
 updateStartButton();
 
-if (!USE_PROXY) {
+if (!USE_PROXY && location.protocol === 'file:') {
   showFatalError(`You opened the HTML file directly. Close this tab, double-click launch-analyzer.bat, and use ${LOCAL_APP_URL} instead.`);
 }
 

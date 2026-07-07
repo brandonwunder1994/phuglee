@@ -1144,7 +1144,8 @@ R.fetchSessionSummary = async function fetchSessionSummary(opts = {}) {
   if (!USE_PROXY) return null;
   const lite = opts.lite !== false;
   try {
-    const res = await apiFetch(lite ? '/api/session-summary?lite=1' : '/api/session-summary');
+    const summaryPath = lite ? '/api/session-summary?lite=1' : '/api/session-summary';
+    const res = await apiFetch(summaryPath);
     const data = await res.json();
     return data?.ok ? data : null;
   } catch (e) {
