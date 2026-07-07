@@ -11,6 +11,8 @@ export PROPERTY_ANALYZER_PORT="${PROPERTY_ANALYZER_PORT:-3456}"
 export FORGE_BOOT_LOG="${FORGE_BOOT_LOG:-/tmp/forge-boot.log}"
 export FORGE_EXTERNAL_BOOT=1
 export PYTHONUNBUFFERED=1
+export PDA_DATA_ROOT="${PDA_DATA_ROOT:-/app/pda-data}"
+mkdir -p "${PDA_DATA_ROOT}"
 
 # Save Railway's public port for the shell proxy; child modules use their own ports.
 PUBLIC_PORT="${PORT:-3000}"

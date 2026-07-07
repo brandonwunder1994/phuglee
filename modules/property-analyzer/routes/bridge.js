@@ -3,7 +3,7 @@ const { appendRecordsToSession } = require('../lib/bridge-import-records');
 
 function register(ctx) {
   const { router, sendJson, readBody, backups, config, fs, path } = ctx;
-  const { ROOT, SESSION_LATEST_FILE } = config;
+  const { DATA_ROOT, SESSION_LATEST_FILE } = config;
   const { writeFileAtomic } = require('../lib/fs-atomic');
 
   router.get('/api/import-address-index', async (req, res) => {
@@ -42,7 +42,7 @@ function register(ctx) {
       }
     }
 
-    const latestPath = path.join(ROOT, SESSION_LATEST_FILE);
+    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
     let session = backups.promoteMergedSessionIfBetter(
       backups.mergeIncrementalIntoSession(backups.readLatestSessionFile())
     );

@@ -2,11 +2,35 @@ const path = require('path');
 const fs = require('fs');
 
 const ROOT = path.join(__dirname, '..');
+const DATA_ROOT = process.env.PDA_DATA_ROOT
+  ? path.resolve(process.env.PDA_DATA_ROOT)
+  : ROOT;
+
+function ensureDir(dir) {
+  try {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  } catch (_) {}
+}
+
+for (const dir of [
+  DATA_ROOT,
+  path.join(DATA_ROOT, 'backups', 'auto'),
+  path.join(DATA_ROOT, 'backups', 'milestones'),
+  path.join(DATA_ROOT, 'backups', 'manual'),
+  path.join(DATA_ROOT, 'backups', 'archive', 'rejected'),
+  path.join(DATA_ROOT, 'logs'),
+  path.join(DATA_ROOT, 'gemini_audit'),
+  path.join(DATA_ROOT, 'scan_results'),
+  path.join(DATA_ROOT, 'property_imagery')
+]) {
+  ensureDir(dir);
+}
 
 module.exports = {
   PORT: 3456,
   LOCAL_HOSTNAME: 'distressos.local',
   ROOT,
+  DATA_ROOT,
   PUBLIC_DIR: path.join(ROOT, 'public'),
   PUBLIC_INDEX: path.join(ROOT, 'public', 'index.html'),
   HTML_FILE: path.join(ROOT, 'public', 'index.html'),
@@ -20,15 +44,15 @@ module.exports = {
     'distressAnalyzerSession_RECONSTRUCTED.json'
   ],
   SESSION_LATEST_FILE: 'distressAnalyzerSession_LATEST.json',
-  GEMINI_AUDIT_DIR: path.join(ROOT, 'gemini_audit'),
-  SCAN_RESULTS_DIR: path.join(ROOT, 'scan_results'),
-  AUTO_BACKUPS_DIR: path.join(ROOT, 'backups', 'auto'),
-  MILESTONE_BACKUPS_DIR: path.join(ROOT, 'backups', 'milestones'),
-  MANUAL_BACKUPS_DIR: path.join(ROOT, 'backups', 'manual'),
-  ARCHIVE_DIR: path.join(ROOT, 'backups', 'archive'),
-  ARCHIVE_REJECTED_DIR: path.join(ROOT, 'backups', 'archive', 'rejected'),
-  AUTH_TOKEN_FILE: path.join(ROOT, 'logs', 'pda-auth.token'),
-  MAPS_KEY_FILE: path.join(ROOT, 'maps-api-key.txt'),
+  GEMINI_AUDIT_DIR: path.join(DATA_ROOT, 'gemini_audit'),
+  SCAN_RESULTS_DIR: path.join(DATA_ROOT, 'scan_results'),
+  AUTO_BACKUPS_DIR: path.join(DATA_ROOT, 'backups', 'auto'),
+  MILESTONE_BACKUPS_DIR: path.join(DATA_ROOT, 'backups', 'milestones'),
+  MANUAL_BACKUPS_DIR: path.join(DATA_ROOT, 'backups', 'manual'),
+  ARCHIVE_DIR: path.join(DATA_ROOT, 'backups', 'archive'),
+  ARCHIVE_REJECTED_DIR: path.join(DATA_ROOT, 'backups', 'archive', 'rejected'),
+  AUTH_TOKEN_FILE: path.join(DATA_ROOT, 'logs', 'pda-auth.token'),
+  MAPS_KEY_FILE: path.join(DATA_ROOT, 'maps-api-key.txt'),
   OFFSITE_MIN_INTERVAL_MS: 5 * 60 * 1000,
   MAX_EPHEMERAL_BACKUPS: 12,
   MAX_MILESTONE_BACKUPS: 80,

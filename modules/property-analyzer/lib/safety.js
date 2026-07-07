@@ -3,7 +3,7 @@ const { writeFileAtomic, writeFileAtomicBuffer } = require('./fs-atomic');
 module.exports = function createSafety(deps) {
   const { config, fs, path, crypto, backups } = deps;
   const {
-    ROOT,
+    DATA_ROOT,
     SESSION_LATEST_FILE,
     AUTO_BACKUPS_DIR,
     MILESTONE_BACKUPS_DIR,
@@ -56,7 +56,7 @@ module.exports = function createSafety(deps) {
     if (Date.now() - lastOffsiteCopyAt < OFFSITE_MIN_INTERVAL_MS) {
       return { ok: true, skipped: true, reason: 'throttled' };
     }
-    const latestPath = path.join(ROOT, SESSION_LATEST_FILE);
+    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
     if (!fs.existsSync(latestPath)) return { ok: false, error: 'no_latest' };
 
     const latestBuf = fs.readFileSync(latestPath);
@@ -172,7 +172,7 @@ module.exports = function createSafety(deps) {
       milestoneBackupsDir: MILESTONE_BACKUPS_DIR,
       manualBackupsDir: MANUAL_BACKUPS_DIR,
       mirrorFile: path.join(AUTO_BACKUPS_DIR, 'MIRROR_LATEST.json'),
-      canonicalLatest: path.join(ROOT, SESSION_LATEST_FILE),
+      canonicalLatest: path.join(DATA_ROOT, SESSION_LATEST_FILE),
       archiveDir: ARCHIVE_DIR,
       archiveManifest: path.join(ARCHIVE_DIR, 'ARCHIVE_MANIFEST.json'),
       lastStartupPromote: safetyState.lastStartupPromote,

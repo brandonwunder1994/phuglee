@@ -3,7 +3,7 @@ const { parseLearnedBrainFromSession } = require('./learned-brain');
 module.exports = function createBackups(deps) {
   const { config, fs, path, crypto, getSafety } = deps;
   const {
-    ROOT,
+    DATA_ROOT,
     SESSION_LATEST_FILE,
     SCAN_RESULTS_DIR,
     AUTO_BACKUPS_DIR,
@@ -346,7 +346,7 @@ module.exports = function createBackups(deps) {
   }
 
   function readLatestSessionFile() {
-    const latestPath = path.join(ROOT, SESSION_LATEST_FILE);
+    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
     if (!fs.existsSync(latestPath)) {
       return { records: [], results: [], processed: 0, savedAt: 0 };
     }
@@ -419,7 +419,7 @@ module.exports = function createBackups(deps) {
         const toSave = { ...merged };
         delete toSave._mergedFromIncremental;
         try {
-          writeFileAtomic(path.join(ROOT, SESSION_LATEST_FILE), JSON.stringify(toSave));
+          writeFileAtomic(path.join(DATA_ROOT, SESSION_LATEST_FILE), JSON.stringify(toSave));
           if (shouldWriteRollingBackup(mergedResults)) {
             writeRollingAutoBackup(toSave, `promote_${reason}`, 'milestone');
             lastRollingBackupAt = Date.now();
@@ -467,7 +467,7 @@ module.exports = function createBackups(deps) {
 
   function promoteMergedSessionIfBetter(session) {
     if (!session?._mergedFromIncremental) return session;
-    const latestPath = path.join(ROOT, SESSION_LATEST_FILE);
+    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
     let existingResults = 0;
     if (fs.existsSync(latestPath)) {
       try {

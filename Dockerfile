@@ -39,6 +39,7 @@ ENV FORGE_BUNDLED_FALLBACK=1
 ENV FORGE_LOG_INHERIT=1
 ENV FORGE_BOOT_LOG=/tmp/forge-boot.log
 ENV FORGE_EXTERNAL_BOOT=1
+ENV PDA_DATA_ROOT=/app/pda-data
 
 RUN chmod +x scripts/docker-entrypoint.sh
 

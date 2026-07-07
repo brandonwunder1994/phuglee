@@ -3,7 +3,7 @@ const backupLogic = require('../lib/backup-logic');
 
 function register(ctx) {
   const { router, sendJson, readBody, backups, safety, config, fs, path } = ctx;
-  const { ROOT, SESSION_BACKUP_FILES, SESSION_LATEST_FILE, ARCHIVE_REJECTED_DIR } = config;
+  const { DATA_ROOT, SESSION_BACKUP_FILES, SESSION_LATEST_FILE, ARCHIVE_REJECTED_DIR } = config;
 
   router.get('/api/session-summary', async (req, res, url) => {
     const lite = url.searchParams.get('lite') === '1';
@@ -47,7 +47,7 @@ function register(ctx) {
   router.get('/api/session-backup', async (req, res, url) => {
     const requested = url.searchParams.get('file') || SESSION_BACKUP_FILES[0];
     const fileName = SESSION_BACKUP_FILES.includes(requested) ? requested : SESSION_BACKUP_FILES[0];
-    const filePath = path.join(ROOT, fileName);
+    const filePath = path.join(DATA_ROOT, fileName);
     if (!fs.existsSync(filePath)) {
       sendJson(res, 404, { ok: false, error: 'No session backup file on server' });
       return true;
@@ -153,7 +153,7 @@ function register(ctx) {
     }
     session = backups.mergeIncrementalIntoSession(session);
     delete session._mergedFromIncremental;
-    const latestPath = path.join(ROOT, SESSION_LATEST_FILE);
+    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
     const allowDowngrade = url.searchParams.get('allowDowngrade') === '1';
     let existingSession = null;
     let existingResults = 0;
