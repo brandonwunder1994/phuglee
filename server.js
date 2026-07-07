@@ -7,7 +7,11 @@ const { isForgeRequest, proxyToForge, checkForgeHealth } = require('./lib/forge-
 const { isAnalyzerRequest, proxyToAnalyzer, checkAnalyzerHealth } = require('./lib/analyzer-proxy');
 const { ensureForgeRunning, stopForgeProcess } = require('./lib/forge-process');
 const { ensureAnalyzerRunning, stopAnalyzerProcess } = require('./lib/analyzer-process');
-const embeddedAnalyzer = require('./lib/embedded-analyzer');
+let embeddedAnalyzerModule;
+function getEmbeddedAnalyzer() {
+  if (!embeddedAnalyzerModule) embeddedAnalyzerModule = require('./lib/embedded-analyzer');
+  return embeddedAnalyzerModule;
+}
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -24,7 +28,12 @@ const MIME = {
 };
 
 const { CACHE_NONE, cacheControlForExt } = require('./lib/static-cache');
-const bridgeApi = require('./lib/bridge-api');
+
+let bridgeApiModule;
+function getBridgeApi() {
+  if (!bridgeApiModule) bridgeApiModule = require('./lib/bridge-api');
+  return bridgeApiModule;
+}
 
 function send(res, status, body, type, extraHeaders = {}) {
   res.writeHead(status, {
@@ -79,11 +88,8 @@ async function handleRequest(req, res) {
   if (pathname === '/api/health') {
     let analyzerHealth;
     if (runtime.useEmbeddedAnalyzer()) {
-      try {
-        analyzerHealth = await embeddedAnalyzer.checkEmbeddedAnalyzerHealth();
-      } catch (err) {
-        analyzerHealth = { ok: false, error: err.message };
-      }
+      /* Avoid cold-loading analyzer on health pings (serverless). */
+      analyzerHealth = { ok: true, mode: 'embedded' };
     } else {
       analyzerHealth = await checkAnalyzerHealth();
     }
@@ -101,7 +107,7 @@ async function handleRequest(req, res) {
   }
 
   if (pathname.startsWith('/api/bridge')) {
-    const handled = await bridgeApi.handle(req, res, pathname, url);
+    const handled = await getBridgeApi().handle(req, res, pathname, url);
     if (handled) return;
   }
 
@@ -112,7 +118,7 @@ async function handleRequest(req, res) {
 
   if (isAnalyzerRequest(pathname)) {
     if (runtime.useEmbeddedAnalyzer()) {
-      await embeddedAnalyzer.dispatchEmbeddedAnalyzer(req, res, pathname, url.search);
+      await getEmbeddedAnalyzer().dispatchEmbeddedAnalyzer(req, res, pathname, url.search);
       return;
     }
     proxyToAnalyzer(req, res, pathname, url.search);
