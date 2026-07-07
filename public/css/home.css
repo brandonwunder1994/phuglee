@@ -377,12 +377,17 @@ body.home-page.logo-page {
 }
 
 .home-footer-link {
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
   color: var(--phuglee-taupe);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   transition: color 0.2s ease;
 }
 

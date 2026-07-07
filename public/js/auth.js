@@ -378,6 +378,10 @@
   }
 
   function openModal() {
+    if (window.PhugleeGuide && typeof window.PhugleeGuide.close === 'function') {
+      window.PhugleeGuide.close();
+    }
+
     var overlay = $('#auth-overlay');
     if (!overlay) return;
     overlay.hidden = false;
@@ -619,15 +623,14 @@
 
     var btn = document.getElementById('btn-heat');
     if (btn) {
-      if (isAuthenticated()) {
-        btn.setAttribute('href', state.returnUrl || '/heat');
-        btn.textContent = 'Enter the Platform';
-      } else {
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (isAuthenticated()) {
+          window.location.href = state.returnUrl || '/heat';
+        } else {
           openModal();
-        });
-      }
+        }
+      });
     }
 
     var signInBtn = document.getElementById('btn-sign-in');
@@ -659,7 +662,8 @@
       clearSession();
       window.location.href = '/';
     },
-    openLogin: openModal
+    openLogin: openModal,
+    closeLogin: closeModal
   };
 
   if (normalizePath(window.location.pathname) === '/') {
