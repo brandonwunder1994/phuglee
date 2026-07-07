@@ -1,0 +1,113 @@
+{
+  "saved_at": "2026-07-04T22:49:20.048699+00:00",
+  "elements": [
+    {
+      "type": "date",
+      "page": 0,
+      "x": 165.00289200235508,
+      "y": 170.2577319587629,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 72.38787989581756,
+      "y": 220.73195876288662,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 210.93993800719772,
+      "y": 222.2164948453608,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 319.7069991806806,
+      "y": 223.40415089400773,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct, Anthem, AZ 85086",
+      "fontsize": 10,
+      "label": "Full Address",
+      "box_width": 207.45762711864407,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 87.3544748966688,
+      "y": 288.12988784632734,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 417.13801452784503,
+      "box_height": 13.360824742268042
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 119.80676609436479,
+      "y": 672.0309278350516,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "date",
+      "page": 0,
+      "x": 336.15543437523644,
+      "y": 669.0618556701031,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 194.63969587644712,
+      "y": 699.0495026578608,
+      "y_mode": "top",
+      "text": "N/A",
+      "fontsize": 10,
+      "label": "N/A",
+      "box_width": 35.56416464891041,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 373.6460184092672,
+      "y": 696.0804304929125,
+      "y_mode": "top",
+      "text": "N/A",
+      "fontsize": 10,
+      "label": "N/A",
+      "box_width": 35.56416464891041,
+      "box_height": 10.391752577319588
+    }
+  ]
+}

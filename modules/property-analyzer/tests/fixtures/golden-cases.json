@@ -1,0 +1,758 @@
+{
+  "version": 1,
+  "generated": "2026-06-30",
+  "cases": [
+    {
+      "id": "vacant_lot_zero",
+      "source": "tier-cases",
+      "record": {
+        "score": 0,
+        "category": "vacant_lot"
+      },
+      "expectedTier": "vacant",
+      "baselineTier": "vacant"
+    },
+    {
+      "id": "vacant_lot_with_score",
+      "source": "tier-cases",
+      "record": {
+        "score": 5,
+        "category": "vacant_lot",
+        "indicators": [
+          "overgrown_landscaping"
+        ]
+      },
+      "expectedTier": "vacant",
+      "baselineTier": "vacant"
+    },
+    {
+      "id": "blurred_category",
+      "source": "tier-cases",
+      "record": {
+        "score": 7,
+        "category": "blurred"
+      },
+      "expectedTier": "blurred",
+      "baselineTier": "blurred"
+    },
+    {
+      "id": "unavailable_category",
+      "source": "tier-cases",
+      "record": {
+        "score": 3,
+        "category": "unavailable"
+      },
+      "expectedTier": "unavailable",
+      "baselineTier": "unavailable"
+    },
+    {
+      "id": "boarded_windows_distressed",
+      "source": "tier-cases",
+      "record": {
+        "score": 8,
+        "category": "property",
+        "indicators": [
+          "boarded_windows"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "boarded_doors_distressed",
+      "source": "tier-cases",
+      "record": {
+        "score": 4,
+        "category": "property",
+        "indicators": [
+          "boarded_doors"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "structural_damage_distressed",
+      "source": "tier-cases",
+      "record": {
+        "score": 3,
+        "category": "property",
+        "indicators": [
+          "structural_damage"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "fire_damage_distressed",
+      "source": "tier-cases",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "indicators": [
+          "fire_or_water_damage"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "junk_overgrown_combo",
+      "source": "tier-cases",
+      "record": {
+        "score": 5,
+        "category": "property",
+        "indicators": [
+          "junk_or_hoarding_yard",
+          "overgrown_landscaping"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "junk_abandoned_combo",
+      "source": "tier-cases",
+      "record": {
+        "score": 4,
+        "category": "property",
+        "indicators": [
+          "junk_or_hoarding_yard",
+          "abandoned_vehicles"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "overgrown_peeling_combo",
+      "source": "tier-cases",
+      "record": {
+        "score": 3,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping",
+          "peeling_paint"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "peeling_deferred_combo",
+      "source": "tier-cases",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "indicators": [
+          "peeling_paint",
+          "deferred_maintenance"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "triple_neglect_combo",
+      "source": "tier-cases",
+      "record": {
+        "score": 1,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping",
+          "peeling_paint",
+          "deferred_maintenance"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "manicured_exemption",
+      "source": "tier-cases",
+      "record": {
+        "score": 3,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "manicured_soft_only",
+      "source": "tier-cases",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "indicators": [
+          "deferred_maintenance"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "score8_cosmetic_only",
+      "source": "tier-cases",
+      "record": {
+        "score": 8,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "score6_neglect_combo",
+      "source": "tier-cases",
+      "record": {
+        "score": 6,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping",
+          "peeling_paint",
+          "deferred_maintenance"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "dump_house_reason",
+      "source": "tier-cases",
+      "record": {
+        "score": 7,
+        "category": "property",
+        "indicators": [
+          "junk_or_hoarding_yard",
+          "overgrown_landscaping"
+        ],
+        "reason": "Yard full of junk and debris pile visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "broken_windows_moderate_support",
+      "source": "tier-cases",
+      "record": {
+        "score": 4,
+        "category": "property",
+        "indicators": [
+          "broken_windows",
+          "overgrown_landscaping",
+          "deferred_maintenance"
+        ]
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "low_score_clean",
+      "source": "tier-cases",
+      "record": {
+        "score": 1,
+        "category": "property",
+        "indicators": [],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "score5_no_distress",
+      "source": "tier-cases",
+      "record": {
+        "score": 5,
+        "category": "property",
+        "indicators": [],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "roof_damage_poor_sat",
+      "source": "tier-cases",
+      "record": {
+        "score": 3,
+        "category": "property",
+        "indicators": [
+          "roof_damage_or_tarp"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "poor",
+          "yardCondition": "fair"
+        }
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "aerial_high_with_boarded",
+      "source": "tier-cases",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "indicators": [
+          "boarded_windows"
+        ],
+        "satelliteClassification": {
+          "aerialDistressScore": 9,
+          "roofCondition": "fair",
+          "yardCondition": "fair"
+        }
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "code_violation_soft_good_yard",
+      "source": "tier-cases",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "indicators": [
+          "code_violation_notice"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "score8_no_sat_not_demoted",
+      "source": "tier-cases",
+      "record": {
+        "score": 8,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "reason": "Tall grass visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "score7_moderate_single",
+      "source": "tier-cases",
+      "record": {
+        "score": 7,
+        "category": "property",
+        "indicators": [
+          "broken_windows"
+        ],
+        "reason": "Broken front window visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "wm_to_dist_fair_roof",
+      "source": "review-correction",
+      "record": {
+        "score": 3,
+        "category": "property",
+        "indicators": [
+          "peeling_paint"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "fair",
+          "yardCondition": "good",
+          "aerialDistressScore": 4
+        },
+        "reason": "Peeling paint on siding"
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained",
+      "note": "Tier engine baseline — distress promotion covered by learned-rules tests"
+    },
+    {
+      "id": "wm_to_dist_fair_yard",
+      "source": "review-correction",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "indicators": [
+          "deferred_maintenance"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "fair",
+          "aerialDistressScore": 3
+        },
+        "reason": "Deferred exterior maintenance"
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained",
+      "note": "Tier engine baseline — distress promotion covered by learned-rules tests"
+    },
+    {
+      "id": "wm_to_dist_aerial6",
+      "source": "review-correction",
+      "record": {
+        "score": 4,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good",
+          "aerialDistressScore": 6
+        },
+        "reason": "Overgrown grass visible"
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained",
+      "note": "Tier engine baseline — distress promotion covered by learned-rules tests"
+    },
+    {
+      "id": "dist_to_wm_good_sat",
+      "source": "review-correction",
+      "record": {
+        "score": 7,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good",
+          "aerialDistressScore": 2
+        },
+        "reason": "Tall grass but manicured roof and yard"
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "dist_to_wm_code_fp",
+      "source": "review-correction",
+      "record": {
+        "score": 6,
+        "category": "property",
+        "indicators": [
+          "code_violation_notice"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good",
+          "aerialDistressScore": 1
+        },
+        "reason": "Code notice but property appears maintained"
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "low_conf_explicit_review",
+      "source": "confidence-edge",
+      "record": {
+        "score": 7,
+        "category": "property",
+        "indicators": [
+          "broken_windows"
+        ],
+        "confidence": 55,
+        "reason": "Broken window visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "high_conf_no_review",
+      "source": "confidence-edge",
+      "record": {
+        "score": 7,
+        "category": "property",
+        "indicators": [
+          "broken_windows"
+        ],
+        "confidence": 88,
+        "reason": "Broken window visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "borderline_score5_junk",
+      "source": "borderline",
+      "record": {
+        "score": 5,
+        "category": "property",
+        "indicators": [
+          "junk_or_hoarding_yard"
+        ],
+        "reason": "Yard clutter visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "borderline_score7_abandoned",
+      "source": "borderline",
+      "record": {
+        "score": 7,
+        "category": "property",
+        "indicators": [
+          "abandoned_vehicles"
+        ],
+        "reason": "Abandoned car in driveway"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "sat_cache_reuse_distressed",
+      "source": "imagery-routing",
+      "record": {
+        "score": 8,
+        "category": "property",
+        "indicators": [
+          "junk_or_hoarding_yard",
+          "overgrown_landscaping"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "poor",
+          "yardCondition": "poor",
+          "aerialDistressScore": 8
+        },
+        "reason": "Junk pile and weeds"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "sat_manicured_override",
+      "source": "imagery-routing",
+      "record": {
+        "score": 3,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good",
+          "aerialDistressScore": 2
+        },
+        "reason": "Grass tall but manicured satellite"
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "structural_never_wm",
+      "source": "hard-indicator",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "indicators": [
+          "structural_damage"
+        ],
+        "reason": "Visible structural damage"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "fire_never_wm",
+      "source": "hard-indicator",
+      "record": {
+        "score": 1,
+        "category": "property",
+        "indicators": [
+          "fire_or_water_damage"
+        ],
+        "reason": "Fire damage visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "boarded_always_distressed",
+      "source": "hard-indicator",
+      "record": {
+        "score": 1,
+        "category": "property",
+        "indicators": [
+          "boarded_doors"
+        ],
+        "reason": "Boarded entry"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "vacant_lot_land",
+      "source": "category",
+      "record": {
+        "score": 0,
+        "category": "vacant_lot",
+        "indicators": [],
+        "reason": "Vacant land"
+      },
+      "expectedTier": "vacant",
+      "baselineTier": "vacant"
+    },
+    {
+      "id": "unavailable_no_structure",
+      "source": "category",
+      "record": {
+        "score": 0,
+        "category": "unavailable",
+        "indicators": [],
+        "reason": "Cannot see the house"
+      },
+      "expectedTier": "unavailable",
+      "baselineTier": "unavailable"
+    },
+    {
+      "id": "blurred_manual",
+      "source": "category",
+      "record": {
+        "score": 0,
+        "category": "blurred",
+        "manualOverride": "blurred",
+        "reason": "Privacy blur"
+      },
+      "expectedTier": "blurred",
+      "baselineTier": "blurred"
+    },
+    {
+      "id": "score9_single_cosmetic",
+      "source": "score-edge",
+      "record": {
+        "score": 9,
+        "category": "property",
+        "indicators": [
+          "peeling_paint"
+        ],
+        "reason": "Peeling paint only"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "score10_dump_reason",
+      "source": "score-edge",
+      "record": {
+        "score": 10,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "reason": "Yard full of junk and debris pile visible"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "score1_clean_manicured",
+      "source": "score-edge",
+      "record": {
+        "score": 1,
+        "category": "property",
+        "indicators": [],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    },
+    {
+      "id": "score4_moderate_combo",
+      "source": "score-edge",
+      "record": {
+        "score": 4,
+        "category": "property",
+        "indicators": [
+          "broken_windows",
+          "deferred_maintenance"
+        ],
+        "reason": "Broken windows and peeling paint"
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "score6_single_overgrown",
+      "source": "score-edge",
+      "record": {
+        "score": 6,
+        "category": "property",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "reason": "Tall grass"
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained",
+      "note": "Single cosmetic indicator at score 6 — manicured path"
+    },
+    {
+      "id": "persisted_distressed_tier",
+      "source": "parity",
+      "record": {
+        "score": 8,
+        "category": "property",
+        "leadTier": "distressed",
+        "indicators": [
+          "overgrown_landscaping"
+        ],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
+    },
+    {
+      "id": "persisted_wm_tier",
+      "source": "parity",
+      "record": {
+        "score": 2,
+        "category": "property",
+        "leadTier": "well_maintained",
+        "indicators": [],
+        "satelliteClassification": {
+          "roofCondition": "good",
+          "yardCondition": "good"
+        }
+      },
+      "expectedTier": "well_maintained",
+      "baselineTier": "well_maintained"
+    }
+  ]
+}

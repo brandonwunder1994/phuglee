@@ -1,0 +1,77 @@
+{
+  "saved_at": "2026-07-04T23:05:37.983874+00:00",
+  "elements": [
+    {
+      "type": "text",
+      "page": 0,
+      "x": 202.78981694182244,
+      "y": 162.83505154639175,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 376.38740920096853,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 84.98352154230666,
+      "y": 288.27835051546396,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 297.62758933891683,
+      "y": 284.5670103092783,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct, Anthem, AZ 85086",
+      "fontsize": 10,
+      "label": "Full Address",
+      "box_width": 207.45762711864407,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 280.5864271113139,
+      "y": 329.10309278350513,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "signature",
+      "page": 0,
+      "x": 97.43099273607749,
+      "y": 368.88868697648195,
+      "y_mode": "top",
+      "text": "Brandon Joseph Wunder",
+      "fontsize": 10,
+      "label": "Signature",
+      "width": 96.31961259079904,
+      "height": 20.783505154639176
+    },
+    {
+      "type": "date",
+      "page": 0,
+      "x": 425.8067660943648,
+      "y": 379.57731958762884,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    }
+  ]
+}

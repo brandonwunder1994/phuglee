@@ -1,0 +1,89 @@
+{
+  "saved_at": "2026-07-04T23:37:04.242924+00:00",
+  "elements": [
+    {
+      "type": "text",
+      "page": 5,
+      "x": 173.00482000392518,
+      "y": 271.05772714516553,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 376.38740920096853,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "date",
+      "page": 5,
+      "x": 254.65422372148345,
+      "y": 353.89484507767196,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 5,
+      "x": 249.46778304351733,
+      "y": 482.90102866261276,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 5,
+      "x": 266.50894527112024,
+      "y": 520.7566987657056,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct, Anthem, AZ 85086",
+      "fontsize": 10,
+      "label": "Full Address",
+      "box_width": 207.45762711864407,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 5,
+      "x": 275.3999864333478,
+      "y": 543.0247400028189,
+      "y_mode": "top",
+      "text": "BrandonWunderAZ@gmail.com",
+      "fontsize": 9,
+      "label": "Email",
+      "box_width": 177.82082324455206,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 5,
+      "x": 262.80434478685874,
+      "y": 575.6845338172519,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 5,
+      "x": 280.5864271113139,
+      "y": 612.2041305070071,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    }
+  ]
+}

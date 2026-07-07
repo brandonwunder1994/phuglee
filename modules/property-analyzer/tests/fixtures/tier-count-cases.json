@@ -1,0 +1,67 @@
+{
+  "parityRecords": [
+    {
+      "id": "score8_cosmetic_not_distressed",
+      "record": {
+        "score": 8,
+        "category": "property",
+        "indicators": ["overgrown_landscaping"],
+        "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" }
+      },
+      "oldServerTier": "distressed",
+      "expectedTier": "well_maintained"
+    },
+    {
+      "id": "boarded_low_score_distressed",
+      "record": {
+        "score": 3,
+        "category": "property",
+        "indicators": ["boarded_windows"]
+      },
+      "oldServerTier": "review",
+      "expectedTier": "distressed"
+    },
+    {
+      "id": "persisted_leadTier_trusted",
+      "record": {
+        "score": 8,
+        "category": "property",
+        "leadTier": "distressed",
+        "indicators": ["overgrown_landscaping"],
+        "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" }
+      },
+      "expectedTier": "distressed"
+    }
+  ],
+  "countFixture": {
+    "results": [
+      {
+        "score": 8,
+        "category": "property",
+        "indicators": ["overgrown_landscaping"],
+        "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" }
+      },
+      {
+        "score": 3,
+        "category": "property",
+        "indicators": ["boarded_windows"]
+      },
+      { "category": "vacant_lot", "score": 0 },
+      {
+        "landHomeConflict": true,
+        "category": "unavailable",
+        "score": 0,
+        "reason": "Cannot see structure"
+      },
+      { "manualOverride": "blurred", "category": "blurred", "score": 0 }
+    ],
+    "expected": {
+      "all": 5,
+      "distressed": 1,
+      "well_maintained": 1,
+      "vacant": 1,
+      "blurred": 1,
+      "review": 1
+    }
+  }
+}

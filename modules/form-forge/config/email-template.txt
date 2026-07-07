@@ -1,0 +1,16 @@
+Subject: Public Records Request — Code Violations — {{city}}, {{state}}
+
+Hello,
+
+My name is {{name}}. I am submitting a public records request for {{city}}, {{state}}.
+
+{{request_description}}
+
+Please confirm receipt of this request. If fees apply, please provide a cost estimate before processing.
+
+Preferred delivery: {{preferred_format}}
+
+Thank you,
+{{name}}
+{{phone}}
+{{email}}

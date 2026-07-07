@@ -1,0 +1,33 @@
+/* v1.8 Aerial Command — motion (respects prefers-reduced-motion) */
+
+@keyframes aerial-scan-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes aerial-kpi-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(232, 93, 76, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(232, 93, 76, 0); }
+  100% { box-shadow: none; }
+}
+
+@keyframes aerial-demo-reveal {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-demo-card,
+  .empty-demo-scanline,
+  .summary-pipeline-seg,
+  .prop-card.card-cyber,
+  .summary-kpi-card.kpi-pulse {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  body.aerial-theme .progress-section.scanning-active .progress-bar-wrap::after,
+  body.heat-theme .progress-section.scanning-active .progress-bar-wrap::after {
+    display: none;
+  }
+}

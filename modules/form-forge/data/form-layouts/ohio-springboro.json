@@ -1,0 +1,65 @@
+{
+  "saved_at": "2026-07-04T23:45:14.183373+00:00",
+  "elements": [
+    {
+      "type": "checkbox",
+      "page": 3,
+      "x": 392.909940927427,
+      "y": 105.68041237113401,
+      "y_mode": "top",
+      "text": "",
+      "fontsize": 22,
+      "label": "Check",
+      "checked": true,
+      "box_size": 22.227602905569007
+    },
+    {
+      "type": "text",
+      "page": 3,
+      "x": 356.1602769902486,
+      "y": 134.9257686654317,
+      "y_mode": "top",
+      "text": "5:00pm",
+      "fontsize": 10,
+      "label": "Custom 1",
+      "box_width": 31.118644067796613,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "date",
+      "page": 3,
+      "x": 131.6614876440016,
+      "y": 137.15257278914302,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 3,
+      "x": 52.38303728080547,
+      "y": 232.16288206749357,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 376.38740920096853,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 3,
+      "x": 205.01257723237933,
+      "y": 373.4907210831789,
+      "y_mode": "top",
+      "text": "Digital copies emailed to me",
+      "fontsize": 10,
+      "label": "Custom 2",
+      "box_width": 99.28329297820824,
+      "box_height": 10.391752577319588
+    }
+  ]
+}

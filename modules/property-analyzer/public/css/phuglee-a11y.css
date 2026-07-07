@@ -1,0 +1,63 @@
+/* Phuglee A11y — Phase 30 (BRAND-31–32) — Analyzer */
+
+:root {
+  --phuglee-focus-ring: 0 0 0 3px rgba(229, 132, 53, 0.5);
+  --phuglee-meta-text: #b0a99c;
+}
+
+.phuglee-skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10000;
+  padding: 0.55rem 1rem;
+  font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0d0d0d;
+  background: #e58435;
+  border-radius: 8px;
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease;
+}
+
+.phuglee-skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+}
+
+.phuglee-loading-copy,
+.landing-lead,
+.landing-eyebrow {
+  color: var(--phuglee-meta-text);
+}
+
+.landing-eyebrow {
+  color: #e58435;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-orb,
+  .cyber-grid,
+  .scanlines,
+  .landing-mock-card {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}

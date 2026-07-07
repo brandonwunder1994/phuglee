@@ -4,5 +4,29 @@ Thumbs.db
 *.log
 .logs/
 .env
-modules/form-forge/
-modules/property-analyzer/
+
+# Form Forge runtime (modules/form-forge)
+modules/form-forge/__pycache__/
+modules/form-forge/**/__pycache__/
+modules/form-forge/.venv/
+modules/form-forge/.pytest_cache/
+modules/form-forge/forms/raw/
+modules/form-forge/forms/filled/
+modules/form-forge/forms/previews-raw/
+modules/form-forge/logs/
+modules/form-forge/data/backups/
+modules/form-forge/.env
+
+# Property Analyzer runtime (modules/property-analyzer)
+modules/property-analyzer/node_modules/
+modules/property-analyzer/.env
+modules/property-analyzer/.env.local
+modules/property-analyzer/maps-api-key.txt
+modules/property-analyzer/logs/
+modules/property-analyzer/.pda-token
+modules/property-analyzer/logs/pda-auth.token
+modules/property-analyzer/distressAnalyzerSession*.json
+modules/property-analyzer/property_imagery/
+modules/property-analyzer/backups/
+modules/property-analyzer/scan_results/
+modules/property-analyzer/gemini_audit/

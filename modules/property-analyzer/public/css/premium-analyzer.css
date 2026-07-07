@@ -1,0 +1,75 @@
+/* Property Analyzer — premium brand layer (v1.2) */
+
+body.heat-theme.distress-os-embedded .ambient-orb,
+body.heat-theme.distress-os-embedded .scanlines,
+body.heat-theme.distress-os-embedded .grain {
+  display: none !important;
+}
+
+body.heat-theme .glass,
+body.heat-theme .scan-progress-slim,
+body.heat-theme .summary-section,
+body.heat-theme .results-wrap,
+body.heat-theme .summary-kpi-card,
+body.heat-theme .agent-grid-panel,
+body.heat-theme .empty-workspace,
+body.heat-theme .prop-card.card-cyber {
+  position: relative;
+  overflow: hidden;
+}
+
+body.heat-theme .glass::after,
+body.heat-theme .summary-kpi-card::after,
+body.heat-theme .prop-card.card-cyber::after,
+body.heat-theme .empty-workspace::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), #ff6b1a, #ffba08, transparent);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+body.heat-theme .app-sidebar {
+  border-right: 1px solid rgba(232, 93, 4, 0.18);
+}
+
+body.heat-theme .sidebar-nav-item.active,
+body.heat-theme .sidebar-nav-item:hover {
+  background: rgba(232, 93, 4, 0.1);
+  border-left: 2px solid var(--accent);
+}
+
+body.heat-theme .command-title,
+body.heat-theme .empty-workspace h2 {
+  background: linear-gradient(180deg, #f4efe6 25%, #ff6b1a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.heat-theme .review-mode-overlay {
+  background: rgba(8, 6, 5, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+body.heat-theme .modal-content,
+body.heat-theme .settings-panel,
+body.heat-theme .upload-modal {
+  border: 1px solid rgba(232, 93, 4, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+body.heat-theme .tier-btn,
+body.heat-theme .review-action {
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.78rem;
+}

@@ -1,24 +1,39 @@
 # Distress OS Modules
 
-Form Forge and Property Analyzer live in their own repos. Distress OS links to them here without copying code.
+Form Forge and Property Analyzer live **inside this repo** under `modules/`. Distress OS starts and proxies them — no junctions or separate clones required.
 
-## Form Forge
+## Layout
 
-**Source:** `C:\Users\brand\Projects\city-list-requests`
+| Module | Path | Port | Stack |
+|--------|------|------|-------|
+| Form Forge | `modules/form-forge` | 8787 | Python Flask |
+| Property Analyzer | `modules/property-analyzer` | 3456 | Node.js |
 
-```bat
-mklink /J "%~dp0form-forge" "C:\Users\brand\Projects\city-list-requests"
+## First-time setup
+
+```powershell
+# Shell
+cd C:\path\to\phuglee
+npm install
+
+# Form Forge
+pip install -r modules/form-forge/requirements.txt
+
+# Property Analyzer
+cd modules/property-analyzer
+npm install
+cd ../..
 ```
 
-## Property Analyzer
-
-**Source:** `C:\Users\brand\Projects\property-distress-analyzer`
-
-```bat
-mklink /J "%~dp0property-analyzer" "C:\Users\brand\Projects\property-distress-analyzer"
-```
-
-Or set environment variables:
+## Override paths (optional)
 
 - `FORM_FORGE_PATH`
 - `PROPERTY_ANALYZER_PATH`
+
+## GSD verify
+
+```powershell
+npm run verify
+```
+
+Runs shell tests, Form Forge `gsd.py` tests, and Property Analyzer `npm test`.

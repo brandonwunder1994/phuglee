@@ -1,0 +1,101 @@
+{
+  "saved_at": "2026-07-04T23:16:13.891348+00:00",
+  "elements": [
+    {
+      "type": "text",
+      "page": 0,
+      "x": 120.5476861912171,
+      "y": 187.3298969072165,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 139.07068861252458,
+      "y": 218.50515463917526,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct, Anthem, AZ 85086",
+      "fontsize": 10,
+      "label": "Full Address",
+      "box_width": 207.45762711864407,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 123.5113665786263,
+      "y": 241.51546391752575,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 129.43872735344468,
+      "y": 267.49484536082474,
+      "y_mode": "top",
+      "text": "BrandonWunderAZ@gmail.com",
+      "fontsize": 9,
+      "label": "Email",
+      "box_width": 177.82082324455206,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "date",
+      "page": 0,
+      "x": 265.7680251742679,
+      "y": 294.9587628865979,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 87.94720192971589,
+      "y": 347.659793814433,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 376.38740920096853,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "signature",
+      "page": 0,
+      "x": 83.50168134860206,
+      "y": 643.8247422680413,
+      "y_mode": "top",
+      "text": "Brandon Joseph Wunder",
+      "fontsize": 10,
+      "label": "Signature",
+      "width": 96.31961259079904,
+      "height": 20.783505154639176
+    },
+    {
+      "type": "date",
+      "page": 0,
+      "x": 461.3709307432752,
+      "y": 649.7628865979382,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    }
+  ]
+}

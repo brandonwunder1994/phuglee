@@ -1,0 +1,72 @@
+.portal-errors-page .portal-errors-progress {
+  border-color: rgba(248, 113, 113, 0.35);
+}
+
+.portal-errors-page .portal-errors-fill {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.portal-errors-banner {
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  background: rgba(127, 29, 29, 0.24);
+}
+
+.portal-errors-banner strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #fecaca;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portal-errors-banner p {
+  margin: 0;
+  color: rgba(254, 226, 226, 0.9);
+}
+
+.portal-errors-meta {
+  margin-top: 0.45rem !important;
+  font-size: 0.82rem;
+  color: rgba(254, 202, 202, 0.75) !important;
+}
+
+.portal-errors-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.portal-errors-field span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.portal-errors-field input,
+.portal-errors-field textarea {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: rgba(8, 12, 20, 0.55);
+  color: var(--cream);
+  padding: 0.65rem 0.75rem;
+  font: inherit;
+}
+
+.portal-errors-field input[readonly] {
+  opacity: 0.72;
+}
+
+.portal-errors-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}

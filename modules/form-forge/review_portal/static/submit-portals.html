@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Form Forge — Submit Portals</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=35" />
+  <link rel="stylesheet" href="/static/settings-menu.css?v=3" />
+  <link rel="stylesheet" href="/static/phuglee-forge.css?v=1" />
+  <link rel="stylesheet" href="/static/phuglee-a11y.css" />
+  <link rel="stylesheet" href="/static/portal.css?v=34" />
+  <link rel="stylesheet" href="/static/request-pdfs.css?v=34" />
+  <link rel="stylesheet" href="/static/submit-portals.css?v=34" />
+</head>
+<body class="stamp-theme portal-page request-pdfs-page submit-portals-page">
+  <div class="bg-vignette" aria-hidden="true"></div>
+  <div class="bg-paper-grain" aria-hidden="true"></div>
+
+  <header class="topbar portal-topbar">
+    <div class="brand">
+      <div class="brand-seal" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="20" y="25" text-anchor="middle" font-size="14" font-family="serif" fill="currentColor">FF</text></svg>
+      </div>
+      <div>
+        <h1>Submit Portals</h1>
+        <p class="sub" id="page-subtitle">Work through online portal cities one at a time.</p>
+      </div>
+      <nav class="app-nav" aria-label="Main">
+        <a href="/portal" class="nav-link">City Tracker</a>
+        <a href="/portal/request-pdfs" class="nav-link">Request PDFs</a>
+        <a href="/map" class="nav-link">Coverage Map</a>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <a href="/portal" class="btn ghost sm">← Back to tracker</a>
+      <div class="settings-menu" id="settings-menu">
+        <button type="button" class="btn ghost sm settings-trigger" aria-expanded="false" aria-haspopup="true">Settings</button>
+        <div class="settings-dropdown" role="menu" hidden>
+          <a href="/?settings=info" class="settings-item" role="menuitem">Your Info</a>
+          <a href="/?settings=signature" class="settings-item" role="menuitem">Signature</a>
+          <button type="button" class="settings-item" role="menuitem" data-settings-action="ideas">Ideas</button>
+          <a href="/" class="settings-item" role="menuitem">Records Desk</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="submit-portals-layout">
+    <section class="submit-portals-workflow" aria-label="Portal submission workflow">
+      <div class="queue-progress-card submit-portals-progress" id="queue-progress-card">
+        <span class="queue-progress-label" id="month-label">This month</span>
+        <div class="queue-progress-bar" aria-hidden="true">
+          <div class="queue-progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <p class="queue-progress-text" id="progress-text">Loading queue…</p>
+        <p class="queue-progress-sub" id="progress-sub"></p>
+      </div>
+
+      <div class="request-loading phuglee-loading-state" id="request-loading">
+        <div class="phuglee-loading-bar" aria-hidden="true"></div>
+        <p class="phuglee-loading-copy">Loading pending portal submissions…</p>
+      </div>
+
+      <div class="request-empty phuglee-empty-state" id="request-empty" hidden>
+        <div class="hero-seal" aria-hidden="true">✓</div>
+        <h2>All caught up</h2>
+        <p id="empty-message">Every eligible portal city has been submitted this month.</p>
+        <a href="/portal" class="btn seal">Return to City Tracker</a>
+      </div>
+
+      <div class="portal-previous-actions" id="portal-previous-actions" hidden>
+        <div class="portal-previous-actions-copy">
+          <strong id="portal-previous-label">Previous city</strong>
+          <span id="portal-previous-detail">Opened the wrong thing?</span>
+        </div>
+        <div class="portal-previous-actions-btns">
+          <button type="button" class="btn ghost sm portal-previous-pdf-btn" id="btn-mark-previous-pdf">
+            Mark as PDF form
+          </button>
+          <button type="button" class="btn ghost sm portal-previous-error-btn" id="btn-mark-previous-error">
+            Mark as portal error
+          </button>
+        </div>
+      </div>
+
+      <article class="request-card submit-portals-card" id="request-card" hidden>
+        <p class="request-kicker" id="card-state"></p>
+        <h2 id="card-city"></h2>
+        <p class="request-position" id="card-position"></p>
+
+        <div class="portal-pdf-url-warning" id="portal-pdf-url-warning" hidden>
+          <strong>This link opens a PDF, not an online portal.</strong>
+          <p>Skip this city and fill the blank form in Records Desk instead. If you already marked it submitted, use <em>Mark as PDF form</em> on the previous city banner above.</p>
+        </div>
+
+        <div class="portal-request-message" id="portal-request-message">
+          <div class="portal-request-message-head">
+            <button
+              type="button"
+              class="portal-request-message-toggle"
+              id="btn-toggle-message"
+              aria-expanded="false"
+              aria-controls="portal-request-message-body"
+            >
+              <h3>Portal request message</h3>
+              <span class="portal-request-message-chevron" aria-hidden="true"></span>
+            </button>
+            <div class="portal-request-message-actions">
+              <button type="button" class="btn seal sm" id="btn-copy-message">Copy message</button>
+            </div>
+          </div>
+          <div class="portal-request-message-body" id="portal-request-message-body" hidden>
+            <p class="portal-request-message-tip">Paste into the portal form — <strong id="portal-request-message-city"></strong> is filled in for you. Use Rewrite to vary the wording month to month.</p>
+            <textarea id="portal-request-message-text" class="portal-request-message-text" rows="11" spellcheck="false" aria-label="Portal request message to copy"></textarea>
+            <div class="portal-request-message-body-actions">
+              <button type="button" class="btn ghost sm" id="btn-rewrite-message" title="Same request, different wording">Rewrite</button>
+            </div>
+          </div>
+        </div>
+
+        <a
+          class="portal-open-card"
+          id="btn-open-portal"
+          href="#"
+          target="_blank"
+          rel="noopener"
+          aria-label="Open portal and mark submitted"
+        >
+          <span class="portal-open-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+          </span>
+          <span class="portal-open-label">Open portal &amp; mark submitted</span>
+        </a>
+
+        <div class="request-actions">
+          <button type="button" class="btn ghost" id="btn-skip">Skip for now</button>
+        </div>
+        <p class="action-msg" id="action-msg" hidden></p>
+      </article>
+    </section>
+
+    <section class="submit-portals-queues" aria-label="Submission queue">
+      <div class="queue-remaining" id="queue-remaining" hidden>
+        <h3>Up next</h3>
+        <ul class="queue-remaining-list" id="queue-remaining-list"></ul>
+      </div>
+      <div class="queue-skipped" id="queue-skipped" hidden>
+        <h3>Skipped <span id="queue-skipped-count"></span></h3>
+        <p class="tip">Restore a city to put it back in the queue.</p>
+        <ul class="queue-skipped-list" id="queue-skipped-list"></ul>
+      </div>
+      <div class="queue-blocked" id="queue-blocked" hidden>
+        <h3>On hold</h3>
+        <p class="tip">These portal cities weren't submitted this month but can't be sent yet.</p>
+        <ul class="queue-blocked-list" id="queue-blocked-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/phuglee-states.js"></script>
+  <script src="/static/portal-shared.js?v=2"></script>
+  <script src="/static/portal-request-message.js?v=1"></script>
+  <script src="/static/settings-menu.js?v=3"></script>
+  <dialog class="portal-dialog portal-dialog-centered" id="portal-error-dialog" aria-labelledby="portal-error-dialog-title">
+    <div class="confirm-dialog-body">
+      <h2 id="portal-error-dialog-title">Mark portal error</h2>
+      <p class="confirm-dialog-lead" id="portal-error-dialog-lead">This reverts this month&apos;s submission for the previous city and removes it from the monthly queue until fixed.</p>
+      <label class="confirm-dialog-row confirm-email-field">
+        <span class="label">What went wrong?</span>
+        <textarea id="portal-error-notes" rows="3" placeholder="e.g. 404, wrong city portal, form won&apos;t load…"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" id="portal-error-cancel">Cancel</button>
+        <button type="button" class="btn seal" id="portal-error-confirm">Mark as portal error</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="portal-dialog portal-dialog-centered" id="portal-pdf-dialog" aria-labelledby="portal-pdf-dialog-title">
+    <div class="confirm-dialog-body">
+      <h2 id="portal-pdf-dialog-title">Mark as PDF form</h2>
+      <p class="confirm-dialog-lead" id="portal-pdf-dialog-lead">This reverts this month&apos;s submission and moves the city to the PDF workflow (fill in Records Desk, then Request PDFs).</p>
+      <label class="confirm-dialog-row confirm-email-field">
+        <span class="label">Notes (optional)</span>
+        <textarea id="portal-pdf-notes" rows="3" placeholder="e.g. Link opens a blank FOIA PDF, not a web form…"></textarea>
+      </label>
+      <div class="dialog-actions">
+        <button type="button" class="btn ghost" id="portal-pdf-cancel">Cancel</button>
+        <button type="button" class="btn seal" id="portal-pdf-confirm">Mark as PDF form</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="/static/submit-portals.js?v=12"></script>
+  <script>window.FormForgeSettings?.init();</script>
+</body>
+</html>

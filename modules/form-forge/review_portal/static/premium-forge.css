@@ -1,0 +1,97 @@
+/* Form Forge — premium brand layer (v1.2) */
+
+body.distress-os-embedded .bg-vignette {
+  opacity: 0;
+}
+
+body.distress-os-embedded .bg-paper-grain {
+  display: none;
+}
+
+/* Panels & cards */
+.panel,
+.card,
+.portal-card,
+.map-sidebar,
+.rp-card,
+.sp-card,
+.eo-card,
+.pe-card {
+  position: relative;
+  background:
+    linear-gradient(165deg, rgba(232, 93, 4, 0.05) 0%, transparent 40%),
+    var(--surface);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+.panel::after,
+.card::after,
+.portal-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--gold-bright), #ffba08, transparent);
+  opacity: 0.65;
+  pointer-events: none;
+}
+
+/* Tables */
+table tbody tr:hover {
+  background: rgba(232, 93, 4, 0.06);
+}
+
+table thead th {
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid var(--border-gold);
+}
+
+/* Modals */
+.modal-content,
+.dialog-card,
+.overlay-panel {
+  background:
+    linear-gradient(165deg, rgba(232, 93, 4, 0.06) 0%, transparent 40%),
+    var(--surface2);
+  border: 1px solid var(--border-gold);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+/* Map controls */
+.maplibregl-ctrl-group,
+.map-toolbar,
+.map-filters {
+  background: rgba(8, 6, 5, 0.88) !important;
+  backdrop-filter: blur(14px);
+  border: 1px solid var(--border-gold) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* Primary actions */
+.btn-primary,
+button.primary,
+.send-btn {
+  background: linear-gradient(135deg, #ffba08 0%, var(--gold-bright) 50%, var(--gold) 100%);
+  box-shadow: 0 4px 20px rgba(232, 93, 4, 0.35);
+}
+
+/* Brand header when standalone */
+.brand h1 {
+  background: linear-gradient(180deg, var(--cream) 20%, var(--gold-bright) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Empty states */
+.empty-state,
+.portal-empty {
+  border: 1px dashed var(--border-gold);
+  background: rgba(0, 0, 0, 0.2);
+}

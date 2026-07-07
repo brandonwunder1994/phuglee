@@ -1,0 +1,20 @@
+Subject: CORRECTION — Incomplete Public Records Request — {{city}}, {{state}}
+
+Hello,
+
+My name is {{name}}. I sent a public records request on {{original_send_date}} that was incomplete. I apologize for the confusion and any inconvenience.
+
+The prior email may have been missing a properly completed request form and/or required details. Please disregard that message if you received it.
+
+This email is the corrected submission:
+
+{{request_description}}
+
+A completed request form is attached when applicable. If fees apply, please provide a cost estimate before processing.
+
+Preferred delivery: {{preferred_format}}
+
+Thank you for your patience,
+{{name}}
+{{phone}}
+{{email}}

@@ -1,0 +1,21 @@
+# Secrets
+.env
+.env.local
+maps-api-key.txt
+logs/pda-auth.token
+.pda-token
+
+# Session data (PII)
+distressAnalyzerSession*.json
+
+# Runtime / generated
+property_imagery/
+backups/
+logs/
+scan_results/
+gemini_audit/
+node_modules/
+
+# OS
+Thumbs.db
+.DS_Store

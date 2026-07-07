@@ -1,0 +1,60 @@
+{
+  "imported_at": "2026-07-05T01:00:00.672119+00:00",
+  "source_file": "C:\\Users\\brand\\Desktop\\Online City Portal Forms.xlsx",
+  "source_rows": 458,
+  "city_count": 454,
+  "warning_count": 6,
+  "warnings": [
+    {
+      "type": "duplicate_merged",
+      "id": "delaware-georgetown",
+      "city": "Georgetown",
+      "state": "Delaware",
+      "row_count": 2
+    },
+    {
+      "type": "duplicate_merged",
+      "id": "georgia-east-point",
+      "city": "East Point",
+      "state": "Georgia",
+      "row_count": 2
+    },
+    {
+      "type": "duplicate_merged",
+      "id": "north-carolina-asheville",
+      "city": "Asheville",
+      "state": "North Carolina",
+      "row_count": 2
+    },
+    {
+      "type": "duplicate_merged",
+      "id": "texas-garland",
+      "city": "Garland",
+      "state": "Texas",
+      "row_count": 2
+    },
+    {
+      "type": "missing_url",
+      "count": 2,
+      "ids": [
+        "connecticut-milford",
+        "north-carolina-high-point"
+      ]
+    },
+    {
+      "type": "url_notes",
+      "count": 9,
+      "ids": [
+        "arizona-coolidge",
+        "arizona-tempe",
+        "colorado-arvada",
+        "colorado-brighton",
+        "colorado-gunnison",
+        "connecticut-milford",
+        "north-carolina-charlotte",
+        "north-carolina-high-point",
+        "north-carolina-wake-forest"
+      ]
+    }
+  ]
+}

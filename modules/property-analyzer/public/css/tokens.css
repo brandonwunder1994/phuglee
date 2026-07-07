@@ -1,0 +1,105 @@
+/* Property Distress Analyzer — Distress OS Heat Tokens */
+
+:root {
+  /* Heat palette (canonical — matches distress-os/public/css/tokens.css) */
+  --bg-deep: #080605;
+  --bg-mid: #14100c;
+  --background: #080605;
+  --foreground: #f4efe6;
+  --card: rgba(18, 16, 13, 0.78);
+  --card-foreground: #f4efe6;
+  --secondary: rgba(26, 22, 18, 0.88);
+  --secondary-foreground: #c8c4bc;
+  --muted: rgba(20, 18, 15, 0.92);
+  --muted-foreground: #a89f92;
+  --accent: #e58435;
+  --flame: #e58435;
+  --heat-core: #eeb746;
+  --ember: #e58435;
+  --accent-foreground: #080605;
+  --accent-cool: #5eb3c8;
+  --destructive: #f87171;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: #e58435;
+  --radius: 12px;
+
+  --amber: var(--accent);
+  --amber-dim: rgba(229, 132, 53, 0.14);
+  --amber-glow: rgba(229, 132, 53, 0.45);
+  --cool-dim: rgba(94, 179, 200, 0.14);
+  --cool-glow: rgba(94, 179, 200, 0.35);
+
+  --neon-cyan: var(--accent-cool);
+  --neon-cyan-dim: var(--cool-dim);
+  --neon-cyan-glow: var(--cool-glow);
+  --neon-magenta: #d45d8a;
+  --neon-magenta-dim: rgba(212, 93, 138, 0.14);
+  --neon-magenta-glow: rgba(212, 93, 138, 0.4);
+  --neon-purple: #9b7ec8;
+  --neon-purple-dim: rgba(155, 126, 200, 0.12);
+  --neon-purple-glow: rgba(155, 126, 200, 0.3);
+
+  --font-display: 'Anton', sans-serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+  --tier-distressed: #e85d4c;
+  --tier-distressed-bright: #f07868;
+  --tier-distressed-dim: rgba(232, 93, 76, 0.14);
+  --tier-distressed-bg: rgba(232, 93, 76, 0.1);
+  --tier-distressed-border: rgba(232, 93, 76, 0.42);
+  --tier-distressed-glow: rgba(232, 93, 76, 0.32);
+
+  --tier-well: #5eb3c8;
+  --tier-well-bright: #7ec8db;
+  --tier-well-dim: rgba(94, 179, 200, 0.12);
+  --tier-well-bg: rgba(94, 179, 200, 0.08);
+  --tier-well-border: rgba(94, 179, 200, 0.38);
+  --tier-well-glow: rgba(94, 179, 200, 0.28);
+
+  --review: #d45d8a;
+  --review-bright: #e07aa3;
+  --review-dim: rgba(212, 93, 138, 0.12);
+  --review-bg: rgba(212, 93, 138, 0.08);
+  --review-border: rgba(212, 93, 138, 0.38);
+  --review-glow: rgba(212, 93, 138, 0.3);
+
+  --tier-land: #d4a84b;
+  --tier-land-bright: #e8bc5a;
+  --tier-land-dim: rgba(212, 168, 75, 0.12);
+  --tier-land-bg: rgba(212, 168, 75, 0.08);
+  --tier-land-border: rgba(212, 168, 75, 0.38);
+  --tier-land-glow: rgba(212, 168, 75, 0.28);
+
+  --tier-blurred: #8a7f72;
+  --tier-blurred-dim: rgba(138, 127, 114, 0.12);
+  --tier-blurred-bg: rgba(138, 127, 114, 0.08);
+  --tier-blurred-border: rgba(138, 127, 114, 0.32);
+
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  --void: var(--background);
+  --void-deep: #050403;
+  --surface: var(--card);
+  --surface-solid: rgba(18, 16, 13, 0.96);
+  --surface-elevated: var(--secondary);
+  --text: var(--foreground);
+  --text-soft: var(--muted-foreground);
+  --text-dim: #8a7f72;
+  --neon-violet: var(--tier-land);
+  --copper: var(--accent);
+  --copper-bright: var(--flame);
+  --copper-glow: var(--amber-glow);
+  --glass-border: rgba(229, 132, 53, 0.2);
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --shadow-neon: 0 0 24px var(--amber-glow), 0 0 48px rgba(229, 132, 53, 0.12);
+  --shadow-gold: 0 0 20px var(--amber-glow);
+}

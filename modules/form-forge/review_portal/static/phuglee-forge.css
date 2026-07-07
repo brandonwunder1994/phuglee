@@ -1,0 +1,649 @@
+/* Form Forge — Phuglee signature brand layer (v1.3 / M4 Phase 27) */
+
+:root {
+  --phuglee-black: #0d0d0d;
+  --phuglee-charcoal: #353630;
+  --phuglee-cream: #f5f2e4;
+  --phuglee-orange: #e58435;
+  --phuglee-terracotta: #ac6b32;
+  --phuglee-gold: #eeb746;
+  --phuglee-taupe: #aea38f;
+  --phuglee-stone: #9c968a;
+  --phuglee-success: #3dd68c;
+  --phuglee-danger: #f87171;
+
+  --gold: var(--phuglee-orange);
+  --gold-bright: var(--phuglee-orange);
+  --gold-dim: var(--phuglee-terracotta);
+  --cream: var(--phuglee-cream);
+  --border-gold: rgba(229, 132, 53, 0.35);
+  --glow-gold: 0 0 24px rgba(229, 132, 53, 0.15);
+  --shadow-cta: 0 8px 32px rgba(229, 132, 53, 0.45);
+  --shadow-glow-orange: 0 0 48px rgba(229, 132, 53, 0.25);
+}
+
+/* Hide legacy paper grain when embedded in Distress OS */
+body.distress-os-embedded .bg-vignette {
+  opacity: 0;
+}
+
+body.distress-os-embedded .bg-paper-grain {
+  display: none;
+}
+
+body.stamp-theme:not(.distress-os-embedded) .bg-paper-grain {
+  opacity: 0.35;
+}
+
+/* ── Global panels & cards ── */
+.panel,
+.card,
+.portal-card,
+.map-sidebar,
+.rp-card,
+.sp-card,
+.eo-card,
+.pe-card,
+.queue-progress-card,
+.request-card,
+.submit-portals-card,
+.bulk-send-card,
+.tracker-response-panel,
+.modal-card,
+.settings-card {
+  position: relative;
+  background:
+    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 42%),
+    var(--surface);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+.panel::after,
+.card::after,
+.portal-card::after,
+.queue-progress-card::after,
+.request-card::after,
+.submit-portals-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--phuglee-gold),
+    var(--phuglee-orange),
+    var(--phuglee-terracotta),
+    transparent
+  );
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.panel > *,
+.card > *,
+.queue-progress-card > *,
+.request-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Tables ── */
+table tbody tr:hover {
+  background: rgba(174, 163, 143, 0.08);
+}
+
+table thead th {
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--border-gold);
+  color: var(--phuglee-taupe);
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+}
+
+/* ── Modals & dialogs ── */
+.modal-content,
+.dialog-card,
+.overlay-panel,
+.portal-dialog,
+.confirm-dialog-body {
+  background:
+    linear-gradient(165deg, rgba(229, 132, 53, 0.07) 0%, transparent 42%),
+    var(--surface2);
+  border: 1px solid var(--border-gold);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 24px 64px rgba(0, 0, 0, 0.55);
+}
+
+.pdf-preview-dialog {
+  border: 1px solid rgba(229, 132, 53, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(174, 163, 143, 0.12) inset,
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    var(--shadow-glow-orange);
+}
+
+.pdf-dialog-head {
+  background: rgba(13, 13, 13, 0.92);
+}
+
+.pdf-dialog-body {
+  border-top: 1px solid rgba(174, 163, 143, 0.16);
+  border-bottom: 1px solid rgba(174, 163, 143, 0.16);
+}
+
+/* ── Map controls — dark glass + orange active layer ── */
+.maplibregl-ctrl-group,
+.map-toolbar,
+.map-filters,
+.map-search-wrap input {
+  background: rgba(13, 13, 13, 0.88) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(174, 163, 143, 0.18) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.layer-toggle.is-on {
+  color: var(--phuglee-cream);
+  border-color: var(--phuglee-orange) !important;
+  background: rgba(229, 132, 53, 0.14) !important;
+  box-shadow: var(--shadow-glow-orange);
+  opacity: 1;
+}
+
+.layer-toggle:hover,
+.layer-toggle:focus-visible {
+  border-color: rgba(229, 132, 53, 0.45) !important;
+}
+
+/* ── Primary actions — logo orange gradient ── */
+.btn-primary,
+button.primary,
+.send-btn,
+.btn.seal,
+.btn.accent,
+.btn.save,
+#btn-save-next,
+#btn-send,
+.bulk-send-start,
+#email-confirm-approve {
+  color: var(--phuglee-black) !important;
+  background: linear-gradient(
+    135deg,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-orange) 45%,
+    var(--phuglee-terracotta) 100%
+  ) !important;
+  border-color: transparent !important;
+  box-shadow: var(--shadow-cta);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.btn.seal:hover,
+.btn.accent:hover,
+.btn.save:hover,
+#btn-save-next:hover:not(:disabled),
+#btn-send:hover:not(:disabled),
+.bulk-send-start:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-cta), var(--shadow-glow-orange);
+  filter: none;
+}
+
+/* ── Brand header — cream-to-orange ── */
+.brand h1 {
+  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nav-link.active {
+  color: var(--phuglee-orange);
+  border-color: var(--border-gold);
+}
+
+/* ── Records Desk — hero strip + pattern ── */
+.workspace .empty-state.hero-empty {
+  position: relative;
+  overflow: hidden;
+  border: 1px dashed rgba(229, 132, 53, 0.28);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(229, 132, 53, 0.08) 0%, transparent 65%),
+    rgba(0, 0, 0, 0.28);
+}
+
+.workspace .empty-state.hero-empty::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url('/static/phuglee-pattern.svg');
+  background-size: 280px 280px;
+  background-repeat: repeat;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 0%, transparent 75%);
+}
+
+.workspace .empty-state.hero-empty > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-steps span {
+  background: linear-gradient(135deg, var(--phuglee-gold), var(--phuglee-orange));
+  color: var(--phuglee-black);
+}
+
+/* ── City Tracker — taupe row hover + logo status pills ── */
+.portal-city-list li button:hover,
+.form-list li.city-item:hover {
+  background: rgba(174, 163, 143, 0.1);
+  border-color: rgba(174, 163, 143, 0.22);
+}
+
+.portal-city-list li button.active,
+.form-list li.city-item.active {
+  background: rgba(229, 132, 53, 0.12);
+  border-color: var(--border-gold);
+  border-left: 3px solid var(--phuglee-orange);
+}
+
+.status-chip {
+  border-color: rgba(174, 163, 143, 0.22);
+  color: var(--phuglee-stone);
+}
+
+.status-chip.pending {
+  color: var(--phuglee-gold);
+  border-color: rgba(238, 183, 70, 0.4);
+  background: rgba(238, 183, 70, 0.08);
+}
+
+.status-chip.yes {
+  color: var(--phuglee-success);
+  border-color: rgba(61, 214, 140, 0.35);
+  background: rgba(61, 214, 140, 0.08);
+}
+
+.status-chip.denied,
+.status-chip.portal-error,
+.status-chip.wrong-email,
+.status-chip.invalid-email {
+  color: var(--phuglee-danger);
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(172, 107, 50, 0.1);
+}
+
+.status-chip.other {
+  color: var(--phuglee-taupe);
+  border-color: rgba(174, 163, 143, 0.35);
+}
+
+.status-chip.apology {
+  color: var(--phuglee-gold);
+  border-color: rgba(238, 183, 70, 0.45);
+}
+
+.tracker-total-count {
+  color: var(--phuglee-cream);
+}
+
+.tracker-total-bar-fill {
+  background: linear-gradient(90deg, var(--phuglee-terracotta), var(--phuglee-orange));
+}
+
+/* ── Request PDFs — wear-bordered preview + send CTA ── */
+.pdf-thumb-card,
+.request-pdf-thumb {
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 8px 28px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.pdf-thumb-card:hover,
+.pdf-thumb-card:focus-visible,
+.request-pdf-thumb:hover,
+.request-pdf-thumb:focus-visible {
+  border-color: rgba(229, 132, 53, 0.5);
+  box-shadow:
+    inset 0 0 0 1px rgba(229, 132, 53, 0.15),
+    var(--shadow-glow-orange);
+  transform: translateY(-2px);
+}
+
+.pdf-thumb-placeholder {
+  background:
+    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 50%),
+    rgba(0, 0, 0, 0.35);
+}
+
+.queue-progress-fill {
+  background: linear-gradient(90deg, var(--phuglee-terracotta), var(--phuglee-orange));
+}
+
+/* ── Submit Portals — step wizard phuglee panels ── */
+.submit-portals-workflow .queue-progress-card,
+.submit-portals-card,
+.portal-open-card {
+  border-color: rgba(174, 163, 143, 0.18);
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.submit-portals-card:hover,
+.portal-open-card:hover,
+.portal-open-card:focus-visible {
+  border-color: rgba(229, 132, 53, 0.4);
+  transform: translateX(4px);
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.request-kicker {
+  color: var(--phuglee-orange);
+}
+
+/* ── Email-only — premium composer inset ── */
+.email-preview-card {
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  background:
+    linear-gradient(165deg, rgba(229, 132, 53, 0.05) 0%, transparent 45%),
+    rgba(0, 0, 0, 0.42);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.email-preview-card h3 {
+  color: var(--phuglee-taupe);
+}
+
+.email-only-page .email-only-banner {
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.08);
+}
+
+.email-only-page .email-only-banner strong {
+  color: var(--phuglee-orange);
+}
+
+/* ── Portal Errors — danger rows + mascot empty watermark ── */
+.portal-errors-page .queue-remaining-list li {
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  background: rgba(172, 107, 50, 0.08);
+  color: var(--phuglee-cream);
+}
+
+.portal-errors-page .queue-remaining-list li.active {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(172, 107, 50, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.12);
+}
+
+.portal-errors-page .portal-errors-banner {
+  border-color: rgba(172, 107, 50, 0.45);
+  background: rgba(172, 107, 50, 0.12);
+}
+
+.portal-errors-page .request-empty,
+.empty-state,
+.portal-empty,
+.request-empty {
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-errors-page .request-empty::before,
+.empty-state.hero-empty::before,
+.request-empty::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(220px, 55vw);
+  height: min(220px, 55vw);
+  transform: translate(-50%, -58%);
+  pointer-events: none;
+  opacity: 0.08;
+  background-image: url('/static/phuglee-pattern.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.portal-errors-page .request-empty > *,
+.request-empty > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Empty states (global) ── */
+.empty-state,
+.portal-empty,
+.request-empty {
+  border: 1px dashed rgba(229, 132, 53, 0.28);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.empty-state h2,
+.request-empty h2 {
+  color: var(--phuglee-cream);
+}
+
+/* ── Progress ring ── */
+.progress-ring {
+  background: conic-gradient(var(--phuglee-orange) calc(var(--pct) * 1%), var(--surface3) 0);
+}
+
+.progress-ring-value {
+  color: var(--phuglee-orange);
+}
+
+/* ── Phase 29: loading / empty / error states ── */
+.phuglee-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  min-height: 50vh;
+  padding: 2rem 1.5rem;
+}
+
+.phuglee-loading-state .phuglee-loading-bar {
+  width: min(280px, 72vw);
+  height: 3px;
+  background: var(--phuglee-charcoal, #353630);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.phuglee-loading-state .phuglee-loading-bar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--phuglee-terracotta), var(--phuglee-orange));
+  border-radius: inherit;
+  animation: phuglee-loading-pulse 1.2s ease-in-out infinite;
+}
+
+.phuglee-loading-copy {
+  font-family: var(--display, 'Anton', sans-serif);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone, #9c968a);
+}
+
+.phuglee-empty-state h2,
+.empty-state.hero-empty h2,
+.request-empty h2 {
+  font-family: var(--display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.phuglee-error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  max-width: 36rem;
+  margin: 1rem auto;
+  padding: 1rem 1.15rem;
+  background: rgba(172, 107, 50, 0.1);
+  border: 1px solid rgba(172, 107, 50, 0.35);
+  border-radius: 12px;
+}
+
+.phuglee-error {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--phuglee-danger, #f87171);
+}
+
+.phuglee-error-retry {
+  font-size: 0.78rem;
+  padding: 0.55rem 1rem;
+  color: var(--phuglee-cream);
+  background: transparent;
+  border: 1px solid rgba(174, 163, 143, 0.25);
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--body);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.phuglee-error-retry:hover {
+  border-color: rgba(229, 132, 53, 0.45);
+  color: var(--phuglee-orange);
+}
+
+.portal-city-list .phuglee-error-wrap,
+.form-list .phuglee-error-wrap {
+  margin: 0.5rem;
+}
+
+@keyframes phuglee-loading-pulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* ── Map — Distress OS embedded full-bleed ── */
+body.distress-os-embedded.map-page {
+  padding-top: 0 !important;
+}
+
+body.distress-os-embedded.map-page .map-layout {
+  position: fixed;
+  top: var(--distress-nav-offset, 56px);
+  left: 0;
+  right: 0;
+  bottom: 28px;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0.75rem 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+}
+
+body.distress-os-embedded.map-page .map-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.distress-os-embedded.map-page .map-canvas-wrap {
+  flex: 1;
+  min-height: 320px;
+  border-radius: 12px;
+  border-color: rgba(174, 163, 143, 0.14);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+body.distress-os-embedded.map-page {
+  overflow: hidden;
+}
+
+body.distress-os-embedded.map-page .maplibre-canvas {
+  min-height: 0;
+  height: 100%;
+}
+
+body.distress-os-embedded.map-page .map-sidebar {
+  top: var(--distress-nav-offset, 56px);
+  height: calc(100vh - var(--distress-nav-offset, 56px) - 28px);
+  width: min(400px, 38vw);
+  background: rgba(13, 13, 13, 0.92);
+  border-left: 1px solid rgba(174, 163, 143, 0.14);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  box-shadow: -20px 0 60px rgba(0, 0, 0, 0.55);
+}
+
+body.distress-os-embedded.map-page .map-search-wrap input {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: 999px;
+  padding: 0.55rem 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+body.distress-os-embedded.map-page .map-toolbar {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: min(420px, calc(100% - 2rem));
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+body.distress-os-embedded.map-page .sidebar-city h2 {
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, #f5f2e4 20%, #e58435 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+body.distress-os-embedded.map-page .city-list button:hover {
+  border-color: rgba(229, 132, 53, 0.4);
+  background: rgba(229, 132, 53, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn.seal:hover,
+  .btn.accent:hover,
+  #btn-save-next:hover,
+  .submit-portals-card:hover,
+  .portal-open-card:hover,
+  .pdf-thumb-card:hover,
+  .request-pdf-thumb:hover {
+    transform: none;
+  }
+
+  .phuglee-loading-state .phuglee-loading-bar::after {
+    animation: none;
+    width: 100%;
+  }
+}

@@ -9,11 +9,11 @@ const REPO_ROOTS = [
   { name: 'distress-os', dir: path.join(__dirname, '..', 'public') },
   {
     name: 'city-list-requests',
-    dir: path.join(__dirname, '..', '..', 'city-list-requests', 'review_portal', 'static')
+    dir: path.join(__dirname, '..', 'modules', 'form-forge', 'review_portal', 'static')
   },
   {
     name: 'property-distress-analyzer',
-    dir: path.join(__dirname, '..', '..', 'property-distress-analyzer', 'public')
+    dir: path.join(__dirname, '..', 'modules', 'property-analyzer', 'public')
   }
 ];
 

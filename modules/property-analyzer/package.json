@@ -1,0 +1,23 @@
+{
+  "name": "property-distress-analyzer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Property Distress Analyzer — local server + permanent imagery cache",
+  "scripts": {
+    "start": "node server.js",
+    "css:build": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --minify",
+    "css:watch": "tailwindcss -i ./public/css/input.css -o ./public/css/tailwind.css --watch",
+    "test": "node --test tests/**/*.test.js scripts/test-atomic-write.js",
+    "test:golden": "node --test tests/golden-set.test.js && node scripts/run-golden-set.js",
+    "test:metrics": "node --test tests/classification-metrics.test.js tests/classification-smoke.test.js tests/scale-policy.test.js && node scripts/run-classification-metrics.js",
+    "test:backup": "node --test tests/backup-logic.test.js",
+    "migrate-imagery": "node scripts/migrate-imagery.js",
+    "migrate-imagery:dry": "node scripts/migrate-imagery.js --dry-run"
+  },
+  "optionalDependencies": {
+    "@aws-sdk/client-s3": "^3.700.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Form Forge — Fix Portal Errors</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=35" />
+  <link rel="stylesheet" href="/static/settings-menu.css?v=3" />
+  <link rel="stylesheet" href="/static/phuglee-forge.css?v=1" />
+  <link rel="stylesheet" href="/static/phuglee-a11y.css" />
+  <link rel="stylesheet" href="/static/portal.css?v=34" />
+  <link rel="stylesheet" href="/static/request-pdfs.css?v=34" />
+  <link rel="stylesheet" href="/static/submit-portals.css?v=34" />
+  <link rel="stylesheet" href="/static/portal-errors.css?v=34" />
+</head>
+<body class="stamp-theme portal-page request-pdfs-page submit-portals-page portal-errors-page">
+  <div class="bg-vignette" aria-hidden="true"></div>
+  <div class="bg-paper-grain" aria-hidden="true"></div>
+
+  <header class="topbar portal-topbar">
+    <div class="brand">
+      <div class="brand-seal" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="20" y="25" text-anchor="middle" font-size="14" font-family="serif" fill="currentColor">FF</text></svg>
+      </div>
+      <div>
+        <h1>Fix Portal Errors</h1>
+        <p class="sub" id="page-subtitle">Research corrected portal URLs and clear errors one city at a time.</p>
+      </div>
+      <nav class="app-nav" aria-label="Main">
+        <a href="/portal" class="nav-link">City Tracker</a>
+        <a href="/portal/submit-portals" class="nav-link">Submit Portals</a>
+        <a href="/map" class="nav-link">Coverage Map</a>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <a href="/portal" class="btn ghost sm">← Back to tracker</a>
+      <div class="settings-menu" id="settings-menu">
+        <button type="button" class="btn ghost sm settings-trigger" aria-expanded="false" aria-haspopup="true">Settings</button>
+        <div class="settings-dropdown" role="menu" hidden>
+          <a href="/?settings=info" class="settings-item" role="menuitem">Your Info</a>
+          <a href="/?settings=signature" class="settings-item" role="menuitem">Signature</a>
+          <button type="button" class="settings-item" role="menuitem" data-settings-action="ideas">Ideas</button>
+          <a href="/" class="settings-item" role="menuitem">Records Desk</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="submit-portals-layout">
+    <section class="submit-portals-workflow" aria-label="Portal error fix workflow">
+      <div class="queue-progress-card submit-portals-progress portal-errors-progress" id="queue-progress-card">
+        <span class="queue-progress-label">Portal errors</span>
+        <div class="queue-progress-bar" aria-hidden="true">
+          <div class="queue-progress-fill portal-errors-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <p class="queue-progress-text" id="progress-text">Loading errored portals…</p>
+        <p class="queue-progress-sub" id="progress-sub"></p>
+      </div>
+
+      <div class="request-loading phuglee-loading-state" id="request-loading">
+        <div class="phuglee-loading-bar" aria-hidden="true"></div>
+        <p class="phuglee-loading-copy">Loading portal errors…</p>
+      </div>
+
+      <div class="request-empty phuglee-empty-state" id="request-empty" hidden>
+        <div class="hero-seal" aria-hidden="true">✓</div>
+        <h2>No portal errors</h2>
+        <p id="empty-message">Every flagged portal URL has been fixed.</p>
+        <a href="/portal" class="btn seal">Return to City Tracker</a>
+      </div>
+
+      <article class="request-card submit-portals-card portal-errors-card" id="request-card" hidden>
+        <p class="request-kicker" id="card-state"></p>
+        <h2 id="card-city"></h2>
+        <p class="request-position" id="card-position"></p>
+
+        <div class="portal-errors-banner">
+          <strong>Reported error</strong>
+          <p id="card-error-notes">—</p>
+          <p class="portal-errors-meta" id="card-error-meta"></p>
+        </div>
+
+        <label class="portal-errors-field">
+          <span>Broken URL on file</span>
+          <input type="url" id="field-broken-url" readonly />
+        </label>
+
+        <label class="portal-errors-field">
+          <span>Corrected portal URL</span>
+          <input type="url" id="field-portal-url" placeholder="https://…" autocomplete="off" />
+        </label>
+
+        <label class="portal-errors-field">
+          <span>Notes</span>
+          <textarea id="field-url-notes" rows="3" placeholder="What was wrong and what you changed…"></textarea>
+        </label>
+
+        <div class="portal-errors-actions">
+          <a class="btn ghost" id="btn-test-portal" href="#" target="_blank" rel="noopener">Open portal (test only)</a>
+          <button type="button" class="btn seal" id="btn-save-url">Save URL</button>
+          <button type="button" class="btn ghost" id="btn-mark-fixed">Mark fixed</button>
+        </div>
+        <p class="action-msg" id="action-msg" hidden></p>
+      </article>
+    </section>
+
+    <section class="submit-portals-queues" aria-label="Error queue">
+      <div class="queue-remaining" id="queue-remaining" hidden>
+        <h3>Still broken</h3>
+        <ul class="queue-remaining-list" id="queue-remaining-list"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/phuglee-states.js"></script>
+  <script src="/static/portal-shared.js?v=2"></script>
+  <script src="/static/settings-menu.js?v=3"></script>
+  <script src="/static/portal-errors.js?v=1"></script>
+  <script>window.FormForgeSettings?.init();</script>
+</body>
+</html>

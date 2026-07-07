@@ -1,0 +1,13 @@
+{
+  "workflow": {
+    "mode": "yolo",
+    "researcher": false,
+    "plan_checker": false,
+    "verifier": true,
+    "nyquist_validation": true
+  },
+  "planning": {
+    "commit_docs": true,
+    "search_gitignored": false
+  }
+}

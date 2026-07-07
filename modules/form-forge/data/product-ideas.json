@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "ideas": [
+    {
+      "id": "tiered-service-model",
+      "text": "Add a done-for-you service where you fill out all the PDFs needed for the person you are selling this to, OR sell the PDF fill-out tool and system as an add-on. Two tiers: Lite (access to 5 cities) and Pro (unlimited access plus tools to help manage the city data they are pulling).",
+      "created_at": "2026-07-05T00:00:00+00:00"
+    },
+    {
+      "id": "product-walkthroughs",
+      "text": "Walkthroughs on how to use the tool to get the most out of it.",
+      "created_at": "2026-07-05T00:00:01+00:00"
+    }
+  ]
+}

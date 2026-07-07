@@ -1,10 +1,11 @@
-# Distress OS — full regression verification (GSD-AUDIT-POST)
+# Distress OS — full regression verification (GSD monorepo sweep)
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\verify.ps1
+#        npm run verify
 
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$forgePath = "C:\Users\brand\Projects\city-list-requests"
-$analyzerPath = "C:\Users\brand\Projects\property-distress-analyzer"
+$forgePath = Join-Path $root "modules\form-forge"
+$analyzerPath = Join-Path $root "modules\property-analyzer"
 $failures = @()
 
 function Test-Step {
@@ -20,8 +21,17 @@ function Test-Step {
     }
 }
 
-Write-Host "Distress OS Regression Verification" -ForegroundColor Yellow
+Write-Host "Distress OS GSD Verification (monorepo)" -ForegroundColor Yellow
 Write-Host "Root: $root"
+
+Test-Step "Monorepo structure" {
+    if (-not (Test-Path "$forgePath\run_review_portal.py")) {
+        throw "Form Forge missing at modules\form-forge"
+    }
+    if (-not (Test-Path "$analyzerPath\server.js")) {
+        throw "Property Analyzer missing at modules\property-analyzer"
+    }
+}
 
 Test-Step "Distress OS unit tests" {
     Set-Location $root
@@ -29,22 +39,24 @@ Test-Step "Distress OS unit tests" {
     if ($LASTEXITCODE -ne 0) { throw "npm test exit $LASTEXITCODE" }
 }
 
-Test-Step "Distress OS module junctions" {
-    if (-not (Test-Path "$root\modules\form-forge\run_review_portal.py")) {
-        throw "Form Forge junction missing at modules\form-forge"
-    }
-    if (-not (Test-Path "$root\modules\property-analyzer\server.js")) {
-        throw "Property Analyzer junction missing at modules\property-analyzer"
-    }
+Test-Step "Form Forge GSD structure" {
+    Set-Location $forgePath
+    python scripts/gsd.py structure
+    if ($LASTEXITCODE -ne 0) { throw "gsd.py structure exit $LASTEXITCODE" }
 }
 
 Test-Step "Property Analyzer tests" {
     Set-Location $analyzerPath
+    if (-not (Test-Path "node_modules")) {
+        Write-Host "  Installing analyzer dependencies..." -ForegroundColor Yellow
+        npm install --no-fund --no-audit
+        if ($LASTEXITCODE -ne 0) { throw "npm install exit $LASTEXITCODE" }
+    }
     npm test
     if ($LASTEXITCODE -ne 0) { throw "npm test exit $LASTEXITCODE" }
 }
 
-Test-Step "Form Forge unit tests" {
+Test-Step "Form Forge GSD tests" {
     Set-Location $forgePath
     $out = python scripts/gsd.py test 2>&1 | Out-String
     Write-Host $out

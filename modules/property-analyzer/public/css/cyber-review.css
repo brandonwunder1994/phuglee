@@ -1,0 +1,744 @@
+/* ═══════════════════════════════════════════════════════════
+   CYBER REVIEW — Full review mode HUD (Phase 17)
+   Loaded after cyber-ultra.css; scoped to body.cyber-theme
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Structural layout (migrated from app.css Phase 20) ── */
+.review-mode-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: none;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.review-mode-overlay.open { display: flex; }
+
+.review-mode-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 4.5rem 1.25rem 1rem;
+  gap: 0.85rem;
+  min-height: 100vh;
+}
+
+.review-mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.65rem 1rem;
+}
+
+.review-mode-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.review-mode-body {
+  display: grid;
+  grid-template-columns: 1fr minmax(280px, 340px);
+  gap: 0.85rem;
+  flex: 1;
+  min-height: 0;
+}
+
+@media (max-width: 960px) {
+  .review-mode-body { grid-template-columns: 1fr; }
+  .review-mode-meta { max-height: 220px; }
+}
+
+.review-mode-media {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.review-images {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 320px;
+}
+
+.review-images.dual { grid-template-columns: 1fr 1fr; }
+
+.review-images.loading .review-image-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 240, 255, 0.08) 50%,
+    transparent 100%
+  );
+  animation: review-img-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes review-img-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.review-image-wrap {
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  cursor: zoom-in;
+}
+
+.review-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  min-height: 280px;
+}
+
+.review-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.review-mode-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 220px);
+}
+
+.review-meta-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.review-shortcuts-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.85rem;
+}
+
+.review-shortcut-chips {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.review-shortcut-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.55rem;
+  white-space: nowrap;
+}
+
+.review-action-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  padding: 0.75rem;
+}
+
+.review-action {
+  flex: 1 1 140px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.review-action:active { transform: scale(0.98); }
+.review-action.keep { flex: 1.2 1 160px; }
+.review-action.change-tier { flex: 1.35 1 180px; }
+.review-action.defer-later { flex: 1.1 1 150px; }
+.review-action.utility {
+  flex: 0 1 auto;
+  min-height: 52px;
+  min-width: 88px;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.review-action.utility:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.review-action.is-current::after {
+  content: 'current';
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.review-complete-panel {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex: 1;
+  padding: 3rem;
+  text-align: center;
+}
+
+.review-complete-panel.visible { display: flex; }
+
+.review-tier-pick-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 25000;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.review-tier-pick-overlay.open { display: flex; }
+
+.review-tier-pick-dialog {
+  width: min(420px, 94vw);
+  padding: 1.25rem 1.35rem 1.1rem;
+}
+
+.review-tier-pick-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.review-tier-pick-btn {
+  padding: 0.75rem 0.65rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.review-tier-pick-cancel {
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-xs);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+.summary-review-btns {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* ── Overlay atmosphere: void + grid ── */
+body.cyber-theme .review-mode-overlay {
+  background:
+    linear-gradient(rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.04) 1px, transparent 1px),
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 240, 255, 0.1), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 0, 170, 0.06), transparent 50%),
+    rgba(6, 8, 16, 0.94);
+  background-size: 32px 32px, 32px 32px, 100% 100%, 100% 100%, 100% 100%;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+body.cyber-theme .review-mode-inner {
+  padding: 1rem 1.5rem 1.25rem;
+  gap: 1rem;
+  max-width: 1680px;
+  border: none;
+  border-radius: 0;
+}
+
+/* ── Header HUD strip ── */
+body.cyber-theme .review-mode-header {
+  background: linear-gradient(135deg, rgba(8, 12, 24, 0.96), rgba(6, 8, 18, 0.9));
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 1px rgba(0, 240, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 48px rgba(0, 240, 255, 0.05);
+  padding: 0.75rem 1.25rem;
+}
+
+body.cyber-theme .review-mode-badge {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--neon-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.45);
+  background: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+  border-radius: 6px;
+}
+
+body.cyber-theme .review-mode-filter {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .review-mode-filter strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+body.cyber-theme .review-mode-progress {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 12px var(--neon-cyan-glow);
+}
+
+body.cyber-theme .review-mode-stats {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .review-mode-checkpoint {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.05em;
+  color: rgba(0, 240, 255, 0.75);
+  margin-left: 0.65rem;
+  white-space: nowrap;
+}
+
+body.cyber-theme .review-mode-exit {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 0, 170, 0.45);
+  background: rgba(255, 0, 170, 0.1);
+  color: var(--neon-magenta);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+body.cyber-theme .review-mode-exit:hover {
+  background: rgba(255, 0, 170, 0.22);
+  color: #ff66cc;
+  box-shadow: 0 0 20px var(--neon-magenta-glow);
+}
+
+/* Tier-kind badge variants */
+body.cyber-theme .review-mode-inner.review-kind-distressed .review-mode-badge {
+  color: var(--tier-distressed-bright);
+  border-color: var(--tier-distressed-border);
+  background: var(--tier-distressed-dim);
+  box-shadow: 0 0 12px var(--tier-distressed-glow);
+}
+
+body.cyber-theme .review-mode-inner.review-kind-well-maintained .review-mode-badge {
+  color: var(--tier-well-bright);
+  border-color: var(--tier-well-border);
+  background: var(--tier-well-dim);
+  box-shadow: 0 0 12px var(--tier-well-glow);
+}
+
+body.cyber-theme .review-mode-inner.review-kind-land .review-mode-badge {
+  color: var(--tier-land-bright);
+  border-color: var(--tier-land-border);
+  background: var(--tier-land-dim);
+}
+
+body.cyber-theme .review-mode-inner.review-kind-needs-review .review-mode-badge {
+  color: var(--review-bright);
+  border-color: var(--review-border);
+  background: var(--review-dim);
+  box-shadow: 0 0 12px var(--review-glow);
+}
+
+/* ── Image stage — neon corner brackets ── */
+body.cyber-theme .review-image-wrap {
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(4, 6, 12, 0.9);
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.4);
+}
+
+body.cyber-theme .review-image-wrap::before,
+body.cyber-theme .review-image-wrap::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+body.cyber-theme .review-image-wrap::before {
+  top: 8px;
+  left: 8px;
+  border-top: 2px solid var(--neon-cyan);
+  border-left: 2px solid var(--neon-cyan);
+  box-shadow: -2px -2px 10px rgba(0, 240, 255, 0.35);
+}
+
+body.cyber-theme .review-image-wrap::after {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 2px solid var(--neon-magenta);
+  border-right: 2px solid var(--neon-magenta);
+  box-shadow: 2px 2px 10px rgba(255, 0, 170, 0.3);
+}
+
+body.cyber-theme .review-image-wrap .preview-pane-label {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.16em;
+  color: var(--neon-cyan);
+  background: rgba(6, 8, 16, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+}
+
+body.cyber-theme .review-placeholder {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* ── Meta panel — glass HUD card ── */
+body.cyber-theme .review-mode-meta {
+  background: linear-gradient(160deg, rgba(10, 14, 26, 0.92), rgba(8, 10, 20, 0.88));
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.cyber-theme .review-meta-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--foreground);
+}
+
+body.cyber-theme .review-meta-street {
+  font-family: var(--font-body);
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .review-meta-analysis {
+  font-size: 0.8rem;
+  color: var(--secondary-foreground);
+  line-height: 1.5;
+}
+
+/* ── Shortcuts bar ── */
+body.cyber-theme .review-shortcuts-bar {
+  background: rgba(6, 8, 16, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 10px;
+}
+
+body.cyber-theme .review-shortcuts-label {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.18em;
+  color: var(--neon-cyan);
+}
+
+body.cyber-theme .review-shortcut-chip {
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  border-radius: 6px;
+}
+
+body.cyber-theme .review-shortcut-chip kbd,
+body.cyber-theme .review-action kbd {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
+}
+
+body.cyber-theme .review-shortcut-chip.chip-distressed kbd {
+  color: var(--tier-distressed-bright);
+  background: var(--tier-distressed-dim);
+  border-color: var(--tier-distressed-border);
+}
+
+body.cyber-theme .review-shortcut-chip.chip-well-maintained kbd {
+  color: var(--tier-well-bright);
+  background: var(--tier-well-dim);
+  border-color: var(--tier-well-border);
+}
+
+body.cyber-theme .review-shortcut-chip.chip-vacant kbd {
+  color: var(--tier-land-bright);
+  background: var(--tier-land-dim);
+  border-color: var(--tier-land-border);
+}
+
+body.cyber-theme .review-shortcut-chip.chip-defer kbd {
+  color: var(--review-bright);
+  background: var(--review-dim);
+  border-color: var(--review-border);
+}
+
+/* ── Action bar — floating HUD dock ── */
+body.cyber-theme .review-action-bar {
+  position: sticky;
+  bottom: 0.5rem;
+  z-index: 10;
+  background: linear-gradient(180deg, rgba(8, 12, 22, 0.85), rgba(6, 8, 18, 0.98));
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  border-radius: 14px;
+  box-shadow:
+    0 -4px 24px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(0, 240, 255, 0.08);
+  padding: 0.85rem 1rem;
+  gap: 0.65rem;
+  backdrop-filter: blur(16px);
+}
+
+body.cyber-theme .review-action {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  background: rgba(0, 240, 255, 0.04);
+  color: var(--foreground);
+  transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+body.cyber-theme .review-action:hover {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.12);
+}
+
+body.cyber-theme .review-action.keep {
+  background: var(--tier-distressed-dim);
+  border-color: var(--tier-distressed-border);
+  color: var(--tier-distressed-bright);
+}
+
+body.cyber-theme .review-action.keep:hover {
+  background: rgba(255, 77, 109, 0.2);
+  box-shadow: 0 0 24px var(--tier-distressed-glow);
+}
+
+body.cyber-theme .review-action.change-tier,
+body.cyber-theme .review-action.distressed {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.35);
+  color: var(--neon-cyan);
+}
+
+body.cyber-theme .review-action.change-tier:hover,
+body.cyber-theme .review-action.distressed:hover {
+  background: rgba(0, 240, 255, 0.16);
+  box-shadow: 0 0 24px var(--neon-cyan-glow);
+}
+
+body.cyber-theme .review-action.change-tier.to-distressed {
+  background: var(--tier-distressed-dim);
+  border-color: var(--tier-distressed-border);
+  color: var(--tier-distressed-bright);
+}
+
+body.cyber-theme .review-action.change-tier.to-well-maintained {
+  background: var(--tier-well-dim);
+  border-color: var(--tier-well-border);
+  color: var(--tier-well-bright);
+}
+
+body.cyber-theme .review-action.well-maintained,
+body.cyber-theme .review-action.home {
+  background: var(--tier-well-dim);
+  border-color: var(--tier-well-border);
+  color: var(--tier-well-bright);
+}
+
+body.cyber-theme .review-action.well-maintained:hover,
+body.cyber-theme .review-action.home:hover {
+  box-shadow: 0 0 24px var(--tier-well-glow);
+}
+
+body.cyber-theme .review-action.vacant {
+  background: var(--tier-land-dim);
+  border-color: var(--tier-land-border);
+  color: var(--tier-land-bright);
+}
+
+body.cyber-theme .review-action.vacant:hover {
+  box-shadow: 0 0 20px var(--tier-land-glow);
+}
+
+body.cyber-theme .review-action.defer-later {
+  background: var(--review-dim);
+  border-color: var(--review-border);
+  color: var(--review-bright);
+}
+
+body.cyber-theme .review-action.defer-later:hover {
+  background: rgba(255, 0, 170, 0.18);
+  box-shadow: 0 0 20px var(--review-glow);
+}
+
+body.cyber-theme .review-action.blurred {
+  background: var(--tier-blurred-dim);
+  border-color: var(--tier-blurred-border);
+  color: var(--tier-blurred);
+}
+
+body.cyber-theme .review-action.blurred:hover {
+  background: rgba(107, 122, 153, 0.2);
+}
+
+body.cyber-theme .review-action.undo {
+  background: rgba(6, 8, 16, 0.8);
+  border-color: rgba(0, 240, 255, 0.12);
+  color: var(--muted-foreground);
+  flex: 0.85 1 120px;
+}
+
+body.cyber-theme .review-action.undo:hover:not(:disabled) {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+body.cyber-theme .review-action.undo:disabled {
+  opacity: 0.35;
+}
+
+/* ── Complete panel ── */
+body.cyber-theme .review-complete-panel {
+  background: linear-gradient(160deg, rgba(10, 14, 26, 0.95), rgba(6, 8, 18, 0.9));
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 16px;
+  box-shadow: 0 0 60px rgba(0, 240, 255, 0.1);
+}
+
+body.cyber-theme .review-complete-panel h3 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 20px var(--neon-cyan-glow);
+}
+
+body.cyber-theme .review-complete-panel p {
+  font-family: var(--font-body);
+  color: var(--muted-foreground);
+}
+
+/* ── Tier pick overlay ── */
+body.cyber-theme .review-tier-pick-overlay {
+  background: rgba(4, 6, 12, 0.88);
+  backdrop-filter: blur(20px);
+}
+
+body.cyber-theme .review-tier-pick-dialog.cyber-dialog h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  color: var(--neon-cyan);
+}
+
+body.cyber-theme .review-tier-pick-btn {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--foreground);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+body.cyber-theme .review-tier-pick-btn.distressed:hover {
+  background: var(--tier-distressed-dim);
+  border-color: var(--tier-distressed-border);
+  color: var(--tier-distressed-bright);
+  box-shadow: 0 0 24px var(--tier-distressed-glow);
+}
+
+body.cyber-theme .review-tier-pick-btn.well-maintained:hover {
+  background: var(--tier-well-dim);
+  border-color: var(--tier-well-border);
+  color: var(--tier-well-bright);
+  box-shadow: 0 0 24px var(--tier-well-glow);
+}
+
+body.cyber-theme .review-tier-pick-cancel {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  background: transparent;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+}
+
+body.cyber-theme .review-tier-pick-cancel:hover {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 240, 255, 0.3);
+}
+
+@media (max-width: 960px) {
+  body.cyber-theme .review-mode-inner {
+    padding: 0.75rem 1rem 1rem;
+  }
+  body.cyber-theme .review-action-bar {
+    position: relative;
+    bottom: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.cyber-theme .review-action:hover,
+  body.cyber-theme .review-mode-exit:hover {
+    box-shadow: none;
+  }
+}

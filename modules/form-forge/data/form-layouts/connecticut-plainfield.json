@@ -1,0 +1,77 @@
+{
+  "saved_at": "2026-07-04T21:20:05.494341+00:00",
+  "elements": [
+    {
+      "type": "text",
+      "page": 0,
+      "x": 95.80095947856765,
+      "y": 183.53577691736356,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 97.06053268765133,
+      "box_height": 13.385915492957745
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 100.98740015653375,
+      "y": 202.12732621313822,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct, Anthem, AZ 85086",
+      "fontsize": 10,
+      "label": "Full Address",
+      "box_width": 207.45762711864407,
+      "box_height": 20.822535211267603
+    },
+    {
+      "type": "date",
+      "page": 0,
+      "x": 446.2561652897057,
+      "y": 161.225917762434,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 17.847887323943663
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 125.43776335265966,
+      "y": 229.6428191708847,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 20.822535211267603
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 47.64115318316813,
+      "y": 283.4839413924956,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass/weeds or trash/debris in the last 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 359.3462469733656,
+      "box_height": 13.385915492957745
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 48.38207328002043,
+      "y": 298.6546410788952,
+      "y_mode": "top",
+      "text": "Please send these copies to me via email to BrandonWunderAZ@gmail.com",
+      "fontsize": 10,
+      "label": "Custom",
+      "box_width": 298.590799031477,
+      "box_height": 20.822535211267603
+    }
+  ]
+}

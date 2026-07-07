@@ -1,0 +1,113 @@
+{
+  "saved_at": "2026-07-04T22:22:02.082733+00:00",
+  "elements": [
+    {
+      "type": "text",
+      "page": 0,
+      "x": 96.83824309194348,
+      "y": 272.096916277384,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 90.39225181598061,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 137.58884841882,
+      "y": 258.58762886597935,
+      "y_mode": "top",
+      "text": "Anthem",
+      "fontsize": 10,
+      "label": "City",
+      "box_width": 74.09200968523002,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 310.2232309854059,
+      "y": 258.58762886597935,
+      "y_mode": "top",
+      "text": "85086",
+      "fontsize": 10,
+      "label": "Zip",
+      "box_width": 44.455205811138015,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 121.28860628806939,
+      "y": 282.4886688547036,
+      "y_mode": "top",
+      "text": "BrandonWunderAZ@gmail.com",
+      "fontsize": 9,
+      "label": "Email",
+      "box_width": 177.82082324455206,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 78.31524067063596,
+      "y": 227.56082460069163,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 85.57627118644066,
+      "y": 244.1876241939584,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct",
+      "fontsize": 10,
+      "label": "Street",
+      "box_width": 111.13801452784504,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 137.58884841882,
+      "y": 411.49484536082474,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass/weeds or trash/debris in the last 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 307.4818401937046,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 381.3515602832268,
+      "y": 308.171133454313,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 238.50217465453807,
+      "y": 300.5999932043331,
+      "y_mode": "top",
+      "text": "BrandonWunderAZ@gmail.com",
+      "fontsize": 9,
+      "label": "Email",
+      "box_width": 177.82082324455206,
+      "box_height": 10.391752577319588
+    }
+  ]
+}

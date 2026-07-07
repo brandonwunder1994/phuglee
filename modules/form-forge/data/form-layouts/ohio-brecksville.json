@@ -1,0 +1,113 @@
+{
+  "saved_at": "2026-07-04T23:15:22.635399+00:00",
+  "elements": [
+    {
+      "type": "text",
+      "page": 0,
+      "x": 42.01015592487326,
+      "y": 234.22267135148195,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 376.38740920096853,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "date",
+      "page": 0,
+      "x": 530.2764997505391,
+      "y": 211.95463011436854,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 345.7873956343164,
+      "y": 367.83092779965745,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 360.6057975713624,
+      "y": 384.4577500451471,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct",
+      "fontsize": 10,
+      "label": "Street",
+      "box_width": 111.13801452784504,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 340.6009549563503,
+      "y": 409.39793810893576,
+      "y_mode": "top",
+      "text": "Anthem",
+      "fontsize": 10,
+      "label": "City",
+      "box_width": 74.09200968523002,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 514.7171777166408,
+      "y": 404.20206182027596,
+      "y_mode": "top",
+      "text": "85086",
+      "fontsize": 10,
+      "label": "Zip",
+      "box_width": 44.455205811138015,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 351.7147564091348,
+      "y": 427.21237109862653,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 427.2886062880694,
+      "y": 405.68659790275024,
+      "y_mode": "top",
+      "text": "AZ",
+      "fontsize": 10,
+      "label": "State",
+      "box_width": 29.63680387409201,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "checkbox",
+      "page": 0,
+      "x": 61.86682808716707,
+      "y": 468.18557833642075,
+      "y_mode": "top",
+      "text": "",
+      "fontsize": 22,
+      "label": "Check",
+      "checked": true,
+      "box_size": 22.227602905569007
+    }
+  ]
+}

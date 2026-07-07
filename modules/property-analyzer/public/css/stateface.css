@@ -1,0 +1,63 @@
+/* StateFace — MIT licensed state outline icons (ProPublica)
+   https://github.com/propublica/stateface */
+
+@font-face {
+  font-family: StateFaceRegular;
+  src: url('/fonts/stateface/stateface-regular-webfont.woff') format('woff'),
+       url('/fonts/stateface/stateface-regular-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.state-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 6px;
+  background: rgba(8, 12, 20, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  vertical-align: middle;
+}
+
+.state-icon .stateface-glyph {
+  font-family: StateFaceRegular, sans-serif !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  font-size: 1.45rem;
+  color: var(--state-color, #8aa4c4);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55));
+  transform: translateY(-0.02em);
+}
+
+.state-icon.state-icon-sm {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 5px;
+}
+
+.state-icon.state-icon-sm .stateface-glyph {
+  font-size: 1.2rem;
+}
+
+.card-location .state-icon,
+.col-location .state-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-right: 0.3rem;
+}
+
+.card-location .state-icon .stateface-glyph,
+.col-location .state-icon .stateface-glyph {
+  font-size: 1.1rem;
+}

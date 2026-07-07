@@ -1,0 +1,101 @@
+{
+  "saved_at": "2026-07-04T23:35:18.854653+00:00",
+  "elements": [
+    {
+      "type": "date",
+      "page": 0,
+      "x": 107.21112444787569,
+      "y": 108.20411918089563,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.68280871670702,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 187.97141500477642,
+      "y": 153.48246969635954,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.72881355932203,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 139.07068861252458,
+      "y": 182.43092330460695,
+      "y_mode": "top",
+      "text": "3652 W Bryce Ct",
+      "fontsize": 10,
+      "label": "Street Address",
+      "box_width": 111.13801452784504,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 138.3297685156723,
+      "y": 206.18350062419458,
+      "y_mode": "top",
+      "text": "Anthem, AZ 85086",
+      "fontsize": 10,
+      "label": "City, State Zip",
+      "box_width": 133.36561743341403,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 211.68085810405003,
+      "y": 227.70927382007088,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.50121065375303,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 227.98110023480064,
+      "y": 255.91545938708117,
+      "y_mode": "top",
+      "text": "N/A",
+      "fontsize": 10,
+      "label": "N/A",
+      "box_width": 35.56416464891041,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 218.64552510333118,
+      "y": 495.96495071883055,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 376.38740920096853,
+      "box_height": 10.391752577319588
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 321.1888393743852,
+      "y": 523.8742335997905,
+      "y_mode": "top",
+      "text": "The Last 30 Days",
+      "fontsize": 9,
+      "label": "Last 30 Days",
+      "box_width": 163.00242130750607,
+      "box_height": 10.391752577319588
+    }
+  ]
+}

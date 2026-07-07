@@ -1,0 +1,1602 @@
+// config.js — PDA module (shared PDA.env runtime)
+(function (global) {
+  const PDA = global.PDA = global.PDA || {};
+  if (typeof window !== 'undefined') window.PDA = PDA;
+  PDA.env = PDA.env || {};
+  const R = PDA.env;
+  with (R) {
+
+R.BATCH_SIZE = 50;
+R.DEFAULT_CONCURRENT_LIMIT = 10;
+R.MAX_SAFE_CONCURRENT = 20;
+R.STREET_VIEW_SIZE = '640x480';
+R.CARD_THUMB_SIZE = '400x300';
+R.CARD_SAT_THUMB_SIZE = '400x400';
+R.SV_THUMB_FOV = 65;
+R.SV_THUMB_RADIUS = 50;
+R.SAT_THUMB_ZOOM = 20;
+R.REVIEW_STREET_VIEW_SIZE = '480x360';
+R.REVIEW_PREFETCH_AHEAD = 12;
+R.REVIEW_PRELOAD_CACHE_MAX = 192;
+R.REVIEW_SAVE_EVERY_N = 8;
+R.REVIEW_PROGRESS_DEBOUNCE_MS = 600;
+R.REVIEW_CHECKPOINT_EVERY_N = 100;
+R.GEMINI_MODELS = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+R.UI_THROTTLE_MS = 4000;
+R.SESSION_SAVE_IDLE_MS = 2000;
+R.SESSION_SAVE_SCAN_MS = 8000;
+R.SIZE_WARN_BYTES = 4 * 1024 * 1024;
+R.SCAN_SAVE_HEARTBEAT_MS = 45000;
+
+R.sessionSaveEveryN = function sessionSaveEveryN() {
+  const n = state.results.length;
+  if (n >= 5000) return 80;
+  if (n >= 3000) return 50;
+  if (n >= 1500) return 35;
+  if (n >= 500) return 20;
+  return 10;
+}
+
+R.scanSaveHeartbeatMs = function scanSaveHeartbeatMs() {
+  const n = state.results.length;
+  if (n >= 3000) return 60000;
+  if (n >= 1500) return 45000;
+  return 30000;
+}
+R.SAT_VACANT_SKIP_CONFIDENCE = 70;
+R.LOCAL_APP_HOST = 'distressos.local';
+R.LOCAL_APP_URL = 'http://distressos.local:3456';
+R.USE_PROXY = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.hostname === R.LOCAL_APP_HOST;
+R.serverHasMapsKey = false;
+R.serverConfig = { hasMapsKey: false, hasGeminiKey: false, mapsKeyTail: null, geminiKeyTail: null };
+
+R.getAuthToken = function getAuthToken() {
+  return typeof window.__PDA_AUTH_TOKEN__ === 'string' ? window.__PDA_AUTH_TOKEN__ : '';
+}
+
+R.apiFetch = function apiFetch(url, opts = {}) {
+  const headers = { ...(opts.headers || {}) };
+  const token = getAuthToken();
+  if (token) headers['X-PDA-Token'] = token;
+  return fetch(url, { ...opts, headers });
+}
+  window.apiFetch = R.apiFetch;
+  global.apiFetch = R.apiFetch;
+window.apiFetch = apiFetch;
+
+R.appendMapsKeyParam = function appendMapsKeyParam(params, apiKey) {
+  if (USE_PROXY) return;
+  const k = normalizeApiKey(apiKey);
+  if (k) params.set('key', k);
+}
+
+R.updateKeyStatusUi = function updateKeyStatusUi() {
+  const mapsOk = !!serverConfig.hasMapsKey;
+  const geminiOk = !!serverConfig.hasGeminiKey;
+  streetViewKey.value = mapsOk
+    ? `✓ Configured (…${serverConfig.mapsKeyTail || '??????'})`
+    : '✗ Not configured — add MAPS_API_KEY to .env';
+  geminiKey.value = geminiOk
+    ? `✓ Configured (…${serverConfig.geminiKeyTail || '??????'})`
+    : '✗ Not configured — add GEMINI_API_KEY to .env';
+  streetViewKeyHint.textContent = mapsOk
+    ? `MAPS_API_KEY loaded on server — ends in …${serverConfig.mapsKeyTail || ''}`
+    : 'Add MAPS_API_KEY to .env and restart launch-analyzer.bat';
+  streetViewKeyHint.classList.toggle('active', mapsOk);
+  geminiKeyHint.textContent = geminiOk
+    ? `GEMINI_API_KEY loaded on server — ends in …${serverConfig.geminiKeyTail || ''}`
+    : 'Add GEMINI_API_KEY to .env and restart launch-analyzer.bat';
+  geminiKeyHint.classList.toggle('active', geminiOk);
+}
+
+R.fetchServerConfig = async function fetchServerConfig() {
+  if (!USE_PROXY) return;
+  try {
+    const res = await fetch('/api/config');
+    const data = await res.json();
+    if (data?.ok) {
+      serverConfig = data;
+      serverHasMapsKey = !!data.hasMapsKey;
+      updateKeyStatusUi();
+      updateStartButton();
+      if (serverHasMapsKey && state.results.length) {
+        resetThumbLoadQueue();
+        refreshAllCardThumbs();
+      }
+    }
+  } catch (e) {
+    console.warn('[Config] Server config fetch failed', e);
+  }
+}
+
+R.buildD4DVacantLotRules = function buildD4DVacantLotRules() {
+  return `
+VACANT LOT vs HOME (decide FIRST — wholesalers' #1 mistake is scoring weeds on empty land):
+- vacant_lot = NO roof/building/mobile-home footprint on the RED MARKER lot. Grass, dirt, trees, farmland, wooded lot, or cleared pad with no structure.
+- property = clear roof footprint (house, mobile home, large garage/workshop) ON the marked lot.
+- unavailable = ONLY if trees/shadows fully hide the marked lot so you cannot see whether a footprint exists.
+- Weeds, junk piles, or debris on OPEN LAND without a roof = vacant_lot score 0, NOT property.
+- A driveway or sidewalk alone does NOT mean a house — look for a roof polygon on the lot.
+- Double-check: if you see a roof on the marked lot, it is property even if the yard is trashed — score distress on the HOME, not vacant_lot.`;
+}
+
+R.buildD4DIndicatorGuide = function buildD4DIndicatorGuide() {
+  return `
+INDICATOR DEFINITIONS (use exact keys; do not guess):
+SIGNAL RULE: Report every visible distress signal you see — do not hide moderate flags on otherwise normal homes. Tier decision uses indicator combos: severe flags alone = distressed; moderate flags need supporting neglect OR score 6+ with multiple visible issues.
+
+SEVERE / HIGH signals (score 8-10 if home confirmed — any ONE alone = distressed):
+  boarded_windows, boarded_doors, structural_damage, fire_or_water_damage
+  roof_damage_or_tarp = blue/tan tarp, missing shingles, collapsed/sagging roof — NOT mere discoloration
+MODERATE signals — require SUPPORTING neglect (do NOT distress on one flag alone):
+  junk_or_hoarding_yard = visible debris piles, junk scattered across yard, hoarding, trashed lot — NOT one trash can
+  broken_windows = broken/missing facade window panes — NOT reflections or blinds
+  abandoned_vehicles = non-running cars, trucks, boats sitting on lot long-term
+  A single moderate flag alone on an otherwise normal home → well_maintained (1-5). Pair with another signal to distress.
+COMBINATION signals — 2+ together = distressed score 6+:
+  junk + overgrown_landscaping, junk + peeling_paint, junk + deferred_maintenance, junk + broken_windows
+  broken_windows + overgrown_landscaping or peeling_paint or deferred_maintenance
+  abandoned_vehicles + junk or overgrown or peeling or deferred
+  overgrown_landscaping + peeling_paint, overgrown_landscaping + deferred_maintenance, peeling_paint + deferred_maintenance
+  poor satellite yard + 2 cosmetic neglect flags
+COSMETIC / SOFT (never distress alone — combine with moderate or other cosmetic):
+  overgrown_landscaping, deferred_maintenance, peeling_paint, broken_gutters, damaged_driveway, code_violation_notice
+DUMP HOUSE rule: debris/junk piles + weeds + dirty/heavily peeling exterior = score 6-10 distressed — flag junk_or_hoarding_yard + overgrown_landscaping + peeling_paint when all visible
+Satellite-only aerial keys: roof_damage_or_tarp, overgrown_landscaping, junk_or_hoarding_yard, abandoned_vehicles, structural_damage, deferred_maintenance`;
+}
+
+R.buildD4DAerialScoringGuide = function buildD4DAerialScoringGuide() {
+  return `
+AERIAL DISTRESS SCORE (aerial_distress_score) for HOMES only:
+  1-3 = manicured lawn, maintained roof, no visible junk/debris from above
+  4-5 = minor wear — light discoloration, slightly uneven grass, one soft flag, NO junk piles or abandoned vehicles
+  6-7 = distressed from above — clear junk/debris piles OR abandoned vehicle + yard neglect OR heavy overgrowth engulfing structure + peeling/deferred signals
+  8-10 = tarp/boarded visible, junk piles + abandoned car, structural damage, severe neglect covering most of lot
+Score 6+ only with clear significant neglect: junk piles, debris fields + other neglect, abandoned car + trashed yard, or heavy multi-signal neglect.
+Do NOT score 6+ for fair roof discoloration, light grass, or a single minor yard issue on an otherwise maintained lot.`;
+}
+
+R.buildD4DStreetScoringGuide = function buildD4DStreetScoringGuide() {
+  return `
+STREET VIEW checks (facade — wholesalers' drive-by red flags):
+  DISTRESSED (score 6-10) — assign when you see CLEAR multi-signal or severe neglect:
+• Junk/debris piles + weeds, peeling paint, or deferred maintenance (dump-house pattern)
+• Broken windows + overgrowth, peeling, deferred maintenance, or junk
+• Abandoned vehicle + junk, heavy weeds, or visible yard neglect
+• Heavy weeds engulfing structure + peeling paint or deferred maintenance
+• Boarded windows/doors, structural damage, fire/water damage, tarp on roof (severe — score 8+)
+  WELL MAINTAINED (score 1-5) — default for normal occupied homes:
+• Manicured or mowed yard, clean facade, intact windows, no junk piles, no abandoned cars
+• One moderate flag alone (single broken window, one junk pile edge case, one old car) on otherwise maintained home → score 3-5, well_maintained
+• Minor code-list flags (light grass, one gutter, code notice) on otherwise normal suburban home → score 2-4
+  When uncertain, still list every visible indicator; use score 6+ only when multiple neglect signals or any severe flag is visible.`;
+}
+
+R.buildSatellitePrompt = function buildSatellitePrompt(address) {
+  return `You are a Driving for Dollars (D4D) wholesaler screening ONE lot from SATELLITE (top-down aerial).
+
+Address: ${address}
+RED MARKER = SUBJECT lot only. Ignore neighbor roofs at image edges.
+
+${buildD4DVacantLotRules()}
+
+AERIAL SCAN ORDER:
+1) Footprint: home on lot, vacant land, or blocked view?
+2) ROOF on subject structure: good/fair/poor — tarp, missing patches, sagging, much worse than neighbors?
+3) YARD from above: maintained lawn vs weeds, junk piles, abandoned cars, bare dirt, neglected pool?
+
+${buildD4DIndicatorGuide()}
+${buildD4DAerialScoringGuide()}
+
+${buildStaticTierRules()}
+
+Respond ONLY valid JSON. reason = one plain sentence (max 25 words) on roof/yard for homes, or why vacant.
+{"category":"property"|"vacant_lot"|"unavailable","structure_on_subject_lot":true|false,"roof_condition":"good"|"fair"|"poor"|"unknown","yard_condition":"good"|"fair"|"poor"|"unknown","aerial_distress_score":<0-10>,"indicators":["roof_damage_or_tarp",...],"confidence":<0-100>,"reason":"<plain sentence, no quotes>"}`;
+}
+
+R.buildAnalysisPrompt = function buildAnalysisPrompt(address, viewMeta) {
+  const viewNote = viewMeta?.targeting === 'geocode_heading'
+    ? `Camera was aimed at the geocoded parcel (heading ${viewMeta.heading}°, narrow FOV). Center of frame = subject lot at: ${address}`
+    : `Target parcel address: ${address}. Center of frame = subject lot.`;
+  const flagNote = (viewMeta?.qualityFlags || []).length
+    ? `\nPhoto quality flags (informational only — do NOT set needs_review for these alone): ${viewMeta.qualityFlags.map(f => QUALITY_FLAG_LABELS[f] || f).join('; ')}.\n`
+    : '';
+  const sat = viewMeta?.satellite;
+  const satNote = sat
+    ? `\nSATELLITE D4D aerial (red marker = subject lot):
+- Structure: ${sat.category}, on_lot=${sat.structureOnLot}, confidence=${sat.confidence}%
+- Roof from above: ${sat.roofCondition || 'unknown'} | Yard from above: ${sat.yardCondition || 'unknown'}
+- Aerial distress estimate: ${sat.aerialDistressScore != null ? sat.aerialDistressScore + '/10' : 'n/a'}
+- Aerial red flags: ${(sat.indicators || []).length ? sat.indicators.join(', ') : 'none seen'}
+- "${sat.reason}"
+Combine satellite roof/yard clues with Street View facade checks for final score.\n`
+    : '';
+
+  return `You are a Driving for Dollars (D4D) wholesaler screening ONE lot from STREET VIEW (drive-by facade check).
+
+${viewNote}${satNote}${flagNote}
+
+SUBJECT LOT ONLY — center of frame = property at: ${address}. Ignore neighbors across street and at far edges.
+
+${buildD4DVacantLotRules()}
+
+WORKFLOW:
+STEP 1 — Lot type (before any distress score):
+  property = you see a home/structure on subject lot → continue to Steps 2-3
+  vacant_lot = open land, no house footprint (weeds/junk on bare lot ≠ home)
+  unavailable = ONLY if you truly cannot tell vacant land vs home (rare)
+  If you see a house: category=property. Score distress. Set lead_tier distressed or well_maintained.
+
+STEP 2 — Street-level indicators on SUBJECT home only:
+boarded_windows, boarded_doors, code_violation_notice, structural_damage, fire_or_water_damage, overgrown_landscaping, roof_damage_or_tarp, peeling_paint, broken_windows, junk_or_hoarding_yard, damaged_driveway, broken_gutters, abandoned_vehicles, deferred_maintenance
+
+${buildD4DIndicatorGuide()}
+${buildD4DStreetScoringGuide()}
+
+STEP 3 — Score 1-10 and lead_tier (use satellite clues above if provided):
+${buildStaticTierRules()}
+${buildCalibrationNote()}
+
+TIER OUTPUT (mandatory when category=property):
+  lead_tier "well_maintained" = score 1-5 — normal/manicured homes; minor cosmetic wear, light overgrowth, or code flags alone; single moderate flag without supporting neglect
+  lead_tier "distressed" = score 6-10 — boarded/structural/fire-water, OR clear multi-signal neglect (junk+weeds, broken windows+overgrowth, abandoned car+junk, dump-house combos)
+  lead_tier "vacant" = vacant_lot score 0
+  lead_tier "unavailable" = cannot determine lot type
+
+EXAMPLES — distressed (score 6-10, lead_tier distressed):
+  • Yard full of junk piles + weeds + peeling dirty exterior → score 7, indicators: junk_or_hoarding_yard, overgrown_landscaping, peeling_paint
+  • Broken front window + overgrown yard + deferred maintenance → score 6, indicators: broken_windows, overgrown_landscaping, deferred_maintenance
+  • Abandoned truck + trashed side yard with debris → score 7, indicators: abandoned_vehicles, junk_or_hoarding_yard
+  • Boarded windows on facade → score 8, indicators: boarded_windows
+EXAMPLES — well maintained (score 1-5, lead_tier well_maintained):
+  • Mowed lawn, intact windows, clean siding, one tall-grass flag → score 2-3
+  • Fair roof discoloration only, tidy yard, no junk → score 3-4
+  • One broken side window on otherwise maintained occupied home, no junk/overgrowth → score 4, well_maintained
+  • Single junk pile near garage but manicured front yard and clean facade → score 4-5, well_maintained (not dump house)
+
+If vacant_lot: score=0, indicators=[], lead_tier=vacant.
+If unavailable: score=0, indicators=[], lead_tier=unavailable.
+
+confidence: 0-100. needs_review: false unless lot type truly ambiguous.
+Respond ONLY valid JSON. reason = one plain sentence (max 25 words).
+{"score":<0-10>,"category":"property"|"vacant_lot"|"unavailable","structure_on_subject_lot":true|false,"lead_tier":"distressed"|"well_maintained"|"vacant"|"unavailable","confidence":<0-100>,"needs_review":false,"indicators":["boarded_windows",...],"reason":"<short plain sentence, no quotes>"}`;
+}
+
+R.QUALITY_FLAG_LABELS = {
+  geocode_failed: 'Approximate address',
+  approximate_aim: 'Wide-angle photo',
+  partial_address_match: 'Partial address match',
+  approximate_geocode: 'Non-rooftop geocode',
+  camera_far_from_parcel: 'Camera far from lot',
+  stale_streetview: 'Old Street View (4+ yrs)',
+  no_streetview: 'No Street View — satellite-only'
+};
+
+R.INDICATOR_LABELS = {
+  boarded_windows: 'Boarded windows',
+  boarded_doors: 'Boarded doors',
+  code_violation_notice: 'Code violation posted',
+  structural_damage: 'Structural damage',
+  fire_or_water_damage: 'Fire or water damage',
+  overgrown_landscaping: 'Overgrown yard',
+  roof_damage_or_tarp: 'Bad roof / tarp',
+  peeling_paint: 'Peeling paint',
+  broken_windows: 'Broken windows',
+  junk_or_hoarding_yard: 'Junk in yard',
+  damaged_driveway: 'Bad driveway',
+  broken_gutters: 'Broken gutters',
+  abandoned_vehicles: 'Abandoned vehicles',
+  deferred_maintenance: 'General neglect'
+};
+
+R.CONDITION_LABELS = {
+  good: 'Good',
+  fair: 'Fair',
+  poor: 'Poor',
+  unknown: 'Unknown'
+};
+
+R.WELL_MAINTAINED_MAX_SCORE = 5;
+R.DISTRESSED_MIN_SCORE = 6;
+
+R.HIGH_INDICATORS = new Set([
+  'boarded_windows', 'boarded_doors',
+  'structural_damage', 'fire_or_water_damage'
+]);
+
+R.CODE_ONLY_INDICATORS = new Set([
+  'code_violation_notice', 'overgrown_landscaping', 'deferred_maintenance'
+]);
+
+R.COSMETIC_INDICATORS = new Set([
+  'overgrown_landscaping', 'roof_damage_or_tarp', 'deferred_maintenance',
+  'peeling_paint', 'broken_gutters', 'damaged_driveway'
+]);
+
+R.MODERATE_INDICATORS = new Set([
+  'junk_or_hoarding_yard', 'broken_windows', 'abandoned_vehicles'
+]);
+
+R.STRONG_DISTRESS_INDICATORS = new Set([
+  'boarded_windows', 'boarded_doors',
+  'structural_damage', 'fire_or_water_damage',
+  'roof_damage_or_tarp'
+]);
+
+R.NEGLECT_COMBO_INDICATORS = new Set([
+  'overgrown_landscaping', 'deferred_maintenance', 'peeling_paint',
+  'broken_gutters', 'damaged_driveway', 'code_violation_notice'
+]);
+
+R.WELL_MAINTAINED_SOFT_INDICATORS = new Set([
+  'overgrown_landscaping', 'deferred_maintenance',
+  'broken_gutters', 'damaged_driveway', 'code_violation_notice',
+  'roof_damage_or_tarp', 'peeling_paint'
+]);
+
+R.WELL_MAINTAINED_HARD_BLOCKING_INDICATORS = new Set([
+  ...HIGH_INDICATORS
+]);
+
+R.WELL_MAINTAINED_BLOCKING_INDICATORS = WELL_MAINTAINED_HARD_BLOCKING_INDICATORS;
+
+R.hasModerateWithSupportingNeglect = function hasModerateWithSupportingNeglect(inds, reason = '') {
+  const list = normalizeIndicators(inds);
+  const hasJunk = list.includes('junk_or_hoarding_yard');
+  const hasBroken = list.includes('broken_windows');
+  const hasAbandoned = list.includes('abandoned_vehicles');
+  const hasOvergrown = list.includes('overgrown_landscaping');
+  const hasPeeling = list.includes('peeling_paint');
+  const hasDeferred = list.includes('deferred_maintenance');
+  const supportCosmetic = hasOvergrown || hasPeeling || hasDeferred
+    || list.includes('broken_gutters') || list.includes('roof_damage_or_tarp');
+  const neglectCount = countNeglectIndicators(list);
+
+  if (hasJunk && (hasOvergrown || hasPeeling || hasDeferred || hasBroken || hasAbandoned || neglectCount >= 2)) return true;
+  if (hasBroken && (hasOvergrown || hasPeeling || hasDeferred || hasJunk || hasAbandoned || supportCosmetic)) return true;
+  if (hasAbandoned && (hasJunk || hasOvergrown || hasPeeling || hasDeferred || neglectCount >= 2)) return true;
+  if (hasJunk && /debris pile|junk (scattered|everywhere)|hoarding|trashed (lot|yard)|dump (house|yard)|yard full of|scattered debris/i.test(reason)) return true;
+  return false;
+}
+
+R.hasDistressBlockingIndicators = function hasDistressBlockingIndicators(inds, reason = '') {
+  const list = normalizeIndicators(inds);
+  if (list.some(i => HIGH_INDICATORS.has(i))) return true;
+  if (hasModerateWithSupportingNeglect(list, reason)) return true;
+  if (hasNeglectCombo(list, reason)) return true;
+  return false;
+}
+
+R.US_STATE_ABBRS = {
+  AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California',
+  CO: 'Colorado', CT: 'Connecticut', DE: 'Delaware', DC: 'District of Columbia', FL: 'Florida',
+  GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana',
+  IA: 'Iowa', KS: 'Kansas', KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine',
+  MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+  MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire',
+  NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York', NC: 'North Carolina', ND: 'North Dakota',
+  OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island',
+  SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah',
+  VT: 'Vermont', VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming'
+};
+
+R.US_STATE_NAME_TO_ABBR = Object.fromEntries(
+  Object.entries(US_STATE_ABBRS).map(([abbr, name]) => [name.toLowerCase(), abbr])
+);
+for (const [abbr] of Object.entries(US_STATE_ABBRS)) {
+  US_STATE_NAME_TO_ABBR[abbr.toLowerCase()] = abbr;
+}
+
+/** StateFace glyph map (MIT) — https://github.com/propublica/stateface */
+R.US_STATE_ICON_GLYPHS = {
+  AL: 'B', AK: 'A', AZ: 'D', AR: 'C', CA: 'E', CO: 'F', CT: 'G', DE: 'H', DC: 'y',
+  FL: 'I', GA: 'J', HI: 'K', ID: 'M', IL: 'N', IN: 'O', IA: 'L', KS: 'P', KY: 'Q',
+  LA: 'R', ME: 'U', MD: 'T', MA: 'S', MI: 'V', MN: 'W', MS: 'Y', MO: 'X', MT: 'Z',
+  NE: 'c', NV: 'g', NH: 'd', NJ: 'e', NM: 'f', NY: 'h', NC: 'a', ND: 'b', OH: 'i',
+  OK: 'j', OR: 'k', PA: 'l', RI: 'm', SC: 'n', SD: 'o', TN: 'p', TX: 'q', UT: 'r',
+  VT: 't', VA: 's', WA: 'u', WV: 'w', WI: 'v', WY: 'x'
+};
+
+R.US_STATE_ICON_COLORS = {
+  AL: '#9E1B32', AK: '#0F204B', AZ: '#AB0520', AR: '#BF0A30', CA: '#B71234',
+  CO: '#002868', CT: '#0A3161', DE: '#C5A900', DC: '#7B1E3A', FL: '#F4911E',
+  GA: '#BA0C2F', HI: '#C8102E', ID: '#003776', IL: '#13274F', IN: '#A5ACAF',
+  IA: '#5D8AA8', KS: '#005EB8', KY: '#0033A0', LA: '#461D7C', ME: '#003F87',
+  MD: '#9D2235', MA: '#00287D', MI: '#00274C', MN: '#5E1148', MS: '#BF0A30',
+  MO: '#C8102E', MT: '#003087', NE: '#002F6C', NV: '#C5B783', NH: '#002F6C',
+  NJ: '#CE1126', NM: '#CE1126', NY: '#002D72', NC: '#BF0A30', ND: '#002F6C',
+  OH: '#BB0000', OK: '#007A33', OR: '#154734', PA: '#002D72', RI: '#002E62',
+  SC: '#003366', SD: '#007A33', TN: '#CC0000', TX: '#002868', UT: '#002F6C',
+  VT: '#003087', VA: '#00297A', WA: '#008457', WV: '#0A3161', WI: '#C8102E', WY: '#BF0A30'
+};
+
+R.STORAGE_KEY = 'distressAnalyzerSession';
+R.SESSION_IDB_NAME = 'distressAnalyzerDB';
+R.SESSION_IDB_STORE = 'session';
+R.SESSION_SCHEMA_VERSION = 6;
+R.BRAIN_CAPS = {
+  learnedRules: 120,
+  correctionEvents: 200,
+  scoreCorrections: 50,
+  tierCorrections: 80,
+  categoryCorrections: 30
+};
+R.CORRECTIONS_KEY = 'distressAnalyzerCorrections';
+R.CATEGORY_CORRECTIONS_KEY = 'distressAnalyzerCategoryCorrections';
+R.TIER_CORRECTIONS_KEY = 'distressAnalyzerTierCorrections';
+R.LEARNED_RULES_KEY = 'distressAnalyzerLearnedRules';
+R.CORRECTION_EVENTS_KEY = 'distressAnalyzerCorrectionEvents';
+R.GAUGE_CIRC = 251.2;
+R.scoreCorrections = [];
+R.tierCorrections = [];
+R.categoryCorrections = [];
+R.learnedRules = [];
+R.correctionEvents = [];
+R.correctionReviewQueue = Promise.resolve();
+
+R.state = {
+  records: [],
+  results: [],
+  running: false,
+  aborted: false,
+  processed: 0,
+  succeeded: 0,
+  skipped: 0,
+  failStreetView: 0,
+  failGemini: 0,
+  haltAlertShown: false,
+  serverStopAlertShown: false,
+  satelliteWarnShown: false,
+  rateLimitWarned: false,
+  fileName: '',
+  filter: 'all',
+  leadTypeFilter: 'all',
+  importLeadType: 'code_violation',
+  viewMode: 'cards',
+  selectedKey: null,
+  pinnedKey: null,
+  pinnedLiveAddress: null,
+  scanLiveSnapshot: null,
+  searchQuery: '',
+  sortMode: 'newest',
+  setupCollapsed: false,
+  scoreEditKey: null,
+  scoreEditRecordKey: null,
+  scoreEditSelectedTier: null,
+  appView: 'dashboard',
+  propertyModalOpen: false,
+  agentSlots: [],
+  bulkSelectMode: false,
+  reviewMode: false,
+  reviewFilter: 'all',
+  reviewQueue: [],
+  reviewIndex: 0,
+  reviewUndoStack: [],
+  reviewStats: { kept: 0, changed: 0, deferred: 0 },
+  reviewProgressByFilter: {},
+  reviewedKeysByFilter: { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [] },
+  reviewActionsSinceCheckpoint: 0,
+  lastReviewCheckpointAt: 0,
+  totalReviewCheckpoints: 0,
+  reviewTrainingGeminiMode: 'metadata',
+  displayLimit: 80
+};
+
+R.DISPLAY_LIMIT_INITIAL = 80;
+R.DISPLAY_LIMIT_STEP = 80;
+R.MAX_LIVE_DOM_CARDS = 60;
+R.VIRTUAL_ROW_HEIGHT = 340;
+R.VIRTUAL_CARD_MIN_WIDTH = 280;
+R.VIRTUAL_CARD_GAP = 20;
+R.VIRTUAL_OVERSCAN = 5;
+R.VIRTUAL_MAX_DOM = 40;
+R.VIRTUAL_SCROLL_THRESHOLD = 48;
+R.SESSION_PAGE_SIZE = 1000;
+R.FETCH_KEEPALIVE_MAX_BYTES = 64000;
+R.SESSION_STUB_MAX_BYTES = 10 * 1024;
+
+R.bulkSelectedKeys = new Set();
+
+R.$ = (id) => document.getElementById(id);
+
+R.streetViewKey = $('streetViewKey');
+R.geminiKey = $('geminiKey');
+R.concurrentLimitInput = $('concurrentLimit');
+R.concurrentLimitVal = $('concurrentLimitVal');
+R.fileInput = $('fileInput');
+R.fileDrop = $('fileDrop');
+R.fileInfo = $('fileInfo');
+R.startBtn = $('startBtn');
+R.stopBtn = $('stopBtn');
+R.exportBtn = $('exportBtn'); // legacy hook (element removed)
+R.resetUploadBtn = $('resetUploadBtn');
+R.progressSection = $('progressSection');
+R.progressBar = $('progressBar');
+R.resultsBody = $('resultsBody');
+R.cardsGrid = $('cardsGrid');
+R.cardsVirtualSpacer = null;
+R.cardsVirtualWindow = null;
+R.virtualScroll = {
+  scrollTop: 0,
+  containerHeight: 600,
+  mountedKeys: new Map(),
+  rafPending: false,
+  initialized: false
+};
+R.sessionLoadState = { complete: false, loading: false, loaded: 0, total: 0, serverCanonical: 0 };
+R.sessionLoadGeneration = 0;
+
+R.resetVirtualScrollDom = function resetVirtualScrollDom() {
+  if (!virtualScroll.initialized) return;
+  virtualScroll.initialized = false;
+  virtualScroll.mountedKeys.clear();
+  virtualScroll.scrollTop = 0;
+  cardsVirtualSpacer = null;
+  cardsVirtualWindow = null;
+}
+
+R.resetVirtualScrollPosition = function resetVirtualScrollPosition() {
+  virtualScroll.scrollTop = 0;
+  virtualScroll.mountedKeys.clear();
+  if (cardsGrid) cardsGrid.scrollTop = 0;
+}
+
+R.getVirtualGridWidth = function getVirtualGridWidth() {
+  return cardsGrid?.clientWidth || cardsVirtualWindow?.clientWidth || 1200;
+}
+
+R.getVirtualScrollMetrics = function getVirtualScrollMetrics() {
+  const vs = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.virtualScroll) ? PDA.lib.virtualScroll : null;
+  const width = getVirtualGridWidth();
+  const opts = {
+    rowHeight: VIRTUAL_ROW_HEIGHT,
+    cardMinWidth: VIRTUAL_CARD_MIN_WIDTH,
+    cardGap: VIRTUAL_CARD_GAP,
+    overscanRows: VIRTUAL_OVERSCAN
+  };
+  if (vs) {
+    return {
+      vs,
+      width,
+      opts,
+      cols: () => vs.getColumnCount(width, opts),
+      slice: (total, scrollTop, viewH) => vs.getVisibleSlice(total, scrollTop, viewH, width, opts),
+      spacerHeight: (total) => vs.getSpacerHeight(total, width, opts)
+    };
+  }
+  const cols = Math.max(1, Math.floor((width + VIRTUAL_CARD_GAP) / (VIRTUAL_CARD_MIN_WIDTH + VIRTUAL_CARD_GAP)));
+  return {
+    vs: null,
+    width,
+    opts,
+    cols: () => cols,
+    slice: (total, scrollTop, viewH) => {
+      const totalRows = total ? Math.ceil(total / cols) : 0;
+      const firstRow = Math.max(0, Math.floor(scrollTop / VIRTUAL_ROW_HEIGHT) - VIRTUAL_OVERSCAN);
+      const visibleRows = Math.ceil(viewH / VIRTUAL_ROW_HEIGHT) + (VIRTUAL_OVERSCAN * 2);
+      const lastRow = Math.min(totalRows, firstRow + visibleRows);
+      return {
+        cols,
+        totalRows,
+        firstRow,
+        startIndex: firstRow * cols,
+        endIndex: Math.min(total, lastRow * cols),
+        offsetY: firstRow * VIRTUAL_ROW_HEIGHT
+      };
+    },
+    spacerHeight: (total) => (total ? Math.ceil(total / cols) : 0) * VIRTUAL_ROW_HEIGHT
+  };
+}
+
+R.initVirtualScroll = function initVirtualScroll() {
+  if (!cardsGrid || virtualScroll.initialized) return;
+  cardsGrid.style.overflowY = 'auto';
+  cardsGrid.style.maxHeight = 'calc(100vh - 220px)';
+  cardsGrid.style.position = 'relative';
+  cardsVirtualSpacer = document.createElement('div');
+  cardsVirtualSpacer.id = 'cardsVirtualSpacer';
+  cardsVirtualWindow = document.createElement('div');
+  cardsVirtualWindow.id = 'cardsVirtualWindow';
+  cardsVirtualWindow.style.cssText = 'position:absolute;top:0;left:0;right:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;';
+  cardsGrid.replaceChildren(cardsVirtualSpacer, cardsVirtualWindow);
+  cardsGrid.addEventListener('scroll', () => {
+    virtualScroll.scrollTop = cardsGrid.scrollTop;
+    if (!virtualScroll.rafPending) {
+      virtualScroll.rafPending = true;
+      requestAnimationFrame(() => {
+        virtualScroll.rafPending = false;
+        renderVirtualCards();
+      });
+    }
+  }, { passive: true });
+  if (!virtualScroll.resizeBound) {
+    virtualScroll.resizeBound = true;
+    window.addEventListener('resize', () => {
+      if (!virtualScroll.initialized || state.viewMode !== 'cards') return;
+      if (!virtualScroll.resizeRaf) {
+        virtualScroll.resizeRaf = requestAnimationFrame(() => {
+          virtualScroll.resizeRaf = null;
+          renderVirtualCards();
+        });
+      }
+    }, { passive: true });
+  }
+  virtualScroll.initialized = true;
+}
+
+R.updateVirtualSpacerHeight = function updateVirtualSpacerHeight(count) {
+  if (!cardsVirtualSpacer) return;
+  const metrics = getVirtualScrollMetrics();
+  cardsVirtualSpacer.style.height = `${metrics.spacerHeight(count)}px`;
+}
+
+R.resultsLoadMore = $('resultsLoadMore');
+R.resultsLoadMoreBtn = $('resultsLoadMoreBtn');
+R.resultsLoadMoreHint = $('resultsLoadMoreHint');
+R.summarySection = $('summarySection');
+R.dashboard = $('dashboard');
+R.resultsWrap = $('resultsWrap');
+R.previewImg = $('previewImg');
+R.previewSatImg = $('previewSatImg');
+R.previewSatWrap = $('previewSatWrap');
+R.previewImages = $('previewImages');
+R.previewPaneLabel = $('previewPaneLabel');
+R.previewMainReticle = $('previewMainReticle');
+R.previewPlaceholder = $('previewPlaceholder');
+R.previewWrap = $('previewWrap');
+R.scanFeedPanel = $('scanFeedPanel');
+R.scanFeedImages = $('scanFeedImages');
+R.scanFeedImg = $('scanFeedImg');
+R.scanFeedSatImg = $('scanFeedSatImg');
+R.scanFeedSatWrap = $('scanFeedSatWrap');
+R.scanFeedWrap = $('scanFeedWrap');
+R.scanFeedPaneLabel = $('scanFeedPaneLabel');
+R.scanFeedMainReticle = $('scanFeedMainReticle');
+R.scanFeedPlaceholder = $('scanFeedPlaceholder');
+R.scanFeedPinHint = $('scanFeedPinHint');
+R.scanFeedStatus = $('scanFeedStatus');
+R.scanFeedAddress = $('scanFeedAddress');
+R.scanLiveDot = $('scanLiveDot');
+R.scanRecBadge = $('scanRecBadge');
+R.scanGaugeFill = $('scanGaugeFill');
+R.scanGaugeNum = $('scanGaugeNum');
+R.propertyModal = $('propertyModal');
+R.propertyModalBackdrop = $('propertyModalBackdrop');
+R.closePropertyBtn = $('closePropertyBtn');
+R.scoreEditModal = $('scoreEditModal');
+R.scoreEditBackdrop = $('scoreEditBackdrop');
+R.scoreEditClose = $('scoreEditClose');
+R.scoreEditCancel = $('scoreEditCancel');
+R.scoreEditSave = $('scoreEditSave');
+R.learnedRulesList = $('learnedRulesList');
+R.learnedRulesSub = $('learnedRulesSub');
+R.scoreEditAddress = $('scoreEditAddress');
+R.scoreEditTierPicker = $('scoreEditTierPicker');
+R.scoreEditAiNote = $('scoreEditAiNote');
+R.bulkSelectToggleBtn = $('bulkSelectToggleBtn');
+R.bulkEditBar = $('bulkEditBar');
+R.bulkEditCount = $('bulkEditCount');
+R.bulkEditHint = $('bulkEditHint');
+
+R.imageLightbox = $('imageLightbox');
+R.lightboxImg = $('lightboxImg');
+R.lightboxLabel = $('lightboxLabel');
+R.lightboxClose = $('lightboxClose');
+R.lightboxBackdrop = $('lightboxBackdrop');
+R.reviewModeOverlay = $('reviewModeOverlay');
+R.reviewProgress = $('reviewProgress');
+R.reviewFilterTag = $('reviewFilterTag');
+R.reviewStatsEl = $('reviewStatsEl');
+R.reviewCheckpointEl = $('reviewCheckpointEl');
+R.reviewExitBtn = $('reviewExitBtn');
+R.reviewBody = $('reviewBody');
+R.reviewImages = $('reviewImages');
+R.reviewSatWrap = $('reviewSatWrap');
+R.reviewSatImg = $('reviewSatImg');
+R.reviewSvWrap = $('reviewSvWrap');
+R.reviewSvImg = $('reviewSvImg');
+R.reviewPlaceholder = $('reviewPlaceholder');
+R.reviewPaneLabel = $('reviewPaneLabel');
+R.reviewMetaName = $('reviewMetaName');
+R.reviewMetaStreet = $('reviewMetaStreet');
+R.reviewMetaBadges = $('reviewMetaBadges');
+R.reviewMetaAnalysis = $('reviewMetaAnalysis');
+R.reviewCompletePanel = $('reviewCompletePanel');
+R.reviewCompleteText = $('reviewCompleteText');
+R.reviewModeInner = $('reviewModeInner');
+R.reviewModeBadge = $('reviewModeBadge');
+R.reviewShortcutsBar = $('reviewShortcutsBar');
+R.reviewShortcutChips = $('reviewShortcutChips');
+R.reviewActionBar = $('reviewActionBar');
+R.reviewKeepBtn = $('reviewKeepBtn');
+R.reviewChangeBtn = $('reviewChangeBtn');
+R.reviewDeferBtn = $('reviewDeferBtn');
+R.reviewLandBtn = $('reviewLandBtn');
+R.reviewUndoBtn = $('reviewUndoBtn');
+R.reviewCompleteExitBtn = $('reviewCompleteExitBtn');
+R.sidebarReviewGroup = $('sidebarReviewGroup');
+R.sidebarReviewToggle = $('sidebarReviewToggle');
+R.sidebarReviewDistressedBtn = $('sidebarReviewDistressedBtn');
+R.sidebarReviewWellMaintainedBtn = $('sidebarReviewWellMaintainedBtn');
+R.sidebarReviewLandBtn = $('sidebarReviewLandBtn');
+R.sidebarReviewNeedsReviewBtn = $('sidebarReviewNeedsReviewBtn');
+R.reviewBlurredBtn = $('reviewBlurredBtn');
+R.reviewTierPickOverlay = $('reviewTierPickOverlay');
+R.reviewTierPickCancel = $('reviewTierPickCancel');
+R.REVIEW_ENTRY_BTNS = [
+  sidebarReviewDistressedBtn,
+  sidebarReviewWellMaintainedBtn,
+  sidebarReviewLandBtn,
+  sidebarReviewNeedsReviewBtn
+];
+R.REVIEW_MODE_FILTERS = ['distressed', 'well_maintained', 'vacant', 'review'];
+R.reviewTierPickResolver = null;
+R.inspectorBody = $('inspectorBody');
+R.inspectorPos = $('inspectorPos');
+R.prevPropBtn = $('prevPropBtn');
+R.nextPropBtn = $('nextPropBtn');
+R.resultSearch = $('resultSearch');
+R.setupZone = $('setupZone');
+R.uploadCollapsedBar = $('uploadCollapsedBar');
+R.uploadCollapsedBtn = $('uploadCollapsedBtn');
+R.commandFileStatus = $('commandFileStatus');
+R.emptyWorkspace = $('emptyWorkspace');
+R.mainWorkspace = $('mainWorkspace');
+R.sessionRestoreBanner = $('sessionRestoreBanner');
+R.settingsModal = $('settingsModal');
+R.settingsModalBackdrop = $('settingsModalBackdrop');
+R.settingsModalClose = $('settingsModalClose');
+R.openSettingsBtn = $('openSettingsBtn');
+R.uploadModal = $('uploadModal');
+R.uploadModalBackdrop = $('uploadModalBackdrop');
+R.uploadModalClose = $('uploadModalClose');
+R.openUploadModalBtn = $('openUploadModalBtn');
+R.emptyUploadBtn = $('emptyUploadBtn');
+R.emptySettingsBtn = $('emptySettingsBtn');
+R.brainModal = $('brainModal');
+R.brainModalBackdrop = $('brainModalBackdrop');
+R.brainModalClose = $('brainModalClose');
+R.openBrainBtn = $('openBrainBtn');
+R.openToolModalId = null;
+R.browseFileLabel = $('browseFileLabel');
+R.sidebarSettingsGroup = $('sidebarSettingsGroup');
+R.sidebarSettingsToggle = $('sidebarSettingsToggle');
+R.sidebarManageDataGroup = $('sidebarManageDataGroup');
+R.sidebarManageDataToggle = $('sidebarManageDataToggle');
+R.sidebarExportHint = $('sidebarExportHint');
+R.sidebarExportExcelBtn = $('sidebarExportExcelBtn');
+R.sidebarExportCsvBtn = $('sidebarExportCsvBtn');
+R.sidebarExportAllBtn = $('sidebarExportAllBtn');
+R.sidebarLoadBackupBtn = $('sidebarLoadBackupBtn');
+R.sidebarSaveBackupBtn = $('sidebarSaveBackupBtn');
+R.sidebarSettingsSaveBackupBtn = $('sidebarSettingsSaveBackupBtn');
+R.sidebarSettingsBackupHint = $('sidebarSettingsBackupHint');
+R.EXPORT_MENU_BTNS = [
+  sidebarExportExcelBtn,
+  sidebarExportCsvBtn,
+  sidebarExportAllBtn
+];
+
+R.appNav = $('appNav');
+R.navContext = $('navContext');
+R.navSetup = $('navSetup');
+R.navDashboard = $('navDashboard');
+R.navScan = $('navScan');
+R.previewHeaderTitle = $('previewHeaderTitle');
+R.liveDot = $('liveDot');
+R.heroCount = $('heroCount');
+R.logPanel = $('logPanel');
+R.gaugeFill = $('gaugeFill');
+R.gaugeNum = $('gaugeNum');
+
+R.recBadge = $('recBadge');
+R.hudStatus = $('hudStatus');
+R.liveTierAlertStack = $('liveTierAlertStack');
+R.TIER_ALERT_LIFETIME_MS = 4000;
+R.MAX_TIER_ALERT_STACK = 1;
+R.hudClock = $('hudClock');
+R.testSvBtn = $('testSvBtn');
+R.testSvResult = $('testSvResult');
+R.errorBanner = $('errorBanner');
+R.scanIssueAlert = $('scanIssueAlert');
+R.scanIssueTitle = $('scanIssueTitle');
+R.scanIssueDetail = $('scanIssueDetail');
+R.scanIssueMeta = $('scanIssueMeta');
+R.scanIssueDismiss = $('scanIssueDismiss');
+R.scanIssueNotifyBtn = $('scanIssueNotifyBtn');
+R.diagStreetView = $('diagStreetView');
+R.diagSatellite = $('diagSatellite');
+R.diagGemini = $('diagGemini');
+R.diagFull = $('diagFull');
+R.firstErrorShown = false;
+
+R.SCAN_NOTIFY_KEY = 'distressAnalyzerNotify';
+R.scanIssueState = { lastKind: '', lastTitle: '', lastMessage: '', lastTier: 'warn' };
+R.scanIssueDismissed = false;
+R.rateLimitTicker = null;
+R.serverStatusPoll = null;
+R.workerActivityPoll = null;
+R.alwaysOnSafetyPoll = null;
+R.lastPayloadBytes = 0;
+R.serverOnline = null;
+R.lastServerApiStatus = null;
+R.serverOfflineStreak = 0;
+R.scanIssueHudWasPaused = false;
+R.scanIssueNotifiedKeys = new Set();
+
+R.scanNotifyEnabled = function scanNotifyEnabled() {
+  return localStorage.getItem(SCAN_NOTIFY_KEY) === '1' && 'Notification' in window && Notification.permission === 'granted';
+}
+
+R.updateScanNotifyBtn = function updateScanNotifyBtn() {
+  const btn = $('scanIssueNotifyBtn');
+  if (!btn) return;
+  const on = scanNotifyEnabled();
+  btn.textContent = on ? 'Alerts on' : 'Notify me';
+  btn.classList.toggle('enabled', on);
+  btn.title = on
+    ? 'Desktop alerts enabled for rate limits and failures'
+    : 'Get desktop alerts when rate limits or failures occur';
+}
+
+R.ensureNotificationPermission = async function ensureNotificationPermission() {
+  if (!('Notification' in window)) {
+    alert('Desktop notifications are not supported in this browser.');
+    return false;
+  }
+  if (Notification.permission === 'granted') {
+    localStorage.setItem(SCAN_NOTIFY_KEY, '1');
+    updateScanNotifyBtn();
+    return true;
+  }
+  if (Notification.permission === 'denied') {
+    alert('Notifications are blocked. Enable them in your browser site settings, then click Notify me again.');
+    return false;
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === 'granted') {
+    localStorage.setItem(SCAN_NOTIFY_KEY, '1');
+    updateScanNotifyBtn();
+    return true;
+  }
+  return false;
+}
+
+R.maybeBrowserNotify = function maybeBrowserNotify(title, body, dedupeKey) {
+  if (!scanNotifyEnabled()) return;
+  const key = dedupeKey || `${title}|${String(body || '').slice(0, 96)}`;
+  if (scanIssueNotifiedKeys.has(key)) return;
+  scanIssueNotifiedKeys.add(key);
+  try {
+    new Notification(title, { body: String(body || '').slice(0, 220), tag: 'distress-scan-issue' });
+  } catch (_) { /* ignore */ }
+}
+
+R.formatPauseRemaining = function formatPauseRemaining(until) {
+  const sec = Math.ceil((until - Date.now()) / 1000);
+  return sec > 0 ? `${sec}s` : '';
+}
+
+R.stopWorkerActivityPolling = function stopWorkerActivityPolling() {
+  if (workerActivityPoll) {
+    clearInterval(workerActivityPoll);
+    workerActivityPoll = null;
+  }
+}
+
+R.startWorkerActivityPolling = function startWorkerActivityPolling() {
+  stopWorkerActivityPolling();
+  updateWorkerActivityUi(lastServerApiStatus);
+  workerActivityPoll = setInterval(() => {
+    if (state.running) updateWorkerActivityUi(lastServerApiStatus);
+    else stopWorkerActivityPolling();
+  }, 1000);
+}
+
+R.stopServerStatusPolling = function stopServerStatusPolling() {
+  if (serverStatusPoll) {
+    clearInterval(serverStatusPoll);
+    serverStatusPoll = null;
+  }
+  stopWorkerActivityPolling();
+}
+
+R.isRawFetchTransportError = function isRawFetchTransportError(msg) {
+  const m = String(msg || '').toLowerCase().trim();
+  return /^(typeerror: )?failed to fetch\.?$/.test(m)
+    || /^fetch failed/i.test(m)
+    || /networkerror|network error|connection refused|err_connection_refused|net::err_connection_refused/.test(m);
+}
+
+R.isServerConnectionError = function isServerConnectionError(msg) {
+  const m = String(msg || '').toLowerCase();
+  if (/open via start-server|run start-server\.bat first/i.test(m)) return !USE_PROXY;
+  if (/failed to fetch imagery from local server/i.test(m)) return isRawFetchTransportError(m);
+  return isRawFetchTransportError(msg);
+}
+
+R.pingServerStatus = async function pingServerStatus() {
+  if (!USE_PROXY) return null;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 8000);
+  try {
+    const res = await fetch('/api/status', { cache: 'no-store', signal: ctrl.signal });
+    const st = await res.json();
+    return st?.ok ? st : null;
+  } catch (_) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+R.waitForServerReady = async function waitForServerReady({ attempts = 10, delayMs = 1500 } = {}) {
+  for (let i = 0; i < attempts; i++) {
+    const st = await pingServerStatus();
+    if (st) return st;
+    if (i < attempts - 1) await sleep(delayMs);
+  }
+  return null;
+}
+
+R.clearServerOfflineFatalBanner = function clearServerOfflineFatalBanner() {
+  const text = errorBanner?.textContent || '';
+  if (/local server is not running|server not running/i.test(text)) {
+    errorBanner.classList.remove('visible');
+    errorBanner.innerHTML = '';
+  }
+}
+
+R.updateServerOfflineBanner = function updateServerOfflineBanner() {
+  if (!USE_PROXY) return;
+  if (serverOnline === false && !state.running) {
+    setSessionRestoreBanner('Server not running — double-click "Property Distress Analyzer" on your desktop, then refresh this page.', true);
+    updateStartButton();
+  } else if (serverOnline === true) {
+    const banner = sessionRestoreBanner?.querySelector('span')?.textContent || '';
+    if (/server not running/i.test(banner)) setSessionRestoreBanner('');
+    clearServerOfflineFatalBanner();
+    updateStartButton();
+  }
+}
+
+R.fetchServerSafetyStatus = async function fetchServerSafetyStatus() {
+  if (!USE_PROXY) return null;
+  try {
+    const res = await fetch('/api/safety-status', { cache: 'no-store' });
+    const data = await res.json();
+    return data?.ok ? data : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+R.updateServerSafetyIndicator = function updateServerSafetyIndicator(safety) {
+  const el = $('backupSizeIndicator');
+  if (!el || !safety) return;
+  const localPart = lastPayloadBytes
+    ? `Local: ${DistressPersistence?.formatBytes?.(lastPayloadBytes) || Math.round(lastPayloadBytes / 1024) + ' KB'}`
+    : '';
+  const serverTs = safety.lastAutoSnapshotAt || safety.lastPromoteAt || safety.latestSavedAt;
+  const ago = serverTs ? Math.max(0, Math.round((Date.now() - serverTs) / 1000)) : null;
+  const agoLabel = ago == null ? '—' : (ago < 60 ? `${ago}s ago` : `${Math.round(ago / 60)}m ago`);
+  const milestoneCount = safety.milestoneBackupCount || 0;
+  const manualCount = safety.manualBackupCount || 0;
+  const serverPart = `Server: ${(safety.latestResults || 0).toLocaleString()} saved · ${agoLabel} · ${milestoneCount} milestones · ${manualCount} manual`;
+  el.hidden = false;
+  el.textContent = localPart ? `${localPart} · ${serverPart}` : serverPart;
+  el.title = `Disk backups: milestones (review edits) in backups/milestones/, ephemeral rolling in backups/auto/. Mirror: MIRROR_LATEST.json`;
+}
+
+R.refreshServerStatusUi = async function refreshServerStatusUi() {
+  if (!USE_PROXY) return null;
+  const st = await pingServerStatus();
+  if (st) {
+    serverOfflineStreak = 0;
+    serverOnline = true;
+    updateServerOfflineBanner();
+    fetchServerSafetyStatus().then(updateServerSafetyIndicator);
+    if (st.gemini?.rateLimited) {
+      const msg = `${st.gemini.recent429} Gemini rate limits in the last 2 min` +
+        ` (${st.gemini.active}/${st.gemini.maxConcurrent} active, ${st.gemini.waiting} queued).` +
+        ' Stop scan, set workers to 3–5, wait 10–15 min.';
+      notifyScanIssue('rate_limit', msg, {
+        title: 'Gemini rate limited — scan stalled',
+        dedupeKey: `srv-429-${st.gemini.recent429}`,
+        browserNotify: true
+      });
+      if (diagGemini && !state.running) {
+        setDiag(diagGemini, 'warn', `Gemini: ⚠ RATE LIMITED (${st.gemini.recent429} recent 429s)`);
+      }
+      if (diagFull && /ALL WORKING/i.test(diagFull.textContent || '')) {
+        setDiag(diagFull, 'warn', 'Full pipeline: ⚠ Gemini rate limited right now — wait before scanning');
+      }
+    }
+    lastServerApiStatus = st;
+    updateWorkerActivityUi(st);
+    return st;
+  }
+  serverOfflineStreak++;
+  if (serverOfflineStreak >= 2) {
+    serverOnline = false;
+    updateServerOfflineBanner();
+  }
+  return null;
+}
+
+R.startServerStatusPolling = function startServerStatusPolling() {
+  stopServerStatusPolling();
+  refreshServerStatusUi();
+  serverStatusPoll = setInterval(refreshServerStatusUi, 5000);
+  startWorkerActivityPolling();
+}
+
+R.startAlwaysOnSafetyPolling = function startAlwaysOnSafetyPolling() {
+  if (!USE_PROXY) return;
+  fetchServerSafetyStatus().then(updateServerSafetyIndicator);
+  if (!alwaysOnSafetyPoll) {
+    alwaysOnSafetyPoll = setInterval(() => {
+      fetchServerSafetyStatus().then(updateServerSafetyIndicator);
+    }, 15000);
+  }
+}
+
+R.resetScanIssueState = function resetScanIssueState() {
+  scanIssueDismissed = false;
+  scanIssueNotifiedKeys.clear();
+  scanIssueHudWasPaused = false;
+  scanIssueState.lastKind = '';
+  scanIssueState.lastTitle = '';
+  scanIssueState.lastMessage = '';
+  scanIssueState.lastTier = 'warn';
+  stopServerStatusPolling();
+  if (rateLimitTicker) {
+    clearInterval(rateLimitTicker);
+    rateLimitTicker = null;
+  }
+  if (scanIssueAlert) {
+    scanIssueAlert.classList.remove('visible');
+    scanIssueAlert.hidden = true;
+    scanIssueAlert.dataset.tier = '';
+  }
+  updateScanNotifyBtn();
+}
+
+R.startRateLimitTicker = function startRateLimitTicker() {
+  if (rateLimitTicker) return;
+  rateLimitTicker = setInterval(() => {
+    if (!state.running && Date.now() >= rateLimitUntil) {
+      clearInterval(rateLimitTicker);
+      rateLimitTicker = null;
+      if (scanIssueHudWasPaused) {
+        scanIssueHudWasPaused = false;
+        setHudStatus('STANDBY');
+      }
+      updateScanIssuePanel();
+      return;
+    }
+    updateScanIssuePanel();
+    if (state.running) updateWorkerActivityUi(lastServerApiStatus);
+  }, 450);
+}
+
+R.updateScanIssuePanel = function updateScanIssuePanel() {
+  if (!scanIssueAlert) return;
+
+  const rateLimited = Date.now() < rateLimitUntil;
+  const failSv = state.failStreetView || 0;
+  const failGem = state.failGemini || 0;
+  const throttled = adaptiveConcurrentCap != null && adaptiveConcurrentCap < getConcurrentLimit();
+  const fatal = !!state.haltAlertShown;
+  const hasIssues = rateLimited || failSv || failGem || throttled || fatal || (state.running && scanIssueState.lastKind);
+
+  if (scanIssueDismissed && !rateLimited && !fatal) {
+    scanIssueAlert.classList.remove('visible');
+    scanIssueAlert.hidden = true;
+    return;
+  }
+
+  if (!hasIssues) {
+    scanIssueAlert.classList.remove('visible');
+    scanIssueAlert.hidden = true;
+    if (scanIssueHudWasPaused && state.running) {
+      scanIssueHudWasPaused = false;
+      setHudStatus('ACTIVE', true);
+    }
+    return;
+  }
+
+  let tier = 'warn';
+  let title = 'Scan issue';
+  let detail = '';
+
+  if (fatal) {
+    tier = 'error';
+    title = 'Scan stopped';
+    detail = scanIssueState.lastMessage || 'A fatal API error stopped the scan.';
+  } else if (rateLimited) {
+    tier = 'warn';
+    title = `Rate limited — paused ${formatPauseRemaining(rateLimitUntil)}`;
+    detail = 'Google/Gemini is busy (429 or 503). All workers wait, then retry automatically.';
+    if (state.running) {
+      scanIssueHudWasPaused = true;
+      setHudStatus(`PAUSED ${formatPauseRemaining(rateLimitUntil)}`, true);
+    }
+  } else if (throttled) {
+    tier = 'warn';
+    title = `Slowed to ${getEffectiveConcurrentLimit()} workers`;
+    detail = 'Many properties failed this batch — parallelism reduced to avoid more skips.';
+  } else if (failSv || failGem) {
+    tier = 'warn';
+    title = 'Some properties need review';
+    detail = scanIssueState.lastMessage || 'Transient errors exhausted retries — flagged Needs Review, scan continues.';
+  } else if (scanIssueState.lastMessage) {
+    detail = scanIssueState.lastMessage;
+    title = scanIssueState.lastTitle || title;
+    tier = scanIssueState.lastTier || 'info';
+  }
+
+  scanIssueAlert.dataset.tier = tier;
+  scanIssueTitle.textContent = title;
+  scanIssueDetail.textContent = detail;
+
+  const chips = [];
+  if (failSv) chips.push(`<span class="fail-chip sv">${failSv} SV fail</span>`);
+  if (failGem) chips.push(`<span class="fail-chip gem">${failGem} Gemini fail</span>`);
+  if (state.running) chips.push(`<span>${state.processed}/${state.records.length}</span>`);
+  const notifyHtml = `<button type="button" class="scan-issue-notify-btn${scanNotifyEnabled() ? ' enabled' : ''}" id="scanIssueNotifyBtn">${scanNotifyEnabled() ? 'Alerts on' : 'Notify me'}</button>`;
+  scanIssueMeta.innerHTML = chips.join('') + notifyHtml;
+  $('scanIssueNotifyBtn')?.addEventListener('click', () => ensureNotificationPermission());
+
+  scanIssueAlert.hidden = false;
+  scanIssueAlert.classList.add('visible');
+}
+
+R.notifyScanIssue = function notifyScanIssue(kind, message, opts = {}) {
+  const titleMap = {
+    rate_limit: 'Rate limit — workers paused',
+    retry: 'Retrying after busy response',
+    failure: 'Property needs review',
+    throttle: 'Workers throttled',
+    fatal: 'Scan stopped',
+    complete_issues: 'Scan finished with issues',
+    warning: 'Scan warning'
+  };
+
+  scanIssueState.lastKind = kind;
+  scanIssueState.lastTitle = opts.title || titleMap[kind] || 'Scan issue';
+  scanIssueState.lastMessage = message || '';
+  scanIssueState.lastTier = opts.tier || (kind === 'fatal' ? 'error' : 'warn');
+
+  if (kind !== 'retry') scanIssueDismissed = false;
+
+  if (kind === 'rate_limit') startRateLimitTicker();
+
+  updateScanIssuePanel();
+
+  if (opts.browserNotify !== false) {
+    const notifyTitle = scanIssueState.lastTitle;
+    const notifyBody = message || '';
+    const dedupe = opts.dedupeKey || kind;
+    maybeBrowserNotify(notifyTitle, notifyBody, dedupe);
+  }
+}
+
+scanIssueDismiss?.addEventListener('click', () => {
+  if (Date.now() < rateLimitUntil || state.haltAlertShown) return;
+  scanIssueDismissed = true;
+  updateScanIssuePanel();
+});
+
+scanIssueNotifyBtn?.addEventListener('click', () => ensureNotificationPermission());
+updateScanNotifyBtn();
+
+R.setDiag = function setDiag(el, status, msg) {
+  el.className = status === 'ok' ? 'diag-ok' : status === 'fail' ? 'diag-fail' : status === 'warn' ? 'diag-warn' : 'diag-pending';
+  el.textContent = msg;
+}
+
+R.categorizeError = function categorizeError(msg) {
+  const m = (msg || '').toLowerCase();
+  if (m.includes('gemini') || m.includes('quota') || m.includes('exceeded') || m.includes('429') || m.includes('resource_exhausted')) return 'gemini';
+  if (m.includes('street view') || m.includes('no street view') || m.includes('request_denied') || m.includes('imagery') || m.includes('metadata') || m.includes('403') && !m.includes('gemini')) return 'streetview';
+  if (m.includes('failed to fetch') || m.includes('network') || m.includes('timed out') || m.includes('timeout') || m.includes('satellite')) return 'fetch';
+  return 'unknown';
+}
+
+R.updateFailStats = function updateFailStats() {
+  $('failSvCount').textContent = state.failStreetView;
+  $('failGemCount').textContent = state.failGemini;
+  if (state.failStreetView || state.failGemini) {
+    $('failStats').classList.add('visible');
+  }
+}
+
+R.isFatalError = function isFatalError() {
+  return false;
+}
+
+R.rateLimitUntil = 0;
+R.adaptiveConcurrentCap = null;
+
+R.syncResultCounters = function syncResultCounters() {
+  state.succeeded = state.results.length;
+  state.skipped = 0;
+}
+
+R.countSuccessfulResults = function countSuccessfulResults() {
+  return state.results.filter(r => !computeNeedsReview(r)).length;
+}
+
+R.countFailedResults = function countFailedResults() {
+  return state.results.filter(r => {
+    if (computeNeedsReview(r)) return true;
+    if (r.fetchFailed) return true;
+    const cat = String(r.category || '').toLowerCase();
+    return cat === 'unavailable' || cat === 'fetch_failed';
+  }).length;
+}
+
+R.getEffectiveConcurrentLimit = function getEffectiveConcurrentLimit() {
+  const user = getConcurrentLimit();
+  const capped = Math.min(user, MAX_SAFE_CONCURRENT);
+  if (adaptiveConcurrentCap == null) return capped;
+  return Math.max(1, Math.min(capped, adaptiveConcurrentCap));
+}
+
+R.waitForRateLimit = async function waitForRateLimit() {
+  while (Date.now() < rateLimitUntil && !state.aborted) {
+    await sleep(400);
+  }
+}
+
+R.isTransientError = function isTransientError(msg) {
+  if (isServerConnectionError(msg)) return false;
+  const m = String(msg || '').toLowerCase();
+  return /503|429|high demand|overloaded|rate limit|resource_exhausted|too many requests|try again later|quota|temporarily unavailable|econnreset|socket hang up|image fetch failed|bad json|invalid json|unterminated|invalid score/.test(m);
+}
+
+R.isStreetViewConfirmedAbsent = function isStreetViewConfirmedAbsent(streetViewResult) {
+  return streetViewResult?.unavailable === true;
+}
+
+R.isStreetViewFetchFailure = function isStreetViewFetchFailure(streetViewResult) {
+  if (!streetViewResult || streetViewResult.ok) return false;
+  if (streetViewResult.unavailable === true) return false;
+  const err = String(streetViewResult.error || '').toLowerCase();
+  return /image fetch failed|metadata found|retry|502|503|timed out|rate limit/.test(err);
+}
+
+R.isStreetViewQuotaError = function isStreetViewQuotaError(msg) {
+  const m = String(msg || '').toLowerCase();
+  return /403|request_denied|over_query|quota exceeded|billing/.test(m);
+}
+
+R.noteRateLimit = function noteRateLimit(err) {
+  const m = String(err?.message || '').toLowerCase();
+  if (isServerConnectionError(m) || !isTransientError(m)) return;
+  const pauseMs = /503|high demand|overloaded/.test(m)
+    ? 12000 + Math.floor(Math.random() * 6000)
+    : 8000 + Math.floor(Math.random() * 4000);
+  rateLimitUntil = Math.max(rateLimitUntil, Date.now() + pauseMs);
+  const pauseSec = Math.ceil(pauseMs / 1000);
+  notifyScanIssue('rate_limit',
+    `Pausing all workers ~${pauseSec}s, then retrying. Lower workers to 5–8 if this keeps happening.`,
+    { dedupeKey: 'rate_limit', browserNotify: !state.rateLimitWarned }
+  );
+  if (!state.rateLimitWarned) {
+    state.rateLimitWarned = true;
+    log(`Gemini/Google busy (503 or rate limit) — pausing ~${pauseSec}s and retrying. Try lowering parallel workers to 5–8.`, 'warn');
+  }
+}
+
+R.buildNeedsReviewResult = function buildNeedsReviewResult(record, err, partial = {}) {
+  const cleanMsg = String(err?.message || 'Unknown error').replace(/^\[(STREET VIEW|GEMINI)\]\s*/i, '').trim();
+  const transient = /503|rate limit|overloaded|high demand|timeout|temporarily unavailable/i.test(cleanMsg);
+  const blurred = /privacy blur|blurred|too blurry|image blur/i.test(cleanMsg);
+  const qualityFlags = [...(partial.qualityFlags || [])];
+  if (transient && !blurred) qualityFlags.push('street_ai_failed');
+  else if (!blurred) qualityFlags.push('analysis_incomplete');
+
+  const base = attachTierRationale({
+    ...record,
+    ...partial,
+    category: blurred ? 'blurred' : 'unavailable',
+    leadTier: blurred ? 'blurred' : 'unavailable',
+    score: 0,
+    aiScore: null,
+    confidence: null,
+    indicators: [],
+    structureOnLot: null,
+    needsReview: false,
+    landHomeConflict: false,
+    satelliteConflict: false,
+    fetchFailed: false,
+    errorType: transient && !blurred ? 'transient' : partial.errorType,
+    reason: cleanMsg
+      ? (blurred
+        ? `Blocked image — cannot see or assess the home (${cleanMsg}).`
+        : transient
+          ? `Analysis interrupted (${cleanMsg}) — retry or review.`
+          : `Imagery unavailable (${cleanMsg}).`)
+      : (blurred
+        ? 'Blocked image — cannot see or assess the home; could not finish analysis.'
+        : 'Imagery unavailable — could not finish analysis.'),
+    analyzedAt: Date.now(),
+    qualityFlags
+  });
+  if (typeof enrichClassificationFields === 'function') enrichClassificationFields(base);
+  return base;
+}
+
+R.streetViewFixHint = function streetViewFixHint(msg) {
+  const m = (msg || '').toLowerCase();
+  if (m.includes('403') || m.includes('forbidden')) {
+    return '403 fix: Credentials → your API key → Application restrictions = NONE (not "HTTP referrers"). Also finish Maps setup at console.cloud.google.com/google/maps-apis/start';
+  }
+  if (m.includes('invalid') && m.includes('api key')) {
+    return 'Wrong key in the Street View box. Use a key from Google Cloud Console — NOT your Gemini key.';
+  }
+  if (m.includes('not authorized') || m.includes('enable') || m.includes('activated')) {
+    return 'Enable "Street View Static API" at console.cloud.google.com/apis/library — then finish Maps onboarding at console.cloud.google.com/google/maps-apis/start';
+  }
+  if (m.includes('billing') || m.includes('payment')) {
+    return 'Link billing at console.cloud.google.com/billing';
+  }
+  if (m.includes('referrer') || m.includes('restriction')) {
+    return 'Credentials → API key → Application restrictions = NONE. "HTTP referrers" causes 403 with this tool.';
+  }
+  return '1) Maps onboarding 2) Street View Static API enabled 3) Billing on 4) Key restrictions = None';
+}
+
+R.haltSearch = function haltSearch(err, label) {
+  if (state.haltAlertShown) return;
+  state.haltAlertShown = true;
+  state.aborted = true;
+
+  const raw = err.message || String(err);
+  const isSv = raw.includes('[STREET VIEW]');
+  const isGem = raw.includes('[GEMINI]');
+  const detail = raw.replace(/^\[(STREET VIEW|GEMINI)\]\s*/i, '');
+
+  let title = 'Scan stopped';
+  if (isSv) title = 'Street View failed — scan stopped';
+  if (isGem) title = 'Gemini failed — scan stopped';
+
+  const fix = isSv ? streetViewFixHint(detail) : isGem
+    ? 'Gemini quota exceeded or bad key — get a key at aistudio.google.com/apikey or add billing.'
+    : '';
+
+  const banner = isSv
+    ? `Street View: ${detail} — ${fix}`
+    : isGem
+      ? `Gemini: ${detail}`
+      : detail;
+
+  showFatalError(banner);
+  notifyScanIssue('fatal', banner, { title, browserNotify: true, dedupeKey: 'fatal' });
+  setHudStatus('FAILED', true);
+  stopBtn.disabled = true;
+
+  alert(
+    `${title}\n\n` +
+    `Error: ${detail}\n\n` +
+    (fix ? `How to fix:\n${fix}\n\n` : '') +
+    `Stopped at: ${label}`
+  );
+  log(`STOPPED — ${raw}`, 'error');
+}
+
+R.streetViewKeyHint = $('streetViewKeyHint');
+R.geminiKeyHint = $('geminiKeyHint');
+R.clearKeysBtn = $('clearKeysBtn');
+
+R.normalizeApiKey = function normalizeApiKey(key) {
+  let k = String(key || '')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/^["'`]+|["'`]+$/g, '')
+    .trim();
+  const aq = k.match(/AQ\.[A-Za-z0-9_.-]{8,}/);
+  if (aq) return aq[0];
+  const aiZa = k.match(/AIza[A-Za-z0-9_-]{20,}/);
+  if (aiZa) return aiZa[0];
+  return k.replace(/\s+/g, '');
+}
+
+R.isValidMapsKey = function isValidMapsKey(key) {
+  const k = normalizeApiKey(key);
+  return /^AIza[A-Za-z0-9_-]{20,}$/.test(k);
+}
+
+R.isValidGeminiKey = function isValidGeminiKey(key) {
+  const k = normalizeApiKey(key);
+  if (/^AIza[A-Za-z0-9_-]{20,}$/.test(k)) return true;
+  if (/^AQ\.[A-Za-z0-9_.-]{8,}$/.test(k)) return true;
+  return k.length >= 20 && /^[A-Za-z0-9._-]+$/.test(k);
+}
+
+try { localStorage.removeItem('distressAnalyzerKeys'); } catch (_) {}
+
+R.savedPrefs = {};
+try {
+  savedPrefs = JSON.parse(localStorage.getItem('distressAnalyzerPrefs') || '{}');
+  if (!savedPrefs || typeof savedPrefs !== 'object') savedPrefs = {};
+} catch (_) {
+  savedPrefs = {};
+}
+R.getConcurrentLimit = function getConcurrentLimit() {
+  return Math.max(1, Math.min(MAX_SAFE_CONCURRENT, parseInt(concurrentLimitInput.value, 10) || DEFAULT_CONCURRENT_LIMIT));
+}
+
+R.savePrefs = function savePrefs() {
+  localStorage.setItem('distressAnalyzerPrefs', JSON.stringify({
+    concurrentLimit: getConcurrentLimit()
+  }));
+}
+
+R.getStartBlockReason = function getStartBlockReason() {
+  if (state.running) return 'Scan already running — use Stop first if it looks stuck.';
+  if (USE_PROXY && serverOnline === false && serverOfflineStreak >= 2) {
+    return 'Server not responding — double-click "Property Distress Analyzer" on your desktop, wait a few seconds, then refresh.';
+  }
+  if (!state.records.length && !state.results.length) return 'Upload a spreadsheet first.';
+  if (!serverConfig.hasMapsKey) return 'Add MAPS_API_KEY to .env and restart the server.';
+  if (!serverConfig.hasGeminiKey) return 'Add GEMINI_API_KEY to .env and restart the server.';
+  return '';
+}
+
+R.updateStartButton = function updateStartButton() {
+  const reason = getStartBlockReason();
+  startBtn.disabled = !!reason;
+  const hint = $('startBlockHint');
+  if (hint) {
+    if (reason && !state.running) {
+      hint.textContent = reason;
+      hint.hidden = false;
+    } else {
+      hint.hidden = true;
+      hint.textContent = '';
+    }
+  }
+  startBtn.title = reason || 'Analyze unscanned leads (keeps existing results)';
+  resetUploadBtn.disabled = state.running || (!state.records.length && !state.results.length && !state.fileName);
+}
+
+R.runStreetViewTest = async function runStreetViewTest() {
+  if (!serverConfig.hasMapsKey) {
+    setDiag(diagStreetView, 'fail', 'Street View: ✗ add MAPS_API_KEY to .env');
+    return;
+  }
+  if (!USE_PROXY) {
+    setDiag(diagStreetView, 'fail', 'Street View: ✗ run launch-analyzer.bat first');
+    return;
+  }
+  setDiag(diagStreetView, 'warn', 'Street View: testing…');
+  testSvBtn.disabled = true;
+  try {
+    const res = await fetch('/api/test-streetview');
+    const data = await res.json();
+    if (data.ok) {
+      setDiag(diagStreetView, 'ok', 'Street View: ✓ WORKING — photo loads');
+      resetThumbLoadQueue();
+      refreshAllCardThumbs();
+    } else {
+      const err = data.googleError || data.meta?.error_message || `HTTP ${data.imageStatus}` || data.meta?.status || 'API not enabled or billing off';
+      const fix = data.hint || streetViewFixHint(err + ' ' + (data.imageStatus || ''));
+      const keyTail = serverConfig.mapsKeyTail || '(unknown)';
+      setDiag(diagStreetView, 'fail', `Street View: ✗ BROKEN — ${err}`);
+      alert(
+        `Street View failed (key ends …${keyTail}):\n\n` +
+        `Google says: ${err}\n` +
+        `(Image HTTP ${data.imageStatus}, meta: ${data.meta?.status || '?'})\n\n` +
+        `How to fix:\n${fix}\n\n` +
+        `Update MAPS_API_KEY in .env and restart launch-analyzer.bat.`
+      );
+    }
+  } catch (e) {
+    setDiag(diagStreetView, 'fail', 'Street View: ✗ BROKEN — ' + e.message);
+  }
+  testSvBtn.disabled = false;
+}
+
+R.savedWorkers = Math.max(1, Math.min(MAX_SAFE_CONCURRENT, parseInt(savedPrefs.concurrentLimit, 10) || DEFAULT_CONCURRENT_LIMIT));
+concurrentLimitInput.value = savedWorkers;
+concurrentLimitVal.textContent = String(savedWorkers);
+savePrefs();
+fetchServerConfig();
+
+concurrentLimitInput.addEventListener('input', () => {
+  concurrentLimitVal.textContent = concurrentLimitInput.value;
+  savePrefs();
+});
+concurrentLimitInput.addEventListener('change', savePrefs);
+
+clearKeysBtn.addEventListener('click', async () => {
+  await fetchServerConfig();
+  setDiag(diagStreetView, 'pending', 'Street View: not tested yet');
+  setDiag(diagSatellite, 'pending', 'Satellite: not tested yet');
+  setDiag(diagGemini, 'pending', 'Gemini: not tested yet');
+  setDiag(diagFull, 'pending', 'Full pipeline: not tested yet');
+  log('Server config refreshed from .env', 'success');
+});
+
+updateKeyStatusUi();
+updateStartButton();
+
+if (!USE_PROXY) {
+  showFatalError(`You opened the HTML file directly. Close this tab, double-click launch-analyzer.bat, and use ${LOCAL_APP_URL} instead.`);
+}
+
+$('testGeminiBtn').addEventListener('click', () => runGeminiTest());
+testSvBtn.addEventListener('click', () => runStreetViewTest());
+$('testFullBtn').addEventListener('click', () => runFullTest());
+$('exportLearnedBtn')?.addEventListener('click', () => exportLearnedBrain());
+$('importLearnedBtn')?.addEventListener('click', () => $('importLearnedFile')?.click());
+$('importLearnedFile')?.addEventListener('change', (e) => {
+  const f = e.target.files?.[0];
+  if (f) importLearnedBrainFile(f);
+  e.target.value = '';
+});
+
+
+  }
+
+  const te = PDA.lib && PDA.lib.tierEngine;
+  const ir = PDA.lib && PDA.lib.imageryRouting;
+  const cc = PDA.lib && PDA.lib.classificationConfidence;
+  const rc = PDA.lib && PDA.lib.resultClassify;
+  if (ir) {
+    R.streetAnalysisNeedsSatellite = ir.streetAnalysisNeedsSatellite;
+    R.satelliteFallbackFailed = ir.satelliteFallbackFailed;
+  }
+  if (cc) {
+    R.inferImageryQuality = cc.inferImageryQuality;
+    R.computeClassificationConfidence = cc.computeClassificationConfidence;
+    R.enrichClassificationFields = cc.enrichClassificationFields;
+    R.CLASSIFICATION_REVIEW_THRESHOLD = cc.REVIEW_THRESHOLD;
+  }
+  if (te) {
+    R.normalizeCategory = te.normalizeCategory;
+    R.stripTierMigrationReasonSuffix = te.stripTierMigrationReasonSuffix;
+    R.computeLeadTier = te.computeLeadTier;
+    R.normalizeLeadTier = te.normalizeLeadTier;
+    R.looksVisuallyDistressed = te.looksVisuallyDistressed;
+    R.hasNeglectCombo = te.hasNeglectCombo;
+    R.qualifiesManicuredExemption = te.qualifiesManicuredExemption;
+    R.normalizeIndicators = te.normalizeIndicators;
+    R.hasModerateWithSupportingNeglect = te.hasModerateWithSupportingNeglect;
+    R.countNeglectIndicators = te.countNeglectIndicators;
+    R.reasonSuggestsDumpHouse = te.reasonSuggestsDumpHouse;
+  }
+  if (rc) {
+    R.inferCategory = rc.inferCategory;
+    R.resultCategory = rc.resultCategory;
+    R.isBlurredImagery = rc.isBlurredImagery;
+    R.isLandHomeUncertain = rc.isLandHomeUncertain;
+    R.computeNeedsReview = rc.computeNeedsReview;
+    R.isClassifiedResult = rc.isClassifiedResult;
+    R.resultScore = rc.resultScore;
+    R.combinedTierReason = rc.combinedTierReason;
+    R.resultLeadTier = rc.resultLeadTier;
+    R.leadTierContextFromRecord = rc.leadTierContextFromRecord;
+  }
+
+  PDA.config = {
+    get USE_PROXY() { return R.USE_PROXY; },
+    get STORAGE_KEY() { return R.STORAGE_KEY; },
+    get SIZE_WARN_BYTES() { return R.SIZE_WARN_BYTES; },
+    get SESSION_PAGE_SIZE() { return R.SESSION_PAGE_SIZE; },
+    get VIRTUAL_MAX_DOM() { return R.VIRTUAL_MAX_DOM; },
+    get apiFetch() { return R.apiFetch; },
+    get $() { return R.$; },
+    get log() { return R.log; },
+    get fetchServerConfig() { return R.fetchServerConfig; },
+    get getAuthToken() { return R.getAuthToken; },
+    get BATCH_SIZE() { return R.BATCH_SIZE; },
+    get GEMINI_MODELS() { return R.GEMINI_MODELS; },
+    get serverConfig() { return R.serverConfig; },
+    get serverHasMapsKey() { return R.serverHasMapsKey; },
+    get appendMapsKeyParam() { return R.appendMapsKeyParam; },
+    get updateKeyStatusUi() { return R.updateKeyStatusUi; }
+  };
+})(window);

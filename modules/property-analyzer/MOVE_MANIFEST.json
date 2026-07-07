@@ -1,0 +1,15 @@
+﻿{
+    "directories":  [
+                        "property_imagery",
+                        "backups",
+                        "logs",
+                        "scan_results",
+                        "gemini_audit"
+                    ],
+    "movedAt":  "2026-06-30T08:05:56.5508908Z",
+    "to":  "C:\\Users\\brand\\Projects\\property-distress-analyzer",
+    "from":  "C:\\Users\\brand",
+    "imageryIndexEntries":  7628,
+    "sessionResults":  10438,
+    "sessionFile":  "distressAnalyzerSession_LATEST.json"
+}

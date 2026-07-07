@@ -1,0 +1,45 @@
+{
+  "sampleCorrections": [
+    {
+      "aiTier": "well_maintained",
+      "userTier": "distressed",
+      "aiScore": 3,
+      "userScore": 7,
+      "indicators": ["peeling_paint", "overgrown_landscaping"],
+      "address": "123 Oak St"
+    },
+    {
+      "aiTier": "distressed",
+      "userTier": "well_maintained",
+      "aiScore": 8,
+      "userScore": 3,
+      "indicators": ["overgrown_landscaping"],
+      "address": "456 Maple Ave"
+    },
+    {
+      "aiTier": "distressed",
+      "userTier": "well_maintained",
+      "aiScore": 7,
+      "userScore": 2,
+      "indicators": ["code_violation_notice"],
+      "address": "789 Pine Rd"
+    },
+    {
+      "aiTier": "well_maintained",
+      "userTier": "distressed",
+      "aiScore": 4,
+      "userScore": 6,
+      "indicators": ["junk_or_hoarding_yard"],
+      "address": "321 Elm Dr"
+    },
+    {
+      "aiTier": "distressed",
+      "userTier": "distressed",
+      "affirmed": true,
+      "aiScore": 8,
+      "userScore": 8,
+      "indicators": ["boarded_windows"],
+      "address": "555 Birch Ln"
+    }
+  ]
+}

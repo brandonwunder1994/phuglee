@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Form Forge — Coverage Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/vendor/maplibre-gl.css" />
+  <link rel="stylesheet" href="/static/style.css?v=35" />
+  <link rel="stylesheet" href="/static/settings-menu.css?v=3" />
+  <link rel="stylesheet" href="/static/phuglee-forge.css?v=2" />
+  <link rel="stylesheet" href="/static/phuglee-a11y.css" />
+  <link rel="stylesheet" href="/static/map.css?v=35" />
+</head>
+<body class="stamp-theme map-page">
+  <div class="bg-vignette" aria-hidden="true"></div>
+  <div class="bg-paper-grain" aria-hidden="true"></div>
+
+  <header class="topbar map-topbar">
+    <div class="brand">
+      <div class="brand-seal" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="20" y="25" text-anchor="middle" font-size="14" font-family="serif" fill="currentColor">FF</text></svg>
+      </div>
+      <div>
+        <h1>Form Forge</h1>
+        <p class="sub">Public records coverage across the United States</p>
+      </div>
+      <nav class="app-nav" aria-label="Main">
+        <a href="/portal" class="nav-link">City Tracker</a>
+        <a href="/map" class="nav-link active">Coverage Map</a>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="map-hero-stats" id="map-stats">
+        <div class="hero-stat"><strong id="stat-cities">—</strong><span>Cities covered</span></div>
+        <div class="hero-stat"><strong id="stat-portal">—</strong><span>Portal cities</span></div>
+        <div class="hero-stat"><strong id="stat-completed">—</strong><span>Records forms</span></div>
+      </div>
+      <div class="settings-menu" id="settings-menu">
+        <button type="button" class="btn ghost sm settings-trigger" aria-expanded="false" aria-haspopup="true">Settings</button>
+        <div class="settings-dropdown" role="menu" hidden>
+          <a href="/?settings=info" class="settings-item" role="menuitem">Your Info</a>
+          <a href="/?settings=signature" class="settings-item" role="menuitem">Signature</a>
+          <button type="button" class="settings-item" role="menuitem" data-settings-action="ideas">Ideas</button>
+          <a href="/" class="settings-item" role="menuitem">Records Desk</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="map-layout">
+    <section class="map-stage" aria-label="United States coverage map">
+      <div class="map-toolbar">
+        <button type="button" class="btn ghost sm" id="btn-reset-zoom" hidden>← Full map</button>
+        <label class="map-search-wrap">
+          <span class="sr-only">Search cities</span>
+          <input type="search" id="map-search" placeholder="Search city or state…" autocomplete="off" />
+        </label>
+      </div>
+      <div class="map-canvas-wrap">
+        <div id="map-canvas" class="maplibre-canvas" role="application" aria-label="Interactive coverage map"></div>
+        <div class="map-loading" id="map-loading">
+          <span class="map-loading-seal" aria-hidden="true">◎</span>
+          <span>Loading coverage map…</span>
+        </div>
+        <details class="map-legend" open>
+          <summary class="legend-title">Map legend</summary>
+          <div class="legend-pin"><span class="legend-state legend-state-available" aria-hidden="true"></span> Has coverage data</div>
+          <div class="legend-pin"><span class="legend-state legend-state-coming" aria-hidden="true"></span> No data yet</div>
+          <div class="legend-pin"><span class="legend-state legend-state-unavailable" aria-hidden="true"></span> Data unavailable</div>
+        </details>
+      </div>
+    </section>
+
+    <aside class="map-sidebar map-flyout" id="map-sidebar" aria-hidden="true">
+      <div class="sidebar-search" id="sidebar-search" hidden>
+        <div class="sidebar-panel-header">
+          <h2>Search results</h2>
+          <p class="state-sub" id="search-sub"></p>
+        </div>
+        <div class="sidebar-panel-scroll">
+          <ul class="city-list" id="search-city-list" role="listbox" aria-label="Search results"></ul>
+        </div>
+      </div>
+      <div class="sidebar-empty" id="sidebar-empty" hidden></div>
+      <div class="sidebar-state" id="sidebar-state" hidden>
+        <div class="sidebar-panel-header">
+          <button type="button" class="btn ghost sm sidebar-back" id="btn-sidebar-back">← All states</button>
+          <h2 id="state-title"></h2>
+          <p class="state-sub" id="state-sub"></p>
+        </div>
+        <div class="sidebar-panel-scroll" id="state-county-browser" role="listbox" aria-label="Cities by county"></div>
+      </div>
+      <article class="sidebar-city" id="sidebar-city" hidden>
+        <div class="sidebar-panel-header">
+          <button type="button" class="btn ghost sm sidebar-back" id="btn-city-back">← Back</button>
+          <p class="city-kicker" id="city-kicker"></p>
+          <h2 id="city-title"></h2>
+        </div>
+        <div class="sidebar-panel-scroll sidebar-city-body">
+          <span class="coverage-badge" id="city-coverage-badge"></span>
+          <ul class="coverage-available" id="city-available" aria-label="Available data types"></ul>
+          <p class="city-status-line" id="city-status-line"></p>
+          <div class="city-actions city-actions-showcase">
+            <a class="btn seal" id="link-portal" href="#" target="_blank" rel="noopener" hidden>View government portal</a>
+            <a class="btn ghost" id="link-pdf" href="#" target="_blank" rel="noopener" hidden>View completed form</a>
+          </div>
+          <p class="city-card-footer">Part of Form Forge public records coverage</p>
+        </div>
+      </article>
+    </aside>
+  </main>
+
+  <script src="/static/phuglee-states.js"></script>
+  <script src="/static/vendor/maplibre-gl.js"></script>
+  <script src="/static/settings-menu.js?v=3"></script>
+  <script src="/static/map.js?v=48"></script>
+  <script>window.FormForgeSettings?.init();</script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+/* Distress OS Heat — Property Analyzer shell overrides */
+
+body.heat-theme .ambient-orb,
+body.heat-theme .scanlines,
+body.heat-theme .grain {
+  display: none !important;
+}
+
+body.heat-theme .cyber-grid {
+  opacity: 0.1;
+  background-image:
+    linear-gradient(rgba(232, 93, 4, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 93, 4, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+body.heat-theme::before,
+body.heat-theme.cyber-theme::before {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(232, 93, 4, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(255, 107, 26, 0.08) 0%, transparent 50%),
+    var(--background);
+}
+
+body.heat-theme {
+  font-family: var(--font-body);
+  letter-spacing: 0.01em;
+}
+
+body.heat-theme .sidebar-title,
+body.heat-theme .command-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+body.heat-theme .panel-chrome::before,
+body.heat-theme .panel-chrome::after {
+  display: none;
+}
+
+body.heat-theme .glass,
+body.heat-theme .scan-progress-slim,
+body.heat-theme .summary-section,
+body.heat-theme .results-wrap,
+body.heat-theme .summary-kpi-card,
+body.heat-theme .agent-grid-panel,
+body.heat-theme .empty-workspace {
+  background: rgba(18, 16, 13, 0.78);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 8px 32px rgba(0, 0, 0, 0.35);
+}
+
+body.heat-theme .app-sidebar {
+  background: rgba(8, 6, 5, 0.94);
+  border-right: 1px solid rgba(232, 93, 4, 0.12);
+  box-shadow: 4px 0 28px rgba(0, 0, 0, 0.4);
+}
+
+body.heat-theme.analyzer-embedded .app-sidebar {
+  top: var(--distress-nav-offset, 108px);
+  height: calc(100vh - var(--distress-nav-offset, 108px));
+}
+
+body.heat-theme .sidebar-logo {
+  color: var(--accent);
+  background: rgba(232, 93, 4, 0.1);
+  border: 1px solid rgba(232, 93, 4, 0.3);
+  box-shadow: 0 0 12px rgba(232, 93, 4, 0.15);
+  text-shadow: none;
+}
+
+body.heat-theme .btn-primary,
+body.heat-theme .command-btn.btn-primary {
+  background: linear-gradient(135deg, var(--heat-core, #ffba08) 0%, var(--accent) 50%, var(--flame, #ff6b1a) 100%);
+  color: var(--accent-foreground);
+  box-shadow: 0 4px 20px rgba(232, 93, 4, 0.35);
+}
+
+body.heat-theme .btn-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 6px 28px rgba(232, 93, 4, 0.45);
+}
+
+body.heat-theme .empty-workspace {
+  max-width: 920px;
+  margin: 2rem auto;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  border-radius: var(--radius);
+}
+
+body.heat-theme .empty-workspace h2 {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+body.heat-theme .empty-workspace > p {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+  max-width: 520px;
+  margin: 0 auto 1.25rem;
+}
+
+.empty-demo-label {
+  color: var(--accent);
+}
+
+.empty-demo-scanline {
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+}
+
+body.heat-theme .prop-card.card-cyber:hover {
+  border-color: rgba(232, 93, 4, 0.35);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(232, 93, 4, 0.15),
+    0 0 24px rgba(232, 93, 4, 0.08);
+}
+
+body.heat-theme .prop-card .card-score-pill {
+  border: 1px solid rgba(232, 93, 4, 0.35);
+  box-shadow: 0 0 12px rgba(232, 93, 4, 0.2);
+}
+
+body.heat-theme .progress-bar {
+  background: linear-gradient(90deg, #ffba08, var(--accent), #ff6b1a);
+  box-shadow: 0 0 16px rgba(232, 93, 4, 0.4);
+}
+
+body.heat-theme .progress-section.scanning-active .progress-bar-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+  animation: heat-scan-sweep 2s ease-in-out infinite;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+@keyframes heat-scan-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+body.heat-theme .summary-kpi-card.kpi-pulse {
+  animation: heat-kpi-pulse 0.8s ease-out 1;
+}
+
+@keyframes heat-kpi-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(232, 93, 4, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(232, 93, 4, 0); }
+  100% { box-shadow: none; }
+}
+
+body.heat-theme .review-mode-overlay {
+  background: rgba(8, 6, 5, 0.97);
+  backdrop-filter: blur(8px);
+}
+
+body.heat-theme .review-action.keep {
+  background: linear-gradient(135deg, #ffba08, var(--accent), #ff6b1a);
+  color: var(--accent-foreground);
+}

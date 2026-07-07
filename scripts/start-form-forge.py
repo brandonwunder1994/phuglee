@@ -7,8 +7,6 @@ import traceback
 from pathlib import Path
 
 FORGE_ROOT = Path(__file__).resolve().parent.parent / "modules" / "form-forge"
-if not FORGE_ROOT.exists():
-    FORGE_ROOT = Path(__file__).resolve().parent.parent.parent / "city-list-requests"
 
 sys.path.insert(0, str(FORGE_ROOT))
 

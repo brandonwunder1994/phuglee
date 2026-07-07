@@ -1,0 +1,543 @@
+/* ═══════════════════════════════════════════════════════════
+   CYBER MODALS — Inspector, tool modals, score edit (Phase 18)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Shared modal backdrops ── */
+body.cyber-theme .tool-modal-backdrop,
+body.cyber-theme .property-modal-backdrop,
+body.cyber-theme .score-edit-backdrop {
+  background: rgba(4, 6, 12, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+body.cyber-theme .tool-modal-dialog.cyber-dialog,
+body.cyber-theme .property-modal-dialog.cyber-dialog {
+  padding: 0;
+  overflow: hidden;
+}
+
+body.cyber-theme .tool-modal-dialog.cyber-dialog {
+  padding: var(--space-lg);
+}
+
+body.cyber-theme .tool-modal-head {
+  border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+  margin-bottom: var(--space-md);
+}
+
+body.cyber-theme .tool-modal-close,
+body.cyber-theme .property-modal-close,
+body.cyber-theme .score-edit-close {
+  font-family: var(--font-mono);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  color: var(--muted-foreground);
+  border-radius: 8px;
+  transition: color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+body.cyber-theme .tool-modal-close:hover,
+body.cyber-theme .property-modal-close:hover,
+body.cyber-theme .score-edit-close:hover {
+  color: var(--neon-cyan);
+  border-color: rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+  background: rgba(0, 240, 255, 0.06);
+}
+
+/* ── Settings modal — fields & diag ── */
+body.cyber-theme .cyber-dialog .field label {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--neon-cyan);
+}
+
+body.cyber-theme .cyber-dialog .input-wrap input,
+body.cyber-theme .cyber-dialog input[type="text"],
+body.cyber-theme .cyber-dialog input[type="range"] {
+  accent-color: var(--neon-cyan);
+}
+
+body.cyber-theme .cyber-dialog .input-wrap input {
+  background: rgba(6, 8, 16, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  border-radius: 10px;
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  padding: 0.75rem 0.95rem 0.75rem 2.4rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+body.cyber-theme .cyber-dialog .input-wrap input:focus {
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.12), 0 0 20px rgba(0, 240, 255, 0.08);
+  outline: none;
+}
+
+body.cyber-theme .cyber-dialog .input-wrap svg {
+  color: var(--neon-cyan);
+  opacity: 0.7;
+}
+
+body.cyber-theme .cyber-dialog .key-note,
+body.cyber-theme .cyber-dialog .key-fingerprint {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .cyber-dialog .key-note code {
+  color: var(--neon-cyan);
+  background: rgba(0, 240, 255, 0.08);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+
+body.cyber-theme .cyber-dialog .diag-panel {
+  background: rgba(4, 6, 12, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+body.cyber-theme .cyber-dialog .diag-panel .diag-title {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+}
+
+body.cyber-theme .cyber-dialog .diag-ok { color: var(--tier-well-bright); text-shadow: 0 0 8px var(--tier-well-glow); }
+body.cyber-theme .cyber-dialog .diag-fail { color: var(--tier-distressed-bright); }
+body.cyber-theme .cyber-dialog .diag-warn { color: var(--neon-magenta); }
+body.cyber-theme .cyber-dialog .diag-pending { color: var(--muted-foreground); }
+
+body.cyber-theme .cyber-dialog .btn-secondary {
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  background: rgba(0, 240, 255, 0.08);
+  color: var(--neon-cyan);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 8px;
+}
+
+body.cyber-theme .cyber-dialog .btn-secondary:hover {
+  background: rgba(0, 240, 255, 0.16);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.15);
+}
+
+/* ── Upload modal — holographic drop zone ── */
+body.cyber-theme .cyber-dialog .file-drop {
+  border: 1.5px dashed rgba(0, 240, 255, 0.35);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(0, 240, 255, 0.04), rgba(255, 0, 170, 0.03)),
+    rgba(6, 8, 16, 0.9);
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+
+body.cyber-theme .cyber-dialog .file-drop:hover,
+body.cyber-theme .cyber-dialog .file-drop.dragover {
+  border-color: rgba(0, 240, 255, 0.6);
+  box-shadow: 0 0 32px rgba(0, 240, 255, 0.15), inset 0 0 40px rgba(0, 240, 255, 0.04);
+  transform: translateY(-2px);
+  background:
+    linear-gradient(135deg, rgba(0, 240, 255, 0.08), rgba(255, 0, 170, 0.05)),
+    rgba(6, 8, 16, 0.95);
+}
+
+body.cyber-theme .cyber-dialog .file-drop .drop-icon {
+  background: rgba(0, 240, 255, 0.1);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.12);
+}
+
+body.cyber-theme .cyber-dialog .file-drop .label {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  color: var(--foreground);
+}
+
+body.cyber-theme .cyber-dialog .upload-fallback-btn {
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+}
+
+body.cyber-theme .cyber-dialog .import-lead-type-field select {
+  background: rgba(6, 8, 16, 0.9);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-family: var(--font-body);
+  padding: 0.5rem 0.75rem;
+}
+
+body.cyber-theme .cyber-dialog .import-lead-type-field select:focus {
+  border-color: rgba(0, 240, 255, 0.45);
+  outline: none;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.1);
+}
+
+/* ── Brain modal — terminal rules ── */
+body.cyber-theme .cyber-dialog .learned-rules-panel {
+  background: rgba(4, 6, 12, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  border-radius: 12px;
+}
+
+body.cyber-theme .cyber-dialog .learned-rules-sub {
+  font-family: var(--font-mono);
+  color: var(--muted-foreground);
+  letter-spacing: 0.04em;
+}
+
+body.cyber-theme .cyber-dialog .learned-rule-card {
+  background: rgba(0, 240, 255, 0.03);
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  border-left: 3px solid rgba(0, 240, 255, 0.35);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+body.cyber-theme .cyber-dialog .learned-rule-card.pending {
+  border-left-color: var(--neon-magenta);
+  background: rgba(255, 0, 170, 0.05);
+}
+
+body.cyber-theme .cyber-dialog .learned-rule-card.approved {
+  border-left-color: var(--tier-well-bright);
+  background: var(--tier-well-dim);
+}
+
+body.cyber-theme .cyber-dialog .learned-rule-meta {
+  color: var(--neon-cyan);
+  opacity: 0.8;
+}
+
+body.cyber-theme .cyber-dialog .learned-rule-btns button {
+  font-family: var(--font-mono);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+body.cyber-theme .cyber-dialog .learned-rule-btns button.approve {
+  color: var(--tier-well-bright);
+  border-color: var(--tier-well-border);
+}
+
+body.cyber-theme .cyber-dialog .learned-rule-btns button.reject {
+  color: var(--tier-distressed-bright);
+  border-color: var(--tier-distressed-border);
+}
+
+/* ── Property inspector ── */
+body.cyber-theme .property-modal-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+  background: linear-gradient(135deg, rgba(8, 12, 24, 0.96), rgba(6, 8, 18, 0.9));
+}
+
+body.cyber-theme .property-modal-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+}
+
+body.cyber-theme .inspector-nav-btn {
+  font-family: var(--font-display);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  background: rgba(0, 240, 255, 0.06);
+  color: var(--foreground);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem;
+}
+
+body.cyber-theme .inspector-nav-btn:hover:not(:disabled) {
+  border-color: rgba(0, 240, 255, 0.5);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+  background: rgba(0, 240, 255, 0.12);
+}
+
+body.cyber-theme .inspector-pos {
+  font-family: var(--font-mono);
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .property-modal-grid.inspector-cyber {
+  padding: 1rem 1.25rem 1.25rem;
+  gap: 1rem;
+}
+
+body.cyber-theme .inspector-cyber .preview-image-wrap {
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(4, 6, 12, 0.9);
+  position: relative;
+}
+
+body.cyber-theme .inspector-cyber .preview-image-wrap::before,
+body.cyber-theme .inspector-cyber .preview-image-wrap::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+body.cyber-theme .inspector-cyber .preview-image-wrap::before {
+  top: 8px;
+  left: 8px;
+  border-top: 2px solid var(--neon-cyan);
+  border-left: 2px solid var(--neon-cyan);
+}
+
+body.cyber-theme .inspector-cyber .preview-image-wrap::after {
+  bottom: 8px;
+  right: 8px;
+  border-bottom: 2px solid var(--neon-magenta);
+  border-right: 2px solid var(--neon-magenta);
+}
+
+body.cyber-theme .inspector-cyber .preview-pane-label {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  color: var(--neon-cyan);
+  background: rgba(6, 8, 16, 0.85);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+}
+
+body.cyber-theme .inspector-cyber .target-reticle,
+body.cyber-theme .inspector-cyber .preview-reticle {
+  display: block !important;
+}
+
+body.cyber-theme .inspector-cyber .target-reticle::before,
+body.cyber-theme .inspector-cyber .target-reticle::after {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan-glow);
+}
+
+body.cyber-theme .inspector-cyber .rec-badge {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--neon-magenta);
+  border: 1px solid rgba(255, 0, 170, 0.35);
+  background: rgba(255, 0, 170, 0.1);
+}
+
+body.cyber-theme .inspector-cyber .rec-badge .rec-dot {
+  background: var(--neon-magenta);
+}
+
+body.cyber-theme .inspector-cyber .scan-line {
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+  opacity: 0.6;
+}
+
+body.cyber-theme .inspector-cyber .preview-placeholder {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .inspector-cyber .preview-placeholder svg {
+  opacity: 0.35;
+  stroke: var(--neon-cyan);
+}
+
+body.cyber-theme .property-modal-details {
+  background: linear-gradient(160deg, rgba(10, 14, 26, 0.92), rgba(8, 10, 20, 0.88));
+  border: 1px solid rgba(0, 240, 255, 0.18);
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+body.cyber-theme .inspector-gauge-cyber {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.12);
+}
+
+body.cyber-theme .gauge-svg-cyber {
+  width: 72px;
+  height: 72px;
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.2));
+}
+
+body.cyber-theme .inspector-gauge-cyber .gauge-bg {
+  stroke: rgba(0, 240, 255, 0.12);
+  stroke-width: 6;
+}
+
+body.cyber-theme .inspector-gauge-cyber .gauge-fill {
+  stroke-width: 6;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+body.cyber-theme .gauge-fill.critical,
+body.cyber-theme .gauge-fill.high,
+body.cyber-theme .gauge-fill.distressed { stroke: var(--tier-distressed-bright); }
+body.cyber-theme .gauge-fill.well-maintained { stroke: var(--tier-well-bright); }
+body.cyber-theme .gauge-fill.vacant { stroke: var(--tier-land-bright); }
+body.cyber-theme .gauge-fill.blurred { stroke: var(--tier-blurred); }
+body.cyber-theme .gauge-fill.low { stroke: var(--neon-cyan); }
+
+body.cyber-theme .inspector-gauge-cyber .gauge-num {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 12px var(--neon-cyan-glow);
+}
+
+body.cyber-theme .inspector-gauge-cyber .gauge-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .inspector-body {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--secondary-foreground);
+  border-top: none;
+  padding: 0;
+}
+
+body.cyber-theme .inspector-body.empty {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+}
+
+body.cyber-theme .inspector-body .inspector-name {
+  font-family: var(--font-display);
+  color: var(--foreground);
+}
+
+/* ── Score edit modal ── */
+body.cyber-theme .score-edit-dialog.cyber-dialog {
+  padding: var(--space-lg);
+}
+
+body.cyber-theme .score-edit-address {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  border-left: 2px solid rgba(0, 240, 255, 0.35);
+  padding-left: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+body.cyber-theme .score-adjust-title {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+}
+
+body.cyber-theme .tier-picker .tier-pick-btn {
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  background: rgba(0, 240, 255, 0.04);
+  border-radius: 10px;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+body.cyber-theme .tier-picker .tier-pick-btn:hover {
+  border-color: rgba(0, 240, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+body.cyber-theme .tier-picker .tier-pick-btn.active {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+}
+
+body.cyber-theme .tier-picker .tier-pick-btn[data-tier="distressed"]:hover,
+body.cyber-theme .tier-picker .tier-pick-btn[data-tier="distressed"].active {
+  border-color: var(--tier-distressed-border);
+  background: var(--tier-distressed-dim);
+  box-shadow: 0 0 20px var(--tier-distressed-glow);
+}
+
+body.cyber-theme .tier-picker .tier-pick-btn[data-tier="distressed"] .tier-pick-lbl {
+  color: var(--tier-distressed-bright);
+}
+
+body.cyber-theme .tier-picker .tier-pick-btn[data-tier="well_maintained"]:hover,
+body.cyber-theme .tier-picker .tier-pick-btn[data-tier="well_maintained"].active {
+  border-color: var(--tier-well-border);
+  background: var(--tier-well-dim);
+  box-shadow: 0 0 20px var(--tier-well-glow);
+}
+
+body.cyber-theme .tier-picker .tier-pick-btn[data-tier="well_maintained"] .tier-pick-lbl {
+  color: var(--tier-well-bright);
+}
+
+body.cyber-theme .tier-picker .tier-pick-lbl {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.08em;
+}
+
+body.cyber-theme .score-save-btn {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(0, 240, 255, 0.1));
+  border: 1px solid rgba(0, 240, 255, 0.5);
+  color: var(--neon-cyan);
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: 8px;
+}
+
+body.cyber-theme .score-save-btn:hover {
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+}
+
+body.cyber-theme .score-cancel-btn {
+  font-family: var(--font-mono);
+  border: 1px solid rgba(0, 240, 255, 0.15);
+  background: transparent;
+  color: var(--muted-foreground);
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.cyber-theme .cyber-dialog .file-drop:hover {
+    transform: none;
+  }
+  body.cyber-theme .tier-picker .tier-pick-btn:hover {
+    transform: none;
+  }
+}

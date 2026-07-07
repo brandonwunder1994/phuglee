@@ -1,0 +1,2897 @@
+{
+  "arizona-apache-junction": {
+    "county": "Pinal County",
+    "county_fips": "04021",
+    "state_code": "AZ"
+  },
+  "arizona-avondale": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-benson": {
+    "county": "Cochise County",
+    "county_fips": "04003",
+    "state_code": "AZ"
+  },
+  "arizona-bisbee": {
+    "county": "Cochise County",
+    "county_fips": "04003",
+    "state_code": "AZ"
+  },
+  "arizona-buckeye": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-camp-verde": {
+    "county": "Yavapai County",
+    "county_fips": "04025",
+    "state_code": "AZ"
+  },
+  "arizona-carefree": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-casa-grande": {
+    "county": "Pinal County",
+    "county_fips": "04021",
+    "state_code": "AZ"
+  },
+  "arizona-cave-creek": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-chandler": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-chino-valley": {
+    "county": "Yavapai County",
+    "county_fips": "04025",
+    "state_code": "AZ"
+  },
+  "arizona-clarkdale": {
+    "county": "Yavapai County",
+    "county_fips": "04025",
+    "state_code": "AZ"
+  },
+  "arizona-clifton": {
+    "county": "Greenlee County",
+    "county_fips": "04011",
+    "state_code": "AZ"
+  },
+  "arizona-coolidge": {
+    "county": "Pinal County",
+    "county_fips": "04021",
+    "state_code": "AZ"
+  },
+  "arizona-cottonwood": {
+    "county": "Yavapai County",
+    "county_fips": "04025",
+    "state_code": "AZ"
+  },
+  "arizona-dewey-humboldt": {
+    "county": "Yavapai County",
+    "county_fips": "04025",
+    "state_code": "AZ"
+  },
+  "arizona-douglas": {
+    "county": "Cochise County",
+    "county_fips": "04003",
+    "state_code": "AZ"
+  },
+  "arizona-eagar": {
+    "county": "Apache County",
+    "county_fips": "04001",
+    "state_code": "AZ"
+  },
+  "arizona-el-mirage": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-flagstaff": {
+    "county": "Coconino County",
+    "county_fips": "04005",
+    "state_code": "AZ"
+  },
+  "arizona-florence": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "arizona-gila-bend": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-gilbert": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-glendale": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-goodyear": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-guadalupe": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "arizona-holbrook": {
+    "county": "Navajo County",
+    "county_fips": "04017",
+    "state_code": "AZ"
+  },
+  "arizona-kearny": {
+    "county": "Pinal County",
+    "county_fips": "04021",
+    "state_code": "AZ"
+  },
+  "arizona-kingman": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "arizona-lake-havasu-city": {
+    "county": "Mohave County",
+    "county_fips": "04015",
+    "state_code": "AZ"
+  },
+  "arizona-litchfield-park": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-marana": {
+    "county": "Pima County",
+    "county_fips": "04019",
+    "state_code": "AZ"
+  },
+  "arizona-maricopa": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "arizona-mesa": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-miami": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "arizona-nogales": {
+    "county": "Santa Cruz County",
+    "county_fips": "04023",
+    "state_code": "AZ"
+  },
+  "arizona-oro-valley": {
+    "county": "Pima County",
+    "county_fips": "04019",
+    "state_code": "AZ"
+  },
+  "arizona-page": {
+    "county": "Coconino County",
+    "county_fips": "04005",
+    "state_code": "AZ"
+  },
+  "arizona-payson": {
+    "county": "Gila County",
+    "county_fips": "04007",
+    "state_code": "AZ"
+  },
+  "arizona-peoria": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-phoenix": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-pinetop-lakeside": {
+    "county": "Navajo County",
+    "county_fips": "04017",
+    "state_code": "AZ"
+  },
+  "arizona-prescott": {
+    "county": "Yavapai County",
+    "county_fips": "04025",
+    "state_code": "AZ"
+  },
+  "arizona-prescott-valley": {
+    "county": "Yavapai County",
+    "county_fips": "04025",
+    "state_code": "AZ"
+  },
+  "arizona-quartzsite": {
+    "county": "La Paz County",
+    "county_fips": "04012",
+    "state_code": "AZ"
+  },
+  "arizona-queen-creek": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-safford": {
+    "county": "Graham County",
+    "county_fips": "04009",
+    "state_code": "AZ"
+  },
+  "arizona-sahuarita": {
+    "county": "Pima County",
+    "county_fips": "04019",
+    "state_code": "AZ"
+  },
+  "arizona-san-luis": {
+    "county": "Yuma County",
+    "county_fips": "04027",
+    "state_code": "AZ"
+  },
+  "arizona-san-tan-valley": {
+    "county": "Pinal County",
+    "county_fips": "04021",
+    "state_code": "AZ"
+  },
+  "arizona-scottsdale": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-sierra-vista": {
+    "county": "Cochise County",
+    "county_fips": "04003",
+    "state_code": "AZ"
+  },
+  "arizona-snowflake": {
+    "county": "Navajo County",
+    "county_fips": "04017",
+    "state_code": "AZ"
+  },
+  "arizona-somerton": {
+    "county": "Yuma County",
+    "county_fips": "04027",
+    "state_code": "AZ"
+  },
+  "arizona-south-tucson": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "arizona-springerville": {
+    "county": "Apache County",
+    "county_fips": "04001",
+    "state_code": "AZ"
+  },
+  "arizona-surprise": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-tempe": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-thatcher": {
+    "county": "Graham County",
+    "county_fips": "04009",
+    "state_code": "AZ"
+  },
+  "arizona-tolleson": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-tucson": {
+    "county": "Pima County",
+    "county_fips": "04019",
+    "state_code": "AZ"
+  },
+  "arizona-wickenburg": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-williams": {
+    "county": "Coconino County",
+    "county_fips": "04005",
+    "state_code": "AZ"
+  },
+  "arizona-winslow": {
+    "county": "Navajo County",
+    "county_fips": "04017",
+    "state_code": "AZ"
+  },
+  "arizona-youngtown": {
+    "county": "Maricopa County",
+    "county_fips": "04013",
+    "state_code": "AZ"
+  },
+  "arizona-yuma": {
+    "county": "Yuma County",
+    "county_fips": "04027",
+    "state_code": "AZ"
+  },
+  "colorado-arvada": {
+    "county": "Jefferson County",
+    "county_fips": "08059",
+    "state_code": "CO"
+  },
+  "colorado-aurora": {
+    "county": "Arapahoe County",
+    "county_fips": "08005",
+    "state_code": "CO"
+  },
+  "colorado-berthoud": {
+    "county": "Larimer County",
+    "county_fips": "08069",
+    "state_code": "CO"
+  },
+  "colorado-boulder": {
+    "county": "Boulder County",
+    "county_fips": "08013",
+    "state_code": "CO"
+  },
+  "colorado-brighton": {
+    "county": "Adams County",
+    "county_fips": "08001",
+    "state_code": "CO"
+  },
+  "colorado-broomfield": {
+    "county": "Broomfield County",
+    "county_fips": "08014",
+    "state_code": "CO"
+  },
+  "colorado-brush": {
+    "county": "Morgan County",
+    "county_fips": "08087",
+    "state_code": "CO"
+  },
+  "colorado-ca-on-city": {
+    "county": "Fremont County",
+    "county_fips": "08043",
+    "state_code": "CO"
+  },
+  "colorado-castle-pines": {
+    "county": "Douglas County",
+    "county_fips": "08035",
+    "state_code": "CO"
+  },
+  "colorado-centennial": {
+    "county": "Arapahoe County",
+    "county_fips": "08005",
+    "state_code": "CO"
+  },
+  "colorado-commerce-city": {
+    "county": "Adams County",
+    "county_fips": "08001",
+    "state_code": "CO"
+  },
+  "colorado-cortez": {
+    "county": "Montezuma County",
+    "county_fips": "08083",
+    "state_code": "CO"
+  },
+  "colorado-craig": {
+    "county": "Moffat County",
+    "county_fips": "08081",
+    "state_code": "CO"
+  },
+  "colorado-denver": {
+    "county": "Denver County",
+    "county_fips": "08031",
+    "state_code": "CO"
+  },
+  "colorado-durango": {
+    "county": "La Plata County",
+    "county_fips": "08067",
+    "state_code": "CO"
+  },
+  "colorado-eagle": {
+    "county": "Eagle County",
+    "county_fips": "08037",
+    "state_code": "CO"
+  },
+  "colorado-eaton": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-englewood": {
+    "county": "Arapahoe County",
+    "county_fips": "08005",
+    "state_code": "CO"
+  },
+  "colorado-erie": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-evans": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-federal-heights": {
+    "county": "Adams County",
+    "county_fips": "08001",
+    "state_code": "CO"
+  },
+  "colorado-firestone": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-fort-collins": {
+    "county": "Larimer County",
+    "county_fips": "08069",
+    "state_code": "CO"
+  },
+  "colorado-fort-lupton": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-fort-morgan": {
+    "county": "Morgan County",
+    "county_fips": "08087",
+    "state_code": "CO"
+  },
+  "colorado-frederick": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-fruita": {
+    "county": "Mesa County",
+    "county_fips": "08077",
+    "state_code": "CO"
+  },
+  "colorado-glenwood-springs": {
+    "county": "Garfield County",
+    "county_fips": "08045",
+    "state_code": "CO"
+  },
+  "colorado-golden": {
+    "county": "Jefferson County",
+    "county_fips": "08059",
+    "state_code": "CO"
+  },
+  "colorado-greeley": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-greenwood-village": {
+    "county": "Arapahoe County",
+    "county_fips": "08005",
+    "state_code": "CO"
+  },
+  "colorado-gunnison": {
+    "county": "Gunnison County",
+    "county_fips": "08051",
+    "state_code": "CO"
+  },
+  "colorado-gypsum": {
+    "county": "Eagle County",
+    "county_fips": "08037",
+    "state_code": "CO"
+  },
+  "colorado-johnstown": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-lafayette": {
+    "county": "Boulder County",
+    "county_fips": "08013",
+    "state_code": "CO"
+  },
+  "colorado-lakewood": {
+    "county": "Jefferson County",
+    "county_fips": "08059",
+    "state_code": "CO"
+  },
+  "colorado-lamar": {
+    "county": "Prowers County",
+    "county_fips": "08099",
+    "state_code": "CO"
+  },
+  "colorado-littleton": {
+    "county": "Arapahoe County",
+    "county_fips": "08005",
+    "state_code": "CO"
+  },
+  "colorado-lochbuie": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "colorado-longmont": {
+    "county": "Boulder County",
+    "county_fips": "08013",
+    "state_code": "CO"
+  },
+  "colorado-louisville": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "colorado-loveland": {
+    "county": "Larimer County",
+    "county_fips": "08069",
+    "state_code": "CO"
+  },
+  "colorado-mead": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-milliken": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-monument": {
+    "county": "El Paso County",
+    "county_fips": "08041",
+    "state_code": "CO"
+  },
+  "colorado-northglenn": {
+    "county": "Adams County",
+    "county_fips": "08001",
+    "state_code": "CO"
+  },
+  "colorado-parker": {
+    "county": "Douglas County",
+    "county_fips": "08035",
+    "state_code": "CO"
+  },
+  "colorado-pueblo": {
+    "county": "Pueblo County",
+    "county_fips": "08101",
+    "state_code": "CO"
+  },
+  "colorado-pueblo-west": {
+    "county": "Pueblo County",
+    "county_fips": "08101",
+    "state_code": "CO"
+  },
+  "colorado-salida": {
+    "county": "Chaffee County",
+    "county_fips": "08015",
+    "state_code": "CO"
+  },
+  "colorado-severance": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-sheridan": {
+    "county": "Arapahoe County",
+    "county_fips": "08005",
+    "state_code": "CO"
+  },
+  "colorado-silverthorne": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "colorado-steamboat-springs": {
+    "county": "Routt County",
+    "county_fips": "08107",
+    "state_code": "CO"
+  },
+  "colorado-superior": {
+    "county": "Boulder County",
+    "county_fips": "08013",
+    "state_code": "CO"
+  },
+  "colorado-thornton": {
+    "county": "Adams County",
+    "county_fips": "08001",
+    "state_code": "CO"
+  },
+  "colorado-timnath": {
+    "county": "Larimer County",
+    "county_fips": "08069",
+    "state_code": "CO"
+  },
+  "colorado-trinidad": {
+    "county": "Las Animas County",
+    "county_fips": "08071",
+    "state_code": "CO"
+  },
+  "colorado-wellington": {
+    "county": "Larimer County",
+    "county_fips": "08069",
+    "state_code": "CO"
+  },
+  "colorado-westminster": {
+    "county": "Adams County",
+    "county_fips": "08001",
+    "state_code": "CO"
+  },
+  "colorado-windsor": {
+    "county": "Weld County",
+    "county_fips": "08123",
+    "state_code": "CO"
+  },
+  "colorado-woodland-park": {
+    "county": "Teller County",
+    "county_fips": "08119",
+    "state_code": "CO"
+  },
+  "connecticut-bridgeport": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-canton": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "connecticut-danbury": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-easton": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "connecticut-enfield": {
+    "county": "Hartford County",
+    "county_fips": "09003",
+    "state_code": "CT"
+  },
+  "connecticut-fairfield": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-greenwich": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-groton": {
+    "county": "New London County",
+    "county_fips": "09011",
+    "state_code": "CT"
+  },
+  "connecticut-guilford": {
+    "county": "New Haven County",
+    "county_fips": "09009",
+    "state_code": "CT"
+  },
+  "connecticut-hartford": {
+    "county": "Hartford County",
+    "county_fips": "09003",
+    "state_code": "CT"
+  },
+  "connecticut-madison": {
+    "county": "New Haven County",
+    "county_fips": "09009",
+    "state_code": "CT"
+  },
+  "connecticut-manchester": {
+    "county": "Hartford County",
+    "county_fips": "09003",
+    "state_code": "CT"
+  },
+  "connecticut-mansfield": {
+    "county": "Tolland County",
+    "county_fips": "09013",
+    "state_code": "CT"
+  },
+  "connecticut-marlborough": {
+    "county": "Hartford County",
+    "county_fips": "09003",
+    "state_code": "CT"
+  },
+  "connecticut-middletown": {
+    "county": "Middlesex County",
+    "county_fips": "09007",
+    "state_code": "CT"
+  },
+  "connecticut-milford": {
+    "county": "New Haven County",
+    "county_fips": "09009",
+    "state_code": "CT"
+  },
+  "connecticut-new-britain": {
+    "county": "Hartford County",
+    "county_fips": "09003",
+    "state_code": "CT"
+  },
+  "connecticut-new-haven": {
+    "county": "New Haven County",
+    "county_fips": "09009",
+    "state_code": "CT"
+  },
+  "connecticut-new-milford": {
+    "county": "Litchfield County",
+    "county_fips": "09005",
+    "state_code": "CT"
+  },
+  "connecticut-newington": {
+    "county": "Hartford County",
+    "county_fips": "09003",
+    "state_code": "CT"
+  },
+  "connecticut-norwalk": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-plainfield": {
+    "county": "Windham County",
+    "county_fips": "09015",
+    "state_code": "CT"
+  },
+  "connecticut-portland": {
+    "county": "Middlesex County",
+    "county_fips": "09007",
+    "state_code": "CT"
+  },
+  "connecticut-prospect": {
+    "county": "New Haven County",
+    "county_fips": "09009",
+    "state_code": "CT"
+  },
+  "connecticut-redding": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-stratford": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-thompson": {
+    "county": "Windham County",
+    "county_fips": "09015",
+    "state_code": "CT"
+  },
+  "connecticut-trumbull": {
+    "county": "Fairfield County",
+    "county_fips": "09001",
+    "state_code": "CT"
+  },
+  "connecticut-waterbury": {
+    "county": "New Haven County",
+    "county_fips": "09009",
+    "state_code": "CT"
+  },
+  "connecticut-waterford": {
+    "county": "New London County",
+    "county_fips": "09011",
+    "state_code": "CT"
+  },
+  "connecticut-winchester": {
+    "county": "Litchfield County",
+    "county_fips": "09005",
+    "state_code": "CT"
+  },
+  "florida-boca-raton": {
+    "county": "Palm Beach County",
+    "county_fips": "12099",
+    "state_code": "FL"
+  },
+  "florida-boynton-beach": {
+    "county": "Palm Beach County",
+    "county_fips": "12099",
+    "state_code": "FL"
+  },
+  "florida-cape-coral": {
+    "county": "Lee County",
+    "county_fips": "12071",
+    "state_code": "FL"
+  },
+  "florida-clearwater": {
+    "county": "Pinellas County",
+    "county_fips": "12103",
+    "state_code": "FL"
+  },
+  "florida-coral-springs": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-davie": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-daytona-beach": {
+    "county": "Volusia County",
+    "county_fips": "12127",
+    "state_code": "FL"
+  },
+  "florida-deerfield-beach": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-delray-beach": {
+    "county": "Palm Beach County",
+    "county_fips": "12099",
+    "state_code": "FL"
+  },
+  "florida-deltona": {
+    "county": "Volusia County",
+    "county_fips": "12127",
+    "state_code": "FL"
+  },
+  "florida-doral": {
+    "county": "Miami-Dade County",
+    "county_fips": "12086",
+    "state_code": "FL"
+  },
+  "florida-gainesville": {
+    "county": "Alachua County",
+    "county_fips": "12001",
+    "state_code": "FL"
+  },
+  "florida-hialeah": {
+    "county": "Miami-Dade County",
+    "county_fips": "12086",
+    "state_code": "FL"
+  },
+  "florida-hollywood": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-homestead": {
+    "county": "Miami-Dade County",
+    "county_fips": "12086",
+    "state_code": "FL"
+  },
+  "florida-jacksonville": {
+    "county": "Duval County",
+    "county_fips": "12031",
+    "state_code": "FL"
+  },
+  "florida-kissimmee": {
+    "county": "Osceola County",
+    "county_fips": "12097",
+    "state_code": "FL"
+  },
+  "florida-lakeland": {
+    "county": "Polk County",
+    "county_fips": "12105",
+    "state_code": "FL"
+  },
+  "florida-largo": {
+    "county": "Pinellas County",
+    "county_fips": "12103",
+    "state_code": "FL"
+  },
+  "florida-lauderhill": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-miami": {
+    "county": "Miami-Dade County",
+    "county_fips": "12086",
+    "state_code": "FL"
+  },
+  "florida-miami-beach": {
+    "county": "Miami-Dade County",
+    "county_fips": "12086",
+    "state_code": "FL"
+  },
+  "florida-miami-gardens": {
+    "county": "Miami-Dade County",
+    "county_fips": "12086",
+    "state_code": "FL"
+  },
+  "florida-miramar": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-north-port": {
+    "county": "Sarasota County",
+    "county_fips": "12115",
+    "state_code": "FL"
+  },
+  "florida-ocala": {
+    "county": "Marion County",
+    "county_fips": "12083",
+    "state_code": "FL"
+  },
+  "florida-orlando": {
+    "county": "Orange County",
+    "county_fips": "12095",
+    "state_code": "FL"
+  },
+  "florida-palm-bay": {
+    "county": "Brevard County",
+    "county_fips": "12009",
+    "state_code": "FL"
+  },
+  "florida-palm-beach-gardens": {
+    "county": "Palm Beach County",
+    "county_fips": "12099",
+    "state_code": "FL"
+  },
+  "florida-pembroke-pines": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-plantation-city": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-pompano-beach": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-port-charlotte": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "florida-port-orange": {
+    "county": "Volusia County",
+    "county_fips": "12127",
+    "state_code": "FL"
+  },
+  "florida-port-st-lucie": {
+    "county": "St. Lucie County",
+    "county_fips": "12111",
+    "state_code": "FL"
+  },
+  "florida-sanford": {
+    "county": "Seminole County",
+    "county_fips": "12117",
+    "state_code": "FL"
+  },
+  "florida-st-cloud": {
+    "county": "Osceola County",
+    "county_fips": "12097",
+    "state_code": "FL"
+  },
+  "florida-st-petersburg": {
+    "county": "Pinellas County",
+    "county_fips": "12103",
+    "state_code": "FL"
+  },
+  "florida-tallahassee": {
+    "county": "Leon County",
+    "county_fips": "12073",
+    "state_code": "FL"
+  },
+  "florida-tamarac": {
+    "county": "Broward County",
+    "county_fips": "12011",
+    "state_code": "FL"
+  },
+  "florida-tampa": {
+    "county": "Hillsborough County",
+    "county_fips": "12057",
+    "state_code": "FL"
+  },
+  "florida-wellington": {
+    "county": "Palm Beach County",
+    "county_fips": "12099",
+    "state_code": "FL"
+  },
+  "florida-west-palm-beach": {
+    "county": "Palm Beach County",
+    "county_fips": "12099",
+    "state_code": "FL"
+  },
+  "georgia-acworth": {
+    "county": "Cobb County",
+    "county_fips": "13067",
+    "state_code": "GA"
+  },
+  "georgia-albany": {
+    "county": "Dougherty County",
+    "county_fips": "13095",
+    "state_code": "GA"
+  },
+  "georgia-americus": {
+    "county": "Sumter County",
+    "county_fips": "13261",
+    "state_code": "GA"
+  },
+  "georgia-athens-clarke-county": {
+    "county": "Clarke County",
+    "county_fips": "13059",
+    "state_code": "GA"
+  },
+  "georgia-augusta-richmond-county": {
+    "county": "Richmond County",
+    "county_fips": "13245",
+    "state_code": "GA"
+  },
+  "georgia-austell": {
+    "county": "Cobb County",
+    "county_fips": "13067",
+    "state_code": "GA"
+  },
+  "georgia-bainbridge": {
+    "county": "Decatur County",
+    "county_fips": "13087",
+    "state_code": "GA"
+  },
+  "georgia-braselton": {
+    "county": "Jackson County",
+    "county_fips": "13157",
+    "state_code": "GA"
+  },
+  "georgia-brookhaven": {
+    "county": "DeKalb County",
+    "county_fips": "13089",
+    "state_code": "GA"
+  },
+  "georgia-brunswick": {
+    "county": "Glynn County",
+    "county_fips": "13127",
+    "state_code": "GA"
+  },
+  "georgia-buford": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-carrollton": {
+    "county": "Carroll County",
+    "county_fips": "13045",
+    "state_code": "GA"
+  },
+  "georgia-cartersville": {
+    "county": "Bartow County",
+    "county_fips": "13015",
+    "state_code": "GA"
+  },
+  "georgia-clarkston": {
+    "county": "DeKalb County",
+    "county_fips": "13089",
+    "state_code": "GA"
+  },
+  "georgia-college-park": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-commerce": {
+    "county": "Jackson County",
+    "county_fips": "13157",
+    "state_code": "GA"
+  },
+  "georgia-conyers": {
+    "county": "Rockdale County",
+    "county_fips": "13247",
+    "state_code": "GA"
+  },
+  "georgia-cornelia": {
+    "county": "Habersham County",
+    "county_fips": "13137",
+    "state_code": "GA"
+  },
+  "georgia-covington": {
+    "county": "Newton County",
+    "county_fips": "13217",
+    "state_code": "GA"
+  },
+  "georgia-dallas": {
+    "county": "Paulding County",
+    "county_fips": "13223",
+    "state_code": "GA"
+  },
+  "georgia-doraville": {
+    "county": "DeKalb County",
+    "county_fips": "13089",
+    "state_code": "GA"
+  },
+  "georgia-douglasville": {
+    "county": "Douglas County",
+    "county_fips": "13097",
+    "state_code": "GA"
+  },
+  "georgia-druid-hills": {
+    "county": "DeKalb County",
+    "county_fips": "13089",
+    "state_code": "GA"
+  },
+  "georgia-duluth": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-dunwoody": {
+    "county": "DeKalb County",
+    "county_fips": "13089",
+    "state_code": "GA"
+  },
+  "georgia-east-point": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-evans": {
+    "county": "Evans County",
+    "county_fips": "13109",
+    "state_code": "GA"
+  },
+  "georgia-fayetteville": {
+    "county": "Fayette County",
+    "county_fips": "13113",
+    "state_code": "GA"
+  },
+  "georgia-fitzgerald": {
+    "county": "Ben Hill County",
+    "county_fips": "13017",
+    "state_code": "GA"
+  },
+  "georgia-flowery-branch": {
+    "county": "Hall County",
+    "county_fips": "13139",
+    "state_code": "GA"
+  },
+  "georgia-gainesville": {
+    "county": "Hall County",
+    "county_fips": "13139",
+    "state_code": "GA"
+  },
+  "georgia-garden-city": {
+    "county": "Chatham County",
+    "county_fips": "13051",
+    "state_code": "GA"
+  },
+  "georgia-glennville": {
+    "county": "Tattnall County",
+    "county_fips": "13267",
+    "state_code": "GA"
+  },
+  "georgia-griffin": {
+    "county": "Spalding County",
+    "county_fips": "13255",
+    "state_code": "GA"
+  },
+  "georgia-grovetown": {
+    "county": "Columbia County",
+    "county_fips": "13073",
+    "state_code": "GA"
+  },
+  "georgia-hampton": {
+    "county": "Henry County",
+    "county_fips": "13151",
+    "state_code": "GA"
+  },
+  "georgia-hapeville": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-hinesville": {
+    "county": "Liberty County",
+    "county_fips": "13179",
+    "state_code": "GA"
+  },
+  "georgia-hiram": {
+    "county": "Paulding County",
+    "county_fips": "13223",
+    "state_code": "GA"
+  },
+  "georgia-holly-springs": {
+    "county": "Cherokee County",
+    "county_fips": "13057",
+    "state_code": "GA"
+  },
+  "georgia-hoschton": {
+    "county": "Jackson County",
+    "county_fips": "13157",
+    "state_code": "GA"
+  },
+  "georgia-jasper": {
+    "county": "Jasper County",
+    "county_fips": "13159",
+    "state_code": "GA"
+  },
+  "georgia-jefferson": {
+    "county": "Jefferson County",
+    "county_fips": "13163",
+    "state_code": "GA"
+  },
+  "georgia-johns-creek": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-kennesaw": {
+    "county": "Cobb County",
+    "county_fips": "13067",
+    "state_code": "GA"
+  },
+  "georgia-kingsland": {
+    "county": "Camden County",
+    "county_fips": "13039",
+    "state_code": "GA"
+  },
+  "georgia-lawrenceville": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-lilburn": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-loganville": {
+    "county": "Walton County",
+    "county_fips": "13297",
+    "state_code": "GA"
+  },
+  "georgia-lovejoy": {
+    "county": "Clayton County",
+    "county_fips": "13063",
+    "state_code": "GA"
+  },
+  "georgia-mableton": {
+    "county": "Cobb County",
+    "county_fips": "13067",
+    "state_code": "GA"
+  },
+  "georgia-macon-bibb-county": {
+    "county": "Bibb County",
+    "county_fips": "13021",
+    "state_code": "GA"
+  },
+  "georgia-marietta": {
+    "county": "Cobb County",
+    "county_fips": "13067",
+    "state_code": "GA"
+  },
+  "georgia-martinez": {
+    "county": "Columbia County",
+    "county_fips": "13073",
+    "state_code": "GA"
+  },
+  "georgia-mcdonough": {
+    "county": "Henry County",
+    "county_fips": "13151",
+    "state_code": "GA"
+  },
+  "georgia-milton": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-morrow": {
+    "county": "Clayton County",
+    "county_fips": "13063",
+    "state_code": "GA"
+  },
+  "georgia-moultrie": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "georgia-mountain-park-cdp": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "georgia-nashville": {
+    "county": "Berrien County",
+    "county_fips": "13019",
+    "state_code": "GA"
+  },
+  "georgia-newnan": {
+    "county": "Coweta County",
+    "county_fips": "13077",
+    "state_code": "GA"
+  },
+  "georgia-norcross": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-peachtree-city": {
+    "county": "Fayette County",
+    "county_fips": "13113",
+    "state_code": "GA"
+  },
+  "georgia-peachtree-corners": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-powder-springs": {
+    "county": "Cobb County",
+    "county_fips": "13067",
+    "state_code": "GA"
+  },
+  "georgia-richmond-hill": {
+    "county": "Bryan County",
+    "county_fips": "13029",
+    "state_code": "GA"
+  },
+  "georgia-riverdale": {
+    "county": "Clayton County",
+    "county_fips": "13063",
+    "state_code": "GA"
+  },
+  "georgia-roswell": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-sandy-springs": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-savannah": {
+    "county": "Chatham County",
+    "county_fips": "13051",
+    "state_code": "GA"
+  },
+  "georgia-senoia": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "georgia-smyrna": {
+    "county": "Cobb County",
+    "county_fips": "13067",
+    "state_code": "GA"
+  },
+  "georgia-snellville": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-south-fulton": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-st-marys": {
+    "county": "Camden County",
+    "county_fips": "13039",
+    "state_code": "GA"
+  },
+  "georgia-stockbridge": {
+    "county": "Henry County",
+    "county_fips": "13151",
+    "state_code": "GA"
+  },
+  "georgia-stonecrest": {
+    "county": "DeKalb County",
+    "county_fips": "13089",
+    "state_code": "GA"
+  },
+  "georgia-sugar-hill": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-suwanee": {
+    "county": "Gwinnett County",
+    "county_fips": "13135",
+    "state_code": "GA"
+  },
+  "georgia-temple": {
+    "county": "Carroll County",
+    "county_fips": "13045",
+    "state_code": "GA"
+  },
+  "georgia-thomasville": {
+    "county": "Thomas County",
+    "county_fips": "13275",
+    "state_code": "GA"
+  },
+  "georgia-tucker": {
+    "county": "DeKalb County",
+    "county_fips": "13089",
+    "state_code": "GA"
+  },
+  "georgia-tyrone": {
+    "county": "Fayette County",
+    "county_fips": "13113",
+    "state_code": "GA"
+  },
+  "georgia-union-city": {
+    "county": "Fulton County",
+    "county_fips": "13121",
+    "state_code": "GA"
+  },
+  "georgia-valdosta": {
+    "county": "Lowndes County",
+    "county_fips": "13185",
+    "state_code": "GA"
+  },
+  "georgia-vidalia": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "georgia-warner-robins": {
+    "county": "Houston County",
+    "county_fips": "13153",
+    "state_code": "GA"
+  },
+  "georgia-winder": {
+    "county": "Barrow County",
+    "county_fips": "13013",
+    "state_code": "GA"
+  },
+  "georgia-woodstock": {
+    "county": "Cherokee County",
+    "county_fips": "13057",
+    "state_code": "GA"
+  },
+  "north-carolina-aberdeen": {
+    "county": "Moore County",
+    "county_fips": "37125",
+    "state_code": "NC"
+  },
+  "north-carolina-albemarle": {
+    "county": "Stanly County",
+    "county_fips": "37167",
+    "state_code": "NC"
+  },
+  "north-carolina-apex": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-asheville": {
+    "county": "Buncombe County",
+    "county_fips": "37021",
+    "state_code": "NC"
+  },
+  "north-carolina-black-mountain": {
+    "county": "Buncombe County",
+    "county_fips": "37021",
+    "state_code": "NC"
+  },
+  "north-carolina-boone": {
+    "county": "Watauga County",
+    "county_fips": "37189",
+    "state_code": "NC"
+  },
+  "north-carolina-burlington": {
+    "county": "Alamance County",
+    "county_fips": "37001",
+    "state_code": "NC"
+  },
+  "north-carolina-carolina-beach": {
+    "county": "New Hanover County",
+    "county_fips": "37129",
+    "state_code": "NC"
+  },
+  "north-carolina-chapel-hill": {
+    "county": "Orange County",
+    "county_fips": "37135",
+    "state_code": "NC"
+  },
+  "north-carolina-charlotte": {
+    "county": "Mecklenburg County",
+    "county_fips": "37119",
+    "state_code": "NC"
+  },
+  "north-carolina-clayton": {
+    "county": "Johnston County",
+    "county_fips": "37101",
+    "state_code": "NC"
+  },
+  "north-carolina-clemmons": {
+    "county": "Forsyth County",
+    "county_fips": "37067",
+    "state_code": "NC"
+  },
+  "north-carolina-durham": {
+    "county": "Durham County",
+    "county_fips": "37063",
+    "state_code": "NC"
+  },
+  "north-carolina-fayetteville": {
+    "county": "Cumberland County",
+    "county_fips": "37051",
+    "state_code": "NC"
+  },
+  "north-carolina-fuquay-varina": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-gastonia": {
+    "county": "Gaston County",
+    "county_fips": "37071",
+    "state_code": "NC"
+  },
+  "north-carolina-greensboro": {
+    "county": "Guilford County",
+    "county_fips": "37081",
+    "state_code": "NC"
+  },
+  "north-carolina-henderson": {
+    "county": "Henderson County",
+    "county_fips": "37089",
+    "state_code": "NC"
+  },
+  "north-carolina-high-point": {
+    "county": "Guilford County",
+    "county_fips": "37081",
+    "state_code": "NC"
+  },
+  "north-carolina-holly-springs": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-hope-mills": {
+    "county": "Cumberland County",
+    "county_fips": "37051",
+    "state_code": "NC"
+  },
+  "north-carolina-indian-trail": {
+    "county": "Union County",
+    "county_fips": "37179",
+    "state_code": "NC"
+  },
+  "north-carolina-jacksonville": {
+    "county": "Onslow County",
+    "county_fips": "37133",
+    "state_code": "NC"
+  },
+  "north-carolina-kannapolis": {
+    "county": "Cabarrus County",
+    "county_fips": "37025",
+    "state_code": "NC"
+  },
+  "north-carolina-kernersville": {
+    "county": "Forsyth County",
+    "county_fips": "37067",
+    "state_code": "NC"
+  },
+  "north-carolina-king": {
+    "county": "Stokes County",
+    "county_fips": "37169",
+    "state_code": "NC"
+  },
+  "north-carolina-kings-mountain": {
+    "county": "Cleveland County",
+    "county_fips": "37045",
+    "state_code": "NC"
+  },
+  "north-carolina-knightdale": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-leland": {
+    "county": "Brunswick County",
+    "county_fips": "37019",
+    "state_code": "NC"
+  },
+  "north-carolina-lenoir": {
+    "county": "Lenoir County",
+    "county_fips": "37107",
+    "state_code": "NC"
+  },
+  "north-carolina-lexington": {
+    "county": "Davidson County",
+    "county_fips": "37057",
+    "state_code": "NC"
+  },
+  "north-carolina-matthews": {
+    "county": "Mecklenburg County",
+    "county_fips": "37119",
+    "state_code": "NC"
+  },
+  "north-carolina-monroe": {
+    "county": "Union County",
+    "county_fips": "37179",
+    "state_code": "NC"
+  },
+  "north-carolina-mooresville": {
+    "county": "Iredell County",
+    "county_fips": "37097",
+    "state_code": "NC"
+  },
+  "north-carolina-morehead-city": {
+    "county": "Carteret County",
+    "county_fips": "37031",
+    "state_code": "NC"
+  },
+  "north-carolina-morganton": {
+    "county": "Burke County",
+    "county_fips": "37023",
+    "state_code": "NC"
+  },
+  "north-carolina-morrisville": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-mount-holly": {
+    "county": "Gaston County",
+    "county_fips": "37071",
+    "state_code": "NC"
+  },
+  "north-carolina-oxford": {
+    "county": "Granville County",
+    "county_fips": "37077",
+    "state_code": "NC"
+  },
+  "north-carolina-pinehurst": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "north-carolina-pineville": {
+    "county": "Mecklenburg County",
+    "county_fips": "37119",
+    "state_code": "NC"
+  },
+  "north-carolina-raleigh": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-rocky-mount": {
+    "county": "Nash County",
+    "county_fips": "37127",
+    "state_code": "NC"
+  },
+  "north-carolina-rolesville": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-sanford": {
+    "county": "Lee County",
+    "county_fips": "37105",
+    "state_code": "NC"
+  },
+  "north-carolina-spring-lake": {
+    "county": "Cumberland County",
+    "county_fips": "37051",
+    "state_code": "NC"
+  },
+  "north-carolina-statesville": {
+    "county": "Iredell County",
+    "county_fips": "37097",
+    "state_code": "NC"
+  },
+  "north-carolina-summerfield": {
+    "county": "Guilford County",
+    "county_fips": "37081",
+    "state_code": "NC"
+  },
+  "north-carolina-thomasville": {
+    "county": "Davidson County",
+    "county_fips": "37057",
+    "state_code": "NC"
+  },
+  "north-carolina-wake-forest": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-waxhaw": {
+    "county": "Union County",
+    "county_fips": "37179",
+    "state_code": "NC"
+  },
+  "north-carolina-waynesville": {
+    "county": "Haywood County",
+    "county_fips": "37087",
+    "state_code": "NC"
+  },
+  "north-carolina-wendell": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "north-carolina-wilmington": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "north-carolina-wilson": {
+    "county": "Wilson County",
+    "county_fips": "37195",
+    "state_code": "NC"
+  },
+  "north-carolina-winston-salem": {
+    "county": "Forsyth County",
+    "county_fips": "37067",
+    "state_code": "NC"
+  },
+  "north-carolina-woodfin": {
+    "county": "Buncombe County",
+    "county_fips": "37021",
+    "state_code": "NC"
+  },
+  "north-carolina-zebulon": {
+    "county": "Wake County",
+    "county_fips": "37183",
+    "state_code": "NC"
+  },
+  "ohio-ada": {
+    "county": "Adams County",
+    "county_fips": "39001",
+    "state_code": "OH"
+  },
+  "ohio-aurora": {
+    "county": "Portage County",
+    "county_fips": "39133",
+    "state_code": "OH"
+  },
+  "ohio-austintown": {
+    "county": "Mahoning County",
+    "county_fips": "39099",
+    "state_code": "OH"
+  },
+  "ohio-bainbridge-cdp": {
+    "county": "Geauga County",
+    "county_fips": "39055",
+    "state_code": "OH"
+  },
+  "ohio-beachwood": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-bedford": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-bellbrook": {
+    "county": "Greene County",
+    "county_fips": "39057",
+    "state_code": "OH"
+  },
+  "ohio-berea": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-brecksville": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-broadview-heights": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-brook-park": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-canal-winchester": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-canfield": {
+    "county": "Mahoning County",
+    "county_fips": "39099",
+    "state_code": "OH"
+  },
+  "ohio-canton": {
+    "county": "Stark County",
+    "county_fips": "39151",
+    "state_code": "OH"
+  },
+  "ohio-carlisle": {
+    "county": "Warren County",
+    "county_fips": "39165",
+    "state_code": "OH"
+  },
+  "ohio-centerville": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-cincinnati": {
+    "county": "Hamilton County",
+    "county_fips": "39061",
+    "state_code": "OH"
+  },
+  "ohio-circleville": {
+    "county": "Pickaway County",
+    "county_fips": "39129",
+    "state_code": "OH"
+  },
+  "ohio-clayton": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-cleveland": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-dayton": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-dover": {
+    "county": "Tuscarawas County",
+    "county_fips": "39157",
+    "state_code": "OH"
+  },
+  "ohio-dublin": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-eaton": {
+    "county": "Preble County",
+    "county_fips": "39135",
+    "state_code": "OH"
+  },
+  "ohio-euclid": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-fairborn": {
+    "county": "Greene County",
+    "county_fips": "39057",
+    "state_code": "OH"
+  },
+  "ohio-forest-park": {
+    "county": "Hamilton County",
+    "county_fips": "39061",
+    "state_code": "OH"
+  },
+  "ohio-fostoria": {
+    "county": "Seneca County",
+    "county_fips": "39147",
+    "state_code": "OH"
+  },
+  "ohio-franklin": {
+    "county": "Warren County",
+    "county_fips": "39165",
+    "state_code": "OH"
+  },
+  "ohio-gahanna": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-galion": {
+    "county": "Crawford County",
+    "county_fips": "39033",
+    "state_code": "OH"
+  },
+  "ohio-germantown": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-grandview-heights": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-granville": {
+    "county": "Licking County",
+    "county_fips": "39089",
+    "state_code": "OH"
+  },
+  "ohio-grove-city": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-groveport": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-hilliard": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-hubbard": {
+    "county": "Trumbull County",
+    "county_fips": "39155",
+    "state_code": "OH"
+  },
+  "ohio-huber-heights": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-huron": {
+    "county": "Huron County",
+    "county_fips": "39077",
+    "state_code": "OH"
+  },
+  "ohio-johnstown": {
+    "county": "Licking County",
+    "county_fips": "39089",
+    "state_code": "OH"
+  },
+  "ohio-kent": {
+    "county": "Portage County",
+    "county_fips": "39133",
+    "state_code": "OH"
+  },
+  "ohio-kenton": {
+    "county": "Hardin County",
+    "county_fips": "39065",
+    "state_code": "OH"
+  },
+  "ohio-kettering": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-lakewood": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-lima": {
+    "county": "Allen County",
+    "county_fips": "39003",
+    "state_code": "OH"
+  },
+  "ohio-louisville": {
+    "county": "Stark County",
+    "county_fips": "39151",
+    "state_code": "OH"
+  },
+  "ohio-madeira": {
+    "county": "Hamilton County",
+    "county_fips": "39061",
+    "state_code": "OH"
+  },
+  "ohio-mentor-on-the-lake": {
+    "county": "Lake County",
+    "county_fips": "39085",
+    "state_code": "OH"
+  },
+  "ohio-miamisburg": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-middletown": {
+    "county": "Butler County",
+    "county_fips": "39017",
+    "state_code": "OH"
+  },
+  "ohio-monroe": {
+    "county": "Monroe County",
+    "county_fips": "39111",
+    "state_code": "OH"
+  },
+  "ohio-moraine": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-napoleon": {
+    "county": "Henry County",
+    "county_fips": "39069",
+    "state_code": "OH"
+  },
+  "ohio-new-albany": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-new-philadelphia": {
+    "county": "Tuscarawas County",
+    "county_fips": "39157",
+    "state_code": "OH"
+  },
+  "ohio-north-canton": {
+    "county": "Stark County",
+    "county_fips": "39151",
+    "state_code": "OH"
+  },
+  "ohio-north-college-hill": {
+    "county": "Hamilton County",
+    "county_fips": "39061",
+    "state_code": "OH"
+  },
+  "ohio-north-madison": {
+    "county": "Lake County",
+    "county_fips": "39085",
+    "state_code": "OH"
+  },
+  "ohio-north-ridgeville": {
+    "county": "Lorain County",
+    "county_fips": "39093",
+    "state_code": "OH"
+  },
+  "ohio-north-royalton": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-oberlin": {
+    "county": "Lorain County",
+    "county_fips": "39093",
+    "state_code": "OH"
+  },
+  "ohio-orrville": {
+    "county": "Wayne County",
+    "county_fips": "39169",
+    "state_code": "OH"
+  },
+  "ohio-oxford": {
+    "county": "Butler County",
+    "county_fips": "39017",
+    "state_code": "OH"
+  },
+  "ohio-parma": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-perry-heights": {
+    "county": "Stark County",
+    "county_fips": "39151",
+    "state_code": "OH"
+  },
+  "ohio-perrysburg": {
+    "county": "Wood County",
+    "county_fips": "39173",
+    "state_code": "OH"
+  },
+  "ohio-piqua": {
+    "county": "Miami County",
+    "county_fips": "39109",
+    "state_code": "OH"
+  },
+  "ohio-portsmouth": {
+    "county": "Scioto County",
+    "county_fips": "39145",
+    "state_code": "OH"
+  },
+  "ohio-reynoldsburg": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-riverside": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-sandusky": {
+    "county": "Sandusky County",
+    "county_fips": "39143",
+    "state_code": "OH"
+  },
+  "ohio-seven-hills": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-shaker-heights": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-sidney": {
+    "county": "Shelby County",
+    "county_fips": "39149",
+    "state_code": "OH"
+  },
+  "ohio-solon": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-south-euclid": {
+    "county": "Cuyahoga County",
+    "county_fips": "39035",
+    "state_code": "OH"
+  },
+  "ohio-springboro": {
+    "county": "Warren County",
+    "county_fips": "39165",
+    "state_code": "OH"
+  },
+  "ohio-springfield": {
+    "county": "Clark County",
+    "county_fips": "39023",
+    "state_code": "OH"
+  },
+  "ohio-streetsboro": {
+    "county": "Portage County",
+    "county_fips": "39133",
+    "state_code": "OH"
+  },
+  "ohio-struthers": {
+    "county": "Mahoning County",
+    "county_fips": "39099",
+    "state_code": "OH"
+  },
+  "ohio-the-village-of-indian-hill": {
+    "county": "Hamilton County",
+    "county_fips": "39061",
+    "state_code": "OH"
+  },
+  "ohio-toledo": {
+    "county": "Lucas County",
+    "county_fips": "39095",
+    "state_code": "OH"
+  },
+  "ohio-trotwood": {
+    "county": "Montgomery County",
+    "county_fips": "39113",
+    "state_code": "OH"
+  },
+  "ohio-twinsburg": {
+    "county": "Summit County",
+    "county_fips": "39153",
+    "state_code": "OH"
+  },
+  "ohio-upper-arlington": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-upper-sandusky": {
+    "county": "Wyandot County",
+    "county_fips": "39175",
+    "state_code": "OH"
+  },
+  "ohio-wellston": {
+    "county": "Jackson County",
+    "county_fips": "39079",
+    "state_code": "OH"
+  },
+  "ohio-whitehall": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "ohio-whitehouse": {
+    "county": "Lucas County",
+    "county_fips": "39095",
+    "state_code": "OH"
+  },
+  "ohio-wickliffe": {
+    "county": "Lake County",
+    "county_fips": "39085",
+    "state_code": "OH"
+  },
+  "ohio-willoughby": {
+    "county": "Lake County",
+    "county_fips": "39085",
+    "state_code": "OH"
+  },
+  "ohio-wilmington": {
+    "county": "Clinton County",
+    "county_fips": "39027",
+    "state_code": "OH"
+  },
+  "ohio-worthington": {
+    "county": "Franklin County",
+    "county_fips": "39049",
+    "state_code": "OH"
+  },
+  "rhode-island-barrington": {
+    "county": "Bristol County",
+    "county_fips": "44001",
+    "state_code": "RI"
+  },
+  "rhode-island-bristol": {
+    "county": "Bristol County",
+    "county_fips": "44001",
+    "state_code": "RI"
+  },
+  "rhode-island-burrillville": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-central-falls": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "rhode-island-charlestown": {
+    "county": "Washington County",
+    "county_fips": "44009",
+    "state_code": "RI"
+  },
+  "rhode-island-coventry": {
+    "county": "Kent County",
+    "county_fips": "44003",
+    "state_code": "RI"
+  },
+  "rhode-island-cranston": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-cumberland": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-east-greenwich": {
+    "county": "Kent County",
+    "county_fips": "44003",
+    "state_code": "RI"
+  },
+  "rhode-island-east-providence": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-exeter": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "rhode-island-foster": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-glocester": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-hopkinton": {
+    "county": "Washington County",
+    "county_fips": "44009",
+    "state_code": "RI"
+  },
+  "rhode-island-jamestown": {
+    "county": "Newport County",
+    "county_fips": "44005",
+    "state_code": "RI"
+  },
+  "rhode-island-johnston": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-lincoln": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-little-compton": {
+    "county": "Newport County",
+    "county_fips": "44005",
+    "state_code": "RI"
+  },
+  "rhode-island-middletown": {
+    "county": "Newport County",
+    "county_fips": "44005",
+    "state_code": "RI"
+  },
+  "rhode-island-narragansett": {
+    "county": "Washington County",
+    "county_fips": "44009",
+    "state_code": "RI"
+  },
+  "rhode-island-new-shoreham": {
+    "county": "Washington County",
+    "county_fips": "44009",
+    "state_code": "RI"
+  },
+  "rhode-island-north-kingstown": {
+    "county": "Washington County",
+    "county_fips": "44009",
+    "state_code": "RI"
+  },
+  "rhode-island-north-providence": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-north-smithfield": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-pawtucket": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-portsmouth": {
+    "county": "Newport County",
+    "county_fips": "44005",
+    "state_code": "RI"
+  },
+  "rhode-island-providence": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-scituate": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "rhode-island-smithfield": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "rhode-island-south-kingstown": {
+    "county": "Washington County",
+    "county_fips": "44009",
+    "state_code": "RI"
+  },
+  "rhode-island-tiverton": {
+    "county": "Newport County",
+    "county_fips": "44005",
+    "state_code": "RI"
+  },
+  "rhode-island-warwick": {
+    "county": "Kent County",
+    "county_fips": "44003",
+    "state_code": "RI"
+  },
+  "rhode-island-west-greenwich": {
+    "county": "Kent County",
+    "county_fips": "44003",
+    "state_code": "RI"
+  },
+  "rhode-island-west-warwick": {
+    "county": "Kent County",
+    "county_fips": "44003",
+    "state_code": "RI"
+  },
+  "rhode-island-westerly": {
+    "county": "Washington County",
+    "county_fips": "44009",
+    "state_code": "RI"
+  },
+  "rhode-island-woonsocket": {
+    "county": "Providence County",
+    "county_fips": "44007",
+    "state_code": "RI"
+  },
+  "texas-abilene": {
+    "county": "Taylor County",
+    "county_fips": "48441",
+    "state_code": "TX"
+  },
+  "texas-allen": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "texas-arlington": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-baytown": {
+    "county": "Harris County",
+    "county_fips": "48201",
+    "state_code": "TX"
+  },
+  "texas-beaumont": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "texas-bedford": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-brownsville": {
+    "county": "Cameron County",
+    "county_fips": "48061",
+    "state_code": "TX"
+  },
+  "texas-bryan": {
+    "county": "Brazos County",
+    "county_fips": "48041",
+    "state_code": "TX"
+  },
+  "texas-burleson": {
+    "county": "Burleson County",
+    "county_fips": "48051",
+    "state_code": "TX"
+  },
+  "texas-carrollton": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-cedar-hill": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-celina": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "texas-conroe": {
+    "county": "Montgomery County",
+    "county_fips": "48339",
+    "state_code": "TX"
+  },
+  "texas-coppell": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-copperas-cove": {
+    "county": "Coryell County",
+    "county_fips": "48099",
+    "state_code": "TX"
+  },
+  "texas-corpus-christi": {
+    "county": "Nueces County",
+    "county_fips": "48355",
+    "state_code": "TX"
+  },
+  "texas-county-engineer": {
+    "county": "Ellis County",
+    "county_fips": "48139",
+    "state_code": "TX"
+  },
+  "texas-dallas": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-denton": {
+    "county": "Denton County",
+    "county_fips": "48121",
+    "state_code": "TX"
+  },
+  "texas-desoto": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-duncanville": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-edinburg": {
+    "county": "Hidalgo County",
+    "county_fips": "48215",
+    "state_code": "TX"
+  },
+  "texas-el-paso": {
+    "county": "El Paso County",
+    "county_fips": "48141",
+    "state_code": "TX"
+  },
+  "texas-euless": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-friendswood": {
+    "county": "Galveston County",
+    "county_fips": "48167",
+    "state_code": "TX"
+  },
+  "texas-frisco": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "texas-fulshear": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "texas-galveston": {
+    "county": "Galveston County",
+    "county_fips": "48167",
+    "state_code": "TX"
+  },
+  "texas-garland": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-grand-prairie": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-grapevine": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-harlingen": {
+    "county": "Cameron County",
+    "county_fips": "48061",
+    "state_code": "TX"
+  },
+  "texas-houston": {
+    "county": "Harris County",
+    "county_fips": "48201",
+    "state_code": "TX"
+  },
+  "texas-huntsville": {
+    "county": "Walker County",
+    "county_fips": "48471",
+    "state_code": "TX"
+  },
+  "texas-hurst": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-hutto": {
+    "county": "Williamson County",
+    "county_fips": "48491",
+    "state_code": "TX"
+  },
+  "texas-irving": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-keller": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-killeen": {
+    "county": "Bell County",
+    "county_fips": "48027",
+    "state_code": "TX"
+  },
+  "texas-kyle": {
+    "county": "Hays County",
+    "county_fips": "48209",
+    "state_code": "TX"
+  },
+  "texas-lancaster": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-laredo": {
+    "county": "Webb County",
+    "county_fips": "48479",
+    "state_code": "TX"
+  },
+  "texas-league-city": {
+    "county": "Galveston County",
+    "county_fips": "48167",
+    "state_code": "TX"
+  },
+  "texas-leander": {
+    "county": "Williamson County",
+    "county_fips": "48491",
+    "state_code": "TX"
+  },
+  "texas-lewisville": {
+    "county": "Denton County",
+    "county_fips": "48121",
+    "state_code": "TX"
+  },
+  "texas-little-elm": {
+    "county": "Denton County",
+    "county_fips": "48121",
+    "state_code": "TX"
+  },
+  "texas-longview": {
+    "county": "Gregg County",
+    "county_fips": "48183",
+    "state_code": "TX"
+  },
+  "texas-lubbock": {
+    "county": "Lubbock County",
+    "county_fips": "48303",
+    "state_code": "TX"
+  },
+  "texas-mansfield": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-mcallen": {
+    "county": "Hidalgo County",
+    "county_fips": "48215",
+    "state_code": "TX"
+  },
+  "texas-mckinney": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "texas-melissa": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "texas-mesquite-city": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-midland": {
+    "county": "Midland County",
+    "county_fips": "48329",
+    "state_code": "TX"
+  },
+  "texas-midlothian": {
+    "county": "Ellis County",
+    "county_fips": "48139",
+    "state_code": "TX"
+  },
+  "texas-mission": {
+    "county": "Hidalgo County",
+    "county_fips": "48215",
+    "state_code": "TX"
+  },
+  "texas-missouri-city": {
+    "county": "Fort Bend County",
+    "county_fips": "48157",
+    "state_code": "TX"
+  },
+  "texas-new-braunfels": {
+    "county": "Comal County",
+    "county_fips": "48091",
+    "state_code": "TX"
+  },
+  "texas-north-richland-hills": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-odessa": {
+    "county": "Ector County",
+    "county_fips": "48135",
+    "state_code": "TX"
+  },
+  "texas-pearland": {
+    "county": "Brazoria County",
+    "county_fips": "48039",
+    "state_code": "TX"
+  },
+  "texas-pflugerville": {
+    "county": "Travis County",
+    "county_fips": "48453",
+    "state_code": "TX"
+  },
+  "texas-pharr": {
+    "county": "Hidalgo County",
+    "county_fips": "48215",
+    "state_code": "TX"
+  },
+  "texas-plano": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "texas-port-arthur": {
+    "county": "Jefferson County",
+    "county_fips": "48245",
+    "state_code": "TX"
+  },
+  "texas-prosper": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "texas-richardson": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-rosenberg": {
+    "county": "Fort Bend County",
+    "county_fips": "48157",
+    "state_code": "TX"
+  },
+  "texas-round-rock": {
+    "county": "Williamson County",
+    "county_fips": "48491",
+    "state_code": "TX"
+  },
+  "texas-rowlett": {
+    "county": "Dallas County",
+    "county_fips": "48113",
+    "state_code": "TX"
+  },
+  "texas-san-angelo": {
+    "county": "Tom Green County",
+    "county_fips": "48451",
+    "state_code": "TX"
+  },
+  "texas-san-antonio": {
+    "county": "Bexar County",
+    "county_fips": "48029",
+    "state_code": "TX"
+  },
+  "texas-san-marcos": {
+    "county": "Hays County",
+    "county_fips": "48209",
+    "state_code": "TX"
+  },
+  "texas-schertz": {
+    "county": "Guadalupe County",
+    "county_fips": "48187",
+    "state_code": "TX"
+  },
+  "texas-sherman": {
+    "county": "Sherman County",
+    "county_fips": "48421",
+    "state_code": "TX"
+  },
+  "texas-southlake": {
+    "county": "Tarrant County",
+    "county_fips": "48439",
+    "state_code": "TX"
+  },
+  "texas-spring": {
+    "county": "Harris County",
+    "county_fips": "48201",
+    "state_code": "TX"
+  },
+  "texas-sugar-land": {
+    "county": "Fort Bend County",
+    "county_fips": "48157",
+    "state_code": "TX"
+  },
+  "texas-temple": {
+    "county": "Bell County",
+    "county_fips": "48027",
+    "state_code": "TX"
+  },
+  "texas-texas-city": {
+    "county": "Galveston County",
+    "county_fips": "48167",
+    "state_code": "TX"
+  },
+  "texas-the-colony": {
+    "county": "Denton County",
+    "county_fips": "48121",
+    "state_code": "TX"
+  },
+  "texas-tyler": {
+    "county": "Smith County",
+    "county_fips": "48423",
+    "state_code": "TX"
+  },
+  "texas-victoria": {
+    "county": "Victoria County",
+    "county_fips": "48469",
+    "state_code": "TX"
+  },
+  "texas-waco": {
+    "county": "McLennan County",
+    "county_fips": "48309",
+    "state_code": "TX"
+  },
+  "texas-waxahachie": {
+    "county": "Ellis County",
+    "county_fips": "48139",
+    "state_code": "TX"
+  },
+  "texas-weslaco": {
+    "county": "Hidalgo County",
+    "county_fips": "48215",
+    "state_code": "TX"
+  },
+  "texas-wichita-falls": {
+    "county": "Wichita County",
+    "county_fips": "48485",
+    "state_code": "TX"
+  },
+  "texas-wylie": {
+    "county": "Collin County",
+    "county_fips": "48085",
+    "state_code": "TX"
+  },
+  "wyoming-buffalo": {
+    "county": "Johnson County",
+    "county_fips": "56019",
+    "state_code": "WY"
+  },
+  "wyoming-cheyenne": {
+    "county": "Laramie County",
+    "county_fips": "56021",
+    "state_code": "WY"
+  },
+  "wyoming-cody": {
+    "county": "Park County",
+    "county_fips": "56029",
+    "state_code": "WY"
+  },
+  "wyoming-douglas": {
+    "county": "Converse County",
+    "county_fips": "56009",
+    "state_code": "WY"
+  },
+  "wyoming-gillette": {
+    "county": "Campbell County",
+    "county_fips": "56005",
+    "state_code": "WY"
+  },
+  "wyoming-green-river": {
+    "county": "Sweetwater County",
+    "county_fips": "56037",
+    "state_code": "WY"
+  },
+  "wyoming-lander": {
+    "county": "Unknown County",
+    "county_fips": "",
+    "state_code": ""
+  },
+  "wyoming-laramie": {
+    "county": "Albany County",
+    "county_fips": "56001",
+    "state_code": "WY"
+  },
+  "wyoming-mills": {
+    "county": "Natrona County",
+    "county_fips": "56025",
+    "state_code": "WY"
+  },
+  "wyoming-rawlins": {
+    "county": "Carbon County",
+    "county_fips": "56007",
+    "state_code": "WY"
+  },
+  "wyoming-sheridan": {
+    "county": "Sheridan County",
+    "county_fips": "56033",
+    "state_code": "WY"
+  },
+  "wyoming-torrington": {
+    "county": "Goshen County",
+    "county_fips": "56015",
+    "state_code": "WY"
+  }
+}

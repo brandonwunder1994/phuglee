@@ -1,0 +1,56 @@
+{
+  "scenarios": [
+    {
+      "id": "street_ok_distressed",
+      "description": "Clear street view → tier without satellite",
+      "streetAnalysis": {
+        "category": "property",
+        "confidence": 85,
+        "score": 8,
+        "indicators": ["junk_or_hoarding_yard", "overgrown_landscaping"],
+        "reason": "Junk pile and overgrown yard visible on subject home."
+      },
+      "needsSatellite": false,
+      "expectedTier": "distressed",
+      "needsReview": false
+    },
+    {
+      "id": "street_bad_satellite",
+      "description": "Blurred street → satellite fallback triggered",
+      "streetAnalysis": {
+        "category": "blurred",
+        "confidence": 40,
+        "reason": "Privacy blur on street view."
+      },
+      "needsSatellite": true,
+      "satelliteResult": {
+        "category": "property",
+        "structureOnLot": true,
+        "aerialDistressScore": 7,
+        "indicators": ["overgrown_landscaping"],
+        "roofCondition": "fair",
+        "yardCondition": "poor"
+      },
+      "expectedTier": "distressed",
+      "needsReview": false
+    },
+    {
+      "id": "both_bad_review",
+      "description": "Street and satellite unavailable → needs review",
+      "streetAnalysis": {
+        "category": "unavailable",
+        "reason": "Cannot see the home — trees block facade."
+      },
+      "needsSatellite": true,
+      "satelliteResult": null,
+      "satelliteFailed": true,
+      "record": {
+        "category": "unavailable",
+        "score": 0,
+        "landHomeConflict": true,
+        "reason": "Street and satellite imagery unavailable — needs review."
+      },
+      "needsReview": true
+    }
+  ]
+}

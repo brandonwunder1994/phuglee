@@ -1,0 +1,29 @@
+{
+  "synced_at": "2026-07-05T17:06:40.366475+00:00",
+  "source": "C:\\Users\\brand\\Projects\\city-list-requests\\data\\CONTACT-EMAIL-AUDIT.xlsx",
+  "email_only_rows": 19,
+  "added": [
+    "alabama-center-point"
+  ],
+  "updated": [],
+  "already_ok": [
+    "texas-cedar-park",
+    "ohio-new-franklin",
+    "ohio-st-marys",
+    "florida-sunrise",
+    "florida-weston",
+    "ohio-marysville",
+    "georgia-cumming",
+    "ohio-chillicothe",
+    "ohio-canal-fulton",
+    "ohio-painesville",
+    "north-carolina-kill-devil-hills",
+    "georgia-atlanta",
+    "georgia-monroe",
+    "ohio-mentor",
+    "ohio-mount-vernon",
+    "ohio-akron",
+    "ohio-beavercreek",
+    "ohio-independence"
+  ]
+}

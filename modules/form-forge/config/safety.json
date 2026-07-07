@@ -1,0 +1,5 @@
+{
+  "send_live_enabled": false,
+  "require_confirmation_flag": true,
+  "notes": "Set send_live_enabled to true AND pass --i-confirm-send to send-live. Nothing sends without both."
+}

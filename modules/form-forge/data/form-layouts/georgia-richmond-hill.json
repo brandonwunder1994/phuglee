@@ -1,0 +1,77 @@
+{
+  "saved_at": "2026-07-04T23:06:59.354400+00:00",
+  "elements": [
+    {
+      "type": "date",
+      "page": 0,
+      "x": 153.87250745618664,
+      "y": 231.45508707607698,
+      "y_mode": "top",
+      "text": "07/04/2026",
+      "fontsize": 10,
+      "label": "Date",
+      "box_width": 66.62749706227967,
+      "box_height": 10.394133822181486
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 114.63631474173307,
+      "y": 300.50183318056827,
+      "y_mode": "top",
+      "text": "I am requesting information about any code violations related to tall grass and trash/debris over the past 30 days.",
+      "fontsize": 10,
+      "label": "Request",
+      "box_width": 376.07520564042306,
+      "box_height": 10.394133822181486
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 141.28731356664494,
+      "y": 540.3093492208983,
+      "y_mode": "top",
+      "text": "Brandon Wunder",
+      "fontsize": 10,
+      "label": "Name",
+      "box_width": 103.6427732079906,
+      "box_height": 10.394133822181486
+    },
+    {
+      "type": "signature",
+      "page": 0,
+      "x": 150.7632152230143,
+      "y": 560.3551787351054,
+      "y_mode": "top",
+      "text": "Brandon Joseph Wunder",
+      "fontsize": 10,
+      "label": "Signature",
+      "width": 96.2397179788484,
+      "height": 20.78826764436297
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 401.87485763244985,
+      "y": 598.961961503208,
+      "y_mode": "top",
+      "text": "(602) 815-8040",
+      "fontsize": 10,
+      "label": "Phone",
+      "box_width": 81.43360752056404,
+      "box_height": 10.394133822181486
+    },
+    {
+      "type": "text",
+      "page": 0,
+      "x": 132.4036472916743,
+      "y": 602.6741521539872,
+      "y_mode": "top",
+      "text": "BrandonWunderAZ@gmail.com",
+      "fontsize": 9,
+      "label": "Email",
+      "box_width": 177.67332549941247,
+      "box_height": 10.394133822181486
+    }
+  ]
+}

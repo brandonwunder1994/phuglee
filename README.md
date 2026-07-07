@@ -7,8 +7,8 @@ Unified shell for **Form Forge** (public-records form filling & tracking) and **
 - **Node.js** 20+ (24 recommended)
 - **Python** 3.12+ with Form Forge dependencies (`pip install -r requirements.txt`)
 - **Windows** (launch scripts are `.bat`; server runs on any OS with Node)
-- Form Forge repo: `C:\Users\brand\Projects\city-list-requests`
-- Property Analyzer repo: `C:\Users\brand\Projects\property-distress-analyzer`
+- Form Forge: `modules/form-forge` (included in this repo)
+- Property Analyzer: `modules/property-analyzer` (included in this repo)
 
 ## Quick start (local)
 
@@ -48,18 +48,17 @@ Distress OS auto-starts Form Forge (`:8787`) and Property Analyzer (`:3456`) if 
 - Form Forge: http://127.0.0.1:8787
 - Property Analyzer: http://distressos.local:3456 (run `setup-distressos-url.bat` in the analyzer repo once)
 
-## Module links (first-time setup)
+## Module setup (first-time)
 
-The launcher creates Windows junctions automatically. To link manually:
+Everything is in one repo. Install dependencies once:
 
-```bat
-mklink /J "modules\form-forge" "C:\Users\brand\Projects\city-list-requests"
-mklink /J "modules\property-analyzer" "C:\Users\brand\Projects\property-distress-analyzer"
+```powershell
+npm install
+pip install -r modules/form-forge/requirements.txt
+cd modules/property-analyzer && npm install && cd ../..
 ```
 
-Or set environment variables: `FORM_FORGE_PATH`, `PROPERTY_ANALYZER_PATH`
-
-See `modules/README.md` for details.
+See `modules/README.md` for path overrides (`FORM_FORGE_PATH`, `PROPERTY_ANALYZER_PATH`).
 
 ## User guide
 
@@ -120,15 +119,15 @@ npm test
 powershell -ExecutionPolicy Bypass -File scripts\verify.ps1
 ```
 
-**Individual module tests (unchanged):**
+**Individual module tests:**
 
 ```powershell
 # Form Forge
-cd C:\Users\brand\Projects\city-list-requests
+cd modules\form-forge
 python scripts\gsd.py verify
 
 # Property Analyzer
-cd C:\Users\brand\Projects\property-distress-analyzer
+cd modules\property-analyzer
 npm test
 ```
 
@@ -172,7 +171,7 @@ This adds `distressos.local` → `127.0.0.1` to the Windows hosts file.
 
 ### Selling / packaging later
 
-- Module boundaries are clean: `modules/form-forge` and `modules/property-analyzer` are junctions to isolated repos
+- Module boundaries are clean: `modules/form-forge` and `modules/property-analyzer` are self-contained subtrees in one repo
 - Distress OS shell is MIT-ready standalone code under `lib/`, `public/`, `server.js`
 - No modifications were made to tool business logic — safe to version and license separately
 - Cloud deployment would require auth, HTTPS reverse proxy, and removing localhost-only assumptions (out of current scope)
@@ -182,8 +181,8 @@ This adds `distressos.local` → `127.0.0.1` to the Windows hosts file.
 ```
 distress-os/          Port 3000 — logo page, hub, proxy, bridge
 ├── modules/
-│   ├── form-forge/         → junction to city-list-requests (:8787)
-│   └── property-analyzer/  → junction to property-distress-analyzer (:3456)
+│   ├── form-forge/         → Form Forge Python app (:8787)
+│   └── property-analyzer/  → Property Analyzer Node app (:3456)
 ├── lib/                    Proxy, rewrite, bridge schema
 └── public/                 Shell UI (logo page, hub, bridge)
 ```
