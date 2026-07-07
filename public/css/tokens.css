@@ -113,4 +113,70 @@
   --accent-cool: #5eb3c8;
   --ring: var(--ember);
   --radius: 12px;
+
+  /* Distress OS glass system */
+  --glass-blur: 20px;
+  --glass-bg: rgba(18, 18, 16, 0.72);
+  --glass-bg-elevated: rgba(22, 22, 20, 0.88);
+  --glass-bg-chrome: rgba(13, 13, 13, 0.92);
+  --glass-border: rgba(174, 163, 143, 0.14);
+  --glass-border-chrome: rgba(174, 163, 143, 0.12);
+  --glass-border-hover: rgba(229, 132, 53, 0.38);
+  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --glass-shadow-float: 0 28px 72px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(229, 132, 53, 0.08);
+  --zone-solid-bg: rgba(8, 6, 5, 0.94);
+  --zone-solid-border: rgba(255, 255, 255, 0.06);
+}
+
+/* Light theme — first-class, not washed-out dark */
+[data-theme="light"] {
+  --phuglee-black: #f0ece2;
+  --phuglee-black-mid: #e8e4da;
+  --phuglee-charcoal: #d8d2c6;
+  --phuglee-olive: #cfc9bc;
+  --phuglee-earth: #e5dfd2;
+
+  --phuglee-cream: #1a1612;
+  --phuglee-cream-soft: #2a241c;
+  --phuglee-white: #0d0d0d;
+
+  --phuglee-stone: #6b6358;
+  --phuglee-stone-warm: #5c554c;
+  --phuglee-meta-text: #7a7268;
+  --phuglee-taupe-mid: #6e665c;
+
+  --bg-deep: #ebe6dc;
+  --bg-mid: #e3ddd2;
+  --bg-card: #f5f2ec;
+  --bg-elevated: #ffffff;
+
+  --text: #1a1612;
+  --text-muted: #6b6358;
+
+  --border: rgba(26, 22, 18, 0.1);
+  --border-hot: rgba(229, 132, 53, 0.45);
+
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.92);
+  --glass-bg-chrome: rgba(245, 242, 236, 0.94);
+  --glass-border: rgba(26, 22, 18, 0.1);
+  --glass-border-chrome: rgba(26, 22, 18, 0.08);
+  --glass-border-hover: rgba(229, 132, 53, 0.5);
+  --glass-shadow: 0 16px 48px rgba(26, 22, 18, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --glass-shadow-float: 0 28px 64px rgba(26, 22, 18, 0.16);
+  --zone-solid-bg: #ffffff;
+  --zone-solid-border: rgba(26, 22, 18, 0.08);
+
+  --shadow-panel: 0 16px 48px rgba(26, 22, 18, 0.1);
+  --shadow-glow-orange: 0 0 32px rgba(229, 132, 53, 0.2);
+}
+
+[data-theme="light"] .premium-bg-photo,
+[data-theme="light"] .logo-page-photo,
+[data-theme="light"] .heat-field {
+  opacity: 0.35;
+}
+
+[data-theme="light"] .shell-nav-wrap {
+  background: var(--glass-bg-chrome);
 }

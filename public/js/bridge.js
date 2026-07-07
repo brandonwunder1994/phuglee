@@ -1,26 +1,91 @@
 (function () {
-  const FORGE = '/forge';
+  const ACCEPTED_EXT = /\.(xlsx|xls|xlsm|csv|tsv|txt|pdf|docx|jpg|jpeg|png)$/i;
+  const PAGE_SIZE = 50;
+  const LOADING_STEPS = [
+    'Detecting format…',
+    'Parsing records…',
+    'Normalizing addresses…',
+    'Tagging distressed signals…',
+    'Deduplicating upload…',
+    'Cross-checking Property Analyzer…',
+    'Pushing new leads to Property Analyzer…'
+  ];
+  const EXPORT_COLUMNS = [
+    ['streetAddress', 'Street Address'],
+    ['city', 'City'],
+    ['state', 'State'],
+    ['zip', 'Zip'],
+    ['violationIssueType', 'Violation/Issue Type'],
+    ['violationDate', 'Violation Date'],
+    ['descriptionNotes', 'Description/Notes'],
+    ['distressedSignalTag', 'Distressed Signal Tag'],
+    ['matchedIndicators', 'Matched Indicators'],
+    ['confidenceLevel', 'Confidence Level'],
+    ['sourceFile', 'Source File'],
+    ['uploadType', 'Upload Type'],
+    ['processedAt', 'Processed At']
+  ];
+
+  const stateSelect = document.getElementById('bridge-state');
   const citySelect = document.getElementById('bridge-city');
-  const fileSelect = document.getElementById('bridge-file');
-  const mappingPanel = document.getElementById('bridge-mapping-panel');
-  const mappingRoot = document.getElementById('bridge-mapping');
-  const previewPanel = document.getElementById('bridge-preview-panel');
-  const previewMeta = document.getElementById('bridge-preview-meta');
-  const previewTable = document.getElementById('bridge-preview');
-  const downloadBtn = document.getElementById('bridge-download');
+  const cityContext = document.getElementById('bridge-city-context');
+  const cityLabel = document.getElementById('bridge-city-label');
+  const typePanel = document.getElementById('bridge-type-panel');
+  const uploadPanel = document.getElementById('bridge-upload-panel');
+  const loadingPanel = document.getElementById('bridge-loading-panel');
+  const loadingCopy = document.getElementById('bridge-loading-copy');
+  const resultsPanel = document.getElementById('bridge-results-panel');
+  const resultsMeta = document.getElementById('bridge-results-meta');
+  const kpiGrid = document.getElementById('bridge-kpi-grid');
+  const resultsToolbar = document.getElementById('bridge-results-toolbar');
+  const tableWrap = document.getElementById('bridge-table-wrap');
+  const resultsBody = document.getElementById('bridge-results-body');
+  const resultsTable = document.getElementById('bridge-results-table');
+  const paginationEl = document.getElementById('bridge-pagination');
+  const filterSearch = document.getElementById('bridge-filter-search');
+  const filterTag = document.getElementById('bridge-filter-tag');
+  const filterConfidence = document.getElementById('bridge-filter-confidence');
+  const filterReview = document.getElementById('bridge-filter-review');
+  const exportCsvBtn = document.getElementById('bridge-export-csv');
+  const attachPanel = document.getElementById('bridge-attach-panel');
+  const responseAtInput = document.getElementById('bridge-response-at');
+  const attachBtn = document.getElementById('bridge-attach');
+  const attachStatus = document.getElementById('bridge-attach-status');
+  const historyPanel = document.getElementById('bridge-history-panel');
+  const historyLead = document.getElementById('bridge-history-lead');
+  const historyList = document.getElementById('bridge-history-list');
+  const dropzone = document.getElementById('bridge-dropzone');
+  const fileInput = document.getElementById('bridge-file-input');
+  const fileNameEl = document.getElementById('bridge-file-name');
+  const browseBtn = document.getElementById('bridge-browse');
+  const processBtn = document.getElementById('bridge-process');
+  const clearFileBtn = document.getElementById('bridge-clear-file');
   const errorWrap = document.getElementById('bridge-error-wrap');
   const errorEl = document.getElementById('bridge-error');
   const retryBtn = document.getElementById('bridge-retry');
-  const fileHint = document.getElementById('bridge-file-hint');
+  const pipeline = document.getElementById('bridge-pipeline');
 
-  const Schema = window.DistressBridgeSchema;
+  let states = [];
   let cities = [];
-  let cityDetail = null;
-  let rawRows = [];
-  let headers = [];
-  let columnMap = {};
-  let convertedRows = [];
-  let lastFailedAction = 'loadCities';
+  let selectedCity = null;
+  let selectedUploadType = '';
+  let selectedFile = null;
+  let lastResult = null;
+  let tableState = {
+    sortKey: 'streetAddress',
+    sortDir: 'asc',
+    page: 1
+  };
+  let lastFailedAction = 'loadStates';
+  let loadingTimer = null;
+
+  function esc(text) {
+    return String(text || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 
   function showError(msg) {
     const hasError = Boolean(msg);
@@ -28,185 +93,602 @@
     errorEl.textContent = msg || '';
   }
 
-  async function fetchJson(url) {
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Request failed (${res.status})`);
-    return res.json();
+  function setPipelineStep(step) {
+    const order = ['location', 'type', 'upload', 'results'];
+    const activeIndex = order.indexOf(step);
+    pipeline?.querySelectorAll('.bridge-pipeline-step').forEach((el, index) => {
+      el.classList.toggle('is-active', index === activeIndex);
+      el.classList.toggle('is-complete', index < activeIndex);
+    });
   }
 
-  async function loadCities() {
-    lastFailedAction = 'loadCities';
-    const data = await fetchJson(`${FORGE}/api/portal/cities/summary`);
-    cities = data.items || data.cities || [];
-    citySelect.innerHTML = '<option value="">Select a city…</option>';
-    cities
-      .sort((a, b) => `${a.state}-${a.city}`.localeCompare(`${b.state}-${b.city}`))
-      .forEach((city) => {
-        const opt = document.createElement('option');
-        opt.value = city.id;
-        opt.textContent = `${city.city}, ${city.state}`;
-        citySelect.appendChild(opt);
+  async function fetchJson(url, options) {
+    const res = await fetch(url, { cache: 'no-store', ...options });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      if (data.code === 'OCR_UNAVAILABLE' || res.status === 503) {
+        throw new Error(data.error || 'OCR is unavailable. Upload Excel, CSV, or a text-based PDF.');
+      }
+      if (data.code === 'NO_USABLE_ROWS') {
+        throw new Error(data.error || 'No usable addresses found in this file.');
+      }
+      throw new Error(data.error || `Request failed (${res.status})`);
+    }
+    return data;
+  }
+
+  function resetDownstream(from) {
+    if (from === 'state') {
+      selectedCity = null;
+      selectedUploadType = '';
+      selectedFile = null;
+      lastResult = null;
+      cityContext.hidden = true;
+      typePanel.hidden = true;
+      uploadPanel.hidden = true;
+      resultsPanel.hidden = true;
+      historyPanel.hidden = true;
+      clearFileUi();
+      setPipelineStep('location');
+    }
+    if (from === 'city') {
+      selectedUploadType = '';
+      selectedFile = null;
+      lastResult = null;
+      typePanel.hidden = true;
+      uploadPanel.hidden = true;
+      resultsPanel.hidden = true;
+      clearFileUi();
+      document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
+        input.checked = false;
       });
-    citySelect.disabled = false;
+      setPipelineStep(selectedCity ? 'type' : 'location');
+      if (selectedCity) loadHistory(selectedCity.id);
+      else historyPanel.hidden = true;
+    }
+    if (from === 'type') {
+      selectedFile = null;
+      uploadPanel.hidden = true;
+      resultsPanel.hidden = true;
+      lastResult = null;
+      clearFileUi();
+      setPipelineStep(selectedUploadType ? 'upload' : 'type');
+    }
+    if (from === 'file') {
+      resultsPanel.hidden = true;
+      lastResult = null;
+    }
   }
 
-  function spreadsheetFiles(lists) {
-    return (lists || []).filter((f) => Schema.isSpreadsheetFile(f.filename));
+  function clearFileUi() {
+    selectedFile = null;
+    if (fileInput) fileInput.value = '';
+    fileNameEl.hidden = true;
+    fileNameEl.textContent = '';
+    processBtn.disabled = true;
+    clearFileBtn.hidden = true;
+    dropzone?.classList.remove('has-file', 'is-dragover');
   }
 
-  async function onCityChange() {
-    fileSelect.innerHTML = '<option value="">Loading lists…</option>';
-    fileSelect.disabled = true;
-    mappingPanel.hidden = true;
-    previewPanel.hidden = true;
-    downloadBtn.disabled = true;
+  function setSelectedFile(file) {
+    if (!file) return;
+    if (!ACCEPTED_EXT.test(file.name)) {
+      showError('Unsupported file type. Use Excel, CSV, PDF, Word, TXT, or JPG/PNG list images.');
+      return;
+    }
+    selectedFile = file;
     showError('');
+    fileNameEl.hidden = false;
+    fileNameEl.textContent = `${file.name} (${formatBytes(file.size)})`;
+    dropzone?.classList.add('has-file');
+    processBtn.disabled = false;
+    clearFileBtn.hidden = false;
+    resultsPanel.hidden = true;
+    lastResult = null;
+    setPipelineStep('upload');
+  }
 
-    const id = citySelect.value;
-    if (!id) {
-      fileSelect.innerHTML = '<option value="">Select a city first</option>';
+  function formatBytes(bytes) {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function formatDisplayDate(iso) {
+    if (!iso) return '—';
+    const dt = new Date(iso);
+    if (Number.isNaN(dt.getTime())) return iso;
+    return dt.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
+  async function loadStates() {
+    lastFailedAction = 'loadStates';
+    const data = await fetchJson('/api/bridge/states');
+    states = data.states || [];
+    stateSelect.innerHTML = '<option value="">Select a state…</option>';
+    states.forEach((state) => {
+      const opt = document.createElement('option');
+      opt.value = state.code;
+      opt.textContent = `${state.label} (${state.cityCount})`;
+      stateSelect.appendChild(opt);
+    });
+    stateSelect.disabled = false;
+    citySelect.innerHTML = '<option value="">Select a state first</option>';
+    citySelect.disabled = true;
+  }
+
+  async function onStateChange() {
+    resetDownstream('state');
+    showError('');
+    const state = stateSelect.value;
+    if (!state) {
+      citySelect.innerHTML = '<option value="">Select a state first</option>';
+      citySelect.disabled = true;
       return;
     }
 
-    lastFailedAction = 'cityChange';
-    cityDetail = await fetchJson(`${FORGE}/api/portal/city/${encodeURIComponent(id)}`);
-    const files = spreadsheetFiles(cityDetail.response_lists);
-    fileSelect.innerHTML = files.length
-      ? '<option value="">Select a spreadsheet…</option>'
-      : '<option value="">No spreadsheet lists for this city</option>';
-
-    files.forEach((file, index) => {
+    lastFailedAction = 'stateChange';
+    citySelect.disabled = true;
+    citySelect.innerHTML = '<option value="">Loading cities…</option>';
+    const data = await fetchJson(`/api/bridge/cities?state=${encodeURIComponent(state)}`);
+    cities = data.cities || [];
+    citySelect.innerHTML = cities.length
+      ? '<option value="">Select a city…</option>'
+      : '<option value="">No profiles in this state</option>';
+    cities.forEach((city) => {
       const opt = document.createElement('option');
-      opt.value = String(index);
-      opt.textContent = `${file.filename} (${file.file_type_label || 'file'})`;
-      opt.dataset.url = file.download_url;
-      fileSelect.appendChild(opt);
+      opt.value = city.id;
+      opt.textContent = city.city;
+      citySelect.appendChild(opt);
     });
-
-    fileSelect.disabled = files.length === 0;
-    fileHint.textContent = files.length
-      ? `${files.length} spreadsheet file(s) available. PDF and image lists must be converted manually.`
-      : 'No Excel/CSV response lists found. Upload a list in Form Forge City Tracker first, or use manual import.';
+    citySelect.disabled = cities.length === 0;
   }
 
-  function renderMapping() {
-    mappingRoot.innerHTML = '';
-    Schema.COLUMN_KEYS.forEach((key) => {
-      const label = document.createElement('label');
-      label.className = 'bridge-map-field';
-      const title = document.createElement('span');
-      title.textContent = Schema.PDA_COLUMNS[key].label;
-      const select = document.createElement('select');
-      select.dataset.key = key;
-      select.innerHTML = '<option value="">— unmapped —</option>';
-      headers.forEach((h) => {
-        const opt = document.createElement('option');
-        opt.value = h;
-        opt.textContent = h;
-        if (columnMap[key] === h) opt.selected = true;
-        select.appendChild(opt);
-      });
-      select.addEventListener('change', onMappingChange);
-      label.appendChild(title);
-      label.appendChild(select);
-      mappingRoot.appendChild(label);
-    });
-    mappingPanel.hidden = false;
-  }
-
-  function renderPreview() {
-    const sheetRows = Schema.toAnalyzerSheetRows(convertedRows);
-    const cols = Object.keys(sheetRows[0] || {});
-    previewTable.querySelector('thead').innerHTML = `<tr>${cols.map((c) => `<th>${c}</th>`).join('')}</tr>`;
-    const sample = sheetRows.slice(0, 8);
-    previewTable.querySelector('tbody').innerHTML = sample.map((row) =>
-      `<tr>${cols.map((c) => `<td>${String(row[c] || '').replace(/</g, '&lt;')}</td>`).join('')}</tr>`
-    ).join('');
-    previewMeta.textContent = `${sheetRows.length.toLocaleString()} row(s) ready for Property Analyzer import. Showing first ${sample.length}.`;
-    previewPanel.hidden = false;
-    downloadBtn.disabled = sheetRows.length === 0;
-  }
-
-  function onMappingChange() {
-    mappingRoot.querySelectorAll('select[data-key]').forEach((sel) => {
-      columnMap[sel.dataset.key] = sel.value || null;
-    });
-    try {
-      convertedRows = Schema.convertRows(rawRows, columnMap);
-      showError('');
-      renderPreview();
-    } catch (err) {
-      convertedRows = [];
-      previewPanel.hidden = true;
-      downloadBtn.disabled = true;
-      lastFailedAction = 'mapping';
-      showError(err.message || 'Could not convert with this mapping.');
-    }
-  }
-
-  async function loadSpreadsheet(url) {
-    lastFailedAction = 'fileChange';
-    const res = await fetch(`${FORGE}${url}`);
-    if (!res.ok) throw new Error('Could not download list file from Form Forge.');
-    const buffer = await res.arrayBuffer();
-    const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-    if (!rawRows.length) throw new Error('Spreadsheet is empty.');
-    headers = Object.keys(rawRows[0]);
-    columnMap = Schema.detectColumnMap(headers);
-    renderMapping();
-    onMappingChange();
-  }
-
-  async function onFileChange() {
-    mappingPanel.hidden = true;
-    previewPanel.hidden = true;
-    downloadBtn.disabled = true;
+  function onCityChange() {
+    resetDownstream('city');
     showError('');
+    const id = citySelect.value;
+    if (!id) {
+      selectedCity = null;
+      cityContext.hidden = true;
+      historyPanel.hidden = true;
+      return;
+    }
+    selectedCity = cities.find((city) => city.id === id) || null;
+    if (!selectedCity) return;
+    cityLabel.textContent = `${selectedCity.city}, ${selectedCity.state}`;
+    cityContext.hidden = false;
+    typePanel.hidden = false;
+    historyLead.textContent = `Prior Data Bridge datasets for ${selectedCity.city}, ${selectedCity.state}.`;
+    loadHistory(selectedCity.id).catch(() => {});
+    setPipelineStep('type');
+  }
 
-    const opt = fileSelect.selectedOptions[0];
-    if (!opt || !opt.dataset.url) return;
+  function onUploadTypeChange() {
+    const checked = document.querySelector('input[name="bridge-upload-type"]:checked');
+    selectedUploadType = checked ? checked.value : '';
+    resetDownstream('type');
+    showError('');
+    if (!selectedUploadType) return;
+    uploadPanel.hidden = false;
+    setPipelineStep('upload');
+  }
 
+  function startLoadingAnimation() {
+    let index = 0;
+    loadingCopy.textContent = LOADING_STEPS[0];
+    loadingTimer = window.setInterval(() => {
+      index = (index + 1) % LOADING_STEPS.length;
+      loadingCopy.textContent = LOADING_STEPS[index];
+    }, 900);
+  }
+
+  function stopLoadingAnimation() {
+    if (loadingTimer) window.clearInterval(loadingTimer);
+    loadingTimer = null;
+  }
+
+  function renderKpis(stats) {
+    const cards = [
+      { label: 'Kept', value: stats.kept, accent: true },
+      { label: 'Discarded', value: stats.discarded },
+      { label: 'Already in Analyzer', value: stats.alreadyImported },
+      { label: 'Pushed to Analyzer', value: stats.pushedToAnalyzer },
+      { label: 'Needs review', value: stats.needsReview || stats.lowConfidence },
+      { label: 'Deduped', value: stats.deduplicated }
+    ];
+    kpiGrid.innerHTML = cards.map((card) => (
+      `<div class="bridge-kpi${card.accent ? ' bridge-kpi--accent' : ''}">` +
+      `<span class="bridge-kpi-value">${Number(card.value || 0).toLocaleString()}</span>` +
+      `<span class="bridge-kpi-label">${esc(card.label)}</span>` +
+      '</div>'
+    )).join('');
+  }
+
+  function tagClass(tag) {
+    if (/strong/i.test(tag)) return 'strong';
+    if (/water shut off/i.test(tag)) return 'water';
+    return 'standard';
+  }
+
+  function getFilteredRows() {
+    if (!lastResult?.rows) return [];
+    const query = String(filterSearch?.value || '').trim().toLowerCase();
+    const tag = filterTag?.value || '';
+    const confidence = filterConfidence?.value || '';
+    const reviewOnly = Boolean(filterReview?.checked);
+
+    return lastResult.rows.filter((row) => {
+      if (reviewOnly && !row.needsReview) return false;
+      if (tag && row.distressedSignalTag !== tag) return false;
+      if (confidence && row.confidenceLevel !== confidence) return false;
+      if (!query) return true;
+      const haystack = [
+        row.streetAddress,
+        row.violationIssueType,
+        row.distressedSignalTag,
+        row.descriptionNotes
+      ].join(' ').toLowerCase();
+      return haystack.includes(query);
+    });
+  }
+
+  function sortRows(rows) {
+    const key = tableState.sortKey;
+    const dir = tableState.sortDir === 'desc' ? -1 : 1;
+    return [...rows].sort((a, b) => {
+      const left = String(a[key] || '').toLowerCase();
+      const right = String(b[key] || '').toLowerCase();
+      if (left < right) return -1 * dir;
+      if (left > right) return 1 * dir;
+      return 0;
+    });
+  }
+
+  function populateTagFilter(rows) {
+    if (!filterTag) return;
+    const tags = [...new Set(rows.map((row) => row.distressedSignalTag).filter(Boolean))].sort();
+    const current = filterTag.value;
+    filterTag.innerHTML = '<option value="">All tags</option>' +
+      tags.map((tag) => `<option value="${esc(tag)}">${esc(tag)}</option>`).join('');
+    if (tags.includes(current)) filterTag.value = current;
+  }
+
+  function updateSortHeaders() {
+    resultsTable?.querySelectorAll('th[data-sort]').forEach((th) => {
+      const active = th.dataset.sort === tableState.sortKey;
+      th.classList.toggle('is-sorted', active);
+      th.dataset.sortDir = active ? (tableState.sortDir === 'asc' ? '▲' : '▼') : '';
+    });
+  }
+
+  function renderResultsTable() {
+    if (!lastResult) return;
+    const filtered = sortRows(getFilteredRows());
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (tableState.page > totalPages) tableState.page = totalPages;
+    const start = (tableState.page - 1) * PAGE_SIZE;
+    const pageRows = filtered.slice(start, start + PAGE_SIZE);
+
+    resultsBody.innerHTML = pageRows.map((row) => (
+      `<tr class="${row.needsReview ? 'bridge-row-review' : ''}">` +
+      `<td>${esc(row.streetAddress)}</td>` +
+      `<td>${esc(row.violationIssueType)}</td>` +
+      `<td><span class="bridge-tag bridge-tag--${tagClass(row.distressedSignalTag)}">${esc(row.distressedSignalTag)}</span></td>` +
+      `<td>${esc(row.confidenceLevel)}${row.needsReview ? ' <span class="bridge-review-flag">Review</span>' : ''}</td>` +
+      `<td>${esc(row.violationDate)}</td>` +
+      `</tr>`
+    )).join('') || '<tr><td colspan="5">No rows match the current filters.</td></tr>';
+
+    paginationEl.innerHTML =
+      `<span>${filtered.length.toLocaleString()} shown · page ${tableState.page} of ${totalPages}</span>` +
+      '<div class="bridge-pagination-actions">' +
+      `<button type="button" class="bridge-pagination-btn" data-page="prev" ${tableState.page <= 1 ? 'disabled' : ''}>Previous</button>` +
+      `<button type="button" class="bridge-pagination-btn" data-page="next" ${tableState.page >= totalPages ? 'disabled' : ''}>Next</button>` +
+      '</div>';
+    updateSortHeaders();
+  }
+
+  function rowsToCsv(rows) {
+    const escape = (value) => {
+      const text = String(value ?? '');
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const headers = EXPORT_COLUMNS.map(([, label]) => label);
+    const lines = [
+      headers.map(escape).join(','),
+      ...rows.map((row) => EXPORT_COLUMNS.map(([key]) => escape(row[key])).join(','))
+    ];
+    return `${lines.join('\n')}\n`;
+  }
+
+  function downloadCsv(rows, filename) {
+    const blob = new Blob([rowsToCsv(rows)], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function setAttachStatus(message, tone) {
+    if (!attachStatus) return;
+    attachStatus.hidden = !message;
+    attachStatus.textContent = message || '';
+    attachStatus.classList.remove('is-error', 'is-success');
+    if (tone) attachStatus.classList.add(`is-${tone}`);
+  }
+
+  async function loadHistory(cityId) {
+    if (!cityId || !historyPanel) return;
+    historyPanel.hidden = false;
+    historyList.innerHTML = '<p class="bridge-history-empty">Loading history…</p>';
     try {
-      await loadSpreadsheet(opt.dataset.url);
+      const data = await fetchJson(`/api/bridge/history/${encodeURIComponent(cityId)}`);
+      renderHistory(data.history || []);
     } catch (err) {
-      showError(err.message || 'Failed to read spreadsheet.');
+      historyList.innerHTML = `<p class="bridge-history-empty">${esc(err.message || 'Could not load history')}</p>`;
     }
   }
 
-  function onDownload() {
-    const sheetRows = Schema.toAnalyzerSheetRows(convertedRows);
-    if (!sheetRows.length) return;
-    const ws = XLSX.utils.json_to_sheet(sheetRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Lead Database');
-    const cityName = cityDetail?.city || 'city';
-    const state = cityDetail?.state || 'list';
-    XLSX.writeFile(wb, `distress-os-${state}-${cityName}-analyzer.xlsx`.replace(/[^\w.\-]+/g, '_'));
+  function renderHistory(history) {
+    if (!history.length) {
+      historyList.innerHTML = '<p class="bridge-history-empty">No datasets attached yet for this city.</p>';
+      return;
+    }
+    historyList.innerHTML = history.map((entry) => {
+      const links = [];
+      if (entry.csv_download_url) links.push(`<a href="${esc(entry.csv_download_url)}" download>CSV</a>`);
+      if (entry.xlsx_download_url) links.push(`<a href="${esc(entry.xlsx_download_url)}" download>XLSX</a>`);
+      return (
+        '<article class="bridge-history-item">' +
+        '<div class="bridge-history-item-main">' +
+        `<div class="bridge-history-title">${esc(entry.upload_type_label || entry.upload_type)} · ${esc(entry.original_filename || 'dataset')}</div>` +
+        `<div class="bridge-history-meta">` +
+        `${Number(entry.kept_count || 0).toLocaleString()} kept` +
+        `${entry.response_received_at ? ` · received ${esc(formatDisplayDate(entry.response_received_at))}` : ''}` +
+        `${entry.attached_at ? ` · attached ${esc(formatDisplayDate(entry.attached_at))}` : ''}` +
+        '</div></div>' +
+        `<div class="bridge-history-links">${links.join('') || '<span class="bridge-history-empty">No files</span>'}</div>` +
+        '</article>'
+      );
+    }).join('');
+  }
+
+  function renderResults(data) {
+    lastResult = data;
+    tableState.page = 1;
+    const stats = data.stats || {};
+    const rows = data.rows || [];
+    const uploadLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
+    const parserLabel = data.processingMeta?.parser ? ` · ${data.processingMeta.parser} parser` : '';
+    const indexCount = data.processingMeta?.importIndexCount;
+    const indexLabel = Number.isFinite(indexCount) && indexCount > 0
+      ? ` · ${indexCount.toLocaleString()} address(es) in Analyzer`
+      : '';
+    resultsMeta.textContent =
+      `${rows.length.toLocaleString()} record(s) kept from ${data.sourceFile} · ${uploadLabel} · ${data.city.city}, ${data.city.state}${parserLabel}${indexLabel}`;
+    if (data.analyzerPush) {
+      stats.pushedToAnalyzer = data.analyzerPush.added || 0;
+    }
+    renderKpis(stats);
+
+    const stubNote = document.getElementById('bridge-stub-note');
+    const showTable = !data.stub && rows.length > 0;
+    resultsToolbar.hidden = !showTable;
+    tableWrap.hidden = !showTable;
+    paginationEl.hidden = !showTable;
+    attachPanel.hidden = !showTable;
+
+    if (showTable) {
+      populateTagFilter(rows);
+      renderResultsTable();
+      setAttachStatus('', '');
+      if (responseAtInput && !responseAtInput.value) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        responseAtInput.value = now.toISOString().slice(0, 16);
+      }
+    }
+
+    if (stubNote) {
+      stubNote.hidden = !data.stub;
+      if (!data.stub) {
+        const reviewNote = data.stats.needsReview
+          ? ` ${data.stats.needsReview} row(s) flagged for review (low-confidence extraction).`
+          : '';
+        const importedNote = data.stats.alreadyImported
+          ? ` ${data.stats.alreadyImported} already in Property Analyzer.`
+          : '';
+        const pushedNote = data.analyzerPush?.added
+          ? ` ${data.analyzerPush.added} new lead(s) pushed to Property Analyzer.`
+          : '';
+        stubNote.textContent = data.stats.discarded
+          ? `${data.stats.discarded} row(s) discarded.${importedNote}${pushedNote}${reviewNote}`
+          : `Processing complete.${importedNote}${pushedNote}${reviewNote}`;
+        stubNote.hidden = !data.stats.discarded && !data.stats.alreadyImported
+          && !data.analyzerPush?.added && !data.stats.needsReview;
+      }
+    }
+    resultsPanel.hidden = false;
+    setPipelineStep('results');
+  }
+
+  async function processUpload() {
+    if (!selectedCity || !selectedUploadType || !selectedFile) return;
+    showError('');
+    resultsPanel.hidden = true;
+    loadingPanel.hidden = false;
+    processBtn.disabled = true;
+    startLoadingAnimation();
+    lastFailedAction = 'process';
+
+    try {
+      const form = new FormData();
+      form.append('cityId', selectedCity.id);
+      form.append('uploadType', selectedUploadType);
+      form.append('file', selectedFile, selectedFile.name);
+      const data = await fetchJson('/api/bridge/process', { method: 'POST', body: form });
+      renderResults(data);
+    } finally {
+      stopLoadingAnimation();
+      loadingPanel.hidden = true;
+      processBtn.disabled = !selectedFile;
+    }
+  }
+
+  async function attachDataset() {
+    if (!lastResult || !selectedCity) return;
+    const responseAt = responseAtInput?.value;
+    if (!responseAt) {
+      setAttachStatus('Response received date/time is required.', 'error');
+      return;
+    }
+
+    attachBtn.disabled = true;
+    setAttachStatus('Attaching dataset…', '');
+    lastFailedAction = 'attach';
+
+    try {
+      const payload = await fetchJson('/api/bridge/attach', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cityId: selectedCity.id,
+          uploadType: lastResult.uploadType,
+          responseReceivedAt: responseAt,
+          originalFilename: lastResult.sourceFile,
+          stats: lastResult.stats,
+          rows: lastResult.rows,
+          metadata: { processingMeta: lastResult.processingMeta || {} }
+        })
+      });
+      const version = payload.version || {};
+      const turnaround = payload.turnaroundDays;
+      const turnaroundNote = Number.isFinite(turnaround)
+        ? ` Turnaround: ${turnaround} day(s).`
+        : '';
+      setAttachStatus(
+        `Attached ${version.id || 'dataset'} — ${Number(version.kept_count || lastResult.stats.kept || 0).toLocaleString()} records.${turnaroundNote}`,
+        'success'
+      );
+      await loadHistory(selectedCity.id);
+    } catch (err) {
+      setAttachStatus(err.message || 'Attach failed.', 'error');
+    } finally {
+      attachBtn.disabled = false;
+    }
   }
 
   async function onRetry() {
     showError('');
     try {
-      if (lastFailedAction === 'cityChange') {
-        await onCityChange();
-      } else if (lastFailedAction === 'fileChange') {
-        await onFileChange();
-      } else if (lastFailedAction === 'mapping') {
-        onMappingChange();
+      if (lastFailedAction === 'attach') {
+        await attachDataset();
+      } else if (lastFailedAction === 'process') {
+        await processUpload();
+      } else if (lastFailedAction === 'stateChange') {
+        await onStateChange();
       } else {
-        await loadCities();
+        await loadStates();
       }
     } catch (err) {
       showError(err.message || 'Something went wrong. Please try again.');
     }
   }
 
-  citySelect?.addEventListener('change', () => { onCityChange().catch((e) => showError(e.message)); });
-  fileSelect?.addEventListener('change', () => { onFileChange().catch((e) => showError(e.message)); });
-  downloadBtn?.addEventListener('click', onDownload);
+  filterSearch?.addEventListener('input', () => {
+    tableState.page = 1;
+    renderResultsTable();
+  });
+  filterTag?.addEventListener('change', () => {
+    tableState.page = 1;
+    renderResultsTable();
+  });
+  filterConfidence?.addEventListener('change', () => {
+    tableState.page = 1;
+    renderResultsTable();
+  });
+  filterReview?.addEventListener('change', () => {
+    tableState.page = 1;
+    renderResultsTable();
+  });
+  exportCsvBtn?.addEventListener('click', () => {
+    if (!lastResult) return;
+    const rows = sortRows(getFilteredRows());
+    const base = (lastResult.sourceFile || 'bridge-export').replace(/\.[^.]+$/, '');
+    downloadCsv(rows, `${base}-filtered.csv`);
+  });
+  paginationEl?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-page]');
+    if (!btn || btn.disabled) return;
+    if (btn.dataset.page === 'prev') tableState.page -= 1;
+    if (btn.dataset.page === 'next') tableState.page += 1;
+    renderResultsTable();
+  });
+  resultsTable?.querySelectorAll('th[data-sort]').forEach((th) => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (tableState.sortKey === key) {
+        tableState.sortDir = tableState.sortDir === 'asc' ? 'desc' : 'asc';
+      } else {
+        tableState.sortKey = key;
+        tableState.sortDir = 'asc';
+      }
+      renderResultsTable();
+    });
+  });
+  attachBtn?.addEventListener('click', () => { attachDataset().catch((e) => setAttachStatus(e.message, 'error')); });
+
+  dropzone?.addEventListener('dragover', (event) => {
+    event.preventDefault();
+    dropzone.classList.add('is-dragover');
+  });
+  dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
+  dropzone?.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropzone.classList.remove('is-dragover');
+    const file = event.dataTransfer?.files?.[0];
+    if (file) setSelectedFile(file);
+  });
+  dropzone?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      fileInput?.click();
+    }
+  });
+  dropzone?.addEventListener('click', (event) => {
+    if (event.target.closest('.bridge-browse-link')) return;
+    fileInput?.click();
+  });
+  browseBtn?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    fileInput?.click();
+  });
+  fileInput?.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (file) setSelectedFile(file);
+  });
+  clearFileBtn?.addEventListener('click', () => {
+    resetDownstream('file');
+    clearFileUi();
+    setPipelineStep('upload');
+  });
+
+  stateSelect?.addEventListener('change', () => { onStateChange().catch((e) => showError(e.message)); });
+  citySelect?.addEventListener('change', onCityChange);
+  document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
+    input.addEventListener('change', onUploadTypeChange);
+  });
+  processBtn?.addEventListener('click', () => { processUpload().catch((e) => showError(e.message)); });
   retryBtn?.addEventListener('click', () => { onRetry().catch((e) => showError(e.message)); });
 
-  loadCities().catch((err) => showError(err.message || 'Could not load Form Forge cities. Is Form Forge running?'));
+  loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));
 })();

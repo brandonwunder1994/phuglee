@@ -50,10 +50,15 @@
    * @param {string} label
    * @returns {SVGSVGElement}
    */
+  /** Optical center shift — artwork bbox center is ~10.5px left of canvas midpoint. */
+  const HERO_VIEWBOX = '-10.5 0 408 612';
+
   function cloneForVariant(svg, variant, label) {
     const node = /** @type {SVGSVGElement} */ (svg.cloneNode(true));
     node.removeAttribute('width');
     node.removeAttribute('height');
+    node.setAttribute('viewBox', variant === 'hero' ? HERO_VIEWBOX : '0 0 408 612');
+    node.setAttribute('preserveAspectRatio', 'xMidYMid meet');
     node.setAttribute('class', 'phuglee-logo-svg phuglee-logo-svg--' + variant);
     node.setAttribute('focusable', 'false');
 

@@ -3,31 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Distress OS — Send to Analyzer</title>
-  <meta name="description" content="Upload spreadsheets from Form Forge and send distressed property leads to the Property Distress Analyzer.">
+  <title>Data Bridge — Distress OS</title>
+  <meta name="description" content="Intake and process city violation and water shut off lists — parse, tag distressed signals, and attach clean datasets to city profiles.">
   <meta property="og:title" content="Data Bridge — Distress OS">
-  <meta property="og:description" content="Bridge your collected city records into AI-powered Street View distress analysis.">
+  <meta property="og:description" content="Professional distressed lead intake — upload any list format, normalize, tag, and attach versioned datasets to city profiles.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Data Bridge — Distress OS">
-  <meta name="twitter:description" content="Send collected lead spreadsheets to the Property Distress Analyzer.">
+  <meta name="twitter:description" content="Upload city response lists, tag distressed signals, and attach clean data to profiles.">
+  <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/distress-glass.css">
   <link rel="stylesheet" href="/css/heat-base.css">
   <link rel="stylesheet" href="/css/premium-atmosphere.css">
   <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
   <link rel="stylesheet" href="/css/shell-nav.css">
+  <link rel="stylesheet" href="/css/settings-menu.css">
+  <link rel="stylesheet" href="/css/command-palette.css">
+  <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/bridge.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-guard.js"></script>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 </head>
-<body class="has-premium-bg">
+<body class="has-premium-bg bridge-page">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
   <div class="premium-bg premium-bg--subtle" aria-hidden="true">
     <div class="premium-bg-photo"></div>
@@ -36,44 +40,175 @@
   </div>
   <div class="bridge-bg" aria-hidden="true"></div>
   <div id="distress-os-nav-mount"></div>
+
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
     <header class="bridge-hero" data-phuglee-reveal-child>
-      <p class="bridge-eyebrow">Optional · Phase 5</p>
-      <h1>Send to Analyzer</h1>
-      <p class="bridge-lead">Convert a Form Forge city response list into a Property Analyzer-ready spreadsheet. Manual upload in Analyzer still works exactly as before — this is a shortcut, not a replacement.</p>
+      <p class="bridge-eyebrow">Distressed Lead Intake</p>
+      <h1>Data Bridge</h1>
+      <p class="bridge-lead">Select an existing city profile, label your upload, and drop in any response list — spreadsheets, PDFs, Word docs, or photos of violation lists. The engine normalizes, tags distressed signals, and prepares a versioned dataset for the profile.</p>
     </header>
-    <section class="bridge-panel phuglee-panel" aria-labelledby="bridge-step-1" data-phuglee-reveal-child>
-      <h2 id="bridge-step-1"><span class="bridge-step-badge" aria-hidden="true">1</span> Pick a city list from Form Forge</h2>
+
+    <nav class="bridge-pipeline" aria-label="Intake steps" data-phuglee-reveal-child>
+      <ol class="bridge-pipeline-list" id="bridge-pipeline">
+        <li class="bridge-pipeline-step is-active" data-step="location"><span>1</span> City</li>
+        <li class="bridge-pipeline-step" data-step="type"><span>2</span> Type</li>
+        <li class="bridge-pipeline-step" data-step="upload"><span>3</span> Upload</li>
+        <li class="bridge-pipeline-step" data-step="results"><span>4</span> Results</li>
+      </ol>
+    </nav>
+
+    <section class="bridge-panel phuglee-panel" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
+      <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Select city profile</h2>
+      <p class="bridge-panel-lead">Only cities with existing Form Forge profiles appear here. New cities are added outside this flow.</p>
       <div class="bridge-row">
-        <label>City<select id="bridge-city" disabled><option value="">Loading cities…</option></select></label>
-        <label>Response list file<select id="bridge-file" disabled><option value="">Select a city first</option></select></label>
+        <label for="bridge-state">State
+          <select id="bridge-state" disabled>
+            <option value="">Loading states…</option>
+          </select>
+        </label>
+        <label for="bridge-city">City
+          <select id="bridge-city" disabled>
+            <option value="">Select a state first</option>
+          </select>
+        </label>
       </div>
-      <p class="bridge-hint" id="bridge-file-hint">Only Excel (.xlsx, .xls) and CSV files can be converted.</p>
+      <p class="bridge-context" id="bridge-city-context" hidden>
+        <span class="bridge-context-label">Profile</span>
+        <span class="bridge-context-value" id="bridge-city-label"></span>
+      </p>
     </section>
-    <section class="bridge-panel phuglee-panel" id="bridge-mapping-panel" hidden aria-labelledby="bridge-step-2" data-phuglee-reveal-child>
-      <h2 id="bridge-step-2"><span class="bridge-step-badge" aria-hidden="true">2</span> Confirm column mapping</h2>
-      <div class="bridge-mapping" id="bridge-mapping"></div>
-    </section>
-    <section class="bridge-panel phuglee-panel" id="bridge-preview-panel" hidden aria-labelledby="bridge-step-3" data-phuglee-reveal-child>
-      <h2 id="bridge-step-3"><span class="bridge-step-badge" aria-hidden="true">3</span> Preview &amp; export</h2>
-      <p class="bridge-preview-meta" id="bridge-preview-meta"></p>
-      <div class="bridge-preview-wrap"><table class="bridge-preview" id="bridge-preview"><thead></thead><tbody></tbody></table></div>
-      <div class="bridge-actions">
-        <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-download" disabled>Download Analyzer Excel</button>
-        <a href="/analyzer/" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-open-analyzer">Open Property Analyzer</a>
+
+    <section class="bridge-panel phuglee-panel" id="bridge-type-panel" hidden aria-labelledby="bridge-step-type" data-phuglee-reveal-child>
+      <h2 id="bridge-step-type"><span class="bridge-step-badge" aria-hidden="true">2</span> Label upload type</h2>
+      <p class="bridge-panel-lead">This label is stored with the version for filtering and history.</p>
+      <div class="bridge-type-grid" role="radiogroup" aria-label="Upload type">
+        <label class="bridge-type-card">
+          <input type="radio" name="bridge-upload-type" value="code_violation" />
+          <span class="bridge-type-body">
+            <span class="bridge-type-icon" aria-hidden="true">CV</span>
+            <span class="bridge-type-title">Code Violation</span>
+            <span class="bridge-type-desc">Municipal code enforcement lists — open and closed violations retained when address is usable.</span>
+          </span>
+        </label>
+        <label class="bridge-type-card">
+          <input type="radio" name="bridge-upload-type" value="water_shut_off" />
+          <span class="bridge-type-body">
+            <span class="bridge-type-icon bridge-type-icon--water" aria-hidden="true">WS</span>
+            <span class="bridge-type-title">Water Shut Off</span>
+            <span class="bridge-type-desc">Utility disconnect lists — every usable address tagged as a high-value distress signal.</span>
+          </span>
+        </label>
       </div>
-      <p class="bridge-note">After download, upload the file in Property Analyzer using <strong>Upload Excel</strong> as you normally would.</p>
     </section>
+
+    <section class="bridge-panel phuglee-panel" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
+      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Upload city response file</h2>
+      <p class="bridge-panel-lead">Drag and drop or browse. JPG and PNG files should be photos or scans of printed violation or shutoff lists.</p>
+      <div class="bridge-format-badges" aria-hidden="true">
+        <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
+      </div>
+      <div class="bridge-dropzone" id="bridge-dropzone" tabindex="0" role="button" aria-describedby="bridge-drop-hint">
+        <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" hidden />
+        <div class="bridge-dropzone-inner" id="bridge-dropzone-inner">
+          <p class="bridge-drop-title">Drop file here</p>
+          <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button></p>
+          <p class="bridge-drop-file" id="bridge-file-name" hidden></p>
+        </div>
+      </div>
+      <div class="bridge-actions bridge-actions--upload">
+        <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Process upload</button>
+        <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear file</button>
+      </div>
+    </section>
+
+    <section class="bridge-panel phuglee-panel" id="bridge-loading-panel" hidden aria-live="polite" aria-busy="true">
+      <div class="bridge-loading phuglee-loading-state">
+        <div class="phuglee-loading-bar" aria-hidden="true"></div>
+        <p class="phuglee-loading-copy" id="bridge-loading-copy">Detecting format…</p>
+      </div>
+    </section>
+
+    <section class="bridge-panel phuglee-panel" id="bridge-results-panel" hidden aria-labelledby="bridge-step-results" data-phuglee-reveal-child>
+      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Results &amp; attach</h2>
+      <p class="bridge-preview-meta" id="bridge-results-meta"></p>
+      <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
+      <p class="bridge-note" id="bridge-stub-note" hidden></p>
+
+      <div class="bridge-results-toolbar" id="bridge-results-toolbar" hidden>
+        <label class="bridge-toolbar-search">
+          <span class="bridge-sr-only">Filter records</span>
+          <input type="search" id="bridge-filter-search" placeholder="Filter by address, issue, or tag…" autocomplete="off" />
+        </label>
+        <label class="bridge-toolbar-field">
+          <span>Tag</span>
+          <select id="bridge-filter-tag">
+            <option value="">All tags</option>
+          </select>
+        </label>
+        <label class="bridge-toolbar-field">
+          <span>Confidence</span>
+          <select id="bridge-filter-confidence">
+            <option value="">All levels</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </label>
+        <label class="bridge-toolbar-check">
+          <input type="checkbox" id="bridge-filter-review" />
+          <span>Needs review only</span>
+        </label>
+        <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-export-csv">Export CSV</button>
+      </div>
+
+      <div class="bridge-table-wrap" id="bridge-table-wrap" hidden>
+        <table class="bridge-results-table" id="bridge-results-table">
+          <thead>
+            <tr>
+              <th scope="col" data-sort="streetAddress">Street Address</th>
+              <th scope="col" data-sort="violationIssueType">Violation/Issue</th>
+              <th scope="col" data-sort="distressedSignalTag">Distressed Tag</th>
+              <th scope="col" data-sort="confidenceLevel">Confidence</th>
+              <th scope="col" data-sort="violationDate">Date</th>
+            </tr>
+          </thead>
+          <tbody id="bridge-results-body"></tbody>
+        </table>
+      </div>
+      <div class="bridge-pagination" id="bridge-pagination" hidden></div>
+
+      <section class="bridge-attach-panel" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
+        <h3 id="bridge-attach-heading">Attach to city profile</h3>
+        <p class="bridge-panel-lead">Record when the city sent this list — date and time feed Form Forge turnaround KPIs.</p>
+        <div class="bridge-attach-row">
+          <label for="bridge-response-at">Response received
+            <input type="datetime-local" id="bridge-response-at" required />
+          </label>
+          <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-attach">Attach versioned dataset</button>
+        </div>
+        <p class="bridge-attach-status" id="bridge-attach-status" hidden role="status"></p>
+      </section>
+    </section>
+
+    <section class="bridge-panel phuglee-panel" id="bridge-history-panel" hidden aria-labelledby="bridge-history-heading" data-phuglee-reveal-child>
+      <h2 id="bridge-history-heading"><span class="bridge-step-badge" aria-hidden="true">H</span> Attachment history</h2>
+      <p class="bridge-panel-lead" id="bridge-history-lead">Prior Data Bridge datasets attached to this city profile.</p>
+      <div class="bridge-history-list" id="bridge-history-list"></div>
+    </section>
+
     <div class="bridge-error-wrap" id="bridge-error-wrap" hidden role="alert">
       <p class="bridge-error" id="bridge-error"></p>
       <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-retry" id="bridge-retry">Try again</button>
     </div>
   </main>
+
   <div id="distress-os-footer-mount"></div>
   <script src="/js/phuglee-motion.js"></script>
   <script src="/js/phuglee-states.js"></script>
-  <script src="/js/shell-nav.js"></script>
-  <script src="/js/bridge-schema.js"></script>
+  <script src="/js/settings-menu.js"></script>
+  <script src="/js/command-palette.js"></script>
+  <script src="/js/distress-status.js"></script>
+  <script src="/js/shell-nav.js?v=distress2"></script>
   <script src="/js/bridge.js"></script>
 </body>
 </html>

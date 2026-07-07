@@ -1,0 +1,154 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { parseMultipart } = require('../lib/multipart');
+const { noUsableRowsMessage } = require('../lib/bridge-engine');
+const { processUpload } = require('../lib/bridge-engine');
+const { parseTextFile } = require('../lib/bridge-engine/parsers/text');
+const { normalizeRawRows } = require('../lib/bridge-engine/normalizer');
+const { isAcceptedFile } = require('../lib/bridge-intake-schema');
+
+const CITY = { id: 'arizona-marana', city: 'Marana', state: 'Arizona' };
+
+test('isAcceptedFile rejects legacy .doc but accepts .docx', () => {
+  assert.equal(isAcceptedFile('list.doc'), false);
+  assert.equal(isAcceptedFile('list.docx'), true);
+});
+
+test('noUsableRowsMessage for all-already-imported scenario', () => {
+  const msg = noUsableRowsMessage({
+    normalizedDiscarded: 0,
+    deduplicated: 0,
+    alreadyImported: 5
+  });
+  assert.match(msg, /already in your Property Analyzer/i);
+});
+
+test('noUsableRowsMessage for generic empty parse', () => {
+  const msg = noUsableRowsMessage({
+    normalizedDiscarded: 3,
+    deduplicated: 0,
+    alreadyImported: 0
+  });
+  assert.match(msg, /no usable records/i);
+});
+
+test('parseMultipart preserves binary file bytes', () => {
+  const boundary = 'TestBoundary99';
+  const binary = Buffer.from([0x00, 0xff, 0x89, 0x50, 0x4e, 0x47]);
+  const body = Buffer.concat([
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="cityId"\r\n\r\ntest-city\r\n`),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="scan.png"\r\nContent-Type: image/png\r\n\r\n`),
+    binary,
+    Buffer.from(`\r\n--${boundary}--\r\n`)
+  ]);
+  const { fields, files } = parseMultipart(body, `multipart/form-data; boundary=${boundary}`);
+  assert.equal(fields.cityId, 'test-city');
+  assert.deepEqual(files.file.data, binary);
+});
+
+test('parseMultipart throws when boundary missing', () => {
+  assert.throws(
+    () => parseMultipart(Buffer.from('data'), 'multipart/form-data'),
+    /boundary/i
+  );
+});
+
+test('parses pipe-delimited TXT violation list', async () => {
+  const enginePath = require.resolve('../lib/bridge-engine');
+  const indexModule = require('../lib/analyzer-import-index');
+  const originalLoad = indexModule.loadImportAddressIndex;
+  indexModule.loadImportAddressIndex = async () => ({
+    loadedAt: Date.now(),
+    addresses: new Set(),
+    count: 0,
+    sources: null
+  });
+  delete require.cache[enginePath];
+  const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
+
+  const csv = [
+    'Property Address|Violation Type|Violation Date',
+    '100 Elm St|Overgrown weeds|2026-01-15',
+    '200 Oak Ave|Sign violation|2026-02-01'
+  ].join('\n');
+  const parsed = parseTextFile(Buffer.from(csv), 'violations.txt');
+  assert.equal(parsed.delimiter, '|');
+
+  try {
+    const result = await processUploadFresh({
+      buffer: Buffer.from(csv),
+      filename: 'violations.txt',
+      city: CITY,
+      uploadType: 'code_violation'
+    });
+    assert.equal(result.stats.kept, 2);
+  } finally {
+    indexModule.loadImportAddressIndex = originalLoad;
+    delete require.cache[enginePath];
+  }
+});
+
+test('parses TSV file extension', async () => {
+  const tsv = 'Property Address\tViolation Type\n55 Birch Ln\tTrash accumulation\n';
+  const result = await processUpload({
+    buffer: Buffer.from(tsv),
+    filename: 'violations.tsv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+  assert.equal(result.stats.kept, 1);
+  assert.match(result.rows[0].distressedSignalTag, /Strong Distressed Signal/i);
+});
+
+test('discards City Hall non-property rows', () => {
+  const normalized = normalizeRawRows(
+    [{ 'Property Address': 'City Hall', 'Violation Type': 'Sign' }],
+    ['Property Address', 'Violation Type'],
+    {
+      city: CITY,
+      uploadType: 'code_violation',
+      sourceFile: 'test.csv',
+      processedAt: new Date().toISOString()
+    }
+  );
+  assert.equal(normalized.kept.length, 0);
+  assert.equal(normalized.discarded.length, 1);
+  assert.match(normalized.discarded[0].reason, /non-property/i);
+});
+
+test('processUpload returns 422 details when all rows already imported', async () => {
+  const enginePath = require.resolve('../lib/bridge-engine');
+  const indexModule = require('../lib/analyzer-import-index');
+  const { normalizeAddressKey } = indexModule;
+  const originalLoad = indexModule.loadImportAddressIndex;
+
+  const csv = 'Property Address,Violation Type\n123 Main St,Overgrown weeds\n';
+  indexModule.loadImportAddressIndex = async () => ({
+    loadedAt: Date.now(),
+    addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona')]),
+    count: 1,
+    sources: { records: 1, results: 0 }
+  });
+  delete require.cache[enginePath];
+  const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
+
+  try {
+    await assert.rejects(
+      () => processUploadFresh({
+        buffer: Buffer.from(csv),
+        filename: 'only-imported.csv',
+        city: CITY,
+        uploadType: 'code_violation'
+      }),
+      (err) => {
+        assert.equal(err.code, 'NO_USABLE_ROWS');
+        assert.match(err.message, /already in your Property Analyzer/i);
+        assert.equal(err.details.stats.alreadyImported, 1);
+        return true;
+      }
+    );
+  } finally {
+    indexModule.loadImportAddressIndex = originalLoad;
+    delete require.cache[enginePath];
+  }
+});

@@ -79,6 +79,27 @@
   opacity: 0.96;
 }
 
+.shell-product-tag {
+  margin-left: 0.65rem;
+  padding: 0.2rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  border: 1px solid rgba(229, 132, 53, 0.3);
+  border-radius: var(--radius-sm);
+  background: rgba(229, 132, 53, 0.08);
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .shell-product-tag {
+    display: none;
+  }
+}
+
 .shell-links {
   display: flex;
   align-items: center;
@@ -157,14 +178,9 @@
   margin: 0 0.25rem;
 }
 
+/* Row 2 submenu removed — tools live in Collect hub, Settings, ⌘K */
 .shell-nav-row2 {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-  padding: 0 1.5rem 0.65rem;
-  border-top: 1px solid rgba(174, 163, 143, 0.08);
+  display: none !important;
 }
 
 .shell-nav-row2-label {

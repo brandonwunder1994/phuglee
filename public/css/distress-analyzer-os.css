@@ -1,0 +1,137 @@
+/* Property Analyzer — Distress OS embedded theme (look only) */
+
+body.analyzer-embedded.cyber-theme .ambient-orb,
+body.analyzer-embedded.cyber-theme .scanlines,
+body.analyzer-embedded.cyber-theme .grain,
+body.analyzer-embedded.cyber-theme .vignette,
+body.analyzer-embedded.cyber-theme .cyber-grid {
+  display: none !important;
+}
+
+body.analyzer-embedded.cyber-theme {
+  background: var(--phuglee-black) !important;
+}
+
+body.analyzer-embedded.cyber-theme::before {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -5%, rgba(229, 132, 53, 0.1) 0%, transparent 55%),
+    var(--phuglee-black) !important;
+}
+
+body.analyzer-embedded .app-sidebar {
+  display: none !important;
+}
+
+body.analyzer-embedded .app-shell {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  min-height: calc(100vh - var(--distress-nav-offset, 56px) - 28px);
+}
+
+body.analyzer-embedded .app-shell-main {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+}
+
+body.analyzer-embedded .app-main,
+body.analyzer-embedded .main-content,
+body.analyzer-embedded #mainContent {
+  max-width: none;
+  padding-top: 0.5rem;
+}
+
+body.analyzer-embedded .app-shell .app {
+  max-width: none;
+  padding: 1rem 1.5rem 3rem;
+}
+
+body.analyzer-embedded .glass,
+body.analyzer-embedded .summary-section,
+body.analyzer-embedded .results-wrap,
+body.analyzer-embedded .summary-kpi-card,
+body.analyzer-embedded .prop-card.card-cyber,
+body.analyzer-embedded .empty-workspace,
+body.analyzer-embedded .scan-progress-slim {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  box-shadow: var(--glass-shadow) !important;
+}
+
+body.analyzer-embedded .prop-card.card-cyber {
+  border-radius: var(--radius-lg) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important;
+}
+
+body.analyzer-embedded .prop-card.card-cyber:hover {
+  transform: translateY(-3px);
+  border-color: var(--glass-border-hover) !important;
+  box-shadow: var(--glass-shadow-float) !important;
+}
+
+body.analyzer-embedded .command-title,
+body.analyzer-embedded .empty-workspace h2,
+body.analyzer-embedded .summary-section h2 {
+  background: linear-gradient(180deg, var(--phuglee-cream) 25%, var(--phuglee-orange) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+body.analyzer-embedded .tier-badge,
+body.analyzer-embedded .distress-tier-pill {
+  font-family: var(--font-mono) !important;
+  letter-spacing: 0.06em !important;
+}
+
+body.analyzer-embedded .card-thumb {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+  border: 1px solid var(--glass-border) !important;
+}
+
+body.analyzer-embedded .card-thumb img.loaded {
+  animation: analyzer-thumb-in 0.35s ease both;
+}
+
+@keyframes analyzer-thumb-in {
+  from { opacity: 0; transform: scale(1.03); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+body.analyzer-embedded .review-mode-overlay {
+  background: rgba(8, 6, 5, 0.92) !important;
+  backdrop-filter: blur(20px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(140%) !important;
+}
+
+body.analyzer-embedded .modal-content,
+body.analyzer-embedded .upload-modal .modal-panel,
+body.analyzer-embedded .settings-panel {
+  background: var(--glass-bg-elevated) !important;
+  border: 1px solid var(--glass-border) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  box-shadow: var(--glass-shadow-float) !important;
+}
+
+body.analyzer-embedded .scan-progress-ring,
+body.analyzer-embedded .scan-status-bar {
+  border-color: rgba(229, 132, 53, 0.35) !important;
+}
+
+body.analyzer-embedded .summary-kpi-value {
+  font-family: var(--font-mono) !important;
+  color: var(--phuglee-orange) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.analyzer-embedded .prop-card.card-cyber:hover {
+    transform: none;
+  }
+  body.analyzer-embedded .card-thumb img.loaded {
+    animation: none;
+  }
+}

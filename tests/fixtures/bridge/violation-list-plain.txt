@@ -1,0 +1,6 @@
+City Code Violation List — March 2026
+
+Property Address          Violation Type              Violation Date
+123 Main St               Overgrown weeds             2026-04-02
+456 Oak Ave               Accumulation of trash       2026-04-15
+789 Pine Dr               Abandoned vehicle           2026-05-01

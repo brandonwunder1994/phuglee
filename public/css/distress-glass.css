@@ -1,0 +1,185 @@
+/* Distress OS — glass elevation system (look only) */
+
+.distress-glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  box-shadow: var(--glass-shadow);
+}
+
+.distress-glass--float {
+  background: var(--glass-bg-elevated);
+  box-shadow: var(--glass-shadow-float);
+}
+
+.distress-glass--chrome {
+  background: var(--glass-bg-chrome);
+  border-color: var(--glass-border-chrome);
+}
+
+.distress-solid-zone {
+  background: var(--zone-solid-bg);
+  border: 1px solid var(--zone-solid-border);
+  border-radius: var(--radius-lg);
+}
+
+.distress-glass-card {
+  position: relative;
+  padding: 1.35rem 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow: var(--glass-shadow);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.distress-glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--phuglee-gold),
+    var(--phuglee-orange),
+    transparent
+  );
+  opacity: 0.7;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  pointer-events: none;
+}
+
+.distress-glass-card:hover {
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float);
+}
+
+.distress-glass-card.is-interactive {
+  cursor: pointer;
+}
+
+.distress-glass-card.is-interactive:hover {
+  transform: translateY(-3px);
+}
+
+.distress-glass-card.is-interactive:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
+.distress-monitor {
+  position: relative;
+  border-radius: 14px;
+  padding: 0.65rem 0.65rem 1.75rem;
+  background: linear-gradient(165deg, #2a2a28 0%, #141412 100%);
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.distress-monitor::after {
+  content: '';
+  position: absolute;
+  bottom: 0.55rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36%;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(174, 163, 143, 0.25);
+}
+
+.distress-monitor-screen {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  background: var(--phuglee-black);
+  aspect-ratio: 16 / 10;
+  position: relative;
+}
+
+.distress-monitor-screen img,
+.distress-monitor-screen .monitor-ui {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.distress-pipeline-rail {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 2rem 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+.distress-pipeline-node {
+  flex: 1;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  position: relative;
+  border-right: 1px solid var(--glass-border);
+  transition: background 0.25s ease;
+}
+
+.distress-pipeline-node:last-child {
+  border-right: none;
+}
+
+.distress-pipeline-node:hover {
+  background: rgba(229, 132, 53, 0.06);
+}
+
+.distress-pipeline-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--phuglee-orange);
+  border: 1px solid rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.1);
+  margin-bottom: 0.5rem;
+}
+
+.distress-pipeline-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+.distress-pipeline-sub {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .distress-glass-card,
+  .distress-glass-card.is-interactive:hover,
+  .distress-glass-card.is-interactive:active {
+    transform: none;
+    transition: none;
+  }
+}

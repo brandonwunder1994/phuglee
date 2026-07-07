@@ -1,0 +1,150 @@
+/* Distress OS — Command palette (⌘K) */
+
+.cmd-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(8, 6, 5, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: cmd-fade-in 0.15s ease both;
+}
+
+.cmd-palette-backdrop[hidden] {
+  display: none;
+}
+
+@keyframes cmd-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cmd-palette {
+  position: fixed;
+  top: 18vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 2rem));
+  z-index: 2001;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-elevated);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  animation: cmd-rise 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cmd-palette[hidden] {
+  display: none;
+}
+
+@keyframes cmd-rise {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.cmd-palette-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.cmd-palette-head svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--phuglee-orange);
+  flex-shrink: 0;
+}
+
+.cmd-palette-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--phuglee-cream);
+  outline: none;
+}
+
+.cmd-palette-input::placeholder {
+  color: var(--phuglee-stone);
+}
+
+.cmd-palette-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--glass-border);
+  color: var(--phuglee-stone);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.cmd-palette-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.35rem;
+}
+
+.cmd-palette-group-label {
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe-mid);
+}
+
+.cmd-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--phuglee-cream);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.cmd-palette-item:hover,
+.cmd-palette-item.is-highlighted {
+  background: rgba(229, 132, 53, 0.12);
+}
+
+.cmd-palette-item-meta {
+  font-size: 0.72rem;
+  color: var(--phuglee-stone);
+  font-family: var(--font-mono);
+}
+
+.cmd-palette-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmd-palette-backdrop,
+  .cmd-palette {
+    animation: none;
+  }
+}

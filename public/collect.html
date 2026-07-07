@@ -12,18 +12,24 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Collect Records — Distress OS">
   <meta name="twitter:description" content="Request public records from cities and counties for distressed lead lists.">
+  <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/distress-glass.css">
   <link rel="stylesheet" href="/css/heat-base.css">
   <link rel="stylesheet" href="/css/heat-atmosphere.css">
   <link rel="stylesheet" href="/css/landing.css">
-  <link rel="stylesheet" href="/css/premium-atmosphere.css">
+  <link rel="stylesheet" href="/css/premium-atmosphere.css?v=distress3">
   <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
-  <link rel="stylesheet" href="/css/shell-nav.css">
-  <link rel="stylesheet" href="/css/collect-records.css">
+  <link rel="stylesheet" href="/css/shell-nav.css?v=distress2">
+  <link rel="stylesheet" href="/css/settings-menu.css">
+  <link rel="stylesheet" href="/css/command-palette.css">
+  <link rel="stylesheet" href="/css/distress-status.css">
+  <link rel="stylesheet" href="/css/collect-records.css?v=distress3">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=distress3">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-guard.js"></script>
@@ -44,47 +50,68 @@
 
   <div id="distress-os-nav-mount"></div>
 
-  <main id="main" class="landing collect-landing phuglee-pattern-bg phuglee-pattern-bg--medium" data-phuglee-reveal>
-    <div class="landing-inner" data-phuglee-reveal-child>
-      <p class="landing-eyebrow">Collect Records</p>
-      <h1 class="landing-title">Hit Up the City!</h1>
-      <p class="landing-tagline premium-tagline">All the Tools You Need to Get Your Leads from The City/County</p>
-      <div class="landing-actions">
-        <button type="button" class="btn-heat phuglee-btn phuglee-btn-primary" id="btn-start-requests">
-          <span class="btn-heat-label">Start Requests</span>
-          <span class="btn-heat-shine" aria-hidden="true"></span>
+  <main id="main" class="collect-landing phuglee-pattern-bg phuglee-pattern-bg--medium">
+    <div class="collect-hub">
+      <header class="collect-hub-hero">
+        <p class="landing-eyebrow">Collect Records</p>
+        <h1 class="landing-title">Hit Up the City</h1>
+        <p class="landing-tagline premium-tagline">Source distressed leads straight from public records — before aggregators even know they exist.</p>
+      </header>
+
+      <div class="collect-hub-grid">
+        <button type="button" class="distress-glass-card collect-hub-tile is-interactive" id="btn-start-requests">
+          <span class="collect-hub-tile-icon" aria-hidden="true">📨</span>
+          <span class="collect-hub-tile-title">Start Requests</span>
+          <p class="collect-hub-tile-desc">PDF emails, plain email FOIA, or online portal submissions — pick the workflow each city accepts.</p>
+          <span class="collect-hub-tile-cta">Launch workflow →</span>
         </button>
-        <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" id="btn-pdf-filler-info">PDF Filler Info</button>
+        <a href="/forge/map" class="distress-glass-card collect-hub-tile collect-hub-tile--map is-interactive">
+          <span class="collect-hub-tile-icon" aria-hidden="true">🗺</span>
+          <span class="collect-hub-tile-title">Coverage Map</span>
+          <p class="collect-hub-tile-desc">Drill state → city, check coverage stats, and launch requests from the map.</p>
+          <span class="collect-hub-tile-cta">Open map →</span>
+        </a>
+      </div>
+
+      <div class="collect-hub-strip distress-solid-zone">
+        <span class="collect-hub-strip-label">Distress signals we collect</span>
+        <div class="collect-hub-signals">
+          <span class="collect-hub-signal">Code violations</span>
+          <span class="collect-hub-signal">Water shutoffs</span>
+          <span class="collect-hub-signal">Probates</span>
+          <span class="collect-hub-signal">Foreclosures</span>
+          <span class="collect-hub-signal">Tax liens</span>
+        </div>
       </div>
     </div>
   </main>
 
   <dialog class="collect-dialog" id="start-requests-dialog" aria-labelledby="start-requests-title">
-    <div class="collect-dialog-card phuglee-panel">
+    <div class="collect-dialog-card phuglee-panel distress-glass--float">
       <div class="collect-dialog-head">
-        <h2 id="start-requests-title">How do you want to request records?</h2>
+        <h2 id="start-requests-title">Choose your mission</h2>
         <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
       </div>
       <p class="collect-dialog-lead">Pick the workflow that matches how each city accepts public records requests.</p>
       <div class="collect-choice-grid" role="radiogroup" aria-label="Request workflow">
         <label class="collect-choice">
           <input type="radio" name="request-workflow" value="/forge/portal/request-pdfs" checked />
-          <span class="collect-choice-body">
-            <span class="collect-choice-title">Send PDF Emails</span>
+          <span class="collect-choice-body distress-glass-card">
+            <span class="collect-choice-title"><span class="collect-choice-icon">📄</span>Send PDF Emails</span>
             <span class="collect-choice-desc">Email a completed FOIA PDF attachment to the city clerk. Best when the city wants a signed form on file.</span>
           </span>
         </label>
         <label class="collect-choice">
           <input type="radio" name="request-workflow" value="/forge/portal/email-only" />
-          <span class="collect-choice-body">
-            <span class="collect-choice-title">Emails Only</span>
+          <span class="collect-choice-body distress-glass-card">
+            <span class="collect-choice-title"><span class="collect-choice-icon">✉</span>Emails Only</span>
             <span class="collect-choice-desc">Send a plain email request with no PDF. Use this for cities that accept email-only FOIA without a form.</span>
           </span>
         </label>
         <label class="collect-choice">
           <input type="radio" name="request-workflow" value="/forge/portal/submit-portals" />
-          <span class="collect-choice-body">
-            <span class="collect-choice-title">Online Portals</span>
+          <span class="collect-choice-body distress-glass-card">
+            <span class="collect-choice-title"><span class="collect-choice-icon">🌐</span>Online Portals</span>
             <span class="collect-choice-desc">Submit through the city&apos;s web portal. We track each submission and walk you through the online form.</span>
           </span>
         </label>
@@ -99,9 +126,9 @@
   </dialog>
 
   <dialog class="collect-dialog" id="pdf-filler-dialog" aria-labelledby="pdf-filler-title">
-    <div class="collect-dialog-card phuglee-panel">
+    <div class="collect-dialog-card phuglee-panel distress-glass--float">
       <div class="collect-dialog-head">
-        <h2 id="pdf-filler-title">PDF Filler Info</h2>
+        <h2 id="pdf-filler-title">PDF Filler</h2>
         <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
       </div>
       <p class="collect-dialog-lead">
@@ -135,7 +162,10 @@
   <div id="distress-os-footer-mount"></div>
   <script src="/js/phuglee-motion.js"></script>
   <script src="/js/phuglee-states.js"></script>
-  <script src="/js/shell-nav.js"></script>
-  <script src="/js/collect-records.js"></script>
+  <script src="/js/settings-menu.js"></script>
+  <script src="/js/command-palette.js"></script>
+  <script src="/js/distress-status.js"></script>
+  <script src="/js/shell-nav.js?v=distress2"></script>
+  <script src="/js/collect-records.js?v=distress2"></script>
 </body>
 </html>

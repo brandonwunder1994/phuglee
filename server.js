@@ -22,6 +22,7 @@ const MIME = {
 };
 
 const { CACHE_NONE, cacheControlForExt } = require('./lib/static-cache');
+const bridgeApi = require('./lib/bridge-api');
 
 function send(res, status, body, type, extraHeaders = {}) {
   res.writeHead(status, {
@@ -80,6 +81,11 @@ async function handleRequest(req, res) {
       }
     }), 'application/json');
     return;
+  }
+
+  if (pathname.startsWith('/api/bridge')) {
+    const handled = await bridgeApi.handle(req, res, pathname, url);
+    if (handled) return;
   }
 
   if (isForgeRequest(pathname)) {

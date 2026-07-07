@@ -92,6 +92,16 @@
 body.has-premium-bg .heat-field,
 body.has-premium-bg .heat-bg {
   z-index: 1;
+  pointer-events: none;
+}
+
+/* Shell pages — keep main content above atmospheric layers */
+body.has-premium-bg #main,
+body.has-premium-bg .hub-main,
+body.has-premium-bg .bridge-main,
+body.has-premium-bg .collect-landing {
+  position: relative;
+  z-index: 2;
 }
 
 body.has-premium-bg .heat-grid {

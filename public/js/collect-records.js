@@ -51,11 +51,16 @@
     openDialog(startDialog);
   });
 
-  document.getElementById('btn-pdf-filler-info')?.addEventListener('click', async () => {
+  async function openPdfFillerDialog() {
     setFillerStatus('');
     await loadCurrentSettings();
     openDialog(fillerDialog);
-  });
+  }
+
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('open') === 'pdf-filler') {
+    window.setTimeout(() => openPdfFillerDialog(), 100);
+  }
 
   document.getElementById('btn-confirm-workflow')?.addEventListener('click', () => {
     const href = selectedWorkflowHref();

@@ -53,10 +53,6 @@
     return id === current ? 'shell-link active' : 'shell-link';
   }
 
-  function sublinkClass(id, current) {
-    return id === current ? 'shell-sublink active' : 'shell-sublink';
-  }
-
   function buildFooter() {
     return `
 <footer class="shell-footer" id="distress-os-footer">
@@ -93,13 +89,13 @@
       `<a href="${l.href}" class="${linkClass(l.id, current)}"${current === l.id ? ' aria-current="page"' : ''}>${l.label}</a>`
     ).join('');
 
-    const forgeHtml = FORGE_LINKS.map((l) =>
-      `<a href="${l.href}" class="${sublinkClass(l.id, current)}"${current === l.id ? ' aria-current="page"' : ''}>${l.label}</a>`
-    ).join('<span class="shell-nav-divider" aria-hidden="true"></span>');
-
     const analyzerClass = linkClass(ANALYZER_LINK.id, current);
-    const signOutHtml = isAuthenticated()
-      ? '<span class="shell-nav-divider shell-sign-out-divider" aria-hidden="true"></span><button type="button" class="shell-link shell-sign-out" id="shell-sign-out">Sign Out</button>'
+
+    const actionsHtml = isAuthenticated()
+      ? `<div class="shell-nav-actions">
+          <button type="button" class="shell-cmd-hint" id="shell-cmd-hint" title="Command palette"><kbd>⌘</kbd><kbd>K</kbd></button>
+          <div id="shell-settings-slot"></div>
+        </div>`
       : '';
 
     return `
@@ -107,9 +103,9 @@
   <div class="phuglee-loading-bar" aria-hidden="true"></div>
   <span class="phuglee-loading-copy">Heating up leads…</span>
 </div>
-<header class="shell-nav-wrap" id="distress-os-nav">
+<header class="shell-nav-wrap distress-glass--chrome" id="distress-os-nav">
   <nav class="shell-nav" aria-label="Main navigation">
-    <a href="/heat" class="shell-brand" aria-label="Phuglee home">
+    <a href="/heat" class="shell-brand" aria-label="Phuglee — Distress OS">
       <img
         src="/images/phuglee-text-logo.svg"
         alt="Phuglee"
@@ -118,16 +114,14 @@
         height="32"
         decoding="async"
       >
+      <span class="shell-product-tag">Distress OS</span>
     </a>
     <div class="shell-links">
       ${coreHtml}
       <a href="${ANALYZER_LINK.href}" class="${analyzerClass}"${current === ANALYZER_LINK.id ? ' aria-current="page"' : ''}>${ANALYZER_LINK.label}</a>
-      ${signOutHtml}
+      ${actionsHtml}
     </div>
   </nav>
-  <div class="shell-nav-row2" aria-label="Tool pages">
-    ${forgeHtml}
-  </div>
 </header>`;
   }
 
@@ -136,20 +130,6 @@
       return !!sessionStorage.getItem('phuglee_session');
     } catch (_) {
       return false;
-    }
-  }
-
-  function logout() {
-    try {
-      sessionStorage.removeItem('phuglee_session');
-    } catch (_) {}
-    window.location.href = '/';
-  }
-
-  function bindSignOut(root) {
-    const btn = root && root.querySelector('#shell-sign-out');
-    if (btn) {
-      btn.addEventListener('click', logout);
     }
   }
 
@@ -168,6 +148,15 @@
     });
   }
 
+  function bindChrome(root) {
+    const cmdHint = root && root.querySelector('#shell-cmd-hint');
+    if (cmdHint) {
+      cmdHint.addEventListener('click', () => {
+        if (window.PhugleeCommandPalette) window.PhugleeCommandPalette.open();
+      });
+    }
+  }
+
   function mount() {
     const path = window.location.pathname;
     if (normalizePath(path) === '/') return;
@@ -177,21 +166,27 @@
     if (existing) {
       existing.outerHTML = html;
     } else {
-      const mount = document.getElementById('distress-os-nav-mount');
-      if (mount) {
-        mount.innerHTML = html;
+      const mountEl = document.getElementById('distress-os-nav-mount');
+      if (mountEl) {
+        mountEl.innerHTML = html;
       } else {
         document.body.insertAdjacentHTML('afterbegin', html);
       }
     }
 
     const wrap = document.getElementById('distress-os-nav');
+    const isEmbedded = path.startsWith('/forge') || path.startsWith('/analyzer');
     if (wrap) {
       const h = wrap.offsetHeight;
       document.documentElement.style.setProperty('--distress-nav-offset', h + 'px');
-      document.body.style.paddingTop = h + 'px';
+      // Embedded proxied apps position content with --distress-nav-offset; avoid double top pad.
+      if (isEmbedded) {
+        document.body.style.paddingTop = '';
+      } else {
+        document.body.style.paddingTop = h + 'px';
+      }
       guardNavLinks(wrap);
-      bindSignOut(wrap);
+      bindChrome(wrap);
     }
 
     if (path.startsWith('/forge')) {
@@ -203,6 +198,12 @@
 
     mountFooter();
 
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.mount === 'function') {
+      window.PhugleeSettings.mount();
+    }
+    if (window.DistressStatus && typeof window.DistressStatus.mount === 'function') {
+      window.DistressStatus.mount();
+    }
     if (window.PhugleeMotion && typeof window.PhugleeMotion.init === 'function') {
       window.PhugleeMotion.init();
     }

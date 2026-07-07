@@ -12,10 +12,12 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Distress OS — How It Works">
   <meta name="twitter:description" content="Collect city records, scrub distress signals, and analyze deals.">
+  <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/distress-glass.css">
   <link rel="stylesheet" href="/css/heat-base.css">
   <link rel="stylesheet" href="/css/heat-atmosphere.css">
   <link rel="stylesheet" href="/css/heat-components.css">
@@ -23,7 +25,11 @@
   <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
   <link rel="stylesheet" href="/css/shell-nav.css">
+  <link rel="stylesheet" href="/css/settings-menu.css">
+  <link rel="stylesheet" href="/css/command-palette.css">
+  <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/hub.css">
+  <link rel="stylesheet" href="/css/distress-heat-v2.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-guard.js"></script>
@@ -49,6 +55,73 @@
       <h1 class="hub-title">Leads this hot don't wait for aggregators.</h1>
       <p class="hub-lead hub-lead-wide">We pull lists straight from city and county records — not from data warehouses that drip the same leads to everyone else weeks later. That means you get distressed properties <em>before</em> your competition even knows they exist.</p>
     </header>
+
+    <section class="hub-vs-grid" aria-label="Fresh leads versus aggregators" data-phuglee-reveal-child>
+      <div class="hub-vs-panel hub-vs-panel--fresh distress-glass-card">
+        <span class="hub-vs-badge">Your edge</span>
+        <h2 class="hub-vs-title">Distress OS pipeline</h2>
+        <p>City clerk → your inbox → Data Bridge scrubs it → Analyzer ranks distress → you dial.</p>
+        <p><strong>Days.</strong> Direct from the source. Nobody else has seen this list yet.</p>
+      </div>
+      <div class="hub-vs-panel hub-vs-panel--stale distress-glass-card">
+        <span class="hub-vs-badge">Everyone else</span>
+        <h2 class="hub-vs-title">Aggregator drip</h2>
+        <p>Portal scrape → data warehouse → sold to 400 wholesalers → skip traced to death.</p>
+        <p><strong>Weeks.</strong> Same properties. Same competition. Stale before you open the file.</p>
+      </div>
+    </section>
+
+    <nav class="distress-pipeline-rail distress-glass" aria-label="Pipeline overview" data-phuglee-reveal-child>
+      <div class="distress-pipeline-node">
+        <span class="distress-pipeline-num">01</span>
+        <span class="distress-pipeline-label">Collect</span>
+        <span class="distress-pipeline-sub">Public records</span>
+      </div>
+      <div class="distress-pipeline-node">
+        <span class="distress-pipeline-num">02</span>
+        <span class="distress-pipeline-label">Bridge</span>
+        <span class="distress-pipeline-sub">Scrub &amp; tag</span>
+      </div>
+      <div class="distress-pipeline-node">
+        <span class="distress-pipeline-num">03</span>
+        <span class="distress-pipeline-label">Analyze</span>
+        <span class="distress-pipeline-sub">AI + human</span>
+      </div>
+    </nav>
+
+    <section class="hub-mockups" aria-label="Distress OS tools" data-phuglee-reveal-child>
+      <div class="distress-monitor">
+        <div class="distress-monitor-screen">
+          <div class="hub-mockup-ui" aria-hidden="true">
+            <div class="hub-mockup-bar"></div>
+            <div class="hub-mockup-line w80"></div>
+            <div class="hub-mockup-line w60"></div>
+            <div class="hub-mockup-block"></div>
+          </div>
+        </div>
+        <p class="hub-mockup-caption">Collect Records</p>
+      </div>
+      <div class="distress-monitor">
+        <div class="distress-monitor-screen">
+          <div class="hub-mockup-ui" aria-hidden="true">
+            <div class="hub-mockup-bar"></div>
+            <div class="hub-mockup-line w60"></div>
+            <div class="hub-mockup-block hub-mockup-block--green"></div>
+          </div>
+        </div>
+        <p class="hub-mockup-caption">Data Bridge</p>
+      </div>
+      <div class="distress-monitor">
+        <div class="distress-monitor-screen">
+          <div class="hub-mockup-ui" aria-hidden="true">
+            <div class="hub-mockup-bar"></div>
+            <div class="hub-mockup-line w45"></div>
+            <div class="hub-mockup-block hub-mockup-block--gold"></div>
+          </div>
+        </div>
+        <p class="hub-mockup-caption">Property Analyzer</p>
+      </div>
+    </section>
 
     <section class="hub-hotspot" aria-label="Why our leads are different" data-phuglee-reveal-child>
       <div class="hub-hotspot-glow" aria-hidden="true"></div>
@@ -181,7 +254,10 @@
   <div id="distress-os-footer-mount"></div>
   <script src="/js/phuglee-motion.js"></script>
   <script src="/js/phuglee-states.js"></script>
-  <script src="/js/shell-nav.js"></script>
+  <script src="/js/settings-menu.js"></script>
+  <script src="/js/command-palette.js"></script>
+  <script src="/js/distress-status.js"></script>
+  <script src="/js/shell-nav.js?v=distress2"></script>
   <script src="/js/hub-pricing.js"></script>
 </body>
 </html>

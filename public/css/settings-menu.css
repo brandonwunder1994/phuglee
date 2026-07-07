@@ -1,0 +1,237 @@
+/* Distress OS — Settings dropdown + billings panel */
+
+.shell-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.5rem;
+}
+
+.shell-cmd-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-stone);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.shell-cmd-hint:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.08);
+}
+
+.shell-cmd-hint kbd {
+  font: inherit;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.shell-settings {
+  position: relative;
+}
+
+.shell-settings-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--phuglee-stone);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.shell-settings-trigger:hover,
+.shell-settings-trigger[aria-expanded="true"] {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.4);
+  background: rgba(229, 132, 53, 0.1);
+  box-shadow: 0 0 20px rgba(229, 132, 53, 0.12);
+}
+
+.shell-settings-trigger svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.shell-settings-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 280px;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-elevated);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: var(--glass-shadow-float);
+  z-index: 1100;
+  animation: settings-drop-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shell-settings-dropdown[hidden] {
+  display: none;
+}
+
+@keyframes settings-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shell-settings-section {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.shell-settings-section:last-child {
+  border-bottom: none;
+}
+
+.shell-settings-section-label {
+  padding: 0.35rem 0.75rem 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe-mid);
+}
+
+.shell-settings-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--phuglee-cream);
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.shell-settings-item:hover {
+  background: rgba(229, 132, 53, 0.1);
+  color: var(--phuglee-cream);
+}
+
+.shell-settings-item.danger:hover {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--phuglee-danger);
+}
+
+.shell-settings-item-icon {
+  width: 1.25rem;
+  text-align: center;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.shell-billing-card {
+  margin: 0.35rem 0.5rem 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(229, 132, 53, 0.12) 0%, rgba(0, 0, 0, 0.35) 100%);
+  border: 1px solid rgba(229, 132, 53, 0.25);
+}
+
+.shell-billing-tier {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+}
+
+.shell-billing-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.shell-theme-toggle {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem 0.5rem;
+}
+
+.shell-theme-btn {
+  flex: 1;
+  padding: 0.45rem 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--phuglee-stone);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shell-theme-btn:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.3);
+}
+
+.shell-theme-btn.is-active {
+  color: var(--phuglee-cream);
+  border-color: var(--phuglee-orange);
+  background: rgba(229, 132, 53, 0.15);
+  box-shadow: 0 0 16px rgba(229, 132, 53, 0.15);
+}
+
+@media (max-width: 768px) {
+  .shell-cmd-hint {
+    display: none;
+  }
+
+  .shell-settings-dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    min-width: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-settings-dropdown {
+    animation: none;
+  }
+}
