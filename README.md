@@ -142,9 +142,27 @@ npm test
 | `FORM_FORGE_PATH` | `modules/form-forge` | Form Forge root |
 | `PROPERTY_ANALYZER_PATH` | `modules/property-analyzer` | Analyzer root |
 
+## Share with someone (public URL)
+
+**Vercel cannot run Phuglee.** The app needs Python (Form Forge), long-running Node (Analyzer), file uploads, and persistent disk — Vercel only supports short serverless functions and static files. A Vercel link would show shell pages but **Form Forge, Analyzer, and Bridge would break.**
+
+Use **Railway** (or Render) instead — one deploy, one URL, full app:
+
+1. Push repo: https://github.com/brandonwunder1994/phuglee
+2. [railway.app](https://railway.app) → New Project → Deploy from GitHub → select `phuglee`
+3. Railway detects `Dockerfile` automatically
+4. Add environment variables in Railway → Variables:
+   - `MAPS_API_KEY` — Google Maps (Analyzer imagery)
+   - `GEMINI_API_KEY` — Gemini (AI scan)
+5. Deploy → open the generated URL (e.g. `https://phuglee-production.up.railway.app`)
+
+Login on the site: `admin` / `wunderhaus`
+
+Locally, `npm start` already launches everything as **one command** (shell auto-starts Forge + Analyzer on internal ports; browser only uses `:3000`).
+
 ## Deployment (local production)
 
-Distress OS is designed as a **local desktop operator stack**, not a cloud multi-tenant app.
+Distress OS is designed as a **local desktop operator stack**, with optional single-container cloud deploy via Docker.
 
 ### Daily use
 
