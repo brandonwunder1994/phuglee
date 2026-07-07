@@ -151,10 +151,12 @@ Use **Railway** (or Render) instead — one deploy, one URL, full app:
 1. Push repo: https://github.com/brandonwunder1994/phuglee
 2. [railway.app](https://railway.app) → New Project → Deploy from GitHub → select `phuglee`
 3. Railway detects `Dockerfile` automatically
-4. Add environment variables in Railway → Variables:
-   - `MAPS_API_KEY` — Google Maps (Analyzer imagery)
-   - `GEMINI_API_KEY` — Gemini (AI scan)
+4. Add environment variables in Railway → **Variables** (required for full functionality):
+   - `MAPS_API_KEY` — Google Maps (Analyzer Street View + satellite imagery)
+   - `GEMINI_API_KEY` — Gemini (AI distress scan)
+   Without these, Property Analyzer loads but cannot scan leads.
 5. Deploy → open the generated URL (e.g. `https://phuglee-production.up.railway.app`)
+6. After deploy, confirm health: `/api/health` should show `formForge: up` and `propertyAnalyzer: up`.
 
 Login on the site: `admin` / `wunderhaus`
 

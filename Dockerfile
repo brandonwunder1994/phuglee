@@ -4,7 +4,14 @@
 FROM node:20-bookworm-slim
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends python3 python3-pip python-is-python3 \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    python-is-python3 \
+    libglib2.0-0 \
+    libgomp1 \
+    libjpeg62-turbo \
+    libopenjp2-7 \
   && ln -sf /usr/bin/python3 /usr/bin/python \
   && rm -rf /var/lib/apt/lists/*
 
@@ -23,6 +30,8 @@ COPY . .
 
 ENV NODE_ENV=production
 ENV DISTRESS_OS_HOST=0.0.0.0
+ENV FORGE_BUNDLED_FALLBACK=1
+ENV FORGE_LOG_INHERIT=1
 
 EXPOSE 3000
 

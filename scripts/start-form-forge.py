@@ -1,7 +1,9 @@
 """Start Form Forge without opening a browser — Distress OS orchestration only."""
 from __future__ import annotations
 
+import os
 import sys
+import threading
 import time
 import traceback
 from pathlib import Path
@@ -13,12 +15,12 @@ sys.path.insert(0, str(FORGE_ROOT))
 from review_portal.app import app  # noqa: E402
 from review_portal.data_guard import ensure_daily_snapshot, verify_integrity  # noqa: E402
 
-PORT = 8787
-HOST = "127.0.0.1"
+PORT = int(os.environ.get("FORM_FORGE_PORT", "8787"))
+HOST = os.environ.get("FORM_FORGE_HOST", "127.0.0.1")
 
 
-def main() -> None:
-    print(f"\n  Form Forge (Distress OS): http://{HOST}:{PORT}\n")
+def _run_backup_check() -> None:
+    """Run snapshot/integrity off the critical path so Flask binds immediately."""
     try:
         snap = ensure_daily_snapshot()
         report = verify_integrity()
@@ -33,9 +35,29 @@ def main() -> None:
     except Exception as exc:
         print(f"  Backup check skipped: {exc}")
 
+
+def _serve() -> None:
+    production = os.environ.get("NODE_ENV") == "production"
+    if production:
+        try:
+            from waitress import serve
+
+            print(f"  Form Forge (waitress): http://{HOST}:{PORT}")
+            serve(app, host=HOST, port=PORT, threads=8, channel_timeout=120)
+            return
+        except Exception as exc:
+            print(f"  Waitress unavailable ({exc}); falling back to Flask dev server")
+
+    app.run(host=HOST, port=PORT, debug=False, use_reloader=False, threaded=True)
+
+
+def main() -> None:
+    print(f"\n  Form Forge (Distress OS): http://{HOST}:{PORT}\n")
+    threading.Thread(target=_run_backup_check, name="forge-backup", daemon=True).start()
+
     while True:
         try:
-            app.run(host=HOST, port=PORT, debug=False, use_reloader=False, threaded=True)
+            _serve()
             break
         except KeyboardInterrupt:
             print("\n  Form Forge stopped.")

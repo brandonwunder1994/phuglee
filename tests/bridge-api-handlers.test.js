@@ -118,6 +118,11 @@ before(async () => {
 
   mockForge = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://127.0.0.1');
+    if (url.pathname === '/api/health') {
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, service: 'form-forge-mock' }));
+      return;
+    }
     if (url.pathname === '/api/portal/cities/summary') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(MOCK_CITIES));

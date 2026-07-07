@@ -215,6 +215,16 @@ async function bootModules() {
   } else {
     console.warn('Form Forge not available — check modules/form-forge');
     if (forge.error) console.warn(forge.error);
+    if (forge.health?.error) console.warn(`Form Forge health: ${forge.health.error}`);
+  }
+
+  const mapsKey = String(process.env.MAPS_API_KEY || '').trim();
+  const geminiKey = String(process.env.GEMINI_API_KEY || '').trim();
+  if (!mapsKey || !geminiKey) {
+    console.warn(
+      'Railway/production: set MAPS_API_KEY and GEMINI_API_KEY in service Variables '
+      + '(Property Analyzer scans and imagery require both).'
+    );
   }
 
   if (analyzer.running) {
