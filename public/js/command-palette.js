@@ -2,11 +2,12 @@
   'use strict';
 
   var COMMANDS = [
-    { group: 'Navigate', label: 'Collect Records', href: '/collect', meta: 'Hit up the city' },
+    { group: 'Navigate', label: 'Dashboard', href: '/command', meta: 'Pipeline dashboard' },
+    { group: 'Navigate', label: 'Collect', href: '/collect', meta: 'Hit up the city' },
     { group: 'Navigate', label: 'Coverage Map', href: '/forge/map', meta: 'Map' },
-    { group: 'Navigate', label: 'How It Works', href: '/heat', meta: 'Guide' },
+    { group: 'Navigate', label: 'How It Works', action: 'guide', meta: 'Guide' },
     { group: 'Navigate', label: 'Data Bridge', href: '/bridge', meta: 'Intake' },
-    { group: 'Navigate', label: 'Property Analyzer', href: '/analyzer/', meta: 'Analyze' },
+    { group: 'Navigate', label: 'Analyzer', href: '/analyzer/', meta: 'Analyze' },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
     { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
     { group: 'Workflows', label: 'Email-only Requests', href: '/forge/portal/email-only', meta: 'Plain email' },
@@ -73,7 +74,7 @@
         renderList(input.value);
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        if (filtered[highlight]) navigate(filtered[highlight].href);
+        if (filtered[highlight]) navigate(filtered[highlight]);
       }
     });
   }
@@ -105,8 +106,11 @@
         html += '<div class="cmd-palette-group-label">' + cmd.group + '</div>';
       }
       var hi = i === highlight ? ' is-highlighted' : '';
+      var dataAttr = cmd.action
+        ? ' data-action="' + cmd.action + '"'
+        : ' data-href="' + cmd.href + '"';
       html +=
-        '<button type="button" class="cmd-palette-item' + hi + '" data-href="' + cmd.href + '">' +
+        '<button type="button" class="cmd-palette-item' + hi + '"' + dataAttr + '>' +
           '<span>' + cmd.label + '</span>' +
           '<span class="cmd-palette-item-meta">' + cmd.meta + '</span>' +
         '</button>';
@@ -115,14 +119,31 @@
     list.innerHTML = html;
     list.querySelectorAll('.cmd-palette-item').forEach(function (btn, i) {
       btn.addEventListener('click', function () {
-        navigate(btn.getAttribute('data-href'));
+        var action = btn.getAttribute('data-action');
+        if (action) {
+          navigate(filtered[i]);
+        } else {
+          navigate({ href: btn.getAttribute('data-href') });
+        }
       });
       if (i === highlight) btn.scrollIntoView({ block: 'nearest' });
     });
   }
 
-  function navigate(href) {
+  function navigate(cmd) {
     close();
+    if (!cmd) return;
+
+    if (cmd.action === 'guide') {
+      if (window.PhugleeGuide && typeof window.PhugleeGuide.open === 'function') {
+        window.PhugleeGuide.open();
+        return;
+      }
+      window.location.href = '/command#how-it-works';
+      return;
+    }
+
+    var href = cmd.href;
     if (!href) return;
     if (!isAuthenticated() && href !== '/') {
       window.location.href = '/?login=1&return=' + encodeURIComponent(href);

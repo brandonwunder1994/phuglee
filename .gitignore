@@ -30,3 +30,4 @@ modules/property-analyzer/property_imagery/
 modules/property-analyzer/backups/
 modules/property-analyzer/scan_results/
 modules/property-analyzer/gemini_audit/
+.vercel

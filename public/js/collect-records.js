@@ -51,6 +51,10 @@
     openDialog(startDialog);
   });
 
+  document.getElementById('btn-pdf-filler')?.addEventListener('click', () => {
+    openPdfFillerDialog();
+  });
+
   async function openPdfFillerDialog() {
     setFillerStatus('');
     await loadCurrentSettings();

@@ -1,4 +1,4 @@
-/* Form Forge — Phuglee signature brand layer (v1.3 / M4 Phase 27) */
+/* Form Forge — Phuglee signature brand layer (v1.4 / M4 Phase 30) */
 
 :root {
   --phuglee-black: #0d0d0d;
@@ -629,6 +629,188 @@ body.distress-os-embedded.map-page .sidebar-city h2 {
 body.distress-os-embedded.map-page .city-list button:hover {
   border-color: rgba(229, 132, 53, 0.4);
   background: rgba(229, 132, 53, 0.08);
+}
+
+/* ── Form Forge — embedded page context (shell nav replaces legacy topbar) ── */
+.forge-page-hero,
+.forge-map-context {
+  display: none;
+}
+
+body.distress-os-embedded .forge-page-hero {
+  display: block;
+  position: relative;
+  z-index: 5;
+  flex-shrink: 0;
+  padding: 0.85rem 1.35rem 0.75rem;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.14);
+  background: rgba(13, 13, 13, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+body.distress-os-embedded .forge-page-hero--compact {
+  padding: 0.55rem 1.25rem 0.5rem;
+}
+
+body.distress-os-embedded .forge-page-hero-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.forge-page-step {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.35rem;
+}
+
+.forge-page-step a {
+  color: var(--phuglee-taupe);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forge-page-step a:hover {
+  color: var(--phuglee-orange);
+}
+
+.forge-page-title {
+  font-family: var(--display, 'Anton', sans-serif);
+  font-size: clamp(1.35rem, 4vw, 1.85rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 0.35rem;
+}
+
+.forge-page-hero--compact .forge-page-title {
+  font-size: clamp(1.1rem, 3vw, 1.45rem);
+  margin-bottom: 0;
+}
+
+.forge-page-lead {
+  max-width: 52ch;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--phuglee-stone);
+}
+
+.forge-page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+}
+
+.forge-page-nav a {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--phuglee-taupe);
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(174, 163, 143, 0.18);
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.forge-page-nav a:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.35);
+}
+
+.forge-page-nav a.is-active {
+  color: var(--phuglee-orange);
+  border-color: rgba(229, 132, 53, 0.45);
+  background: rgba(229, 132, 53, 0.1);
+}
+
+.forge-trust-line {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0.75rem 1rem 1.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+body.distress-os-embedded .forge-trust-line {
+  display: none;
+}
+
+/* Map — slim context strip when embedded */
+body.distress-os-embedded.map-page .forge-map-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0 0.65rem;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+}
+
+body.distress-os-embedded.map-page .forge-map-context .forge-page-step {
+  margin-bottom: 0;
+}
+
+body.distress-os-embedded.map-page .forge-map-context .forge-page-title {
+  font-size: 1.05rem;
+  margin-bottom: 0;
+}
+
+body.distress-os-embedded.map-page .forge-map-context .forge-page-lead {
+  font-size: 0.78rem;
+  max-width: none;
+  flex: 1 1 200px;
+}
+
+/* Embedded layout height — account for shell nav + optional hero */
+body.distress-os-embedded.portal-page .portal-page-main,
+body.distress-os-embedded.request-pdfs-page .request-pdfs-layout,
+body.distress-os-embedded.submit-portals-page .submit-portals-layout {
+  min-height: calc(100vh - var(--distress-nav-offset, 56px) - 28px);
+}
+
+body.distress-os-embedded.portal-page .portal-page-main {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--distress-nav-offset, 56px) - 28px);
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.distress-os-embedded.portal-page .portal-layout {
+  height: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+body.distress-os-embedded.request-pdfs-page .request-pdfs-layout {
+  min-height: calc(100vh - var(--distress-nav-offset, 56px) - 28px - 5.5rem);
+}
+
+body.distress-os-embedded.submit-portals-page .submit-portals-layout {
+  min-height: calc(100vh - var(--distress-nav-offset, 56px) - 28px - 5.5rem);
+}
+
+body.distress-os-embedded .layout {
+  height: calc(100vh - var(--distress-nav-offset, 56px) - 28px - 3.25rem);
+}
+
+body.distress-os-embedded.map-page .map-layout {
+  top: var(--distress-nav-offset, 56px);
 }
 
 @media (prefers-reduced-motion: reduce) {

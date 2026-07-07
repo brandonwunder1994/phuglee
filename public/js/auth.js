@@ -30,7 +30,7 @@
       featured: true,
       exclusive: false,
       features: [
-        'Unlimited access to <strong>500+</strong> cities nationwide',
+        'Unlimited access to <strong data-coverage-city-count>500+</strong> cities nationwide',
         'Every tool in the Distress OS stack',
         'Run the full collect → scrub → analyze workflow anywhere',
         'Best value when you\'re serious about volume'
@@ -54,11 +54,10 @@
   };
 
   var state = {
-    flipped: false,
-    signupStep: 'tiers',
+    activeView: 'login',
     selectedPlan: null,
     pendingUsername: null,
-    returnUrl: '/heat'
+    returnUrl: '/command'
   };
 
   function readUsers() {
@@ -263,15 +262,21 @@
         '<div class="auth-backdrop" data-auth-close></div>' +
         '<div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-login-title">' +
           '<div class="auth-modal-grain" aria-hidden="true"></div>' +
-          '<button type="button" class="auth-close" data-auth-close aria-label="Close login dialog">&times;</button>' +
-          '<div class="auth-card-scene">' +
-            '<div class="auth-card" id="auth-card">' +
-
-              '<div class="auth-card-face auth-card-front">' +
-                '<div class="auth-face-header">' +
-                  '<p class="auth-eyebrow">Welcome back</p>' +
-                  '<h2 id="auth-login-title" class="auth-title">Log in to Phuglee</h2>' +
-                  '<p class="auth-subtitle">Your distressed leads are waiting. Sign in to access the full pipeline.</p>' +
+          '<button type="button" class="auth-close" data-auth-close aria-label="Close">&times;</button>' +
+          '<div class="auth-panel phuglee-panel" id="auth-panel">' +
+            '<header class="auth-brand-strip">' +
+              '<img src="/images/phuglee-text-logo.svg" alt="Phuglee" class="auth-brand-logo" width="120" height="26" decoding="async">' +
+              '<p class="auth-brand-kicker">Enter the platform</p>' +
+            '</header>' +
+            '<nav class="auth-tabs" role="tablist" aria-label="Account">' +
+              '<button type="button" class="auth-tab is-active" role="tab" id="auth-tab-login" aria-selected="true" aria-controls="auth-view-login" data-auth-view="login">Sign In</button>' +
+              '<button type="button" class="auth-tab" role="tab" id="auth-tab-signup" aria-selected="false" aria-controls="auth-view-tiers" data-auth-view="tiers">Sign Up</button>' +
+            '</nav>' +
+            '<div class="auth-views">' +
+              '<section class="auth-view is-active" id="auth-view-login" role="tabpanel" aria-labelledby="auth-tab-login" data-auth-view="login">' +
+                '<div class="auth-face-header auth-face-header--compact">' +
+                  '<h2 id="auth-login-title" class="auth-title">Welcome back</h2>' +
+                  '<p class="auth-subtitle">Sign in to run the full collect → bridge → analyze pipeline.</p>' +
                 '</div>' +
                 '<form class="auth-form" id="auth-login-form" novalidate>' +
                   '<div class="auth-field">' +
@@ -288,73 +293,61 @@
                     '<span>Remember my username</span>' +
                   '</label>' +
                   '<p class="auth-error" id="auth-login-error" role="alert" hidden></p>' +
-                  '<button type="submit" class="auth-btn auth-btn-primary">' +
-                    '<span>Log in</span>' +
+                  '<button type="submit" class="auth-btn auth-btn-primary phuglee-btn phuglee-btn-primary">' +
+                    '<span>Sign In</span>' +
                   '</button>' +
                 '</form>' +
-                '<p class="auth-switch">' +
-                  'Don\'t have an account? <button type="button" class="auth-link" id="auth-show-signup">Sign up</button>' +
-                '</p>' +
-              '</div>' +
-
-              '<div class="auth-card-face auth-card-back">' +
-                '<div class="auth-signup-panel" id="auth-signup-tiers">' +
-                  '<div class="auth-face-header">' +
-                    '<p class="auth-eyebrow">Get in the game</p>' +
-                    '<h2 class="auth-title">Choose your access level</h2>' +
-                    '<p class="auth-subtitle">Same tools, same pipeline — pick how much ground you want to cover.</p>' +
+              '</section>' +
+              '<section class="auth-view" id="auth-view-tiers" role="tabpanel" aria-labelledby="auth-tab-signup" data-auth-view="tiers" hidden>' +
+                '<div class="auth-face-header auth-face-header--compact">' +
+                  '<h2 class="auth-title">Pick your territory</h2>' +
+                  '<p class="auth-subtitle">Same tools, same pipeline — choose how much ground you want to cover.</p>' +
+                '</div>' +
+                '<div class="auth-pricing-grid">' + buildPricingCards() + '</div>' +
+                '<p class="auth-pricing-note">Exclusivity is vetted manually — our team reviews every request to protect lead quality.</p>' +
+              '</section>' +
+              '<section class="auth-view" id="auth-view-signup" role="tabpanel" data-auth-view="signup" hidden>' +
+                '<button type="button" class="auth-back-link" id="auth-back-to-tiers">&larr; Back to plans</button>' +
+                '<div class="auth-face-header auth-face-header--compact">' +
+                  '<p class="auth-eyebrow" id="auth-selected-plan-label">Pro plan</p>' +
+                  '<h2 class="auth-title">Create your account</h2>' +
+                  '<p class="auth-subtitle">You\'re one step from sourcing leads at the clerk.</p>' +
+                '</div>' +
+                '<form class="auth-form" id="auth-signup-form" novalidate>' +
+                  '<div class="auth-field">' +
+                    '<label for="auth-signup-name">Full name</label>' +
+                    '<input type="text" id="auth-signup-name" name="fullName" autocomplete="name" required>' +
                   '</div>' +
-                  '<div class="auth-pricing-grid">' + buildPricingCards() + '</div>' +
-                  '<p class="auth-pricing-note">Exclusivity is not automated signup — our team personally reviews every request to protect lead quality and market integrity.</p>' +
-                  '<p class="auth-switch auth-switch-back">' +
-                    'Already have an account? <button type="button" class="auth-link" id="auth-show-login">Log in</button>' +
-                  '</p>' +
-                '</div>' +
-
-                '<div class="auth-signup-panel" id="auth-signup-form-panel" hidden>' +
-                  '<button type="button" class="auth-back-link" id="auth-back-to-tiers">&larr; Back to plans</button>' +
-                  '<div class="auth-face-header">' +
-                    '<p class="auth-eyebrow" id="auth-selected-plan-label">Pro plan</p>' +
-                    '<h2 class="auth-title">Create your account</h2>' +
-                    '<p class="auth-subtitle">Fill in your details to get started with Distress OS.</p>' +
+                  '<div class="auth-field">' +
+                    '<label for="auth-signup-email">Email</label>' +
+                    '<input type="email" id="auth-signup-email" name="email" autocomplete="email" required>' +
                   '</div>' +
-                  '<form class="auth-form" id="auth-signup-form" novalidate>' +
+                  '<div class="auth-field">' +
+                    '<label for="auth-signup-username">Username</label>' +
+                    '<input type="text" id="auth-signup-username" name="username" autocomplete="username" required>' +
+                  '</div>' +
+                  '<div class="auth-field-row">' +
                     '<div class="auth-field">' +
-                      '<label for="auth-signup-name">Full name</label>' +
-                      '<input type="text" id="auth-signup-name" name="fullName" autocomplete="name" required>' +
+                      '<label for="auth-signup-password">Password</label>' +
+                      '<input type="password" id="auth-signup-password" name="password" autocomplete="new-password" required>' +
                     '</div>' +
                     '<div class="auth-field">' +
-                      '<label for="auth-signup-email">Email</label>' +
-                      '<input type="email" id="auth-signup-email" name="email" autocomplete="email" required>' +
+                      '<label for="auth-signup-confirm">Confirm password</label>' +
+                      '<input type="password" id="auth-signup-confirm" name="confirmPassword" autocomplete="new-password" required>' +
                     '</div>' +
-                    '<div class="auth-field">' +
-                      '<label for="auth-signup-username">Username</label>' +
-                      '<input type="text" id="auth-signup-username" name="username" autocomplete="username" required>' +
-                    '</div>' +
-                    '<div class="auth-field-row">' +
-                      '<div class="auth-field">' +
-                        '<label for="auth-signup-password">Password</label>' +
-                        '<input type="password" id="auth-signup-password" name="password" autocomplete="new-password" required>' +
-                      '</div>' +
-                      '<div class="auth-field">' +
-                        '<label for="auth-signup-confirm">Confirm password</label>' +
-                        '<input type="password" id="auth-signup-confirm" name="confirmPassword" autocomplete="new-password" required>' +
-                      '</div>' +
-                    '</div>' +
-                    '<p class="auth-error" id="auth-signup-error" role="alert" hidden></p>' +
-                    '<button type="submit" class="auth-btn auth-btn-primary">' +
-                      '<span>Create account</span>' +
-                    '</button>' +
-                  '</form>' +
-                '</div>' +
-
-                '<div class="auth-success-overlay" id="auth-success" hidden>' +
-                  '<div class="auth-success-icon" aria-hidden="true">&#10003;</div>' +
-                  '<h3 class="auth-success-title">Account created!</h3>' +
-                  '<p class="auth-success-text">Thanks for joining Phuglee. Flip back to log in with your new credentials.</p>' +
-                '</div>' +
-              '</div>' +
-
+                  '</div>' +
+                  '<p class="auth-error" id="auth-signup-error" role="alert" hidden></p>' +
+                  '<button type="submit" class="auth-btn auth-btn-primary phuglee-btn phuglee-btn-primary">' +
+                    '<span>Create Account</span>' +
+                  '</button>' +
+                '</form>' +
+              '</section>' +
+            '</div>' +
+            '<footer class="auth-trust">Public records only · Your data stays on your machine</footer>' +
+            '<div class="auth-success-overlay" id="auth-success" hidden>' +
+              '<div class="auth-success-icon" aria-hidden="true">&#10003;</div>' +
+              '<h3 class="auth-success-title">You\'re in.</h3>' +
+              '<p class="auth-success-text">Account created — signing you in now.</p>' +
             '</div>' +
           '</div>' +
         '</div>' +
@@ -377,7 +370,55 @@
     }
   }
 
-  function openModal() {
+  function showView(view) {
+    state.activeView = view;
+
+    var modal = $('.auth-modal');
+    if (modal) {
+      modal.classList.toggle('auth-modal--wide', view === 'tiers');
+    }
+
+    document.querySelectorAll('.auth-view').forEach(function (el) {
+      var isActive = el.getAttribute('data-auth-view') === view;
+      el.classList.toggle('is-active', isActive);
+      el.hidden = !isActive;
+    });
+
+    var loginTab = $('#auth-tab-login');
+    var signupTab = $('#auth-tab-signup');
+    if (loginTab && signupTab) {
+      var signupActive = view === 'tiers' || view === 'signup';
+      loginTab.classList.toggle('is-active', view === 'login');
+      loginTab.setAttribute('aria-selected', view === 'login' ? 'true' : 'false');
+      signupTab.classList.toggle('is-active', signupActive);
+      signupTab.setAttribute('aria-selected', signupActive ? 'true' : 'false');
+    }
+
+    if (view === 'login') {
+      var usernameInput = $('#auth-login-username');
+      if (usernameInput) {
+        setTimeout(function () { usernameInput.focus(); }, 200);
+      }
+    }
+  }
+
+  function resetModalState() {
+    state.selectedPlan = null;
+    state.activeView = 'login';
+    document.querySelectorAll('.auth-pricing-card').forEach(function (btn) {
+      btn.classList.remove('is-selected');
+      btn.setAttribute('aria-pressed', 'false');
+    });
+    var signupForm = $('#auth-signup-form');
+    if (signupForm) signupForm.reset();
+    showError($('#auth-login-error'), '');
+    showError($('#auth-signup-error'), '');
+    var success = $('#auth-success');
+    if (success) success.hidden = true;
+    showView('login');
+  }
+
+  function openModal(preferredView) {
     if (window.PhugleeGuide && typeof window.PhugleeGuide.close === 'function') {
       window.PhugleeGuide.close();
     }
@@ -387,9 +428,11 @@
     overlay.hidden = false;
     overlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('auth-modal-open');
-    var usernameInput = $('#auth-login-username');
-    if (usernameInput) {
-      setTimeout(function () { usernameInput.focus(); }, 400);
+
+    if (preferredView === 'tiers' || preferredView === 'signup') {
+      showView(preferredView === 'signup' && state.selectedPlan ? 'signup' : 'tiers');
+    } else {
+      resetModalState();
     }
   }
 
@@ -399,24 +442,7 @@
     overlay.hidden = true;
     overlay.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('auth-modal-open');
-  }
-
-  function setFlipped(flipped) {
-    state.flipped = flipped;
-    var card = $('#auth-card');
-    if (card) {
-      card.classList.toggle('is-flipped', flipped);
-    }
-  }
-
-  function showSignupStep(step) {
-    state.signupStep = step;
-    var tiers = $('#auth-signup-tiers');
-    var form = $('#auth-signup-form-panel');
-    var success = $('#auth-success');
-    if (tiers) tiers.hidden = step !== 'tiers';
-    if (form) form.hidden = step !== 'form';
-    if (success) success.hidden = step !== 'success';
+    setTimeout(resetModalState, 280);
   }
 
   function selectPlan(planId) {
@@ -431,14 +457,13 @@
       btn.classList.toggle('is-selected', selected);
       btn.setAttribute('aria-pressed', selected ? 'true' : 'false');
     });
-    showSignupStep('form');
+    showView('signup');
     var nameInput = $('#auth-signup-name');
-    if (nameInput) setTimeout(function () { nameInput.focus(); }, 300);
+    if (nameInput) setTimeout(function () { nameInput.focus(); }, 200);
   }
 
-  function resetSignupSide() {
+  function resetSignupTiers() {
     state.selectedPlan = null;
-    showSignupStep('tiers');
     document.querySelectorAll('.auth-pricing-card').forEach(function (btn) {
       btn.classList.remove('is-selected');
       btn.setAttribute('aria-pressed', 'false');
@@ -446,18 +471,7 @@
     var form = $('#auth-signup-form');
     if (form) form.reset();
     showError($('#auth-signup-error'), '');
-  }
-
-  function flipToSignup() {
-    resetSignupSide();
-    setFlipped(true);
-  }
-
-  function flipToLogin() {
-    setFlipped(false);
-    resetSignupSide();
-    showError($('#auth-login-error'), '');
-    showError($('#auth-signup-error'), '');
+    showView('tiers');
   }
 
   function prefillLoginUsername(username) {
@@ -471,24 +485,46 @@
     }
   }
 
+  function resolvePostLoginDest() {
+    var dest = state.returnUrl || '/command';
+    try {
+      var path = (dest.split('?')[0].split('#')[0] || '/').replace(/\/+$/, '') || '/';
+      if (path === '/' || path === '/index.html' || path === '/heat') {
+        return '/command';
+      }
+      return dest;
+    } catch (_) {
+      return '/command';
+    }
+  }
+
   function handleLoginSuccess(username) {
     closeModal();
-    var dest = state.returnUrl || '/heat';
-    window.location.href = dest;
+    window.location.href = resolvePostLoginDest();
   }
 
   function handleSignupSuccess(username) {
     state.pendingUsername = username;
-    showSignupStep('success');
+    var success = $('#auth-success');
+    if (success) success.hidden = false;
 
     setTimeout(function () {
-      flipToLogin();
+      if (success) success.hidden = true;
+      state.selectedPlan = null;
+      document.querySelectorAll('.auth-pricing-card').forEach(function (btn) {
+        btn.classList.remove('is-selected');
+        btn.setAttribute('aria-pressed', 'false');
+      });
+      var signupForm = $('#auth-signup-form');
+      if (signupForm) signupForm.reset();
+      showError($('#auth-signup-error'), '');
+      showView('login');
       prefillLoginUsername(username);
       setRememberedUsername(username);
       var pwd = $('#auth-login-password');
       if (pwd) {
         pwd.value = '';
-        setTimeout(function () { pwd.focus(); }, 500);
+        setTimeout(function () { pwd.focus(); }, 300);
       }
       state.pendingUsername = null;
     }, 2200);
@@ -506,21 +542,28 @@
       if (e.key === 'Escape' && !overlay.hidden) closeModal();
     });
 
-    var showSignup = $('#auth-show-signup');
-    if (showSignup) {
-      showSignup.addEventListener('click', flipToSignup);
-    }
-
-    var showLogin = $('#auth-show-login');
-    if (showLogin) {
-      showLogin.addEventListener('click', flipToLogin);
-    }
+    document.querySelectorAll('.auth-tab').forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var view = tab.getAttribute('data-auth-view');
+        if (view === 'login') {
+          showError($('#auth-signup-error'), '');
+          showView('login');
+        } else if (view === 'tiers') {
+          resetSignupTiers();
+        }
+      });
+    });
 
     var backToTiers = $('#auth-back-to-tiers');
     if (backToTiers) {
       backToTiers.addEventListener('click', function () {
-        showSignupStep('tiers');
+        state.selectedPlan = null;
+        document.querySelectorAll('.auth-pricing-card').forEach(function (btn) {
+          btn.classList.remove('is-selected');
+          btn.setAttribute('aria-pressed', 'false');
+        });
         showError($('#auth-signup-error'), '');
+        showView('tiers');
       });
     }
 
@@ -607,6 +650,11 @@
       state.returnUrl = params.get('return');
     }
 
+    if (isAuthenticated()) {
+      window.location.replace(resolvePostLoginDest());
+      return;
+    }
+
     var mount = document.createElement('div');
     mount.innerHTML = buildModal();
     var overlay = mount.firstElementChild;
@@ -626,7 +674,7 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         if (isAuthenticated()) {
-          window.location.href = state.returnUrl || '/heat';
+          window.location.href = resolvePostLoginDest();
         } else {
           openModal();
         }

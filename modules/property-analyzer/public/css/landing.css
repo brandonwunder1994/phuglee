@@ -1,4 +1,4 @@
-/* Distress Analyzer — sales landing (Phuglee v1.3) */
+/* Phuglee Analyzer — sales landing (v1.4) */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -61,9 +61,14 @@ body {
 
 .landing-logo {
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1.15rem;
-  letter-spacing: 0.02em;
+  font-weight: 400;
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: linear-gradient(180deg, var(--text) 20%, var(--amber) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .landing-nav a {
@@ -281,6 +286,24 @@ body {
   border-top: 1px solid rgba(174, 163, 143, 0.12);
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.landing-footer-trust {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.65rem;
+}
+
+.landing-footer-link {
+  color: var(--amber);
+  text-decoration: none;
+}
+
+.landing-footer-link:hover {
+  color: var(--gold);
 }
 
 @media (prefers-reduced-motion: reduce) {

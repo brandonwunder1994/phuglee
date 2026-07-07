@@ -17,8 +17,8 @@
 }
 
 .hub-vs-panel--fresh {
-  border-color: rgba(61, 214, 140, 0.25);
-  background: linear-gradient(165deg, rgba(61, 214, 140, 0.08) 0%, var(--glass-bg) 55%);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: linear-gradient(165deg, rgba(229, 132, 53, 0.1) 0%, var(--glass-bg) 55%);
 }
 
 .hub-vs-panel--stale {
@@ -39,9 +39,9 @@
 }
 
 .hub-vs-panel--fresh .hub-vs-badge {
-  color: var(--phuglee-success);
-  border: 1px solid rgba(61, 214, 140, 0.35);
-  background: rgba(61, 214, 140, 0.1);
+  color: var(--phuglee-gold);
+  border: 1px solid rgba(238, 183, 70, 0.4);
+  background: rgba(229, 132, 53, 0.12);
 }
 
 .hub-vs-panel--stale .hub-vs-badge {

@@ -74,10 +74,21 @@ body.analyzer-embedded .prop-card.card-cyber:hover {
   box-shadow: var(--glass-shadow-float) !important;
 }
 
+body.analyzer-embedded .command-bar-brand {
+  display: none !important;
+}
+
 body.analyzer-embedded .command-title,
 body.analyzer-embedded .empty-workspace h2,
 body.analyzer-embedded .summary-section h2 {
   background: linear-gradient(180deg, var(--phuglee-cream) 25%, var(--phuglee-orange) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+body.analyzer-embedded .sidebar-brand .sidebar-title {
+  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;

@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Collect Records — Distress OS</title>
-  <meta name="description" content="Hit up cities and counties for distressed property leads — PDF emails, email-only requests, and online portal submissions.">
-  <meta property="og:title" content="Collect Records — Distress OS">
-  <meta property="og:description" content="Request public records from cities and counties — PDF emails, portals, and email-only outreach in one workflow.">
+  <title>Phuglee — Collect</title>
+  <meta name="description" content="Hit the clerk before aggregators do — request distressed property lists via PDF email, plain email FOIA, or online portals.">
+  <meta property="og:title" content="Phuglee — Collect">
+  <meta property="og:description" content="Source distressed leads straight from public records. PDF emails, portals, and email-only FOIA in one workflow.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Collect Records — Distress OS">
-  <meta name="twitter:description" content="Request public records from cities and counties for distressed lead lists.">
+  <meta name="twitter:title" content="Phuglee — Collect">
+  <meta name="twitter:description" content="Hit the clerk. Pull distressed leads from public records before anyone else.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,12 +24,12 @@
   <link rel="stylesheet" href="/css/premium-atmosphere.css?v=distress3">
   <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
-  <link rel="stylesheet" href="/css/shell-nav.css?v=distress2">
+  <link rel="stylesheet" href="/css/shell-nav.css?v=3">
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/collect-records.css?v=distress3">
-  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=distress3">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=4">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-config.js"></script>
@@ -51,46 +51,130 @@
 
   <div id="distress-os-nav-mount"></div>
 
-  <main id="main" class="collect-landing phuglee-pattern-bg phuglee-pattern-bg--medium">
+  <main id="main" class="collect-landing phuglee-pattern-bg phuglee-pattern-bg--medium" data-phuglee-reveal>
     <div class="collect-hub">
-      <header class="collect-hub-hero">
-        <p class="landing-eyebrow">Collect Records</p>
-        <h1 class="landing-title">Hit Up the City</h1>
-        <p class="landing-tagline premium-tagline">Source distressed leads straight from public records — before aggregators even know they exist.</p>
+      <header class="collect-hub-hero" data-phuglee-reveal-child>
+        <p class="collect-hub-step">Step 01 · Collect</p>
+        <h1 class="landing-title">Hit the Clerk</h1>
+        <p class="landing-tagline premium-tagline">Pull distressed property lists straight from public records — days before aggregators drip the same addresses to everyone else.</p>
       </header>
 
-      <div class="collect-hub-grid">
-        <button type="button" class="distress-glass-card collect-hub-tile is-interactive" id="btn-start-requests">
-          <span class="collect-hub-tile-icon" aria-hidden="true">📨</span>
+      <section class="collect-proof-rail phuglee-panel" aria-label="Coverage and signals" data-phuglee-reveal-child>
+        <article class="collect-proof-item collect-proof-item--featured">
+          <span class="collect-proof-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+          </span>
+          <div class="collect-proof-copy">
+            <span class="collect-proof-kicker">Coverage</span>
+            <p class="collect-proof-metric">
+              <span class="collect-proof-num collect-proof-num--gold" id="collect-city-count">—</span>
+              <span class="collect-proof-unit">cities</span>
+              <span class="collect-proof-join">in</span>
+              <span class="collect-proof-num" id="collect-state-count">—</span>
+              <span class="collect-proof-unit">states</span>
+            </p>
+          </div>
+        </article>
+        <article class="collect-proof-item">
+          <span class="collect-proof-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 10h18"/><path d="M6 10V7l3-4h6l3 4v3"/><path d="M8 21v-6"/><path d="M16 21v-6"/><path d="M10 14h4"/></svg>
+          </span>
+          <div class="collect-proof-copy">
+            <span class="collect-proof-kicker">Distress signals</span>
+            <p class="collect-proof-metric">
+              <span class="collect-proof-num collect-proof-num--gold">5</span>
+              <span class="collect-proof-unit">lead types</span>
+            </p>
+            <p class="collect-proof-detail">Violations · shutoffs · probate · foreclosure · tax</p>
+          </div>
+        </article>
+        <article class="collect-proof-item">
+          <span class="collect-proof-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
+          </span>
+          <div class="collect-proof-copy">
+            <span class="collect-proof-kicker">Workflows</span>
+            <p class="collect-proof-metric">
+              <span class="collect-proof-num collect-proof-num--gold">3</span>
+              <span class="collect-proof-unit">ways in</span>
+            </p>
+            <p class="collect-proof-detail">PDF email · plain email · online portal</p>
+          </div>
+        </article>
+      </section>
+
+      <div class="collect-hub-grid" data-phuglee-reveal-child>
+        <button type="button" class="collect-hub-tile phuglee-panel is-interactive" id="btn-start-requests">
+          <span class="collect-hub-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
+          </span>
           <span class="collect-hub-tile-title">Start Requests</span>
-          <p class="collect-hub-tile-desc">PDF emails, plain email FOIA, or online portal submissions — pick the workflow each city accepts.</p>
-          <span class="collect-hub-tile-cta">Launch workflow →</span>
+          <p class="collect-hub-tile-desc">PDF emails, plain email FOIA, or online portal — pick what each city accepts and launch.</p>
+          <span class="collect-hub-tile-cta">Choose workflow →</span>
         </button>
-        <a href="/forge/map" class="distress-glass-card collect-hub-tile collect-hub-tile--map is-interactive">
-          <span class="collect-hub-tile-icon" aria-hidden="true">🗺</span>
+        <a href="/forge/map" class="collect-hub-tile phuglee-panel collect-hub-tile--map is-interactive">
+          <span class="collect-hub-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+          </span>
           <span class="collect-hub-tile-title">Coverage Map</span>
-          <p class="collect-hub-tile-desc">Drill state → city, check coverage stats, and launch requests from the map.</p>
+          <p class="collect-hub-tile-desc">Drill state → city, check what's live, and launch requests from the map.</p>
           <span class="collect-hub-tile-cta">Open map →</span>
+        </a>
+        <a href="/forge/portal" class="collect-hub-tile phuglee-panel collect-hub-tile--tracker is-interactive">
+          <span class="collect-hub-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+          </span>
+          <span class="collect-hub-tile-title">Request Tracker</span>
+          <p class="collect-hub-tile-desc">See what's pending, what's answered, and what's ready to bridge into your pipeline.</p>
+          <span class="collect-hub-tile-cta">View tracker →</span>
         </a>
       </div>
 
-      <div class="collect-hub-strip distress-solid-zone">
-        <span class="collect-hub-strip-label">Distress signals we collect</span>
-        <div class="collect-hub-signals">
-          <span class="collect-hub-signal">Code violations</span>
-          <span class="collect-hub-signal">Water shutoffs</span>
-          <span class="collect-hub-signal">Probates</span>
-          <span class="collect-hub-signal">Foreclosures</span>
-          <span class="collect-hub-signal">Tax liens</span>
+      <section class="collect-tools" aria-labelledby="collect-tools-title" data-phuglee-reveal-child>
+        <div class="collect-tools-head">
+          <p class="collect-tools-eyebrow" id="collect-tools-title">Form Forge</p>
+          <h2 class="collect-tools-title">Quick tools</h2>
         </div>
-      </div>
+        <div class="collect-tools-grid">
+          <button type="button" class="collect-tool-card phuglee-panel is-interactive" id="btn-pdf-filler">
+            <span class="collect-tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4"/><path d="M10 17h4"/></svg>
+            </span>
+            <span class="collect-tool-name">PDF Filler</span>
+            <span class="collect-tool-desc">Stamp your contact info on every city PDF</span>
+          </button>
+          <a href="/forge/portal/request-pdfs" class="collect-tool-card phuglee-panel is-interactive">
+            <span class="collect-tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
+            </span>
+            <span class="collect-tool-name">Request PDFs</span>
+            <span class="collect-tool-desc">Queue PDF email FOIA batches</span>
+          </a>
+          <a href="/forge/portal/email-only" class="collect-tool-card phuglee-panel is-interactive">
+            <span class="collect-tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="m22 6-10 7L2 6"/></svg>
+            </span>
+            <span class="collect-tool-name">Email-only</span>
+            <span class="collect-tool-desc">Plain email requests, no PDF</span>
+          </a>
+          <a href="/forge/portal/portal-errors" class="collect-tool-card phuglee-panel is-interactive">
+            <span class="collect-tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </span>
+            <span class="collect-tool-name">Portal Errors</span>
+            <span class="collect-tool-desc">Fix broken portal submissions</span>
+          </a>
+        </div>
+      </section>
+
+      <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
     </div>
   </main>
 
   <dialog class="collect-dialog" id="start-requests-dialog" aria-labelledby="start-requests-title">
     <div class="collect-dialog-card phuglee-panel distress-glass--float">
       <div class="collect-dialog-head">
-        <h2 id="start-requests-title">Choose your mission</h2>
+        <h2 id="start-requests-title">Pick your workflow</h2>
         <button type="button" class="collect-dialog-close" data-close-dialog aria-label="Close">&times;</button>
       </div>
       <p class="collect-dialog-lead">Pick the workflow that matches how each city accepts public records requests.</p>
@@ -118,7 +202,7 @@
         </label>
       </div>
       <div class="collect-dialog-actions">
-        <button type="button" class="btn-landing-secondary" data-close-dialog>Cancel</button>
+        <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" data-close-dialog>Cancel</button>
         <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-confirm-workflow">
           <span class="btn-heat-label">Continue</span>
         </button>
@@ -152,7 +236,7 @@
       </form>
       <p class="collect-status" id="pdf-filler-status" role="status" aria-live="polite"></p>
       <div class="collect-dialog-actions">
-        <button type="button" class="btn-landing-secondary" data-close-dialog>Cancel</button>
+        <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" data-close-dialog>Cancel</button>
         <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-save-filler">
           <span class="btn-heat-label">Save &amp; Update All PDFs</span>
         </button>
@@ -166,7 +250,8 @@
   <script src="/js/settings-menu.js"></script>
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
-  <script src="/js/shell-nav.js?v=distress2"></script>
-  <script src="/js/collect-records.js?v=distress2"></script>
+  <script src="/js/shell-nav.js?v=4"></script>
+  <script src="/js/home-coverage.js?v=2"></script>
+  <script src="/js/collect-records.js?v=3"></script>
 </body>
 </html>

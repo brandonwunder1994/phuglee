@@ -1,4 +1,4 @@
-/* Property Analyzer — Phuglee signature brand (v1.3 / M4 Phase 28) */
+/* Property Analyzer — Phuglee signature brand (v1.4 / M4 Phase 30) */
 
 :root {
   --phuglee-black: #0d0d0d;
@@ -50,7 +50,10 @@ body.heat-theme.cyber-theme .app-sidebar {
 }
 
 body.heat-theme.cyber-theme .sidebar-title {
-  color: var(--phuglee-cream);
+  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 body.heat-theme.cyber-theme .sidebar-tagline,
@@ -521,6 +524,51 @@ body.heat-theme.cyber-theme .scan-issue-alert {
 @keyframes phuglee-loading-pulse {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(350%); }
+}
+
+/* ── Step 03 context + trust (Phuglee shell) ── */
+.analyzer-context-step {
+  display: none;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.25rem;
+}
+
+.analyzer-context-step a {
+  color: var(--phuglee-taupe);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.analyzer-context-step a:hover {
+  color: var(--phuglee-orange);
+}
+
+body.analyzer-embedded .analyzer-context-step {
+  display: block;
+}
+
+body.analyzer-embedded .command-bar-brand {
+  display: none;
+}
+
+.analyzer-trust-line {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 0.75rem 1rem 1.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+body.analyzer-embedded .analyzer-trust-line {
+  display: none;
 }
 
 /* Distress OS embedded — keep analyzer sidebar + offset main for shell nav */

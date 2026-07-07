@@ -18,7 +18,7 @@ const REPO_ROOTS = [
 ];
 
 const BRAND_PAGES = {
-  'distress-os': ['index.html', 'heat.html', 'collect.html', 'bridge.html'],
+  'distress-os': ['index.html', 'heat.html', 'collect.html', 'bridge.html', 'command.html'],
   'city-list-requests': [
     'index.html',
     'portal.html',

@@ -15,6 +15,7 @@
     { "source": "/forge/(.*)", "destination": "/api/server" },
     { "source": "/analyzer", "destination": "/api/server" },
     { "source": "/analyzer/(.*)", "destination": "/api/server" },
+    { "source": "/command", "destination": "/command.html" },
     { "source": "/heat", "destination": "/heat.html" },
     { "source": "/collect", "destination": "/collect.html" },
     { "source": "/bridge", "destination": "/bridge.html" }

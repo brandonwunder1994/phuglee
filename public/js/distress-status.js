@@ -57,7 +57,7 @@
         '</span>' +
       '</div>' +
       '<div class="distress-status-right">' +
-        '<span class="distress-status-pill">' + planLabel() + ' · Collect. Analyze. Close.</span>' +
+        '<span class="distress-status-pill">' + planLabel() + ' · Collect. Bridge. Analyze.</span>' +
         '<span class="distress-status-pill">⌘K command</span>' +
       '</div>';
   }

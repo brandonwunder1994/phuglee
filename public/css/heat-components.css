@@ -1,13 +1,21 @@
 /* Distress OS Heat — reusable UI components */
 
 /* Typography */
-.heat-eyebrow,
-.hub-eyebrow {
+.heat-eyebrow {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ember);
+  margin-bottom: 0.75rem;
+}
+
+.hub-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
   margin-bottom: 0.75rem;
 }
 

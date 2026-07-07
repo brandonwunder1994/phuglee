@@ -313,6 +313,8 @@ def build_coverage_payload() -> dict:
         "coords_available": completed["coords_available"] + portal["coords_available"],
         "coords_exact": coords_exact,
         "coords_approx": coords_approx,
+        "unavailable_states": sorted(LEADS_UNAVAILABLE_STATES),
+        "excluded_states": sorted(EXCLUDED_STATES),
         "layers": {
             "completed": completed,
             "portal": portal,

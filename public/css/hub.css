@@ -31,10 +31,132 @@
   z-index: 1;
 }
 
-.hub-pricing {
+.hub-pricing,
+.hub-coverage {
   max-width: 1040px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.hub-coverage {
+  margin-bottom: 3rem;
+  padding: 1.75rem 1.65rem 1.5rem;
+}
+
+.hub-coverage.phuglee-panel:hover {
+  transform: none;
+  border-color: var(--border);
+}
+
+.hub-coverage-header {
+  margin-bottom: 1.15rem;
+}
+
+.hub-coverage-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.45rem;
+}
+
+.hub-coverage-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+  margin-bottom: 0.5rem;
+}
+
+.hub-coverage-summary {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--phuglee-taupe-mid);
+}
+
+.hub-coverage-summary strong {
+  color: var(--phuglee-cream);
+  font-weight: 600;
+}
+
+.hub-coverage-map {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #0a0f14;
+  border: 1px solid rgba(174, 163, 143, 0.15);
+  min-height: 200px;
+}
+
+.hub-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hub-map-state {
+  stroke: rgba(13, 13, 13, 0.85);
+  stroke-width: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.hub-map-state--covered:hover {
+  opacity: 0.88;
+}
+
+.hub-map-loading,
+.hub-map-error {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--phuglee-stone);
+}
+
+.hub-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-stone);
+}
+
+.hub-map-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.hub-map-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.hub-map-swatch--covered {
+  background: linear-gradient(135deg, #2a8f5c, #45c47e);
+}
+
+.hub-map-swatch--pending {
+  background: #3a4658;
+}
+
+.hub-map-swatch--blocked {
+  background: repeating-linear-gradient(
+    45deg,
+    #8f2a2a,
+    #8f2a2a 2px,
+    #c84848 2px,
+    #c84848 4px
+  );
 }
 
 .hub-hero {
@@ -192,6 +314,10 @@
 
 .hub-step-body .hub-btn {
   margin-top: 0.5rem;
+}
+
+.hub-step-body .hub-btn + .hub-filter-box {
+  margin-top: 1.25rem;
 }
 
 /* Filter callout */

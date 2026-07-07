@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="logo-page-root">
+<html lang="en" class="logo-page-root home-page-root">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,9 +21,9 @@
   <link rel="stylesheet" href="/css/heat-atmosphere.css">
   <link rel="stylesheet" href="/css/heat-components.css">
   <link rel="stylesheet" href="/css/landing.css?v=3">
-  <link rel="stylesheet" href="/css/home.css?v=4">
-  <link rel="stylesheet" href="/css/home-guide.css?v=1">
-  <link rel="stylesheet" href="/css/auth.css">
+  <link rel="stylesheet" href="/css/home.css?v=9">
+  <link rel="stylesheet" href="/css/home-guide.css?v=2">
+  <link rel="stylesheet" href="/css/auth.css?v=2">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
 </head>
@@ -84,17 +84,50 @@
       </section>
 
       <section class="home-proof" aria-label="Proof points" data-phuglee-reveal-child>
-        <div class="home-stat">
-          <span class="home-stat-value home-stat-value--accent" id="home-city-count">500+</span>
-          <span class="home-stat-label">Cities nationwide</span>
-        </div>
-        <div class="home-stat">
-          <span class="home-stat-value">5</span>
-          <span class="home-stat-label">Distress signal types</span>
-        </div>
-        <div class="home-stat">
-          <span class="home-stat-value home-stat-value--accent home-stat-value--phrase">Instant Data</span>
-          <span class="home-stat-label">We Go Straight to the Source</span>
+        <div class="home-proof-rail phuglee-panel">
+          <article class="home-proof-item home-proof-item--featured">
+            <span class="home-proof-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+            </span>
+            <div class="home-proof-copy">
+              <span class="home-proof-kicker">Coverage</span>
+              <p class="home-proof-metric">
+                <span class="home-proof-num home-proof-num--gold" id="home-city-count">—</span>
+                <span class="home-proof-unit">cities</span>
+                <span class="home-proof-join">in</span>
+                <span class="home-proof-num" id="home-state-count">—</span>
+                <span class="home-proof-unit">states</span>
+              </p>
+            </div>
+          </article>
+
+          <article class="home-proof-item">
+            <span class="home-proof-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 10h18"/><path d="M6 10V7l3-4h6l3 4v3"/><path d="M8 21v-6"/><path d="M16 21v-6"/><path d="M10 14h4"/></svg>
+            </span>
+            <div class="home-proof-copy">
+              <span class="home-proof-kicker">Distress signals</span>
+              <p class="home-proof-metric">
+                <span class="home-proof-num home-proof-num--gold">5</span>
+                <span class="home-proof-unit">lead types</span>
+              </p>
+              <p class="home-proof-detail">Violations · shutoffs · probate · foreclosure · tax</p>
+            </div>
+          </article>
+
+          <article class="home-proof-item">
+            <span class="home-proof-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 10-14h-7l0-6z"/></svg>
+            </span>
+            <div class="home-proof-copy">
+              <span class="home-proof-kicker">Speed</span>
+              <p class="home-proof-metric">
+                <span class="home-proof-num home-proof-num--gold">Instant</span>
+                <span class="home-proof-unit">data</span>
+              </p>
+              <p class="home-proof-detail">We go straight to the source</p>
+            </div>
+          </article>
         </div>
       </section>
 
@@ -130,6 +163,32 @@
         </ol>
       </section>
 
+      <section class="home-coverage" aria-labelledby="home-coverage-title" data-phuglee-reveal-child>
+        <div class="home-coverage-head">
+          <p class="home-coverage-eyebrow">Territory</p>
+          <h2 class="home-coverage-title" id="home-coverage-title">Where we pull records</h2>
+          <p class="home-coverage-summary" id="home-map-summary">Loading coverage…</p>
+          <p class="home-coverage-hint">Click a state to see which cities we have listed.</p>
+        </div>
+        <div class="home-coverage-body">
+          <div class="home-coverage-map-col">
+            <div class="home-coverage-map" id="home-coverage-map" role="application" aria-label="United States coverage map — click a state to view cities">
+              <p class="home-map-loading">Loading map…</p>
+            </div>
+            <ul class="home-map-legend" aria-label="Map legend">
+              <li><span class="home-map-swatch home-map-swatch--covered" aria-hidden="true"></span> Live coverage</li>
+              <li><span class="home-map-swatch home-map-swatch--pending" aria-hidden="true"></span> Not yet</li>
+              <li><span class="home-map-swatch home-map-swatch--blocked" aria-hidden="true"></span> Can't get data</li>
+            </ul>
+          </div>
+          <aside class="home-coverage-panel" id="home-state-panel" aria-labelledby="home-state-panel-title">
+            <div class="home-coverage-panel-inner" id="home-state-cities">
+              <p class="home-coverage-panel-placeholder">Select a state on the map to browse our city list.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
       <footer class="home-footer">
         <span class="home-footer-brand">PHUGLEE</span>
         <span class="home-footer-meta">Distress OS · Collect. Bridge. Analyze.</span>
@@ -141,9 +200,9 @@
 
   <script src="/js/phuglee-logo.js?v=2" defer></script>
   <script src="/js/phuglee-motion.js" defer></script>
-  <script src="/js/home-stats.js" defer></script>
+  <script src="/js/home-coverage.js?v=3" defer></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/home-guide.js" defer></script>
-  <script src="/js/auth.js?v=5" defer></script>
+  <script src="/js/auth.js?v=7" defer></script>
 </body>
 </html>

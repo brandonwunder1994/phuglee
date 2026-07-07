@@ -1,0 +1,507 @@
+(function () {
+  'use strict';
+
+  var COVERAGE_URL = '/forge/api/coverage';
+  var STATES_GEO_URL = '/forge/static/geo/us-states.geojson';
+
+  var LEADS_UNAVAILABLE = new Set([
+    'Alabama',
+    'Arkansas',
+    'Delaware',
+    'Kentucky',
+    'South Carolina',
+    'Tennessee',
+    'Virginia'
+  ]);
+
+  var EXCLUDED_FROM_MAP = new Set(['Alaska', 'Hawaii']);
+
+  var COLOR_COVERED_LOW = '#2a8f5c';
+  var COLOR_COVERED_HIGH = '#45c47e';
+  var COLOR_NO_DATA = '#3a4658';
+  var COLOR_UNAVAILABLE = '#8f2a2a';
+
+  var MAP_BOUNDS = {
+    minLng: -124.6,
+    maxLng: -66.4,
+    minLat: 24.0,
+    maxLat: 49.6
+  };
+
+  var coverageCache = null;
+  var statesGeoCache = null;
+  var mapRenderedHosts = new Set();
+  var homeSelectedState = null;
+  var homeMapObserver = null;
+
+  function formatCount(n) {
+    return Number(n).toLocaleString('en-US');
+  }
+
+  function lerpHex(lowHex, highHex, t) {
+    function parse(hex) {
+      return [
+        parseInt(hex.slice(1, 3), 16),
+        parseInt(hex.slice(3, 5), 16),
+        parseInt(hex.slice(5, 7), 16)
+      ];
+    }
+    var a = parse(lowHex);
+    var b = parse(highHex);
+    var mix = function (i) {
+      return Math.round(a[i] + (b[i] - a[i]) * t);
+    };
+    var r = mix(0);
+    var g = mix(1);
+    var bl = mix(2);
+    return (
+      '#' +
+      r.toString(16).padStart(2, '0') +
+      g.toString(16).padStart(2, '0') +
+      bl.toString(16).padStart(2, '0')
+    );
+  }
+
+  function stateFillColor(count, maxCount) {
+    if (!count) return COLOR_NO_DATA;
+    var t = Math.min(Math.max(count / Math.max(maxCount, 1), 0), 1);
+    return lerpHex(COLOR_COVERED_LOW, COLOR_COVERED_HIGH, Math.max(t, 0.35));
+  }
+
+  function countByState(coverage) {
+    var map = {};
+    (coverage.states || []).forEach(function (s) {
+      map[s.name] = s.count;
+    });
+    return map;
+  }
+
+  function getStateStatus(name, counts) {
+    if (LEADS_UNAVAILABLE.has(name)) return 'unavailable';
+    if ((counts[name] || 0) > 0) return 'covered';
+    return 'no-coverage';
+  }
+
+  async function fetchCoverage() {
+    if (coverageCache) return coverageCache;
+    var res = await fetch(COVERAGE_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('coverage unavailable');
+    coverageCache = await res.json();
+    if (coverageCache.unavailable_states) {
+      LEADS_UNAVAILABLE.clear();
+      coverageCache.unavailable_states.forEach(function (s) {
+        LEADS_UNAVAILABLE.add(s);
+      });
+    }
+    return coverageCache;
+  }
+
+  async function fetchStatesGeo() {
+    if (statesGeoCache) return statesGeoCache;
+    var res = await fetch(STATES_GEO_URL, { cache: 'default' });
+    if (!res.ok) throw new Error('states geo unavailable');
+    statesGeoCache = await res.json();
+    return statesGeoCache;
+  }
+
+  function project(lng, lat, width, height) {
+    var x =
+      ((lng - MAP_BOUNDS.minLng) / (MAP_BOUNDS.maxLng - MAP_BOUNDS.minLng)) * width;
+    var y =
+      ((MAP_BOUNDS.maxLat - lat) / (MAP_BOUNDS.maxLat - MAP_BOUNDS.minLat)) * height;
+    return [x, y];
+  }
+
+  function ringToPath(ring, width, height) {
+    if (!ring || !ring.length) return '';
+    var parts = [];
+    ring.forEach(function (coord, i) {
+      var pt = project(coord[0], coord[1], width, height);
+      parts.push((i === 0 ? 'M' : 'L') + pt[0].toFixed(2) + ' ' + pt[1].toFixed(2));
+    });
+    parts.push('Z');
+    return parts.join(' ');
+  }
+
+  function featureToPath(feature, width, height) {
+    var geom = feature.geometry;
+    if (!geom) return '';
+    if (geom.type === 'Polygon') {
+      return geom.coordinates.map(function (ring) {
+        return ringToPath(ring, width, height);
+      }).join(' ');
+    }
+    if (geom.type === 'MultiPolygon') {
+      return geom.coordinates.map(function (poly) {
+        return poly.map(function (ring) {
+          return ringToPath(ring, width, height);
+        }).join(' ');
+      }).join(' ');
+    }
+    return '';
+  }
+
+  function computeMapStats(coverage, statesGeo) {
+    var counts = countByState(coverage);
+    var covered = 0;
+    var unavailable = 0;
+    var notYet = 0;
+
+    (statesGeo.features || []).forEach(function (f) {
+      var name = f.properties && f.properties.name;
+      if (!name || EXCLUDED_FROM_MAP.has(name)) return;
+      var status = getStateStatus(name, counts);
+      if (status === 'covered') covered += 1;
+      else if (status === 'unavailable') unavailable += 1;
+      else notYet += 1;
+    });
+
+    return {
+      cities: coverage.total_cities || 0,
+      states: coverage.total_states || 0,
+      coveredStates: covered,
+      unavailableStates: unavailable,
+      notYetStates: notYet
+    };
+  }
+
+  function cityCountLabel(coverage) {
+    var cities = coverage.total_cities;
+    if (typeof cities === 'number' && cities > 0) {
+      return formatCount(cities);
+    }
+    return '500+';
+  }
+
+  function stateCountLabel(coverage) {
+    var states = coverage.total_states;
+    if (typeof states === 'number' && states > 0) {
+      return formatCount(states);
+    }
+    return '10';
+  }
+
+  function updateCoverageStats(coverage) {
+    var cityLabel = cityCountLabel(coverage);
+    var stateLabel = stateCountLabel(coverage);
+
+    [
+      ['home-city-count', cityLabel],
+      ['home-state-count', stateLabel],
+      ['hub-city-count', cityLabel],
+      ['collect-city-count', cityLabel],
+      ['collect-state-count', stateLabel],
+      ['command-city-count', cityLabel],
+      ['command-state-count', stateLabel]
+    ].forEach(function (pair) {
+      var el = document.getElementById(pair[0]);
+      if (el) el.textContent = pair[1];
+    });
+
+    document.querySelectorAll('[data-coverage-city-count]').forEach(function (el) {
+      el.textContent = cityLabel;
+    });
+  }
+
+  function updateMapSummary(summaryId, stats) {
+    var el = document.getElementById(summaryId);
+    if (!el) return;
+    el.innerHTML =
+      '<strong>' + formatCount(stats.cities) + ' cities</strong> across ' +
+      '<strong>' + formatCount(stats.states) + ' states</strong> · ' +
+      stats.notYetStates + ' states not yet · ' +
+      stats.unavailableStates + ' states we can\'t pull data from';
+  }
+
+  function citiesForState(coverage, stateName) {
+    return (coverage.cities || [])
+      .filter(function (c) {
+        return c.state === stateName;
+      })
+      .sort(function (a, b) {
+        return a.city.localeCompare(b.city, 'en', { sensitivity: 'base' });
+      });
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderStateCityPanel(stateName, coverage, counts) {
+    var panel = document.getElementById('home-state-cities');
+    if (!panel) return;
+
+    var status = getStateStatus(stateName, counts);
+    var cities = citiesForState(coverage, stateName);
+    var count = cities.length || counts[stateName] || 0;
+
+    if (status === 'unavailable') {
+      panel.innerHTML =
+        '<div class="home-state-panel-head">' +
+          '<h3 class="home-state-panel-title" id="home-state-panel-title">' + escapeHtml(stateName) + '</h3>' +
+          '<p class="home-state-panel-meta">Records unavailable in this state</p>' +
+        '</div>' +
+        '<p class="home-state-panel-message">We can\'t pull public records from ' +
+        escapeHtml(stateName) + ' yet — clerk systems block automated access.</p>';
+      return;
+    }
+
+    if (status === 'no-coverage' || count === 0) {
+      panel.innerHTML =
+        '<div class="home-state-panel-head">' +
+          '<h3 class="home-state-panel-title" id="home-state-panel-title">' + escapeHtml(stateName) + '</h3>' +
+          '<p class="home-state-panel-meta">No cities listed yet</p>' +
+        '</div>' +
+        '<p class="home-state-panel-message">We\'re expanding into ' + escapeHtml(stateName) +
+        '. Check back as new markets go live.</p>';
+      return;
+    }
+
+    var cityItems = cities.map(function (city) {
+      var badgeClass = city.pin_type === 'portal'
+        ? 'home-state-city-badge--portal'
+        : 'home-state-city-badge--completed';
+      var badgeLabel = city.pin_type === 'portal' ? 'Portal' : 'Live';
+      return (
+        '<li class="home-state-city-item">' +
+          '<span class="home-state-city-name">' + escapeHtml(city.city) + '</span>' +
+          '<span class="home-state-city-badge ' + badgeClass + '">' + badgeLabel + '</span>' +
+        '</li>'
+      );
+    }).join('');
+
+    panel.innerHTML =
+      '<div class="home-state-panel-head">' +
+        '<h3 class="home-state-panel-title" id="home-state-panel-title">' + escapeHtml(stateName) + '</h3>' +
+        '<p class="home-state-panel-meta"><strong>' + formatCount(count) + '</strong> ' +
+        (count === 1 ? 'city' : 'cities') + ' listed</p>' +
+      '</div>' +
+      '<ul class="home-state-city-list" role="list">' + cityItems + '</ul>';
+  }
+
+  function setHomeSelectedState(stateName, coverage, counts, svg, prefix) {
+    homeSelectedState = stateName;
+    if (!svg) return;
+
+    svg.querySelectorAll('.' + prefix + '-map-state').forEach(function (path) {
+      var isSelected = path.getAttribute('data-state') === stateName;
+      path.classList.toggle(prefix + '-map-state--selected', isSelected);
+      path.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+    });
+
+    renderStateCityPanel(stateName, coverage, counts);
+  }
+
+  function attachInteractiveStateHandlers(svg, prefix, coverage, counts) {
+    var paths = svg.querySelectorAll('.' + prefix + '-map-state');
+    paths.forEach(function (path) {
+      var stateName = path.getAttribute('data-state');
+      if (!stateName) return;
+
+      path.classList.add(prefix + '-map-state--interactive');
+      path.setAttribute('role', 'button');
+      path.setAttribute('tabindex', '0');
+      path.setAttribute('aria-label', stateName + ' — view listed cities');
+      path.setAttribute('aria-pressed', 'false');
+
+      function selectState() {
+        setHomeSelectedState(stateName, coverage, counts, svg, prefix);
+      }
+
+      path.addEventListener('click', selectState);
+      path.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectState();
+        }
+      });
+    });
+  }
+
+  async function renderCoverageMap(hostId, summaryId, prefix, options) {
+    options = options || {};
+    var host = document.getElementById(hostId);
+    if (!host || mapRenderedHosts.has(hostId)) return;
+
+    host.innerHTML = '<p class="' + prefix + '-map-loading">Loading map…</p>';
+
+    try {
+      var coverage = await fetchCoverage();
+      var statesGeo = await fetchStatesGeo();
+      var counts = countByState(coverage);
+      var maxCount = coverage.max_count || 1;
+      var stats = computeMapStats(coverage, statesGeo);
+      if (summaryId) updateMapSummary(summaryId, stats);
+
+      var width = 560;
+      var height = 340;
+      var svgNS = 'http://www.w3.org/2000/svg';
+      var svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+      svg.setAttribute('class', prefix + '-map-svg');
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('aria-label', 'United States coverage map');
+
+      var defs = document.createElementNS(svgNS, 'defs');
+      var pattern = document.createElementNS(svgNS, 'pattern');
+      pattern.setAttribute('id', prefix + '-unavailable-hatch');
+      pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+      pattern.setAttribute('width', '6');
+      pattern.setAttribute('height', '6');
+      pattern.setAttribute('patternTransform', 'rotate(45)');
+      var patternLine = document.createElementNS(svgNS, 'line');
+      patternLine.setAttribute('x1', '0');
+      patternLine.setAttribute('y1', '0');
+      patternLine.setAttribute('x2', '0');
+      patternLine.setAttribute('y2', '6');
+      patternLine.setAttribute('stroke', '#c84848');
+      patternLine.setAttribute('stroke-width', '2');
+      pattern.appendChild(patternLine);
+      defs.appendChild(pattern);
+      svg.appendChild(defs);
+
+      var group = document.createElementNS(svgNS, 'g');
+      group.setAttribute('class', prefix + '-map-states');
+
+      (statesGeo.features || []).forEach(function (feature) {
+        var name = feature.properties && feature.properties.name;
+        if (!name || EXCLUDED_FROM_MAP.has(name)) return;
+
+        var status = getStateStatus(name, counts);
+        var path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', featureToPath(feature, width, height));
+        path.setAttribute('class', prefix + '-map-state ' + prefix + '-map-state--' + status);
+        path.setAttribute('data-state', name);
+
+        if (status === 'covered') {
+          path.setAttribute('fill', stateFillColor(counts[name], maxCount));
+        } else if (status === 'unavailable') {
+          path.setAttribute('fill', COLOR_UNAVAILABLE);
+          path.setAttribute('fill-opacity', '0.92');
+        } else {
+          path.setAttribute('fill', COLOR_NO_DATA);
+        }
+
+        if (status === 'unavailable') {
+          var hatch = document.createElementNS(svgNS, 'path');
+          hatch.setAttribute('d', path.getAttribute('d'));
+          hatch.setAttribute('fill', 'url(#' + prefix + '-unavailable-hatch)');
+          hatch.setAttribute('fill-opacity', '0.55');
+          hatch.setAttribute('pointer-events', 'none');
+          group.appendChild(path);
+          group.appendChild(hatch);
+        } else {
+          group.appendChild(path);
+        }
+      });
+
+      svg.appendChild(group);
+      host.innerHTML = '';
+      host.appendChild(svg);
+      mapRenderedHosts.add(hostId);
+
+      if (options.interactive) {
+        attachInteractiveStateHandlers(svg, prefix, coverage, counts);
+        if (homeSelectedState) {
+          setHomeSelectedState(homeSelectedState, coverage, counts, svg, prefix);
+        }
+      }
+    } catch (_) {
+      host.innerHTML = '<p class="' + prefix + '-map-error">Map unavailable — check back shortly.</p>';
+    }
+  }
+
+  function renderGuideMap() {
+    return renderCoverageMap('guide-coverage-map', 'guide-map-summary', 'guide');
+  }
+
+  function renderHubMap() {
+    return renderCoverageMap('hub-coverage-map', 'hub-map-summary', 'hub');
+  }
+
+  function renderHomeMap() {
+    return renderCoverageMap('home-coverage-map', 'home-map-summary', 'home', { interactive: true });
+  }
+
+  function observeHomeMap() {
+    var section = document.querySelector('.home-coverage');
+    var host = document.getElementById('home-coverage-map');
+    if (!section || !host || mapRenderedHosts.has('home-coverage-map')) return;
+
+    if (!('IntersectionObserver' in window)) {
+      renderHomeMap();
+      return;
+    }
+
+    if (homeMapObserver) {
+      homeMapObserver.disconnect();
+    }
+
+    homeMapObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        renderHomeMap();
+        homeMapObserver.disconnect();
+        homeMapObserver = null;
+      });
+    }, { rootMargin: '120px 0px', threshold: 0.08 });
+
+    homeMapObserver.observe(section);
+  }
+
+  function initCoverage() {
+    var needsStats =
+      document.getElementById('home-city-count') ||
+      document.getElementById('hub-city-count') ||
+      document.getElementById('collect-city-count') ||
+      document.getElementById('command-city-count') ||
+      document.querySelector('[data-coverage-city-count]');
+
+    if (needsStats) {
+      fetchCoverage()
+        .then(updateCoverageStats)
+        .catch(function () {
+          updateCoverageStats({ total_cities: 0, total_states: 0 });
+        });
+    }
+
+    if (document.getElementById('hub-coverage-map')) {
+      renderHubMap();
+    }
+
+    if (document.getElementById('home-coverage-map')) {
+      observeHomeMap();
+    }
+  }
+
+  window.PhugleeCoverage = {
+    fetch: fetchCoverage,
+    updateHomeStats: updateCoverageStats,
+    updateCoverageStats: updateCoverageStats,
+    renderGuideMap: renderGuideMap,
+    renderHubMap: renderHubMap,
+    renderHomeMap: renderHomeMap,
+    refreshGuideMap: function () {
+      mapRenderedHosts.delete('guide-coverage-map');
+      return renderGuideMap();
+    },
+    refreshHubMap: function () {
+      mapRenderedHosts.delete('hub-coverage-map');
+      return renderHubMap();
+    },
+    refreshHomeMap: function () {
+      mapRenderedHosts.delete('home-coverage-map');
+      return renderHomeMap();
+    }
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCoverage);
+  } else {
+    initCoverage();
+  }
+})();

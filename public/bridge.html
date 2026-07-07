@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Data Bridge — Distress OS</title>
-  <meta name="description" content="Intake and process city violation and water shut off lists — parse, tag distressed signals, and attach clean datasets to city profiles.">
-  <meta property="og:title" content="Data Bridge — Distress OS">
-  <meta property="og:description" content="Professional distressed lead intake — upload any list format, normalize, tag, and attach versioned datasets to city profiles.">
+  <title>Phuglee — Data Bridge</title>
+  <meta name="description" content="Scrub messy city files into clean distressed lead lists — normalize, tag signals, and attach versioned datasets before you analyze.">
+  <meta property="og:title" content="Phuglee — Data Bridge">
+  <meta property="og:description" content="Drop in spreadsheets, PDFs, or photos. Data Bridge tags distress signals and prepares your list for the Analyzer.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Data Bridge — Distress OS">
-  <meta name="twitter:description" content="Upload city response lists, tag distressed signals, and attach clean data to profiles.">
+  <meta name="twitter:title" content="Phuglee — Data Bridge">
+  <meta name="twitter:description" content="Scrub city chaos into clean distressed leads.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,11 +22,11 @@
   <link rel="stylesheet" href="/css/premium-atmosphere.css">
   <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
-  <link rel="stylesheet" href="/css/shell-nav.css">
+  <link rel="stylesheet" href="/css/shell-nav.css?v=3">
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css">
+  <link rel="stylesheet" href="/css/bridge.css?v=2">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-config.js"></script>
@@ -44,10 +44,52 @@
 
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
     <header class="bridge-hero" data-phuglee-reveal-child>
-      <p class="bridge-eyebrow">Distressed Lead Intake</p>
-      <h1>Data Bridge</h1>
-      <p class="bridge-lead">Select an existing city profile, label your upload, and drop in any response list — spreadsheets, PDFs, Word docs, or photos of violation lists. The engine normalizes, tags distressed signals, and prepares a versioned dataset for the profile.</p>
+      <p class="bridge-step-label">Step 02 · Bridge</p>
+      <h1>Scrub the Mess</h1>
+      <p class="bridge-lead">Drop in whatever the city sent — Excel, CSV, PDF, Word, or photos of a printed list. Data Bridge normalizes addresses, tags distress signals, and builds a clean spreadsheet ready for the Analyzer.</p>
     </header>
+
+    <section class="bridge-proof-rail phuglee-panel" aria-label="Bridge capabilities" data-phuglee-reveal-child>
+      <article class="bridge-proof-item bridge-proof-item--featured">
+        <span class="bridge-proof-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        </span>
+        <div class="bridge-proof-copy">
+          <span class="bridge-proof-kicker">Any format</span>
+          <p class="bridge-proof-metric">
+            <span class="bridge-proof-num bridge-proof-num--gold">7</span>
+            <span class="bridge-proof-unit">file types</span>
+          </p>
+          <p class="bridge-proof-detail">xlsx · csv · pdf · docx · txt · jpg · png</p>
+        </div>
+      </article>
+      <article class="bridge-proof-item">
+        <span class="bridge-proof-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 10h18"/><path d="M6 10V7l3-4h6l3 4v3"/><path d="M8 21v-6"/><path d="M16 21v-6"/><path d="M10 14h4"/></svg>
+        </span>
+        <div class="bridge-proof-copy">
+          <span class="bridge-proof-kicker">Auto-tags</span>
+          <p class="bridge-proof-metric">
+            <span class="bridge-proof-num bridge-proof-num--gold">Distress</span>
+            <span class="bridge-proof-unit">signals</span>
+          </p>
+          <p class="bridge-proof-detail">Code violations · water shutoffs · more</p>
+        </div>
+      </article>
+      <article class="bridge-proof-item">
+        <span class="bridge-proof-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M5 16h14"/><path d="M7 12h10"/></svg>
+        </span>
+        <div class="bridge-proof-copy">
+          <span class="bridge-proof-kicker">Output</span>
+          <p class="bridge-proof-metric">
+            <span class="bridge-proof-num bridge-proof-num--gold">Versioned</span>
+            <span class="bridge-proof-unit">datasets</span>
+          </p>
+          <p class="bridge-proof-detail">Attached per city · export to CSV</p>
+        </div>
+      </article>
+    </section>
 
     <nav class="bridge-pipeline" aria-label="Intake steps" data-phuglee-reveal-child>
       <ol class="bridge-pipeline-list" id="bridge-pipeline">
@@ -60,7 +102,7 @@
 
     <section class="bridge-panel phuglee-panel" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
       <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Select city profile</h2>
-      <p class="bridge-panel-lead">Only cities with existing Form Forge profiles appear here. New cities are added outside this flow.</p>
+      <p class="bridge-panel-lead">Pick the city profile you're attaching data to. Only cities already in Form Forge appear here.</p>
       <div class="bridge-row">
         <label for="bridge-state">State
           <select id="bridge-state" disabled>
@@ -104,7 +146,7 @@
 
     <section class="bridge-panel phuglee-panel" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
       <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Upload city response file</h2>
-      <p class="bridge-panel-lead">Drag and drop or browse. JPG and PNG files should be photos or scans of printed violation or shutoff lists.</p>
+      <p class="bridge-panel-lead">Drag and drop or browse. Photos and scans work — shoot the printed violation or shutoff list if that's what the clerk sent.</p>
       <div class="bridge-format-badges" aria-hidden="true">
         <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
       </div>
@@ -197,6 +239,16 @@
       <div class="bridge-history-list" id="bridge-history-list"></div>
     </section>
 
+    <aside class="bridge-next-step phuglee-panel" aria-label="Next step" data-phuglee-reveal-child>
+      <div class="bridge-next-copy">
+        <p class="bridge-next-eyebrow">Step 03 · Analyze</p>
+        <p class="bridge-next-lead">List scrubbed? Import into the Analyzer — AI ranks visible distress, humans double-check every tier.</p>
+      </div>
+      <a href="/analyzer/" class="phuglee-btn phuglee-btn-secondary bridge-next-cta">Open Analyzer</a>
+    </aside>
+
+    <p class="bridge-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
+
     <div class="bridge-error-wrap" id="bridge-error-wrap" hidden role="alert">
       <p class="bridge-error" id="bridge-error"></p>
       <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-retry" id="bridge-retry">Try again</button>
@@ -209,7 +261,7 @@
   <script src="/js/settings-menu.js"></script>
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
-  <script src="/js/shell-nav.js?v=distress2"></script>
+  <script src="/js/shell-nav.js?v=4"></script>
   <script src="/js/bridge.js"></script>
 </body>
 </html>

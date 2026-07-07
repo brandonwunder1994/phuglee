@@ -3,11 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Form Forge — Records Desk</title>
+  <title>Phuglee — Records Desk</title>
+  <meta name="description" content="Fill city FOIA PDFs with your contact info — drag fields, quick fill, stamp, and save. Form Forge under Collect." />
+  <meta property="og:title" content="Phuglee — Records Desk" />
+  <meta property="og:description" content="Stamp your info on every city PDF. Drag fields, quick fill, save — next city loads automatically." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/images/phuglee-logo-hd.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Phuglee — Records Desk" />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css?v=35" />
   <link rel="stylesheet" href="/static/settings-menu.css?v=3" />
-  <link rel="stylesheet" href="/static/phuglee-forge.css?v=1" />
+  <link rel="stylesheet" href="/static/phuglee-forge.css?v=3" />
   <link rel="stylesheet" href="/static/phuglee-a11y.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -21,7 +28,8 @@
         <svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="20" y="25" text-anchor="middle" font-size="14" font-family="serif" fill="currentColor">FF</text></svg>
       </div>
       <div>
-        <h1>Form Forge</h1>
+        <h1>Records Desk</h1>
+        <p class="sub">Fill city PDFs — drag fields, quick fill, stamp &amp; save.</p>
       </div>
       <nav class="app-nav" aria-label="Main">
         <a href="/portal" class="nav-link">City Tracker</a>
@@ -101,6 +109,13 @@
     </div>
   </div>
 
+  <header class="forge-page-hero forge-page-hero--compact" aria-label="Form Forge context">
+    <div class="forge-page-hero-inner">
+      <p class="forge-page-step"><a href="/collect">← Collect</a> · Form Forge</p>
+      <h1 class="forge-page-title">Records Desk</h1>
+    </div>
+  </header>
+
   <div class="layout">
     <aside class="sidebar">
       <div class="up-next-card" id="up-next-card" hidden>
@@ -130,7 +145,7 @@
       <div class="empty-state hero-empty phuglee-empty-state">
         <div class="hero-seal" aria-hidden="true">FF</div>
         <h2>Records desk ready</h2>
-        <p>Pick a city from the queue. Drag your fields onto the PDF — or hit <strong>Quick Fill</strong> for fillable forms.</p>
+        <p>Pick a city from the queue. Drag your fields onto the PDF — or hit <strong>Quick Fill</strong> when the form is fillable.</p>
         <ol class="hero-steps">
           <li><span>1</span> Open a city</li>
           <li><span>2</span> Quick Fill or drag fields</li>
@@ -147,5 +162,6 @@
   <script src="/static/phuglee-states.js"></script>
   <script src="/static/settings-menu.js?v=3"></script>
   <script src="/static/app.js?v=50"></script>
+  <p class="forge-trust-line">Public records only · Your data stays on your machine</p>
 </body>
 </html>

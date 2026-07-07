@@ -1,7 +1,7 @@
 (function () {
   const CORE_LINKS = [
-    { id: 'collect', label: 'Collect Records', href: '/collect' },
-    { id: 'heat', label: 'How It Works', href: '/heat' },
+    { id: 'command', label: 'Dashboard', href: '/command' },
+    { id: 'collect', label: 'Collect', href: '/collect' },
     { id: 'bridge', label: 'Data Bridge', href: '/bridge' }
   ];
 
@@ -15,7 +15,7 @@
     { id: 'forge-errors', label: 'Portal Errors', href: '/forge/portal/portal-errors' }
   ];
 
-  const ANALYZER_LINK = { id: 'analyzer', label: 'Property Analyzer', href: '/analyzer/' };
+  const ANALYZER_LINK = { id: 'analyzer', label: 'Analyzer', href: '/analyzer/' };
 
   function normalizePath(pathname) {
     if (!pathname) return '/';
@@ -38,6 +38,7 @@
 
   function activeId(path) {
     const p = normalizePath(path);
+    if (p === '/command') return 'command';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
@@ -57,14 +58,18 @@
     return `
 <footer class="shell-footer" id="distress-os-footer">
   <div class="shell-footer-inner">
-    <span class="shell-footer-brand">PHUGLEE</span>
-    <span class="shell-footer-meta">Distress OS · Collect. Analyze. Close.</span>
+    <div class="shell-footer-brand-block">
+      <span class="shell-footer-brand">PHUGLEE</span>
+      <span class="shell-footer-meta">Distress OS · Collect. Bridge. Analyze.</span>
+    </div>
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Collect</a>
+      <a href="/bridge" class="shell-footer-link">Bridge</a>
       <a href="/analyzer/" class="shell-footer-link">Analyzer</a>
     </nav>
   </div>
+  <p class="shell-footer-trust">Public records only · Your data stays on your machine</p>
 </footer>`;
   }
 
@@ -105,16 +110,15 @@
 </div>
 <header class="shell-nav-wrap distress-glass--chrome" id="distress-os-nav">
   <nav class="shell-nav" aria-label="Main navigation">
-    <a href="/heat" class="shell-brand" aria-label="Phuglee — Distress OS">
+    <a href="/" class="shell-brand" aria-label="Phuglee home">
       <img
         src="/images/phuglee-text-logo.svg"
         alt="Phuglee"
         class="shell-brand-logo"
-        width="148"
-        height="32"
+        width="120"
+        height="26"
         decoding="async"
       >
-      <span class="shell-product-tag">Distress OS</span>
     </a>
     <div class="shell-links">
       ${coreHtml}
@@ -197,6 +201,7 @@
     }
 
     mountFooter();
+    document.body.classList.add('has-shell-chrome');
 
     if (window.PhugleeSettings && typeof window.PhugleeSettings.mount === 'function') {
       window.PhugleeSettings.mount();

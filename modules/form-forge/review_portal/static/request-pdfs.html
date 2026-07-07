@@ -3,11 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Form Forge — Request PDFs</title>
+  <title>Phuglee — Request PDFs</title>
+  <meta name="description" content="Queue and send monthly PDF email FOIA batches — one city at a time or bulk send." />
+  <meta property="og:title" content="Phuglee — Request PDFs" />
+  <meta property="og:description" content="Email completed FOIA PDFs to city clerks — queue, preview, and send." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/images/phuglee-logo-hd.png" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css?v=35" />
   <link rel="stylesheet" href="/static/settings-menu.css?v=3" />
-  <link rel="stylesheet" href="/static/phuglee-forge.css?v=1" />
+  <link rel="stylesheet" href="/static/phuglee-forge.css?v=3" />
   <link rel="stylesheet" href="/static/phuglee-a11y.css" />
   <link rel="stylesheet" href="/static/portal.css?v=34" />
   <link rel="stylesheet" href="/static/request-pdfs.css?v=34" />
@@ -23,7 +29,7 @@
       </div>
       <div>
         <h1>Request PDFs</h1>
-        <p class="sub" id="page-subtitle">Send monthly PDF requests one city at a time.</p>
+        <p class="sub" id="page-subtitle">Queue monthly PDF email FOIA batches — one city at a time or bulk send.</p>
       </div>
       <nav class="app-nav" aria-label="Main">
         <a href="/portal" class="nav-link">City Tracker</a>
@@ -41,6 +47,14 @@
           <a href="/" class="settings-item" role="menuitem">Records Desk</a>
         </div>
       </div>
+    </div>
+  </header>
+
+  <header class="forge-page-hero" aria-label="Form Forge context">
+    <div class="forge-page-hero-inner">
+      <p class="forge-page-step"><a href="/collect">← Collect</a> · <a href="/portal">City Tracker</a></p>
+      <h1 class="forge-page-title">Request PDFs</h1>
+      <p class="forge-page-lead">Queue monthly PDF email FOIA batches — one city at a time or bulk send.</p>
     </div>
   </header>
 
@@ -182,5 +196,6 @@
   <script src="/static/settings-menu.js?v=3"></script>
   <script src="/static/request-pdfs.js?v=12"></script>
   <script>window.FormForgeSettings?.init();</script>
+  <p class="forge-trust-line">Public records only · Your data stays on your machine</p>
 </body>
 </html>

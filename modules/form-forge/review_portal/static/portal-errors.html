@@ -3,11 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Form Forge — Fix Portal Errors</title>
+  <title>Phuglee — Portal Errors</title>
+  <meta name="description" content="Research corrected portal URLs and clear flagged errors one city at a time." />
+  <meta property="og:title" content="Phuglee — Portal Errors" />
+  <meta property="og:description" content="Fix broken portal submission URLs flagged during online requests." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/images/phuglee-logo-hd.png" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css?v=35" />
   <link rel="stylesheet" href="/static/settings-menu.css?v=3" />
-  <link rel="stylesheet" href="/static/phuglee-forge.css?v=1" />
+  <link rel="stylesheet" href="/static/phuglee-forge.css?v=3" />
   <link rel="stylesheet" href="/static/phuglee-a11y.css" />
   <link rel="stylesheet" href="/static/portal.css?v=34" />
   <link rel="stylesheet" href="/static/request-pdfs.css?v=34" />
@@ -24,8 +30,8 @@
         <svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/><text x="20" y="25" text-anchor="middle" font-size="14" font-family="serif" fill="currentColor">FF</text></svg>
       </div>
       <div>
-        <h1>Fix Portal Errors</h1>
-        <p class="sub" id="page-subtitle">Research corrected portal URLs and clear errors one city at a time.</p>
+        <h1>Portal Errors</h1>
+        <p class="sub" id="page-subtitle">Research corrected portal URLs and clear flagged errors one city at a time.</p>
       </div>
       <nav class="app-nav" aria-label="Main">
         <a href="/portal" class="nav-link">City Tracker</a>
@@ -44,6 +50,14 @@
           <a href="/" class="settings-item" role="menuitem">Records Desk</a>
         </div>
       </div>
+    </div>
+  </header>
+
+  <header class="forge-page-hero" aria-label="Form Forge context">
+    <div class="forge-page-hero-inner">
+      <p class="forge-page-step"><a href="/collect">← Collect</a> · <a href="/portal">City Tracker</a></p>
+      <h1 class="forge-page-title">Portal Errors</h1>
+      <p class="forge-page-lead">Research corrected portal URLs and clear flagged errors one city at a time.</p>
     </div>
   </header>
 
@@ -118,5 +132,6 @@
   <script src="/static/settings-menu.js?v=3"></script>
   <script src="/static/portal-errors.js?v=1"></script>
   <script>window.FormForgeSettings?.init();</script>
+  <p class="forge-trust-line">Public records only · Your data stays on your machine</p>
 </body>
 </html>

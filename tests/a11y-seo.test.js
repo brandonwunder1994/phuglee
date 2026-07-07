@@ -42,6 +42,13 @@ test('collect page has SEO meta and OG tags', () => {
   assert.ok(hasOgTags(html));
 });
 
+test('command page has SEO meta and OG tags', () => {
+  const html = readPage('command.html');
+  assert.ok(html.includes('meta name="description"'));
+  assert.ok(hasOgTags(html));
+  assert.ok(html.includes('id="main"'));
+});
+
 test('phuglee-a11y.css defines focus ring token', () => {
   const css = fs.readFileSync(path.join(PUBLIC, 'css', 'phuglee-a11y.css'), 'utf8');
   assert.ok(css.includes('--phuglee-focus-ring'));

@@ -1,133 +1,385 @@
-/* Collect Records — command hub (Distress OS) */
+/* Collect hub — Phuglee command center */
 
 .collect-hub {
   position: relative;
   z-index: 1;
-  max-width: 920px;
+  max-width: 1040px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
+  padding: 2rem 1.5rem 3.5rem;
 }
 
 .collect-hub-hero {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.collect-hub-step {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.5rem;
 }
 
 .collect-hub-hero .landing-title {
-  font-size: clamp(2.5rem, 9vw, 4.75rem);
+  font-size: clamp(2.5rem, 9vw, 4.5rem);
+  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .collect-hub-hero .premium-tagline {
-  max-width: 520px;
+  max-width: 540px;
   margin: 0.75rem auto 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--phuglee-taupe-mid);
 }
 
+/* Proof rail */
+.collect-proof-rail {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 2rem;
+  background: rgba(40, 40, 39, 0.82);
+}
+
+.collect-proof-rail.phuglee-panel {
+  padding: 0;
+}
+
+.collect-proof-rail.phuglee-panel:hover {
+  transform: none;
+  border-color: var(--border);
+}
+
+.collect-proof-rail.phuglee-panel::before {
+  opacity: 0.05;
+}
+
+.collect-proof-item {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1.25rem 1.1rem;
+  text-align: left;
+}
+
+.collect-proof-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  right: 0;
+  bottom: 1rem;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(174, 163, 143, 0.28) 20%,
+    rgba(174, 163, 143, 0.28) 80%,
+    transparent
+  );
+}
+
+.collect-proof-item--featured {
+  background: linear-gradient(135deg, rgba(229, 132, 53, 0.08) 0%, transparent 55%);
+}
+
+.collect-proof-item--featured::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--phuglee-gold), var(--phuglee-orange));
+}
+
+.collect-proof-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-top: 0.1rem;
+  color: var(--phuglee-orange);
+  background: rgba(229, 132, 53, 0.1);
+  border: 1px solid rgba(229, 132, 53, 0.22);
+  border-radius: var(--radius-sm);
+}
+
+.collect-proof-icon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.collect-proof-kicker {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+  margin-bottom: 0.25rem;
+}
+
+.collect-proof-metric {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.35rem;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.collect-proof-num {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-cream);
+}
+
+.collect-proof-num--gold {
+  color: var(--phuglee-gold);
+}
+
+.collect-proof-unit,
+.collect-proof-join {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.collect-proof-detail {
+  margin: 0.35rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--phuglee-taupe-mid);
+}
+
+/* Primary action tiles */
 .collect-hub-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2.25rem;
 }
 
 .collect-hub-tile {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.65rem;
-  padding: 1.5rem 1.65rem;
+  gap: 0.6rem;
+  padding: 1.35rem 1.4rem;
   text-align: left;
   border: none;
   font-family: inherit;
   color: inherit;
   width: 100%;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.collect-hub-tile.phuglee-panel {
+  padding: 1.35rem 1.4rem;
+}
+
+.collect-hub-tile.phuglee-panel:hover,
+.collect-hub-tile.is-interactive:hover {
+  transform: translateX(5px);
+  border-color: var(--border-hot);
+  box-shadow: var(--shadow-panel), var(--shadow-glow-orange);
 }
 
 .collect-hub-tile-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--radius-md);
-  font-size: 1.35rem;
+  color: var(--phuglee-orange);
   background: rgba(229, 132, 53, 0.12);
   border: 1px solid rgba(229, 132, 53, 0.28);
-  box-shadow: 0 0 24px rgba(229, 132, 53, 0.1);
+  box-shadow: 0 0 20px rgba(229, 132, 53, 0.1);
+}
+
+.collect-hub-tile-icon svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.collect-hub-tile--map .collect-hub-tile-icon {
+  color: var(--phuglee-gold);
+  background: rgba(238, 183, 70, 0.1);
+  border-color: rgba(238, 183, 70, 0.3);
+  box-shadow: 0 0 20px rgba(238, 183, 70, 0.1);
+}
+
+.collect-hub-tile--tracker .collect-hub-tile-icon {
+  color: var(--phuglee-cream);
+  background: rgba(174, 163, 143, 0.1);
+  border-color: rgba(174, 163, 143, 0.25);
 }
 
 .collect-hub-tile-title {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 400;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--phuglee-cream);
 }
 
 .collect-hub-tile-desc {
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   line-height: 1.55;
-  color: var(--text-muted);
+  color: var(--phuglee-taupe-mid);
   margin: 0;
+  flex: 1;
 }
 
 .collect-hub-tile-cta {
   margin-top: auto;
-  padding-top: 0.5rem;
-  font-size: 0.72rem;
+  padding-top: 0.35rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--phuglee-orange);
 }
 
-.collect-hub-tile--map .collect-hub-tile-icon {
-  background: rgba(61, 214, 140, 0.1);
-  border-color: rgba(61, 214, 140, 0.3);
-  box-shadow: 0 0 24px rgba(61, 214, 140, 0.1);
-}
-
 .collect-hub-tile--map .collect-hub-tile-cta {
-  color: var(--phuglee-success);
+  color: var(--phuglee-gold);
 }
 
-.collect-hub-strip {
+/* Quick tools */
+.collect-tools {
+  margin-bottom: 1.75rem;
+}
+
+.collect-tools-head {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.collect-tools-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.35rem;
+}
+
+.collect-tools-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3.5vw, 1.65rem);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+.collect-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.collect-tool-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+  padding: 1rem 1.05rem;
+  text-align: left;
+  text-decoration: none;
+  font-family: inherit;
+  color: inherit;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.collect-tool-card.phuglee-panel {
+  padding: 1rem 1.05rem;
+}
+
+.collect-tool-card.phuglee-panel:hover,
+.collect-tool-card.is-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(229, 132, 53, 0.35);
+  box-shadow: var(--shadow-glow-orange);
+}
+
+.collect-tool-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-  padding: 1rem 1.25rem;
-  border-radius: var(--radius-lg);
-  background: var(--zone-solid-bg);
-  border: 1px solid var(--zone-solid-border);
+  width: 2rem;
+  height: 2rem;
+  color: var(--phuglee-orange);
 }
 
-.collect-hub-strip-label {
-  font-size: 0.68rem;
+.collect-tool-icon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.collect-tool-name {
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--phuglee-taupe-mid);
-}
-
-.collect-hub-signals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  justify-content: center;
-}
-
-.collect-hub-signal {
-  padding: 0.3rem 0.65rem;
-  font-size: 0.68rem;
-  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+.collect-tool-desc {
+  font-size: 0.72rem;
+  line-height: 1.45;
   color: var(--phuglee-stone);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  background: rgba(0, 0, 0, 0.2);
+}
+
+.collect-hub-trust {
+  margin: 0;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-stone);
+  opacity: 0.9;
 }
 
 .collect-choice-icon {
@@ -135,8 +387,47 @@
   margin-right: 0.35rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .collect-hub-grid {
     grid-template-columns: 1fr;
+  }
+
+  .collect-tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .collect-proof-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .collect-proof-item:not(:last-child)::after {
+    top: auto;
+    right: 1.1rem;
+    left: 1.1rem;
+    bottom: 0;
+    width: auto;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(174, 163, 143, 0.28) 20%,
+      rgba(174, 163, 143, 0.28) 80%,
+      transparent
+    );
+  }
+}
+
+@media (max-width: 480px) {
+  .collect-tools-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collect-hub-tile:hover,
+  .collect-tool-card:hover {
+    transform: none;
   }
 }

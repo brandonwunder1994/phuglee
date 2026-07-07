@@ -173,6 +173,114 @@ body.guide-modal-open {
   margin-bottom: 1.25rem;
 }
 
+/* ── Coverage map ── */
+.guide-map-section {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  background: rgba(13, 13, 13, 0.45);
+}
+
+.guide-map-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.35rem;
+}
+
+.guide-map-summary {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--phuglee-stone);
+  margin-bottom: 0.65rem;
+}
+
+.guide-map-summary strong {
+  color: var(--phuglee-cream);
+  font-weight: 600;
+}
+
+.guide-coverage-map {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #0a0f14;
+  border: 1px solid rgba(174, 163, 143, 0.15);
+  min-height: 180px;
+}
+
+.guide-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.guide-map-state {
+  stroke: rgba(13, 13, 13, 0.85);
+  stroke-width: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.guide-map-state--covered:hover {
+  opacity: 0.88;
+}
+
+.guide-map-loading,
+.guide-map-error {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--phuglee-stone);
+}
+
+.guide-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-stone);
+}
+
+.guide-map-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.guide-map-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.guide-map-swatch--covered {
+  background: linear-gradient(135deg, #2a8f5c, #45c47e);
+}
+
+.guide-map-swatch--pending {
+  background: #3a4658;
+}
+
+.guide-map-swatch--blocked {
+  background: repeating-linear-gradient(
+    45deg,
+    #8f2a2a,
+    #8f2a2a 2px,
+    #c84848 2px,
+    #c84848 4px
+  );
+}
+
 .guide-vs {
   display: grid;
   grid-template-columns: 1fr 1fr;

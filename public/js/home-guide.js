@@ -41,7 +41,7 @@
       exclusive: false,
       mailto: 'mailto:team@distressos.com?subject=Distress%20OS%20Pro%20Plan',
       features: [
-        'Unlimited access to <strong id="guide-city-count">500+</strong> cities nationwide',
+        'Unlimited access to <strong data-coverage-city-count>500+</strong> cities nationwide',
         'Every tool in the Distress OS stack',
         'Run the full collect → scrub → analyze workflow anywhere',
         'Best value when you\'re serious about volume'
@@ -108,6 +108,17 @@
                   '<p class="guide-eyebrow">How It Works</p>' +
                   '<h2 id="guide-how-title" class="guide-title">Leads this hot don\'t wait for aggregators.</h2>' +
                   '<p class="guide-lead">We pull lists straight from city and county records — not data warehouses that drip the same leads to everyone else weeks later.</p>' +
+
+                  '<section class="guide-map-section" aria-label="Coverage map">' +
+                    '<p class="guide-map-eyebrow">Where we operate</p>' +
+                    '<p class="guide-map-summary" id="guide-map-summary">Loading coverage…</p>' +
+                    '<div class="guide-coverage-map" id="guide-coverage-map"></div>' +
+                    '<ul class="guide-map-legend">' +
+                      '<li><span class="guide-map-swatch guide-map-swatch--covered"></span> We have cities here</li>' +
+                      '<li><span class="guide-map-swatch guide-map-swatch--pending"></span> Not in yet</li>' +
+                      '<li><span class="guide-map-swatch guide-map-swatch--blocked"></span> Can\'t get data here</li>' +
+                    '</ul>' +
+                  '</section>' +
 
                   '<div class="guide-vs" aria-label="Your edge versus aggregators">' +
                     '<div class="guide-vs-panel guide-vs-panel--fresh">' +
@@ -192,6 +203,10 @@
     document.body.classList.add('guide-modal-open');
     var closeBtn = overlay.querySelector('.guide-close');
     if (closeBtn) closeBtn.focus();
+
+    if (window.PhugleeCoverage && typeof window.PhugleeCoverage.renderGuideMap === 'function') {
+      window.PhugleeCoverage.renderGuideMap();
+    }
   }
 
   function closeGuide() {
@@ -211,24 +226,15 @@
     setFlipped(false);
   }
 
-  async function loadCityCount() {
-    var countEl = $('#guide-city-count');
-    if (!countEl) return;
-    try {
-      var res = await fetch('/forge/api/coverage', { cache: 'no-store' });
-      if (!res.ok) throw new Error('coverage unavailable');
-      var data = await res.json();
-      var total = data.total_cities;
-      if (typeof total === 'number' && total > 0) {
-        countEl.textContent = Number(total).toLocaleString('en-US');
-      }
-    } catch (_) {
-      countEl.textContent = '500+';
-    }
-  }
+  var GUIDE_TRIGGER_IDS = [
+    'btn-how-it-works',
+    'btn-how-it-works-footer',
+    'btn-how-it-works-dashboard',
+    'btn-how-it-works-quick'
+  ];
 
   function bindTriggers() {
-    ['btn-how-it-works', 'btn-how-it-works-footer'].forEach(function (id) {
+    GUIDE_TRIGGER_IDS.forEach(function (id) {
       var el = document.getElementById(id);
       if (el) {
         el.addEventListener('click', function (e) {
@@ -237,6 +243,14 @@
         });
       }
     });
+  }
+
+  function guidePages() {
+    return ['/', '/command'];
+  }
+
+  function shouldInitGuide() {
+    return guidePages().indexOf(normalizePath(window.location.pathname)) !== -1;
   }
 
   function bindEvents() {
@@ -260,15 +274,20 @@
   }
 
   function init() {
-    if (normalizePath(window.location.pathname) !== '/') return;
+    if (!shouldInitGuide()) return;
 
-    var mount = document.createElement('div');
-    mount.innerHTML = buildModal();
-    document.body.appendChild(mount.firstElementChild);
+    if (!$('#guide-overlay')) {
+      var mount = document.createElement('div');
+      mount.innerHTML = buildModal();
+      document.body.appendChild(mount.firstElementChild);
+      bindEvents();
+    }
 
-    bindEvents();
     bindTriggers();
-    loadCityCount();
+
+    if (window.location.hash === '#how-it-works') {
+      window.setTimeout(openGuide, 60);
+    }
   }
 
   window.PhugleeGuide = {

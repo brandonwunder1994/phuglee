@@ -1,92 +1,4 @@
-.shell-nav {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: rgba(8, 6, 5, 0.82);
-  backdrop-filter: blur(12px);
-}
-
-.shell-brand {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: var(--text);
-  flex-shrink: 0;
-  line-height: 0;
-  transition: opacity 0.2s ease, filter 0.2s ease;
-}
-
-.shell-brand-logo {
-  display: block;
-  width: auto;
-  height: clamp(1.65rem, 3.2vw, 2rem);
-  max-width: min(11.5rem, 34vw);
-  object-fit: contain;
-  object-position: left center;
-  filter:
-    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45))
-    brightness(1.02);
-}
-
-.shell-brand:hover .shell-brand-logo {
-  filter:
-    drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45))
-    drop-shadow(0 0 12px rgba(232, 93, 4, 0.25));
-  opacity: 0.95;
-}
-
-.shell-links {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
-.shell-link {
-  padding: 0.5rem 0.85rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: var(--text-muted);
-  border-radius: 4px;
-  transition: color 0.15s ease, background 0.15s ease;
-}
-
-.shell-link:hover {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.shell-link.active {
-  color: var(--heat-core);
-  background: rgba(232, 93, 4, 0.12);
-}
-
-.shell-sign-out {
-  font-family: inherit;
-  border: none;
-  cursor: pointer;
-  color: var(--ash);
-}
-
-.shell-sign-out:hover {
-  color: var(--heat-danger);
-  background: rgba(248, 113, 113, 0.08);
-}
-
-.shell-sign-out-divider {
-  height: 18px;
-  margin: 0 0.25rem;
-}
+/* Shell utilities — nav chrome lives in shell-nav.css */
 
 .shell-status {
   display: flex;
@@ -136,18 +48,6 @@
 }
 
 @media (max-width: 768px) {
-  .shell-nav {
-    flex-wrap: wrap;
-  }
-
-  .shell-links {
-    order: 3;
-    width: 100%;
-    justify-content: flex-end;
-    overflow-x: auto;
-    padding-bottom: 0.25rem;
-  }
-
   .shell-status {
     margin-left: auto;
   }

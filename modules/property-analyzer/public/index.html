@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DISTRESS ANALYZER</title>
+  <title>Phuglee — Analyzer</title>
+  <meta name="description" content="Import your bridged list. AI scans Street View, ranks visible distress, and exports dial-ready leads — you double-check every tier.">
+  <meta property="og:title" content="Phuglee — Analyzer">
+  <meta property="og:description" content="Step 03 · Analyze — rank visible distress from Street View and export a dial-ready database.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/phuglee-logo-hd.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Phuglee — Analyzer">
+  <meta name="twitter:description" content="AI ranks visible distress. Humans double-check every tier before you dial.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,12 +26,13 @@
   <link rel="stylesheet" href="/css/cyber-polish.css">
   <link rel="stylesheet" href="/css/heat-theme.css">
   <link rel="stylesheet" href="/css/premium-analyzer.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=3">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <link rel="stylesheet" href="/css/premium-motion.css">
   <script src="/js/phuglee-states.js" defer></script>
 </head>
 <body class="cyber-theme heat-theme">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
   <div class="ambient-orb ambient-orb-1" aria-hidden="true"></div>
   <div class="ambient-orb ambient-orb-2" aria-hidden="true"></div>
   <div class="ambient-orb ambient-orb-3" aria-hidden="true"></div>
@@ -36,8 +45,9 @@
       <div class="sidebar-brand">
         <div class="sidebar-logo" aria-hidden="true">◇</div>
         <div>
-          <div class="sidebar-title">DISTRESS ANALYZER</div>
-          <div class="sidebar-tagline">AI Property Intelligence</div>
+          <p class="analyzer-context-step"><a href="/bridge">← Data Bridge</a> · Step 03 · Analyze</p>
+          <div class="sidebar-title">Analyzer</div>
+          <div class="sidebar-tagline">Rank visible distress</div>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -103,7 +113,7 @@
       </nav>
     </aside>
 
-    <div class="app-shell-main">
+    <div class="app-shell-main" id="main">
   <span id="hudClock" hidden aria-hidden="true" style="display:none">--:--:--</span>
 
   <div class="live-tier-alert-stack" id="liveTierAlertStack" aria-live="polite" hidden></div>
@@ -125,8 +135,8 @@
 
     <header class="command-bar glass panel-chrome" id="commandBar">
       <div class="command-bar-brand">
-        <div class="command-title">DISTRESS ANALYZER</div>
-        <div class="command-tagline">AI Property Intelligence</div>
+        <div class="command-title">Analyzer</div>
+        <div class="command-tagline">AI ranks Street View distress — you double-check every tier</div>
       </div>
       <div class="command-bar-status">
         <span class="command-status-dot" id="commandStatusDot" aria-hidden="true"></span>
@@ -168,8 +178,8 @@
     <div class="session-restore-banner" id="sessionRestoreBanner" role="status" aria-live="polite"></div>
 
     <section class="empty-workspace phuglee-empty-state" id="emptyWorkspace">
-      <h2>Upload a spreadsheet to start</h2>
-      <p>Excel with address columns. Press <kbd>⌘K</kbd> for backup, settings, and more.</p>
+      <h2>Import your bridged list</h2>
+      <p>Upload an Excel export from Data Bridge — or any spreadsheet with addresses. Press <kbd>⌘K</kbd> for settings, backup, and export.</p>
       <div class="empty-workspace-actions">
         <button type="button" class="btn-primary" id="emptyUploadBtn">Upload spreadsheet</button>
         <button type="button" class="btn-secondary" id="emptyRestoreBackupBtn" title="Restore your last saved scan from server backup">Restore my last scan</button>
@@ -236,7 +246,7 @@
       <div class="summary-actions">
         <div class="summary-head">
           <h2>Scan Summary</h2>
-          <p class="summary-intro" id="summaryIntro">Lead counts by tier — click a card to filter.</p>
+          <p class="summary-intro" id="summaryIntro">Tier breakdown — click a card to filter, shift+click to review.</p>
         </div>
       </div>
 
@@ -701,5 +711,6 @@
   <script src="/js/session.js?v=20260701c"></script>
   <script src="/js/premium-shell.js?v=20260704a"></script>
   <script src="/js/app.js?v=20260701a"></script>
+  <p class="analyzer-trust-line">Public records only · Your data stays on your machine</p>
 </body>
 </html>

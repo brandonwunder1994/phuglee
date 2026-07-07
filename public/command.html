@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Dashboard</title>
+  <meta name="description" content="Your distressed lead pipeline at a glance — Collect, Bridge, and Analyze in one dashboard view.">
+  <meta property="og:title" content="Phuglee — Dashboard">
+  <meta property="og:description" content="Run the full Collect → Bridge → Analyze workflow from your dashboard.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/phuglee-logo-hd.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Phuglee — Dashboard">
+  <meta name="twitter:description" content="Your distressed lead dashboard — pipeline status, coverage, and quick launches.">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/distress-glass.css">
+  <link rel="stylesheet" href="/css/heat-base.css">
+  <link rel="stylesheet" href="/css/heat-atmosphere.css">
+  <link rel="stylesheet" href="/css/premium-atmosphere.css?v=distress3">
+  <link rel="stylesheet" href="/css/premium-components.css">
+  <link rel="stylesheet" href="/css/shell.css">
+  <link rel="stylesheet" href="/css/shell-nav.css?v=3">
+  <link rel="stylesheet" href="/css/settings-menu.css">
+  <link rel="stylesheet" href="/css/command-palette.css">
+  <link rel="stylesheet" href="/css/distress-status.css">
+  <link rel="stylesheet" href="/css/command-center.css?v=3">
+  <link rel="stylesheet" href="/css/home-guide.css?v=2">
+  <link rel="stylesheet" href="/css/phuglee-components.css">
+  <link rel="stylesheet" href="/css/phuglee-a11y.css">
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js"></script>
+</head>
+<body class="has-premium-bg command-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="premium-bg premium-bg--subtle" aria-hidden="true">
+    <div class="premium-bg-photo"></div>
+    <div class="premium-bg-grain"></div>
+    <div class="premium-bg-wear"></div>
+  </div>
+  <div class="command-bg" aria-hidden="true"></div>
+  <div class="heat-field" aria-hidden="true">
+    <div class="heat-glow heat-glow-a"></div>
+    <div class="heat-glow heat-glow-b"></div>
+    <div class="heat-grid"></div>
+    <div class="heat-noise"></div>
+  </div>
+
+  <div id="distress-os-nav-mount"></div>
+
+  <main id="main" class="command-main phuglee-pattern-bg phuglee-pattern-bg--subtle command-page-ready">
+    <div class="command-hub">
+      <header class="command-hero">
+        <p class="command-eyebrow">Distress OS</p>
+        <h1 class="command-title">Dashboard</h1>
+        <p class="command-lead">Collect → Bridge → Analyze — your distressed lead pipeline in one view. Launch any step, check system status, keep moving.</p>
+        <div class="command-hero-actions">
+          <button type="button" class="phuglee-btn phuglee-btn-secondary command-how-btn" id="btn-how-it-works-dashboard">
+            How It Works
+          </button>
+        </div>
+      </header>
+
+      <nav class="command-pipeline" aria-label="Pipeline steps">
+        <a href="/collect" class="command-pipeline-step">
+          <span class="command-pipeline-num">01</span>
+          <span class="command-pipeline-name">Collect</span>
+        </a>
+        <span class="command-pipeline-join" aria-hidden="true"></span>
+        <a href="/bridge" class="command-pipeline-step">
+          <span class="command-pipeline-num">02</span>
+          <span class="command-pipeline-name">Bridge</span>
+        </a>
+        <span class="command-pipeline-join" aria-hidden="true"></span>
+        <a href="/analyzer/" class="command-pipeline-step">
+          <span class="command-pipeline-num">03</span>
+          <span class="command-pipeline-name">Analyze</span>
+        </a>
+      </nav>
+
+      <section class="command-proof-rail phuglee-panel" aria-label="Coverage and system status">
+        <article class="command-proof-item command-proof-item--featured">
+          <span class="command-proof-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+          </span>
+          <div class="command-proof-copy">
+            <span class="command-proof-kicker">Coverage</span>
+            <p class="command-proof-metric">
+              <span class="command-proof-num command-proof-num--gold" id="command-city-count">—</span>
+              <span class="command-proof-unit">cities</span>
+              <span class="command-proof-join">in</span>
+              <span class="command-proof-num" id="command-state-count">—</span>
+              <span class="command-proof-unit">states</span>
+            </p>
+          </div>
+        </article>
+        <article class="command-proof-item">
+          <span class="command-proof-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4"/><path d="M10 17h4"/></svg>
+          </span>
+          <div class="command-proof-copy">
+            <span class="command-proof-kicker">Form Forge</span>
+            <p class="command-proof-metric">
+              <span class="command-proof-status" id="command-forge-status">
+                <span class="command-status-dot" id="command-forge-dot" aria-hidden="true"></span>
+                <span id="command-forge-label">Checking…</span>
+              </span>
+            </p>
+            <p class="command-proof-detail">PDF filler · tracker · requests</p>
+          </div>
+        </article>
+        <article class="command-proof-item">
+          <span class="command-proof-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 5 5-9"/></svg>
+          </span>
+          <div class="command-proof-copy">
+            <span class="command-proof-kicker">Analyzer</span>
+            <p class="command-proof-metric">
+              <span class="command-proof-status" id="command-analyzer-status">
+                <span class="command-status-dot" id="command-analyzer-dot" aria-hidden="true"></span>
+                <span id="command-analyzer-label">Checking…</span>
+              </span>
+            </p>
+            <p class="command-proof-detail">Street View distress ranking</p>
+          </div>
+        </article>
+      </section>
+
+      <div class="command-step-grid">
+        <a href="/collect" class="command-step-tile phuglee-panel is-interactive command-step-tile--collect">
+          <span class="command-step-badge">01</span>
+          <span class="command-step-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
+          </span>
+          <span class="command-step-tile-title">Hit the Clerk</span>
+          <p class="command-step-tile-desc">Request distressed lists from public records — PDF email, plain email, or online portal.</p>
+          <span class="command-step-tile-cta">Open Collect →</span>
+        </a>
+        <a href="/bridge" class="command-step-tile phuglee-panel is-interactive command-step-tile--bridge">
+          <span class="command-step-badge">02</span>
+          <span class="command-step-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          </span>
+          <span class="command-step-tile-title">Scrub the Mess</span>
+          <p class="command-step-tile-desc">Normalize city files, tag distress signals, and build a clean spreadsheet for the Analyzer.</p>
+          <span class="command-step-tile-cta">Open Bridge →</span>
+        </a>
+        <a href="/analyzer/" class="command-step-tile phuglee-panel is-interactive command-step-tile--analyze">
+          <span class="command-step-badge">03</span>
+          <span class="command-step-tile-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 5 5-9"/></svg>
+          </span>
+          <span class="command-step-tile-title">Rank &amp; Dial</span>
+          <p class="command-step-tile-desc">AI scans Street View, tiers visible distress, and exports dial-ready leads you can trust.</p>
+          <span class="command-step-tile-cta">Open Analyzer →</span>
+        </a>
+      </div>
+
+      <section class="command-quick" aria-labelledby="command-quick-title">
+        <div class="command-quick-head">
+          <p class="command-quick-eyebrow" id="command-quick-title">Quick launch</p>
+          <h2 class="command-quick-title">Jump to a tool</h2>
+        </div>
+        <div class="command-quick-grid">
+          <a href="/forge/portal" class="command-quick-card phuglee-panel is-interactive">
+            <span class="command-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            </span>
+            <span class="command-quick-name">Request Tracker</span>
+          </a>
+          <a href="/forge/map" class="command-quick-card phuglee-panel is-interactive">
+            <span class="command-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
+            </span>
+            <span class="command-quick-name">Coverage Map</span>
+          </a>
+          <a href="/forge/" class="command-quick-card phuglee-panel is-interactive">
+            <span class="command-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            </span>
+            <span class="command-quick-name">PDF Filler</span>
+          </a>
+          <button type="button" class="command-quick-card phuglee-panel is-interactive" id="btn-how-it-works-quick">
+            <span class="command-quick-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            </span>
+            <span class="command-quick-name">How It Works</span>
+          </button>
+        </div>
+      </section>
+
+      <p class="command-trust">Public records only · Your data stays on your machine</p>
+    </div>
+  </main>
+
+  <div id="distress-os-footer-mount"></div>
+  <script src="/js/phuglee-motion.js"></script>
+  <script src="/js/phuglee-states.js"></script>
+  <script src="/js/home-coverage.js?v=2"></script>
+  <script src="/js/settings-menu.js"></script>
+  <script src="/js/command-palette.js"></script>
+  <script src="/js/distress-status.js"></script>
+  <script src="/js/home-guide.js" defer></script>
+  <script src="/js/shell-nav.js?v=4"></script>
+  <script src="/js/command-center.js?v=2"></script>
+</body>
+</html>

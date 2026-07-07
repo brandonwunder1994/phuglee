@@ -13,6 +13,8 @@ def test_coverage_payload_includes_coord_stats():
     assert "coords_exact" in payload
     assert "coords_approx" in payload
     assert payload["coords_exact"] + payload["coords_approx"] == payload["coords_available"]
+    assert "unavailable_states" in payload
+    assert "Alabama" in payload["unavailable_states"]
     for city in payload["cities"]:
         assert "coords_exact" in city
         if city["coords_exact"]:
