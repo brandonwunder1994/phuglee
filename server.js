@@ -177,7 +177,10 @@ async function handleRequest(req, res) {
       '(function () {',
       `  window.__PHUGLEE_AUTH_DISABLED__ = ${config.AUTH_DISABLED ? 'true' : 'false'};`,
       '  if (!window.__PHUGLEE_AUTH_DISABLED__) return;',
-      "  try { if (!sessionStorage.getItem('phuglee_session')) sessionStorage.setItem('phuglee_session', 'dev'); } catch (_) {}",
+      "  try {",
+      "    if (sessionStorage.getItem('phuglee_logout') === '1') return;",
+      "    if (!sessionStorage.getItem('phuglee_session')) sessionStorage.setItem('phuglee_session', 'dev');",
+      '  } catch (_) {}',
       '})();',
       ''
     ].join('\n');

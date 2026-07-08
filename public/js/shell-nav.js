@@ -134,6 +134,9 @@
   }
 
   function isAuthenticated() {
+    if (window.PhugleeSession && typeof window.PhugleeSession.isAuthenticated === 'function') {
+      return window.PhugleeSession.isAuthenticated();
+    }
     try {
       return !!sessionStorage.getItem('phuglee_session');
     } catch (_) {

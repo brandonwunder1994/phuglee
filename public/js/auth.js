@@ -124,6 +124,9 @@
   }
 
   function isAuthenticated() {
+    if (window.PhugleeSession && typeof window.PhugleeSession.isAuthenticated === 'function') {
+      return window.PhugleeSession.isAuthenticated();
+    }
     if (window.__PHUGLEE_AUTH_DISABLED__) return true;
     try {
       return !!sessionStorage.getItem(SESSION_KEY);
@@ -133,6 +136,9 @@
   }
 
   function getSessionUser() {
+    if (window.PhugleeSession && typeof window.PhugleeSession.getSessionUser === 'function') {
+      return window.PhugleeSession.getSessionUser() || null;
+    }
     try {
       return sessionStorage.getItem(SESSION_KEY);
     } catch (_) {
@@ -141,6 +147,9 @@
   }
 
   function setSession(username) {
+    if (window.PhugleeSession && typeof window.PhugleeSession.establishSession === 'function') {
+      return window.PhugleeSession.establishSession(username);
+    }
     try {
       sessionStorage.setItem(SESSION_KEY, username);
       return true;
@@ -150,6 +159,10 @@
   }
 
   function clearSession() {
+    if (window.PhugleeSession && typeof window.PhugleeSession.clearSession === 'function') {
+      window.PhugleeSession.clearSession();
+      return;
+    }
     sessionStorage.removeItem(SESSION_KEY);
   }
 
@@ -670,9 +683,16 @@
       state.returnUrl = params.get('return');
     }
 
-    if (isAuthenticated()) {
+    if (params.get('signed_out') === '1') {
+      clearSession();
+      history.replaceState(null, '', '/');
+      updateHomeAuthChrome(false);
+    } else if (isAuthenticated()) {
+      updateHomeAuthChrome(true);
       window.location.replace(resolvePostLoginDest());
       return;
+    } else {
+      updateHomeAuthChrome(false);
     }
 
     var mount = document.createElement('div');
@@ -706,14 +726,18 @@
 
     var signInBtn = document.getElementById('btn-sign-in');
     if (signInBtn) {
-      if (isAuthenticated()) {
-        signInBtn.hidden = true;
-      } else {
-        signInBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          openModal();
-        });
-      }
+      signInBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        openModal();
+      });
+    }
+
+    var signOutBtn = document.getElementById('btn-sign-out');
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        window.PhugleeAuth.logout();
+      });
     }
 
     if (params.get('login') === '1' && !isAuthenticated()) {
@@ -726,12 +750,23 @@
 
   seedAdmin();
 
+  function updateHomeAuthChrome(loggedIn) {
+    var signInBtn = document.getElementById('btn-sign-in');
+    var signOutBtn = document.getElementById('btn-sign-out');
+    if (signInBtn) signInBtn.hidden = !!loggedIn;
+    if (signOutBtn) signOutBtn.hidden = !loggedIn;
+  }
+
   window.PhugleeAuth = {
     isAuthenticated: isAuthenticated,
     getSessionUser: getSessionUser,
     logout: function () {
+      if (window.PhugleeSession && typeof window.PhugleeSession.signOut === 'function') {
+        window.PhugleeSession.signOut();
+        return;
+      }
       clearSession();
-      window.location.href = '/';
+      window.location.replace('/?signed_out=1');
     },
     openLogin: openModal,
     closeLogin: closeModal

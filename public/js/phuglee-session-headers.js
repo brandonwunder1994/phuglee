@@ -6,6 +6,9 @@
 
   function getSessionUser() {
     try {
+      if (window.PhugleeSession && typeof window.PhugleeSession.isAuthenticated === 'function') {
+        if (!window.PhugleeSession.isAuthenticated()) return '';
+      }
       if (window.PhugleeAuth && typeof window.PhugleeAuth.getSessionUser === 'function') {
         return window.PhugleeAuth.getSessionUser() || '';
       }

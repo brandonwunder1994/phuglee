@@ -93,7 +93,14 @@ main.home-page.landing.logo-page {
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
 }
 
-.home-topbar-signin {
+.home-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.home-topbar-signin,
+.home-topbar-signout {
   position: relative;
   overflow: hidden;
   font-family: var(--font-display);
@@ -119,7 +126,8 @@ main.home-page.landing.logo-page {
     box-shadow 0.2s ease;
 }
 
-.home-topbar-signin::after {
+.home-topbar-signin::after,
+.home-topbar-signout::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -134,7 +142,13 @@ main.home-page.landing.logo-page {
   pointer-events: none;
 }
 
-.home-topbar-signin:hover {
+.home-topbar-signout {
+  border-color: rgba(248, 113, 113, 0.35);
+  background: linear-gradient(165deg, rgba(248, 113, 113, 0.12) 0%, rgba(13, 13, 13, 0.55) 100%);
+}
+
+.home-topbar-signin:hover,
+.home-topbar-signout:hover {
   color: var(--phuglee-gold);
   border-color: rgba(238, 183, 70, 0.55);
   background:
@@ -145,11 +159,18 @@ main.home-page.landing.logo-page {
     0 4px 18px rgba(229, 132, 53, 0.18);
 }
 
-.home-topbar-signin:hover::after {
+.home-topbar-signout:hover {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, 0.55);
+}
+
+.home-topbar-signin:hover::after,
+.home-topbar-signout:hover::after {
   transform: translateX(120%);
 }
 
-.home-topbar-signin[hidden] {
+.home-topbar-signin[hidden],
+.home-topbar-signout[hidden] {
   display: none;
 }
 

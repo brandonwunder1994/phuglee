@@ -5,6 +5,10 @@
   var USERS_KEY = 'phuglee_users';
   var ADMIN_USER = 'admin';
 
+  function sessionApi() {
+    return window.PhugleeSession || null;
+  }
+
   var PLANS = {
     lite: { label: 'Lite', price: '$47/mo' },
     pro: { label: 'Pro', price: '$97/mo' },
@@ -13,6 +17,10 @@
   };
 
   function getSessionUser() {
+    var api = sessionApi();
+    if (api && typeof api.getSessionUser === 'function') {
+      return api.getSessionUser() || null;
+    }
     try {
       return sessionStorage.getItem(SESSION_KEY);
     } catch (_) {
@@ -21,6 +29,10 @@
   }
 
   function isAuthenticated() {
+    var api = sessionApi();
+    if (api && typeof api.isAuthenticated === 'function') {
+      return api.isAuthenticated();
+    }
     return !!getSessionUser();
   }
 
@@ -144,6 +156,8 @@
 
   function bind(root) {
     if (!root) return;
+    if (root.dataset.settingsBound === '1') return;
+    root.dataset.settingsBound = '1';
 
     var trigger = root.querySelector('#shell-settings-trigger');
     var signOut = root.querySelector('#shell-settings-signout');
@@ -156,9 +170,20 @@
     }
 
     if (signOut) {
-      signOut.addEventListener('click', function () {
+      signOut.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeDropdown();
+        if (window.PhugleeSession && typeof window.PhugleeSession.signOut === 'function') {
+          window.PhugleeSession.signOut();
+          return;
+        }
+        if (window.PhugleeAuth && typeof window.PhugleeAuth.logout === 'function') {
+          window.PhugleeAuth.logout();
+          return;
+        }
         try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
-        window.location.href = '/';
+        window.location.replace('/?signed_out=1');
       });
     }
 
