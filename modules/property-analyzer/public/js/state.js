@@ -681,6 +681,8 @@ R.buildSessionPayload = function buildSessionPayload() {
     viewMode: state.viewMode,
     selectedKey: state.selectedKey,
     searchQuery: state.searchQuery,
+    locationFilter: state.locationFilter,
+    locationHubQuery: state.locationHubQuery || '',
     sortMode: state.sortMode,
     setupCollapsed: state.setupCollapsed,
     appView: state.propertyModalOpen ? (state.running ? 'scan' : 'dashboard') : state.appView,
@@ -1522,6 +1524,8 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
   state.viewMode = data.viewMode || 'cards';
   state.selectedKey = data.selectedKey || null;
   state.searchQuery = data.searchQuery || '';
+  state.locationFilter = data.locationFilter || null;
+  state.locationHubQuery = data.locationHubQuery || '';
   state.sortMode = 'newest';
 
   let sessionUpgraded = false;
@@ -1591,6 +1595,7 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
   state.reviewMode = false;
   const savedView = ['setup', 'dashboard', 'scan', 'property'].includes(data.appView) ? data.appView : null;
   resultSearch.value = state.searchQuery;
+  if (locationHubSearch) locationHubSearch.value = state.locationHubQuery || '';
   if (state.records.length) {
     heroCount.textContent = state.records.length.toLocaleString();
     fileInfo.textContent = state.fileName
@@ -1925,6 +1930,8 @@ R.clearSession = function clearSession() {
   state.haltAlertShown = false;
   state.selectedKey = null;
   state.searchQuery = '';
+  state.locationFilter = null;
+  state.locationHubQuery = '';
   state.sortMode = 'newest';
   state.leadTypeFilter = 'all';
   state.importLeadType = DEFAULT_LEAD_TYPE;
@@ -2136,6 +2143,7 @@ R.updateCommandBar = function updateCommandBar() {
   emptyWorkspace?.classList.toggle('hidden-by-app', hasWork);
   emptyWorkspace?.classList.toggle('visible', !hasWork);
   mainWorkspace?.classList.toggle('visible', hasWork);
+  updateLocationHubUi?.();
   updateCommandHeader();
   if (!commandFileStatus) return;
   if (state.running) {
