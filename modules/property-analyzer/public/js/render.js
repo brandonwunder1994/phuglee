@@ -44,11 +44,27 @@ R.wireCardThumb = function wireCardThumb(card, result) {
   }
   if (fallback) img.dataset.fallback = fallback;
   else delete img.dataset.fallback;
+  const liveUrls = hasImageryKey() && result?.address
+    ? getPropertyImageUrls(result.address, result, { thumb: true })
+    : null;
+  const livePrimary = liveUrls?.streetView || liveUrls?.satellite || '';
+  if (livePrimary && livePrimary !== primary && livePrimary !== fallback) {
+    img.dataset.liveFallback = livePrimary;
+  } else {
+    delete img.dataset.liveFallback;
+  }
   img.onload = () => {
     img.classList.add('loaded');
     fallbackEl?.classList.remove('visible');
   };
   img.onerror = () => {
+    const liveAlt = img.dataset.liveFallback;
+    if (liveAlt && img.src !== liveAlt) {
+      delete img.dataset.liveFallback;
+      img.src = liveAlt;
+      if (labelEl) labelEl.textContent = '';
+      return;
+    }
     const alt = img.dataset.fallback;
     if (alt && img.src !== alt) {
       delete img.dataset.fallback;

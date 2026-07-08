@@ -1243,23 +1243,38 @@ R.getPropertyImageUrls = function getPropertyImageUrls(address, result = null, o
 R.getCardThumbUrls = function getCardThumbUrls(result) {
   const cached = getCachedImageryUrls(result);
   const preferSatellite = recordUsedSatelliteOnly(result);
+  const live = (!cached.streetView && !cached.satellite && hasImageryKey() && result?.address)
+    ? getPropertyImageUrls(result.address, result, { thumb: true })
+    : null;
+
   if (preferSatellite) {
+    const primary = cached.satellite || cached.streetView || live?.satellite || live?.streetView || '';
+    const fallback = cached.streetView && cached.satellite && cached.streetView !== cached.satellite
+      ? cached.streetView
+      : (live?.streetView && primary !== live.streetView ? live.streetView : '');
     return {
-      primary: cached.satellite || cached.streetView || '',
-      fallback: cached.streetView && cached.satellite && cached.streetView !== cached.satellite ? cached.streetView : '',
-      label: cached.satellite ? (cached.streetView ? 'Cached satellite' : 'Cached satellite') : '',
+      primary,
+      fallback,
+      label: (cached.satellite || cached.streetView) ? 'Cached satellite' : '',
       fromCache: !!(cached.satellite || cached.streetView),
-      needsCache: !cached.satellite && !cached.streetView && !!result?.address
+      needsCache: !primary && !!result?.address
     };
   }
-  const sv = streetViewUnavailableForRecord(result) ? null : cached.streetView;
+
+  const sv = streetViewUnavailableForRecord(result)
+    ? null
+    : (cached.streetView || live?.streetView || null);
+  const sat = cached.satellite || live?.satellite || null;
+  const primary = sv || sat || '';
+  const fallback = sat && sv && sat !== sv ? sat : '';
   return {
-    primary: sv || cached.satellite || '',
-    fallback: cached.satellite && sv && cached.satellite !== sv ? cached.satellite : '',
-    label: sv ? 'Cached' : (cached.satellite ? 'Cached satellite' : ''),
-    fromCache: !!(sv || cached.satellite),
-    needsCache: !sv && !cached.satellite && !!result?.address
-      && !result?.imagery?.streetView?.unavailable
+    primary,
+    fallback,
+    label: cached.streetView || cached.satellite
+      ? (sv ? 'Cached' : 'Cached satellite')
+      : '',
+    fromCache: !!(cached.streetView || cached.satellite),
+    needsCache: !primary && !!result?.address && !result?.imagery?.streetView?.unavailable
   };
 }
 

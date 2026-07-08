@@ -2019,6 +2019,55 @@ R.openUploadModal = function openUploadModal() { openToolModal(uploadModal); }
 R.openSettingsModal = function openSettingsModal() { openToolModal(settingsModal); }
 R.openBrainModal = function openBrainModal() { openToolModal(brainModal); }
 
+R.updateCommandHeader = function updateCommandHeader() {
+  if (!commandTitle || !commandTagline) return;
+
+  const defaultTitle = 'Analyze';
+  const defaultTagline = 'AI ranks Street View distress — you double-check every tier';
+  const importMeta = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.importMeta) ? PDA.lib.importMeta : null;
+
+  if (state.running) {
+    const loc = importMeta?.deriveImportLocation(state.records);
+    commandTitle.textContent = importMeta?.formatImportLocation(loc) || state.fileName || 'Scanning';
+    const total = state.records.length || 0;
+    const pct = total ? Math.round((state.processed / total) * 100) : 0;
+    commandTagline.textContent = total
+      ? `Scanning ${pct}% — ${state.processed.toLocaleString()} of ${total.toLocaleString()} leads`
+      : 'Scan in progress…';
+    return;
+  }
+
+  if (state.records.length) {
+    const loc = importMeta?.deriveImportLocation(state.records);
+    const pending = importMeta
+      ? importMeta.countUnscannedLeads(state.records, state.results, recordKey)
+      : state.records.length;
+    commandTitle.textContent = importMeta?.formatImportLocation(loc) || state.fileName || defaultTitle;
+    if (pending > 0) {
+      const analyzed = state.results.length;
+      commandTagline.textContent = analyzed > 0
+        ? `${pending.toLocaleString()} leads ready to scan (${analyzed.toLocaleString()} already analyzed)`
+        : `${pending.toLocaleString()} leads ready to scan`;
+    } else if (state.results.length) {
+      commandTagline.textContent = `All ${state.records.length.toLocaleString()} leads analyzed — review results below`;
+    } else {
+      commandTagline.textContent = `${state.records.length.toLocaleString()} leads loaded — hit Start Scan`;
+    }
+    return;
+  }
+
+  if (state.results.length) {
+    const loc = importMeta?.deriveImportLocation(state.results);
+    commandTitle.textContent = importMeta?.formatImportLocation(loc)
+      || `${state.results.length.toLocaleString()} results`;
+    commandTagline.textContent = 'Restored scan — review or export below';
+    return;
+  }
+
+  commandTitle.textContent = defaultTitle;
+  commandTagline.textContent = defaultTagline;
+}
+
 R.updateCommandBar = function updateCommandBar() {
   const hasWork = !!(state.records.length || state.results.length || state.running);
   document.body.classList.toggle('home-empty', !hasWork);
@@ -2031,6 +2080,7 @@ R.updateCommandBar = function updateCommandBar() {
   emptyWorkspace?.classList.toggle('hidden-by-app', hasWork);
   emptyWorkspace?.classList.toggle('visible', !hasWork);
   mainWorkspace?.classList.toggle('visible', hasWork);
+  updateCommandHeader();
   if (!commandFileStatus) return;
   if (state.running) {
     const total = state.records.length || 0;

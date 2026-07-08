@@ -10,7 +10,9 @@ const path = require('path');
 const { writeFileAtomic } = require('./lib/fs-atomic');
 const { DATA_ROOT } = require('./lib/config');
 
-const IMAGERY_DIR = path.join(DATA_ROOT, 'property_imagery');
+const IMAGERY_DIR = process.env.PDA_IMAGERY_ROOT
+  ? path.resolve(process.env.PDA_IMAGERY_ROOT)
+  : path.join(DATA_ROOT, 'property_imagery');
 const INDEX_FILE = path.join(IMAGERY_DIR, 'index.json');
 const LOG_DIR = path.join(__dirname, 'logs');
 
