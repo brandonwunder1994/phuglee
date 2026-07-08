@@ -114,7 +114,10 @@ R.filteredResultsCache = null;
 R.filteredResultsCacheKey = '';
 
 R.filteredResultsCacheKeyFromState = function filteredResultsCacheKeyFromState() {
-  return `${state.filter}|${state.leadTypeFilter || 'all'}|${(state.searchQuery || '').trim().toLowerCase()}|${state.results.length}|${state.processed}|${state.sortMode}|${resultMutationEpoch}`;
+  const loc = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.locationIndex)
+    ? PDA.lib.locationIndex.locationFilterKey(state.locationFilter)
+    : (state.locationFilter ? `${state.locationFilter.state}|${state.locationFilter.city || ''}` : '');
+  return `${state.filter}|${state.leadTypeFilter || 'all'}|${(state.searchQuery || '').trim().toLowerCase()}|${loc}|${state.results.length}|${state.processed}|${state.sortMode}|${resultMutationEpoch}`;
 }
 
 R.invalidateFilteredResultsCache = function invalidateFilteredResultsCache() {

@@ -78,7 +78,7 @@ function register(ctx) {
     return true;
   });
 
-  const LIB_ALLOWLIST = new Set(['gemini-json.js', 'tier-engine.js', 'imagery-routing.js', 'imagery-urls.js', 'virtual-scroll.js', 'classification-confidence.js', 'result-classify.js', 'review-training.js', 'export-schema.js']);
+  const LIB_ALLOWLIST = new Set(['gemini-json.js', 'tier-engine.js', 'imagery-routing.js', 'imagery-urls.js', 'virtual-scroll.js', 'classification-confidence.js', 'result-classify.js', 'review-training.js', 'export-schema.js', 'location-index.js']);
 
   router.getPrefix('/lib/', async (req, res, url) => {
     const name = path.basename(url.pathname);

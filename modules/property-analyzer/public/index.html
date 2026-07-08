@@ -326,6 +326,26 @@
       </div>
     </section>
 
+    <section class="location-hub panel-chrome" id="locationHub" hidden aria-label="Choose a market">
+      <div class="location-hub-head">
+        <h2 class="location-hub-title">Choose a market</h2>
+        <p class="location-hub-sub">Search or pick a state and city — leads appear after you select a location</p>
+      </div>
+      <div class="location-hub-search-row">
+        <input type="search" class="location-hub-search" id="locationHubSearch"
+          placeholder="Search city or state…" autocomplete="off" aria-label="Search city or state">
+      </div>
+      <div class="location-hub-list" id="locationHubList" role="list"></div>
+      <p class="location-hub-empty" id="locationHubEmpty" hidden>No cities or states match your search</p>
+    </section>
+
+    <div class="location-breadcrumb-bar" id="locationBreadcrumb" hidden>
+      <nav class="location-breadcrumb" aria-label="Selected market">
+        <span id="locationBreadcrumbLabel">—</span>
+      </nav>
+      <button type="button" class="location-breadcrumb-change" id="locationBreadcrumbChange">Change location</button>
+    </div>
+
     <section class="dashboard" id="dashboard">
       <div class="results-wrap panel-chrome" id="resultsWrap">
         <div class="results-header" id="resultsHeader">
@@ -698,6 +718,7 @@
   <script src="/lib/imagery-routing.js?v=20260630c"></script>
   <script src="/lib/imagery-urls.js?v=20260630c"></script>
   <script src="/lib/import-meta.js?v=20260708a"></script>
+  <script src="/lib/location-index.js?v=20260708a"></script>
   <script src="/lib/virtual-scroll.js?v=20260630c"></script>
   <script src="/lib/classification-confidence.js?v=20260630i"></script>
   <script src="/lib/result-classify.js?v=20260704a"></script>
@@ -711,6 +732,7 @@
   <script src="/js/render.js?v=20260708d"></script>
   <script src="/js/session.js?v=20260701c"></script>
   <script src="/js/premium-shell.js?v=20260704a"></script>
+  <script src="/js/location-hub.js?v=20260708a"></script>
   <script src="/js/app.js?v=20260701a"></script>
   <p class="analyzer-trust-line">Public records only · Your data stays on your machine</p>
 </body>

@@ -514,6 +514,8 @@ R.state = {
   pinnedLiveAddress: null,
   scanLiveSnapshot: null,
   searchQuery: '',
+  locationFilter: null,
+  locationHubQuery: '',
   sortMode: 'newest',
   setupCollapsed: false,
   scoreEditKey: null,
@@ -692,6 +694,13 @@ R.resultsLoadMoreBtn = $('resultsLoadMoreBtn');
 R.resultsLoadMoreHint = $('resultsLoadMoreHint');
 R.summarySection = $('summarySection');
 R.dashboard = $('dashboard');
+R.locationHub = $('locationHub');
+R.locationHubSearch = $('locationHubSearch');
+R.locationHubList = $('locationHubList');
+R.locationHubEmpty = $('locationHubEmpty');
+R.locationBreadcrumb = $('locationBreadcrumb');
+R.locationBreadcrumbLabel = $('locationBreadcrumbLabel');
+R.locationBreadcrumbChange = $('locationBreadcrumbChange');
 R.resultsWrap = $('resultsWrap');
 R.previewImg = $('previewImg');
 R.previewSatImg = $('previewSatImg');

@@ -5,6 +5,7 @@
   PDA.env = PDA.env || {};
   const R = PDA.env;
   with (R) {
+const li = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.locationIndex) ? PDA.lib.locationIndex : null;
 
 R.qualifiesLowDistressSignals = function qualifiesLowDistressSignals(score, indicators, satelliteResult = null, reason = '') {
   const s = Math.round(Number(score)) || 0;
@@ -840,6 +841,10 @@ R.getFilteredResults = function getFilteredResults() {
   const list = [];
   for (const r of state.results) {
     if (!resultMatchesLeadTypeFilter(r)) continue;
+    if (state.locationFilter) {
+      const matchFn = li ? li.matchesLocationFilter : null;
+      if (matchFn && !matchFn(r, state.locationFilter, normalizeStateAbbr)) continue;
+    }
     if (q && !matchesSearch(r, q)) continue;
     if (state.filter === 'all') {
       list.push(r);
