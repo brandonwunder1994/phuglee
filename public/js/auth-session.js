@@ -49,19 +49,38 @@
     }
   }
 
+  var SIGN_OUT_URL = '/?signed_out=1&login=1';
+
   function signOut() {
     clearSession();
-    window.location.replace('/?signed_out=1');
+    window.location.replace(SIGN_OUT_URL);
+  }
+
+  function guardProtectedPage() {
+    if (window.__PHUGLEE_AUTH_DISABLED__) return;
+    var path = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
+    if (path === '/' || path === '/index.html') return;
+    if (hasExplicitLogout() || !getSessionUser()) {
+      window.location.replace(SIGN_OUT_URL);
+    }
+  }
+
+  if (typeof window.addEventListener === 'function') {
+    window.addEventListener('pageshow', function (event) {
+      if (event.persisted) guardProtectedPage();
+    });
   }
 
   window.PhugleeSession = {
     SESSION_KEY: SESSION_KEY,
     LOGOUT_KEY: LOGOUT_KEY,
+    SIGN_OUT_URL: SIGN_OUT_URL,
     getSessionUser: getSessionUser,
     hasExplicitLogout: hasExplicitLogout,
     isAuthenticated: isAuthenticated,
     clearSession: clearSession,
     establishSession: establishSession,
-    signOut: signOut
+    signOut: signOut,
+    guardProtectedPage: guardProtectedPage
   };
 })();

@@ -5,7 +5,11 @@
   var pollTimer = null;
 
   function isAuthenticated() {
+    if (window.PhugleeSession && typeof window.PhugleeSession.isAuthenticated === 'function') {
+      return window.PhugleeSession.isAuthenticated();
+    }
     try {
+      if (sessionStorage.getItem('phuglee_logout') === '1') return false;
       return !!sessionStorage.getItem('phuglee_session');
     } catch (_) {
       return false;

@@ -163,7 +163,10 @@
       window.PhugleeSession.clearSession();
       return;
     }
-    sessionStorage.removeItem(SESSION_KEY);
+    try {
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.setItem('phuglee_logout', '1');
+    } catch (_) {}
   }
 
   function getRememberedUsername() {
@@ -683,9 +686,11 @@
       state.returnUrl = params.get('return');
     }
 
-    if (params.get('signed_out') === '1') {
+    var signedOut = params.get('signed_out') === '1';
+    var wantsLogin = params.get('login') === '1';
+
+    if (signedOut) {
       clearSession();
-      history.replaceState(null, '', '/');
       updateHomeAuthChrome(false);
     } else if (isAuthenticated()) {
       updateHomeAuthChrome(true);
@@ -740,11 +745,13 @@
       });
     }
 
-    if (params.get('login') === '1' && !isAuthenticated()) {
+    if ((wantsLogin || signedOut) && !isAuthenticated()) {
       openModal();
+      var cleanUrl = '/';
       if (params.get('return')) {
-        history.replaceState(null, '', '/');
+        cleanUrl = '/?return=' + encodeURIComponent(params.get('return'));
       }
+      history.replaceState(null, '', cleanUrl);
     }
   }
 
@@ -766,7 +773,9 @@
         return;
       }
       clearSession();
-      window.location.replace('/?signed_out=1');
+      window.location.replace(
+        (window.PhugleeSession && window.PhugleeSession.SIGN_OUT_URL) || '/?signed_out=1&login=1'
+      );
     },
     openLogin: openModal,
     closeLogin: closeModal

@@ -1076,6 +1076,84 @@ body {
   margin-bottom: 1.25rem;
 }
 
+.bridge-datetime-picker {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bridge-datetime-picker legend {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+  margin-bottom: 0.45rem;
+}
+
+.bridge-datetime-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: flex-end;
+}
+
+.bridge-datetime-date {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bridge-datetime-time {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.bridge-datetime-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.bridge-datetime-time-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.bridge-datetime-sep {
+  color: var(--phuglee-taupe-mid);
+  font-weight: 600;
+  padding-bottom: 0.1rem;
+}
+
+.bridge-datetime-picker input[type="date"],
+.bridge-datetime-picker select {
+  padding: 0.55rem 0.65rem;
+  font-size: 0.88rem;
+  color: var(--phuglee-cream);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.bridge-datetime-picker select {
+  min-width: 4.25rem;
+}
+
+.bridge-datetime-picker #bridge-response-hour {
+  min-width: 3.5rem;
+}
+
+.bridge-datetime-picker #bridge-response-ampm {
+  min-width: 5.5rem;
+}
+
 .bridge-response-hint {
   margin: 0.35rem 0 0;
   max-width: 42rem;
@@ -1099,15 +1177,6 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--phuglee-stone);
-}
-
-.bridge-attach-row input[type="datetime-local"] {
-  padding: 0.55rem 0.65rem;
-  font-size: 0.88rem;
-  color: var(--phuglee-cream);
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(174, 163, 143, 0.2);
-  border-radius: var(--radius-sm);
 }
 
 .bridge-attach-status {

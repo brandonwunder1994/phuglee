@@ -7,7 +7,9 @@ const vm = require('vm');
 function loadPhugleeSession() {
   const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'auth-session.js'), 'utf8');
   const context = {
-    window: {},
+    window: {
+      addEventListener() {}
+    },
     sessionStorage: {
       store: new Map(),
       getItem(key) { return this.store.has(key) ? this.store.get(key) : null; },
@@ -38,4 +40,9 @@ test('establishSession clears explicit logout flag', () => {
   assert.equal(api.getSessionUser(), 'jane');
   assert.equal(api.hasExplicitLogout(), false);
   assert.equal(api.isAuthenticated(), true);
+});
+
+test('SIGN_OUT_URL includes login prompt for account switching', () => {
+  const api = loadPhugleeSession();
+  assert.equal(api.SIGN_OUT_URL, '/?signed_out=1&login=1');
 });

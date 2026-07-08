@@ -182,8 +182,13 @@
           window.PhugleeAuth.logout();
           return;
         }
-        try { sessionStorage.removeItem(SESSION_KEY); } catch (_) {}
-        window.location.replace('/?signed_out=1');
+        try {
+          sessionStorage.removeItem(SESSION_KEY);
+          sessionStorage.setItem('phuglee_logout', '1');
+        } catch (_) {}
+        window.location.replace(
+          (window.PhugleeSession && window.PhugleeSession.SIGN_OUT_URL) || '/?signed_out=1&login=1'
+        );
       });
     }
 
