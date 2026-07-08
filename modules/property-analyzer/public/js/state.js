@@ -409,15 +409,7 @@ R.yieldToMain = function yieldToMain() {
 }
 
 R.setSessionRestoreBanner = function setSessionRestoreBanner(msg, isError = false) {
-  if (!sessionRestoreBanner) return;
-  if (!msg) {
-    sessionRestoreBanner.classList.remove('visible', 'error');
-    sessionRestoreBanner.innerHTML = '';
-    return;
-  }
-  sessionRestoreBanner.innerHTML = `<span>${escapeHtml(msg)}</span>`;
-  sessionRestoreBanner.classList.toggle('error', isError);
-  sessionRestoreBanner.classList.add('visible');
+  if (msg && isError) console.warn('[Analyze]', msg);
 }
 
 R.countReviewedKeysInPayload = function countReviewedKeysInPayload(buckets) {
@@ -683,6 +675,8 @@ R.buildSessionPayload = function buildSessionPayload() {
     searchQuery: state.searchQuery,
     locationFilter: state.locationFilter,
     locationHubQuery: state.locationHubQuery || '',
+    importBatches: state.importBatches || [],
+    importDateFilter: state.importDateFilter || [],
     sortMode: state.sortMode,
     setupCollapsed: state.setupCollapsed,
     appView: state.propertyModalOpen ? (state.running ? 'scan' : 'dashboard') : state.appView,
@@ -1217,9 +1211,7 @@ R.fetchSessionResultsPage = async function fetchSessionResultsPage(offset, limit
 
 R.paintSessionResultsShell = function paintSessionResultsShell() {
   mainWorkspace?.classList.add('visible');
-  emptyWorkspace?.classList.remove('visible');
-  emptyWorkspace?.classList.add('hidden-by-app');
-  if (state.viewMode === 'cards' && state.results.length > VIRTUAL_SCROLL_THRESHOLD) {
+  if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {
     renderVirtualCards();
   } else if (state.results.length) {
     renderResults({ force: true });
@@ -1228,9 +1220,11 @@ R.paintSessionResultsShell = function paintSessionResultsShell() {
   updateExportButtons();
 }
 
-R.loadSessionResultsFirstPage = async function loadSessionResultsFirstPage(expectedTotal) {
+R.loadSessionResultsFirstPage = async function loadSessionResultsFirstPage(expectedTotal, pagePromise = null) {
   if (!USE_PROXY || !expectedTotal || state.results.length) return 0;
-  const page = await fetchSessionResultsPage(0, SESSION_PAGE_SIZE);
+  const page = pagePromise
+    ? await pagePromise
+    : await fetchSessionResultsPage(0, getSessionFirstPageSize());
   if (!page?.results?.length) return 0;
   state.results.push(...page.results);
   sessionLoadState.loaded = state.results.length;
@@ -1294,7 +1288,9 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
     }
     updateSessionSaveStatus();
     if (!sessionLoadState.complete && state.results.length >= getDisplayCap()) {
-      if (state.viewMode === 'cards' && state.results.length > VIRTUAL_SCROLL_THRESHOLD) {
+      if (isAnalyzeLayout()) {
+        updateResultCountLabel();
+      } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {
         renderVirtualCards();
       } else {
         renderResults({ force: true });
@@ -1325,7 +1321,11 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
   updateSessionSaveStatus();
   invalidateTierCountsCache();
   delete state._tierCountsFromServer;
-  if (state.viewMode === 'cards' && state.results.length > VIRTUAL_SCROLL_THRESHOLD) {
+  if (isAnalyzeLayout() && resultsUiRendered) {
+    updateResultCountLabel();
+    updateSummaryStats({ full: true });
+    refreshAllCardThumbs?.();
+  } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {
     renderVirtualCards();
   } else {
     renderResults({ force: true });
@@ -1382,7 +1382,7 @@ R.applySessionSummary = async function applySessionSummary(summary) {
 
   const recordCount = Number(summary.records) || 0;
   if (recordCount) {
-    heroCount.textContent = recordCount.toLocaleString();
+    if (heroCount) heroCount.textContent = recordCount.toLocaleString();
     fileInfo.textContent = summary.fileName
       ? `✓ ${summary.fileName} — ${recordCount.toLocaleString()} rows (restored)`
       : `✓ ${recordCount.toLocaleString()} rows restored`;
@@ -1414,9 +1414,7 @@ R.applySessionSummary = async function applySessionSummary(summary) {
 
   if (summary.results) {
     mainWorkspace?.classList.add('visible');
-    emptyWorkspace?.classList.remove('visible');
-    emptyWorkspace?.classList.add('hidden-by-app');
-    if (cardsVirtualWindow && !cardsVirtualWindow.querySelector('.session-load-indicator')) {
+  if (cardsVirtualWindow && !cardsVirtualWindow.querySelector('.session-load-indicator')) {
       const indicator = document.createElement('div');
       indicator.className = 'session-load-indicator empty-state';
       indicator.style.gridColumn = '1 / -1';
@@ -1526,6 +1524,8 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
   state.searchQuery = data.searchQuery || '';
   state.locationFilter = data.locationFilter || null;
   state.locationHubQuery = data.locationHubQuery || '';
+  state.importBatches = Array.isArray(data.importBatches) ? data.importBatches : [];
+  state.importDateFilter = Array.isArray(data.importDateFilter) ? data.importDateFilter : [];
   state.sortMode = 'newest';
 
   let sessionUpgraded = false;
@@ -1597,7 +1597,7 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
   resultSearch.value = state.searchQuery;
   if (locationHubSearch) locationHubSearch.value = state.locationHubQuery || '';
   if (state.records.length) {
-    heroCount.textContent = state.records.length.toLocaleString();
+    if (heroCount) heroCount.textContent = state.records.length.toLocaleString();
     fileInfo.textContent = state.fileName
       ? `✓ ${state.fileName} — ${state.records.length.toLocaleString()} rows (restored)`
       : `✓ ${state.records.length.toLocaleString()} rows restored`;
@@ -1732,7 +1732,7 @@ R.primeSessionFromLocalStorage = function primeSessionFromLocalStorage() {
     state.processed = data.processed || 0;
     state.succeeded = data.succeeded || state.results.length;
     if (state.records.length) {
-      heroCount.textContent = state.records.length.toLocaleString();
+      if (heroCount) heroCount.textContent = state.records.length.toLocaleString();
       fileInfo.textContent = state.fileName
         ? `✓ ${state.fileName} — ${state.records.length.toLocaleString()} rows`
         : `✓ ${state.records.length.toLocaleString()} rows`;
@@ -1769,8 +1769,6 @@ R.applyPayloadWithUi = async function applyPayloadWithUi(data, opts = {}) {
   updateStartButton();
   if (state.results.length) {
     mainWorkspace?.classList.add('visible');
-    emptyWorkspace?.classList.remove('visible');
-    emptyWorkspace?.classList.add('hidden-by-app');
     updateSummaryStats({ full: true });
     setSessionRestoreBanner(`Loaded ${state.results.length.toLocaleString()} properties — rendering cards…`);
     renderResultsProgressive().then(() => setSessionRestoreBanner('')).catch(() => setSessionRestoreBanner(''));
@@ -1789,6 +1787,7 @@ R.loadSession = async function loadSession() {
       }
     }
     if (summary?.results) {
+      const firstPagePromise = fetchSessionResultsPage(0, getSessionFirstPageSize());
       await applySessionSummary(summary);
       const browserCandidates = await readAllBrowserSessionCandidates();
       const browserBest = browserCandidates[0] || null;
@@ -1801,7 +1800,7 @@ R.loadSession = async function loadSession() {
         }
       }
       setSessionRestoreBanner(`Loaded ${summary.results.toLocaleString()} properties — loading results…`);
-      await loadSessionResultsFirstPage(summary.results);
+      await loadSessionResultsFirstPage(summary.results, firstPagePromise);
       loadSessionResultsBackground(summary.results);
       hydrateSessionReviewMeta().catch((e) => console.warn('Review meta hydrate failed', e));
       if (!sessionDirty) sessionDirty = false;
@@ -1947,7 +1946,7 @@ R.clearSession = function clearSession() {
   errorBanner.innerHTML = '';
   resetScanIssueState();
   fileInput.value = '';
-  heroCount.textContent = '—';
+  if (heroCount) heroCount.textContent = '—';
   fileInfo.textContent = '';
   fileInfo.classList.remove('visible');
   updateExportButtons();
@@ -2118,13 +2117,9 @@ R.buildImportHeaderCopy = function buildImportHeaderCopy() {
 
 R.applyImportHeaderCopy = function applyImportHeaderCopy(copy) {
   if (!copy) return;
-  if (commandTitle) commandTitle.textContent = copy.title;
-  if (commandTagline) commandTagline.textContent = copy.tagline;
   if (sidebarTitle) sidebarTitle.textContent = copy.sidebarTitle;
   if (sidebarTagline) sidebarTagline.textContent = copy.sidebarTagline;
   if (scanProgressTitle) scanProgressTitle.textContent = copy.scanTitle;
-  if (heroCount) heroCount.textContent = copy.heroCount;
-  if (commandHeroLabel) commandHeroLabel.textContent = copy.heroLabel;
 }
 
 R.updateCommandHeader = function updateCommandHeader() {
@@ -2140,28 +2135,9 @@ R.updateCommandBar = function updateCommandBar() {
     if (sidebarSettingsToggle) sidebarSettingsToggle.setAttribute('aria-expanded', 'false');
     if (sidebarManageDataToggle) sidebarManageDataToggle.setAttribute('aria-expanded', 'false');
   }
-  emptyWorkspace?.classList.toggle('hidden-by-app', hasWork);
-  emptyWorkspace?.classList.toggle('visible', !hasWork);
-  mainWorkspace?.classList.toggle('visible', hasWork);
+  mainWorkspace?.classList.add('visible');
   updateLocationHubUi?.();
   updateCommandHeader();
-  if (!commandFileStatus) return;
-  if (state.running) {
-    const total = state.records.length || 0;
-    const pct = total ? Math.round((state.processed / total) * 100) : 0;
-    commandFileStatus.textContent = state.fileName
-      ? `${state.fileName} · scanning ${pct}% (${state.processed.toLocaleString()}/${total.toLocaleString()})`
-      : `Scanning… ${pct}%`;
-  } else if (state.fileName && state.records.length) {
-    const analyzed = state.results.length
-      ? ` · ${state.results.length.toLocaleString()} analyzed`
-      : ` · ${state.records.length.toLocaleString()} rows ready`;
-    commandFileStatus.textContent = `${state.fileName}${analyzed}`;
-  } else if (state.results.length) {
-    commandFileStatus.textContent = `${state.results.length.toLocaleString()} results restored`;
-  } else {
-    commandFileStatus.textContent = 'No file loaded';
-  }
 }
 
 

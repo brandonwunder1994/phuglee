@@ -1,105 +1,182 @@
-/* Property Distress Analyzer — Distress OS Heat Tokens */
-
 :root {
-  /* Heat palette (canonical — matches distress-os/public/css/tokens.css) */
+  /* ── Phuglee Signature Brand (v1.3) — logo-ground-truth ── */
+  --phuglee-black: #0d0d0d;
+  --phuglee-black-mid: #121212;
+  --phuglee-charcoal: #353630;
+  --phuglee-olive: #282827;
+  --phuglee-earth: #24180a;
+
+  --phuglee-taupe: #aea38f;
+  --phuglee-taupe-mid: #a59a88;
+  --phuglee-taupe-light: #aca18e;
+  --phuglee-stone: #9c968a;
+  --phuglee-stone-warm: #aaa18f;
+  --phuglee-meta-text: #b0a99c;
+
+  --phuglee-cream: #f5f2e4;
+  --phuglee-cream-soft: #f5f3ec;
+  --phuglee-white: #ffffff;
+
+  --phuglee-orange: #e58435;
+  --phuglee-terracotta: #ac6b32;
+  --phuglee-gold: #eeb746;
+
+  --phuglee-success: #3dd68c;
+  --phuglee-danger: #f87171;
+  --phuglee-warn: #eeb746;
+
+  /* Surfaces (legacy — migrate to phuglee in later phases) */
   --bg-deep: #080605;
   --bg-mid: #14100c;
-  --background: #080605;
-  --foreground: #f4efe6;
-  --card: rgba(18, 16, 13, 0.78);
-  --card-foreground: #f4efe6;
-  --secondary: rgba(26, 22, 18, 0.88);
-  --secondary-foreground: #c8c4bc;
-  --muted: rgba(20, 18, 15, 0.92);
-  --muted-foreground: #a89f92;
-  --accent: #e58435;
-  --flame: #e58435;
-  --heat-core: #eeb746;
-  --ember: #e58435;
-  --accent-foreground: #080605;
-  --accent-cool: #5eb3c8;
-  --destructive: #f87171;
-  --destructive-foreground: #ffffff;
+  --bg-card: #12100d;
+  --bg-elevated: #1a1612;
+
+  /* Heat accents → phuglee aliases */
+  --ember: var(--phuglee-orange);
+  --flame: var(--phuglee-orange);
+  --heat-core: var(--phuglee-gold);
+  --ash: var(--phuglee-stone);
+
+  /* Logo palette → phuglee aliases */
+  --cream: var(--phuglee-cream);
+  --stone: var(--phuglee-taupe);
+  --logo-charcoal: var(--phuglee-charcoal);
+  --logo-ember: var(--phuglee-orange);
+  --logo-gold: var(--phuglee-gold);
+
+  /* Text */
+  --text: var(--phuglee-cream);
+  --text-muted: #a89f92;
+
+  /* Chrome */
   --border: rgba(255, 255, 255, 0.08);
-  --ring: #e58435;
-  --radius: 12px;
+  --border-hot: rgba(229, 132, 53, 0.35);
 
-  --amber: var(--accent);
-  --amber-dim: rgba(229, 132, 53, 0.14);
-  --amber-glow: rgba(229, 132, 53, 0.45);
-  --cool-dim: rgba(94, 179, 200, 0.14);
-  --cool-glow: rgba(94, 179, 200, 0.35);
+  /* Status */
+  --status-up: var(--phuglee-success);
+  --status-down: var(--phuglee-danger);
+  --heat-ok: var(--phuglee-success);
+  --heat-warn: var(--phuglee-gold);
+  --heat-danger: var(--phuglee-danger);
+  --heat-info: #6ba3b8;
 
-  --neon-cyan: var(--accent-cool);
-  --neon-cyan-dim: var(--cool-dim);
-  --neon-cyan-glow: var(--cool-glow);
-  --neon-magenta: #d45d8a;
-  --neon-magenta-dim: rgba(212, 93, 138, 0.14);
-  --neon-magenta-glow: rgba(212, 93, 138, 0.4);
-  --neon-purple: #9b7ec8;
-  --neon-purple-dim: rgba(155, 126, 200, 0.12);
-  --neon-purple-glow: rgba(155, 126, 200, 0.3);
-
+  /* Typography */
   --font-display: 'Anton', sans-serif;
   --font-body: 'Outfit', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Consolas', monospace;
 
-  --tier-distressed: #e85d4c;
-  --tier-distressed-bright: #f07868;
-  --tier-distressed-dim: rgba(232, 93, 76, 0.14);
-  --tier-distressed-bg: rgba(232, 93, 76, 0.1);
-  --tier-distressed-border: rgba(232, 93, 76, 0.42);
-  --tier-distressed-glow: rgba(232, 93, 76, 0.32);
+  /* Type scale (phuglee) */
+  --text-display-xl: clamp(3.5rem, 12vw, 7rem);
+  --text-display-lg: clamp(2.25rem, 7vw, 3.5rem);
+  --text-display-md: clamp(1.5rem, 4vw, 2.25rem);
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-eyebrow: 0.72rem;
 
-  --tier-well: #5eb3c8;
-  --tier-well-bright: #7ec8db;
-  --tier-well-dim: rgba(94, 179, 200, 0.12);
-  --tier-well-bg: rgba(94, 179, 200, 0.08);
-  --tier-well-border: rgba(94, 179, 200, 0.38);
-  --tier-well-glow: rgba(94, 179, 200, 0.28);
+  /* Layout */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --nav-h: auto;
 
-  --review: #d45d8a;
-  --review-bright: #e07aa3;
-  --review-dim: rgba(212, 93, 138, 0.12);
-  --review-bg: rgba(212, 93, 138, 0.08);
-  --review-border: rgba(212, 93, 138, 0.38);
-  --review-glow: rgba(212, 93, 138, 0.3);
+  /* Shadows (phuglee) */
+  --shadow-panel: 0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --shadow-cta: 0 8px 32px rgba(229, 132, 53, 0.45);
+  --shadow-glow-orange: 0 0 48px rgba(229, 132, 53, 0.25);
 
-  --tier-land: #d4a84b;
-  --tier-land-bright: #e8bc5a;
-  --tier-land-dim: rgba(212, 168, 75, 0.12);
-  --tier-land-bg: rgba(212, 168, 75, 0.08);
-  --tier-land-border: rgba(212, 168, 75, 0.38);
-  --tier-land-glow: rgba(212, 168, 75, 0.28);
+  /* Form Forge legacy aliases */
+  --bg: var(--bg-deep);
+  --surface: var(--bg-card);
+  --surface2: var(--bg-elevated);
+  --surface3: var(--bg-mid);
+  --muted: var(--text-muted);
+  --gold: var(--ember);
+  --gold-bright: var(--flame);
+  --gold-dim: #9a4a02;
+  --display: var(--font-display);
+  --body: var(--font-body);
 
-  --tier-blurred: #8a7f72;
-  --tier-blurred-dim: rgba(138, 127, 114, 0.12);
-  --tier-blurred-bg: rgba(138, 127, 114, 0.08);
-  --tier-blurred-border: rgba(138, 127, 114, 0.32);
+  /* Property Analyzer legacy aliases */
+  --background: var(--bg-deep);
+  --foreground: var(--text);
+  --card: var(--bg-card);
+  --accent: var(--ember);
+  --accent-foreground: var(--bg-deep);
+  --accent-cool: #5eb3c8;
+  --ring: var(--ember);
+  --radius: 12px;
 
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
+  /* Distress OS glass system */
+  --glass-blur: 20px;
+  --glass-bg: rgba(18, 18, 16, 0.72);
+  --glass-bg-elevated: rgba(22, 22, 20, 0.88);
+  --glass-bg-chrome: rgba(13, 13, 13, 0.92);
+  --glass-border: rgba(174, 163, 143, 0.14);
+  --glass-border-chrome: rgba(174, 163, 143, 0.12);
+  --glass-border-hover: rgba(229, 132, 53, 0.38);
+  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --glass-shadow-float: 0 28px 72px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(229, 132, 53, 0.08);
+  --zone-solid-bg: rgba(8, 6, 5, 0.94);
+  --zone-solid-border: rgba(255, 255, 255, 0.06);
+}
 
-  --void: var(--background);
-  --void-deep: #050403;
-  --surface: var(--card);
-  --surface-solid: rgba(18, 16, 13, 0.96);
-  --surface-elevated: var(--secondary);
-  --text: var(--foreground);
-  --text-soft: var(--muted-foreground);
-  --text-dim: #8a7f72;
-  --neon-violet: var(--tier-land);
-  --copper: var(--accent);
-  --copper-bright: var(--flame);
-  --copper-glow: var(--amber-glow);
-  --glass-border: rgba(229, 132, 53, 0.2);
-  --radius-sm: 10px;
-  --radius-xs: 6px;
-  --shadow-neon: 0 0 24px var(--amber-glow), 0 0 48px rgba(229, 132, 53, 0.12);
-  --shadow-gold: 0 0 20px var(--amber-glow);
+/* Light theme — first-class, not washed-out dark */
+[data-theme="light"] {
+  --phuglee-black: #f0ece2;
+  --phuglee-black-mid: #e8e4da;
+  --phuglee-charcoal: #d8d2c6;
+  --phuglee-olive: #cfc9bc;
+  --phuglee-earth: #e5dfd2;
+
+  --phuglee-cream: #1a1612;
+  --phuglee-cream-soft: #2a241c;
+  --phuglee-white: #0d0d0d;
+
+  --phuglee-stone: #6b6358;
+  --phuglee-stone-warm: #5c554c;
+  --phuglee-meta-text: #7a7268;
+  --phuglee-taupe-mid: #6e665c;
+
+  --bg-deep: #ebe6dc;
+  --bg-mid: #e3ddd2;
+  --bg-card: #f5f2ec;
+  --bg-elevated: #ffffff;
+
+  --text: #1a1612;
+  --text-muted: #6b6358;
+
+  --border: rgba(26, 22, 18, 0.1);
+  --border-hot: rgba(229, 132, 53, 0.45);
+
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.92);
+  --glass-bg-chrome: rgba(245, 242, 236, 0.94);
+  --glass-border: rgba(26, 22, 18, 0.1);
+  --glass-border-chrome: rgba(26, 22, 18, 0.08);
+  --glass-border-hover: rgba(229, 132, 53, 0.5);
+  --glass-shadow: 0 16px 48px rgba(26, 22, 18, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --glass-shadow-float: 0 28px 64px rgba(26, 22, 18, 0.16);
+  --zone-solid-bg: #ffffff;
+  --zone-solid-border: rgba(26, 22, 18, 0.08);
+
+  --shadow-panel: 0 16px 48px rgba(26, 22, 18, 0.1);
+  --shadow-glow-orange: 0 0 32px rgba(229, 132, 53, 0.2);
+}
+
+[data-theme="light"] .premium-bg-photo,
+[data-theme="light"] .logo-page-photo,
+[data-theme="light"] .heat-field {
+  opacity: 0.35;
+}
+
+[data-theme="light"] .shell-nav-wrap {
+  background: var(--glass-bg-chrome);
 }

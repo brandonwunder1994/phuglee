@@ -34,9 +34,15 @@ describe('bridge-import-records', () => {
         leadType: 'code_violation'
       }
     ];
-    const merged = appendRecordsToSession(session, incoming);
+    const merged = appendRecordsToSession(session, incoming, {
+      city: 'Marana',
+      state: 'Arizona',
+      sourceFile: 'test.xlsx'
+    });
     assert.equal(merged.added, 1);
     assert.equal(merged.skipped, 1);
     assert.equal(merged.totalRecords, 2);
+    assert.equal(merged.session.importBatches.length, 1);
+    assert.equal(merged.session.records[1].importBatchId, merged.batch.id);
   });
 });

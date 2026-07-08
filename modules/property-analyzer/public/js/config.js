@@ -516,6 +516,8 @@ R.state = {
   searchQuery: '',
   locationFilter: null,
   locationHubQuery: '',
+  importBatches: [],
+  importDateFilter: [],
   sortMode: 'newest',
   setupCollapsed: false,
   scoreEditKey: null,
@@ -542,6 +544,24 @@ R.state = {
 
 R.DISPLAY_LIMIT_INITIAL = 80;
 R.DISPLAY_LIMIT_STEP = 80;
+R.ANALYZE_DISPLAY_LIMIT_INITIAL = 30;
+R.ANALYZE_DISPLAY_LIMIT_STEP = 30;
+
+R.getDisplayLimitInitial = function getDisplayLimitInitial() {
+  return document.body.classList.contains('analyze-phuglee')
+    ? ANALYZE_DISPLAY_LIMIT_INITIAL
+    : DISPLAY_LIMIT_INITIAL;
+};
+
+R.getDisplayLimitStep = function getDisplayLimitStep() {
+  return document.body.classList.contains('analyze-phuglee')
+    ? ANALYZE_DISPLAY_LIMIT_STEP
+    : DISPLAY_LIMIT_STEP;
+};
+
+R.resetDisplayLimit = function resetDisplayLimit() {
+  state.displayLimit = getDisplayLimitInitial();
+};
 R.MAX_LIVE_DOM_CARDS = 60;
 R.VIRTUAL_ROW_HEIGHT = 340;
 R.VIRTUAL_CARD_MIN_WIDTH = 280;
@@ -549,7 +569,24 @@ R.VIRTUAL_CARD_GAP = 20;
 R.VIRTUAL_OVERSCAN = 5;
 R.VIRTUAL_MAX_DOM = 40;
 R.VIRTUAL_SCROLL_THRESHOLD = 48;
+
+R.shouldUseVirtualScroll = function shouldUseVirtualScroll(itemCount) {
+  if (document.body.classList.contains('analyze-phuglee')) return false;
+  const n = itemCount ?? (state.results?.length ?? 0);
+  return n > VIRTUAL_SCROLL_THRESHOLD;
+};
 R.SESSION_PAGE_SIZE = 1000;
+R.ANALYZE_SESSION_FIRST_PAGE = 100;
+
+R.getSessionFirstPageSize = function getSessionFirstPageSize() {
+  return document.body.classList.contains('analyze-phuglee')
+    ? ANALYZE_SESSION_FIRST_PAGE
+    : SESSION_PAGE_SIZE;
+};
+
+R.isAnalyzeLayout = function isAnalyzeLayout() {
+  return document.body.classList.contains('analyze-phuglee');
+};
 R.FETCH_KEEPALIVE_MAX_BYTES = 64000;
 R.SESSION_STUB_MAX_BYTES = 10 * 1024;
 
@@ -591,6 +628,11 @@ R.resetVirtualScrollDom = function resetVirtualScrollDom() {
   virtualScroll.scrollTop = 0;
   cardsVirtualSpacer = null;
   cardsVirtualWindow = null;
+  cardsGrid?.classList.remove('cards-grid--virtual');
+  if (cardsGrid) {
+    cardsGrid.style.maxHeight = '';
+    cardsGrid.style.overflowY = '';
+  }
 }
 
 R.resetVirtualScrollPosition = function resetVirtualScrollPosition() {
@@ -646,10 +688,30 @@ R.getVirtualScrollMetrics = function getVirtualScrollMetrics() {
   };
 }
 
+R.syncVirtualGridMaxHeight = function syncVirtualGridMaxHeight() {
+  if (!cardsGrid || !virtualScroll.initialized) return;
+  const analyzeLayout = document.body.classList.contains('analyze-phuglee');
+  if (!analyzeLayout) {
+    cardsGrid.style.maxHeight = 'calc(100vh - 220px)';
+    return;
+  }
+  const top = cardsGrid.getBoundingClientRect().top;
+  const bottomPad = document.body.classList.contains('has-status-bar') ? 40 : 24;
+  const h = Math.max(360, window.innerHeight - top - bottomPad);
+  cardsGrid.style.maxHeight = `${Math.round(h)}px`;
+  cardsGrid.style.overflowY = 'auto';
+};
+
 R.initVirtualScroll = function initVirtualScroll() {
   if (!cardsGrid || virtualScroll.initialized) return;
-  cardsGrid.style.overflowY = 'auto';
-  cardsGrid.style.maxHeight = 'calc(100vh - 220px)';
+  if (!shouldUseVirtualScroll()) return;
+  const analyzeLayout = document.body.classList.contains('analyze-phuglee');
+  cardsGrid.style.overflowY = analyzeLayout ? 'auto' : 'auto';
+  if (!analyzeLayout) {
+    cardsGrid.style.maxHeight = 'calc(100vh - 220px)';
+  } else {
+    syncVirtualGridMaxHeight();
+  }
   cardsGrid.style.position = 'relative';
   cardsVirtualSpacer = document.createElement('div');
   cardsVirtualSpacer.id = 'cardsVirtualSpacer';
@@ -674,12 +736,14 @@ R.initVirtualScroll = function initVirtualScroll() {
       if (!virtualScroll.resizeRaf) {
         virtualScroll.resizeRaf = requestAnimationFrame(() => {
           virtualScroll.resizeRaf = null;
+          syncVirtualGridMaxHeight();
           renderVirtualCards();
         });
       }
     }, { passive: true });
   }
   virtualScroll.initialized = true;
+  cardsGrid.classList.add('cards-grid--virtual');
   if (typeof resetThumbObserver === 'function') resetThumbObserver();
 }
 
@@ -701,6 +765,27 @@ R.locationHubEmpty = $('locationHubEmpty');
 R.locationBreadcrumb = $('locationBreadcrumb');
 R.locationBreadcrumbLabel = $('locationBreadcrumbLabel');
 R.locationBreadcrumbChange = $('locationBreadcrumbChange');
+R.scanReadySection = $('scanReadySection');
+R.scanReadyLocation = $('scanReadyLocation');
+R.scanReadyCount = $('scanReadyCount');
+R.scanReadyStartBtn = $('scanReadyStartBtn');
+R.reviewLeadsBtn = $('reviewLeadsBtn');
+R.reviewLeadsMenu = $('reviewLeadsMenu');
+R.reviewLeadsWrap = $('reviewLeadsWrap');
+R.liveScanSection = $('liveScanSection');
+R.liveScanFeed = $('liveScanFeed');
+R.liveScanProgress = $('liveScanProgress');
+R.historicalStateSelect = $('historicalStateSelect');
+R.historicalCitySelect = $('historicalCitySelect');
+R.uploadDateFilter = $('uploadDateFilter');
+R.uploadDateChips = $('uploadDateChips');
+R.localKpiSection = $('localKpiSection');
+R.localDistressed = $('localDistressed');
+R.localReview = $('localReview');
+R.localTotal = $('localTotal');
+R.localKpiTitle = $('localKpiTitle');
+R.resultsExportCsvBtn = $('resultsExportCsvBtn');
+R.resultsExportExcelBtn = $('resultsExportExcelBtn');
 R.resultsWrap = $('resultsWrap');
 R.previewImg = $('previewImg');
 R.previewSatImg = $('previewSatImg');
@@ -805,16 +890,11 @@ R.resultSearch = $('resultSearch');
 R.setupZone = $('setupZone');
 R.uploadCollapsedBar = $('uploadCollapsedBar');
 R.uploadCollapsedBtn = $('uploadCollapsedBtn');
-R.commandFileStatus = $('commandFileStatus');
-R.commandTitle = $('commandTitle');
-R.commandTagline = $('commandTagline');
+R.heroCount = null;
 R.sidebarTitle = $('sidebarTitle');
 R.sidebarTagline = $('sidebarTagline');
 R.scanProgressTitle = $('scanProgressTitle');
-R.commandHeroLabel = $('commandHeroLabel');
-R.emptyWorkspace = $('emptyWorkspace');
 R.mainWorkspace = $('mainWorkspace');
-R.sessionRestoreBanner = $('sessionRestoreBanner');
 R.settingsModal = $('settingsModal');
 R.settingsModalBackdrop = $('settingsModalBackdrop');
 R.settingsModalClose = $('settingsModalClose');
@@ -823,8 +903,7 @@ R.uploadModal = $('uploadModal');
 R.uploadModalBackdrop = $('uploadModalBackdrop');
 R.uploadModalClose = $('uploadModalClose');
 R.openUploadModalBtn = $('openUploadModalBtn');
-R.emptyUploadBtn = $('emptyUploadBtn');
-R.emptySettingsBtn = $('emptySettingsBtn');
+
 R.brainModal = $('brainModal');
 R.brainModalBackdrop = $('brainModalBackdrop');
 R.brainModalClose = $('brainModalClose');
@@ -846,7 +925,9 @@ R.sidebarSettingsBackupHint = $('sidebarSettingsBackupHint');
 R.EXPORT_MENU_BTNS = [
   sidebarExportExcelBtn,
   sidebarExportCsvBtn,
-  sidebarExportAllBtn
+  sidebarExportAllBtn,
+  resultsExportCsvBtn,
+  resultsExportExcelBtn
 ];
 
 R.appNav = $('appNav');
@@ -856,13 +937,13 @@ R.navDashboard = $('navDashboard');
 R.navScan = $('navScan');
 R.previewHeaderTitle = $('previewHeaderTitle');
 R.liveDot = $('liveDot');
-R.heroCount = $('heroCount');
+
 R.logPanel = $('logPanel');
 R.gaugeFill = $('gaugeFill');
 R.gaugeNum = $('gaugeNum');
 
 R.recBadge = $('recBadge');
-R.hudStatus = $('hudStatus');
+
 R.liveTierAlertStack = $('liveTierAlertStack');
 R.TIER_ALERT_LIFETIME_MS = 4000;
 R.MAX_TIER_ALERT_STACK = 1;
@@ -1022,11 +1103,8 @@ R.clearServerOfflineFatalBanner = function clearServerOfflineFatalBanner() {
 R.updateServerOfflineBanner = function updateServerOfflineBanner() {
   if (!USE_PROXY) return;
   if (serverOnline === false && !state.running) {
-    setSessionRestoreBanner('Server not running — double-click "Property Distress Analyzer" on your desktop, then refresh this page.', true);
     updateStartButton();
   } else if (serverOnline === true) {
-    const banner = sessionRestoreBanner?.querySelector('span')?.textContent || '';
-    if (/server not running/i.test(banner)) setSessionRestoreBanner('');
     clearServerOfflineFatalBanner();
     updateStartButton();
   }
@@ -1519,19 +1597,13 @@ R.getStartBlockReason = function getStartBlockReason() {
 
 R.updateStartButton = function updateStartButton() {
   const reason = getStartBlockReason();
-  startBtn.disabled = !!reason;
-  const hint = $('startBlockHint');
-  if (hint) {
-    if (reason && !state.running) {
-      hint.textContent = reason;
-      hint.hidden = false;
-    } else {
-      hint.hidden = true;
-      hint.textContent = '';
-    }
+  if (startBtn) {
+    startBtn.disabled = !!reason;
+    startBtn.title = reason || 'Analyze unscanned leads (keeps existing results)';
   }
-  startBtn.title = reason || 'Analyze unscanned leads (keeps existing results)';
-  resetUploadBtn.disabled = state.running || (!state.records.length && !state.results.length && !state.fileName);
+  if (resetUploadBtn) {
+    resetUploadBtn.disabled = state.running || (!state.records.length && !state.results.length && !state.fileName);
+  }
 }
 
 R.runStreetViewTest = async function runStreetViewTest() {

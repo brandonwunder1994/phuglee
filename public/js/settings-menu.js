@@ -74,9 +74,19 @@
 
   function adminSectionHtml() {
     if (!isAdmin()) return '';
+    var onAnalyzer = window.location.pathname.indexOf('/analyzer') === 0;
+    var analyzerItems = onAnalyzer
+      ? '<button type="button" class="shell-settings-item" data-analyzer-action="api-keys" role="menuitem">' +
+          '<span class="shell-settings-item-icon">🔑</span> API Keys' +
+        '</button>' +
+        '<button type="button" class="shell-settings-item" data-analyzer-action="ai-brain" role="menuitem">' +
+          '<span class="shell-settings-item-icon">🧠</span> AI Brain' +
+        '</button>'
+      : '';
     return (
       '<div class="shell-settings-section" data-admin-only>' +
         '<div class="shell-settings-section-label">Admin</div>' +
+        analyzerItems +
         '<a href="/collect?open=pdf-filler" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">📄</span> PDF Filler' +
         '</a>' +
@@ -197,6 +207,17 @@
         var mode = btn.getAttribute('data-theme-mode');
         if (window.PhugleeTheme) window.PhugleeTheme.setTheme(mode);
         refreshThemeButtons();
+      });
+    });
+
+    root.querySelectorAll('[data-analyzer-action]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeDropdown();
+        window.dispatchEvent(new CustomEvent('phuglee-analyzer-action', {
+          detail: { action: btn.getAttribute('data-analyzer-action') }
+        }));
       });
     });
 

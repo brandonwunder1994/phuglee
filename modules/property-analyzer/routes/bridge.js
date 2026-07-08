@@ -42,7 +42,13 @@ function register(ctx) {
 
     const { scope, session } = backups.loadSessionForRequest(req);
     const base = finalizeSession(backups, session);
-    const merged = appendRecordsToSession(base, records);
+    const sample = records[0] || {};
+    const merged = appendRecordsToSession(base, records, {
+      city: body.city || sample.city,
+      state: body.state || sample.state,
+      sourceFile: body.sourceFile || sample.bridgeSourceFile || '',
+      importedAt: Number(body.importedAt) || Date.now()
+    });
     merged.session.fileName = String(body.sourceFile || merged.session.fileName || 'Filter import').trim();
     if (body.uploadType) {
       merged.session.importLeadType = String(body.uploadType).trim();

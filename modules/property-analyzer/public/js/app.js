@@ -1015,7 +1015,7 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
   scheduleSaveSession('scan-batch');
 }
 
-startBtn.addEventListener('click', async () => {
+startBtn?.addEventListener('click', async () => {
   saveKeys();
   if (USE_PROXY) {
     startBtn.disabled = true;
@@ -1166,7 +1166,7 @@ startBtn.addEventListener('click', async () => {
 
   flushThrottledUi(true);
   hideLiveTierAlert();
-  state.displayLimit = DISPLAY_LIMIT_INITIAL;
+  resetDisplayLimit();
   cardsGrid?.querySelector('.results-scan-cap-hint')?.remove();
   await renderResultsProgressive();
 
@@ -1222,7 +1222,7 @@ startBtn.addEventListener('click', async () => {
   flushSaveSession({ sync: true, force: true, reason: 'scan-complete' });
 });
 
-stopBtn.addEventListener('click', () => {
+stopBtn?.addEventListener('click', () => {
   state.aborted = true;
   stopBtn.disabled = true;
   log('Stopping after current batch completes…');
@@ -1268,7 +1268,7 @@ R.initAppShell = function initAppShell() {
   let cmdFiltered = [];
 
   const cmdActions = [
-    { label: 'Start scan', hint: 'Begin property analysis', run: () => startBtn?.click(), when: () => startBtn && !startBtn.disabled },
+    { label: 'Start scan', hint: 'Begin property analysis', run: () => (scanReadyStartBtn || startBtn)?.click(), when: () => (scanReadyStartBtn || startBtn) && !(scanReadyStartBtn || startBtn).disabled },
     { label: 'Stop scan', hint: 'Halt current batch', run: () => stopBtn?.click(), when: () => stopBtn && !stopBtn.disabled },
     { label: 'Upload spreadsheet', hint: 'Load Excel file', run: () => openUploadModal() },
     { label: 'Export all leads (Excel)', hint: 'Full spreadsheet — all leads in database', run: () => exportResults('xlsx', { scope: 'all', profile: 'full' }), when: () => sidebarExportExcelBtn && !sidebarExportExcelBtn.disabled },
@@ -1289,10 +1289,8 @@ R.initAppShell = function initAppShell() {
     { label: 'Filter: Well Maintained', run: () => setFilter('well_maintained') },
     { label: 'Filter: Vacant lots', run: () => setFilter('vacant') },
     { label: 'Filter: Needs review', run: () => setFilter('review') },
-    { label: 'Go to overview', run: () => summarySection?.scrollIntoView({ behavior: 'smooth', block: 'start' }) },
-    { label: 'Go to lead rankings', run: () => scrollToLeadRankingsOrHub() },
-    { label: 'Collapse live workers', hint: 'Hide worker cards during scan', run: () => setAgentPanelCollapsed(true), when: () => state.running && !isAgentPanelCollapsed() },
-    { label: 'Expand live workers', hint: 'Show worker cards', run: () => { setAgentPanelCollapsed(false); $('agentGridPanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, when: () => state.running && isAgentPanelCollapsed() }
+    { label: 'Go to overview', run: () => scanReadySection?.scrollIntoView({ behavior: 'smooth', block: 'start' }) },
+    { label: 'Review leads', hint: 'Open review queue', run: () => reviewLeadsBtn?.click(), when: () => reviewLeadsBtn && !reviewLeadsBtn.disabled },
   ];
 
   window.showUiToast = (msg) => {
@@ -1441,8 +1439,6 @@ if (hudClock) {
 
 window.addEventListener('error', (e) => {
   console.error('App error', e.error || e.message);
-  emptyWorkspace?.classList.remove('hidden-by-app');
-  setSessionRestoreBanner('App hit an error — click Restore my last scan below or hard refresh (Ctrl+Shift+R).', true);
 });
 
 try {
@@ -1510,59 +1506,77 @@ try {
   updateStartButton();
 } catch (bootErr) {
   console.error('Startup init failed', bootErr);
-  emptyWorkspace?.classList.remove('hidden-by-app');
-  setSessionRestoreBanner('Startup failed — click Restore my last scan below.', true);
 }
 
 R.resultsUiRendered = false;
 
 R.bootstrapApp = async function bootstrapApp() {
+  if (document.body.classList.contains('analyze-phuglee') && virtualScroll.initialized) {
+    resetVirtualScrollDom();
+  }
+  if (document.body.classList.contains('analyze-phuglee')) {
+    resetDisplayLimit();
+  }
   resetBlockingUiOnLoad();
   const primed = primeSessionFromLocalStorage();
   if (primed) {
     mainWorkspace?.classList.add('visible');
-    emptyWorkspace?.classList.remove('visible');
-    emptyWorkspace?.classList.add('hidden-by-app');
     updateSummaryStats();
   }
   try {
     if (USE_PROXY && typeof fetchServerConfig === 'function') {
       try { await fetchServerConfig(); } catch (_) { /* proceed; thumbs refresh when config loads */ }
     }
-    await loadSession();
-    if (USE_PROXY && state.results.length && typeof fetchImageryIndexMap === 'function') {
-      try { await fetchImageryIndexMap(); } catch (_) { /* live imagery fallback */ }
+    if (USE_PROXY && typeof fetchImageryIndexMap === 'function') {
+      fetchImageryIndexMap().catch(() => {});
     }
+    await loadSession();
     scheduleDeferredImageryHydrate();
     runResortWellMaintainedFromUrl();
     scheduleDeferredSessionMigration();
   } catch (e) {
     console.error('bootstrapApp failed', e);
     resetBlockingUiOnLoad();
-    setSessionRestoreBanner('Startup error — click Restore my last scan below.', true);
   } finally {
     resetBlockingUiOnLoad();
     updateCommandBar();
     startServerStatusPolling();
     startAlwaysOnSafetyPolling();
     updateStartButton();
+    syncAdminUi?.();
+    updateScanReadyUi?.();
+    updateLocationHubUi?.();
     if (state.results.length) {
       updateSummaryStats();
       updateCommandBar();
       updateExportButtons();
       mainWorkspace?.classList.add('visible');
-      emptyWorkspace?.classList.remove('visible');
-      emptyWorkspace?.classList.add('hidden-by-app');
-      if (!resultsUiRendered) await renderResultsProgressive();
-      else if (state.viewMode === 'cards' && state.results.length > VIRTUAL_SCROLL_THRESHOLD) renderVirtualCards();
+      if (!resultsUiRendered) {
+        if (isAnalyzeLayout()) renderResults({ force: true });
+        else await renderResultsProgressive();
+      } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) renderVirtualCards();
       else refreshAllCardThumbs();
+      preloadAnalyzeCardThumbs?.();
       setTimeout(() => runImageryMigrationIfNeeded(), 2500);
-    } else if (!state.records.length) {
-      emptyWorkspace?.classList.remove('hidden-by-app');
-      emptyWorkspace?.classList.add('visible');
     }
   }
 };
+  R.syncAdminUi = function syncAdminUi() {
+    const isAdmin = window.PhugleeSettings?.isAdmin?.() || (() => {
+      try { return sessionStorage.getItem('phuglee_session') === 'admin'; } catch (_) { return false; }
+    })();
+    document.querySelectorAll('.sidebar-admin-only').forEach((el) => {
+      el.hidden = !isAdmin;
+      el.setAttribute('aria-hidden', isAdmin ? 'false' : 'true');
+    });
+  };
+
+  window.addEventListener('phuglee-analyzer-action', (e) => {
+    const action = e.detail?.action;
+    if (action === 'api-keys') openSettingsModal();
+    if (action === 'ai-brain') openBrainModal();
+  });
+
   R.bootstrapApp();
 }
   PDA.app = {

@@ -35,6 +35,7 @@ RUN python3 -c "import sys; sys.path.insert(0,'modules/form-forge'); from review
   && python3 -c "from waitress import serve; print('waitress ok')"
 
 ENV NODE_ENV=production
+ENV PHUGLEE_AUTH_DISABLED=1
 ENV DISTRESS_OS_HOST=0.0.0.0
 ENV FORM_FORGE_HOST=0.0.0.0
 ENV PROPERTY_ANALYZER_HOST=0.0.0.0

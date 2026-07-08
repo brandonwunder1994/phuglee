@@ -83,11 +83,35 @@
     return `${filter.state}|${city}`;
   }
 
+  /** Records in the active market scope (location + upload dates + lead type), before tier/search filters. */
+  function filterResultsForMarket(results, scope, hooks) {
+    const {
+      locationFilter = null,
+      importDateFilter = [],
+      leadTypeFilter = 'all'
+    } = scope || {};
+    const {
+      normalizeStateAbbr: normAbbr = (s) => s,
+      matchesImportDateFilter = () => true,
+      resultLeadType = () => 'all'
+    } = hooks || {};
+
+    const out = [];
+    for (const r of results || []) {
+      if (leadTypeFilter && leadTypeFilter !== 'all' && resultLeadType(r) !== leadTypeFilter) continue;
+      if (locationFilter && !matchesLocationFilter(r, locationFilter, normAbbr)) continue;
+      if (!matchesImportDateFilter(r, importDateFilter)) continue;
+      out.push(r);
+    }
+    return out;
+  }
+
   return {
     UNKNOWN_STATE,
     buildLocationIndex,
     matchesLocationFilter,
     filterLocationIndex,
-    locationFilterKey
+    locationFilterKey,
+    filterResultsForMarket
   };
 });

@@ -21,17 +21,20 @@
   <link rel="stylesheet" href="/css/cyber-theme.css">
   <link rel="stylesheet" href="/css/cyber-ultra.css">
   <link rel="stylesheet" href="/css/cyber-review.css">
-  <link rel="stylesheet" href="/css/cyber-modals.css">
+  <link rel="stylesheet" href="/css/cyber-modals.css?v=2">
   <link rel="stylesheet" href="/css/cyber-data.css">
   <link rel="stylesheet" href="/css/cyber-polish.css">
   <link rel="stylesheet" href="/css/heat-theme.css">
   <link rel="stylesheet" href="/css/premium-analyzer.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=3">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/phuglee-components.css">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=11">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <link rel="stylesheet" href="/css/premium-motion.css">
+  <script src="/js/phuglee-motion.js" defer></script>
   <script src="/js/phuglee-states.js" defer></script>
 </head>
-<body class="cyber-theme heat-theme">
+<body class="cyber-theme heat-theme analyze-phuglee">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
   <div class="ambient-orb ambient-orb-1" aria-hidden="true"></div>
   <div class="ambient-orb ambient-orb-2" aria-hidden="true"></div>
@@ -41,7 +44,7 @@
   <div class="grain" aria-hidden="true"></div>
   <div class="vignette" aria-hidden="true"></div>
   <div class="app-shell">
-    <aside class="app-sidebar" id="appSidebar" aria-label="Main navigation">
+    <aside class="app-sidebar analyze-sidebar" id="appSidebar" aria-label="Main navigation">
       <div class="sidebar-brand">
         <div class="sidebar-logo" aria-hidden="true">◇</div>
         <div>
@@ -51,66 +54,29 @@
         </div>
       </div>
       <nav class="sidebar-nav">
-        <button type="button" class="sidebar-nav-btn active" data-nav="overview" data-scroll="summarySection"><span class="nav-icon">◈</span><span>Overview</span></button>
-        <button type="button" class="sidebar-nav-btn" data-nav="leads" data-scroll="dashboard"><span class="nav-icon">▣</span><span>Lead Rankings</span></button>
-        <div class="sidebar-nav-group" id="sidebarReviewGroup">
-          <button type="button" class="sidebar-nav-btn sidebar-nav-toggle" id="sidebarReviewToggle" aria-expanded="false" aria-controls="sidebarReviewMenu">
-            <span class="nav-icon">◉</span><span>Review</span><span class="sidebar-chevron" aria-hidden="true">▾</span>
-          </button>
-          <div class="sidebar-submenu" id="sidebarReviewMenu" role="menu">
-            <button type="button" class="sidebar-submenu-btn review-distressed" id="sidebarReviewDistressedBtn" role="menuitem" disabled>⚠️ Distressed</button>
-            <button type="button" class="sidebar-submenu-btn review-well-maintained" id="sidebarReviewWellMaintainedBtn" role="menuitem" disabled>✨ Well Maintained</button>
-            <button type="button" class="sidebar-submenu-btn review-land" id="sidebarReviewLandBtn" role="menuitem" disabled>🏜️ Land</button>
-            <button type="button" class="sidebar-submenu-btn review-needs-review" id="sidebarReviewNeedsReviewBtn" role="menuitem" disabled>⚠️ Manual Review</button>
-          </div>
-        </div>
-        <div class="sidebar-nav-group" id="sidebarOverflowGroup">
+        <button type="button" class="sidebar-nav-btn active" data-nav="overview" data-scroll="scanReadySection"><span class="nav-icon">◈</span><span>Overview</span></button>
+        <div class="sidebar-nav-group sidebar-admin-only" id="sidebarOverflowGroup" hidden>
           <button type="button" class="sidebar-nav-btn sidebar-nav-toggle" id="sidebarOverflowToggle"
-            aria-expanded="false" aria-controls="sidebarOverflowMenu" aria-label="More actions" title="More actions">
-            <span class="nav-icon">···</span><span>More</span><span class="sidebar-chevron" aria-hidden="true">▾</span>
+            aria-expanded="false" aria-controls="sidebarOverflowMenu" aria-label="Admin actions" title="Admin actions">
+            <span class="nav-icon">···</span><span>Admin</span><span class="sidebar-chevron" aria-hidden="true">▾</span>
           </button>
           <div class="sidebar-overflow-menu" id="sidebarOverflowMenu" role="menu" hidden>
             <div class="sidebar-overflow-section">
-              <div class="sidebar-overflow-section-label">Settings</div>
-              <div class="sidebar-nav-group sidebar-overflow-accordion" id="sidebarSettingsGroup">
-                <button type="button" class="sidebar-overflow-accordion-btn sidebar-nav-toggle" id="sidebarSettingsToggle" aria-expanded="false" aria-controls="sidebarSettingsMenu">
-                  <span class="sidebar-overflow-accordion-icon" aria-hidden="true">⚙</span>
-                  <span class="sidebar-overflow-accordion-label">Settings</span>
-                  <span class="sidebar-chevron" aria-hidden="true">▾</span>
-                </button>
-                <div class="sidebar-overflow-panel" id="sidebarSettingsMenu" role="menu">
-                  <button type="button" class="sidebar-overflow-item" data-action="openSettingsBtn" role="menuitem">API Keys</button>
-                  <button type="button" class="sidebar-overflow-item" data-action="openBrainBtn" role="menuitem">AI Brain</button>
-                  <div class="sidebar-overflow-divider">Backup</div>
-                  <button type="button" class="sidebar-overflow-item sidebar-overflow-item-accent" id="sidebarSettingsSaveBackupBtn" role="menuitem" title="Save your current sorting to disk and download a copy">Save Backup Now</button>
-                  <p class="sidebar-overflow-hint" id="sidebarSettingsBackupHint">Saves bucket moves to server + downloads JSON</p>
-                </div>
-              </div>
-            </div>
-            <div class="sidebar-overflow-section">
-              <div class="sidebar-overflow-section-label">Data</div>
-              <div class="sidebar-nav-group sidebar-overflow-accordion" id="sidebarManageDataGroup">
-                <button type="button" class="sidebar-overflow-accordion-btn sidebar-nav-toggle" id="sidebarManageDataToggle" aria-expanded="false" aria-controls="sidebarManageDataMenu">
-                  <span class="sidebar-overflow-accordion-icon" aria-hidden="true">⇅</span>
-                  <span class="sidebar-overflow-accordion-label">Manage Data</span>
-                  <span class="sidebar-chevron" aria-hidden="true">▾</span>
-                </button>
-                <div class="sidebar-overflow-panel" id="sidebarManageDataMenu" role="menu">
-                  <div class="sidebar-overflow-divider">Import</div>
-                  <button type="button" class="sidebar-overflow-item" data-action="openUploadModalBtn" role="menuitem">Upload Spreadsheet</button>
-                  <button type="button" class="sidebar-overflow-item" id="sidebarLoadBackupBtn" role="menuitem">Load Backup JSON</button>
-                  <div class="sidebar-overflow-divider">Export</div>
-                  <p class="sidebar-overflow-hint" id="sidebarExportHint">Run a scan to export</p>
-                  <button type="button" class="sidebar-overflow-item" id="sidebarExportExcelBtn" role="menuitem" disabled>Excel — all leads</button>
-                  <button type="button" class="sidebar-overflow-item" id="sidebarExportCsvBtn" role="menuitem" disabled>CSV — current list</button>
-                  <button type="button" class="sidebar-overflow-item" id="sidebarExportAllBtn" role="menuitem" disabled>Export Database (Excel)</button>
-                  <button type="button" class="sidebar-overflow-item" id="sidebarSaveBackupBtn" role="menuitem">Download Session Backup</button>
-                </div>
-              </div>
+              <div class="sidebar-overflow-section-label">Backup</div>
+              <button type="button" class="sidebar-overflow-item" id="sidebarLoadBackupBtn" role="menuitem">Load Backup JSON</button>
+              <button type="button" class="sidebar-overflow-item sidebar-overflow-item-accent" id="sidebarSettingsSaveBackupBtn" role="menuitem">Save Backup Now</button>
+              <button type="button" class="sidebar-overflow-item" id="sidebarSaveBackupBtn" role="menuitem">Download Session Backup</button>
+              <p class="sidebar-overflow-hint" id="sidebarSettingsBackupHint">Admin backup tools</p>
             </div>
           </div>
         </div>
       </nav>
+      <div class="sidebar-review-bridge" hidden aria-hidden="true">
+        <button type="button" class="sidebar-submenu-btn review-distressed" id="sidebarReviewDistressedBtn" disabled>Distressed</button>
+        <button type="button" class="sidebar-submenu-btn review-well-maintained" id="sidebarReviewWellMaintainedBtn" disabled>Well Maintained</button>
+        <button type="button" class="sidebar-submenu-btn review-land" id="sidebarReviewLandBtn" disabled>Land</button>
+        <button type="button" class="sidebar-submenu-btn review-needs-review" id="sidebarReviewNeedsReviewBtn" disabled>Manual Review</button>
+      </div>
     </aside>
 
     <div class="app-shell-main" id="main">
@@ -133,210 +99,150 @@
   <div class="app">
     <div class="error-banner" id="errorBanner"></div>
 
-    <header class="command-bar glass panel-chrome" id="commandBar">
-      <div class="command-bar-brand">
-        <div class="command-title" id="commandTitle">Analyze</div>
-        <div class="command-tagline" id="commandTagline">AI ranks Street View distress — you double-check every tier</div>
+    <div id="analyzeControls" hidden aria-hidden="true">
+      <button type="button" id="startBtn" disabled>Start Scan</button>
+      <button type="button" id="stopBtn" disabled>Stop</button>
+      <button type="button" id="openSettingsBtn"></button>
+      <button type="button" id="openBrainBtn"></button>
+      <button type="button" id="openUploadModalBtn"></button>
+      <button type="button" id="loadBackupBtn"></button>
+      <button type="button" id="saveBackupNowBtn"></button>
+      <input type="file" id="loadBackupInput" accept=".json,application/json" aria-label="Load JSON backup">
+      <div class="command-workers-status" id="commandWorkersStatus" hidden>
+        <span id="commandWorkersLabel">Workers —</span>
       </div>
-      <div class="command-bar-status">
-        <span class="command-status-dot" id="commandStatusDot" aria-hidden="true"></span>
-        <span id="commandHeroStatus"><span class="command-hero-count" id="heroCount">—</span> <span id="commandHeroLabel">properties scanned</span></span>
-        <span aria-hidden="true"> · </span>
-        <span class="command-status-chip sys-ok" id="hudStatus">System Online</span>
-        <span class="command-save-status" id="commandSaveStatus" hidden></span>
-      </div>
-      <div class="command-bar-left" hidden aria-hidden="true">
-        <div class="command-file-status" id="commandFileStatus">No file loaded</div>
-        <div class="command-workers-status" id="commandWorkersStatus" hidden title="Active parallel workers during scan">
-          <span class="command-workers-dot" aria-hidden="true"></span>
-          <span id="commandWorkersLabel">Workers —</span>
-        </div>
-        <div class="command-backup-size" id="backupSizeIndicator" hidden>Backup: —</div>
-      </div>
-      <div class="command-bar-actions">
-        <button class="btn-primary command-btn" id="startBtn" disabled type="button">
-          <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          Start Scan
-        </button>
-        <p class="key-note" id="startBlockHint" hidden style="margin:0;width:100%;color:var(--warning-bright);font-size:0.72rem;"></p>
-        <button class="btn-danger command-btn" id="stopBtn" disabled type="button">
-          <svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
-          Stop
-        </button>
-      </div>
-      <div hidden aria-hidden="true">
-        <button type="button" id="openSettingsBtn"></button>
-        <button type="button" id="openBrainBtn"></button>
-        <button type="button" id="openUploadModalBtn"></button>
-        <button type="button" id="loadBackupBtn"></button>
-        <button type="button" id="saveBackupNowBtn"></button>
-
-        <input type="file" id="loadBackupInput" accept=".json,application/json" aria-label="Load JSON backup">
-      </div>
-    </header>
-
-    <div class="session-restore-banner" id="sessionRestoreBanner" role="status" aria-live="polite"></div>
-
-    <section class="empty-workspace phuglee-empty-state" id="emptyWorkspace">
-      <h2>Import your bridged list</h2>
-      <p>Upload an Excel export from Filter — or any spreadsheet with addresses. Press <kbd>⌘K</kbd> for settings, backup, and export.</p>
-      <div class="empty-workspace-actions">
-        <button type="button" class="btn-primary" id="emptyUploadBtn">Upload spreadsheet</button>
-        <button type="button" class="btn-secondary" id="emptyRestoreBackupBtn" title="Restore your last saved scan from server backup">Restore my last scan</button>
-        <button type="button" class="btn-clear" id="emptySettingsBtn" hidden>API Keys</button>
-        <button type="button" class="btn-secondary" id="emptySaveBackupBtn" title="Download timestamped JSON backup" hidden>Save Backup</button>
-        <button type="button" class="btn-secondary" id="emptyLoadBackupBtn" title="Load a JSON backup file" hidden>Load Backup</button>
-        <button type="button" class="btn-clear" id="emptyResetDataBtn" title="Clears saved session if the app is stuck" hidden>Reset saved data</button>
-      </div>
-      <p class="empty-workspace-hint" id="emptyWorkspaceHint" hidden>API keys required before scanning — open Settings to configure.</p>
-    </section>
+      <div id="backupSizeIndicator" hidden>Backup: —</div>
+    </div>
 
     <div class="setup-zone collapsed" id="setupZone" hidden aria-hidden="true"></div>
     <div class="upload-collapsed-bar" id="uploadCollapsedBar" hidden aria-hidden="true"></div>
 
-    <div class="main-workspace" id="mainWorkspace">
+    <div class="main-workspace visible" id="mainWorkspace">
 
-    <section class="progress-section scan-progress-slim panel-chrome" id="progressSection">
-      <div class="scan-progress-header">
-        <h2 id="scanProgressTitle">Scanning</h2>
+    <div class="analyze-hero-zone" data-phuglee-reveal>
+      <header class="analyze-page-hero">
+        <p class="analyze-step-label">Step 03 · Analyze</p>
+        <h1 class="analyze-page-title">Rank visible distress</h1>
+        <p class="analyze-page-lead">AI scans Street View, ranks every property, and builds a dial-ready database — you double-check every tier.</p>
+      </header>
+
+      <nav class="analyze-pipeline" aria-label="Analyze workflow">
+        <ol class="analyze-pipeline-list">
+          <li class="analyze-pipeline-step is-complete"><span>1</span> Import</li>
+          <li class="analyze-pipeline-step is-active"><span>2</span> Scan</li>
+          <li class="analyze-pipeline-step"><span>3</span> Review</li>
+          <li class="analyze-pipeline-step"><span>4</span> Export</li>
+        </ol>
+      </nav>
+
+    <section class="scan-ready-section phuglee-panel phuglee-panel-featured analyze-panel" id="scanReadySection" hidden data-phuglee-reveal-child>
+      <div class="scan-ready-meta">
+        <p class="analyze-panel-eyebrow">Ready to scan</p>
+        <h2 class="scan-ready-location" id="scanReadyLocation">—</h2>
+        <p class="scan-ready-count analyze-panel-lead" id="scanReadyCount">—</p>
+      </div>
+      <div class="scan-ready-actions">
+        <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Start Scan</button>
+        <div class="review-leads-wrap" id="reviewLeadsWrap">
+          <button type="button" class="btn-secondary review-leads-btn" id="reviewLeadsBtn" disabled aria-haspopup="true" aria-expanded="false" aria-controls="reviewLeadsMenu">Review Leads</button>
+          <div class="review-leads-menu" id="reviewLeadsMenu" role="menu" hidden>
+            <button type="button" class="review-leads-item" data-review-flow="distressed" role="menuitem">Distressed</button>
+            <button type="button" class="review-leads-item" data-review-flow="well_maintained" role="menuitem">Well Maintained</button>
+            <button type="button" class="review-leads-item" data-review-flow="vacant" role="menuitem">Land / Vacant</button>
+            <button type="button" class="review-leads-item" data-review-flow="review" role="menuitem">Manual Review</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="live-scan-section phuglee-panel analyze-panel" id="liveScanSection" hidden aria-live="polite" data-phuglee-reveal-child>
+      <header class="live-scan-head">
+        <span class="live-scan-dot" aria-hidden="true"></span>
+        <h2 class="analyze-panel-heading" id="scanProgressTitle">Live scan</h2>
+        <span class="live-scan-progress" id="liveScanProgress">0 / 0</span>
+      </header>
+      <ol class="live-scan-feed" id="liveScanFeed"></ol>
+      <div class="analyze-scan-legacy" hidden aria-hidden="true">
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
         <span class="progress-pct" id="progressPct">0%</span>
-      </div>
-      <div class="scan-progress-bar-row">
-        <div class="progress-bar-wrap">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
-      </div>
-      <div class="scan-progress-metrics" aria-live="polite">
-        <span>Done <strong id="statDone">0</strong></span>
-        <span class="scan-metric-sep" aria-hidden="true">·</span>
-        <span>Remaining <strong id="statRemaining">0</strong></span>
-        <span class="scan-metric-sep" aria-hidden="true">·</span>
-        <span>Workers <strong><span id="statWorkersActive">0</span>/<span id="statWorkersSet">0</span></strong></span>
-      </div>
-      <span id="statWorkersMetric" hidden></span>
-      <span id="statTotal" hidden aria-hidden="true">0</span>
-      <span id="statBatch" hidden aria-hidden="true">0</span>
-      <span id="statSuccess" hidden aria-hidden="true">0</span>
-      <span id="statSkipped" hidden aria-hidden="true">0</span>
-      <span id="statAvg" hidden aria-hidden="true">—</span>
-      <div class="fail-stats" id="failStats">
-        <div class="fail-stat sv"><span class="num" id="failSvCount">0</span>Failed at Street View</div>
-        <div class="fail-stat gem"><span class="num" id="failGemCount">0</span>Failed at Gemini</div>
-      </div>
-      <button type="button" class="scan-log-toggle" id="scanLogToggle"
-        aria-expanded="false" aria-controls="logPanel">Show scan log</button>
-      <div class="log-panel" id="logPanel" hidden></div>
-    </section>
-
-    <div class="agent-grid-panel glass" id="agentGridPanel" aria-live="polite">
-      <div class="agent-grid-head">
-        <div class="agent-grid-title-row">
-          <h3>Live Workers</h3>
-          <button type="button" class="agent-grid-collapse-btn" id="agentGridCollapseBtn" aria-expanded="true" aria-controls="agentGridBody" title="Hide worker cards to scroll to Scan Summary">Collapse</button>
-        </div>
-        <span class="agent-grid-sub" id="agentGridSub">—</span>
-      </div>
-      <div class="agent-grid-body" id="agentGridBody">
-        <div class="agent-worker-detail" id="agentWorkerSummary">Start a scan to see per-worker status.</div>
-        <div class="agent-grid" id="agentGrid"></div>
-      </div>
-    </div>
-
-    <section class="summary-section panel-chrome" id="summarySection">
-      <div class="summary-actions">
-        <div class="summary-head">
-          <h2>Scan Summary</h2>
-          <p class="summary-intro" id="summaryIntro">Tier breakdown — click a card to filter, shift+click to review.</p>
-        </div>
-      </div>
-
-      <div class="summary-hero-row" id="summaryHeroRow">
-        <div class="summary-kpi-card command-kpi distressed-kpi clickable summary-hero-kpi" id="sumDistressedKpiCard" title="Click to filter distressed leads · Shift+click to open Distressed review queue (only unchecked leads in that queue)">
-          <div class="command-kpi-icon distressed" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-          <div class="summary-kpi-body">
-            <div class="command-kpi-stat">
-              <div class="summary-val command-kpi-num" id="sumDistressedKpi">0</div>
-              <span class="command-kpi-pct" id="sumDistressedKpiPct">0%</span>
-            </div>
-            <div class="summary-lbl">Distressed Homes</div>
-            <div class="summary-hint" id="sumDistressedKpiHint">Visible distress — export for outreach</div>
-          </div>
-        </div>
-        <div class="summary-kpi-card command-kpi review-kpi clickable summary-hero-kpi" id="sumReviewCard" title="Click to filter needs-review leads · Shift+click to review">
-          <div class="command-kpi-icon review" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
-          <div class="summary-kpi-body">
-            <div class="command-kpi-stat">
-              <div class="summary-val command-kpi-num" id="sumReview">0</div>
-              <span class="command-kpi-pct" id="sumReviewPct">0%</span>
-            </div>
-            <div class="summary-lbl">Needs Review</div>
-            <div class="summary-hint">Land vs home conflicts — resolve before dialing</div>
-          </div>
-        </div>
-        <div class="summary-kpi-card summary-hero-kpi" id="sumScannedHeroCard">
-          <div class="summary-val" id="sumScannedHero">0</div>
-          <div class="summary-lbl">Scanned</div>
-          <div class="summary-hint">Properties analyzed this session</div>
-        </div>
-      </div>
-
-      <div id="summaryBreakdown">
-        <div class="summary-pipeline command-pipeline" id="summaryPipeline" aria-label="How your list breaks down">
-          <div class="summary-pipeline-title">List Composition</div>
-          <div class="command-pipeline-track-wrap">
-            <div class="summary-pipeline-track" id="summaryPipelineTrack"></div>
-          </div>
-        </div>
-
-        <div class="summary-grid summary-kpi-grid command-kpi-grid" id="summarySecondaryGrid">
-          <div class="summary-kpi-card command-kpi well-maintained clickable" id="sumWellMaintainedCard" title="Click to filter · Shift+click to review well maintained">
-            <div class="command-kpi-icon well-maintained" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M5 19h14"/></svg></div>
-            <div class="summary-kpi-body">
-              <div class="command-kpi-stat">
-                <div class="summary-val command-kpi-num" id="sumWellMaintained">0</div>
-                <span class="command-kpi-pct" id="sumWellMaintainedPct">0%</span>
-              </div>
-              <div class="summary-lbl">Well Maintained</div>
-              <div class="summary-hint">Manicured lawns — filtered out, not distress targets</div>
-            </div>
-          </div>
-          <div class="summary-kpi-card command-kpi vacant clickable" id="sumVacantCard" title="Click to filter vacant lots · Shift+click to review land leads">
-            <div class="command-kpi-icon vacant" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/></svg></div>
-            <div class="summary-kpi-body">
-              <div class="command-kpi-stat">
-                <div class="summary-val command-kpi-num" id="sumVacant">0</div>
-                <span class="command-kpi-pct" id="sumVacantPct">0%</span>
-              </div>
-              <div class="summary-lbl">Vacant Lot/Land</div>
-              <div class="summary-hint">Empty lots — land deals, not distressed homes</div>
-            </div>
-          </div>
-          <div class="summary-kpi-card command-kpi blurred-kpi clickable" id="sumBlurredCard" title="Click to filter blocked-image leads — blurry, obstructed, or cannot assess the home">
-            <div class="command-kpi-icon blurred" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9" opacity="0.35"/><path d="M8 12h8"/><path d="M12 8v8" opacity="0.5"/></svg></div>
-            <div class="summary-kpi-body">
-              <div class="command-kpi-stat">
-                <div class="summary-val command-kpi-num" id="sumBlurred">0</div>
-                <span class="command-kpi-pct" id="sumBlurredPct">0%</span>
-              </div>
-              <div class="summary-lbl">Blocked Image</div>
-              <div class="summary-hint">Can't see the home — blurry, obstructed, or failed — track separately</div>
-            </div>
-          </div>
-        </div>
+        <span id="statDone">0</span><span id="statRemaining">0</span>
+        <span id="statWorkersActive">0</span><span id="statWorkersSet">0</span>
+        <span id="statWorkersMetric"></span><span id="statTotal">0</span><span id="statBatch">0</span>
+        <span id="statSuccess">0</span><span id="statSkipped">0</span><span id="statAvg">—</span>
+        <span id="failSvCount">0</span><span id="failGemCount">0</span>
+        <div id="agentGridPanel"><div id="agentGrid"></div><div id="agentGridSub"></div><div id="agentWorkerSummary"></div><button id="agentGridCollapseBtn"></button></div>
+        <div id="logPanel"></div><button id="scanLogToggle"></button>
+        <section id="progressSection"></section>
       </div>
     </section>
 
-    <section class="location-hub panel-chrome" id="locationHub" hidden aria-label="Choose a market">
-      <div class="location-hub-head">
-        <h2 class="location-hub-title">Choose a market</h2>
-        <p class="location-hub-sub">Search or pick a state and city — leads appear after you select a location</p>
+    <section class="summary-section phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" data-phuglee-reveal-child>
+      <div class="summary-head">
+        <h2 class="analyze-panel-heading">Session totals</h2>
+        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Across every market you've scanned this session.</p>
       </div>
-      <div class="location-hub-search-row">
-        <input type="search" class="location-hub-search" id="locationHubSearch"
-          placeholder="Search city or state…" autocomplete="off" aria-label="Search city or state">
+      <div class="bridge-kpi-grid" id="summaryHeroRow">
+        <button type="button" class="bridge-kpi bridge-kpi--accent clickable" id="sumDistressedKpiCard" title="Filter distressed leads">
+          <span class="bridge-kpi-value" id="sumDistressedKpi">0</span>
+          <span class="bridge-kpi-label">Distressed</span>
+        </button>
+        <button type="button" class="bridge-kpi clickable" id="sumReviewCard" title="Filter needs-review leads">
+          <span class="bridge-kpi-value" id="sumReview">0</span>
+          <span class="bridge-kpi-label">Needs Review</span>
+        </button>
+        <div class="bridge-kpi" id="sumScannedHeroCard">
+          <span class="bridge-kpi-value" id="sumScannedHero">0</span>
+          <span class="bridge-kpi-label">Scanned</span>
+        </div>
       </div>
-      <div class="location-hub-list" id="locationHubList" role="list"></div>
-      <p class="location-hub-empty" id="locationHubEmpty" hidden>No cities or states match your search</p>
+      <div id="summaryBreakdown" hidden aria-hidden="true">
+        <div id="summaryPipeline"><div id="summaryPipelineTrack"></div></div>
+        <div id="summarySecondaryGrid">
+          <div id="sumWellMaintainedCard"><span id="sumWellMaintained">0</span><span id="sumWellMaintainedPct">0%</span></div>
+          <div id="sumVacantCard"><span id="sumVacant">0</span><span id="sumVacantPct">0%</span></div>
+          <div id="sumBlurredCard"><span id="sumBlurred">0</span><span id="sumBlurredPct">0%</span></div>
+        </div>
+        <span id="sumDistressedKpiPct" hidden>0%</span><span id="sumReviewPct" hidden>0%</span>
+        <span id="sumDistressedKpiHint" hidden></span>
+      </div>
+    </section>
+    </div><!-- /analyze-hero-zone -->
+
+    <div class="analyze-data-zone" data-phuglee-reveal>
+      <div class="analyze-zone-divider" aria-hidden="true"><span>Market &amp; results</span></div>
+
+    <section class="historical-search phuglee-panel analyze-panel" id="locationHub" hidden aria-label="Historical search" data-phuglee-reveal-child>
+      <div class="historical-search-head">
+        <h2 class="analyze-panel-heading">Historical search</h2>
+        <p class="historical-search-sub analyze-panel-lead">Pick a state and city to view leads from past uploads.</p>
+      </div>
+      <div class="historical-search-controls">
+        <label class="historical-field">State
+          <select id="historicalStateSelect" disabled><option value="">Select state…</option></select>
+        </label>
+        <label class="historical-field">City
+          <select id="historicalCitySelect" disabled><option value="">Select city…</option></select>
+        </label>
+      </div>
+      <div class="upload-date-filter" id="uploadDateFilter" hidden>
+        <span class="upload-date-filter-label">Upload dates</span>
+        <div class="upload-date-chips" id="uploadDateChips" role="group" aria-label="Filter by upload date"></div>
+      </div>
+      <p class="historical-search-hint" id="locationHubEmpty" hidden>Select a state and city to view results.</p>
+      <div class="location-hub-list" id="locationHubList" hidden aria-hidden="true"></div>
+      <input type="search" class="location-hub-search" id="locationHubSearch" hidden aria-hidden="true">
+    </section>
+
+    <section class="local-kpi-section phuglee-panel analyze-panel" id="localKpiSection" hidden data-phuglee-reveal-child>
+      <div class="summary-head">
+        <h2 class="analyze-panel-heading" id="localKpiTitle">Market results</h2>
+        <p class="summary-intro analyze-panel-lead" id="localKpiIntro">Totals for the selected market.</p>
+      </div>
+      <div class="bridge-kpi-grid" id="localKpiGrid">
+        <div class="bridge-kpi bridge-kpi--accent"><span class="bridge-kpi-value" id="localDistressed">0</span><span class="bridge-kpi-label">Distressed</span></div>
+        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localReview">0</span><span class="bridge-kpi-label">Needs Review</span></div>
+        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localTotal">0</span><span class="bridge-kpi-label">In view</span></div>
+      </div>
     </section>
 
     <div class="location-breadcrumb-bar" id="locationBreadcrumb" hidden>
@@ -346,12 +252,16 @@
       <button type="button" class="location-breadcrumb-change" id="locationBreadcrumbChange">Change location</button>
     </div>
 
-    <section class="dashboard" id="dashboard">
-      <div class="results-wrap panel-chrome" id="resultsWrap">
+    <section class="dashboard analyze-dashboard" id="dashboard" data-phuglee-reveal-child>
+      <div class="results-wrap phuglee-panel analyze-panel analyze-results-panel" id="resultsWrap">
         <div class="results-header" id="resultsHeader">
           <div class="results-title-row">
             <h3 class="results-title">Distress Rankings <span class="result-count" id="resultCount"></span></h3>
             <div class="results-header-actions">
+              <div class="results-export-actions" id="resultsExportActions">
+                <button type="button" class="btn-secondary results-export-btn" id="resultsExportCsvBtn" disabled>Export CSV</button>
+                <button type="button" class="btn-secondary results-export-btn" id="resultsExportExcelBtn" disabled>Export Excel</button>
+              </div>
               <div class="view-toggle">
                 <button class="view-btn active" data-view="cards" type="button" title="Cards">
                   <svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -434,6 +344,8 @@
         </div>
       </div>
     </section>
+
+    </div><!-- /analyze-data-zone -->
 
     </div><!-- /mainWorkspace -->
 
@@ -718,22 +630,24 @@
   <script src="/lib/imagery-routing.js?v=20260630c"></script>
   <script src="/lib/imagery-urls.js?v=20260630c"></script>
   <script src="/lib/import-meta.js?v=20260708a"></script>
-  <script src="/lib/location-index.js?v=20260708a"></script>
+  <script src="/lib/import-batches.js?v=20260708b"></script>
+  <script src="/lib/location-index.js?v=20260708c"></script>
   <script src="/lib/virtual-scroll.js?v=20260630c"></script>
   <script src="/lib/classification-confidence.js?v=20260630i"></script>
   <script src="/lib/result-classify.js?v=20260704a"></script>
   <script src="/lib/review-training.js?v=20260630c"></script>
   <script src="/lib/export-schema.js?v=20260701a"></script>
-  <script src="/js/config.js?v=20260708d"></script>
-  <script src="/js/state.js?v=20260708d"></script>
+  <script src="/js/config.js?v=20260708i"></script>
+  <script src="/js/state.js?v=20260708i"></script>
   <script src="/js/imagery.js?v=20260701b"></script>
   <script src="/js/scan.js?v=20260630e"></script>
-  <script src="/js/review.js?v=20260708d"></script>
-  <script src="/js/render.js?v=20260708d"></script>
-  <script src="/js/session.js?v=20260701c"></script>
-  <script src="/js/premium-shell.js?v=20260704a"></script>
-  <script src="/js/location-hub.js?v=20260708a"></script>
-  <script src="/js/app.js?v=20260701a"></script>
-  <p class="analyzer-trust-line">Public records only · Your data stays on your machine</p>
+  <script src="/js/review.js?v=20260708f"></script>
+  <script src="/js/render.js?v=20260708g"></script>
+  <script src="/js/session.js?v=20260708h"></script>
+  <script src="/js/premium-shell.js?v=20260708e"></script>
+  <script src="/js/scan-ready.js?v=20260708b"></script>
+  <script src="/js/live-scan-feed.js?v=20260708b"></script>
+  <script src="/js/location-hub.js?v=20260708d"></script>
+  <script src="/js/app.js?v=20260708g"></script>
 </body>
 </html>

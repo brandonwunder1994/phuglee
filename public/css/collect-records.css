@@ -1,5 +1,77 @@
 /* Collect Records — Phuglee poster energy */
 
+/* Collect hub — single viewport, no page scroll */
+html:has(body.collect-page) {
+  overflow: hidden;
+  height: 100%;
+}
+
+body.collect-page {
+  overflow: hidden;
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
+body.collect-page.has-shell-chrome {
+  min-height: 100dvh;
+  max-height: 100dvh;
+}
+
+body.collect-page #distress-os-footer-mount,
+body.collect-page .shell-footer {
+  display: none;
+}
+
+body.collect-page .collect-landing {
+  min-height: 0;
+  height: calc(100dvh - var(--distress-nav-offset, 64px));
+  max-height: calc(100dvh - var(--distress-nav-offset, 64px));
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+body.collect-page .collect-hub {
+  padding: 1rem 1.5rem 1.25rem;
+  margin-bottom: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+body.collect-page .collect-hub-hero {
+  margin-bottom: 1.5rem;
+}
+
+body.collect-page .collect-hub-grid {
+  margin-bottom: 1.5rem;
+}
+
+@media (max-height: 720px) {
+  body.collect-page .collect-hub-hero {
+    margin-bottom: 1rem;
+  }
+
+  body.collect-page .collect-hub-hero .landing-title {
+    font-size: clamp(2rem, 7vw, 3.25rem);
+  }
+
+  body.collect-page .collect-hub-hero .premium-tagline {
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+
+  body.collect-page .collect-hub-grid {
+    margin-bottom: 1rem;
+    gap: 0.75rem;
+  }
+
+  body.collect-page .collect-hub-tile.phuglee-panel {
+    padding: 1rem 1.1rem;
+  }
+}
+
 .collect-landing {
   position: relative;
   z-index: 2; /* above .heat-field (z-index: 1 on has-premium-bg) */

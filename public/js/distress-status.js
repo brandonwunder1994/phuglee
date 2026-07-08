@@ -50,6 +50,11 @@
     var forge = modules && modules.formForge === 'up';
     var analyzer = modules && modules.propertyAnalyzer === 'up';
 
+    var onAnalyzer = /^\/analyzer(\/|$)/.test(window.location.pathname || '');
+    var planPill = onAnalyzer
+      ? ''
+      : '<span class="distress-status-pill">' + planLabel() + ' · Collect. Filter. Analyze.</span>';
+
     bar.innerHTML =
       '<div class="distress-status-left">' +
         '<span class="distress-status-brand">Distress OS</span>' +
@@ -60,9 +65,7 @@
           '<span class="distress-status-dot ' + (analyzer ? 'is-up' : 'is-down') + '"></span> Analyze' +
         '</span>' +
       '</div>' +
-      '<div class="distress-status-right">' +
-        '<span class="distress-status-pill">' + planLabel() + ' · Collect. Filter. Analyze.</span>' +
-      '</div>';
+      '<div class="distress-status-right">' + planPill + '</div>';
   }
 
   function poll() {

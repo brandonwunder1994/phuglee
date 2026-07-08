@@ -822,6 +822,11 @@ R.onResultAdded = function onResultAdded(result) {
     }
     scheduleThrottledUi(result);
     pushLiveTierAlert(result);
+    completeLiveScanFeedItem?.(result.address || result.street, {
+      status: `Done — ${leadTierLabel(resultLeadTier(result))}`,
+      tier: resultLeadTier(result),
+      phase: 'done'
+    });
     return;
   }
   updateSummaryStats();
@@ -845,6 +850,8 @@ R.getFilteredResults = function getFilteredResults() {
       const matchFn = li ? li.matchesLocationFilter : null;
       if (matchFn && !matchFn(r, state.locationFilter, normalizeStateAbbr)) continue;
     }
+    const ib = PDA.lib?.importBatches;
+    if (ib && !ib.matchesImportDateFilter(r, state.importDateFilter)) continue;
     if (q && !matchesSearch(r, q)) continue;
     if (state.filter === 'all') {
       list.push(r);
@@ -879,7 +886,7 @@ R.getSelectedIndex = function getSelectedIndex(list) {
 
 R.setFilter = function setFilter(filter) {
   state.filter = filter;
-  state.displayLimit = DISPLAY_LIMIT_INITIAL;
+  resetDisplayLimit();
   resetVirtualScrollPosition();
   document.querySelectorAll('.filter-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.filter === filter);
@@ -1484,7 +1491,8 @@ R.startThumbImageLoad = function startThumbImageLoad(img, url) {
     img.src = url;
     return;
   }
-  const eagerVirtual = !!(virtualScroll?.initialized && cardsVirtualWindow);
+  const eagerVirtual = isAnalyzeLayout()
+    || !!(virtualScroll?.initialized && cardsVirtualWindow);
   if (eagerVirtual) {
     img.dataset.thumbPending = '1';
     const onDone = () => {
@@ -1525,13 +1533,27 @@ R.scheduleThumbImageLoad = function scheduleThumbImageLoad(img, url, card) {
     delete img.dataset.thumbPending;
   }
   img.dataset.thumbSrc = url;
-  const eager = !!(virtualScroll?.initialized && cardsVirtualWindow);
-  if (eager || isNearViewport(card, eager ? 240 : 600)) {
+  const eager = isAnalyzeLayout()
+    || !!(virtualScroll?.initialized && cardsVirtualWindow);
+  if (eager || isNearViewport(card, eager ? 1200 : 600)) {
     startThumbImageLoad(img, url);
     return;
   }
   ensureThumbObserver().observe(img);
   thumbObserved.add(img);
+}
+
+R.preloadAnalyzeCardThumbs = function preloadAnalyzeCardThumbs() {
+  if (!isAnalyzeLayout() || state.viewMode !== 'cards' || !cardsGrid) return;
+  cardsGrid.querySelectorAll('.prop-card[data-key] .card-thumb img').forEach((img) => {
+    const card = img.closest('.prop-card');
+    const url = img.dataset.thumbSrc;
+    if (!url || thumbImageComplete(img)) {
+      if (thumbImageComplete(img)) img.classList.add('loaded');
+      return;
+    }
+    startThumbImageLoad(img, url);
+  });
 }
 
 R.refreshAllCardThumbs = function refreshAllCardThumbs() {

@@ -137,7 +137,7 @@ body.has-shell-chrome .shell-footer {
 
 .shell-link:hover {
   color: var(--phuglee-cream);
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
 }
 
 .shell-link:hover::after {
@@ -146,12 +146,9 @@ body.has-shell-chrome .shell-footer {
 
 .shell-link.active {
   color: var(--phuglee-cream);
-  background:
-    linear-gradient(165deg, rgba(229, 132, 53, 0.18) 0%, rgba(13, 13, 13, 0.45) 100%);
-  border-color: rgba(229, 132, 53, 0.42);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 2px 12px rgba(229, 132, 53, 0.14);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .shell-link.active::after {
@@ -174,6 +171,127 @@ body.has-shell-chrome .shell-footer {
 .shell-sign-out-divider {
   height: 18px;
   margin: 0 0.25rem;
+}
+
+/* ── Properties dropdown ── */
+.shell-nav-dropdown {
+  position: relative;
+}
+
+button.shell-link.shell-nav-dropdown-trigger {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  line-height: inherit;
+  text-align: inherit;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.shell-nav-dropdown-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.shell-nav-dropdown.is-open .shell-nav-dropdown-trigger:not(.active),
+.shell-nav-dropdown-trigger[aria-expanded="true"]:not(.active) {
+  color: var(--phuglee-cream);
+  background: transparent;
+}
+
+.shell-nav-dropdown.is-open .shell-nav-dropdown-trigger:not(.active)::after,
+.shell-nav-dropdown-trigger[aria-expanded="true"]:not(.active)::after {
+  width: 40%;
+}
+
+.shell-nav-dropdown-chevron {
+  width: 0.7rem;
+  height: 0.7rem;
+  opacity: 0.72;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.shell-nav-dropdown.is-open .shell-nav-dropdown-chevron,
+.shell-nav-dropdown-trigger[aria-expanded="true"] .shell-nav-dropdown-chevron {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.shell-nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  min-width: 11.5rem;
+  padding: 0.35rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-elevated, rgba(13, 13, 13, 0.96));
+  border: 1px solid var(--glass-border, rgba(174, 163, 143, 0.18));
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: var(--glass-shadow-float, 0 12px 40px rgba(0, 0, 0, 0.45));
+  z-index: 1100;
+  animation: shell-nav-drop-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shell-nav-dropdown-menu[hidden] {
+  display: none;
+}
+
+@keyframes shell-nav-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shell-nav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.85rem;
+  font-family: var(--font-display);
+  font-size: 0.74rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--phuglee-stone);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.shell-nav-dropdown-item:hover,
+.shell-nav-dropdown-item.active {
+  color: var(--phuglee-cream);
+  background: transparent;
+  border-color: transparent;
+}
+
+.shell-nav-dropdown-icon {
+  width: 1.1rem;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 0.92rem;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.shell-nav-dropdown-label {
+  letter-spacing: inherit;
 }
 
 /* Row 2 submenu removed — tools live in Collect hub, Settings, ⌘K */
@@ -374,5 +492,13 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
   .shell-link.active::after,
   .shell-link:hover::after {
     width: 55%;
+  }
+
+  .shell-nav-dropdown-menu {
+    animation: none;
+  }
+
+  .shell-nav-dropdown-chevron {
+    transition: none;
   }
 }

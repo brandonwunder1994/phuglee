@@ -1,8 +1,10 @@
 (function () {
-  const CORE_LINKS = [
-    { id: 'command', label: 'Dashboard', href: '/command' },
-    { id: 'collect', label: 'Collect', href: '/collect' },
-    { id: 'bridge', label: 'Filter', href: '/bridge' }
+  const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
+
+  const PROPERTIES_LINKS = [
+    { id: 'collect', label: 'Request Instead', href: '/collect', emoji: '📬' },
+    { id: 'bridge', label: 'Filter', href: '/bridge', emoji: '🧹' },
+    { id: 'analyzer', label: 'Analyze', href: '/analyzer/', emoji: '🔥' }
   ];
 
   const FORGE_LINKS = [
@@ -16,7 +18,6 @@
   ];
 
   const VAULT_LINK = { id: 'vault', label: 'The Vault', href: '/vault' };
-  const ANALYZER_LINK = { id: 'analyzer', label: 'Analyze', href: '/analyzer/' };
 
   function normalizePath(pathname) {
     if (!pathname) return '/';
@@ -45,24 +46,38 @@
     for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
     }
-    if (matchLink(p, ANALYZER_LINK.href)) return ANALYZER_LINK.id;
-    for (const link of CORE_LINKS) {
+    for (const link of PROPERTIES_LINKS) {
       if (matchLink(p, link.href)) return link.id;
     }
     return null;
+  }
+
+  function isPropertiesSectionActive(current) {
+    return PROPERTIES_LINKS.some((l) => l.id === current);
   }
 
   function linkClass(id, current) {
     return id === current ? 'shell-link active' : 'shell-link';
   }
 
-  function buildFooter() {
+  function isAnalyzerPath(pathname) {
+    return matchLink(normalizePath(pathname), '/analyzer/');
+  }
+
+  function buildFooter(pathname) {
+    const onAnalyzer = isAnalyzerPath(pathname || window.location.pathname);
+    const metaLine = onAnalyzer
+      ? ''
+      : '<span class="shell-footer-meta">Distress OS · Collect. Filter. Analyze.</span>';
+    const trustLine = onAnalyzer
+      ? ''
+      : '<p class="shell-footer-trust">Public records only · Your data stays on your machine</p>';
     return `
 <footer class="shell-footer" id="distress-os-footer">
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">Distress OS · Collect. Filter. Analyze.</span>
+      ${metaLine}
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
@@ -72,32 +87,68 @@
       <a href="/vault" class="shell-footer-link">The Vault</a>
     </nav>
   </div>
-  <p class="shell-footer-trust">Public records only · Your data stays on your machine</p>
+  ${trustLine}
 </footer>`;
   }
 
   function mountFooter() {
+    const path = window.location.pathname;
+    const onAnalyzer = isAnalyzerPath(path);
     const existing = document.getElementById('distress-os-footer');
-    const html = buildFooter();
+    const mount = document.getElementById('distress-os-footer-mount');
+
+    if (onAnalyzer) {
+      existing?.remove();
+      if (mount) mount.innerHTML = '';
+      return;
+    }
+
+    const html = buildFooter(path);
     if (existing) {
       existing.outerHTML = html;
+    } else if (mount) {
+      mount.innerHTML = html;
     } else {
-      const mount = document.getElementById('distress-os-footer-mount');
-      if (mount) {
-        mount.innerHTML = html;
-      } else {
-        document.body.insertAdjacentHTML('beforeend', html);
-      }
+      document.body.insertAdjacentHTML('beforeend', html);
     }
+  }
+
+  function buildPropertiesDropdown(current) {
+    const sectionActive = isPropertiesSectionActive(current);
+    const triggerClass = sectionActive
+      ? 'shell-link shell-nav-dropdown-trigger active'
+      : 'shell-link shell-nav-dropdown-trigger';
+    const itemsHtml = PROPERTIES_LINKS.map((l) => {
+      const itemActive = current === l.id;
+      const icon = l.emoji ? `<span class="shell-nav-dropdown-icon" aria-hidden="true">${l.emoji}</span>` : '';
+      return `<a href="${l.href}" class="shell-nav-dropdown-item${itemActive ? ' active' : ''}" role="menuitem"${itemActive ? ' aria-current="page"' : ''}>${icon}<span class="shell-nav-dropdown-label">${l.label}</span></a>`;
+    }).join('');
+
+    return `
+      <div class="shell-nav-dropdown" id="shell-properties-dropdown-wrap">
+        <button
+          type="button"
+          class="${triggerClass}"
+          id="shell-properties-trigger"
+          aria-expanded="false"
+          aria-haspopup="true"
+          aria-controls="shell-properties-menu"
+        >
+          Properties
+          <svg class="shell-nav-dropdown-chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
+            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="shell-nav-dropdown-menu" id="shell-properties-menu" role="menu" hidden>
+          ${itemsHtml}
+        </div>
+      </div>`;
   }
 
   function buildNav(pathname) {
     const current = activeId(pathname);
-    const coreHtml = CORE_LINKS.map((l) =>
-      `<a href="${l.href}" class="${linkClass(l.id, current)}"${current === l.id ? ' aria-current="page"' : ''}>${l.label}</a>`
-    ).join('');
-
-    const analyzerClass = linkClass(ANALYZER_LINK.id, current);
+    const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
+    const propertiesHtml = buildPropertiesDropdown(current);
     const vaultClass = linkClass(VAULT_LINK.id, current);
 
     const actionsHtml = isAuthenticated()
@@ -124,8 +175,8 @@
       >
     </a>
     <div class="shell-links">
-      ${coreHtml}
-      <a href="${ANALYZER_LINK.href}" class="${analyzerClass}"${current === ANALYZER_LINK.id ? ' aria-current="page"' : ''}>${ANALYZER_LINK.label}</a>
+      ${dashboardHtml}
+      ${propertiesHtml}
       <a href="${VAULT_LINK.href}" class="${vaultClass}"${current === VAULT_LINK.id ? ' aria-current="page"' : ''}>${VAULT_LINK.label}</a>
       ${actionsHtml}
     </div>
@@ -160,6 +211,58 @@
     });
   }
 
+  function closePropertiesDropdown() {
+    const menu = document.getElementById('shell-properties-menu');
+    const trigger = document.getElementById('shell-properties-trigger');
+    const wrap = document.getElementById('shell-properties-dropdown-wrap');
+    if (!menu) return;
+    menu.hidden = true;
+    if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    wrap?.classList.remove('is-open');
+  }
+
+  function openPropertiesDropdown() {
+    const menu = document.getElementById('shell-properties-menu');
+    const trigger = document.getElementById('shell-properties-trigger');
+    const wrap = document.getElementById('shell-properties-dropdown-wrap');
+    if (!menu) return;
+    menu.hidden = false;
+    if (trigger) trigger.setAttribute('aria-expanded', 'true');
+    wrap?.classList.add('is-open');
+  }
+
+  function togglePropertiesDropdown() {
+    const menu = document.getElementById('shell-properties-menu');
+    if (!menu) return;
+    if (menu.hidden) openPropertiesDropdown();
+    else closePropertiesDropdown();
+  }
+
+  function bindPropertiesDropdown(root) {
+    if (!root || root.dataset.propertiesBound === '1') return;
+    const wrap = root.querySelector('#shell-properties-dropdown-wrap');
+    const trigger = root.querySelector('#shell-properties-trigger');
+    if (!wrap || !trigger) return;
+    root.dataset.propertiesBound = '1';
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePropertiesDropdown();
+    });
+
+    wrap.querySelectorAll('.shell-nav-dropdown-item').forEach((link) => {
+      link.addEventListener('click', () => closePropertiesDropdown());
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrap.contains(e.target)) closePropertiesDropdown();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePropertiesDropdown();
+    });
+  }
+
   function mount() {
     const path = window.location.pathname;
     if (normalizePath(path) === '/') return;
@@ -182,13 +285,13 @@
     if (wrap) {
       const h = wrap.offsetHeight;
       document.documentElement.style.setProperty('--distress-nav-offset', h + 'px');
-      // Embedded proxied apps position content with --distress-nav-offset; avoid double top pad.
       if (isEmbedded) {
         document.body.style.paddingTop = '';
       } else {
         document.body.style.paddingTop = h + 'px';
       }
       guardNavLinks(wrap);
+      bindPropertiesDropdown(wrap);
     }
 
     if (path.startsWith('/forge')) {
@@ -215,6 +318,13 @@
     }
   }
 
-  window.DistressOSShellNav = { mount, buildNav, buildFooter, activeId };
+  window.DistressOSShellNav = {
+    mount,
+    buildNav,
+    buildFooter,
+    activeId,
+    PROPERTIES_LINKS,
+    isPropertiesSectionActive
+  };
   mount();
 })();

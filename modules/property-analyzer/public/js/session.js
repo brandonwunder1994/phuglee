@@ -56,8 +56,13 @@ R.tierCountsCache = null;
 R.tierCountsCacheKey = '';
 R.resultMutationEpoch = 0;
 
-R.tierCountsCacheKeyFromState = function tierCountsCacheKeyFromState() {
-  return `${state.results.length}:${state.processed}:${sessionLoadState.total}:${sessionLoadState.complete}:${resultMutationEpoch}`;
+R.tierCountsCacheKeyFromState = function tierCountsCacheKeyFromState(scope = 'market') {
+  const loc = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.locationIndex)
+    ? PDA.lib.locationIndex.locationFilterKey(state.locationFilter)
+    : (state.locationFilter ? `${state.locationFilter.state}|${state.locationFilter.city || ''}` : '');
+  const dates = (state.importDateFilter || []).slice().sort().join(',');
+  const leadType = state.leadTypeFilter || 'all';
+  return `${scope}:${state.results.length}:${state.processed}:${sessionLoadState.total}:${sessionLoadState.complete}:${loc}|${dates}|${leadType}|${resultMutationEpoch}`;
 }
 
 R.getTotalScannedCount = function getTotalScannedCount() {
@@ -77,20 +82,15 @@ R.normalizeTierCountsForDisplay = function normalizeTierCountsForDisplay(counts,
   return { ...counts, all: total };
 }
 
-R.getTierCounts = function getTierCounts() {
-  const totalScanned = getTotalScannedCount();
-  if (!sessionLoadState.complete && state._tierCountsFromServer) {
-    return normalizeTierCountsForDisplay(state._tierCountsFromServer, totalScanned);
-  }
-  const key = tierCountsCacheKeyFromState();
-  if (tierCountsCache && tierCountsCacheKey === key) return tierCountsCache;
-  let all = totalScanned || state.results.length;
+R.countTierBuckets = function countTierBuckets(results, totalHint) {
+  const list = results || [];
+  let all = totalHint != null ? totalHint : list.length;
   let distressed = 0;
   let well_maintained = 0;
   let vacant = 0;
   let blurred = 0;
   let review = 0;
-  for (const r of state.results) {
+  for (const r of list) {
     if (computeNeedsReview(r)) review++;
     if (isBlurredImagery(r)) blurred++;
     if (!isClassifiedResult(r)) continue;
@@ -105,7 +105,36 @@ R.getTierCounts = function getTierCounts() {
     if (tier === 'distressed') distressed++;
     else if (tier === 'well_maintained') well_maintained++;
   }
-  tierCountsCache = { all, distressed, well_maintained, vacant, blurred, review };
+  return { all, distressed, well_maintained, vacant, blurred, review };
+}
+
+R.getResultsForMarketTierCounts = function getResultsForMarketTierCounts() {
+  const li = PDA.lib?.locationIndex;
+  const ib = PDA.lib?.importBatches;
+  if (!state.locationFilter || !li?.filterResultsForMarket) return state.results;
+  return li.filterResultsForMarket(state.results, {
+    locationFilter: state.locationFilter,
+    importDateFilter: state.importDateFilter,
+    leadTypeFilter: state.leadTypeFilter
+  }, {
+    normalizeStateAbbr,
+    matchesImportDateFilter: ib?.matchesImportDateFilter,
+    resultLeadType
+  });
+}
+
+R.getTierCounts = function getTierCounts(opts = {}) {
+  const useGlobal = opts.global === true || !state.locationFilter;
+  const scope = useGlobal ? 'global' : 'market';
+  const totalScanned = getTotalScannedCount();
+  if (useGlobal && !sessionLoadState.complete && state._tierCountsFromServer) {
+    return normalizeTierCountsForDisplay(state._tierCountsFromServer, totalScanned);
+  }
+  const key = tierCountsCacheKeyFromState(scope);
+  if (tierCountsCache && tierCountsCacheKey === key) return tierCountsCache;
+  const sourceResults = useGlobal ? state.results : getResultsForMarketTierCounts();
+  const allHint = useGlobal ? (totalScanned || state.results.length) : sourceResults.length;
+  tierCountsCache = countTierBuckets(sourceResults, allHint);
   tierCountsCacheKey = key;
   return tierCountsCache;
 }
@@ -117,7 +146,8 @@ R.filteredResultsCacheKeyFromState = function filteredResultsCacheKeyFromState()
   const loc = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.locationIndex)
     ? PDA.lib.locationIndex.locationFilterKey(state.locationFilter)
     : (state.locationFilter ? `${state.locationFilter.state}|${state.locationFilter.city || ''}` : '');
-  return `${state.filter}|${state.leadTypeFilter || 'all'}|${(state.searchQuery || '').trim().toLowerCase()}|${loc}|${state.results.length}|${state.processed}|${state.sortMode}|${resultMutationEpoch}`;
+  const dates = (state.importDateFilter || []).slice().sort().join(',');
+  return `${state.filter}|${state.leadTypeFilter || 'all'}|${(state.searchQuery || '').trim().toLowerCase()}|${loc}|${dates}|${state.results.length}|${state.processed}|${state.sortMode}|${resultMutationEpoch}`;
 }
 
 R.invalidateFilteredResultsCache = function invalidateFilteredResultsCache() {
@@ -200,7 +230,8 @@ R.invalidateTierCountsCache = function invalidateTierCountsCache() {
 
 R.getDisplayCap = function getDisplayCap() {
   if (state.running) return MAX_LIVE_DOM_CARDS;
-  return Math.max(DISPLAY_LIMIT_INITIAL, state.displayLimit || DISPLAY_LIMIT_INITIAL);
+  const initial = getDisplayLimitInitial();
+  return Math.max(initial, state.displayLimit || initial);
 }
 
 R.updateLoadMoreBar = function updateLoadMoreBar(filteredTotal, shown) {
@@ -215,9 +246,14 @@ R.updateLoadMoreBar = function updateLoadMoreBar(filteredTotal, shown) {
     return;
   }
   resultsLoadMore.hidden = false;
-  const step = Math.min(DISPLAY_LIMIT_STEP, remaining);
-  resultsLoadMoreBtn.textContent = `Load ${step.toLocaleString()} more`;
-  resultsLoadMoreHint.textContent = `Showing ${shown.toLocaleString()} of ${filteredTotal.toLocaleString()} in this view`;
+  const step = Math.min(getDisplayLimitStep(), remaining);
+  if (document.body.classList.contains('analyze-phuglee')) {
+    resultsLoadMoreBtn.textContent = `Load next ${step}`;
+    resultsLoadMoreHint.textContent = `Showing ${shown.toLocaleString()} of ${filteredTotal.toLocaleString()} properties`;
+  } else {
+    resultsLoadMoreBtn.textContent = `Load ${step.toLocaleString()} more`;
+    resultsLoadMoreHint.textContent = `Showing ${shown.toLocaleString()} of ${filteredTotal.toLocaleString()} in this view`;
+  }
 }
 
 R.categoryLabelWithCount = function categoryLabelWithCount(filter, count) {
@@ -249,25 +285,14 @@ R.formatTierRate = function formatTierRate(count, total) {
 }
 
 R.getSummaryMetrics = function getSummaryMetrics() {
-  const counts = getTierCounts();
+  const counts = getTierCounts({ global: true });
   const total = getTotalScannedCount();
   const callableHomes = counts.distressed + counts.well_maintained;
   const distressedRate = callableHomes ? counts.distressed / callableHomes : 0;
   return { total, counts, callableHomes, distressedRate };
 }
 
-R.updateScannedCountUi = function updateScannedCountUi() {
-  if (!heroCount) return;
-  const loaded = state.results.length;
-  const target = getTotalScannedCount();
-  const loading = sessionLoadState.loading
-    || (!sessionLoadState.complete && target > loaded);
-  if (loading && target > loaded) {
-    heroCount.textContent = `${loaded.toLocaleString()} / ${target.toLocaleString()}`;
-  } else {
-    heroCount.textContent = Math.max(loaded, target).toLocaleString();
-  }
-}
+R.updateScannedCountUi = function updateScannedCountUi() {}
 
 R.buildSummaryIntro = function buildSummaryIntro(metrics) {
   const { total, counts } = metrics;
@@ -376,63 +401,34 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
 
   const animOpts = scanLight ? { instant: true } : { duration: 900 };
 
-  if (!n) {
-    pipelineMetricsSig = '';
-    animateStatNumber($('sumWellMaintained'), 0, { instant: true });
-    animateStatNumber($('sumVacant'), 0, { instant: true });
+  const hasData = n > 0 || state.records.length > 0;
+  if (!hasData) {
     animateStatNumber($('sumReview'), 0, { instant: true });
-    animateStatNumber($('sumBlurred'), 0, { instant: true });
     animateStatNumber($('sumDistressedKpi'), 0, { instant: true });
     animateStatNumber($('sumScannedHero'), 0, { instant: true });
-    updateKpiPct($('sumWellMaintainedPct'), 0, 0);
-    updateKpiPct($('sumVacantPct'), 0, 0);
-    updateKpiPct($('sumReviewPct'), 0, 0);
-    updateKpiPct($('sumBlurredPct'), 0, 0);
-    updateKpiPct($('sumDistressedKpiPct'), 0, 0);
     const intro = $('summaryIntro');
-    if (intro) intro.textContent = 'Your lead pipeline — what to call, what to skip, and what needs a second look.';
+    if (intro) intro.textContent = 'Global totals across all scanned leads.';
     $('sumReviewCard')?.classList.remove('has-items');
-    summarySection.classList.remove('visible');
-    updateSummaryPipeline(metrics);
-  updateFilterLabels();
-  updateScannedCountUi();
-  return;
+    summarySection?.classList.remove('visible');
+    updateScannedCountUi();
+    updateScanReadyUi?.();
+    return;
   }
 
-  summarySection.classList.add('visible');
+  summarySection?.classList.add('visible');
   updateScannedCountUi();
-  animateStatNumber($('sumWellMaintained'), counts.well_maintained, animOpts);
-  animateStatNumber($('sumVacant'), counts.vacant, animOpts);
   animateStatNumber($('sumReview'), counts.review, animOpts);
-  animateStatNumber($('sumBlurred'), counts.blurred, animOpts);
   animateStatNumber($('sumDistressedKpi'), counts.distressed, { ...animOpts, duration: scanLight ? 0 : 900 });
   animateStatNumber($('sumScannedHero'), metrics.total, { ...animOpts, duration: scanLight ? 0 : 900 });
   if (counts.distressed > 0 && typeof R.pulseDistressedKpi === 'function') R.pulseDistressedKpi(counts.distressed);
-  updateKpiPct($('sumWellMaintainedPct'), counts.well_maintained, metrics.total);
-  updateKpiPct($('sumVacantPct'), counts.vacant, metrics.total);
-  updateKpiPct($('sumReviewPct'), counts.review, metrics.total);
-  updateKpiPct($('sumBlurredPct'), counts.blurred, metrics.total);
-  updateKpiPct($('sumDistressedKpiPct'), counts.distressed, metrics.total);
 
   const intro = $('summaryIntro');
-  if (intro) intro.textContent = buildSummaryIntro(metrics);
-
-  const distressedHint = $('sumDistressedKpiHint');
-  if (distressedHint) {
-    const reviewStats = getReviewQueueStats('distressed');
-    if (reviewStats.total && reviewStats.pending < reviewStats.total) {
-      distressedHint.textContent = `${reviewStats.pending.toLocaleString()} left to review · ${reviewStats.reviewedInFilter.toLocaleString()} already checked in Distressed review`;
-    } else if (callableHomes) {
-      distressedHint.textContent = `${Math.round(distressedRate * 100)}% of assessable homes — Shift+click KPI to review`;
-    } else {
-      distressedHint.textContent = 'Visible distress — Shift+click to open review queue';
-    }
-  }
+  if (intro) intro.textContent = n ? buildSummaryIntro(metrics) : 'Global totals — scan results will appear here.';
 
   $('sumReviewCard')?.classList.toggle('has-items', counts.review > 0);
-  $('sumBlurredCard')?.classList.toggle('has-items', counts.blurred > 0);
-  updateSummaryPipeline(metrics, scanLight);
   if (!scanLight) updateFilterLabels();
+  updateScanReadyUi?.();
+  updateLocalKpis?.();
 }
 
 R.gaugeFillClass = function gaugeFillClass(score, category = 'property', leadTier = null) {
@@ -1351,10 +1347,6 @@ R.hideReviewOverlay = function hideReviewOverlay() {
 
 // DOM bindings (deferred to end of module — handlers defined above)
 openUploadModalBtn?.addEventListener('click', openUploadModal);
-emptyUploadBtn?.addEventListener('click', openFilePicker);
-emptySettingsBtn?.addEventListener('click', openSettingsModal);
-$('emptyRestoreBackupBtn')?.addEventListener('click', () => restoreServerSessionBackup());
-$('emptyResetDataBtn')?.addEventListener('click', resetSavedAppData);
 openSettingsBtn?.addEventListener('click', openSettingsModal);
 openBrainBtn?.addEventListener('click', openBrainModal);
 settingsModalClose?.addEventListener('click', () => closeToolModal(settingsModal));
@@ -1414,7 +1406,7 @@ document.querySelectorAll('.filter-btn').forEach(btn => {
 
 $('leadTypeFilter')?.addEventListener('change', (e) => {
   state.leadTypeFilter = e.target.value || 'all';
-  state.displayLimit = DISPLAY_LIMIT_INITIAL;
+  resetDisplayLimit();
   const list = getFilteredResults();
   if (!list.some(r => recordKey(r) === state.selectedKey)) {
     closePropertyModal({ save: false });
@@ -1422,6 +1414,7 @@ $('leadTypeFilter')?.addEventListener('change', (e) => {
   renderResults({ force: true });
   updateAppNav();
   updateExportButtons();
+  updateFilterLabels();
   saveSession();
 });
 
@@ -1658,7 +1651,7 @@ document.addEventListener('keydown', (e) => {
 R.searchDebounceTimer = null;
 resultSearch.addEventListener('input', () => {
   state.searchQuery = resultSearch.value;
-  state.displayLimit = DISPLAY_LIMIT_INITIAL;
+  resetDisplayLimit();
   resetVirtualScrollPosition();
   if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
   searchDebounceTimer = setTimeout(() => {
@@ -1675,7 +1668,7 @@ resultSearch.addEventListener('input', () => {
 });
 
 resultsLoadMoreBtn?.addEventListener('click', () => {
-  state.displayLimit = (state.displayLimit || DISPLAY_LIMIT_INITIAL) + DISPLAY_LIMIT_STEP;
+  state.displayLimit = (state.displayLimit || getDisplayLimitInitial()) + getDisplayLimitStep();
   renderResults({ force: true });
 });
 

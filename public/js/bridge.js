@@ -28,8 +28,7 @@
 
   const stateSelect = document.getElementById('bridge-state');
   const citySelect = document.getElementById('bridge-city');
-  const cityContext = document.getElementById('bridge-city-context');
-  const cityLabel = document.getElementById('bridge-city-label');
+  const cityActions = document.getElementById('bridge-city-actions');
   const typePanel = document.getElementById('bridge-type-panel');
   const uploadPanel = document.getElementById('bridge-upload-panel');
   const loadingPanel = document.getElementById('bridge-loading-panel');
@@ -54,7 +53,9 @@
   const responseAmpmSelect = document.getElementById('bridge-response-ampm');
   const attachBtn = document.getElementById('bridge-attach');
   const attachStatus = document.getElementById('bridge-attach-status');
-  const historyPanel = document.getElementById('bridge-history-panel');
+  const historyDialog = document.getElementById('bridge-history-dialog');
+  const historyOpenBtn = document.getElementById('bridge-history-open');
+  const historyCloseBtn = document.getElementById('bridge-history-close');
   const historyLead = document.getElementById('bridge-history-lead');
   const historyList = document.getElementById('bridge-history-list');
   const dropzone = document.getElementById('bridge-dropzone');
@@ -90,10 +91,14 @@
       .replace(/"/g, '&quot;');
   }
 
+  function setHidden(el, hidden) {
+    if (el) el.hidden = hidden;
+  }
+
   function showError(msg) {
     const hasError = Boolean(msg);
-    errorWrap.hidden = !hasError;
-    errorEl.textContent = msg || '';
+    setHidden(errorWrap, !hasError);
+    if (errorEl) errorEl.textContent = msg || '';
   }
 
   function setPipelineStep(step) {
@@ -141,11 +146,10 @@
       selectedUploadType = '';
       selectedFile = null;
       lastResult = null;
-      cityContext.hidden = true;
-      typePanel.hidden = true;
-      uploadPanel.hidden = true;
-      resultsPanel.hidden = true;
-      historyPanel.hidden = true;
+      setHidden(cityActions, true);
+      setHidden(typePanel, true);
+      setHidden(uploadPanel, true);
+      setHidden(resultsPanel, true);
       clearFileUi();
       setPipelineStep('location');
     }
@@ -153,28 +157,27 @@
       selectedUploadType = '';
       selectedFile = null;
       lastResult = null;
-      typePanel.hidden = true;
-      uploadPanel.hidden = true;
-      resultsPanel.hidden = true;
+      setHidden(typePanel, true);
+      setHidden(uploadPanel, true);
+      setHidden(resultsPanel, true);
       clearFileUi();
       document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
         input.checked = false;
       });
       setPipelineStep(selectedCity ? 'type' : 'location');
-      if (selectedCity) loadHistory(selectedCity.id);
-      else historyPanel.hidden = true;
+      setHidden(cityActions, !selectedCity);
     }
     if (from === 'type') {
       selectedFile = null;
-      uploadPanel.hidden = true;
-      resultsPanel.hidden = true;
+      setHidden(uploadPanel, true);
+      setHidden(resultsPanel, true);
       lastResult = null;
       clearFileUi();
       clearResponseDateTime();
       setPipelineStep(selectedUploadType ? 'upload' : 'type');
     }
     if (from === 'file') {
-      resultsPanel.hidden = true;
+      setHidden(resultsPanel, true);
       lastResult = null;
     }
   }
@@ -182,10 +185,10 @@
   function clearFileUi() {
     selectedFile = null;
     if (fileInput) fileInput.value = '';
-    fileNameEl.hidden = true;
-    fileNameEl.textContent = '';
-    processBtn.disabled = true;
-    clearFileBtn.hidden = true;
+    setHidden(fileNameEl, true);
+    if (fileNameEl) fileNameEl.textContent = '';
+    if (processBtn) processBtn.disabled = true;
+    setHidden(clearFileBtn, true);
     dropzone?.classList.remove('has-file', 'is-dragover');
   }
 
@@ -197,12 +200,12 @@
     }
     selectedFile = file;
     showError('');
-    fileNameEl.hidden = false;
-    fileNameEl.textContent = `${file.name} (${formatBytes(file.size)})`;
+    setHidden(fileNameEl, false);
+    if (fileNameEl) fileNameEl.textContent = `${file.name} (${formatBytes(file.size)})`;
     dropzone?.classList.add('has-file');
-    processBtn.disabled = false;
-    clearFileBtn.hidden = false;
-    resultsPanel.hidden = true;
+    if (processBtn) processBtn.disabled = false;
+    setHidden(clearFileBtn, false);
+    setHidden(resultsPanel, true);
     lastResult = null;
     setPipelineStep('upload');
   }
@@ -327,23 +330,26 @@
   }
 
   function onCityChange() {
-    resetDownstream('city');
-    showError('');
-    const id = citySelect.value;
-    if (!id) {
-      selectedCity = null;
-      cityContext.hidden = true;
-      historyPanel.hidden = true;
-      return;
+    try {
+      resetDownstream('city');
+      showError('');
+      const id = citySelect.value;
+      if (!id) {
+        selectedCity = null;
+        setHidden(cityActions, true);
+        return;
+      }
+      selectedCity = cities.find((city) => String(city.id) === String(id)) || null;
+      if (!selectedCity) return;
+      setHidden(typePanel, false);
+      setHidden(cityActions, false);
+      if (historyLead) {
+        historyLead.textContent = `Prior Filter datasets for ${selectedCity.city}, ${selectedCity.state}.`;
+      }
+      setPipelineStep('type');
+    } catch (err) {
+      showError(err.message || 'Could not update city selection.');
     }
-    selectedCity = cities.find((city) => city.id === id) || null;
-    if (!selectedCity) return;
-    cityLabel.textContent = `${selectedCity.city}, ${selectedCity.state}`;
-    cityContext.hidden = false;
-    typePanel.hidden = false;
-    historyLead.textContent = `Prior Filter datasets for ${selectedCity.city}, ${selectedCity.state}.`;
-    loadHistory(selectedCity.id).catch(() => {});
-    setPipelineStep('type');
   }
 
   function onUploadTypeChange() {
@@ -352,7 +358,7 @@
     resetDownstream('type');
     showError('');
     if (!selectedUploadType) return;
-    uploadPanel.hidden = false;
+    setHidden(uploadPanel, false);
     setPipelineStep('upload');
   }
 
@@ -496,15 +502,27 @@
 
   function setAttachStatus(message, tone) {
     if (!attachStatus) return;
-    attachStatus.hidden = !message;
+    setHidden(attachStatus, !message);
     attachStatus.textContent = message || '';
     attachStatus.classList.remove('is-error', 'is-success');
     if (tone) attachStatus.classList.add(`is-${tone}`);
   }
 
+  function openHistoryDialog() {
+    if (!selectedCity || !historyDialog) return;
+    if (historyLead) {
+      historyLead.textContent = `Prior Filter datasets for ${selectedCity.city}, ${selectedCity.state}.`;
+    }
+    historyDialog.showModal();
+    loadHistory(selectedCity.id).catch(() => {});
+  }
+
+  function closeHistoryDialog() {
+    historyDialog?.close();
+  }
+
   async function loadHistory(cityId) {
-    if (!cityId || !historyPanel) return;
-    historyPanel.hidden = false;
+    if (!cityId || !historyList) return;
     historyList.innerHTML = '<p class="bridge-history-empty">Loading history…</p>';
     try {
       const data = await fetchJson(`/api/bridge/history/${encodeURIComponent(cityId)}`);
@@ -558,10 +576,10 @@
 
     const stubNote = document.getElementById('bridge-stub-note');
     const showTable = !data.stub && rows.length > 0;
-    resultsToolbar.hidden = !showTable;
-    tableWrap.hidden = !showTable;
-    paginationEl.hidden = !showTable;
-    attachPanel.hidden = !showTable;
+    setHidden(resultsToolbar, !showTable);
+    setHidden(tableWrap, !showTable);
+    setHidden(paginationEl, !showTable);
+    setHidden(attachPanel, !showTable);
 
     if (showTable) {
       populateTagFilter(rows);
@@ -570,7 +588,7 @@
     }
 
     if (stubNote) {
-      stubNote.hidden = !data.stub;
+      setHidden(stubNote, !data.stub);
       if (!data.stub) {
         const reviewNote = data.stats.needsReview
           ? ` ${data.stats.needsReview} row(s) flagged for review (low-confidence extraction).`
@@ -584,11 +602,11 @@
         stubNote.textContent = data.stats.discarded
           ? `${data.stats.discarded} row(s) discarded.${importedNote}${pushedNote}${reviewNote}`
           : `Processing complete.${importedNote}${pushedNote}${reviewNote}`;
-        stubNote.hidden = !data.stats.discarded && !data.stats.alreadyImported
-          && !data.analyzerPush?.added && !data.stats.needsReview;
+        setHidden(stubNote, !data.stats.discarded && !data.stats.alreadyImported
+          && !data.analyzerPush?.added && !data.stats.needsReview);
       }
     }
-    resultsPanel.hidden = false;
+    setHidden(resultsPanel, false);
     setPipelineStep('results');
   }
 
@@ -601,9 +619,9 @@
       return;
     }
     showError('');
-    resultsPanel.hidden = true;
-    loadingPanel.hidden = false;
-    processBtn.disabled = true;
+    setHidden(resultsPanel, true);
+    setHidden(loadingPanel, false);
+    if (processBtn) processBtn.disabled = true;
     startLoadingAnimation();
     lastFailedAction = 'process';
 
@@ -616,8 +634,8 @@
       renderResults(data);
     } finally {
       stopLoadingAnimation();
-      loadingPanel.hidden = true;
-      processBtn.disabled = !selectedFile;
+      setHidden(loadingPanel, true);
+      if (processBtn) processBtn.disabled = !selectedFile;
     }
   }
 
@@ -767,6 +785,15 @@
   });
   processBtn?.addEventListener('click', () => { processUpload().catch((e) => showError(e.message)); });
   retryBtn?.addEventListener('click', () => { onRetry().catch((e) => showError(e.message)); });
+  historyOpenBtn?.addEventListener('click', openHistoryDialog);
+  historyCloseBtn?.addEventListener('click', closeHistoryDialog);
+  historyDialog?.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closeHistoryDialog();
+  });
+  historyDialog?.addEventListener('click', (event) => {
+    if (event.target === historyDialog) closeHistoryDialog();
+  });
 
   initResponseDateTimePicker();
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));

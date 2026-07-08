@@ -23,7 +23,8 @@ R.wireCardThumb = function wireCardThumb(card, result) {
     if (!hasImageryKey()) {
       fallbackEl.textContent = 'No photo — check API key in settings';
     } else if (needsCache) {
-      fallbackEl.textContent = 'Loading preview…';
+      fallbackEl.textContent = '';
+      fallbackEl?.classList.add('thumb-loading');
       scheduleImageryCacheForCard(result, card);
     } else {
       fallbackEl.textContent = 'No photo available';
@@ -55,7 +56,7 @@ R.wireCardThumb = function wireCardThumb(card, result) {
   }
   img.onload = () => {
     img.classList.add('loaded');
-    fallbackEl?.classList.remove('visible');
+    fallbackEl?.classList.remove('visible', 'thumb-loading');
   };
   img.onerror = () => {
     const liveAlt = img.dataset.liveFallback;
@@ -427,6 +428,15 @@ R.updateExportSidebarHint = function updateExportSidebarHint() {
   if (sidebarExportHint) sidebarExportHint.textContent = hint;
 }
 
+R.syncResultsExportButtons = function syncResultsExportButtons() {
+  const hasResults = state.results.length > 0;
+  const picked = !!state.locationFilter;
+  const canExportFiltered = hasResults && !state.running && picked && getFilteredResults().length > 0;
+  const canExportAll = hasResults && !state.running && picked;
+  if (resultsExportCsvBtn) resultsExportCsvBtn.disabled = !canExportFiltered;
+  if (resultsExportExcelBtn) resultsExportExcelBtn.disabled = !canExportAll;
+};
+
 R.updateExportButtons = function updateExportButtons() {
   const hasResults = state.results.length > 0;
   const canExportFiltered = hasResults && !state.running && getFilteredResults().length > 0;
@@ -434,13 +444,15 @@ R.updateExportButtons = function updateExportButtons() {
   if (exportBtn) exportBtn.disabled = !canExportAll;
   for (const btn of EXPORT_MENU_BTNS) {
     if (!btn) continue;
-    if (btn === sidebarExportAllBtn || btn === sidebarExportExcelBtn) btn.disabled = !canExportAll;
+    if (btn === sidebarExportAllBtn || btn === sidebarExportExcelBtn || btn === resultsExportExcelBtn) btn.disabled = !canExportAll;
     else btn.disabled = !canExportFiltered;
   }
   if (bulkSelectToggleBtn) bulkSelectToggleBtn.disabled = !hasResults;
   for (const btn of REVIEW_ENTRY_BTNS) {
     if (btn) btn.disabled = !hasResults;
   }
+  if (reviewLeadsBtn) reviewLeadsBtn.disabled = !hasResults;
+  syncResultsExportButtons();
   updateExportSidebarHint();
 }
 
@@ -907,7 +919,7 @@ R.handleFile = async function handleFile(file) {
     $('failStats').classList.remove('visible');
     fileInfo.textContent = `✓ ${file.name} — ${records.length.toLocaleString()} rows · ${leadTypeLabel(leadType)}`;
     fileInfo.classList.add('visible');
-    heroCount.textContent = records.length.toLocaleString();
+    if (heroCount) heroCount.textContent = records.length.toLocaleString();
     cardsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">▶</div>Ready — hit Start Analysis</div>';
     resultsBody.innerHTML = '<tr><td colspan="13" class="empty-state">Ready — hit Start Analysis</td></tr>';
     $('resultCount').textContent = '';
@@ -925,7 +937,7 @@ R.handleFile = async function handleFile(file) {
   } catch (err) {
     fileInfo.textContent = '';
     fileInfo.classList.remove('visible');
-    heroCount.textContent = '—';
+    if (heroCount) heroCount.textContent = '—';
     state.records = [];
     log(err.message, 'error');
     alert(err.message);
@@ -947,6 +959,11 @@ R.scoreDisplay = function scoreDisplay(score, category) {
 }
 
 R.renderVirtualCards = function renderVirtualCards() {
+  if (!shouldUseVirtualScroll()) {
+    if (virtualScroll.initialized) resetVirtualScrollDom();
+    renderResultsInner();
+    return;
+  }
   if (!virtualScroll.initialized) initVirtualScroll();
   if (!cardsVirtualWindow) return;
   if (state.viewMode !== 'cards' || state.running) return;
@@ -1022,7 +1039,7 @@ R.buildPropCard = function buildPropCard(r, rankMap) {
       <span class="card-badge-overlay tier-badge ${tierClass}">${tierBadgeLabelForRecord(r)}</span>
       <span class="card-score-pill">${escapeHtml(scoreDisplayForRecord(r))}</span>
       <label class="bulk-check-wrap" onclick="event.stopPropagation()"><input type="checkbox" class="bulk-row-check" aria-label="Select property"${bulkOn ? ' checked' : ''}></label>
-      <img alt="" loading="lazy" decoding="async" style="display:none">
+      <img alt="" loading="${isAnalyzeLayout() ? 'eager' : 'lazy'}" decoding="async" style="display:none">
       <div class="card-thumb-gradient"></div>
       <div class="card-thumb-overlay">
         <div class="card-address">${escapeHtml(propertyStreetLine(r))}</div>
@@ -1178,7 +1195,7 @@ R.renderResultsProgressive = async function renderResultsProgressive() {
   }
   const sorted = getFilteredResults();
   const total = state.results.length;
-  if (state.viewMode === 'cards' && total > VIRTUAL_SCROLL_THRESHOLD) {
+  if (state.viewMode === 'cards' && shouldUseVirtualScroll(total)) {
     renderVirtualCards();
     resultsUiRendered = true;
     return;
@@ -1258,12 +1275,12 @@ R.renderResultsInner = function renderResultsInner() {
   }
 
   const rankMap = buildDistressedRankMap();
-  cardsGrid?.classList.toggle('no-card-anim', toRender.length > 24);
+  cardsGrid?.classList.toggle('no-card-anim', isAnalyzeLayout() || toRender.length > 24);
 
   if (state.running) {
     resetThumbLoadQueue();
     renderResultsIncremental(toRender, rankMap);
-  } else if (state.viewMode === 'cards' && sorted.length > VIRTUAL_SCROLL_THRESHOLD) {
+  } else if (state.viewMode === 'cards' && shouldUseVirtualScroll(sorted.length)) {
     renderVirtualCards();
     if (resultsLoadMore) resultsLoadMore.hidden = true;
   } else if (state.viewMode === 'cards') {
@@ -1273,6 +1290,7 @@ R.renderResultsInner = function renderResultsInner() {
     for (const r of toRender) cardFrag.appendChild(buildPropCard(r, rankMap));
     cardsGrid.replaceChildren(cardFrag);
     updateLoadMoreBar(sorted.length, toRender.length);
+    if (isAnalyzeLayout()) preloadAnalyzeCardThumbs?.();
   } else {
     const tableFrag = document.createDocumentFragment();
     for (const r of toRender) tableFrag.appendChild(buildResultRow(r));
@@ -1296,7 +1314,11 @@ R.updateProgress = function updateProgress() {
   const write = () => {
     const total = state.records.length;
     const pct = total ? (state.processed / total) * 100 : 0;
-    progressBar.style.width = `${pct}%`;
+    if (progressBar) progressBar.style.width = `${pct}%`;
+    if (liveScanProgress) {
+      liveScanProgress.textContent = `${(state.processed || 0).toLocaleString()} / ${total.toLocaleString()}`;
+    }
+    updateLiveScanSectionUi?.();
     const hudInstant = { instant: true };
     animateStatNumber($('progressPct'), Math.round(pct), { ...hudInstant, suffix: '%' });
     const remaining = Math.max(0, total - state.processed);
@@ -1312,18 +1334,7 @@ R.updateProgress = function updateProgress() {
   else write();
 }
 
-R.setHudStatus = function setHudStatus(text, active = false) {
-  const labels = { STANDBY: 'System Online', SCANNING: 'Scanning', ACTIVE: 'System Online', Ready: 'System Online' };
-  if (!hudStatus) return;
-  const scanning = active || text === 'SCANNING';
-  hudStatus.textContent = labels[text] || text;
-  hudStatus.style.color = scanning ? 'var(--neon-cyan)' : '';
-  const dot = $('commandStatusDot');
-  if (dot) {
-    dot.classList.toggle('scanning', scanning);
-    dot.classList.toggle('offline', !scanning && !state.results.length && !state.running);
-  }
-};
+R.setHudStatus = function setHudStatus(_text, _active = false) {};
 
 R.showPreview = function showPreview(address, status, streetViewUrl = null, satelliteUrl = null, score = null, animateGauge = true) {
   state.scanLiveSnapshot = { address, status, streetViewUrl, satelliteUrl, score, animateGauge };

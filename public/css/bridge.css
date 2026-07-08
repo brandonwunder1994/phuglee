@@ -346,12 +346,25 @@ body {
 .bridge-context {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 0.85rem;
   padding: 0.55rem 0.75rem;
   background: rgba(229, 132, 53, 0.06);
   border: 1px solid rgba(229, 132, 53, 0.22);
   border-radius: var(--radius-sm);
+}
+
+.bridge-city-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+}
+
+.bridge-history-open-btn {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  padding: 0.4rem 0.75rem;
 }
 
 .bridge-context-label {
@@ -1193,10 +1206,96 @@ body {
   color: #9fd4a8;
 }
 
+.bridge-history-dialog {
+  border: none;
+  padding: 0;
+  margin: auto;
+  max-width: min(640px, calc(100vw - 2rem));
+  width: 100%;
+  background: transparent;
+  color: var(--text);
+}
+
+.bridge-history-dialog::backdrop {
+  background: rgba(13, 13, 13, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+@keyframes bridge-dialog-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bridge-history-dialog-card {
+  animation: bridge-dialog-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.bridge-history-dialog-card.phuglee-panel {
+  padding: 1.35rem 1.5rem 1.5rem;
+}
+
+.bridge-history-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.bridge-history-dialog-head h2 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  color: var(--phuglee-cream);
+}
+
+.bridge-history-dialog-lead {
+  margin: 0.4rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--phuglee-taupe-mid);
+}
+
+.bridge-history-dialog-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--phuglee-stone);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.bridge-history-dialog-close:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.08);
+}
+
 .bridge-history-list {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
+}
+
+.bridge-history-list--modal {
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+  padding-right: 0.15rem;
 }
 
 .bridge-history-item {

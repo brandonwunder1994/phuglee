@@ -4,8 +4,10 @@ const {
   buildLocationIndex,
   matchesLocationFilter,
   filterLocationIndex,
-  locationFilterKey
+  locationFilterKey,
+  filterResultsForMarket
 } = require('../lib/location-index');
+const { computeTierCounts } = require('../lib/tier-counts');
 
 function normalizeStateAbbr(state) {
   const raw = String(state || '').trim();
@@ -80,5 +82,36 @@ describe('locationFilterKey', () => {
     assert.equal(locationFilterKey(null), '');
     assert.equal(locationFilterKey({ state: 'OH', city: 'Dayton' }), 'OH|dayton');
     assert.equal(locationFilterKey({ state: 'OH', city: null }), 'OH|');
+  });
+});
+
+describe('filterResultsForMarket', () => {
+  const tiered = [
+    { city: 'Dayton', state: 'OH', category: 'property', leadTier: 'distressed', score: 8 },
+    { city: 'Dayton', state: 'OH', category: 'property', leadTier: 'well_maintained', score: 3 },
+    { city: 'Akron', state: 'OH', category: 'property', leadTier: 'distressed', score: 7 },
+    { city: 'Detroit', state: 'MI', category: 'vacant_lot', leadTier: 'vacant', score: 0 }
+  ];
+
+  it('scopes results to a city before tier counts', () => {
+    const scoped = filterResultsForMarket(tiered, {
+      locationFilter: { state: 'OH', city: 'Dayton' },
+      importDateFilter: [],
+      leadTypeFilter: 'all'
+    }, { normalizeStateAbbr });
+    assert.equal(scoped.length, 2);
+    const counts = computeTierCounts(scoped);
+    assert.equal(counts.all, 2);
+    assert.equal(counts.distressed, 1);
+    assert.equal(counts.well_maintained, 1);
+  });
+
+  it('includes entire state when city is null', () => {
+    const scoped = filterResultsForMarket(tiered, {
+      locationFilter: { state: 'OH', city: null },
+      importDateFilter: [],
+      leadTypeFilter: 'all'
+    }, { normalizeStateAbbr });
+    assert.equal(scoped.length, 3);
   });
 });

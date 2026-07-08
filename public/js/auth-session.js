@@ -21,14 +21,8 @@
   }
 
   function isAuthenticated() {
+    if (window.__PHUGLEE_AUTH_DISABLED__) return true;
     if (hasExplicitLogout()) return false;
-    if (window.__PHUGLEE_AUTH_DISABLED__) {
-      try {
-        return !!getSessionUser();
-      } catch (_) {
-        return true;
-      }
-    }
     return !!getSessionUser();
   }
 

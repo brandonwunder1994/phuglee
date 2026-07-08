@@ -2,6 +2,39 @@
    CYBER MODALS — Inspector, tool modals, score edit (Phase 18)
    ═══════════════════════════════════════════════════════════ */
 
+/* ── Tool modals — structural (closed modals must not extend page scroll) ── */
+.tool-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.tool-modal.open {
+  display: flex;
+}
+
+.tool-modal-backdrop {
+  position: absolute;
+  inset: 0;
+}
+
+.tool-modal-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 42rem);
+  max-height: min(96vh, 900px);
+  overflow-y: auto;
+}
+
+.tool-modal-dialog.cyber-dialog-wide {
+  width: min(100%, 56rem);
+}
+
 /* ── Shared modal backdrops ── */
 body.cyber-theme .tool-modal-backdrop,
 body.cyber-theme .property-modal-backdrop,

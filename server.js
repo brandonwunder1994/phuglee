@@ -178,7 +178,7 @@ async function handleRequest(req, res) {
       `  window.__PHUGLEE_AUTH_DISABLED__ = ${config.AUTH_DISABLED ? 'true' : 'false'};`,
       '  if (!window.__PHUGLEE_AUTH_DISABLED__) return;',
       "  try {",
-      "    if (sessionStorage.getItem('phuglee_logout') === '1') return;",
+      "    sessionStorage.removeItem('phuglee_logout');",
       "    sessionStorage.setItem('phuglee_session', 'admin');",
       '  } catch (_) {}',
       '})();',

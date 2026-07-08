@@ -22,11 +22,11 @@
   <link rel="stylesheet" href="/css/premium-atmosphere.css">
   <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
-  <link rel="stylesheet" href="/css/shell-nav.css?v=3">
+  <link rel="stylesheet" href="/css/shell-nav.css?v=9">
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=2">
+  <link rel="stylesheet" href="/css/bridge.css?v=3">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -51,44 +51,35 @@
       <p class="bridge-lead">Drop in whatever the city sent — Excel, CSV, PDF, Word, or photos of a printed list. Filter normalizes addresses, tags distress signals, and builds a clean spreadsheet ready for Analyze.</p>
     </header>
 
-    <section class="bridge-proof-rail phuglee-panel" aria-label="Filter capabilities" data-phuglee-reveal-child>
+    <section class="bridge-proof-rail phuglee-panel" aria-label="Filter steps" data-phuglee-reveal-child>
       <article class="bridge-proof-item bridge-proof-item--featured">
         <span class="bridge-proof-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </span>
         <div class="bridge-proof-copy">
-          <span class="bridge-proof-kicker">Any format</span>
           <p class="bridge-proof-metric">
-            <span class="bridge-proof-num bridge-proof-num--gold">7</span>
-            <span class="bridge-proof-unit">file types</span>
+            <span class="bridge-proof-num bridge-proof-num--gold">Pick Your City</span>
           </p>
-          <p class="bridge-proof-detail">xlsx · csv · pdf · docx · txt · jpg · png</p>
         </div>
       </article>
       <article class="bridge-proof-item">
         <span class="bridge-proof-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M3 10h18"/><path d="M6 10V7l3-4h6l3 4v3"/><path d="M8 21v-6"/><path d="M16 21v-6"/><path d="M10 14h4"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h14"/><circle cx="18" cy="12" r="2"/></svg>
         </span>
         <div class="bridge-proof-copy">
-          <span class="bridge-proof-kicker">Auto-tags</span>
           <p class="bridge-proof-metric">
-            <span class="bridge-proof-num bridge-proof-num--gold">Distress</span>
-            <span class="bridge-proof-unit">signals</span>
+            <span class="bridge-proof-num bridge-proof-num--gold">Choose the Lead Type</span>
           </p>
-          <p class="bridge-proof-detail">Code violations · water shutoffs · more</p>
         </div>
       </article>
       <article class="bridge-proof-item">
         <span class="bridge-proof-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8h14"/><path d="M5 16h14"/><path d="M7 12h10"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
         </span>
         <div class="bridge-proof-copy">
-          <span class="bridge-proof-kicker">Output</span>
           <p class="bridge-proof-metric">
-            <span class="bridge-proof-num bridge-proof-num--gold">Versioned</span>
-            <span class="bridge-proof-unit">datasets</span>
+            <span class="bridge-proof-num bridge-proof-num--gold">Filter Quality Results</span>
           </p>
-          <p class="bridge-proof-detail">Attached per city · export to CSV</p>
         </div>
       </article>
     </section>
@@ -117,10 +108,9 @@
           </select>
         </label>
       </div>
-      <p class="bridge-context" id="bridge-city-context" hidden>
-        <span class="bridge-context-label">Profile</span>
-        <span class="bridge-context-value" id="bridge-city-label"></span>
-      </p>
+      <div class="bridge-city-actions" id="bridge-city-actions" hidden>
+        <button type="button" class="bridge-history-open-btn phuglee-btn phuglee-btn-secondary" id="bridge-history-open">Attachment history</button>
+      </div>
     </section>
 
     <section class="bridge-panel phuglee-panel" id="bridge-type-panel" hidden aria-labelledby="bridge-step-type" data-phuglee-reveal-child>
@@ -261,20 +251,6 @@
       </section>
     </section>
 
-    <section class="bridge-panel phuglee-panel" id="bridge-history-panel" hidden aria-labelledby="bridge-history-heading" data-phuglee-reveal-child>
-      <h2 id="bridge-history-heading"><span class="bridge-step-badge" aria-hidden="true">H</span> Attachment history</h2>
-      <p class="bridge-panel-lead" id="bridge-history-lead">Prior Filter datasets attached to this city profile.</p>
-      <div class="bridge-history-list" id="bridge-history-list"></div>
-    </section>
-
-    <aside class="bridge-next-step phuglee-panel" aria-label="Next step" data-phuglee-reveal-child>
-      <div class="bridge-next-copy">
-        <p class="bridge-next-eyebrow">Step 03 · Analyze</p>
-        <p class="bridge-next-lead">List scrubbed? Import into Analyze — AI ranks visible distress, humans double-check every tier.</p>
-      </div>
-      <a href="/analyzer/" class="phuglee-btn phuglee-btn-secondary bridge-next-cta">Open Analyze</a>
-    </aside>
-
     <p class="bridge-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
 
     <div class="bridge-error-wrap" id="bridge-error-wrap" hidden role="alert">
@@ -283,13 +259,26 @@
     </div>
   </main>
 
+  <dialog class="bridge-history-dialog" id="bridge-history-dialog" aria-labelledby="bridge-history-heading">
+    <div class="bridge-history-dialog-card phuglee-panel distress-glass--float">
+      <div class="bridge-history-dialog-head">
+        <div>
+          <h2 id="bridge-history-heading">Attachment history</h2>
+          <p class="bridge-history-dialog-lead" id="bridge-history-lead">Prior Filter datasets attached to this city profile.</p>
+        </div>
+        <button type="button" class="bridge-history-dialog-close" id="bridge-history-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="bridge-history-list bridge-history-list--modal" id="bridge-history-list"></div>
+    </div>
+  </dialog>
+
   <div id="distress-os-footer-mount"></div>
   <script src="/js/phuglee-motion.js"></script>
   <script src="/js/phuglee-states.js"></script>
   <script src="/js/settings-menu.js"></script>
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
-  <script src="/js/shell-nav.js?v=6"></script>
-  <script src="/js/bridge.js"></script>
+  <script src="/js/shell-nav.js?v=12"></script>
+  <script src="/js/bridge.js?v=4"></script>
 </body>
 </html>
