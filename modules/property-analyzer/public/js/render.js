@@ -65,6 +65,14 @@ R.wireCardThumb = function wireCardThumb(card, result) {
       if (labelEl) labelEl.textContent = '';
       return;
     }
+    if (hasImageryKey() && result?.address && isCachedThumbUrl(img.src)) {
+      const proxyUrl = buildStreetViewThumbUrl(result.address, getApiKeyForImagery(), CARD_THUMB_SIZE, result.viewMeta || null);
+      if (proxyUrl && img.src !== proxyUrl) {
+        img.src = proxyUrl;
+        if (labelEl) labelEl.textContent = '';
+        return;
+      }
+    }
     const alt = img.dataset.fallback;
     if (alt && img.src !== alt) {
       delete img.dataset.fallback;

@@ -1516,6 +1516,9 @@ R.bootstrapApp = async function bootstrapApp() {
     updateSummaryStats();
   }
   try {
+    if (USE_PROXY && typeof fetchServerConfig === 'function') {
+      try { await fetchServerConfig(); } catch (_) { /* proceed; thumbs refresh when config loads */ }
+    }
     await loadSession();
     if (USE_PROXY && state.results.length && typeof fetchImageryIndexMap === 'function') {
       try { await fetchImageryIndexMap(); } catch (_) { /* live imagery fallback */ }

@@ -136,24 +136,33 @@ R.updateKeyStatusUi = function updateKeyStatusUi() {
   geminiKeyHint.classList.toggle('active', geminiOk);
 }
 
+let serverConfigLoadPromise = null;
+
 R.fetchServerConfig = async function fetchServerConfig() {
   if (!USE_PROXY) return;
-  try {
-    const res = await fetch('/api/config');
-    const data = await res.json();
-    if (data?.ok) {
-      serverConfig = data;
-      serverHasMapsKey = !!data.hasMapsKey;
-      updateKeyStatusUi();
-      updateStartButton();
-      if (serverHasMapsKey && state.results.length) {
-        resetThumbLoadQueue();
-        refreshAllCardThumbs();
+  if (serverConfigLoadPromise) return serverConfigLoadPromise;
+  serverConfigLoadPromise = (async () => {
+    try {
+      const res = await fetch('/api/config');
+      const data = await res.json();
+      if (data?.ok) {
+        serverConfig = data;
+        serverHasMapsKey = !!data.hasMapsKey;
+        updateKeyStatusUi();
+        updateStartButton();
+        if (serverHasMapsKey && state.results.length) {
+          resetThumbLoadQueue();
+          refreshAllCardThumbs();
+        }
+        if (serverHasMapsKey) {
+          console.log('[Imagery] Server maps key ready — card previews use /api/sv-image proxy');
+        }
       }
+    } catch (e) {
+      console.warn('[Config] Server config fetch failed', e);
     }
-  } catch (e) {
-    console.warn('[Config] Server config fetch failed', e);
-  }
+  })();
+  return serverConfigLoadPromise;
 }
 
 R.buildD4DVacantLotRules = function buildD4DVacantLotRules() {

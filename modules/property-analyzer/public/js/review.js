@@ -1035,14 +1035,21 @@ R.getCachedImageryUrls = function getCachedImageryUrls(result) {
   resolveImageryForResult(result);
   const imagery = result?.imagery;
   if (!imagery) return { streetView: null, satellite: null };
-  return {
-    streetView: imagery.streetView?.url && imagery.streetView.status === 'ok'
-      ? resolveImageryPublicUrl(imagery.streetView.url)
-      : null,
-    satellite: imagery.satellite?.url && imagery.satellite.status === 'ok'
-      ? resolveImageryPublicUrl(imagery.satellite.url)
-      : null
-  };
+  const streetView = imagery.streetView?.url && imagery.streetView.status === 'ok'
+    ? resolveImageryPublicUrl(imagery.streetView.url)
+    : null;
+  const satellite = imagery.satellite?.url && imagery.satellite.status === 'ok'
+    ? resolveImageryPublicUrl(imagery.satellite.url)
+    : null;
+  // Proxy/production: session JSON may reference local-only cache files. Only use URLs
+  // the server imagery index confirms exist on disk; otherwise fall back to /api/sv-image.
+  if (USE_PROXY) {
+    return {
+      streetView: streetView && serverConfirmsCachedImagery(result, 'streetView') ? streetView : null,
+      satellite: satellite && serverConfirmsCachedImagery(result, 'satellite') ? satellite : null
+    };
+  }
+  return { streetView, satellite };
 }
 
 R.mergeImageryIntoResult = function mergeImageryIntoResult(result, imagery) {
@@ -1257,12 +1264,8 @@ R.getCardThumbUrls = function getCardThumbUrls(result) {
     ? getPropertyImageUrls(result.address, result, { thumb: true })
     : null;
 
-  const cachedSv = sessionCached.streetView && serverConfirmsCachedImagery(result, 'streetView')
-    ? sessionCached.streetView
-    : null;
-  const cachedSat = sessionCached.satellite && serverConfirmsCachedImagery(result, 'satellite')
-    ? sessionCached.satellite
-    : null;
+  const cachedSv = sessionCached.streetView || null;
+  const cachedSat = sessionCached.satellite || null;
   const liveSv = streetViewUnavailableForRecord(result) ? null : (live?.streetView || null);
   const liveSat = live?.satellite || null;
 
@@ -1276,7 +1279,8 @@ R.getCardThumbUrls = function getCardThumbUrls(result) {
       fallback,
       label: (cachedSat || cachedSv) ? 'Cached satellite' : '',
       fromCache: !!(cachedSat || cachedSv),
-      needsCache: !primary && !!result?.address
+      needsCache: !primary && !!result?.address && hasImageryKey()
+        && !result?.imagery?.streetView?.unavailable
     };
   }
 
@@ -1289,7 +1293,8 @@ R.getCardThumbUrls = function getCardThumbUrls(result) {
     fallback,
     label: (cachedSv || cachedSat) ? (sv ? 'Cached' : 'Cached satellite') : '',
     fromCache: !!(cachedSv || cachedSat),
-    needsCache: !primary && !!result?.address && !result?.imagery?.streetView?.unavailable
+    needsCache: !primary && !!result?.address && hasImageryKey()
+      && !result?.imagery?.streetView?.unavailable
   };
 }
 
