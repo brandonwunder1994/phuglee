@@ -243,6 +243,18 @@ function readCachedByAddress(address, type) {
   return readCachedFile(type, filename);
 }
 
+function lookupEntryByFilename(type, filename) {
+  const safe = path.basename(filename || '');
+  const match = safe.match(/^([a-f0-9]{16})\.(jpg|jpeg|png|webp)$/i);
+  if (!match) return null;
+  const id = match[1];
+  const idx = loadIndex();
+  for (const entry of Object.values(idx.entries || {})) {
+    if (entry?.type === type && entry?.id === id) return entry;
+  }
+  return null;
+}
+
 function buildImageryIndexMap() {
   ensureDirs();
   let mtime = 0;
@@ -389,6 +401,7 @@ module.exports = {
   markImageryUnavailable,
   readCachedFile,
   readCachedByAddress,
+  lookupEntryByFilename,
   getStats,
   isR2Configured,
   getR2PublicBase,

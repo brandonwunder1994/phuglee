@@ -552,7 +552,11 @@ body.analyzer-embedded .analyzer-context-step {
 }
 
 body.analyzer-embedded .command-bar-brand {
-  display: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .analyzer-trust-line {

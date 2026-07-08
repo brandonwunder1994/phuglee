@@ -75,7 +75,11 @@ body.analyzer-embedded .prop-card.card-cyber:hover {
 }
 
 body.analyzer-embedded .command-bar-brand {
-  display: none !important;
+  display: flex !important;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 body.analyzer-embedded .command-title,

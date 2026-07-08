@@ -46,8 +46,8 @@
         <div class="sidebar-logo" aria-hidden="true">◇</div>
         <div>
           <p class="analyzer-context-step"><a href="/bridge">← Filter</a> · Step 03 · Analyze</p>
-          <div class="sidebar-title">Analyze</div>
-          <div class="sidebar-tagline">Rank visible distress</div>
+          <div class="sidebar-title" id="sidebarTitle">Analyze</div>
+          <div class="sidebar-tagline" id="sidebarTagline">Rank visible distress</div>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -140,7 +140,7 @@
       </div>
       <div class="command-bar-status">
         <span class="command-status-dot" id="commandStatusDot" aria-hidden="true"></span>
-        <span><span class="command-hero-count" id="heroCount">—</span> properties scanned</span>
+        <span id="commandHeroStatus"><span class="command-hero-count" id="heroCount">—</span> <span id="commandHeroLabel">properties scanned</span></span>
         <span aria-hidden="true"> · </span>
         <span class="command-status-chip sys-ok" id="hudStatus">System Online</span>
         <span class="command-save-status" id="commandSaveStatus" hidden></span>
@@ -198,7 +198,7 @@
 
     <section class="progress-section scan-progress-slim panel-chrome" id="progressSection">
       <div class="scan-progress-header">
-        <h2>Scanning</h2>
+        <h2 id="scanProgressTitle">Scanning</h2>
         <span class="progress-pct" id="progressPct">0%</span>
       </div>
       <div class="scan-progress-bar-row">
@@ -703,12 +703,12 @@
   <script src="/lib/result-classify.js?v=20260704a"></script>
   <script src="/lib/review-training.js?v=20260630c"></script>
   <script src="/lib/export-schema.js?v=20260701a"></script>
-  <script src="/js/config.js?v=20260701b"></script>
-  <script src="/js/state.js?v=20260701c"></script>
+  <script src="/js/config.js?v=20260708b"></script>
+  <script src="/js/state.js?v=20260708b"></script>
   <script src="/js/imagery.js?v=20260701b"></script>
   <script src="/js/scan.js?v=20260630e"></script>
-  <script src="/js/review.js?v=20260701a"></script>
-  <script src="/js/render.js?v=20260701a"></script>
+  <script src="/js/review.js?v=20260708b"></script>
+  <script src="/js/render.js?v=20260708b"></script>
   <script src="/js/session.js?v=20260701c"></script>
   <script src="/js/premium-shell.js?v=20260704a"></script>
   <script src="/js/app.js?v=20260701a"></script>

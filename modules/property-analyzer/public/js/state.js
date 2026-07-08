@@ -2019,22 +2019,29 @@ R.openUploadModal = function openUploadModal() { openToolModal(uploadModal); }
 R.openSettingsModal = function openSettingsModal() { openToolModal(settingsModal); }
 R.openBrainModal = function openBrainModal() { openToolModal(brainModal); }
 
-R.updateCommandHeader = function updateCommandHeader() {
-  if (!commandTitle || !commandTagline) return;
-
+R.buildImportHeaderCopy = function buildImportHeaderCopy() {
+  const importMeta = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.importMeta) ? PDA.lib.importMeta : null;
   const defaultTitle = 'Analyze';
   const defaultTagline = 'AI ranks Street View distress — you double-check every tier';
-  const importMeta = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.importMeta) ? PDA.lib.importMeta : null;
+  const source = state.records.length ? state.records : state.results;
 
   if (state.running) {
     const loc = importMeta?.deriveImportLocation(state.records);
-    commandTitle.textContent = importMeta?.formatImportLocation(loc) || state.fileName || 'Scanning';
     const total = state.records.length || 0;
     const pct = total ? Math.round((state.processed / total) * 100) : 0;
-    commandTagline.textContent = total
-      ? `Scanning ${pct}% — ${state.processed.toLocaleString()} of ${total.toLocaleString()} leads`
-      : 'Scan in progress…';
-    return;
+    return {
+      title: importMeta?.formatImportLocation(loc) || state.fileName || 'Scanning',
+      tagline: total
+        ? `Scanning ${pct}% — ${state.processed.toLocaleString()} of ${total.toLocaleString()} leads`
+        : 'Scan in progress…',
+      scanTitle: 'Scanning',
+      heroCount: state.processed.toLocaleString(),
+      heroLabel: total ? `of ${total.toLocaleString()} leads` : 'leads processed',
+      sidebarTitle: importMeta?.formatImportLocation(loc) || 'Scanning',
+      sidebarTagline: total
+        ? `${state.processed.toLocaleString()} / ${total.toLocaleString()} leads`
+        : 'Scan in progress'
+    };
   }
 
   if (state.records.length) {
@@ -2042,30 +2049,79 @@ R.updateCommandHeader = function updateCommandHeader() {
     const pending = importMeta
       ? importMeta.countUnscannedLeads(state.records, state.results, recordKey)
       : state.records.length;
-    commandTitle.textContent = importMeta?.formatImportLocation(loc) || state.fileName || defaultTitle;
+    const analyzed = state.results.length;
+    const title = importMeta?.formatImportLocation(loc) || state.fileName || defaultTitle;
+    let tagline = defaultTagline;
+    let heroCount = pending.toLocaleString();
+    let heroLabel = 'leads ready to scan';
+    let scanTitle = title;
+
     if (pending > 0) {
-      const analyzed = state.results.length;
-      commandTagline.textContent = analyzed > 0
+      tagline = analyzed > 0
         ? `${pending.toLocaleString()} leads ready to scan (${analyzed.toLocaleString()} already analyzed)`
         : `${pending.toLocaleString()} leads ready to scan`;
-    } else if (state.results.length) {
-      commandTagline.textContent = `All ${state.records.length.toLocaleString()} leads analyzed — review results below`;
+      scanTitle = `${title} — ready to scan`;
+    } else if (analyzed > 0) {
+      tagline = `All ${state.records.length.toLocaleString()} leads analyzed — review results below`;
+      heroCount = state.records.length.toLocaleString();
+      heroLabel = 'leads analyzed';
+      scanTitle = `${title} — scan complete`;
     } else {
-      commandTagline.textContent = `${state.records.length.toLocaleString()} leads loaded — hit Start Scan`;
+      tagline = `${state.records.length.toLocaleString()} leads loaded — hit Start Scan`;
+      scanTitle = `${title} — ready to scan`;
     }
-    return;
+
+    return {
+      title,
+      tagline,
+      scanTitle,
+      heroCount,
+      heroLabel,
+      sidebarTitle: title,
+      sidebarTagline: tagline
+    };
   }
 
   if (state.results.length) {
     const loc = importMeta?.deriveImportLocation(state.results);
-    commandTitle.textContent = importMeta?.formatImportLocation(loc)
+    const title = importMeta?.formatImportLocation(loc)
       || `${state.results.length.toLocaleString()} results`;
-    commandTagline.textContent = 'Restored scan — review or export below';
-    return;
+    const tagline = 'Restored scan — review or export below';
+    return {
+      title,
+      tagline,
+      scanTitle: title,
+      heroCount: state.results.length.toLocaleString(),
+      heroLabel: 'properties scanned',
+      sidebarTitle: title,
+      sidebarTagline: tagline
+    };
   }
 
-  commandTitle.textContent = defaultTitle;
-  commandTagline.textContent = defaultTagline;
+  return {
+    title: defaultTitle,
+    tagline: defaultTagline,
+    scanTitle: 'Scanning',
+    heroCount: '—',
+    heroLabel: 'properties scanned',
+    sidebarTitle: defaultTitle,
+    sidebarTagline: 'Rank visible distress'
+  };
+}
+
+R.applyImportHeaderCopy = function applyImportHeaderCopy(copy) {
+  if (!copy) return;
+  if (commandTitle) commandTitle.textContent = copy.title;
+  if (commandTagline) commandTagline.textContent = copy.tagline;
+  if (sidebarTitle) sidebarTitle.textContent = copy.sidebarTitle;
+  if (sidebarTagline) sidebarTagline.textContent = copy.sidebarTagline;
+  if (scanProgressTitle) scanProgressTitle.textContent = copy.scanTitle;
+  if (heroCount) heroCount.textContent = copy.heroCount;
+  if (commandHeroLabel) commandHeroLabel.textContent = copy.heroLabel;
+}
+
+R.updateCommandHeader = function updateCommandHeader() {
+  R.applyImportHeaderCopy(R.buildImportHeaderCopy());
 }
 
 R.updateCommandBar = function updateCommandBar() {

@@ -1125,7 +1125,17 @@ R.fetchImageryIndexMap = async function fetchImageryIndexMap() {
   const data = await res.json();
   if (!data?.ok || !data.map) return {};
   imageryIndexMapCache = data.map;
+  if (state.results?.length) refreshAllCardThumbs();
   return imageryIndexMapCache;
+}
+
+R.serverConfirmsCachedImagery = function serverConfirmsCachedImagery(result, type = 'streetView') {
+  if (!USE_PROXY || !result?.address) return !USE_PROXY;
+  if (!imageryIndexMapCache) return false;
+  const hit = imageryIndexMapCache[normalizeAddressKey(result.address)];
+  if (!hit) return false;
+  const entry = type === 'satellite' ? hit.satellite : hit.streetView;
+  return entry?.status === 'ok' && !!entry?.url;
 }
 
 R.hydrateImageryFromServerIndex = async function hydrateImageryFromServerIndex(opts = {}) {
@@ -1241,39 +1251,44 @@ R.getPropertyImageUrls = function getPropertyImageUrls(address, result = null, o
 }
 
 R.getCardThumbUrls = function getCardThumbUrls(result) {
-  const cached = getCachedImageryUrls(result);
+  const sessionCached = getCachedImageryUrls(result);
   const preferSatellite = recordUsedSatelliteOnly(result);
-  const live = (!cached.streetView && !cached.satellite && hasImageryKey() && result?.address)
+  const live = hasImageryKey() && result?.address
     ? getPropertyImageUrls(result.address, result, { thumb: true })
     : null;
 
+  const cachedSv = sessionCached.streetView && serverConfirmsCachedImagery(result, 'streetView')
+    ? sessionCached.streetView
+    : null;
+  const cachedSat = sessionCached.satellite && serverConfirmsCachedImagery(result, 'satellite')
+    ? sessionCached.satellite
+    : null;
+  const liveSv = streetViewUnavailableForRecord(result) ? null : (live?.streetView || null);
+  const liveSat = live?.satellite || null;
+
   if (preferSatellite) {
-    const primary = cached.satellite || cached.streetView || live?.satellite || live?.streetView || '';
-    const fallback = cached.streetView && cached.satellite && cached.streetView !== cached.satellite
-      ? cached.streetView
-      : (live?.streetView && primary !== live.streetView ? live.streetView : '');
+    const primary = cachedSat || cachedSv || liveSat || liveSv || '';
+    const fallback = (cachedSv && cachedSat && cachedSv !== cachedSat)
+      ? cachedSv
+      : (liveSv && primary !== liveSv ? liveSv : '');
     return {
       primary,
       fallback,
-      label: (cached.satellite || cached.streetView) ? 'Cached satellite' : '',
-      fromCache: !!(cached.satellite || cached.streetView),
+      label: (cachedSat || cachedSv) ? 'Cached satellite' : '',
+      fromCache: !!(cachedSat || cachedSv),
       needsCache: !primary && !!result?.address
     };
   }
 
-  const sv = streetViewUnavailableForRecord(result)
-    ? null
-    : (cached.streetView || live?.streetView || null);
-  const sat = cached.satellite || live?.satellite || null;
+  const sv = cachedSv || liveSv || null;
+  const sat = cachedSat || liveSat || null;
   const primary = sv || sat || '';
   const fallback = sat && sv && sat !== sv ? sat : '';
   return {
     primary,
     fallback,
-    label: cached.streetView || cached.satellite
-      ? (sv ? 'Cached' : 'Cached satellite')
-      : '',
-    fromCache: !!(cached.streetView || cached.satellite),
+    label: (cachedSv || cachedSat) ? (sv ? 'Cached' : 'Cached satellite') : '',
+    fromCache: !!(cachedSv || cachedSat),
     needsCache: !primary && !!result?.address && !result?.imagery?.streetView?.unavailable
   };
 }

@@ -1517,6 +1517,9 @@ R.bootstrapApp = async function bootstrapApp() {
   }
   try {
     await loadSession();
+    if (USE_PROXY && state.results.length && typeof fetchImageryIndexMap === 'function') {
+      try { await fetchImageryIndexMap(); } catch (_) { /* live imagery fallback */ }
+    }
     scheduleDeferredImageryHydrate();
     runResortWellMaintainedFromUrl();
     scheduleDeferredSessionMigration();

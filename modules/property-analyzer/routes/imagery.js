@@ -10,6 +10,19 @@ function register(ctx) {
     const [, type, filename] = cachedImageryMatch;
     const file = imageryCache.readCachedFile(type, filename);
     if (!file) {
+      const entry = imageryCache.lookupEntryByFilename(type, filename);
+      if (entry?.address && type === 'streetview') {
+        const q = new URLSearchParams({
+          address: entry.address,
+          fast: '1',
+          size: '400x300'
+        });
+        if (entry.viewMeta?.panoId) q.set('pano', entry.viewMeta.panoId);
+        if (entry.viewMeta?.heading != null) q.set('heading', String(entry.viewMeta.heading));
+        res.writeHead(302, { Location: `/api/sv-image?${q.toString()}` });
+        res.end();
+        return true;
+      }
       sendImageError(res, 404, 'Cached image not found');
       return true;
     }
