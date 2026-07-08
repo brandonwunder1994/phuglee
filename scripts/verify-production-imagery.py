@@ -85,35 +85,42 @@ def main():
                 for m in console_msgs
             )
 
-            # Scroll to trigger lazy thumb loads
-            page.evaluate("window.scrollTo(0, 400)")
-            page.wait_for_timeout(6000)
-            page.evaluate("window.scrollTo(0, 0)")
-            page.wait_for_timeout(4000)
+            # Scroll to trigger lazy thumb loads (virtual scroll + intersection observer)
+            for y in [0, 300, 600, 900, 1200, 0]:
+                page.evaluate(f"window.scrollTo(0, {y})")
+                page.wait_for_timeout(2500)
+
+            # Wait for at least one sv-image network request
+            for _ in range(24):
+                if sv_requests:
+                    break
+                page.wait_for_timeout(1000)
+                page.evaluate("window.scrollBy(0, 350)")
 
             cards = page.locator(".prop-card")
             results["cards_found"] = cards.count()
 
-            imgs = page.locator(".prop-card .card-thumb img, .card-thumb img")
-            n = imgs.count()
-            for i in range(min(n, 16)):
-                img = imgs.nth(i)
-                src = img.get_attribute("src") or ""
-                visible = img.is_visible()
-                if not src and not visible:
-                    continue
+            thumb_info = page.evaluate("""() => {
+              const imgs = [...document.querySelectorAll('.prop-card .card-thumb img')];
+              return imgs.slice(0, 20).map(el => ({
+                src: el.getAttribute('src') || '',
+                thumbSrc: el.dataset.thumbSrc || '',
+                pending: el.dataset.thumbPending || '',
+                loaded: el.dataset.thumbLoaded || '',
+                complete: !!(el.complete && el.naturalWidth > 0),
+                naturalWidth: el.naturalWidth || 0
+              }));
+            }""")
+            results["thumb_info"] = thumb_info
+
+            for info in thumb_info:
+                src = info.get("src") or info.get("thumbSrc") or ""
                 if src:
                     results["imgs_with_src"] += 1
                     if len(results["sample_srcs"]) < 5:
                         results["sample_srcs"].append(src[:180])
-                try:
-                    loaded = img.evaluate(
-                        "el => el.complete && el.naturalWidth > 0"
-                    )
-                    if loaded:
-                        results["imgs_loaded"] += 1
-                except Exception as e:
-                    results["errors"].append(str(e))
+                if info.get("complete"):
+                    results["imgs_loaded"] += 1
 
             results["body_snippet"] = page.locator("body").inner_text()[:400].replace("\n", " ")
 
