@@ -1,8 +1,29 @@
 """Verify Street View thumbnails load on live Railway Analyzer page."""
+import time
 from playwright.sync_api import sync_playwright
 
 URL = "https://phuglee-production.up.railway.app/analyzer/"
 TIMEOUT_MS = 120000
+MAX_GOTO_ATTEMPTS = 4
+
+
+def goto_with_retry(page, url, timeout_ms):
+    """Railway can return 502 briefly during redeploys — retry before failing."""
+    last_err = None
+    for attempt in range(1, MAX_GOTO_ATTEMPTS + 1):
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            title = page.title()
+            body = page.locator("body").inner_text()[:200].lower()
+            if "502" in title.lower() or "bad gateway" in body or "application failed to respond" in body:
+                raise RuntimeError(f"Railway 502 (attempt {attempt}/{MAX_GOTO_ATTEMPTS})")
+            page.wait_for_load_state("networkidle", timeout=min(timeout_ms, 45000))
+            return attempt
+        except Exception as err:
+            last_err = err
+            if attempt < MAX_GOTO_ATTEMPTS:
+                time.sleep(12 * attempt)
+    raise last_err
 
 
 def main():
@@ -47,7 +68,7 @@ def main():
                 sessionStorage.setItem('phuglee_session', 'admin');
               } catch (_) {}
             """)
-            page.goto(URL, wait_until="networkidle", timeout=TIMEOUT_MS)
+            results["goto_attempts"] = goto_with_retry(page, URL, TIMEOUT_MS)
             results["page_title"] = page.title()
 
             # Click restore if empty workspace shows
@@ -73,6 +94,15 @@ def main():
 
             # Wait for session summary / results to hydrate
             page.wait_for_timeout(5000)
+
+            # Cards live under Lead Rankings — Overview may show empty import prompt
+            leads_nav = page.locator('[data-nav="leads"], button:has-text("Lead Rankings")')
+            if leads_nav.count() > 0:
+                try:
+                    leads_nav.first.click(timeout=5000)
+                    page.wait_for_timeout(3000)
+                except Exception:
+                    pass
 
             config = page.evaluate("""async () => {
               const r = await fetch('/analyzer/api/config');
@@ -155,6 +185,10 @@ def main():
     for k, v in results.items():
         print(f"{k}: {v}")
 
+    transient = any(
+        "502" in str(e).lower() or "bad gateway" in str(e).lower()
+        for e in results.get("errors", [])
+    )
     ok = (
         results["config_ok"]
         and results["cards_found"] > 0
@@ -162,6 +196,8 @@ def main():
         and results.get("sv_200", 0) > 0
     )
     print(f"\nPASS: {ok}")
+    if not ok and transient:
+        print("NOTE: Failure looks like a transient Railway 502/redeploy — retry in ~60s.")
     return 0 if ok else 1
 
 
