@@ -1423,13 +1423,36 @@ R.queueThumbSrc = function queueThumbSrc(img, url) {
 R.startThumbImageLoad = function startThumbImageLoad(img, url) {
   url = resolveImageryPublicUrl(url);
   if (!img?.isConnected || !url) return;
-  if (img.dataset.thumbLoaded === '1' && img.getAttribute('src') === url && img.complete && img.naturalWidth) {
+  if (thumbImageComplete(img) && img.getAttribute('src') === url) {
     img.classList.add('loaded');
+    img.dataset.thumbLoaded = '1';
     return;
   }
   if (isCachedThumbUrl(url)) {
-    img.dataset.thumbLoaded = '1';
-    delete img.dataset.thumbPending;
+    img.dataset.thumbPending = '1';
+    const onDone = () => {
+      if (thumbImageComplete(img)) img.dataset.thumbLoaded = '1';
+      delete img.dataset.thumbPending;
+    };
+    img.addEventListener('load', onDone, { once: true });
+    img.addEventListener('error', onDone, { once: true });
+    img.src = url;
+    return;
+  }
+  const eagerVirtual = !!(virtualScroll?.initialized && cardsVirtualWindow);
+  if (eagerVirtual) {
+    img.dataset.thumbPending = '1';
+    const onDone = () => {
+      if (thumbImageComplete(img)) {
+        img.dataset.thumbLoaded = '1';
+        img.classList.add('loaded');
+      } else {
+        delete img.dataset.thumbLoaded;
+      }
+      delete img.dataset.thumbPending;
+    };
+    img.addEventListener('load', onDone, { once: true });
+    img.addEventListener('error', onDone, { once: true });
     img.src = url;
     return;
   }

@@ -120,9 +120,13 @@ def main():
                 page.evaluate(f"window.scrollTo(0, {y})")
                 page.wait_for_timeout(2500)
 
-            # Wait for at least one sv-image network request
-            for _ in range(24):
-                if sv_requests:
+            # Wait for thumbs to paint (virtual scroll may load many sv-image requests)
+            for _ in range(40):
+                loaded = page.evaluate("""() => {
+                  const imgs = [...document.querySelectorAll('.prop-card .card-thumb img')];
+                  return imgs.filter(el => el.complete && el.naturalWidth > 0).length;
+                }""")
+                if loaded >= 12:
                     break
                 page.wait_for_timeout(1000)
                 page.evaluate("window.scrollBy(0, 350)")
