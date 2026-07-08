@@ -1315,21 +1315,44 @@ R.isCachedThumbUrl = function isCachedThumbUrl(url) {
   return typeof url === 'string' && url.includes('/api/cached-imagery/');
 }
 
+R.thumbImageComplete = function thumbImageComplete(img) {
+  return !!(img?.complete && img.naturalWidth > 0 && img.getAttribute('src'));
+}
+
 R.isNearViewport = function isNearViewport(el, margin = 600) {
   if (!el?.getBoundingClientRect) return false;
   const r = el.getBoundingClientRect();
+  const scrollRoot = virtualScroll?.initialized && cardsGrid ? cardsGrid : null;
+  if (scrollRoot?.getBoundingClientRect) {
+    const cr = scrollRoot.getBoundingClientRect();
+    return r.bottom >= cr.top - margin && r.top <= cr.bottom + margin;
+  }
   const h = window.innerHeight || document.documentElement.clientHeight;
   return r.bottom >= -margin && r.top <= h + margin;
 }
 
+R.resetThumbObserver = function resetThumbObserver() {
+  if (thumbObserver) {
+    thumbObserver.disconnect();
+    thumbObserver = null;
+  }
+}
+
 R.ensureThumbObserver = function ensureThumbObserver() {
-  if (thumbObserver) return thumbObserver;
+  const scrollRoot = virtualScroll?.initialized && cardsGrid ? cardsGrid : null;
+  if (thumbObserver) {
+    if (thumbObserver._pdaScrollRoot !== scrollRoot) {
+      resetThumbObserver();
+    } else {
+      return thumbObserver;
+    }
+  }
   thumbObserver = new IntersectionObserver((entries) => {
     for (const entry of entries) {
       if (!entry.isIntersecting) continue;
       const img = entry.target;
       const url = img.dataset.thumbSrc;
-      if (!url || img.dataset.thumbLoaded === '1') {
+      if (!url || thumbImageComplete(img)) {
         thumbObserver.unobserve(img);
         continue;
       }
@@ -1337,7 +1360,12 @@ R.ensureThumbObserver = function ensureThumbObserver() {
       thumbObserved.delete(img);
       startThumbImageLoad(img, url);
     }
-  }, { root: null, rootMargin: THUMB_LAZY_ROOT_MARGIN, threshold: 0 });
+  }, {
+    root: scrollRoot,
+    rootMargin: THUMB_LAZY_ROOT_MARGIN,
+    threshold: 0
+  });
+  thumbObserver._pdaScrollRoot = scrollRoot;
   return thumbObserver;
 }
 
@@ -1374,11 +1402,19 @@ R.queueThumbSrc = function queueThumbSrc(img, url) {
     timer = setTimeout(release, THUMB_LOAD_TIMEOUT_MS);
     const prevOnload = img.onload;
     const prevOnerror = img.onerror;
-    img.onload = (e) => { prevOnload?.call(img, e); release(); };
-    img.onerror = (e) => { prevOnerror?.call(img, e); release(); };
+    img.onload = (e) => {
+      img.dataset.thumbLoaded = '1';
+      delete img.dataset.thumbPending;
+      prevOnload?.call(img, e);
+      release();
+    };
+    img.onerror = (e) => {
+      delete img.dataset.thumbLoaded;
+      delete img.dataset.thumbPending;
+      prevOnerror?.call(img, e);
+      release();
+    };
     img.src = url;
-    img.dataset.thumbLoaded = '1';
-    delete img.dataset.thumbPending;
   };
   if (thumbLoadsActive < max) apply();
   else thumbLoadQueue.push(apply);
@@ -1403,9 +1439,13 @@ R.startThumbImageLoad = function startThumbImageLoad(img, url) {
 
 R.scheduleThumbImageLoad = function scheduleThumbImageLoad(img, url, card) {
   if (!img || !url) return;
-  if (img.dataset.thumbSrc === url && (img.dataset.thumbPending === '1' || img.dataset.thumbLoaded === '1')) {
-    if (img.complete && img.naturalWidth) img.classList.add('loaded');
-    return;
+  if (img.dataset.thumbSrc === url) {
+    if (img.dataset.thumbPending === '1') return;
+    if (thumbImageComplete(img)) {
+      img.classList.add('loaded');
+      return;
+    }
+    delete img.dataset.thumbLoaded;
   }
   if (img.dataset.thumbSrc && img.dataset.thumbSrc !== url) {
     if (thumbObserver && thumbObserved.has(img)) {
@@ -1417,7 +1457,8 @@ R.scheduleThumbImageLoad = function scheduleThumbImageLoad(img, url, card) {
     delete img.dataset.thumbPending;
   }
   img.dataset.thumbSrc = url;
-  if (isNearViewport(card)) {
+  const eager = !!(virtualScroll?.initialized && cardsVirtualWindow);
+  if (eager || isNearViewport(card, eager ? 240 : 600)) {
     startThumbImageLoad(img, url);
     return;
   }

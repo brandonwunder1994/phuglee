@@ -678,6 +678,7 @@ R.initVirtualScroll = function initVirtualScroll() {
     }, { passive: true });
   }
   virtualScroll.initialized = true;
+  if (typeof resetThumbObserver === 'function') resetThumbObserver();
 }
 
 R.updateVirtualSpacerHeight = function updateVirtualSpacerHeight(count) {

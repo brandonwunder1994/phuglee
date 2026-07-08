@@ -189,12 +189,15 @@ def main():
         "502" in str(e).lower() or "bad gateway" in str(e).lower()
         for e in results.get("errors", [])
     )
+    # Require most visible thumbs to actually paint — lazy-load bugs used to pass with only 6/20.
+    min_loaded = max(12, min(results["imgs_with_src"], results["cards_found"]) // 2)
     ok = (
         results["config_ok"]
         and results["cards_found"] > 0
-        and results["imgs_loaded"] > 0
-        and results.get("sv_200", 0) > 0
+        and results["imgs_loaded"] >= min_loaded
+        and results.get("sv_200", 0) >= min_loaded
     )
+    results["min_loaded_required"] = min_loaded
     print(f"\nPASS: {ok}")
     if not ok and transient:
         print("NOTE: Failure looks like a transient Railway 502/redeploy — retry in ~60s.")
