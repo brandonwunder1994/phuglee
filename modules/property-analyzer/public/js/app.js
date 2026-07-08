@@ -1290,7 +1290,7 @@ R.initAppShell = function initAppShell() {
     { label: 'Filter: Vacant lots', run: () => setFilter('vacant') },
     { label: 'Filter: Needs review', run: () => setFilter('review') },
     { label: 'Go to overview', run: () => summarySection?.scrollIntoView({ behavior: 'smooth', block: 'start' }) },
-    { label: 'Go to lead rankings', run: () => $('dashboard')?.scrollIntoView({ behavior: 'smooth', block: 'start' }) },
+    { label: 'Go to lead rankings', run: () => scrollToLeadRankingsOrHub() },
     { label: 'Collapse live workers', hint: 'Hide worker cards during scan', run: () => setAgentPanelCollapsed(true), when: () => state.running && !isAgentPanelCollapsed() },
     { label: 'Expand live workers', hint: 'Show worker cards', run: () => { setAgentPanelCollapsed(false); $('agentGridPanel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, when: () => state.running && isAgentPanelCollapsed() }
   ];
@@ -1366,6 +1366,15 @@ R.initAppShell = function initAppShell() {
     }
   }
 
+  function scrollToLeadRankingsOrHub() {
+    if (state.results.length && !state.locationFilter) {
+      locationHub?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      showUiToast?.('Pick a city or state to view leads');
+      return;
+    }
+    $('dashboard')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   document.querySelectorAll('.sidebar-nav-btn:not(.sidebar-nav-toggle)').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.sidebar-nav-btn:not(.sidebar-nav-toggle)').forEach((b) => b.classList.remove('active'));
@@ -1373,7 +1382,8 @@ R.initAppShell = function initAppShell() {
       const actionId = btn.dataset.action;
       const scrollId = btn.dataset.scroll;
       if (actionId) runSidebarAction(actionId);
-      if (scrollId) $(scrollId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (scrollId === 'dashboard') scrollToLeadRankingsOrHub();
+      else if (scrollId) $(scrollId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
 

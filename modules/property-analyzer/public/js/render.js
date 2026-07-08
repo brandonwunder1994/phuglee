@@ -1283,6 +1283,7 @@ R.renderResultsInner = function renderResultsInner() {
   updateSummaryStats({ full: true });
   updateExportButtons();
   resultsUiRendered = true;
+  updateLocationHubUi?.();
 }
 
 R.escapeHtml = function escapeHtml(str) {
