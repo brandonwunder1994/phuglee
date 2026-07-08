@@ -1359,7 +1359,7 @@ R.getStreetViewUrl = function getStreetViewUrl(address, apiKey, size = STREET_VI
   if (USE_PROXY) {
     const q = new URLSearchParams({ address, size });
     appendMapsKeyParam(q, apiKey);
-    return `/api/sv-image?${q.toString()}`;
+    return resolveImageryPublicUrl(`/api/sv-image?${q.toString()}`);
   }
   return `https://maps.googleapis.com/maps/api/streetview?size=${size}&location=${encodeURIComponent(address)}&key=${encodeURIComponent(key)}&return_error_code=true`;
 }
@@ -1373,7 +1373,7 @@ R.getSatelliteUrl = function getSatelliteUrl(address, apiKey, size = null) {
     const q = new URLSearchParams({ address });
     appendMapsKeyParam(q, apiKey);
     if (size) q.set('size', size);
-    return `/api/satellite-image?${q.toString()}`;
+    return resolveImageryPublicUrl(`/api/satellite-image?${q.toString()}`);
   }
   return '';
 }

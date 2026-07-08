@@ -67,6 +67,13 @@ R.resolveModuleApiUrl = function resolveModuleApiUrl(url) {
   return url;
 }
 
+/** Prefix /api/* paths for embedded Distress OS (/analyzer) — img.src does not use fetch patch. */
+R.resolveImageryPublicUrl = function resolveImageryPublicUrl(url) {
+  if (typeof url !== 'string' || !url) return url;
+  if (url.startsWith('/api/')) return R.resolveModuleApiUrl(url);
+  return url;
+}
+
 R.applyPhugleeSessionHeaders = function applyPhugleeSessionHeaders(headers = {}) {
   if (typeof window !== 'undefined'
     && window.PhugleeSessionHeaders

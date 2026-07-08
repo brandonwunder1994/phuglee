@@ -74,6 +74,7 @@ R.ensureResultKeyIndex = function ensureResultKeyIndex() {
 }
 
 R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
+  url = resolveImageryPublicUrl(url);
   if (!url || reviewImagePreloadCache.has(url)) return;
   const max = REVIEW_PRELOAD_CACHE_MAX || 128;
   if (reviewImagePreloadCache.size >= max && reviewImagePreloadOrder.length) {
@@ -95,6 +96,7 @@ R.isReviewImageReady = function isReviewImageReady(url) {
 
 R.setReviewImgSrc = function setReviewImgSrc(img, url) {
   if (!img) return;
+  url = resolveImageryPublicUrl(url);
   if (!url) {
     img.style.display = 'none';
     img.removeAttribute('src');

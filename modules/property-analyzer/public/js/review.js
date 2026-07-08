@@ -962,7 +962,7 @@ R.buildStreetViewThumbUrl = function buildStreetViewThumbUrl(address, apiKey, si
     if (viewMeta?.panoLng != null) q.set('panoLng', String(viewMeta.panoLng));
     if (viewMeta?.heading != null) q.set('heading', String(viewMeta.heading));
     if (viewMeta?.fov != null) q.set('fov', String(viewMeta.fov));
-    return `/api/sv-image?${q.toString()}`;
+    return resolveImageryPublicUrl(`/api/sv-image?${q.toString()}`);
   }
   const fov = viewMeta?.fov ?? SV_THUMB_FOV;
   const params = new URLSearchParams({
@@ -997,7 +997,7 @@ R.buildSatelliteThumbUrl = function buildSatelliteThumbUrl(address, apiKey, size
     appendMapsKeyParam(q, apiKey);
     if (viewMeta?.targetLat != null) q.set('lat', String(viewMeta.targetLat));
     if (viewMeta?.targetLng != null) q.set('lng', String(viewMeta.targetLng));
-    return `/api/satellite-image?${q.toString()}`;
+    return resolveImageryPublicUrl(`/api/satellite-image?${q.toString()}`);
   }
   const center = viewMeta?.targetLat != null && viewMeta?.targetLng != null
     ? `${viewMeta.targetLat},${viewMeta.targetLng}`
@@ -1036,8 +1036,12 @@ R.getCachedImageryUrls = function getCachedImageryUrls(result) {
   const imagery = result?.imagery;
   if (!imagery) return { streetView: null, satellite: null };
   return {
-    streetView: imagery.streetView?.url && imagery.streetView.status === 'ok' ? imagery.streetView.url : null,
-    satellite: imagery.satellite?.url && imagery.satellite.status === 'ok' ? imagery.satellite.url : null
+    streetView: imagery.streetView?.url && imagery.streetView.status === 'ok'
+      ? resolveImageryPublicUrl(imagery.streetView.url)
+      : null,
+    satellite: imagery.satellite?.url && imagery.satellite.status === 'ok'
+      ? resolveImageryPublicUrl(imagery.satellite.url)
+      : null
   };
 }
 
@@ -1273,7 +1277,7 @@ R.imageryCacheObserved = new WeakSet();
 R.IMAGERY_CACHE_ROOT_MARGIN = '400px 0px';
 
 R.isCachedThumbUrl = function isCachedThumbUrl(url) {
-  return typeof url === 'string' && url.startsWith('/api/cached-imagery/');
+  return typeof url === 'string' && url.includes('/api/cached-imagery/');
 }
 
 R.isNearViewport = function isNearViewport(el, margin = 600) {
@@ -1346,6 +1350,7 @@ R.queueThumbSrc = function queueThumbSrc(img, url) {
 }
 
 R.startThumbImageLoad = function startThumbImageLoad(img, url) {
+  url = resolveImageryPublicUrl(url);
   if (!img?.isConnected || !url) return;
   if (img.dataset.thumbLoaded === '1' && img.getAttribute('src') === url && img.complete && img.naturalWidth) {
     img.classList.add('loaded');
