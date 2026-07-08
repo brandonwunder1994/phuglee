@@ -139,6 +139,112 @@ body {
   position: relative;
 }
 
+.logo-ember-float {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(1080px, 95vw);
+  aspect-ratio: 408 / 612;
+  max-height: calc(100dvh - 14rem);
+  margin-inline: auto;
+}
+
+body.home-page .logo-ember-float {
+  overflow: visible;
+}
+
+body.home-page .logo-ember-float .landing-logo-slot,
+body.home-page .logo-ember-float .logo-ember-backdrop {
+  animation: logo-hero-float 7.5s ease-in-out 1.15s infinite;
+  will-change: transform;
+}
+
+.logo-ember-backdrop {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  translate: -50% -50%;
+  width: min(500px, 70vw);
+  height: min(360px, 50vw);
+  pointer-events: none;
+  z-index: 0;
+  overflow: visible;
+  isolation: isolate;
+}
+
+@supports not (translate: -50%) {
+  .logo-ember-backdrop {
+    translate: none;
+    transform: translate(-50%, -50%);
+  }
+
+  body.home-page .logo-ember-float .logo-ember-backdrop {
+    animation: none;
+  }
+}
+
+.logo-ember-halo {
+  position: absolute;
+  inset: 0;
+}
+
+.logo-ember-halo-layer {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.logo-ember-halo-layer--core {
+  inset: 16% 10% 20%;
+  background: radial-gradient(
+    ellipse 78% 68% at 50% 66%,
+    rgba(255, 110, 35, 0.48) 0%,
+    rgba(229, 132, 53, 0.3) 28%,
+    rgba(190, 75, 18, 0.1) 52%,
+    transparent 72%
+  );
+  filter: blur(24px);
+  animation: logo-ember-breathe 5.2s ease-in-out infinite;
+}
+
+.logo-ember-halo-layer--plume {
+  inset: 2% 0 32%;
+  background: radial-gradient(
+    ellipse 92% 58% at 50% 78%,
+    rgba(255, 85, 20, 0.26) 0%,
+    rgba(229, 132, 53, 0.14) 38%,
+    transparent 70%
+  );
+  filter: blur(34px);
+  animation: logo-ember-breathe 6.8s ease-in-out -3.4s infinite;
+}
+
+.logo-ember-halo-layer--base {
+  inset: 28% 6% 6%;
+  background: radial-gradient(
+    ellipse 82% 42% at 50% 88%,
+    rgba(255, 55, 8, 0.22) 0%,
+    rgba(200, 60, 10, 0.08) 45%,
+    transparent 68%
+  );
+  filter: blur(20px);
+  animation: logo-ember-breathe 4.4s ease-in-out -1.6s infinite;
+}
+
+.logo-ember-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.92;
+}
+
+.logo-ember-float .landing-logo-slot {
+  position: relative;
+  z-index: 1;
+}
+
 .landing-logo-slot {
   display: flex;
   align-items: center;
@@ -149,7 +255,14 @@ body {
   margin-inline: auto;
 }
 
-.logo-page .landing-logo-slot .phuglee-logo-svg--hero {
+.logo-ember-float .landing-logo-slot {
+  width: 100%;
+  max-height: none;
+  margin: 0;
+}
+
+.logo-page .landing-logo-slot .phuglee-logo-svg--hero,
+body.home-page .logo-ember-float .phuglee-logo-svg--hero {
   display: block;
   width: min(612px, 78vw);
   height: auto;
@@ -158,6 +271,29 @@ body {
   transform: scale(1.35);
   transform-origin: center center;
   animation: logo-rise-page 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+}
+
+@keyframes logo-hero-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  38% {
+    transform: translate3d(0, -6px, 0) rotate(0.2deg);
+  }
+  72% {
+    transform: translate3d(0, -11px, 0) rotate(-0.14deg);
+  }
+}
+
+@keyframes logo-ember-breathe {
+  0%, 100% {
+    opacity: 0.72;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.07);
+  }
 }
 
 .landing-logo {
@@ -303,10 +439,11 @@ body.logo-page .heat-grid {
 
 body.logo-page .heat-field {
   z-index: 1;
-  background:
-    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(229, 132, 53, 0.07) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(172, 107, 50, 0.04) 0%, transparent 50%),
-    linear-gradient(180deg, rgba(13, 13, 13, 0.12) 0%, rgba(40, 40, 39, 0.2) 100%);
+  background: transparent;
+}
+
+body.home-page.logo-page .heat-glow {
+  display: none;
 }
 
 body.logo-page .heat-field::after {
@@ -367,6 +504,10 @@ body.logo-page .heat-field::after {
 .logo-page .landing-logo-slot {
   max-height: calc(100dvh - 14rem);
   margin-inline: auto;
+}
+
+.logo-page .logo-ember-float .landing-logo-slot {
+  max-height: none;
 }
 
 @keyframes logo-rise-page {
@@ -579,5 +720,18 @@ body.logo-page .heat-field::after {
   .btn-landing-secondary {
     flex: 1;
     min-width: 0;
+  }
+
+  .logo-ember-backdrop {
+    width: min(380px, 88vw);
+    height: min(280px, 62vw);
+  }
+
+  .logo-ember-halo-layer--core {
+    filter: blur(18px);
+  }
+
+  .logo-ember-halo-layer--plume {
+    filter: blur(24px);
   }
 }

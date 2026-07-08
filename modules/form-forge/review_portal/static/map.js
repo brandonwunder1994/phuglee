@@ -221,28 +221,27 @@ function citiesToGeoJSON(cities) {
   };
 }
 
-const SIDEBAR_PANELS = ["sidebar-search", "sidebar-state", "sidebar-city"];
+const DOCK_PANELS = ["sidebar-search", "sidebar-state"];
 
-function syncSidebarFlyout(panel) {
-  const sidebar = $("#map-sidebar");
-  if (!sidebar) return;
-  const open = SIDEBAR_PANELS.includes(panel);
-  sidebar.classList.toggle("is-open", open);
-  sidebar.setAttribute("aria-hidden", open ? "false" : "true");
+function syncCoverageDock(panel) {
+  const dock = $("#coverage-dock");
+  if (!dock) return;
+  const open = panel !== "sidebar-empty";
+  dock.classList.toggle("is-open", open);
+  dock.classList.toggle("is-collapsed", !open);
 }
 
 function showPanel(panel) {
-  ["sidebar-empty", ...SIDEBAR_PANELS].forEach((id) => {
+  const empty = document.getElementById("sidebar-empty");
+  if (empty) empty.hidden = panel !== "sidebar-empty";
+  DOCK_PANELS.forEach((id) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.hidden = panel === "sidebar-empty" ? true : id !== panel;
-    if (id === panel && id !== "sidebar-empty") {
-      el.classList.remove("panel-enter");
-      void el.offsetWidth;
-      el.classList.add("panel-enter");
-    }
+    el.hidden = id !== panel;
   });
-  syncSidebarFlyout(panel);
+  const back = $("#btn-sidebar-back");
+  if (back) back.hidden = panel !== "sidebar-state";
+  syncCoverageDock(panel);
 }
 
 function setMapReady(ready) {
@@ -307,95 +306,16 @@ function selectCityFromSidebar(city) {
 function renderCountyBrowser(stateName, cities) {
   const browser = $("#state-county-browser");
   if (!browser) return;
+  if (window.PhugleeCoverageShared?.renderCountyBrowser) {
+    window.PhugleeCoverageShared.renderCountyBrowser(browser, stateName, cities, {
+      searchQuery,
+      selectedId: selectedCityId,
+      expandedCounties: expandedCountiesForState(stateName),
+      onSelectCity: selectCityFromSidebar,
+    });
+    return;
+  }
   browser.innerHTML = "";
-
-  const groups = groupCitiesByCounty(cities);
-  const expanded = expandedCountiesForState(stateName);
-  const searching = Boolean(searchQuery.trim());
-
-  if (searching) {
-    groups.forEach(({ county }) => expanded.add(county));
-  }
-
-  const root = document.createElement("div");
-  root.className = "county-browser";
-
-  groups.forEach(({ county, cities: countyCities }) => {
-    const group = document.createElement("div");
-    group.className = "county-group";
-    if (expanded.has(county)) group.classList.add("is-open");
-
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = "county-toggle";
-    toggle.setAttribute("aria-expanded", expanded.has(county) ? "true" : "false");
-
-    const label = document.createElement("span");
-    label.className = "county-toggle-label";
-    label.textContent = county;
-
-    const meta = document.createElement("span");
-    meta.className = "county-toggle-meta";
-    meta.textContent = `${countyCities.length}`;
-
-    const chevron = document.createElement("span");
-    chevron.className = "county-chevron";
-    chevron.setAttribute("aria-hidden", "true");
-    chevron.textContent = "›";
-
-    toggle.append(label, meta, chevron);
-    toggle.addEventListener("click", () => {
-      toggleCounty(stateName, county);
-      group.classList.toggle("is-open");
-      toggle.setAttribute("aria-expanded", group.classList.contains("is-open") ? "true" : "false");
-    });
-
-    const list = document.createElement("div");
-    list.className = "county-cities";
-    countyCities.forEach((city) => {
-      list.appendChild(buildCityButton(city, selectCityFromSidebar, { compact: true }));
-    });
-
-    group.append(toggle, list);
-    root.appendChild(group);
-  });
-
-  browser.appendChild(root);
-}
-
-function renderCityDetail(city) {
-  const isPortal = city.pin_type === "portal";
-  const county = city.county && city.county !== "Unknown County" ? city.county : null;
-
-  $("#city-kicker").textContent = county ? `${city.state} · ${county}` : city.state;
-  $("#city-title").textContent = city.city;
-
-  const badge = $("#city-coverage-badge");
-  badge.textContent = isPortal ? "Online Portal" : "Records Form";
-  badge.className = `coverage-badge ${isPortal ? "is-portal" : "is-form"}`;
-
-  const avail = $("#city-available");
-  avail.innerHTML = "";
-  if (isPortal) {
-    appendCoverageItem(avail, "Code violation lists");
-    appendCoverageItem(avail, "Water shutoff lists");
-  } else {
-    appendCoverageItem(avail, "Public records requests (FOIA)");
-  }
-
-  $("#city-status-line").textContent = isPortal
-    ? "Active data source"
-    : "Records access established";
-
-  const portalUrl = city.url || city.portal_url || "";
-  const portalLink = $("#link-portal");
-  portalLink.href = portalUrl || "#";
-  portalLink.hidden = !(isPortal && portalUrl);
-
-  const pdfLink = $("#link-pdf");
-  pdfLink.href = city.pdf_path ? `/api/file/${city.pdf_path}` : "#";
-  pdfLink.hidden = !city.pdf_path;
-  pdfLink.textContent = "View completed form";
 }
 
 async function showCity(city, coords) {
@@ -404,30 +324,14 @@ async function showCity(city, coords) {
   if (currentState === city.state) {
     expandedCountiesForState(city.state).add(cityCounty(city));
     renderCountyBrowser(city.state, stateCities(city.state));
+    showPanel("sidebar-state");
   }
-  showPanel("sidebar-city");
+  window.PhugleeCoverageShared?.syncCitySelection?.(city.id);
   syncCityListSelection(city.id);
-  renderCityDetail(city);
+  window.PhugleeCityProfileModal?.open?.(city, { alwaysFetchDetail: true });
   highlightSelectedOnMap(city, coords);
   syncTerrainPeaksVisibility();
   loadAndShowCityBoundary(city, coords, fetchToken);
-
-  if (city.requests || city.pdf_path || city.url || city.portal_url) return;
-
-  let detail = cityDetails.get(city.id);
-  if (!detail) {
-    try {
-      const res = await fetch(`/api/coverage/city/${encodeURIComponent(city.id)}`);
-      if (res.ok) {
-        detail = await res.json();
-        cityDetails.set(city.id, detail);
-        Object.assign(city, detail);
-        renderCityDetail(city);
-      }
-    } catch (_) {
-      /* keep minimal detail */
-    }
-  }
 }
 
 function cityLngLat(city, coords) {
@@ -443,10 +347,10 @@ function cityLngLat(city, coords) {
 }
 
 function sidebarPadding() {
-  const sidebar = $("#map-sidebar");
-  const open = sidebar?.classList.contains("is-open");
-  const sidebarW = open ? Math.min(380, Math.round(window.innerWidth * 0.42)) : 0;
-  return { top: 56, bottom: 72, left: 48, right: 48 + sidebarW };
+  const dock = $("#coverage-dock");
+  const open = dock?.classList.contains("is-open");
+  const dockH = open ? Math.min(240, Math.round(window.innerHeight * 0.28)) : 0;
+  return { top: 56, bottom: 72 + dockH, left: 48, right: 48 };
 }
 
 function geoBounds(geometry) {
@@ -573,12 +477,24 @@ function showSearchResults() {
   }
   const matches = searchCities();
   showPanel("sidebar-search");
-  $("#search-sub").textContent = matches.length
+  const sub = $("#search-sub");
+  if (sub) {
+    sub.hidden = false;
+    sub.textContent = matches.length
+      ? `${matches.length} match${matches.length === 1 ? "" : "es"}`
+      : "No cities match — try another name or state";
+  }
+  $("#state-title").textContent = "Search results";
+  $("#state-sub").textContent = matches.length
     ? `${matches.length} match${matches.length === 1 ? "" : "es"}`
-    : "No cities match — try another name or state";
+    : "No cities match";
   const list = $("#search-city-list");
-  list.innerHTML = "";
-  matches.slice(0, 100).forEach((city) => list.appendChild(buildCityButton(city, selectCity)));
+  if (window.PhugleeCoverageShared?.renderSearchList) {
+    window.PhugleeCoverageShared.renderSearchList(list, matches.slice(0, 100), selectCity, selectedCityId);
+  } else {
+    list.innerHTML = "";
+    matches.slice(0, 100).forEach((city) => list.appendChild(buildCityButton(city, selectCity)));
+  }
 }
 
 function showState(name) {
@@ -776,6 +692,8 @@ function exitStateView({ flyHome = false } = {}) {
   selectedCityId = null;
   if ($("#map-search")) $("#map-search").value = "";
   searchQuery = "";
+  if ($("#state-title")) $("#state-title").textContent = "Explore coverage";
+  if ($("#state-sub")) $("#state-sub").textContent = "Click a state or search a market";
   showPanel("sidebar-empty");
   clearStateMapChrome();
   updateMapHint();
@@ -891,9 +809,11 @@ function handleKeyboard(event) {
     $("#map-search")?.focus();
   }
   if (event.key === "Escape") {
-    if (!$("#sidebar-city")?.hidden) {
-      currentState ? showState(currentState) : resetView();
-    } else if (currentState) {
+    if (window.PhugleeCityProfileModal?.isOpen?.()) {
+      window.PhugleeCityProfileModal.close();
+      return;
+    }
+    if (currentState) {
       resetView();
     } else if (searchQuery.trim()) {
       if ($("#map-search")) $("#map-search").value = "";
@@ -2030,8 +1950,13 @@ function finishMapInit(statesGeo) {
 }
 
 async function fetchCoverageBootstrap() {
+  if (window.PhugleeCoverageShared?.fetchCoverageMap) {
+    return window.PhugleeCoverageShared.fetchCoverageMap();
+  }
   const res = await fetch("/api/coverage/map");
   if (res.ok) return res.json();
+  const staticFallback = await fetch("/data/coverage-map-bootstrap.json");
+  if (staticFallback.ok) return staticFallback.json();
   const fallback = await fetch("/api/coverage");
   if (!fallback.ok) throw new Error(`Coverage API failed (${fallback.status}). Restart: python run_review_portal.py`);
   const full = await fallback.json();
@@ -2147,12 +2072,9 @@ async function initMap() {
 
   $("#btn-reset-zoom")?.addEventListener("click", resetView);
   $("#btn-sidebar-back")?.addEventListener("click", resetView);
-  $("#btn-city-back")?.addEventListener("click", () => {
-    if (currentState) showState(currentState);
-    else resetView();
-  });
   $("#map-search")?.addEventListener("input", onSearchInput);
   document.addEventListener("keydown", handleKeyboard);
+  window.PhugleeCityProfileModal?.prefetchImages?.();
 }
 
 if (document.readyState === "loading") {
@@ -2160,3 +2082,10 @@ if (document.readyState === "loading") {
 } else {
   initMap();
 }
+
+window.CoverageMap = {
+  showState,
+  resetView,
+  selectCity,
+  showSearchResults,
+};

@@ -689,8 +689,8 @@
       if (rememberCb) rememberCb.checked = true;
     }
 
-    var btn = document.getElementById('btn-heat');
-    if (btn) {
+    function bindEnterPlatform(btn) {
+      if (!btn) return;
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         if (isAuthenticated()) {
@@ -700,6 +700,9 @@
         }
       });
     }
+
+    bindEnterPlatform(document.getElementById('btn-heat'));
+    bindEnterPlatform(document.getElementById('btn-heat-footer'));
 
     var signInBtn = document.getElementById('btn-sign-in');
     if (signInBtn) {

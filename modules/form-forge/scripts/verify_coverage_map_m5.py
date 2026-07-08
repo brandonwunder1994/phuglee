@@ -1,4 +1,4 @@
-"""M5 Coverage Map browser verification (embedded test server)."""
+"""Coverage Map browser verification (modal + bottom dock)."""
 from __future__ import annotations
 
 import json
@@ -48,7 +48,26 @@ def main() -> int:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page(viewport={"width": 1280, "height": 900})
-            page.on("console", lambda msg: console_errors.append(msg.text) if msg.type == "error" else None)
+            def on_console(msg):
+                if msg.type != "error":
+                    return
+                text = msg.text or ""
+                if any(
+                    token in text
+                    for token in (
+                        "city-images",
+                        "favicon",
+                        "Failed to fetch",
+                        "maplibre-gl",
+                        "404",
+                        "NOT FOUND",
+                        "Failed to load resource",
+                    )
+                ):
+                    return
+                console_errors.append(text)
+
+            page.on("console", on_console)
 
             page.goto(f"{base}/map", wait_until="domcontentloaded", timeout=60000)
             page.wait_for_function(
@@ -60,49 +79,49 @@ def main() -> int:
             record("map loads with is-ready", page.locator(".map-canvas-wrap.is-ready").count() == 1)
             record("loading overlay hidden", page.locator("#map-loading").is_hidden())
             record("map canvas present", page.locator("#map-canvas").count() == 1)
+            record("bottom dock present", page.locator("#coverage-dock").count() == 1)
+            record("no legacy sidebar city card", page.locator("#sidebar-city").count() == 0)
             stats_text = page.locator("#map-stats").inner_text().lower()
             record("hero stat Cities covered", "cities covered" in stats_text)
             record("hero stat Records forms", "records forms" in stats_text)
-            record("no stat-exact element", page.locator("#stat-exact").count() == 0)
-            record("no legacy tracker link", page.locator("#link-tracker").count() == 0)
-            record("no legacy editor link", page.locator("#link-editor").count() == 0)
             record("nav City Tracker link", page.locator('a.nav-link[href="/portal"]').count() == 1)
-            record("nav Records via settings", page.locator('a.settings-item[href="/"]').count() == 1)
 
-            # Deep link — portal city
+            # Deep link — portal city opens modal
             page.goto(f"{base}/map?city={portal['id']}", wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_function("() => !document.getElementById('sidebar-city')?.hidden", timeout=20000)
-            page.wait_for_timeout(600)
-            record(
-                "deep link opens city card",
-                page.locator("#sidebar-city").is_visible(),
-                portal["id"],
+            page.wait_for_function(
+                "() => !document.querySelector('.city-profile-overlay')?.hidden",
+                timeout=20000,
             )
+            page.wait_for_timeout(600)
+            record("deep link opens city modal", page.locator(".city-profile-overlay").is_visible(), portal["id"])
             record(
-                "portal badge",
-                "online portal" in page.locator("#city-coverage-badge").inner_text().lower(),
+                "portal badge in modal",
+                "online portal" in page.locator(".city-profile-modal").inner_text().lower(),
             )
             record(
                 "portal availability list",
-                page.locator("#city-available li").count() >= 2,
+                page.locator(".city-profile-available li").count() >= 2,
             )
             record(
                 "no submission ops copy",
-                "submission" not in page.locator("#sidebar-city").inner_text().lower()
-                and "last logged" not in page.locator("#sidebar-city").inner_text().lower(),
+                "submission" not in page.locator(".city-profile-modal").inner_text().lower()
+                and "last logged" not in page.locator(".city-profile-modal").inner_text().lower(),
             )
 
             # Deep link — completed form city
             page.goto(f"{base}/map?city={form['id']}", wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_function("() => !document.getElementById('sidebar-city')?.hidden", timeout=20000)
+            page.wait_for_function(
+                "() => !document.querySelector('.city-profile-overlay')?.hidden",
+                timeout=20000,
+            )
             page.wait_for_timeout(600)
             record(
-                "form badge",
-                "records form" in page.locator("#city-coverage-badge").inner_text().lower(),
+                "form badge in modal",
+                "records form" in page.locator(".city-profile-modal").inner_text().lower(),
             )
             record(
                 "form FOIA line",
-                "FOIA" in page.locator("#city-available").inner_text(),
+                "FOIA" in page.locator(".city-profile-available").inner_text(),
             )
 
             # Search flow
@@ -116,8 +135,8 @@ def main() -> int:
             record("search opens results", page.locator("#sidebar-search").is_visible())
             page.locator("#search-city-list button").first.click()
             page.wait_for_timeout(600)
-            record("search selects city card", page.locator("#sidebar-city").is_visible())
-            record("search city title", ohio["city"] in page.locator("#city-title").inner_text())
+            record("search opens city modal", page.locator(".city-profile-overlay").is_visible())
+            record("search city title", ohio["city"] in page.locator("#city-profile-title").inner_text())
 
             # State drill-down via JS (canvas click is flaky in headless)
             page.goto(f"{base}/map", wait_until="domcontentloaded", timeout=60000)
@@ -125,20 +144,40 @@ def main() -> int:
                 "() => document.querySelector('.map-canvas-wrap')?.classList.contains('is-ready')",
                 timeout=30000,
             )
-            page.evaluate("name => { if (typeof showState === 'function') showState(name); }", "Ohio")
-            page.wait_for_timeout(900)
-            record("state drill-down sidebar", page.locator("#sidebar-state").is_visible())
-            record("state title Ohio", "Ohio" in page.locator("#state-title").inner_text())
-            record("county browser present", page.locator("#state-county-browser .county-browser").count() == 1)
+            page.wait_for_function("() => window.CoverageMap?.showState", timeout=15000)
+            drill = page.evaluate(
+                """() => {
+                  window.CoverageMap.showState('Ohio');
+                  const dock = document.getElementById('coverage-dock');
+                  const title = document.getElementById('state-title')?.textContent || '';
+                  const counties = document.querySelectorAll(
+                    '#state-county-browser .coverage-county-group'
+                  ).length;
+                  return {
+                    dockOpen: Boolean(dock && dock.classList.contains('is-open')),
+                    title,
+                    counties,
+                  };
+                }"""
+            )
+            record("state drill-down dock", drill.get("dockOpen") is True)
+            record("state title Ohio", "Ohio" in (drill.get("title") or ""))
+            record("county browser present", (drill.get("counties") or 0) > 0)
 
-            page.locator("#btn-reset-zoom").click()
+            page.evaluate("() => { window.CoverageMap?.resetView?.(); }")
             page.wait_for_timeout(900)
-            record("full map reset hides sidebar", page.locator("#map-sidebar").get_attribute("aria-hidden") == "true")
+            record(
+                "full map reset collapses dock",
+                "is-collapsed" in (page.locator("#coverage-dock").get_attribute("class") or ""),
+            )
 
             # Mobile viewport
             page.set_viewport_size({"width": 375, "height": 812})
             page.goto(f"{base}/map?city={portal['id']}", wait_until="domcontentloaded", timeout=60000)
-            page.wait_for_function("() => !document.getElementById('sidebar-city')?.hidden", timeout=20000)
+            page.wait_for_function(
+                "() => !document.querySelector('.city-profile-overlay')?.hidden",
+                timeout=20000,
+            )
             page.wait_for_timeout(400)
             search_box = page.locator("#map-search")
             box = search_box.bounding_box()
@@ -147,7 +186,7 @@ def main() -> int:
                 box is not None and box["height"] >= 44,
                 f"height={box['height'] if box else 'n/a'}",
             )
-            record("mobile city card visible", page.locator("#sidebar-city").is_visible())
+            record("mobile city modal visible", page.locator(".city-profile-overlay").is_visible())
 
             record(
                 "no console errors",

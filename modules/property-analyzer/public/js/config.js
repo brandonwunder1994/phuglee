@@ -67,8 +67,17 @@ R.resolveModuleApiUrl = function resolveModuleApiUrl(url) {
   return url;
 }
 
+R.applyPhugleeSessionHeaders = function applyPhugleeSessionHeaders(headers = {}) {
+  if (typeof window !== 'undefined'
+    && window.PhugleeSessionHeaders
+    && typeof window.PhugleeSessionHeaders.phugleeSessionHeaders === 'function') {
+    return window.PhugleeSessionHeaders.phugleeSessionHeaders(headers);
+  }
+  return { ...headers };
+}
+
 R.apiFetch = function apiFetch(url, opts = {}) {
-  const headers = { ...(opts.headers || {}) };
+  const headers = R.applyPhugleeSessionHeaders(opts.headers || {});
   const token = getAuthToken();
   if (token) headers['X-PDA-Token'] = token;
   return fetch(R.resolveModuleApiUrl(url), { ...opts, headers });
@@ -78,7 +87,16 @@ if (R.IS_EMBEDDED && typeof window !== 'undefined' && !window.__PDA_FETCH_PATCHE
   const nativeFetch = window.fetch.bind(window);
   window.fetch = function pdaFetch(input, init) {
     if (typeof input === 'string') input = R.resolveModuleApiUrl(input);
-    return nativeFetch(input, init);
+    const nextInit = { ...(init || {}) };
+    if (typeof input === 'string' && (input.includes('/api/') || input.endsWith('/api'))) {
+      const headers = R.applyPhugleeSessionHeaders(
+        nextInit.headers && typeof nextInit.headers === 'object' && !(nextInit.headers instanceof Headers)
+          ? nextInit.headers
+          : {}
+      );
+      nextInit.headers = headers;
+    }
+    return nativeFetch(input, nextInit);
   };
   window.__PDA_FETCH_PATCHED__ = true;
 }

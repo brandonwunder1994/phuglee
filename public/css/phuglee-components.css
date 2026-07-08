@@ -453,6 +453,9 @@
 
 .phuglee-logo-svg--hero {
   width: min(408px, 72vw);
+}
+
+body:not(.home-page) .phuglee-logo-svg--hero {
   animation: phuglee-logo-float 6s ease-in-out infinite;
 }
 
@@ -513,8 +516,19 @@
     animation: none;
   }
 
-  .phuglee-logo-svg--hero {
-    animation: none;
+  .phuglee-logo-svg--hero,
+  body.home-page .logo-ember-float .landing-logo-slot,
+  body.home-page .logo-ember-float .logo-ember-backdrop {
+    animation: none !important;
+  }
+
+  .logo-ember-halo-layer {
+    animation: none !important;
+    opacity: 0.82;
+  }
+
+  .logo-ember-canvas {
+    display: none;
   }
 
   .phuglee-loading-bar::after {

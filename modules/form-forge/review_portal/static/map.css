@@ -90,9 +90,34 @@ body.map-page {
   padding: 1rem 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
   min-height: 0;
   overflow: hidden;
+}
+
+.map-stage .coverage-dock {
+  flex-shrink: 0;
+  border-color: var(--border);
+  background: rgba(15, 21, 32, 0.92);
+}
+
+.map-stage .coverage-dock.is-open {
+  max-height: min(220px, 32vh);
+}
+
+.map-stage .coverage-dock-search input {
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.map-stage .coverage-dock-title {
+  font-family: var(--display);
+}
+
+.map-stage .coverage-dock-sub,
+.map-stage .state-sub {
+  color: var(--muted);
 }
 
 .map-toolbar {
@@ -186,7 +211,7 @@ body.map-page {
 .map-canvas-wrap {
   position: relative;
   flex: 1;
-  min-height: 520px;
+  min-height: 420px;
   background:
     radial-gradient(ellipse 120% 80% at 50% 100%, rgba(16, 40, 52, 0.35), transparent 58%),
     linear-gradient(180deg, rgba(15, 21, 32, 0.55), rgba(8, 12, 20, 0.92));

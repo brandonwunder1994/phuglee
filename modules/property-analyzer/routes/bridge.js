@@ -1,16 +1,14 @@
 const { buildImportAddressIndex } = require('../lib/import-address-index');
 const { appendRecordsToSession } = require('../lib/bridge-import-records');
+const { readScopeFromRequest } = require('../lib/user-session');
 
 function register(ctx) {
-  const { router, sendJson, readBody, backups, config, fs, path } = ctx;
-  const { DATA_ROOT, SESSION_LATEST_FILE } = config;
+  const { router, sendJson, readBody, backups, config } = ctx;
   const { writeFileAtomic } = require('../lib/fs-atomic');
 
   router.get('/api/import-address-index', async (req, res) => {
-    const session = backups.promoteMergedSessionIfBetter(
-      backups.mergeIncrementalIntoSession(backups.readLatestSessionFile())
-    );
-    const index = buildImportAddressIndex(session);
+    const { session } = backups.loadSessionForRequest(req);
+    const index = buildImportAddressIndex(finalizeSession(backups, session));
     sendJson(res, 200, {
       ok: true,
       count: index.count,
@@ -42,30 +40,31 @@ function register(ctx) {
       }
     }
 
-    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
-    let session = backups.promoteMergedSessionIfBetter(
-      backups.mergeIncrementalIntoSession(backups.readLatestSessionFile())
-    );
-    if (!session || typeof session !== 'object') session = {};
-
-    const merged = appendRecordsToSession(session, records);
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const base = finalizeSession(backups, session);
+    const merged = appendRecordsToSession(base, records);
     merged.session.fileName = String(body.sourceFile || merged.session.fileName || 'Filter import').trim();
     if (body.uploadType) {
       merged.session.importLeadType = String(body.uploadType).trim();
     }
 
-    writeFileAtomic(latestPath, JSON.stringify(merged.session));
-    backups.invalidateSessionCaches();
+    backups.writeLatestSessionFileForScope(scope, merged.session);
 
     sendJson(res, 200, {
       ok: true,
       added: merged.added,
       skipped: merged.skipped,
       totalRecords: merged.totalRecords,
-      fileName: merged.session.fileName
+      fileName: merged.session.fileName,
+      scope: scope.kind,
+      storageKey: scope.storageKey
     });
     return true;
   });
+}
+
+function finalizeSession(backups, session) {
+  return backups.promoteMergedSessionIfBetter(session);
 }
 
 module.exports = { register };

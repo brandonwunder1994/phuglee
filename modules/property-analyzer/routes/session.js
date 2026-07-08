@@ -1,18 +1,23 @@
 const { writeFileAtomic } = require('../lib/fs-atomic');
 const backupLogic = require('../lib/backup-logic');
+const { scopeSessionPath } = require('../lib/user-session');
 
 function register(ctx) {
   const { router, sendJson, readBody, backups, safety, config, fs, path } = ctx;
   const { DATA_ROOT, SESSION_BACKUP_FILES, SESSION_LATEST_FILE, ARCHIVE_REJECTED_DIR } = config;
 
+  function finalizeSession(session) {
+    return backups.promoteMergedSessionIfBetter(session);
+  }
+
   router.get('/api/session-summary', async (req, res, url) => {
     const lite = url.searchParams.get('lite') === '1';
-    const session = backups.promoteMergedSessionIfBetter(backups.mergeIncrementalIntoSession(backups.readLatestSessionFile()));
-    const body = backups.getSessionSummaryResponseBody(session, { lite });
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const body = backups.getSessionSummaryResponseBody(finalizeSession(session), { lite });
     if (!backups.summaryServedLogged) {
       backups.summaryServedLogged = true;
       const parsed = JSON.parse(body);
-      console.log(`[Session] Summary served: ${parsed.results} results, ${body.length} bytes${lite ? ' (lite)' : ''}`);
+      console.log(`[Session] Summary served (${scope.kind}/${scope.storageKey}): ${parsed.results} results, ${body.length} bytes${lite ? ' (lite)' : ''}`);
     }
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(body);
@@ -20,16 +25,17 @@ function register(ctx) {
   });
 
   router.get('/api/session-review-meta', async (req, res, url) => {
-    const session = backups.promoteMergedSessionIfBetter(backups.mergeIncrementalIntoSession(backups.readLatestSessionFile()));
-    const body = backups.getSessionReviewMetaResponseBody(session);
+    const { session } = backups.loadSessionForRequest(req);
+    const body = backups.getSessionReviewMetaResponseBody(finalizeSession(session));
     res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(body);
     return true;
   });
 
   router.get('/api/session-results', async (req, res, url) => {
-    const session = backups.promoteMergedSessionIfBetter(backups.mergeIncrementalIntoSession(backups.readLatestSessionFile()));
-    const results = Array.isArray(session.results) ? session.results : [];
+    const { session } = backups.loadSessionForRequest(req);
+    const finalized = finalizeSession(session);
+    const results = Array.isArray(finalized.results) ? finalized.results : [];
     const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
     const limit = Math.min(1000, Math.max(1, parseInt(url.searchParams.get('limit') || '500', 10) || 500));
     const slice = results.slice(offset, offset + limit);
@@ -45,9 +51,10 @@ function register(ctx) {
   });
 
   router.get('/api/session-backup', async (req, res, url) => {
-    const requested = url.searchParams.get('file') || SESSION_BACKUP_FILES[0];
-    const fileName = SESSION_BACKUP_FILES.includes(requested) ? requested : SESSION_BACKUP_FILES[0];
-    const filePath = path.join(DATA_ROOT, fileName);
+    const { scope } = backups.loadSessionForRequest(req);
+    const requested = url.searchParams.get('file') || SESSION_LATEST_FILE;
+    const fileName = SESSION_BACKUP_FILES.includes(requested) ? requested : SESSION_LATEST_FILE;
+    const filePath = scopeSessionPath(DATA_ROOT, fileName, scope);
     if (!fs.existsSync(filePath)) {
       sendJson(res, 404, { ok: false, error: 'No session backup file on server' });
       return true;
@@ -61,18 +68,20 @@ function register(ctx) {
       return true;
     }
     const mergeIncremental = backups.shouldMergeIncrementalIntoSession(session);
-    const cacheKey = `${fileName}|${mtimeMs}|${mergeIncremental ? 'merge' : 'raw'}`;
+    const cacheKey = `${scope.storageKey}|${fileName}|${mtimeMs}|${mergeIncremental ? 'merge' : 'raw'}`;
     if (backups.sessionBackupResponseCache.key === cacheKey && backups.sessionBackupResponseCache.body) {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(backups.sessionBackupResponseCache.body);
       return true;
     }
-    session = backups.promoteMergedSessionIfBetter(
+    session = finalizeSession(
       mergeIncremental ? backups.mergeIncrementalIntoSession(session) : session
     );
     const body = JSON.stringify({
       ok: true,
       file: fileName,
+      scope: scope.kind,
+      storageKey: scope.storageKey,
       savedAt: session.savedAt || null,
       fileName: session.fileName || '',
       records: Array.isArray(session.records) ? session.records.length : 0,
@@ -87,6 +96,7 @@ function register(ctx) {
   });
 
   router.post('/api/scan-result', async (req, res, url) => {
+    backups.rememberActiveScope(req);
     let raw = await readBody(req);
     let body;
     try {
@@ -117,7 +127,7 @@ function register(ctx) {
       processed: body.processed || 0,
       savedAt: body.savedAt || Date.now()
     });
-    backups.schedulePromoteAfterScanResult();
+    backups.schedulePromoteAfterScanResult(req);
     sendJson(res, 200, { ok: true, key });
     return true;
   });
@@ -139,6 +149,7 @@ function register(ctx) {
   });
 
   router.post('/api/session-backup', async (req, res, url) => {
+    const { scope } = backups.loadSessionForRequest(req);
     let raw = await readBody(req);
     let session;
     try {
@@ -153,7 +164,7 @@ function register(ctx) {
     }
     session = backups.mergeIncrementalIntoSession(session);
     delete session._mergedFromIncremental;
-    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
+    const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, scope);
     const allowDowngrade = url.searchParams.get('allowDowngrade') === '1';
     let existingSession = null;
     let existingResults = 0;
@@ -174,7 +185,7 @@ function register(ctx) {
       const before = incomingCount;
       session = backupLogic.mergeSessionSave(existingSession, session);
       if ((session.results || []).length !== before || incomingCount < existingResults) {
-        console.log(`[Session] Merged client save (${before} → ${(session.results || []).length} results)`);
+        console.log(`[Session] Merged client save (${scope.storageKey}: ${before} → ${(session.results || []).length} results)`);
       }
     }
     const results = Array.isArray(session.results) ? session.results.length : 0;
@@ -194,7 +205,7 @@ function register(ctx) {
     if (!allowDowngrade && existingResults > 0 && incomingWorse) {
       const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
       backups.ensureArchiveDirs();
-      const quarantine = path.join(ARCHIVE_REJECTED_DIR, `distressAnalyzerSession_REJECTED_${results}_${stamp}.json`);
+      const quarantine = path.join(ARCHIVE_REJECTED_DIR, `distressAnalyzerSession_REJECTED_${scope.storageKey}_${results}_${stamp}.json`);
       try { writeFileAtomic(quarantine, JSON.stringify(session)); } catch (_) {}
       sendJson(res, 409, {
         ok: false,
@@ -208,8 +219,7 @@ function register(ctx) {
       });
       return true;
     }
-    writeFileAtomic(latestPath, JSON.stringify(session));
-    backups.invalidateSessionCaches();
+    backups.writeLatestSessionFileForScope(scope, session);
     safety.lastMirrorContentHash = backups.sessionContentHash(session);
     const tier = backups.backupTierForReason(saveReason);
     if (tier === 'milestone' || tier === 'manual') {
@@ -226,6 +236,8 @@ function register(ctx) {
     sendJson(res, 200, {
       ok: true,
       file: SESSION_LATEST_FILE,
+      scope: scope.kind,
+      storageKey: scope.storageKey,
       results,
       records: Array.isArray(session.records) ? session.records.length : 0,
       processed: session.processed || 0,

@@ -1,4 +1,9 @@
 const { parseLearnedBrainFromSession } = require('./learned-brain');
+const {
+  scopeSessionPath,
+  emptySession,
+  readScopeFromRequest
+} = require('./user-session');
 
 module.exports = function createBackups(deps) {
   const { config, fs, path, crypto, getSafety } = deps;
@@ -44,6 +49,7 @@ module.exports = function createBackups(deps) {
   let sessionBackupResponseCache = { key: '', body: '' };
   let sessionSummaryResponseCache = { key: '', liteKey: '', body: '', liteBody: '' };
   let summaryServedLogged = false;
+  let lastActiveScope = null;
 
   function ensureScanResultsDir() {
     if (!fs.existsSync(SCAN_RESULTS_DIR)) {
@@ -345,10 +351,10 @@ module.exports = function createBackups(deps) {
     return Date.now() - (safety?.safetyState?.lastAutoSnapshotAt || 0) > AUTO_SNAPSHOT_MIN_MS;
   }
 
-  function readLatestSessionFile() {
-    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
+  function readLatestSessionFileForScope(scope) {
+    const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, scope);
     if (!fs.existsSync(latestPath)) {
-      return { records: [], results: [], processed: 0, savedAt: 0 };
+      return emptySession();
     }
     try {
       const stat = fs.statSync(latestPath);
@@ -363,8 +369,28 @@ module.exports = function createBackups(deps) {
       sessionFileCache.parsed = parsed;
       return parsed;
     } catch (_) {
-      return { records: [], results: [], processed: 0, savedAt: 0 };
+      return emptySession();
     }
+  }
+
+  function writeLatestSessionFileForScope(scope, session) {
+    const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, scope);
+    fs.mkdirSync(path.dirname(latestPath), { recursive: true });
+    writeFileAtomic(latestPath, JSON.stringify(session));
+    invalidateSessionCaches();
+    return latestPath;
+  }
+
+  function readLatestSessionFile() {
+    return readLatestSessionFileForScope(lastActiveScope || { storageKey: '_anonymous' });
+  }
+
+  function loadSessionForRequest(req) {
+    const scope = readScopeFromRequest(req);
+    lastActiveScope = scope;
+    let session = readLatestSessionFileForScope(scope);
+    session = mergeIncrementalIntoSession(session);
+    return { scope, session };
   }
 
   function writeTieredBackup(session, tag = 'auto', tier = 'ephemeral') {
@@ -401,15 +427,16 @@ module.exports = function createBackups(deps) {
     return writeTieredBackup(session, tag, tier);
   }
 
-  function promoteIncrementalToLatest(reason = 'auto') {
+  function promoteIncrementalToLatest(reason = 'auto', scope = lastActiveScope) {
     const safety = getSafety?.();
+    const activeScope = scope || lastActiveScope || { storageKey: '_anonymous' };
     if (promoteInFlight) {
       promoteQueued = true;
       return { promoted: false, queued: true, results: safety?.safetyState?.lastPromoteResults || 0 };
     }
     promoteInFlight = true;
     try {
-      const base = readLatestSessionFile();
+      const base = readLatestSessionFileForScope(activeScope);
       const baseResults = Array.isArray(base.results) ? base.results.length : 0;
       const merged = mergeIncrementalIntoSession(base);
       const mergedResults = Array.isArray(merged.results) ? merged.results.length : 0;
@@ -419,7 +446,7 @@ module.exports = function createBackups(deps) {
         const toSave = { ...merged };
         delete toSave._mergedFromIncremental;
         try {
-          writeFileAtomic(path.join(DATA_ROOT, SESSION_LATEST_FILE), JSON.stringify(toSave));
+          writeLatestSessionFileForScope(activeScope, toSave);
           if (shouldWriteRollingBackup(mergedResults)) {
             writeRollingAutoBackup(toSave, `promote_${reason}`, 'milestone');
             lastRollingBackupAt = Date.now();
@@ -446,7 +473,13 @@ module.exports = function createBackups(deps) {
     }
   }
 
-  function schedulePromoteAfterScanResult() {
+  function rememberActiveScope(req) {
+    if (req) lastActiveScope = readScopeFromRequest(req);
+    return lastActiveScope;
+  }
+
+  function schedulePromoteAfterScanResult(req) {
+    rememberActiveScope(req);
     scanResultsSincePromote++;
     if (scanResultsSincePromote >= PROMOTE_BATCH_MIN) {
       scanResultsSincePromote = 0;
@@ -467,7 +500,8 @@ module.exports = function createBackups(deps) {
 
   function promoteMergedSessionIfBetter(session) {
     if (!session?._mergedFromIncremental) return session;
-    const latestPath = path.join(DATA_ROOT, SESSION_LATEST_FILE);
+    const activeScope = lastActiveScope || { storageKey: '_anonymous' };
+    const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, activeScope);
     let existingResults = 0;
     if (fs.existsSync(latestPath)) {
       try {
@@ -480,10 +514,9 @@ module.exports = function createBackups(deps) {
       const toSave = { ...session };
       delete toSave._mergedFromIncremental;
       try {
-        writeFileAtomic(latestPath, JSON.stringify(toSave));
-        invalidateSessionCaches();
+        writeLatestSessionFileForScope(activeScope, toSave);
         writeRollingAutoBackup(toSave, 'merge_on_read', 'milestone');
-        console.log(`[Session] Promoted incremental recovery — ${mergedResults} results`);
+        console.log(`[Session] Promoted incremental recovery (${activeScope.storageKey}) — ${mergedResults} results`);
       } catch (err) {
         console.warn('[Session] Could not promote incremental recovery:', err.message);
       }
@@ -510,6 +543,10 @@ module.exports = function createBackups(deps) {
     promoteMergedSessionIfBetter,
     readIncrementalScanResults,
     readLatestSessionFile,
+    readLatestSessionFileForScope,
+    writeLatestSessionFileForScope,
+    loadSessionForRequest,
+    rememberActiveScope,
     readSessionBackupFromDisk,
     recordKeyFromResult,
     schedulePromoteAfterScanResult,

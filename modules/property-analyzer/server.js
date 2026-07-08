@@ -8,6 +8,7 @@ const { sendJson, readBody, corsPreflight } = require('./lib/http');
 const { createRouter } = require('./lib/router');
 const createBackups = require('./lib/backups');
 const createSafety = require('./lib/safety');
+const { ensureSeededSession } = require('./lib/seed-session');
 const mapsModule = require('./routes/maps');
 const geminiModule = require('./routes/gemini');
 
@@ -17,6 +18,15 @@ const safetyRef = { current: null };
 const backups = createBackups({ config, fs, path, crypto, getSafety: () => safetyRef.current });
 const safety = createSafety({ config, fs, path, crypto, backups });
 safetyRef.current = safety;
+
+const startupSeedResult = ensureSeededSession({ config, fs, path });
+if (startupSeedResult.seeded) {
+  backups.invalidateSessionCaches();
+  console.log(`[Session] Seeded scoped sessions (${startupSeedResult.seedResults} results)`);
+}
+if (startupSeedResult.migration?.migrated) {
+  console.log(`[Session] Migrated global session to admin (${startupSeedResult.migration.results} results)`);
+}
 
 const {
   PORT,
@@ -294,9 +304,11 @@ function bootStandaloneServer() {
     error: promoteResult.error || null
   };
   console.log(`[Safety] Startup promote: ${JSON.stringify(promoteResult)}`);
-  const latestSession = backups.readLatestSessionFile();
-  const latestCount = Array.isArray(latestSession.results) ? latestSession.results.length : 0;
-  console.log(`Canonical session: ${SESSION_LATEST_FILE} (${latestCount} results)`);
+  const adminSession = backups.readLatestSessionFileForScope({ storageKey: 'admin' });
+  const adminCount = Array.isArray(adminSession.results) ? adminSession.results.length : 0;
+  const vaultSession = backups.readLatestSessionFileForScope({ storageKey: '_vault' });
+  const vaultCount = Array.isArray(vaultSession.results) ? vaultSession.results.length : 0;
+  console.log(`Scoped sessions: admin=${adminCount} results, vault=${vaultCount} results`);
   const maps = mapsModule.mapsKeyStatus(MAPS_KEY_FILE);
   const gemini = geminiModule.geminiKeyStatus();
   const authTail = authToken.length >= 6 ? authToken.slice(-6) : '(short)';

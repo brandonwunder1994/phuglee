@@ -39,6 +39,14 @@ test('does not dedupe different addresses', () => {
   );
 });
 
+test('does not dedupe adjacent house numbers on same street', () => {
+  assert.ok(similarityScore('123 Main St', '124 Main St') >= 0.92);
+  assert.equal(
+    isNearDuplicate(row('123 Main St'), row('124 Main St')),
+    false
+  );
+});
+
 test('dedupeRows keeps first occurrence and reports removals', () => {
   const input = [
     row('123 Main St', 'Overgrown weeds'),

@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
+  <script src="/js/phuglee-session-headers.js"></script>
 </head>
 <body class="has-premium-bg bridge-page">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
@@ -150,6 +151,12 @@
       <div class="bridge-format-badges" aria-hidden="true">
         <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
       </div>
+      <div class="bridge-attach-row bridge-response-row">
+        <label for="bridge-response-at">When did the city send this list?
+          <input type="datetime-local" id="bridge-response-at" required aria-describedby="bridge-response-hint" />
+        </label>
+        <p class="bridge-panel-lead bridge-response-hint" id="bridge-response-hint">Enter when you received the response — email arrival, portal download, etc. This is not when you process the file, and it feeds Form Forge turnaround KPIs.</p>
+      </div>
       <div class="bridge-dropzone" id="bridge-dropzone" tabindex="0" role="button" aria-describedby="bridge-drop-hint">
         <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" hidden />
         <div class="bridge-dropzone-inner" id="bridge-dropzone-inner">
@@ -222,11 +229,8 @@
 
       <section class="bridge-attach-panel" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
         <h3 id="bridge-attach-heading">Attach to city profile</h3>
-        <p class="bridge-panel-lead">Record when the city sent this list — date and time feed Form Forge turnaround KPIs.</p>
+        <p class="bridge-panel-lead">Save this scrubbed dataset to the city profile. Response received time was set in step 3 — change it there if needed before attaching.</p>
         <div class="bridge-attach-row">
-          <label for="bridge-response-at">Response received
-            <input type="datetime-local" id="bridge-response-at" required />
-          </label>
           <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-attach">Attach versioned dataset</button>
         </div>
         <p class="bridge-attach-status" id="bridge-attach-status" hidden role="status"></p>

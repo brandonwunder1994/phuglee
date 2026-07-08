@@ -216,6 +216,16 @@ def api_coverage_city(city_id: str):
     return jsonify(city)
 
 
+@app.route("/api/coverage/city-images")
+def api_coverage_city_images():
+    path = Path(__file__).resolve().parents[1] / "data" / "city-images.json"
+    if not path.exists():
+        return jsonify({"cities": {}})
+    resp = jsonify(json.loads(path.read_text(encoding="utf-8")))
+    resp.headers["Cache-Control"] = "public, max-age=3600"
+    return resp
+
+
 @app.route("/api/coverage/city/<city_id>/boundary")
 def api_coverage_city_boundary(city_id: str):
     city = get_map_city_detail(city_id)

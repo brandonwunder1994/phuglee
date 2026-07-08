@@ -1,0 +1,3012 @@
+{
+  "cities": {
+    "arizona-apache-junction": {
+      "local": "arizona-apache-junction.jpg",
+      "credit": "Papillon One",
+      "credit_url": "https://www.pexels.com/@papillonone",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-carefree": {
+      "type": "gradient"
+    },
+    "arizona-clifton": {
+      "local": "arizona-clifton.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-eagar": {
+      "local": "arizona-eagar.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-gila-bend": {
+      "local": "arizona-gila-bend.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-holbrook": {
+      "local": "arizona-holbrook.jpg",
+      "credit": "W",
+      "credit_url": "https://www.pexels.com/@w-212559756",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-snowflake": {
+      "local": "arizona-snowflake.jpg",
+      "credit": "Allen Boguslavsky",
+      "credit_url": "https://www.pexels.com/@allen-boguslavsky-1344061",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-somerton": {
+      "local": "arizona-somerton.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-springerville": {
+      "local": "arizona-springerville.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-williams": {
+      "local": "arizona-williams.jpg",
+      "credit": "Abhishek  Navlakha",
+      "credit_url": "https://www.pexels.com/@navlakha",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-youngtown": {
+      "local": "arizona-youngtown.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-castle-pines": {
+      "local": "colorado-castle-pines.jpg",
+      "credit": "Kai Lyons",
+      "credit_url": "https://www.pexels.com/@kai-lyons-53802208",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-cortez": {
+      "local": "colorado-cortez.jpg",
+      "credit": "Qingju Wen",
+      "credit_url": "https://www.pexels.com/@wenn",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-craig": {
+      "local": "colorado-craig.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-lamar": {
+      "local": "colorado-lamar.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-milliken": {
+      "local": "colorado-milliken.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-northglenn": {
+      "local": "colorado-northglenn.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-sheridan": {
+      "local": "colorado-sheridan.jpg",
+      "credit": "Jakob Rosen",
+      "credit_url": "https://www.pexels.com/@jakob-rosen-114876126",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-danbury": {
+      "local": "connecticut-danbury.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-greenwich": {
+      "local": "connecticut-greenwich.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-groton": {
+      "local": "connecticut-groton.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-madison": {
+      "local": "connecticut-madison.jpg",
+      "credit": "Josh Sorenson",
+      "credit_url": "https://www.pexels.com/@joshsorenson",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-marlborough": {
+      "local": "connecticut-marlborough.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-new-milford": {
+      "local": "connecticut-new-milford.jpg",
+      "credit": "Rahul Anand",
+      "credit_url": "https://www.pexels.com/@rahula0309",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-plainfield": {
+      "local": "connecticut-plainfield.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-portland": {
+      "local": "connecticut-portland.jpg",
+      "credit": "Stephen McDaniel",
+      "credit_url": "https://www.pexels.com/@stephen-mcdaniel-441820860",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-prospect": {
+      "local": "connecticut-prospect.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-redding": {
+      "local": "connecticut-redding.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-thompson": {
+      "local": "connecticut-thompson.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-trumbull": {
+      "local": "connecticut-trumbull.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-winchester": {
+      "local": "connecticut-winchester.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-braselton": {
+      "local": "georgia-braselton.jpg",
+      "credit": "Raul Tirado",
+      "credit_url": "https://www.pexels.com/@raul-tirado-269095585",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-buford": {
+      "local": "georgia-buford.jpg",
+      "credit": "Airam Dato-on",
+      "credit_url": "https://www.pexels.com/@airamdphoto",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-cartersville": {
+      "local": "georgia-cartersville.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-covington": {
+      "local": "georgia-covington.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-fitzgerald": {
+      "local": "georgia-fitzgerald.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-flowery-branch": {
+      "local": "georgia-flowery-branch.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-grovetown": {
+      "local": "georgia-grovetown.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-hoschton": {
+      "local": "georgia-hoschton.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-jasper": {
+      "local": "georgia-jasper.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-marietta": {
+      "local": "georgia-marietta.jpg",
+      "credit": "Connor Scott McManus",
+      "credit_url": "https://www.pexels.com/@connorscottmcmanus",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-mcdonough": {
+      "local": "georgia-mcdonough.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-nashville": {
+      "local": "georgia-nashville.jpg",
+      "credit": "MINEIA  MARTINS",
+      "credit_url": "https://www.pexels.com/@mineiamartins",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-richmond-hill": {
+      "local": "georgia-richmond-hill.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-sugar-hill": {
+      "local": "georgia-sugar-hill.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-aberdeen": {
+      "local": "north-carolina-aberdeen.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-henderson": {
+      "local": "north-carolina-henderson.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-hope-mills": {
+      "local": "north-carolina-hope-mills.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-king": {
+      "local": "north-carolina-king.jpg",
+      "credit": "andres Nino",
+      "credit_url": "https://www.pexels.com/@andres-nino-760836985",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-oxford": {
+      "local": "north-carolina-oxford.jpg",
+      "credit": "Curtis Adams",
+      "credit_url": "https://www.pexels.com/@curtis-adams-1694007",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-spring-lake": {
+      "local": "north-carolina-spring-lake.jpg",
+      "credit": "William Finn",
+      "credit_url": "https://www.pexels.com/@william-finn-1447383610",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-summerfield": {
+      "local": "north-carolina-summerfield.jpg",
+      "credit": "andres Nino",
+      "credit_url": "https://www.pexels.com/@andres-nino-760836985",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-waynesville": {
+      "local": "north-carolina-waynesville.jpg",
+      "credit": "andres Nino",
+      "credit_url": "https://www.pexels.com/@andres-nino-760836985",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-aurora": {
+      "local": "ohio-aurora.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-bainbridge-cdp": {
+      "local": "ohio-bainbridge-cdp.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-brecksville": {
+      "local": "ohio-brecksville.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-brook-park": {
+      "local": "ohio-brook-park.jpg",
+      "credit": "Matt Ashworth",
+      "credit_url": "https://www.pexels.com/@zeni3200",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-canal-winchester": {
+      "local": "ohio-canal-winchester.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-circleville": {
+      "local": "ohio-circleville.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-clayton": {
+      "local": "ohio-clayton.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-dover": {
+      "local": "ohio-dover.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-fairborn": {
+      "local": "ohio-fairborn.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-germantown": {
+      "local": "ohio-germantown.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-granville": {
+      "local": "ohio-granville.jpg",
+      "credit": "Matt Ashworth",
+      "credit_url": "https://www.pexels.com/@zeni3200",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-groveport": {
+      "local": "ohio-groveport.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-hilliard": {
+      "local": "ohio-hilliard.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-kent": {
+      "local": "ohio-kent.jpg",
+      "credit": "Rory C",
+      "credit_url": "https://www.pexels.com/@rory-c-575443435",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-mentor-on-the-lake": {
+      "local": "ohio-mentor-on-the-lake.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-north-ridgeville": {
+      "local": "ohio-north-ridgeville.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-parma": {
+      "local": "ohio-parma.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-portsmouth": {
+      "local": "ohio-portsmouth.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-reynoldsburg": {
+      "local": "ohio-reynoldsburg.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-seven-hills": {
+      "local": "ohio-seven-hills.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-sidney": {
+      "local": "ohio-sidney.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-springboro": {
+      "local": "ohio-springboro.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-trotwood": {
+      "local": "ohio-trotwood.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-wellston": {
+      "local": "ohio-wellston.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-whitehouse": {
+      "local": "ohio-whitehouse.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-wickliffe": {
+      "local": "ohio-wickliffe.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-willoughby": {
+      "local": "ohio-willoughby.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-worthington": {
+      "local": "ohio-worthington.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-burrillville": {
+      "local": "rhode-island-burrillville.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-charlestown": {
+      "local": "rhode-island-charlestown.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-coventry": {
+      "local": "rhode-island-coventry.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-cranston": {
+      "local": "rhode-island-cranston.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-east-greenwich": {
+      "local": "rhode-island-east-greenwich.jpg",
+      "credit": "Beth Fitzpatrick",
+      "credit_url": "https://www.pexels.com/@beth-fitzpatrick-742222899",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-foster": {
+      "local": "rhode-island-foster.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-hopkinton": {
+      "local": "rhode-island-hopkinton.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-lincoln": {
+      "local": "rhode-island-lincoln.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-little-compton": {
+      "local": "rhode-island-little-compton.jpg",
+      "credit": "Myles Weissleder",
+      "credit_url": "https://www.pexels.com/@myles-weissleder-92810870",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-narragansett": {
+      "local": "rhode-island-narragansett.jpg",
+      "credit": "Beth Fitzpatrick",
+      "credit_url": "https://www.pexels.com/@beth-fitzpatrick-742222899",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-north-kingstown": {
+      "local": "rhode-island-north-kingstown.jpg",
+      "credit": "Beth Fitzpatrick",
+      "credit_url": "https://www.pexels.com/@beth-fitzpatrick-742222899",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-north-providence": {
+      "local": "rhode-island-north-providence.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-north-smithfield": {
+      "local": "rhode-island-north-smithfield.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-pawtucket": {
+      "local": "rhode-island-pawtucket.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-portsmouth": {
+      "local": "rhode-island-portsmouth.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-scituate": {
+      "local": "rhode-island-scituate.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-tiverton": {
+      "local": "rhode-island-tiverton.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-warwick": {
+      "local": "rhode-island-warwick.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-west-greenwich": {
+      "local": "rhode-island-west-greenwich.jpg",
+      "credit": "Beth Fitzpatrick",
+      "credit_url": "https://www.pexels.com/@beth-fitzpatrick-742222899",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-west-warwick": {
+      "local": "rhode-island-west-warwick.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-westerly": {
+      "local": "rhode-island-westerly.jpg",
+      "credit": "Beth Fitzpatrick",
+      "credit_url": "https://www.pexels.com/@beth-fitzpatrick-742222899",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-conroe": {
+      "local": "texas-conroe.jpg",
+      "credit": "Erik Mclean",
+      "credit_url": "https://www.pexels.com/@introspectivedsgn",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-mission": {
+      "local": "texas-mission.jpg",
+      "credit": "Erik Mclean",
+      "credit_url": "https://www.pexels.com/@introspectivedsgn",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-weslaco": {
+      "local": "texas-weslaco.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "wyoming-buffalo": {
+      "local": "wyoming-buffalo.jpg",
+      "credit": "Gintare K.",
+      "credit_url": "https://www.pexels.com/@gintare-k-11923111",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "wyoming-green-river": {
+      "local": "wyoming-green-river.jpg",
+      "credit": "Sam McCool",
+      "credit_url": "https://www.pexels.com/@sammccool47",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "wyoming-laramie": {
+      "local": "wyoming-laramie.jpg",
+      "credit": "Trevor Sullivan",
+      "credit_url": "https://www.pexels.com/@trevorsullivan",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "wyoming-mills": {
+      "local": "wyoming-mills.jpg",
+      "credit": "Purniima's Photography Page",
+      "credit_url": "https://www.pexels.com/@purniima-s-photography-page-77352719",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "wyoming-rawlins": {
+      "local": "wyoming-rawlins.jpg",
+      "credit": "Alex Moliski",
+      "credit_url": "https://www.pexels.com/@alexmoliski",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "wyoming-torrington": {
+      "local": "wyoming-torrington.jpg",
+      "credit": "Purniima's Photography Page",
+      "credit_url": "https://www.pexels.com/@purniima-s-photography-page-77352719",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-avondale": {
+      "local": "arizona-avondale.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-bisbee": {
+      "local": "arizona-bisbee.jpg",
+      "credit": "Nicole Seidl",
+      "credit_url": "https://www.pexels.com/@nicole-seidl",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-buckeye": {
+      "local": "arizona-buckeye.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-camp-verde": {
+      "local": "arizona-camp-verde.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-casa-grande": {
+      "local": "arizona-casa-grande.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-cave-creek": {
+      "local": "arizona-cave-creek.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-chandler": {
+      "local": "arizona-chandler.jpg",
+      "credit": "Anthony Simuel",
+      "credit_url": "https://www.pexels.com/@anthony-simuel-362459",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-chino-valley": {
+      "local": "arizona-chino-valley.jpg",
+      "credit": "Nicole Seidl",
+      "credit_url": "https://www.pexels.com/@nicole-seidl",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-cottonwood": {
+      "local": "arizona-cottonwood.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-dewey-humboldt": {
+      "local": "arizona-dewey-humboldt.jpg",
+      "credit": "Nicole Seidl",
+      "credit_url": "https://www.pexels.com/@nicole-seidl",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-douglas": {
+      "local": "arizona-douglas.jpg",
+      "credit": "Roy Serafin",
+      "credit_url": "https://www.pexels.com/@roythephotographer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-el-mirage": {
+      "local": "arizona-el-mirage.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-flagstaff": {
+      "local": "arizona-flagstaff.jpg",
+      "credit": "Quintin Gellar",
+      "credit_url": "https://www.pexels.com/@quintingellar",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-gilbert": {
+      "local": "arizona-gilbert.jpg",
+      "credit": "Chuck Shields",
+      "credit_url": "https://www.pexels.com/@chuck-shields-1116201851",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-glendale": {
+      "local": "arizona-glendale.jpg",
+      "credit": "RDNE Stock project",
+      "credit_url": "https://www.pexels.com/@rdne",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-goodyear": {
+      "local": "arizona-goodyear.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-kearny": {
+      "local": "arizona-kearny.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-lake-havasu-city": {
+      "local": "arizona-lake-havasu-city.jpg",
+      "credit": "Roy Serafin",
+      "credit_url": "https://www.pexels.com/@roythephotographer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-litchfield-park": {
+      "local": "arizona-litchfield-park.jpg",
+      "credit": "Lindsey Willard",
+      "credit_url": "https://www.pexels.com/@creativelindseyphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-marana": {
+      "local": "arizona-marana.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-mesa": {
+      "local": "arizona-mesa.jpg",
+      "credit": "Branson W",
+      "credit_url": "https://www.pexels.com/@branson-w-669213151",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-nogales": {
+      "local": "arizona-nogales.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-oro-valley": {
+      "local": "arizona-oro-valley.jpg",
+      "credit": "Nicole Seidl",
+      "credit_url": "https://www.pexels.com/@nicole-seidl",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-page": {
+      "local": "arizona-page.jpg",
+      "credit": "Matthew DeVries",
+      "credit_url": "https://www.pexels.com/@mattdvphotography",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-payson": {
+      "local": "arizona-payson.jpg",
+      "credit": "Allen Boguslavsky",
+      "credit_url": "https://www.pexels.com/@allen-boguslavsky-1344061",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-peoria": {
+      "local": "arizona-peoria.jpg",
+      "credit": "Roy Serafin",
+      "credit_url": "https://www.pexels.com/@roythephotographer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-phoenix": {
+      "local": "arizona-phoenix.jpg",
+      "credit": "Nicole Seidl",
+      "credit_url": "https://www.pexels.com/@nicole-seidl",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-pinetop-lakeside": {
+      "local": "arizona-pinetop-lakeside.jpg",
+      "credit": "Strange Happenings",
+      "credit_url": "https://www.pexels.com/@strangehappenings",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-prescott": {
+      "local": "arizona-prescott.jpg",
+      "credit": "Connor Gibson",
+      "credit_url": "https://www.pexels.com/@connor-gibson-187262257",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-prescott-valley": {
+      "local": "arizona-prescott-valley.jpg",
+      "credit": "Connor Gibson",
+      "credit_url": "https://www.pexels.com/@connor-gibson-187262257",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-quartzsite": {
+      "local": "arizona-quartzsite.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-queen-creek": {
+      "local": "arizona-queen-creek.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-safford": {
+      "local": "arizona-safford.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-sahuarita": {
+      "local": "arizona-sahuarita.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-san-luis": {
+      "local": "arizona-san-luis.jpg",
+      "credit": "Dianna Sarmiento",
+      "credit_url": "https://www.pexels.com/@dianna-sarmiento-2152458668",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-san-tan-valley": {
+      "local": "arizona-san-tan-valley.jpg",
+      "credit": "Nicole Seidl",
+      "credit_url": "https://www.pexels.com/@nicole-seidl",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-scottsdale": {
+      "local": "arizona-scottsdale.jpg",
+      "credit": "Brent Singleton",
+      "credit_url": "https://www.pexels.com/@brentsingletonphoto",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-sierra-vista": {
+      "local": "arizona-sierra-vista.jpg",
+      "credit": "Amar  Preciado",
+      "credit_url": "https://www.pexels.com/@amar",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-surprise": {
+      "local": "arizona-surprise.jpg",
+      "credit": "Roy Serafin",
+      "credit_url": "https://www.pexels.com/@roythephotographer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-tempe": {
+      "local": "arizona-tempe.jpg",
+      "credit": "Roy Serafin",
+      "credit_url": "https://www.pexels.com/@roythephotographer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-thatcher": {
+      "local": "arizona-thatcher.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-tolleson": {
+      "local": "arizona-tolleson.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-tucson": {
+      "local": "arizona-tucson.jpg",
+      "credit": "Lindsey Willard",
+      "credit_url": "https://www.pexels.com/@creativelindseyphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-winslow": {
+      "local": "arizona-winslow.jpg",
+      "credit": "David Murphy",
+      "credit_url": "https://www.pexels.com/@david-murphy-2683647",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "arizona-yuma": {
+      "local": "arizona-yuma.jpg",
+      "credit": "Chris  The Island",
+      "credit_url": "https://www.pexels.com/@chris-the-island-3570397",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-arvada": {
+      "local": "colorado-arvada.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-aurora": {
+      "local": "colorado-aurora.jpg",
+      "credit": "Jakob Rosen",
+      "credit_url": "https://www.pexels.com/@jakob-rosen-114876126",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-berthoud": {
+      "local": "colorado-berthoud.jpg",
+      "credit": "Sean M.",
+      "credit_url": "https://www.pexels.com/@seanm",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-boulder": {
+      "local": "colorado-boulder.jpg",
+      "credit": "Intricate Explorer",
+      "credit_url": "https://www.pexels.com/@intricateexplorer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-broomfield": {
+      "local": "colorado-broomfield.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-brush": {
+      "local": "colorado-brush.jpg",
+      "credit": "Intricate Explorer",
+      "credit_url": "https://www.pexels.com/@intricateexplorer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-ca-on-city": {
+      "local": "colorado-ca-on-city.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-centennial": {
+      "local": "colorado-centennial.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-commerce-city": {
+      "local": "colorado-commerce-city.jpg",
+      "credit": "MINEIA  MARTINS",
+      "credit_url": "https://www.pexels.com/@mineiamartins",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-denver": {
+      "local": "colorado-denver.jpg",
+      "credit": "Arpan Parikh",
+      "credit_url": "https://www.pexels.com/@arpan-parikh-78161269",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-durango": {
+      "local": "colorado-durango.jpg",
+      "credit": "Sean M.",
+      "credit_url": "https://www.pexels.com/@seanm",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-eagle": {
+      "local": "colorado-eagle.jpg",
+      "credit": "We Care Wild",
+      "credit_url": "https://www.pexels.com/@wecarewild",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-eaton": {
+      "local": "colorado-eaton.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-englewood": {
+      "local": "colorado-englewood.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-erie": {
+      "local": "colorado-erie.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-evans": {
+      "local": "colorado-evans.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-federal-heights": {
+      "local": "colorado-federal-heights.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-firestone": {
+      "local": "colorado-firestone.jpg",
+      "credit": "Niki Clark",
+      "credit_url": "https://www.pexels.com/@niki-clark-9995029",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-fort-collins": {
+      "local": "colorado-fort-collins.jpg",
+      "credit": "Pixabay",
+      "credit_url": "https://www.pexels.com/@pixabay",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-fort-lupton": {
+      "local": "colorado-fort-lupton.jpg",
+      "credit": "Flash Alexander",
+      "credit_url": "https://www.pexels.com/@flash-alexander-43600",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-fort-morgan": {
+      "local": "colorado-fort-morgan.jpg",
+      "credit": "Flash Alexander",
+      "credit_url": "https://www.pexels.com/@flash-alexander-43600",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-frederick": {
+      "local": "colorado-frederick.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-fruita": {
+      "local": "colorado-fruita.jpg",
+      "credit": "Samuel Sweet",
+      "credit_url": "https://www.pexels.com/@samuelsweet",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-glenwood-springs": {
+      "local": "colorado-glenwood-springs.jpg",
+      "credit": "Intricate Explorer",
+      "credit_url": "https://www.pexels.com/@intricateexplorer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-golden": {
+      "local": "colorado-golden.jpg",
+      "credit": "Jakob Rosen",
+      "credit_url": "https://www.pexels.com/@jakob-rosen-114876126",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-greeley": {
+      "local": "colorado-greeley.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-greenwood-village": {
+      "local": "colorado-greenwood-village.jpg",
+      "credit": "Jakob Rosen",
+      "credit_url": "https://www.pexels.com/@jakob-rosen-114876126",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-gypsum": {
+      "local": "colorado-gypsum.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-johnstown": {
+      "local": "colorado-johnstown.jpg",
+      "credit": "hi room",
+      "credit_url": "https://www.pexels.com/@hiroom",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-lafayette": {
+      "local": "colorado-lafayette.jpg",
+      "credit": "Jakob Rosen",
+      "credit_url": "https://www.pexels.com/@jakob-rosen-114876126",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-lakewood": {
+      "local": "colorado-lakewood.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-littleton": {
+      "local": "colorado-littleton.jpg",
+      "credit": "Siena Marie",
+      "credit_url": "https://www.pexels.com/@siena-marie-31614771",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-longmont": {
+      "local": "colorado-longmont.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-loveland": {
+      "local": "colorado-loveland.jpg",
+      "credit": "Jakob Rosen",
+      "credit_url": "https://www.pexels.com/@jakob-rosen-114876126",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-mead": {
+      "local": "colorado-mead.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-parker": {
+      "local": "colorado-parker.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-pueblo": {
+      "local": "colorado-pueblo.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-pueblo-west": {
+      "local": "colorado-pueblo-west.jpg",
+      "credit": "Noel Aph",
+      "credit_url": "https://www.pexels.com/@noelace",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-salida": {
+      "local": "colorado-salida.jpg",
+      "credit": "Jacob Moore",
+      "credit_url": "https://www.pexels.com/@jacobmooreimages",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-severance": {
+      "local": "colorado-severance.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-steamboat-springs": {
+      "local": "colorado-steamboat-springs.jpg",
+      "credit": "Lindsey Garrett",
+      "credit_url": "https://www.pexels.com/@lindseygarrett",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-superior": {
+      "local": "colorado-superior.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-thornton": {
+      "local": "colorado-thornton.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-timnath": {
+      "local": "colorado-timnath.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-trinidad": {
+      "local": "colorado-trinidad.jpg",
+      "credit": "Dominik Gryzbon",
+      "credit_url": "https://www.pexels.com/@gryziu",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-wellington": {
+      "local": "colorado-wellington.jpg",
+      "credit": "Griffin Wooldridge",
+      "credit_url": "https://www.pexels.com/@griffinw",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-westminster": {
+      "local": "colorado-westminster.jpg",
+      "credit": "Patrick Bohn",
+      "credit_url": "https://www.pexels.com/@patrick-bohn-799943676",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-windsor": {
+      "local": "colorado-windsor.jpg",
+      "credit": "CRP Films",
+      "credit_url": "https://www.pexels.com/@crp-films-2071264",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "colorado-woodland-park": {
+      "local": "colorado-woodland-park.jpg",
+      "credit": "Jakob Rosen",
+      "credit_url": "https://www.pexels.com/@jakob-rosen-114876126",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-bridgeport": {
+      "local": "connecticut-bridgeport.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-fairfield": {
+      "local": "connecticut-fairfield.jpg",
+      "credit": "Johnny Cuccio",
+      "credit_url": "https://www.pexels.com/@johnny-cuccio-1829899",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-guilford": {
+      "local": "connecticut-guilford.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-hartford": {
+      "local": "connecticut-hartford.jpg",
+      "credit": "Garrison Gao",
+      "credit_url": "https://www.pexels.com/@garrison-gao-56316964",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-manchester": {
+      "local": "connecticut-manchester.jpg",
+      "credit": "Miguel  Saddi Vitorino",
+      "credit_url": "https://www.pexels.com/@arcanjosaddi",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-mansfield": {
+      "local": "connecticut-mansfield.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-middletown": {
+      "local": "connecticut-middletown.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-milford": {
+      "local": "connecticut-milford.jpg",
+      "credit": "Rahul Anand",
+      "credit_url": "https://www.pexels.com/@rahula0309",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-new-britain": {
+      "local": "connecticut-new-britain.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-new-haven": {
+      "local": "connecticut-new-haven.jpg",
+      "credit": "James Mirakian",
+      "credit_url": "https://www.pexels.com/@james-mirakian-774977502",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-newington": {
+      "local": "connecticut-newington.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-norwalk": {
+      "local": "connecticut-norwalk.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-stratford": {
+      "local": "connecticut-stratford.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-waterbury": {
+      "local": "connecticut-waterbury.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "connecticut-waterford": {
+      "local": "connecticut-waterford.jpg",
+      "credit": "David Kanigan",
+      "credit_url": "https://www.pexels.com/@david-kanigan-239927285",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-boca-raton": {
+      "local": "florida-boca-raton.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-boynton-beach": {
+      "local": "florida-boynton-beach.jpg",
+      "credit": "William Jacobs",
+      "credit_url": "https://www.pexels.com/@williamjacobs",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-cape-coral": {
+      "local": "florida-cape-coral.jpg",
+      "credit": "Steven Skelley",
+      "credit_url": "https://www.pexels.com/@steven-skelley-2156571880",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-clearwater": {
+      "local": "florida-clearwater.jpg",
+      "credit": "Solvej Nielsen",
+      "credit_url": "https://www.pexels.com/@solvej-nielsen-64837698",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-coral-springs": {
+      "local": "florida-coral-springs.jpg",
+      "credit": "Dominik Gryzbon",
+      "credit_url": "https://www.pexels.com/@gryziu",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-davie": {
+      "local": "florida-davie.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-daytona-beach": {
+      "local": "florida-daytona-beach.jpg",
+      "credit": "Mikhail Nilov",
+      "credit_url": "https://www.pexels.com/@mikhail-nilov",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-deerfield-beach": {
+      "local": "florida-deerfield-beach.jpg",
+      "credit": "Be The Observer",
+      "credit_url": "https://www.pexels.com/@be-the-observer-2774093",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-delray-beach": {
+      "local": "florida-delray-beach.jpg",
+      "credit": "Jeffrey Eisen",
+      "credit_url": "https://www.pexels.com/@jeffrey-eisen-1257101",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-deltona": {
+      "local": "florida-deltona.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-doral": {
+      "local": "florida-doral.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-gainesville": {
+      "local": "florida-gainesville.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-hialeah": {
+      "local": "florida-hialeah.jpg",
+      "credit": "Alain Garcia",
+      "credit_url": "https://www.pexels.com/@shotbyadrone",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-hollywood": {
+      "local": "florida-hollywood.jpg",
+      "credit": "Larry Milligan",
+      "credit_url": "https://www.pexels.com/@larry-milligan-1712939",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-homestead": {
+      "local": "florida-homestead.jpg",
+      "credit": "John Hank",
+      "credit_url": "https://www.pexels.com/@john-hank-148551387",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-jacksonville": {
+      "local": "florida-jacksonville.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-kissimmee": {
+      "local": "florida-kissimmee.jpg",
+      "credit": "Sid Dalal",
+      "credit_url": "https://www.pexels.com/@sid-dalal-287424521",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-lakeland": {
+      "local": "florida-lakeland.jpg",
+      "credit": "Airam Dato-on",
+      "credit_url": "https://www.pexels.com/@airamdphoto",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-largo": {
+      "local": "florida-largo.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-lauderhill": {
+      "local": "florida-lauderhill.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-miami": {
+      "local": "florida-miami.jpg",
+      "credit": "Alain Garcia",
+      "credit_url": "https://www.pexels.com/@shotbyadrone",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-miami-beach": {
+      "local": "florida-miami-beach.jpg",
+      "credit": "Brendon Spring",
+      "credit_url": "https://www.pexels.com/@lee81",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-miami-gardens": {
+      "local": "florida-miami-gardens.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-miramar": {
+      "local": "florida-miramar.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-north-port": {
+      "local": "florida-north-port.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-ocala": {
+      "local": "florida-ocala.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-orlando": {
+      "local": "florida-orlando.jpg",
+      "credit": "Simon Steiner",
+      "credit_url": "https://www.pexels.com/@simon-steiner-1108932161",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-palm-bay": {
+      "local": "florida-palm-bay.jpg",
+      "credit": "Brendon Spring",
+      "credit_url": "https://www.pexels.com/@lee81",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-palm-beach-gardens": {
+      "local": "florida-palm-beach-gardens.jpg",
+      "credit": "Arian Fernandez",
+      "credit_url": "https://www.pexels.com/@troopper84",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-pembroke-pines": {
+      "local": "florida-pembroke-pines.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-plantation-city": {
+      "local": "florida-plantation-city.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-pompano-beach": {
+      "local": "florida-pompano-beach.jpg",
+      "credit": "Stanley  Louigene",
+      "credit_url": "https://www.pexels.com/@stanley-louigene-262756857",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-port-orange": {
+      "local": "florida-port-orange.jpg",
+      "credit": "Brendon Spring",
+      "credit_url": "https://www.pexels.com/@lee81",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-port-st-lucie": {
+      "local": "florida-port-st-lucie.jpg",
+      "credit": "Brendon Spring",
+      "credit_url": "https://www.pexels.com/@lee81",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-sanford": {
+      "local": "florida-sanford.jpg",
+      "credit": "Connor Scott McManus",
+      "credit_url": "https://www.pexels.com/@connorscottmcmanus",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-st-cloud": {
+      "local": "florida-st-cloud.jpg",
+      "credit": "Roy Serafin",
+      "credit_url": "https://www.pexels.com/@roythephotographer",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-st-petersburg": {
+      "local": "florida-st-petersburg.jpg",
+      "credit": "Neil Cabacang",
+      "credit_url": "https://www.pexels.com/@neil-cabacang-33524025",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-sunrise": {
+      "local": "florida-sunrise.jpg",
+      "credit": "Blue Arauz",
+      "credit_url": "https://www.pexels.com/@blue",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-tallahassee": {
+      "local": "florida-tallahassee.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-tamarac": {
+      "local": "florida-tamarac.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-tampa": {
+      "local": "florida-tampa.jpg",
+      "credit": "Edgar C",
+      "credit_url": "https://www.pexels.com/@edgar-c-385889270",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "florida-wellington": {
+      "type": "gradient"
+    },
+    "florida-west-palm-beach": {
+      "type": "gradient"
+    },
+    "florida-weston": {
+      "local": "florida-weston.jpg",
+      "credit": "David Daza",
+      "credit_url": "https://www.pexels.com/@david-daza-1074551",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-acworth": {
+      "type": "gradient"
+    },
+    "georgia-albany": {
+      "type": "gradient"
+    },
+    "georgia-americus": {
+      "type": "gradient"
+    },
+    "georgia-athens-clarke-county": {
+      "local": "georgia-athens-clarke-county.jpg",
+      "credit": "Dominik Gryzbon",
+      "credit_url": "https://www.pexels.com/@gryziu",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-atlanta": {
+      "type": "gradient"
+    },
+    "georgia-augusta-richmond-county": {
+      "type": "gradient"
+    },
+    "georgia-austell": {
+      "type": "gradient"
+    },
+    "georgia-bainbridge": {
+      "local": "georgia-bainbridge.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-brookhaven": {
+      "type": "gradient"
+    },
+    "georgia-brunswick": {
+      "type": "gradient"
+    },
+    "georgia-carrollton": {
+      "type": "gradient"
+    },
+    "georgia-clarkston": {
+      "type": "gradient"
+    },
+    "georgia-college-park": {
+      "local": "georgia-college-park.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-commerce": {
+      "type": "gradient"
+    },
+    "georgia-conyers": {
+      "type": "gradient"
+    },
+    "georgia-cornelia": {
+      "type": "gradient"
+    },
+    "georgia-cumming": {
+      "local": "georgia-cumming.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-dallas": {
+      "type": "gradient"
+    },
+    "georgia-doraville": {
+      "type": "gradient"
+    },
+    "georgia-douglasville": {
+      "type": "gradient"
+    },
+    "georgia-druid-hills": {
+      "local": "georgia-druid-hills.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-duluth": {
+      "type": "gradient"
+    },
+    "georgia-dunwoody": {
+      "type": "gradient"
+    },
+    "georgia-east-point": {
+      "type": "gradient"
+    },
+    "georgia-evans": {
+      "local": "georgia-evans.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-fayetteville": {
+      "type": "gradient"
+    },
+    "georgia-gainesville": {
+      "type": "gradient"
+    },
+    "georgia-garden-city": {
+      "type": "gradient"
+    },
+    "georgia-glennville": {
+      "local": "georgia-glennville.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-griffin": {
+      "type": "gradient"
+    },
+    "georgia-hampton": {
+      "type": "gradient"
+    },
+    "georgia-hapeville": {
+      "type": "gradient"
+    },
+    "georgia-hinesville": {
+      "local": "georgia-hinesville.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-hiram": {
+      "type": "gradient"
+    },
+    "georgia-holly-springs": {
+      "type": "gradient"
+    },
+    "georgia-jefferson": {
+      "type": "gradient"
+    },
+    "georgia-johns-creek": {
+      "local": "georgia-johns-creek.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-kennesaw": {
+      "type": "gradient"
+    },
+    "georgia-kingsland": {
+      "type": "gradient"
+    },
+    "georgia-lawrenceville": {
+      "type": "gradient"
+    },
+    "georgia-lilburn": {
+      "type": "gradient"
+    },
+    "georgia-loganville": {
+      "local": "georgia-loganville.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-lovejoy": {
+      "type": "gradient"
+    },
+    "georgia-mableton": {
+      "type": "gradient"
+    },
+    "georgia-macon-bibb-county": {
+      "type": "gradient"
+    },
+    "georgia-martinez": {
+      "local": "georgia-martinez.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-milton": {
+      "type": "gradient"
+    },
+    "georgia-monroe": {
+      "type": "gradient"
+    },
+    "georgia-morrow": {
+      "type": "gradient"
+    },
+    "georgia-norcross": {
+      "local": "georgia-norcross.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-peachtree-city": {
+      "type": "gradient"
+    },
+    "georgia-peachtree-corners": {
+      "type": "gradient"
+    },
+    "georgia-powder-springs": {
+      "type": "gradient"
+    },
+    "georgia-riverdale": {
+      "local": "georgia-riverdale.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-roswell": {
+      "type": "gradient"
+    },
+    "georgia-sandy-springs": {
+      "type": "gradient"
+    },
+    "georgia-savannah": {
+      "type": "gradient"
+    },
+    "georgia-smyrna": {
+      "local": "georgia-smyrna.jpg",
+      "credit": "Mehmet Suat Gunerli",
+      "credit_url": "https://www.pexels.com/@msuatgunerli",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-snellville": {
+      "type": "gradient"
+    },
+    "georgia-south-fulton": {
+      "type": "gradient"
+    },
+    "georgia-st-marys": {
+      "type": "gradient"
+    },
+    "georgia-stockbridge": {
+      "local": "georgia-stockbridge.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-stonecrest": {
+      "type": "gradient"
+    },
+    "georgia-suwanee": {
+      "type": "gradient"
+    },
+    "georgia-temple": {
+      "type": "gradient"
+    },
+    "georgia-thomasville": {
+      "type": "gradient"
+    },
+    "georgia-tucker": {
+      "local": "georgia-tucker.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-tyrone": {
+      "type": "gradient"
+    },
+    "georgia-valdosta": {
+      "type": "gradient"
+    },
+    "georgia-warner-robins": {
+      "type": "gradient"
+    },
+    "georgia-winder": {
+      "local": "georgia-winder.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "georgia-woodstock": {
+      "type": "gradient"
+    },
+    "north-carolina-albemarle": {
+      "type": "gradient"
+    },
+    "north-carolina-apex": {
+      "type": "gradient"
+    },
+    "north-carolina-asheville": {
+      "local": "north-carolina-asheville.jpg",
+      "credit": "Michelle Andrews",
+      "credit_url": "https://www.pexels.com/@mandrews916",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-black-mountain": {
+      "type": "gradient"
+    },
+    "north-carolina-boone": {
+      "type": "gradient"
+    },
+    "north-carolina-burlington": {
+      "type": "gradient"
+    },
+    "north-carolina-carolina-beach": {
+      "local": "north-carolina-carolina-beach.jpg",
+      "credit": "Curtis Adams",
+      "credit_url": "https://www.pexels.com/@curtis-adams-1694007",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-chapel-hill": {
+      "type": "gradient"
+    },
+    "north-carolina-charlotte": {
+      "local": "north-carolina-charlotte.jpg",
+      "credit": "andres Nino",
+      "credit_url": "https://www.pexels.com/@andres-nino-760836985",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-clayton": {
+      "type": "gradient"
+    },
+    "north-carolina-clemmons": {
+      "local": "north-carolina-clemmons.jpg",
+      "credit": "Curtis Adams",
+      "credit_url": "https://www.pexels.com/@curtis-adams-1694007",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-durham": {
+      "type": "gradient"
+    },
+    "north-carolina-fayetteville": {
+      "type": "gradient"
+    },
+    "north-carolina-fuquay-varina": {
+      "type": "gradient"
+    },
+    "north-carolina-gastonia": {
+      "local": "north-carolina-gastonia.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-greensboro": {
+      "type": "gradient"
+    },
+    "north-carolina-high-point": {
+      "type": "gradient"
+    },
+    "north-carolina-holly-springs": {
+      "type": "gradient"
+    },
+    "north-carolina-indian-trail": {
+      "type": "gradient"
+    },
+    "north-carolina-jacksonville": {
+      "local": "north-carolina-jacksonville.jpg",
+      "credit": "K",
+      "credit_url": "https://www.pexels.com/@kelly",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-kannapolis": {
+      "type": "gradient"
+    },
+    "north-carolina-kernersville": {
+      "type": "gradient"
+    },
+    "north-carolina-kill-devil-hills": {
+      "type": "gradient"
+    },
+    "north-carolina-kings-mountain": {
+      "local": "north-carolina-kings-mountain.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-knightdale": {
+      "type": "gradient"
+    },
+    "north-carolina-leland": {
+      "type": "gradient"
+    },
+    "north-carolina-lenoir": {
+      "type": "gradient"
+    },
+    "north-carolina-lexington": {
+      "local": "north-carolina-lexington.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-matthews": {
+      "type": "gradient"
+    },
+    "north-carolina-monroe": {
+      "type": "gradient"
+    },
+    "north-carolina-mooresville": {
+      "type": "gradient"
+    },
+    "north-carolina-morganton": {
+      "local": "north-carolina-morganton.jpg",
+      "credit": "Curtis Adams",
+      "credit_url": "https://www.pexels.com/@curtis-adams-1694007",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-morrisville": {
+      "type": "gradient"
+    },
+    "north-carolina-mount-holly": {
+      "type": "gradient"
+    },
+    "north-carolina-pineville": {
+      "type": "gradient"
+    },
+    "north-carolina-raleigh": {
+      "local": "north-carolina-raleigh.jpg",
+      "credit": "Curtis Adams",
+      "credit_url": "https://www.pexels.com/@curtis-adams-1694007",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-rocky-mount": {
+      "type": "gradient"
+    },
+    "north-carolina-rolesville": {
+      "type": "gradient"
+    },
+    "north-carolina-sanford": {
+      "type": "gradient"
+    },
+    "north-carolina-statesville": {
+      "local": "north-carolina-statesville.jpg",
+      "credit": "Curtis Adams",
+      "credit_url": "https://www.pexels.com/@curtis-adams-1694007",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-thomasville": {
+      "type": "gradient"
+    },
+    "north-carolina-wake-forest": {
+      "type": "gradient"
+    },
+    "north-carolina-waxhaw": {
+      "type": "gradient"
+    },
+    "north-carolina-wendell": {
+      "local": "north-carolina-wendell.jpg",
+      "credit": "Curtis Adams",
+      "credit_url": "https://www.pexels.com/@curtis-adams-1694007",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "north-carolina-wilson": {
+      "type": "gradient"
+    },
+    "north-carolina-winston-salem": {
+      "type": "gradient"
+    },
+    "north-carolina-woodfin": {
+      "type": "gradient"
+    },
+    "north-carolina-zebulon": {
+      "local": "north-carolina-zebulon.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-ada": {
+      "type": "gradient"
+    },
+    "ohio-akron": {
+      "type": "gradient"
+    },
+    "ohio-austintown": {
+      "type": "gradient"
+    },
+    "ohio-beachwood": {
+      "type": "gradient"
+    },
+    "ohio-beavercreek": {
+      "local": "ohio-beavercreek.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-bedford": {
+      "type": "gradient"
+    },
+    "ohio-bellbrook": {
+      "type": "gradient"
+    },
+    "ohio-berea": {
+      "type": "gradient"
+    },
+    "ohio-broadview-heights": {
+      "local": "ohio-broadview-heights.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-canal-fulton": {
+      "type": "gradient"
+    },
+    "ohio-canfield": {
+      "type": "gradient"
+    },
+    "ohio-canton": {
+      "type": "gradient"
+    },
+    "ohio-carlisle": {
+      "local": "ohio-carlisle.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-centerville": {
+      "type": "gradient"
+    },
+    "ohio-chillicothe": {
+      "type": "gradient"
+    },
+    "ohio-cincinnati": {
+      "type": "gradient"
+    },
+    "ohio-cleveland": {
+      "local": "ohio-cleveland.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-dayton": {
+      "type": "gradient"
+    },
+    "ohio-dublin": {
+      "type": "gradient"
+    },
+    "ohio-eaton": {
+      "type": "gradient"
+    },
+    "ohio-euclid": {
+      "local": "ohio-euclid.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-forest-park": {
+      "type": "gradient"
+    },
+    "ohio-fostoria": {
+      "type": "gradient"
+    },
+    "ohio-franklin": {
+      "type": "gradient"
+    },
+    "ohio-gahanna": {
+      "local": "ohio-gahanna.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-galion": {
+      "type": "gradient"
+    },
+    "ohio-grandview-heights": {
+      "type": "gradient"
+    },
+    "ohio-grove-city": {
+      "type": "gradient"
+    },
+    "ohio-hubbard": {
+      "type": "gradient"
+    },
+    "ohio-huber-heights": {
+      "local": "ohio-huber-heights.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-huron": {
+      "type": "gradient"
+    },
+    "ohio-independence": {
+      "type": "gradient"
+    },
+    "ohio-johnstown": {
+      "type": "gradient"
+    },
+    "ohio-kenton": {
+      "local": "ohio-kenton.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-kettering": {
+      "type": "gradient"
+    },
+    "ohio-lakewood": {
+      "type": "gradient"
+    },
+    "ohio-lima": {
+      "type": "gradient"
+    },
+    "ohio-louisville": {
+      "local": "ohio-louisville.jpg",
+      "credit": "Matt Ashworth",
+      "credit_url": "https://www.pexels.com/@zeni3200",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-madeira": {
+      "type": "gradient"
+    },
+    "ohio-marysville": {
+      "type": "gradient"
+    },
+    "ohio-mentor": {
+      "type": "gradient"
+    },
+    "ohio-miamisburg": {
+      "local": "ohio-miamisburg.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-middletown": {
+      "type": "gradient"
+    },
+    "ohio-monroe": {
+      "type": "gradient"
+    },
+    "ohio-moraine": {
+      "type": "gradient"
+    },
+    "ohio-mount-vernon": {
+      "local": "ohio-mount-vernon.jpg",
+      "credit": "Germar Derron",
+      "credit_url": "https://www.pexels.com/@germar-derron-2151846079",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-napoleon": {
+      "type": "gradient"
+    },
+    "ohio-new-albany": {
+      "type": "gradient"
+    },
+    "ohio-new-franklin": {
+      "type": "gradient"
+    },
+    "ohio-new-philadelphia": {
+      "type": "gradient"
+    },
+    "ohio-north-canton": {
+      "local": "ohio-north-canton.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-north-college-hill": {
+      "type": "gradient"
+    },
+    "ohio-north-madison": {
+      "type": "gradient"
+    },
+    "ohio-north-royalton": {
+      "type": "gradient"
+    },
+    "ohio-oberlin": {
+      "local": "ohio-oberlin.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-oxford": {
+      "type": "gradient"
+    },
+    "ohio-painesville": {
+      "type": "gradient"
+    },
+    "ohio-perry-heights": {
+      "type": "gradient"
+    },
+    "ohio-perrysburg": {
+      "local": "ohio-perrysburg.jpg",
+      "credit": "Leah Newhouse",
+      "credit_url": "https://www.pexels.com/@leah-newhouse-50725",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-piqua": {
+      "type": "gradient"
+    },
+    "ohio-riverside": {
+      "type": "gradient"
+    },
+    "ohio-sandusky": {
+      "type": "gradient"
+    },
+    "ohio-shaker-heights": {
+      "local": "ohio-shaker-heights.jpg",
+      "credit": "Chris F",
+      "credit_url": "https://www.pexels.com/@chris-f-38966",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-solon": {
+      "type": "gradient"
+    },
+    "ohio-south-euclid": {
+      "type": "gradient"
+    },
+    "ohio-springfield": {
+      "type": "gradient"
+    },
+    "ohio-st-marys": {
+      "type": "gradient"
+    },
+    "ohio-streetsboro": {
+      "local": "ohio-streetsboro.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-struthers": {
+      "type": "gradient"
+    },
+    "ohio-the-village-of-indian-hill": {
+      "type": "gradient"
+    },
+    "ohio-toledo": {
+      "type": "gradient"
+    },
+    "ohio-twinsburg": {
+      "local": "ohio-twinsburg.jpg",
+      "credit": "Stephen Leonardi",
+      "credit_url": "https://www.pexels.com/@stephen-leonardi-587681991",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "ohio-upper-arlington": {
+      "type": "gradient"
+    },
+    "ohio-upper-sandusky": {
+      "type": "gradient"
+    },
+    "ohio-whitehall": {
+      "type": "gradient"
+    },
+    "ohio-wilmington": {
+      "local": "ohio-wilmington.jpg",
+      "credit": "Mark Stebnicki",
+      "credit_url": "https://www.pexels.com/@nc-farm-bureau-mark",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-barrington": {
+      "type": "gradient"
+    },
+    "rhode-island-bristol": {
+      "type": "gradient"
+    },
+    "rhode-island-cumberland": {
+      "type": "gradient"
+    },
+    "rhode-island-east-providence": {
+      "local": "rhode-island-east-providence.jpg",
+      "credit": "Phil Evenden",
+      "credit_url": "https://www.pexels.com/@philevenphotos",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-glocester": {
+      "type": "gradient"
+    },
+    "rhode-island-jamestown": {
+      "type": "gradient"
+    },
+    "rhode-island-johnston": {
+      "type": "gradient"
+    },
+    "rhode-island-new-shoreham": {
+      "local": "rhode-island-new-shoreham.jpg",
+      "credit": "Myles Weissleder",
+      "credit_url": "https://www.pexels.com/@myles-weissleder-92810870",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "rhode-island-providence": {
+      "type": "gradient"
+    },
+    "rhode-island-south-kingstown": {
+      "type": "gradient"
+    },
+    "rhode-island-woonsocket": {
+      "type": "gradient"
+    },
+    "texas-abilene": {
+      "local": "texas-abilene.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-allen": {
+      "type": "gradient"
+    },
+    "texas-arlington": {
+      "type": "gradient"
+    },
+    "texas-baytown": {
+      "type": "gradient"
+    },
+    "texas-beaumont": {
+      "type": "gradient"
+    },
+    "texas-bedford": {
+      "local": "texas-bedford.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-brownsville": {
+      "type": "gradient"
+    },
+    "texas-bryan": {
+      "type": "gradient"
+    },
+    "texas-burleson": {
+      "type": "gradient"
+    },
+    "texas-carrollton": {
+      "local": "texas-carrollton.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-cedar-hill": {
+      "type": "gradient"
+    },
+    "texas-cedar-park": {
+      "type": "gradient"
+    },
+    "texas-celina": {
+      "type": "gradient"
+    },
+    "texas-coppell": {
+      "local": "texas-coppell.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-copperas-cove": {
+      "type": "gradient"
+    },
+    "texas-corpus-christi": {
+      "type": "gradient"
+    },
+    "texas-county-engineer": {
+      "type": "gradient"
+    },
+    "texas-dallas": {
+      "local": "texas-dallas.jpg",
+      "credit": "Anat Morad",
+      "credit_url": "https://www.pexels.com/@anat-morad-275582206",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-desoto": {
+      "type": "gradient"
+    },
+    "texas-denton": {
+      "type": "gradient"
+    },
+    "texas-duncanville": {
+      "type": "gradient"
+    },
+    "texas-edinburg": {
+      "local": "texas-edinburg.jpg",
+      "credit": "Jeswin  Thomas",
+      "credit_url": "https://www.pexels.com/@jeswin",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-el-paso": {
+      "type": "gradient"
+    },
+    "texas-euless": {
+      "type": "gradient"
+    },
+    "texas-friendswood": {
+      "type": "gradient"
+    },
+    "texas-frisco": {
+      "local": "texas-frisco.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-galveston": {
+      "type": "gradient"
+    },
+    "texas-garland": {
+      "type": "gradient"
+    },
+    "texas-grand-prairie": {
+      "type": "gradient"
+    },
+    "texas-grapevine": {
+      "type": "gradient"
+    },
+    "texas-harlingen": {
+      "local": "texas-harlingen.jpg",
+      "credit": "Erik Mclean",
+      "credit_url": "https://www.pexels.com/@introspectivedsgn",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-houston": {
+      "type": "gradient"
+    },
+    "texas-huntsville": {
+      "type": "gradient"
+    },
+    "texas-hurst": {
+      "type": "gradient"
+    },
+    "texas-hutto": {
+      "local": "texas-hutto.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-irving": {
+      "type": "gradient"
+    },
+    "texas-keller": {
+      "type": "gradient"
+    },
+    "texas-killeen": {
+      "type": "gradient"
+    },
+    "texas-kyle": {
+      "local": "texas-kyle.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-lancaster": {
+      "type": "gradient"
+    },
+    "texas-laredo": {
+      "type": "gradient"
+    },
+    "texas-league-city": {
+      "type": "gradient"
+    },
+    "texas-leander": {
+      "type": "gradient"
+    },
+    "texas-lewisville": {
+      "local": "texas-lewisville.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-little-elm": {
+      "type": "gradient"
+    },
+    "texas-longview": {
+      "type": "gradient"
+    },
+    "texas-lubbock": {
+      "type": "gradient"
+    },
+    "texas-mansfield": {
+      "local": "texas-mansfield.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-mckinney": {
+      "type": "gradient"
+    },
+    "texas-melissa": {
+      "type": "gradient"
+    },
+    "texas-mesquite-city": {
+      "type": "gradient"
+    },
+    "texas-midland": {
+      "local": "texas-midland.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-midlothian": {
+      "type": "gradient"
+    },
+    "texas-missouri-city": {
+      "type": "gradient"
+    },
+    "texas-new-braunfels": {
+      "type": "gradient"
+    },
+    "texas-north-richland-hills": {
+      "local": "texas-north-richland-hills.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-odessa": {
+      "type": "gradient"
+    },
+    "texas-pearland": {
+      "type": "gradient"
+    },
+    "texas-pflugerville": {
+      "type": "gradient"
+    },
+    "texas-pharr": {
+      "type": "gradient"
+    },
+    "texas-plano": {
+      "local": "texas-plano.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-port-arthur": {
+      "type": "gradient"
+    },
+    "texas-prosper": {
+      "type": "gradient"
+    },
+    "texas-richardson": {
+      "type": "gradient"
+    },
+    "texas-rosenberg": {
+      "local": "texas-rosenberg.jpg",
+      "credit": "ALI",
+      "credit_url": "https://www.pexels.com/@ali-2289586",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-round-rock": {
+      "type": "gradient"
+    },
+    "texas-rowlett": {
+      "type": "gradient"
+    },
+    "texas-san-angelo": {
+      "type": "gradient"
+    },
+    "texas-san-antonio": {
+      "local": "texas-san-antonio.jpg",
+      "credit": "jorge villarreal",
+      "credit_url": "https://www.pexels.com/@jorge-villarreal-164970886",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-san-marcos": {
+      "type": "gradient"
+    },
+    "texas-schertz": {
+      "type": "gradient"
+    },
+    "texas-sherman": {
+      "type": "gradient"
+    },
+    "texas-southlake": {
+      "type": "gradient"
+    },
+    "texas-spring": {
+      "local": "texas-spring.jpg",
+      "credit": "Drone Task Force",
+      "credit_url": "https://www.pexels.com/@dronetaskforce",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-sugar-land": {
+      "type": "gradient"
+    },
+    "texas-temple": {
+      "type": "gradient"
+    },
+    "texas-texas-city": {
+      "type": "gradient"
+    },
+    "texas-the-colony": {
+      "local": "texas-the-colony.jpg",
+      "credit": "Elsie Soto",
+      "credit_url": "https://www.pexels.com/@elsiebsoto",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-tyler": {
+      "type": "gradient"
+    },
+    "texas-victoria": {
+      "type": "gradient"
+    },
+    "texas-waco": {
+      "type": "gradient"
+    },
+    "texas-waxahachie": {
+      "local": "texas-waxahachie.jpg",
+      "credit": "Gavin Young",
+      "credit_url": "https://www.pexels.com/@gavin-young-1903733756",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "texas-wichita-falls": {
+      "type": "gradient"
+    },
+    "texas-wylie": {
+      "type": "gradient"
+    },
+    "wyoming-cheyenne": {
+      "type": "gradient"
+    },
+    "wyoming-cody": {
+      "local": "wyoming-cody.jpg",
+      "credit": "Ryan Leeper",
+      "credit_url": "https://www.pexels.com/@ryan-leeper-2910856",
+      "source": "Pexels",
+      "type": "photo"
+    },
+    "wyoming-douglas": {
+      "type": "gradient"
+    },
+    "wyoming-gillette": {
+      "type": "gradient"
+    },
+    "wyoming-sheridan": {
+      "type": "gradient"
+    }
+  }
+}

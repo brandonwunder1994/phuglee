@@ -1072,6 +1072,15 @@ body {
   color: var(--text);
 }
 
+.bridge-response-row {
+  margin-bottom: 1.25rem;
+}
+
+.bridge-response-hint {
+  margin: 0.35rem 0 0;
+  max-width: 42rem;
+}
+
 .bridge-attach-row {
   display: flex;
   flex-wrap: wrap;

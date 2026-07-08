@@ -15,19 +15,26 @@
   <script src="/js/theme.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@500;600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/heat-base.css">
   <link rel="stylesheet" href="/css/heat-atmosphere.css">
   <link rel="stylesheet" href="/css/heat-components.css">
-  <link rel="stylesheet" href="/css/landing.css?v=3">
-  <link rel="stylesheet" href="/css/home.css?v=9">
-  <link rel="stylesheet" href="/css/home-guide.css?v=2">
+  <link rel="stylesheet" href="/css/distress-glass.css">
+  <link rel="stylesheet" href="/css/distress-heat-v2.css">
+  <link rel="stylesheet" href="/css/landing.css?v=5">
+  <link rel="stylesheet" href="/css/home.css?v=25">
+  <link rel="stylesheet" href="/css/home-chronicle.css?v=7">
+  <link rel="stylesheet" href="/css/home-ui-preview.css?v=3">
+  <link rel="stylesheet" href="/css/home-premium.css?v=6">
+  <link rel="stylesheet" href="/css/coverage/coverage-dock.css?v=1">
+  <link rel="stylesheet" href="/css/coverage/city-profile-modal.css?v=1">
+
   <link rel="stylesheet" href="/css/auth.css?v=2">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
 </head>
-<body class="logo-page home-page">
+<body class="logo-page home-page" data-home-map-preview>
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
 
   <header class="home-topbar" aria-label="Site">
@@ -46,14 +53,10 @@
 
   <div class="logo-page-home-bg" aria-hidden="true">
     <div class="logo-page-photo"></div>
-    <div class="logo-page-pattern phuglee-pattern-bg phuglee-pattern-bg--subtle"></div>
     <div class="logo-page-photo-grain"></div>
     <div class="logo-page-photo-wear"></div>
   </div>
   <div class="heat-field" aria-hidden="true">
-    <div class="heat-glow heat-glow-a"></div>
-    <div class="heat-glow heat-glow-b"></div>
-    <div class="heat-grid"></div>
     <div class="heat-noise"></div>
   </div>
 
@@ -62,147 +65,454 @@
 
       <section class="home-hero" aria-label="Phuglee">
         <h1 class="landing-logo-wrap" data-phuglee-reveal-child>
-          <span
-            class="landing-logo-slot"
-            data-phuglee-logo="hero"
-            data-phuglee-label="Phuglee"
-            role="img"
-            aria-label="Phuglee"
-          ></span>
+          <div class="logo-ember-float">
+            <div class="logo-ember-backdrop" aria-hidden="true">
+              <div class="logo-ember-halo">
+                <span class="logo-ember-halo-layer logo-ember-halo-layer--core"></span>
+                <span class="logo-ember-halo-layer logo-ember-halo-layer--plume"></span>
+                <span class="logo-ember-halo-layer logo-ember-halo-layer--base"></span>
+              </div>
+              <canvas class="logo-ember-canvas" aria-hidden="true"></canvas>
+            </div>
+            <span
+              class="landing-logo-slot"
+              data-phuglee-logo="hero"
+              data-phuglee-label="Phuglee"
+              role="img"
+              aria-label="Phuglee"
+            ></span>
+          </div>
         </h1>
-        <p class="landing-tagline" data-phuglee-reveal-child>The #1 Distressed Lead Source for Wholesalers</p>
-        <div class="landing-actions" data-phuglee-reveal-child>
-          <div class="home-cta-row">
-            <button type="button" class="phuglee-btn phuglee-btn-primary landing-cta" id="btn-heat">
-              Enter the Platform
-            </button>
-            <button type="button" class="phuglee-btn phuglee-btn-secondary home-cta-secondary" id="btn-how-it-works">
-              How It Works
+        <div class="home-hero-copy">
+          <p class="landing-tagline" data-phuglee-reveal-child>The #1 Distressed Lead Source for Wholesalers</p>
+          <div class="landing-actions" data-phuglee-reveal-child>
+            <div class="home-cta-row">
+              <button type="button" class="phuglee-btn phuglee-btn-primary landing-cta" id="btn-heat">
+                Enter the Platform
+              </button>
+            </div>
+            <button type="button" class="home-scroll-hint" id="home-scroll-hint" aria-label="Scroll down to learn more">
+              <svg class="home-scroll-hint-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v12"/><path d="M7 13l5 5 5-5"/>
+              </svg>
             </button>
           </div>
         </div>
       </section>
 
-      <section class="home-proof" aria-label="Proof points" data-phuglee-reveal-child>
-        <div class="home-proof-rail phuglee-panel">
-          <article class="home-proof-item home-proof-item--featured">
-            <span class="home-proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.2-6-10a6 6 0 1 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2"/></svg>
-            </span>
-            <div class="home-proof-copy">
-              <span class="home-proof-kicker">Coverage</span>
-              <p class="home-proof-metric">
-                <span class="home-proof-num home-proof-num--gold" id="home-city-count">—</span>
-                <span class="home-proof-unit">cities</span>
-                <span class="home-proof-join">in</span>
-                <span class="home-proof-num" id="home-state-count">—</span>
-                <span class="home-proof-unit">states</span>
-              </p>
-            </div>
-          </article>
+      <div class="home-below-hero">
 
-          <article class="home-proof-item">
-            <span class="home-proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M3 10h18"/><path d="M6 10V7l3-4h6l3 4v3"/><path d="M8 21v-6"/><path d="M16 21v-6"/><path d="M10 14h4"/></svg>
-            </span>
-            <div class="home-proof-copy">
-              <span class="home-proof-kicker">Distress signals</span>
-              <p class="home-proof-metric">
-                <span class="home-proof-num home-proof-num--gold">5</span>
-                <span class="home-proof-unit">lead types</span>
-              </p>
-              <p class="home-proof-detail">Violations · shutoffs · probate · foreclosure · tax</p>
-            </div>
-          </article>
+        <section class="home-chapter home-chapter--edge" aria-labelledby="home-edge-title" data-phuglee-reveal-child>
+          <p class="phuglee-eyebrow">Your edge</p>
+          <h2 class="home-chapter-title" id="home-edge-title">Same-day leads — before they're diluted.</h2>
+          <p class="home-chapter-lead home-chapter-lead--edu">Distressed properties hit public records at city and county clerks first — long before list brokers recycle the same addresses to thousands of wholesalers.</p>
 
-          <article class="home-proof-item">
-            <span class="home-proof-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 10-14h-7l0-6z"/></svg>
-            </span>
-            <div class="home-proof-copy">
-              <span class="home-proof-kicker">Speed</span>
-              <p class="home-proof-metric">
-                <span class="home-proof-num home-proof-num--gold">Instant</span>
-                <span class="home-proof-unit">data</span>
-              </p>
-              <p class="home-proof-detail">We go straight to the source</p>
+          <div class="home-edge-gap distress-glass-card" data-home-edge-gap aria-label="Same-day Phuglee leads versus weeks-late aggregator lists">
+            <div class="home-edge-timeline" aria-hidden="true">
+              <div class="home-edge-timeline-labels">
+                <span class="home-edge-timeline-label home-edge-timeline-label--today">Today</span>
+                <span class="home-edge-timeline-label home-edge-timeline-label--weeks">Weeks later</span>
+              </div>
+              <div class="home-edge-timeline-track">
+                <div class="home-edge-timeline-heat"></div>
+                <div class="home-edge-timeline-fill home-edge-timeline-fill--fast"></div>
+                <div class="home-edge-timeline-fill home-edge-timeline-fill--slow"></div>
+                <div class="home-edge-timeline-node home-edge-timeline-node--phuglee"></div>
+                <div class="home-edge-timeline-node home-edge-timeline-node--stale"></div>
+              </div>
             </div>
-          </article>
-        </div>
-      </section>
 
-      <section class="home-pipeline" aria-labelledby="home-pipeline-title" data-phuglee-reveal-child>
-        <div class="home-pipeline-head">
-          <p class="home-pipeline-eyebrow" id="home-pipeline-title">The pipeline</p>
-        </div>
-        <ol class="home-pipeline-grid">
-          <li class="home-pipeline-step">
-            <span class="home-pipeline-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
-            </span>
-            <span class="home-pipeline-num">01</span>
-            <span class="home-pipeline-name">Collect</span>
-            <p class="home-pipeline-desc">Hit the clerk. Pull public records before anyone else.</p>
-          </li>
-          <li class="home-pipeline-step">
-            <span class="home-pipeline-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M5 4h14v4H5z"/><path d="M7 12h10"/><path d="M9 16h6"/><path d="M11 20h2"/></svg>
-            </span>
-            <span class="home-pipeline-num">02</span>
-            <span class="home-pipeline-name">Filter</span>
-            <p class="home-pipeline-desc">Scrub messy city files into a clean, tagged list.</p>
-          </li>
-          <li class="home-pipeline-step">
-            <span class="home-pipeline-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M3 10h18"/><path d="M5 10V8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2"/><circle cx="12" cy="14" r="2.5"/><path d="M12 16.5V20"/></svg>
-            </span>
-            <span class="home-pipeline-num">03</span>
-            <span class="home-pipeline-name">Analyze</span>
-            <p class="home-pipeline-desc">AI ranks visible distress. You pick who to dial.</p>
-          </li>
-        </ol>
-      </section>
+            <div class="home-edge-panels">
+              <article class="home-edge-panel home-edge-panel--phuglee">
+                <span class="home-edge-panel-label">Your edge</span>
+                <p class="home-edge-hero">Same day</p>
+                <p class="home-edge-tagline">Premium list before they're diluted.</p>
 
-      <section class="home-coverage" aria-labelledby="home-coverage-title" data-phuglee-reveal-child>
-        <div class="home-coverage-head">
-          <p class="home-coverage-eyebrow">Territory</p>
-          <h2 class="home-coverage-title" id="home-coverage-title">Where we pull records</h2>
-          <p class="home-coverage-summary" id="home-map-summary">Loading coverage…</p>
-          <p class="home-coverage-hint">Click a state to see which cities we have listed.</p>
-        </div>
-        <div class="home-coverage-body">
-          <div class="home-coverage-map-col">
-            <div class="home-coverage-map" id="home-coverage-map" role="application" aria-label="United States coverage map — click a state to view cities">
-              <p class="home-map-loading">Loading map…</p>
+                <div class="home-edge-signal home-edge-signal--fresh" aria-label="Example: fresh lead from today">
+                  <span class="home-edge-signal-addr">1842 W Culver St</span>
+                  <span class="home-edge-signal-type">Violation</span>
+                  <span class="home-edge-signal-meta">
+                    <span class="home-edge-signal-time">Today</span>
+                    <span class="home-edge-signal-badge">New</span>
+                  </span>
+                </div>
+
+                <p class="home-edge-proof">Owner hasn't been screened yet.</p>
+              </article>
+
+              <article class="home-edge-panel home-edge-panel--stale">
+                <span class="home-edge-panel-label">Everyone else</span>
+                <p class="home-edge-hero">Weeks</p>
+                <p class="home-edge-tagline">Same properties. Thousands of wholesalers. Dead on arrival.</p>
+
+                <div class="home-edge-signal home-edge-signal--stale" aria-label="Example: same lead weeks later, diluted">
+                  <span class="home-edge-signal-addr">1842 W Culver St</span>
+                  <span class="home-edge-signal-type">Violation</span>
+                  <span class="home-edge-signal-meta">
+                    <span class="home-edge-signal-time">3 wks ago</span>
+                    <span class="home-edge-signal-diluted">12 platforms</span>
+                  </span>
+                </div>
+
+                <div class="home-edge-crowd" aria-hidden="true">
+                  <span class="home-edge-crowd-label">Thousands competing</span>
+                  <span class="home-edge-crowd-mass"></span>
+                </div>
+
+                <p class="home-edge-proof">Skip-traced and called by dozens.</p>
+              </article>
             </div>
-            <ul class="home-map-legend" aria-label="Map legend">
-              <li><span class="home-map-swatch home-map-swatch--covered" aria-hidden="true"></span> Live coverage</li>
-              <li><span class="home-map-swatch home-map-swatch--pending" aria-hidden="true"></span> Not yet</li>
-              <li><span class="home-map-swatch home-map-swatch--blocked" aria-hidden="true"></span> Can't get data</li>
-            </ul>
           </div>
-          <aside class="home-coverage-panel" id="home-state-panel" aria-labelledby="home-state-panel-title">
-            <div class="home-coverage-panel-inner" id="home-state-cities">
-              <p class="home-coverage-panel-placeholder">Select a state on the map to browse our city list.</p>
+        </section>
+
+        <section class="home-chapter home-chapter--thesis" aria-labelledby="home-thesis-title" data-phuglee-reveal-child>
+          <div class="home-thesis-grid home-thesis-grid--feed">
+            <div class="home-thesis-copy">
+              <p class="phuglee-eyebrow">What we do</p>
+              <h2 class="home-chapter-title" id="home-thesis-title">Leads this hot don't wait for aggregators.</h2>
+              <p class="home-chapter-lead">We pull lists straight from city and county clerks — not data warehouses that drip the same properties to thousands of wholesalers weeks later. Distress signals land in your pipeline <em>while the list is still premium.</em></p>
             </div>
-          </aside>
-        </div>
-      </section>
+            <aside class="home-thesis-feed" aria-label="Live distress signal feed">
+              <div class="distress-monitor home-signal-monitor" data-home-monitor>
+                <div class="distress-monitor-screen home-signal-monitor-screen">
+                  <div class="home-ui-preview home-ui-preview--signals">
+                    <div class="home-ui-preview-chrome">
+                      <div class="home-ui-preview-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                      <span class="home-ui-preview-title">Signal Feed · Live</span>
+                      <span class="home-ui-preview-status">Live</span>
+                    </div>
+                    <div class="home-ui-preview-toolbar home-signal-toolbar">
+                      <span class="home-ui-preview-chip is-on">Today</span>
+                      <span class="home-ui-preview-chip is-on">Violations</span>
+                      <span class="home-ui-preview-chip">Probate</span>
+                      <span class="home-signal-toolbar-meta">
+                        <span class="home-signal-stat"><strong>47</strong> signals</span>
+                        <span class="home-signal-stat home-signal-stat--new"><strong>12</strong> new</span>
+                      </span>
+                    </div>
+                    <div class="home-signal-feed-shell">
+                      <div class="home-signal-feed-head" aria-hidden="true">
+                        <span>Time</span>
+                        <span>Address</span>
+                        <span>Signal</span>
+                        <span>County</span>
+                      </div>
+                      <div class="home-signal-feed" data-home-signal-feed>
+                        <div class="home-signal-feed-track">
+                          <div class="home-signal-feed-row heat-hot is-new">
+                            <span class="home-signal-feed-time">2h ago</span>
+                            <span class="home-signal-feed-addr">1842 W Culver St<span class="home-ui-preview-badge-new">New</span></span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--violation">Violation</span></span>
+                            <span class="home-signal-feed-county">Maricopa, AZ</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-hot is-new">
+                            <span class="home-signal-feed-time">1h ago</span>
+                            <span class="home-signal-feed-addr">782 E Main St<span class="home-ui-preview-badge-new">New</span></span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--violation">Violation</span></span>
+                            <span class="home-signal-feed-county">Pima, AZ</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-warm">
+                            <span class="home-signal-feed-time">4h ago</span>
+                            <span class="home-signal-feed-addr">9031 N 19th Ave</span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--probate">Probate</span></span>
+                            <span class="home-signal-feed-county">Wayne, MI</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-warm">
+                            <span class="home-signal-feed-time">5h ago</span>
+                            <span class="home-signal-feed-addr">3309 Oakwood Dr</span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--shutoff">Shutoff</span></span>
+                            <span class="home-signal-feed-county">Oakland, MI</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-cool">
+                            <span class="home-signal-feed-time">9h ago</span>
+                            <span class="home-signal-feed-addr">2210 E Van Buren</span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--tax">Tax lien</span></span>
+                            <span class="home-signal-feed-county">Cook, IL</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-hot is-new">
+                            <span class="home-signal-feed-time">2h ago</span>
+                            <span class="home-signal-feed-addr">1842 W Culver St<span class="home-ui-preview-badge-new">New</span></span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--violation">Violation</span></span>
+                            <span class="home-signal-feed-county">Maricopa, AZ</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-hot is-new">
+                            <span class="home-signal-feed-time">1h ago</span>
+                            <span class="home-signal-feed-addr">782 E Main St<span class="home-ui-preview-badge-new">New</span></span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--violation">Violation</span></span>
+                            <span class="home-signal-feed-county">Pima, AZ</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-warm">
+                            <span class="home-signal-feed-time">4h ago</span>
+                            <span class="home-signal-feed-addr">9031 N 19th Ave</span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--probate">Probate</span></span>
+                            <span class="home-signal-feed-county">Wayne, MI</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-warm">
+                            <span class="home-signal-feed-time">5h ago</span>
+                            <span class="home-signal-feed-addr">3309 Oakwood Dr</span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--shutoff">Shutoff</span></span>
+                            <span class="home-signal-feed-county">Oakland, MI</span>
+                          </div>
+                          <div class="home-signal-feed-row heat-cool">
+                            <span class="home-signal-feed-time">9h ago</span>
+                            <span class="home-signal-feed-addr">2210 E Van Buren</span>
+                            <span class="home-signal-feed-signal"><span class="home-ui-preview-signal home-ui-preview-signal--tax">Tax lien</span></span>
+                            <span class="home-signal-feed-county">Cook, IL</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="home-signal-activity" aria-hidden="true">
+                      <span>Last signal <strong>2m ago</strong></span>
+                      <span>Counties <strong>12</strong></span>
+                      <span>Updated <strong>live</strong></span>
+                    </div>
+                  </div>
+                  <span class="home-monitor-scan"></span>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="home-chapter home-chapter--pipeline" aria-labelledby="home-pipeline-title" data-phuglee-reveal-child>
+          <header class="home-pipeline-head">
+            <p class="phuglee-eyebrow" id="home-pipeline-title">The pipeline</p>
+            <h2 class="home-chapter-title home-chapter-title--sm">Collect. Filter. Analyze.</h2>
+            <p class="home-pipeline-lead">One workflow from public records to ranked dial list — built for wholesalers who move first.</p>
+          </header>
+
+          <div class="home-monitors hub-mockups" aria-label="Distress OS pipeline preview">
+            <div class="distress-monitor home-monitor" data-home-monitor>
+              <div class="distress-monitor-screen">
+                <div class="home-ui-preview home-ui-preview--collect" data-ui-preview="collect">
+                      <div class="home-ui-preview-chrome">
+                        <div class="home-ui-preview-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                        <span class="home-ui-preview-title">Collect · Public Records</span>
+                        <span class="home-ui-preview-status">Live</span>
+                      </div>
+                      <div class="home-ui-preview-toolbar">
+                        <span class="home-ui-preview-chip">Phoenix, AZ</span>
+                        <span class="home-ui-preview-search" aria-hidden="true"></span>
+                      </div>
+                      <div class="home-ui-preview-body">
+                        <table class="home-ui-preview-table">
+                          <thead>
+                            <tr><th>Address</th><th>Signal</th><th>Filed</th></tr>
+                          </thead>
+                          <tbody>
+                            <tr class="is-new">
+                              <td>1842 W Culver St<span class="home-ui-preview-badge-new">New</span></td>
+                              <td><span class="home-ui-preview-signal home-ui-preview-signal--violation">Violation</span></td>
+                              <td class="home-ui-preview-time">Today</td>
+                            </tr>
+                            <tr>
+                              <td>9031 N 19th Ave</td>
+                              <td><span class="home-ui-preview-signal home-ui-preview-signal--probate">Probate</span></td>
+                              <td class="home-ui-preview-time">1d ago</td>
+                            </tr>
+                            <tr>
+                              <td>4420 S Central Ave</td>
+                              <td><span class="home-ui-preview-signal home-ui-preview-signal--shutoff">Shutoff</span></td>
+                              <td class="home-ui-preview-time">2d ago</td>
+                            </tr>
+                            <tr>
+                              <td>2210 E Van Buren</td>
+                              <td><span class="home-ui-preview-signal home-ui-preview-signal--tax">Tax lien</span></td>
+                              <td class="home-ui-preview-time">3d ago</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                <span class="home-monitor-scan"></span>
+              </div>
+              <div class="home-monitor-caption">
+                <span class="home-monitor-caption-title">Collect</span>
+                <span class="home-monitor-caption-desc">Pull public records straight from city and county clerks.</span>
+              </div>
+            </div>
+
+            <div class="distress-monitor home-monitor" data-home-monitor>
+              <div class="distress-monitor-screen">
+                <div class="home-ui-preview home-ui-preview--filter" data-ui-preview="filter">
+                      <div class="home-ui-preview-chrome">
+                        <div class="home-ui-preview-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                        <span class="home-ui-preview-title">Filter · Scrub &amp; Tag</span>
+                        <span class="home-ui-preview-status">Scrubbing</span>
+                      </div>
+                      <div class="home-ui-preview-body">
+                        <div class="home-ui-preview-filters">
+                          <p class="home-ui-preview-filters-label">Signal filters</p>
+                          <div class="home-ui-preview-filter-tags">
+                            <span class="home-ui-preview-filter-tag is-on">Violations <span class="home-ui-preview-filter-count">42</span></span>
+                            <span class="home-ui-preview-filter-tag is-on">Probate <span class="home-ui-preview-filter-count">18</span></span>
+                            <span class="home-ui-preview-filter-tag is-on">Shutoffs <span class="home-ui-preview-filter-count">31</span></span>
+                            <span class="home-ui-preview-filter-tag is-off">Duplicates</span>
+                          </div>
+                        </div>
+                        <div class="home-ui-preview-results">
+                          <div class="home-ui-preview-result">
+                            <span class="home-ui-preview-result-icon home-ui-preview-result-icon--pass" aria-hidden="true">✓</span>
+                            <span class="home-ui-preview-result-addr">1842 W Culver St</span>
+                            <span class="home-ui-preview-result-meta">Owner match</span>
+                          </div>
+                          <div class="home-ui-preview-result">
+                            <span class="home-ui-preview-result-icon home-ui-preview-result-icon--pass" aria-hidden="true">✓</span>
+                            <span class="home-ui-preview-result-addr">9031 N 19th Ave</span>
+                            <span class="home-ui-preview-result-meta">Clean title</span>
+                          </div>
+                          <div class="home-ui-preview-result">
+                            <span class="home-ui-preview-result-icon home-ui-preview-result-icon--fail" aria-hidden="true">✕</span>
+                            <span class="home-ui-preview-result-addr">1102 E Roosevelt</span>
+                            <span class="home-ui-preview-result-meta">Duplicate</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="home-ui-preview-scrub-bar">
+                        <div class="home-ui-preview-scrub-bar-fill" aria-hidden="true"></div>
+                        <span class="home-ui-preview-scrub-label">78% scrubbed</span>
+                      </div>
+                    </div>
+                <span class="home-monitor-scan"></span>
+              </div>
+              <div class="home-monitor-caption">
+                <span class="home-monitor-caption-title">Filter</span>
+                <span class="home-monitor-caption-desc">AI scrubs duplicates and tags the distress that matters.</span>
+              </div>
+            </div>
+
+            <div class="distress-monitor home-monitor" data-home-monitor>
+              <div class="distress-monitor-screen">
+                <div class="home-ui-preview home-ui-preview--analyze" data-ui-preview="analyze">
+                      <div class="home-ui-preview-chrome">
+                        <div class="home-ui-preview-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                        <span class="home-ui-preview-title">Analyze · Ranked Dial List</span>
+                        <span class="home-ui-preview-status">Ready</span>
+                      </div>
+                      <div class="home-ui-preview-body">
+                        <div class="home-ui-preview-rank is-hot">
+                          <span class="home-ui-preview-rank-num">01</span>
+                          <div class="home-ui-preview-rank-info">
+                            <span class="home-ui-preview-rank-addr">1842 W Culver St</span>
+                            <span class="home-ui-preview-rank-detail">Violation + tax · Owner occupied</span>
+                          </div>
+                          <div class="home-ui-preview-heat">
+                            <span class="home-ui-preview-heat-score">94</span>
+                            <div class="home-ui-preview-heat-bar" aria-hidden="true"><span></span></div>
+                          </div>
+                        </div>
+                        <div class="home-ui-preview-rank">
+                          <span class="home-ui-preview-rank-num">02</span>
+                          <div class="home-ui-preview-rank-info">
+                            <span class="home-ui-preview-rank-addr">9031 N 19th Ave</span>
+                            <span class="home-ui-preview-rank-detail">Probate · Absentee owner</span>
+                          </div>
+                          <div class="home-ui-preview-heat">
+                            <span class="home-ui-preview-heat-score">78</span>
+                            <div class="home-ui-preview-heat-bar" aria-hidden="true"><span></span></div>
+                          </div>
+                        </div>
+                        <div class="home-ui-preview-rank">
+                          <span class="home-ui-preview-rank-num">03</span>
+                          <div class="home-ui-preview-rank-info">
+                            <span class="home-ui-preview-rank-addr">4420 S Central Ave</span>
+                            <span class="home-ui-preview-rank-detail">Shutoff · High equity</span>
+                          </div>
+                          <div class="home-ui-preview-heat">
+                            <span class="home-ui-preview-heat-score">61</span>
+                            <div class="home-ui-preview-heat-bar" aria-hidden="true"><span></span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                <span class="home-monitor-scan"></span>
+              </div>
+              <div class="home-monitor-caption">
+                <span class="home-monitor-caption-title">Analyze</span>
+                <span class="home-monitor-caption-desc">Ranked dial list — call the hottest deals first.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="home-chapter home-chapter--territory home-coverage" aria-labelledby="home-territory-title" data-phuglee-reveal-child>
+          <header class="home-territory-head">
+            <p class="phuglee-eyebrow">Live coverage</p>
+            <h2 class="home-chapter-title home-chapter-title--sm" id="home-territory-title">Territory you can trust</h2>
+            <p class="home-territory-summary" id="home-map-summary">Loading coverage…</p>
+          </header>
+
+          <div class="home-territory-stage home-territory-stage--explorer">
+            <div class="distress-monitor home-territory-monitor" id="home-territory-monitor">
+              <div class="distress-monitor-screen home-territory-screen home-territory-screen--explorer">
+                <div class="home-coverage-map" id="home-coverage-map" role="application" aria-label="United States coverage map">
+                  <p class="home-map-loading">Loading map…</p>
+                </div>
+                <div class="home-territory-chips" aria-hidden="true">
+                  <span class="home-territory-chip"><strong id="home-chip-cities">—</strong> cities</span>
+                  <span class="home-territory-chip"><strong id="home-chip-states">—</strong> states</span>
+                </div>
+                <ul class="home-map-legend home-map-legend--overlay" aria-label="Map legend">
+                  <li><span class="home-map-swatch home-map-swatch--covered" aria-hidden="true"></span> Live</li>
+                  <li><span class="home-map-swatch home-map-swatch--pending" aria-hidden="true"></span> Soon</li>
+                  <li><span class="home-map-swatch home-map-swatch--blocked" aria-hidden="true"></span> Blocked</li>
+                </ul>
+                <span class="home-monitor-scan home-monitor-scan--map"></span>
+              </div>
+
+              <div class="coverage-dock is-collapsed" id="home-coverage-dock" aria-label="Coverage explorer">
+                <div class="coverage-dock-toolbar">
+                  <button type="button" class="coverage-dock-back" id="home-dock-back" hidden>← States</button>
+                  <label class="coverage-dock-search">
+                    <span class="sr-only">Search city, county, or state</span>
+                    <input type="search" id="home-dock-search-input" placeholder="Search city, county, or state…" autocomplete="off" />
+                  </label>
+                  <div class="coverage-dock-head">
+                    <h3 class="coverage-dock-title" id="home-dock-title">Explore coverage</h3>
+                    <p class="coverage-dock-sub" id="home-dock-sub">Click a state or search</p>
+                  </div>
+                </div>
+                <div class="coverage-dock-body">
+                  <p class="coverage-dock-hint" id="home-dock-hint">Click any highlighted state to browse counties and cities. Select a city for its full profile.</p>
+                  <div class="coverage-dock-panel" id="home-dock-search" hidden>
+                    <div id="home-dock-search-list"></div>
+                  </div>
+                  <div class="coverage-dock-panel" id="home-dock-state" hidden>
+                    <div id="home-dock-counties"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="home-chapter home-chapter--close home-chapter--cta-only" aria-label="Enter the platform" data-phuglee-reveal-child>
+          <button type="button" class="phuglee-btn phuglee-btn-primary home-close-cta" id="btn-heat-footer">
+            Enter the Platform
+          </button>
+        </section>
+
+      </div>
 
       <footer class="home-footer">
         <span class="home-footer-brand">PHUGLEE</span>
         <span class="home-footer-meta">Distress OS · Collect. Filter. Analyze.</span>
-        <button type="button" class="home-footer-link" id="btn-how-it-works-footer">How It Works</button>
       </footer>
 
     </div>
   </main>
 
   <script src="/js/phuglee-logo.js?v=2" defer></script>
+  <script src="/js/phuglee-logo-ember.js?v=2" defer></script>
   <script src="/js/phuglee-motion.js" defer></script>
-  <script src="/js/home-coverage.js?v=3" defer></script>
+  <script src="/js/home-coverage.js?v=6" defer></script>
+  <script src="/js/coverage/coverage-shared.js?v=1" defer></script>
+  <script src="/js/coverage/city-profile-modal.js?v=1" defer></script>
+  <script src="/js/home-coverage-explorer.js?v=2" defer></script>
+  <script src="/js/home-below.js?v=7" defer></script>
   <script src="/js/auth-config.js"></script>
-  <script src="/js/home-guide.js" defer></script>
-  <script src="/js/auth.js?v=7" defer></script>
+
+  <script src="/js/auth.js?v=8" defer></script>
 </body>
 </html>

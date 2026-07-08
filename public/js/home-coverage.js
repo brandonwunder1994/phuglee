@@ -85,7 +85,10 @@
   async function fetchCoverage() {
     if (coverageCache) return coverageCache;
     var res = await fetch(COVERAGE_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error('coverage unavailable');
+    if (!res.ok) {
+      res = await fetch('/data/coverage-map-bootstrap.json', { cache: 'default' });
+      if (!res.ok) throw new Error('coverage unavailable');
+    }
     coverageCache = await res.json();
     if (coverageCache.unavailable_states) {
       LEADS_UNAVAILABLE.clear();
@@ -188,6 +191,8 @@
     [
       ['home-city-count', cityLabel],
       ['home-state-count', stateLabel],
+      ['home-chip-cities', cityLabel],
+      ['home-chip-states', stateLabel],
       ['hub-city-count', cityLabel],
       ['collect-city-count', cityLabel],
       ['collect-state-count', stateLabel],
@@ -287,33 +292,37 @@
     homeSelectedState = stateName;
     if (!svg) return;
 
-    svg.querySelectorAll('.' + prefix + '-map-state').forEach(function (path) {
-      var isSelected = path.getAttribute('data-state') === stateName;
-      path.classList.toggle(prefix + '-map-state--selected', isSelected);
-      path.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+    svg.querySelectorAll('.' + prefix + '-map-state-group').forEach(function (group) {
+      var isSelected = group.getAttribute('data-state') === stateName;
+      group.classList.toggle(prefix + '-map-state-group--selected', isSelected);
+      var path = group.querySelector('.' + prefix + '-map-state');
+      if (path) {
+        path.classList.toggle(prefix + '-map-state--selected', isSelected);
+        group.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+      }
     });
 
     renderStateCityPanel(stateName, coverage, counts);
   }
 
   function attachInteractiveStateHandlers(svg, prefix, coverage, counts) {
-    var paths = svg.querySelectorAll('.' + prefix + '-map-state');
-    paths.forEach(function (path) {
-      var stateName = path.getAttribute('data-state');
+    var groups = svg.querySelectorAll('.' + prefix + '-map-state-group');
+    groups.forEach(function (group) {
+      var stateName = group.getAttribute('data-state');
       if (!stateName) return;
 
-      path.classList.add(prefix + '-map-state--interactive');
-      path.setAttribute('role', 'button');
-      path.setAttribute('tabindex', '0');
-      path.setAttribute('aria-label', stateName + ' — view listed cities');
-      path.setAttribute('aria-pressed', 'false');
+      group.classList.add(prefix + '-map-state-group--interactive');
+      group.setAttribute('role', 'button');
+      group.setAttribute('tabindex', '0');
+      group.setAttribute('aria-label', stateName + ' — view listed cities');
+      group.setAttribute('aria-pressed', 'false');
 
       function selectState() {
         setHomeSelectedState(stateName, coverage, counts, svg, prefix);
       }
 
-      path.addEventListener('click', selectState);
-      path.addEventListener('keydown', function (e) {
+      group.addEventListener('click', selectState);
+      group.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           selectState();
@@ -372,10 +381,13 @@
         if (!name || EXCLUDED_FROM_MAP.has(name)) return;
 
         var status = getStateStatus(name, counts);
+        var stateGroup = document.createElementNS(svgNS, 'g');
+        stateGroup.setAttribute('class', prefix + '-map-state-group');
+        stateGroup.setAttribute('data-state', name);
+
         var path = document.createElementNS(svgNS, 'path');
         path.setAttribute('d', featureToPath(feature, width, height));
         path.setAttribute('class', prefix + '-map-state ' + prefix + '-map-state--' + status);
-        path.setAttribute('data-state', name);
 
         if (status === 'covered') {
           path.setAttribute('fill', stateFillColor(counts[name], maxCount));
@@ -386,17 +398,18 @@
           path.setAttribute('fill', COLOR_NO_DATA);
         }
 
+        stateGroup.appendChild(path);
+
         if (status === 'unavailable') {
           var hatch = document.createElementNS(svgNS, 'path');
           hatch.setAttribute('d', path.getAttribute('d'));
           hatch.setAttribute('fill', 'url(#' + prefix + '-unavailable-hatch)');
           hatch.setAttribute('fill-opacity', '0.55');
           hatch.setAttribute('pointer-events', 'none');
-          group.appendChild(path);
-          group.appendChild(hatch);
-        } else {
-          group.appendChild(path);
+          stateGroup.appendChild(hatch);
         }
+
+        group.appendChild(stateGroup);
       });
 
       svg.appendChild(group);
@@ -473,7 +486,16 @@
       renderHubMap();
     }
 
-    if (document.getElementById('home-coverage-map')) {
+    if (document.getElementById('home-map-summary') && document.body.hasAttribute('data-home-map-preview')) {
+      Promise.all([fetchCoverage(), fetchStatesGeo()])
+        .then(function (pair) {
+          var stats = computeMapStats(pair[0], pair[1]);
+          updateMapSummary('home-map-summary', stats);
+        })
+        .catch(function () {});
+    }
+
+    if (document.getElementById('home-coverage-map') && !document.body.hasAttribute('data-home-map-preview')) {
       observeHomeMap();
     }
   }

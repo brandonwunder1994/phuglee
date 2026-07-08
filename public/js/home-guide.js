@@ -145,12 +145,12 @@
                     '<div class="guide-vs-panel guide-vs-panel--fresh">' +
                       '<span class="guide-vs-badge">Your edge</span>' +
                       '<h3>Phuglee pipeline</h3>' +
-                      '<p>City clerk → your inbox → Filter scrubs → Analyze ranks → you dial. <strong>Days.</strong> Nobody else has seen this list.</p>' +
+                      '<p>City clerk → your inbox → Filter scrubs → Analyze ranks → you dial. <strong>Same day.</strong> Premium list before they\'re diluted.</p>' +
                     '</div>' +
                     '<div class="guide-vs-panel guide-vs-panel--stale">' +
                       '<span class="guide-vs-badge">Everyone else</span>' +
                       '<h3>Aggregator drip</h3>' +
-                      '<p>Portal scrape → warehouse → sold to 400 wholesalers. <strong>Weeks.</strong> Stale before you open the file.</p>' +
+                      '<p>Portal scrape → warehouse → sold to thousands of wholesalers. <strong>Weeks.</strong> Same properties. Thousands of wholesalers. Dead on arrival.</p>' +
                     '</div>' +
                   '</div>' +
 

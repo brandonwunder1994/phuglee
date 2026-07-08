@@ -102,8 +102,23 @@
     });
   }
 
+  function bridgeHeaders(extra) {
+    if (window.PhugleeSessionHeaders && typeof window.PhugleeSessionHeaders.phugleeSessionHeaders === 'function') {
+      return window.PhugleeSessionHeaders.phugleeSessionHeaders(extra);
+    }
+    const headers = { ...(extra || {}) };
+    try {
+      const user = (window.PhugleeAuth && window.PhugleeAuth.getSessionUser)
+        ? window.PhugleeAuth.getSessionUser()
+        : sessionStorage.getItem('phuglee_session');
+      if (user) headers['X-Phuglee-User'] = user;
+    } catch (_) {}
+    return headers;
+  }
+
   async function fetchJson(url, options) {
-    const res = await fetch(url, { cache: 'no-store', ...options });
+    const headers = bridgeHeaders(options && options.headers);
+    const res = await fetch(url, { cache: 'no-store', ...options, headers });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       if (data.code === 'OCR_UNAVAILABLE' || res.status === 503) {
@@ -152,6 +167,7 @@
       resultsPanel.hidden = true;
       lastResult = null;
       clearFileUi();
+      if (responseAtInput) responseAtInput.value = '';
       setPipelineStep(selectedUploadType ? 'upload' : 'type');
     }
     if (from === 'file') {
@@ -491,11 +507,6 @@
       populateTagFilter(rows);
       renderResultsTable();
       setAttachStatus('', '');
-      if (responseAtInput && !responseAtInput.value) {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        responseAtInput.value = now.toISOString().slice(0, 16);
-      }
     }
 
     if (stubNote) {
@@ -523,6 +534,12 @@
 
   async function processUpload() {
     if (!selectedCity || !selectedUploadType || !selectedFile) return;
+    const responseAt = responseAtInput?.value;
+    if (!responseAt) {
+      showError('Enter when the city sent this list (date and time) before processing.');
+      responseAtInput?.focus();
+      return;
+    }
     showError('');
     resultsPanel.hidden = true;
     loadingPanel.hidden = false;

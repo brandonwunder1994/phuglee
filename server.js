@@ -23,6 +23,7 @@ const MIME = {
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
   '.gif': 'image/gif',
+  '.json': 'application/json; charset=utf-8',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2'
 };
@@ -68,7 +69,8 @@ function isDistressStatic(pathname) {
   return pathname.startsWith('/css/')
     || pathname.startsWith('/js/')
     || pathname.startsWith('/assets/')
-    || pathname.startsWith('/images/');
+    || pathname.startsWith('/images/')
+    || pathname.startsWith('/data/');
 }
 
 function serveLibAsBrowser(res, libFile, globalName) {
