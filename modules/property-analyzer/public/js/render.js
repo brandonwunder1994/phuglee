@@ -994,6 +994,7 @@ R.renderVirtualCards = function renderVirtualCards() {
 
   updateResultCountLabel();
   if (resultsLoadMore) resultsLoadMore.hidden = true;
+  if (typeof refreshAllCardThumbs === 'function') refreshAllCardThumbs();
 }
 
 R.renderResults = function renderResults(opts = {}) {

@@ -648,7 +648,37 @@ function createMapsHelpers(imageryCache) {
     };
   }
 
-  return { resolveSatellite, fetchStreetViewPayload };
+  async function fetchStreetViewFromViewMeta(address, key, viewMeta) {
+    if (!address || !key || !viewMeta) return null;
+    const size = SV_SIZE;
+    const params = new URLSearchParams({ address, size, fast: '1' });
+    if (viewMeta.panoId) params.set('pano', viewMeta.panoId);
+    if (viewMeta.panoLat != null) params.set('panoLat', String(viewMeta.panoLat));
+    if (viewMeta.panoLng != null) params.set('panoLng', String(viewMeta.panoLng));
+    if (viewMeta.heading != null) params.set('heading', String(viewMeta.heading));
+    if (viewMeta.fov != null) params.set('fov', String(viewMeta.fov));
+    const cacheKey = streetViewThumbCacheKey(address, size, params);
+    const imageUrl = buildStreetViewThumbUrl(address, key, size, params);
+    const proxied = await fetchProxiedGoogleImage(imageUrl, cacheKey);
+    if (!proxied.ok) {
+      return {
+        ok: false,
+        unavailable: proxied.status === 404,
+        error: proxied.error || 'Street View image fetch failed'
+      };
+    }
+    const cached = imageryCache.saveImageryBuffer(address, 'streetview', proxied.body, proxied.mimeType, {
+      viewMeta,
+      source: 'viewmeta_fast'
+    });
+    return {
+      ok: true,
+      cachedUrl: cached.ok ? cached.url : null,
+      imagery: imageryCache.buildImageryRecord(address)
+    };
+  }
+
+  return { resolveSatellite, fetchStreetViewPayload, fetchStreetViewFromViewMeta };
 }
 
 function register(ctx) {
@@ -658,6 +688,7 @@ function register(ctx) {
   ctx.resolveMapsKey = resolveMapsKey;
   ctx.resolveSatellite = helpers.resolveSatellite;
   ctx.fetchStreetViewPayload = helpers.fetchStreetViewPayload;
+  ctx.fetchStreetViewFromViewMeta = helpers.fetchStreetViewFromViewMeta;
   ctx.parseImageSize = parseImageSize;
   ctx.sendImageResponse = sendImageResponse;
   ctx.sendImageError = sendImageError;

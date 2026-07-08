@@ -133,6 +133,29 @@ function register(ctx) {
       return true;
     }
 
+    const viewMeta = body?.viewMeta || null;
+    if (viewMeta && typeof ctx.fetchStreetViewFromViewMeta === 'function') {
+      const fast = await ctx.fetchStreetViewFromViewMeta(address, key, viewMeta);
+      if (fast?.ok) {
+        sendJson(res, 200, {
+          ok: true,
+          url: fast.cachedUrl,
+          imagery: fast.imagery || imageryCache.buildImageryRecord(address),
+          source: 'viewmeta_fast'
+        });
+        return true;
+      }
+      if (fast && !fast.ok && fast.unavailable) {
+        sendJson(res, 200, {
+          ok: false,
+          unavailable: true,
+          error: fast.error || 'Imagery unavailable',
+          imagery: imageryCache.buildImageryRecord(address)
+        });
+        return true;
+      }
+    }
+
     const sv = await fetchStreetViewPayload(address, key);
     if (!sv.ok) {
       sendJson(res, 200, {
