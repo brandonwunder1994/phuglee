@@ -681,13 +681,9 @@
 
     function rowHtml(c) {
       var place = escapeTickerHtml(c.city) + ', ' + escapeTickerHtml(stateAbbrev(c.state));
-      var isPortal = c.pin_type === 'portal';
-      var tagClass = 'home-territory-ticker-tag' + (isPortal ? ' home-territory-ticker-tag--portal' : '');
-      var tagLabel = isPortal ? 'Portal' : 'Live';
       return (
         '<div class="home-territory-ticker-row">' +
           '<span class="home-territory-ticker-place">' + place + '</span>' +
-          '<span class="' + tagClass + '">' + tagLabel + '</span>' +
         '</div>'
       );
     }

@@ -773,48 +773,25 @@ body.home-page.logo-page .landing-actions {
 .home-territory-ticker-row {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 0.35rem;
   flex-shrink: 0;
-  padding: 0.2rem 0.55rem;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-  background: rgba(229, 132, 53, 0.06);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0 0.15rem;
+  border: none;
+  background: transparent;
 }
 
-.home-territory-ticker-row:nth-child(odd) {
-  background: rgba(229, 132, 53, 0.08);
+.home-territory-ticker-row + .home-territory-ticker-row::before {
+  content: '·';
+  margin-right: 0.55rem;
+  color: rgba(196, 186, 172, 0.45);
+  font-weight: 600;
 }
 
 .home-territory-ticker-place {
   min-width: 0;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 500;
   color: var(--phuglee-cream);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 11rem;
-}
-
-.home-territory-ticker-tag {
-  flex-shrink: 0;
-  padding: 0.1rem 0.32rem;
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-radius: 999px;
-  color: var(--phuglee-gold);
-  background: rgba(238, 183, 70, 0.12);
-  border: 1px solid rgba(238, 183, 70, 0.28);
-}
-
-.home-territory-ticker-tag--portal {
-  color: var(--phuglee-orange);
-  background: rgba(229, 132, 53, 0.12);
-  border-color: rgba(229, 132, 53, 0.32);
 }
 
 .home-territory-ticker-empty {
