@@ -253,6 +253,113 @@ function register(ctx) {
     return true;
   });
 
+  /**
+   * Purge leads for a city/state from the Analyze session so Filter can re-import.
+   * Body: { city: "Cheyenne", state: "WY" } (state optional but recommended)
+   */
+  router.post('/api/purge-location', async (req, res) => {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch (e) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
+      return true;
+    }
+    const city = String(body.city || '').trim().toLowerCase();
+    const stateRaw = String(body.state || '').trim().toLowerCase();
+    if (!city) {
+      sendJson(res, 400, { ok: false, error: 'city is required' });
+      return true;
+    }
+    const stateAliases = new Set();
+    if (stateRaw) {
+      stateAliases.add(stateRaw);
+      if (stateRaw === 'wy' || stateRaw === 'wyoming') {
+        stateAliases.add('wy');
+        stateAliases.add('wyoming');
+      }
+    }
+
+    function matches(row) {
+      const rowCity = String(row.city || '').trim().toLowerCase();
+      const rowState = String(row.state || '').trim().toLowerCase();
+      const addr = String(row.address || '').toLowerCase();
+      const cityOk = rowCity === city || addr.includes(`, ${city},`) || addr.startsWith(`${city},`);
+      if (!cityOk) return false;
+      if (!stateAliases.size) return true;
+      if (stateAliases.has(rowState)) return true;
+      for (const alias of stateAliases) {
+        if (addr.includes(`, ${alias}`) || addr.endsWith(` ${alias}`)) return true;
+      }
+      return false;
+    }
+
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const base = finalizeSession(session) || {};
+    const records = Array.isArray(base.records) ? base.records : [];
+    const results = Array.isArray(base.results) ? base.results : [];
+    const keptRecords = records.filter((r) => !matches(r));
+    const keptResults = results.filter((r) => !matches(r));
+    const removedRecords = records.length - keptRecords.length;
+    const removedResults = results.length - keptResults.length;
+
+    if (!removedRecords && !removedResults) {
+      sendJson(res, 200, {
+        ok: true,
+        removedRecords: 0,
+        removedResults: 0,
+        records: records.length,
+        results: results.length,
+        scope: scope.kind,
+        storageKey: scope.storageKey,
+        message: 'No matching leads found'
+      });
+      return true;
+    }
+
+    const next = {
+      ...base,
+      records: keptRecords,
+      results: keptResults,
+      savedAt: Date.now()
+    };
+    if (Array.isArray(base.importBatches)) {
+      next.importBatches = base.importBatches.filter((b) => {
+        const bCity = String(b.city || '').trim().toLowerCase();
+        const bState = String(b.state || '').trim().toLowerCase();
+        if (bCity !== city) return true;
+        if (!stateAliases.size) return false;
+        return !stateAliases.has(bState);
+      });
+    }
+    if (typeof next.processed === 'number') {
+      next.processed = Math.min(next.processed, keptResults.length);
+    }
+
+    backups.writeLatestSessionFileForScope(scope, next);
+    try {
+      safety.writeMirrorLatest(next);
+    } catch (_) {}
+
+    console.log(
+      `[Session] purge-location ${city}/${stateRaw || '*'} ` +
+      `(${scope.storageKey}): -${removedRecords} records, -${removedResults} results`
+    );
+
+    sendJson(res, 200, {
+      ok: true,
+      removedRecords,
+      removedResults,
+      records: keptRecords.length,
+      results: keptResults.length,
+      scope: scope.kind,
+      storageKey: scope.storageKey,
+      city: body.city,
+      state: body.state || ''
+    });
+    return true;
+  });
+
   router.post('/api/manual-backup', async (req, res, url) => {
     let raw = await readBody(req);
     let session;
