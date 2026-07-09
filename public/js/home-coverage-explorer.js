@@ -28,6 +28,48 @@
   var searchQuery = '';
   var expandedCounties = new Map();
   var reduceMotion = false;
+  var territoryEntered = false;
+
+  function markTerritoryEntered() {
+    if (territoryEntered) return;
+    var monitor = document.getElementById('home-territory-monitor');
+    if (!monitor || !monitor.classList.contains('is-live')) return;
+    territoryEntered = true;
+    monitor.classList.add('is-entered');
+    var section = document.querySelector('.home-coverage');
+    if (section) section.setAttribute('data-territory-entered', '1');
+  }
+
+  function armTerritoryEntrance() {
+    var section = document.querySelector('.home-coverage');
+    var monitor = document.getElementById('home-territory-monitor');
+    if (!section || !monitor) return;
+
+    if (reduceMotion) {
+      markTerritoryEntered();
+      return;
+    }
+
+    function tryEnter() {
+      if (!monitor.classList.contains('is-live')) return;
+      markTerritoryEntered();
+    }
+
+    if (!('IntersectionObserver' in window)) {
+      tryEnter();
+      return;
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        tryEnter();
+        if (territoryEntered) observer.disconnect();
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -5% 0px' });
+
+    observer.observe(section);
+  }
 
   function loadStylesheet(href) {
     return new Promise(function (resolve, reject) {
@@ -589,6 +631,7 @@
         document.getElementById('home-territory-monitor')?.classList.add('is-live');
         previewMap.resize();
         lockMapView(previewMap);
+        armTerritoryEntrance();
       });
 
       previewMap.on('resize', function () {
@@ -606,6 +649,7 @@
       if (coverage) buildTerritoryTicker(coverage);
       await renderSvgFallback();
       document.getElementById('home-territory-monitor')?.classList.add('is-live');
+      armTerritoryEntrance();
     }
   }
 

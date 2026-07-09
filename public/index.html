@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="/css/distress-glass.css">
   <link rel="stylesheet" href="/css/distress-heat-v2.css">
   <link rel="stylesheet" href="/css/landing.css?v=5">
-  <link rel="stylesheet" href="/css/home.css?v=30">
+  <link rel="stylesheet" href="/css/home.css?v=31">
   <link rel="stylesheet" href="/css/home-chronicle.css?v=48">
   <link rel="stylesheet" href="/css/home-ui-preview.css?v=14">
   <link rel="stylesheet" href="/css/home-premium.css?v=6">
@@ -562,6 +562,7 @@
                   <div class="home-coverage-map" id="home-coverage-map" role="application" aria-label="United States coverage map">
                     <p class="home-map-loading">Loading map…</p>
                   </div>
+                  <div class="home-territory-cascade" aria-hidden="true"></div>
                   <div class="home-territory-corners" aria-hidden="true">
                     <span class="home-territory-corner home-territory-corner--tl"></span>
                     <span class="home-territory-corner home-territory-corner--tr"></span>
@@ -622,15 +623,15 @@
               </div>
             </div>
           </div>
-        </section>
 
-        <section class="home-chapter home-chapter--close" aria-label="Enter the platform" data-phuglee-reveal-child>
-          <p class="home-close-proof" id="home-close-proof">
-            Territory live. Lists while they’re still premium.
-          </p>
-          <button type="button" class="phuglee-btn phuglee-btn-primary home-close-cta" id="btn-heat-footer">
-            Enter the Platform
-          </button>
+          <div class="home-territory-close" aria-label="Enter the platform">
+            <p class="home-close-proof" id="home-close-proof">
+              Territory live. Lists while they’re still premium.
+            </p>
+            <button type="button" class="phuglee-btn phuglee-btn-primary home-close-cta" id="btn-heat-footer">
+              Enter the Platform
+            </button>
+          </div>
         </section>
 
       </div>
@@ -649,7 +650,7 @@
   <script src="/js/home-coverage.js?v=8" defer></script>
   <script src="/js/coverage/coverage-shared.js?v=1" defer></script>
   <script src="/js/coverage/city-profile-modal.js?v=1" defer></script>
-  <script src="/js/home-coverage-explorer.js?v=6" defer></script>
+  <script src="/js/home-coverage-explorer.js?v=7" defer></script>
   <script src="/js/property-carousel-3d.js?v=17" defer></script>
   <script src="/js/home-below.js?v=10" defer></script>
   <script src="/js/auth-session.js"></script>
