@@ -22,6 +22,19 @@
   var COLOR_NO_DATA = '#3a4658';
   var COLOR_UNAVAILABLE = '#8f2a2a';
 
+  /** Tiny NE/Mid-Atlantic states get leader callouts on national view */
+  var SMALL_STATE_CALLOUTS = [
+    { name: 'Vermont', label: 'VT', center: [-72.65, 44.05], callout: [-68.9, 45.35] },
+    { name: 'New Hampshire', label: 'NH', center: [-71.55, 43.7], callout: [-68.55, 44.45] },
+    { name: 'Massachusetts', label: 'MA', center: [-71.8, 42.25], callout: [-68.35, 42.95] },
+    { name: 'Rhode Island', label: 'RI', center: [-71.5, 41.68], callout: [-68.2, 41.85] },
+    { name: 'Connecticut', label: 'CT', center: [-72.7, 41.6], callout: [-68.15, 40.85] },
+    { name: 'New Jersey', label: 'NJ', center: [-74.55, 40.15], callout: [-68.4, 39.85] },
+    { name: 'Delaware', label: 'DE', center: [-75.5, 39.0], callout: [-68.55, 38.65] },
+    { name: 'Maryland', label: 'MD', center: [-76.7, 39.05], callout: [-68.7, 37.55] },
+    { name: 'District of Columbia', label: 'DC', center: [-77.02, 38.9], callout: [-68.9, 36.65] }
+  ];
+
   var MAP_BOUNDS = {
     minLng: -124.6,
     maxLng: -66.4,
@@ -317,6 +330,91 @@
     renderStateCityPanel(stateName, coverage, counts);
   }
 
+  function appendSvgSmallStateCallouts(svg, prefix, width, height, counts, options) {
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var layer = document.createElementNS(svgNS, 'g');
+    layer.setAttribute('class', prefix + '-map-callouts');
+
+    SMALL_STATE_CALLOUTS.forEach(function (item) {
+      var status = getStateStatus(item.name, counts);
+      var fill =
+        status === 'covered'
+          ? COLOR_COVERED_HIGH
+          : status === 'unavailable'
+            ? COLOR_UNAVAILABLE
+            : COLOR_NO_DATA;
+      var c0 = project(item.center[0], item.center[1], width, height);
+      var c1 = project(item.callout[0], item.callout[1], width, height);
+
+      var line = document.createElementNS(svgNS, 'line');
+      line.setAttribute('x1', c0[0].toFixed(1));
+      line.setAttribute('y1', c0[1].toFixed(1));
+      line.setAttribute('x2', c1[0].toFixed(1));
+      line.setAttribute('y2', c1[1].toFixed(1));
+      line.setAttribute('stroke', fill);
+      line.setAttribute('stroke-width', '1.2');
+      line.setAttribute('stroke-opacity', '0.85');
+      line.setAttribute('pointer-events', 'none');
+      layer.appendChild(line);
+
+      var g = document.createElementNS(svgNS, 'g');
+      g.setAttribute('class', prefix + '-map-callout');
+      g.setAttribute('data-state', item.name);
+      g.setAttribute('transform', 'translate(' + c1[0].toFixed(1) + ' ' + c1[1].toFixed(1) + ')');
+
+      if (options && options.interactive) {
+        g.setAttribute('role', 'button');
+        g.setAttribute('tabindex', '0');
+        g.setAttribute('aria-label', item.name + ' — view coverage');
+        g.style.cursor = 'pointer';
+      }
+
+      var hit = document.createElementNS(svgNS, 'circle');
+      hit.setAttribute('r', '14');
+      hit.setAttribute('fill', '#000');
+      hit.setAttribute('fill-opacity', '0.01');
+      g.appendChild(hit);
+
+      var dot = document.createElementNS(svgNS, 'circle');
+      dot.setAttribute('r', '5.5');
+      dot.setAttribute('fill', fill);
+      dot.setAttribute('stroke', status === 'unavailable' ? '#c84848' : '#f5f2e4');
+      dot.setAttribute('stroke-width', '1.4');
+      g.appendChild(dot);
+
+      var label = document.createElementNS(svgNS, 'text');
+      label.setAttribute('x', '10');
+      label.setAttribute('y', '4');
+      label.setAttribute('fill', '#f5f2e4');
+      label.setAttribute('font-size', '11');
+      label.setAttribute('font-weight', '700');
+      label.setAttribute('font-family', 'system-ui, sans-serif');
+      label.textContent = item.label;
+      g.appendChild(label);
+
+      layer.appendChild(g);
+    });
+
+    svg.appendChild(layer);
+  }
+
+  function attachSvgCalloutHandlers(svg, prefix, coverage, counts) {
+    svg.querySelectorAll('.' + prefix + '-map-callout').forEach(function (node) {
+      var stateName = node.getAttribute('data-state');
+      if (!stateName) return;
+      function activate() {
+        setHomeSelectedState(stateName, coverage, counts, svg, prefix);
+      }
+      node.addEventListener('click', activate);
+      node.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          activate();
+        }
+      });
+    });
+  }
+
   function attachInteractiveStateHandlers(svg, prefix, coverage, counts) {
     var groups = svg.querySelectorAll('.' + prefix + '-map-state-group');
     groups.forEach(function (group) {
@@ -425,12 +523,14 @@
       });
 
       svg.appendChild(group);
+      appendSvgSmallStateCallouts(svg, prefix, width, height, counts, options);
       host.innerHTML = '';
       host.appendChild(svg);
       mapRenderedHosts.add(hostId);
 
       if (options.interactive) {
         attachInteractiveStateHandlers(svg, prefix, coverage, counts);
+        attachSvgCalloutHandlers(svg, prefix, coverage, counts);
         if (homeSelectedState) {
           setHomeSelectedState(homeSelectedState, coverage, counts, svg, prefix);
         }

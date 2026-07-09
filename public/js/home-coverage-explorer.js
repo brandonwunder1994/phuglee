@@ -18,6 +18,23 @@
   var LIFT_OFFSET_UP = -4;
   var LIFT_OFFSET_SHADOW = 2;
 
+  /**
+   * Tiny coastal states are unreadable/unclickable at national zoom.
+   * Callouts sit in the Atlantic with leader lines back to the state.
+   * center ≈ in-state anchor; callout ≈ label position (must stay in map bounds).
+   */
+  var SMALL_STATE_CALLOUTS = [
+    { name: 'Vermont', label: 'VT', center: [-72.65, 44.05], callout: [-68.9, 45.35] },
+    { name: 'New Hampshire', label: 'NH', center: [-71.55, 43.7], callout: [-68.55, 44.45] },
+    { name: 'Massachusetts', label: 'MA', center: [-71.8, 42.25], callout: [-68.35, 42.95] },
+    { name: 'Rhode Island', label: 'RI', center: [-71.5, 41.68], callout: [-68.2, 41.85] },
+    { name: 'Connecticut', label: 'CT', center: [-72.7, 41.6], callout: [-68.15, 40.85] },
+    { name: 'New Jersey', label: 'NJ', center: [-74.55, 40.15], callout: [-68.4, 39.85] },
+    { name: 'Delaware', label: 'DE', center: [-75.5, 39.0], callout: [-68.55, 38.65] },
+    { name: 'Maryland', label: 'MD', center: [-76.7, 39.05], callout: [-68.7, 37.55] },
+    { name: 'District of Columbia', label: 'DC', center: [-77.02, 38.9], callout: [-68.9, 36.65] }
+  ];
+
   var previewStarted = false;
   var previewMap = null;
   var coverage = null;
@@ -29,6 +46,7 @@
   var expandedCounties = new Map();
   var reduceMotion = false;
   var territoryEntered = false;
+  var calloutMarkers = [];
 
   function markTerritoryEntered() {
     if (territoryEntered) return;
@@ -195,7 +213,8 @@
   }
 
   function lockMapView(map) {
-    map.fitBounds(US_MAP_BOUNDS, { padding: 16, duration: 0 });
+    // Extra right padding so NE callouts (RI/CT/DE…) stay on-canvas
+    map.fitBounds(US_MAP_BOUNDS, { padding: { top: 14, bottom: 14, left: 12, right: 48 }, duration: 0 });
     var zoom = map.getZoom();
     map.setMinZoom(zoom);
     map.setMaxZoom(zoom);
@@ -438,6 +457,8 @@
       filter: stateNameFilter('')
     });
 
+    mountSmallStateCallouts(map, counts, cov);
+
     map.on('click', 'home-states-fill', function (e) {
       if (!e.features || !e.features.length) return;
       var name = e.features[0].properties.name;
@@ -458,6 +479,129 @@
       map.getCanvas().style.cursor = '';
       hoveredState = null;
       updateLiftLayers();
+    });
+  }
+
+  function calloutFillForStatus(status) {
+    if (status === 'covered') return COLOR_COVERED_HIGH;
+    if (status === 'unavailable') return COLOR_UNAVAILABLE_BASE;
+    return COLOR_NO_DATA;
+  }
+
+  function calloutStrokeForStatus(status) {
+    if (status === 'unavailable') return COLOR_UNAVAILABLE_ACCENT;
+    if (status === 'covered') return '#f5f2e4';
+    return 'rgba(240, 235, 227, 0.55)';
+  }
+
+  function buildCalloutCollections(counts, cov) {
+    var points = [];
+    var lines = [];
+
+    SMALL_STATE_CALLOUTS.forEach(function (item) {
+      var status = shared.getStateStatus(item.name, counts, cov);
+      var color = calloutFillForStatus(status);
+      var stroke = calloutStrokeForStatus(status);
+
+      points.push({
+        type: 'Feature',
+        properties: {
+          name: item.name,
+          label: item.label,
+          status: status,
+          color: color,
+          stroke: stroke
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: item.callout
+        }
+      });
+
+      lines.push({
+        type: 'Feature',
+        properties: {
+          name: item.name,
+          status: status,
+          color: color
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: [item.center, item.callout]
+        }
+      });
+    });
+
+    return {
+      points: { type: 'FeatureCollection', features: points },
+      lines: { type: 'FeatureCollection', features: lines }
+    };
+  }
+
+  function clearCalloutMarkers() {
+    calloutMarkers.forEach(function (marker) {
+      try { marker.remove(); } catch (_) { /* noop */ }
+    });
+    calloutMarkers = [];
+  }
+
+  function mountSmallStateCallouts(map, counts, cov) {
+    var collections = buildCalloutCollections(counts, cov);
+
+    if (map.getSource('home-callout-lines')) {
+      map.getSource('home-callout-lines').setData(collections.lines);
+    } else {
+      map.addSource('home-callout-lines', { type: 'geojson', data: collections.lines });
+      map.addLayer({
+        id: 'home-callout-lines',
+        type: 'line',
+        source: 'home-callout-lines',
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 1.2,
+          'line-opacity': 0.88
+        }
+      });
+    }
+
+    clearCalloutMarkers();
+
+    collections.points.features.forEach(function (feature) {
+      var props = feature.properties || {};
+      var name = props.name;
+      var el = document.createElement('button');
+      el.type = 'button';
+      el.className =
+        'home-map-callout home-map-callout--' + (props.status || 'no-coverage');
+      el.setAttribute('aria-label', 'Select ' + name);
+      el.title = name;
+      el.innerHTML =
+        '<span class="home-map-callout-dot" aria-hidden="true"></span>' +
+        '<span class="home-map-callout-label">' + escapeTickerHtml(props.label || '') + '</span>';
+
+      el.addEventListener('click', function (evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        selectState(name);
+      });
+      el.addEventListener('mouseenter', function () {
+        hoveredState = name;
+        updateLiftLayers();
+      });
+      el.addEventListener('mouseleave', function () {
+        hoveredState = null;
+        updateLiftLayers();
+      });
+
+      var marker = new maplibregl.Marker({
+        element: el,
+        anchor: 'left',
+        offset: [0, 0]
+      })
+        .setLngLat(feature.geometry.coordinates)
+        .addTo(map);
+
+      calloutMarkers.push(marker);
     });
   }
 
