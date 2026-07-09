@@ -7,7 +7,7 @@ body.auth-modal-open {
 .auth-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 1300;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,7 +108,8 @@ body.auth-modal-open {
 
 .auth-panel.phuglee-panel:hover {
   transform: none;
-  border-color: var(--border);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .auth-brand-strip {
@@ -484,24 +485,32 @@ body.auth-modal-open {
   padding: 1.1rem 1.15rem;
   font-family: inherit;
   color: inherit;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(174, 163, 143, 0.16);
-  border-radius: var(--radius-lg);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius, 14px);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
   cursor: pointer;
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+  transition:
+    border-color var(--card-duration, 0.28s) ease,
+    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow var(--card-duration, 0.28s) ease,
+    background var(--card-duration, 0.28s) ease;
 }
 
 .auth-pricing-card:hover {
-  border-color: rgba(229, 132, 53, 0.35);
-  transform: translateX(4px);
-  background: rgba(229, 132, 53, 0.05);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-3px);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
 }
 
 .auth-pricing-card.is-selected {
-  border-color: var(--phuglee-orange);
-  background: linear-gradient(165deg, rgba(229, 132, 53, 0.14) 0%, rgba(0, 0, 0, 0.32) 60%);
-  box-shadow: var(--shadow-glow-orange);
-  transform: translateX(6px);
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+  transform: translateY(-3px);
 }
 
 .auth-pricing-card.phuglee-panel-featured {

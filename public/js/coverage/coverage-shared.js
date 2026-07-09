@@ -8,7 +8,11 @@
     '/forge/static/data/coverage-map-bootstrap.json'
   ];
   var COVERAGE_BASIC_URLS = ['/api/coverage', '/forge/api/coverage'];
-  var STATES_GEO_URLS = ['/static/geo/us-states.geojson', '/forge/static/geo/us-states.geojson'];
+  var STATES_GEO_URLS = [
+    '/forge/static/geo/us-states.geojson',
+    '/static/geo/us-states.geojson',
+    '/forge/static/geo/us-states.json'
+  ];
 
   var LEADS_UNAVAILABLE = new Set([
     'Alabama',
@@ -155,11 +159,30 @@
     btn.dataset.cityId = city.id;
     btn.className = 'coverage-city-pick' + (options.selectedId === city.id ? ' is-selected' : '');
     if (options.compact) btn.classList.add('coverage-city-pick--compact');
-    var tag = city.pin_type === 'portal' ? ' ◆' : ' ●';
-    var label = options.compact || options.stateName
-      ? city.city + tag
-      : city.city + ', ' + city.state + tag;
-    btn.textContent = label;
+    if (options.command) btn.classList.add('coverage-city-pick--command');
+
+    if (options.command) {
+      var isPortal = city.pin_type === 'portal';
+      var county = cityCounty(city);
+      var countyLabel = county && county !== 'Unknown County' ? county : '';
+      btn.innerHTML =
+        '<span class="coverage-city-pick-pip' + (isPortal ? ' is-portal' : ' is-live') + '" aria-hidden="true"></span>' +
+        '<span class="coverage-city-pick-main">' +
+          '<span class="coverage-city-pick-name">' + escapeHtml(city.city) + '</span>' +
+          '<span class="coverage-city-pick-state">' + escapeHtml(city.state) + '</span>' +
+        '</span>' +
+        '<span class="coverage-city-pick-meta">' +
+          '<span class="coverage-city-pick-type">' + (isPortal ? 'Portal' : 'FOIA') + '</span>' +
+          (countyLabel ? '<span class="coverage-city-pick-county">' + escapeHtml(countyLabel) + '</span>' : '') +
+        '</span>';
+    } else {
+      var tag = city.pin_type === 'portal' ? ' ◆' : ' ●';
+      var label = options.compact || options.stateName
+        ? city.city + tag
+        : city.city + ', ' + city.state + tag;
+      btn.textContent = label;
+    }
+
     btn.setAttribute('role', 'option');
     btn.addEventListener('click', function () { onSelect(city); });
     return btn;
@@ -231,17 +254,28 @@
     container.appendChild(root);
   }
 
-  function renderSearchList(container, cities, onSelect, selectedId) {
+  function renderSearchList(container, cities, onSelect, selectedId, options) {
     if (!container) return;
+    options = options || {};
     container.innerHTML = '';
     var list = document.createElement('ul');
-    list.className = 'coverage-city-list';
+    list.className = 'coverage-city-list' + (options.command ? ' coverage-city-list--command' : '');
     list.setAttribute('role', 'listbox');
-    cities.forEach(function (city) {
-      var li = document.createElement('li');
-      li.appendChild(buildCityButton(city, onSelect, { selectedId: selectedId }));
-      list.appendChild(li);
-    });
+    if (!cities.length) {
+      var empty = document.createElement('li');
+      empty.className = 'coverage-city-list-empty';
+      empty.textContent = options.emptyText || 'No markets match that scan.';
+      list.appendChild(empty);
+    } else {
+      cities.slice(0, options.limit || 48).forEach(function (city) {
+        var li = document.createElement('li');
+        li.appendChild(buildCityButton(city, onSelect, {
+          selectedId: selectedId,
+          command: !!options.command
+        }));
+        list.appendChild(li);
+      });
+    }
     container.appendChild(list);
   }
 

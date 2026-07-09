@@ -52,6 +52,7 @@ body.home-page .home-below-hero::before {
   bottom: 0;
   left: 0;
   right: 0;
+  /* Ramp to solid #0d0d0d so footer (inside this block) matches — no photo seam */
   background:
     linear-gradient(
       180deg,
@@ -61,7 +62,8 @@ body.home-page .home-below-hero::before {
       rgba(13, 13, 13, 0.38) 48%,
       rgba(13, 13, 13, 0.62) 62%,
       rgba(13, 13, 13, 0.82) 78%,
-      rgba(13, 13, 13, 0.9) 100%
+      rgba(13, 13, 13, 0.94) 90%,
+      #0d0d0d 100%
     ) !important;
 }
 
@@ -78,8 +80,7 @@ body.home-page .home-chapter-lead,
 body.home-page .home-chapter-lead--edu,
 body.home-page .home-pipeline-lead,
 body.home-page .home-territory-summary,
-body.home-page .home-edge-tagline,
-body.home-page .home-edge-proof,
+body.home-page .home-edge-support,
 body.home-page .home-monitor-caption-desc,
 body.home-page .home-close-proof-item span,
 body.home-page .home-close-note,
@@ -110,13 +111,11 @@ body.home-page .distress-pipeline-sub {
 }
 
 body.home-page .home-chapter-lead em,
-body.home-page .home-edge-panel--phuglee .home-edge-tagline {
-  color: var(--phuglee-cream);
+body.home-page .home-edge-support {
+  color: #c8c0b4;
 }
 
-body.home-page .home-edge-panel--phuglee .home-edge-proof {
-  color: #b8b0a4;
-}
+
 
 body.home-page .home-thesis-copy,
 body.home-page .home-pipeline-head {

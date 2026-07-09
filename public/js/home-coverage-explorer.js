@@ -2,10 +2,15 @@
   'use strict';
 
   var shared = window.PhugleeCoverageShared;
-  var modal = window.PhugleeCityProfileModal;
 
-  var MAPLIBRE_CSS = '/forge/static/vendor/maplibre-gl.css';
-  var MAPLIBRE_JS = '/forge/static/vendor/maplibre-gl.js';
+  var MAPLIBRE_CSS_URLS = [
+    '/forge/static/vendor/maplibre-gl.css',
+    'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'
+  ];
+  var MAPLIBRE_JS_URLS = [
+    '/forge/static/vendor/maplibre-gl.js',
+    'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'
+  ];
 
   var COLOR_COVERED_LOW = '#8a4a18';
   var COLOR_COVERED_MID = '#e58435';
@@ -15,8 +20,38 @@
   var COLOR_UNAVAILABLE_ACCENT = '#c84848';
 
   var US_MAP_BOUNDS = [[-124.6, 24.0], [-66.4, 49.6]];
-  var LIFT_OFFSET_UP = -4;
-  var LIFT_OFFSET_SHADOW = 2;
+  /*
+   * Professional 2.5D plate lift (viewport px).
+   * Light from top-left: lit face, status-tinted side wall, dual soft shadow, ground socket.
+   * Height is animated (ease-out); base polygon is removed while raised.
+   */
+  var LIFT_HOVER = 6;
+  var LIFT_SELECT = 10;
+  var EXTRUDE_STEPS = 10;
+  var LIFT_DURATION_MS = 150;
+  var LIFT_EASE = function (t) {
+    /* ease-out cubic — settles without bounce */
+    return 1 - Math.pow(1 - t, 3);
+  };
+  /* Darker siblings of the heat / status palette for the extrusion wall */
+  var SIDE_COVERED_LOW = '#3d2010';
+  var SIDE_COVERED_MID = '#6b3514';
+  var SIDE_COVERED_HIGH = '#8a4a18';
+  var SIDE_NO_DATA = '#1a222c';
+  var SIDE_UNAVAILABLE = '#4a1616';
+  var FACE_COVERED_LOW = '#a35620';
+  var FACE_COVERED_MID = '#f09245';
+  var FACE_COVERED_HIGH = '#f5c45c';
+  var FACE_NO_DATA = '#4a5668';
+  var FACE_UNAVAILABLE = '#a03030';
+  var liftAnim = {
+    raised: '',
+    from: 0,
+    to: 0,
+    current: 0,
+    start: 0,
+    raf: 0
+  };
 
   /**
    * Tiny coastal states — callouts only when covered or blocked (skip gray "soon").
@@ -37,9 +72,7 @@
   var statesGeo = null;
   var currentState = null;
   var hoveredState = null;
-  var selectedCityId = null;
-  var searchQuery = '';
-  var expandedCounties = new Map();
+  var expandedCountyByState = {};
   var reduceMotion = false;
   var territoryEntered = false;
   var calloutMarkers = [];
@@ -95,7 +128,7 @@
       link.rel = 'stylesheet';
       link.href = href;
       link.onload = function () { resolve(); };
-      link.onerror = function () { reject(new Error('css failed')); };
+      link.onerror = function () { reject(new Error('css failed: ' + href)); };
       document.head.appendChild(link);
     });
   }
@@ -110,9 +143,37 @@
       script.src = src;
       script.defer = true;
       script.onload = function () { resolve(); };
-      script.onerror = function () { reject(new Error('script failed')); };
+      script.onerror = function () { reject(new Error('script failed: ' + src)); };
       document.head.appendChild(script);
     });
+  }
+
+  async function loadFirstStylesheet(urls) {
+    var lastErr = null;
+    for (var i = 0; i < urls.length; i += 1) {
+      try {
+        await loadStylesheet(urls[i]);
+        return urls[i];
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error('stylesheet unavailable');
+  }
+
+  async function loadFirstScript(urls) {
+    if (window.maplibregl) return 'cached';
+    var lastErr = null;
+    for (var i = 0; i < urls.length; i += 1) {
+      try {
+        await loadScript(urls[i]);
+        if (window.maplibregl) return urls[i];
+        lastErr = new Error('maplibregl missing after ' + urls[i]);
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error('script unavailable');
   }
 
   function ensureHatchPattern(map) {
@@ -184,28 +245,325 @@
     ];
   }
 
+  /** Lit top face — slightly brighter than the flat choropleth. */
+  function buildLiftFaceColor(maxCount) {
+    var max = Math.max(maxCount || 1, 1);
+    var coveredExpr;
+    if (max <= 1) {
+      coveredExpr = FACE_COVERED_MID;
+    } else {
+      var midStop = Math.max(2, Math.round(max * 0.45));
+      coveredExpr = [
+        'interpolate',
+        ['linear'],
+        ['get', 'count'],
+        1, FACE_COVERED_LOW,
+        midStop, FACE_COVERED_MID,
+        max, FACE_COVERED_HIGH
+      ];
+    }
+    return [
+      'case',
+      ['==', ['get', 'leadsUnavailable'], 1],
+      FACE_UNAVAILABLE,
+      ['boolean', ['get', 'hasData'], false],
+      coveredExpr,
+      FACE_NO_DATA
+    ];
+  }
+
+  /** Extrusion wall — same heat ramp, darkened for side-of-volume shading. */
+  function buildLiftSideColor(maxCount) {
+    var max = Math.max(maxCount || 1, 1);
+    var coveredExpr;
+    if (max <= 1) {
+      coveredExpr = SIDE_COVERED_MID;
+    } else {
+      var midStop = Math.max(2, Math.round(max * 0.45));
+      coveredExpr = [
+        'interpolate',
+        ['linear'],
+        ['get', 'count'],
+        1, SIDE_COVERED_LOW,
+        midStop, SIDE_COVERED_MID,
+        max, SIDE_COVERED_HIGH
+      ];
+    }
+    return [
+      'case',
+      ['==', ['get', 'leadsUnavailable'], 1],
+      SIDE_UNAVAILABLE,
+      ['boolean', ['get', 'hasData'], false],
+      coveredExpr,
+      SIDE_NO_DATA
+    ];
+  }
+
   function stateNameFilter(name) {
     return name ? ['==', ['get', 'name'], name] : ['==', ['get', 'name'], ''];
+  }
+
+  function zeroTranslate() {
+    return [0, 0];
+  }
+
+  function targetLiftHeight(raised) {
+    if (!raised || reduceMotion) return 0;
+    if (currentState && raised === currentState) return LIFT_SELECT;
+    return LIFT_HOVER;
+  }
+
+  function baseExcludeFilter(raised) {
+    if (!raised) return null;
+    return ['!=', ['get', 'name'], raised];
+  }
+
+  /**
+   * Paint the extrusion stack at a continuous height (px).
+   * h=0 clears lift layers but can still show a soft select glow when selected.
+   */
+  function applyLiftGeometry(raised, h) {
+    if (!previewMap) return;
+    var filter = stateNameFilter(raised);
+    var empty = stateNameFilter('');
+    var active = !!(raised && h > 0.15);
+    var isSelect = !!(raised && currentState && raised === currentState);
+
+    /* Ground socket — dark plate in the hole so the map doesn't flash empty */
+    if (previewMap.getLayer('home-states-lift-socket')) {
+      previewMap.setFilter('home-states-lift-socket', active || (raised && reduceMotion) ? filter : empty);
+      previewMap.setPaintProperty(
+        'home-states-lift-socket',
+        'fill-opacity',
+        active || (raised && reduceMotion) ? 0.92 : 0
+      );
+    }
+
+    /* Dual shadow: soft ambient + tighter contact (never a hard outline) */
+    if (previewMap.getLayer('home-states-lift-shadow-soft')) {
+      previewMap.setFilter('home-states-lift-shadow-soft', active ? filter : empty);
+      previewMap.setPaintProperty(
+        'home-states-lift-shadow-soft',
+        'fill-translate',
+        active ? [h * 0.55, h * 1.05] : zeroTranslate()
+      );
+      previewMap.setPaintProperty(
+        'home-states-lift-shadow-soft',
+        'fill-opacity',
+        active ? (isSelect ? 0.22 : 0.16) : 0
+      );
+    }
+    if (previewMap.getLayer('home-states-lift-shadow-core')) {
+      previewMap.setFilter('home-states-lift-shadow-core', active ? filter : empty);
+      previewMap.setPaintProperty(
+        'home-states-lift-shadow-core',
+        'fill-translate',
+        active ? [h * 0.28, h * 0.55] : zeroTranslate()
+      );
+      previewMap.setPaintProperty(
+        'home-states-lift-shadow-core',
+        'fill-opacity',
+        active ? (isSelect ? 0.28 : 0.2) : 0
+      );
+    }
+
+    /*
+     * Side wall: dense steps from ground contact (slight SE) up to the face.
+     * Light from NW → side faces SE (positive x/y relative to face).
+     */
+    var shear = h * 0.42;
+    for (var i = 1; i <= EXTRUDE_STEPS; i += 1) {
+      var id = 'home-states-extrude-' + i;
+      if (!previewMap.getLayer(id)) continue;
+      if (!active) {
+        previewMap.setFilter(id, empty);
+        continue;
+      }
+      var t = i / EXTRUDE_STEPS;
+      var x = shear * (1 - t);
+      var y = -h * t;
+      previewMap.setFilter(id, filter);
+      previewMap.setPaintProperty(id, 'fill-translate', [x, y]);
+      /* Slight opacity ramp so micro-gaps never read as stripes */
+      previewMap.setPaintProperty(id, 'fill-opacity', 0.94 + t * 0.06);
+    }
+
+    /* Lit top face */
+    if (previewMap.getLayer('home-states-lift')) {
+      previewMap.setFilter('home-states-lift', active || (raised && reduceMotion) ? filter : empty);
+      previewMap.setPaintProperty(
+        'home-states-lift',
+        'fill-translate',
+        active ? [0, -h] : zeroTranslate()
+      );
+      previewMap.setPaintProperty(
+        'home-states-lift',
+        'fill-opacity',
+        raised ? 1 : 0
+      );
+    }
+
+    /* Soft specular edge — only on the raised face, same translate */
+    if (previewMap.getLayer('home-states-lift-edge')) {
+      var showEdge = !!(raised && (active || reduceMotion));
+      previewMap.setFilter('home-states-lift-edge', showEdge ? filter : empty);
+      previewMap.setPaintProperty(
+        'home-states-lift-edge',
+        'line-translate',
+        active ? [0, -h] : zeroTranslate()
+      );
+      previewMap.setPaintProperty(
+        'home-states-lift-edge',
+        'line-width',
+        isSelect ? 1.05 : 0.75
+      );
+      previewMap.setPaintProperty(
+        'home-states-lift-edge',
+        'line-opacity',
+        showEdge ? (isSelect ? 0.42 : 0.32) : 0
+      );
+    }
+
+    /*
+     * Hide flat copy only while the plate is actually elevated (or reduced-motion
+     * face swap). When height settles to 0, restore the choropleth immediately.
+     * Prefer always-true filter over null (safer across MapLibre builds).
+     */
+    var excludeName = (active || (raised && reduceMotion)) ? raised : '';
+    var exclude = baseExcludeFilter(excludeName);
+    var always = ['boolean', true];
+    ['home-states-fill', 'home-states-hatch', 'home-states-line'].forEach(function (layerId) {
+      if (!previewMap.getLayer(layerId)) return;
+      try {
+        if (exclude) {
+          if (layerId === 'home-states-hatch') {
+            previewMap.setFilter(layerId, [
+              'all',
+              ['==', ['get', 'leadsUnavailable'], 1],
+              exclude
+            ]);
+          } else {
+            previewMap.setFilter(layerId, exclude);
+          }
+        } else if (layerId === 'home-states-hatch') {
+          previewMap.setFilter(layerId, ['==', ['get', 'leadsUnavailable'], 1]);
+        } else {
+          previewMap.setFilter(layerId, always);
+        }
+      } catch (_) { /* ignore paint race */ }
+    });
+
+    if (previewMap.getLayer('home-states-fill')) {
+      if (currentState) {
+        previewMap.setPaintProperty('home-states-fill', 'fill-opacity', [
+          'case',
+          ['==', ['get', 'leadsUnavailable'], 1], 0.48,
+          ['boolean', ['get', 'hasData'], false], 0.32,
+          0.18
+        ]);
+      } else {
+        previewMap.setPaintProperty('home-states-fill', 'fill-opacity', buildStateFillOpacity());
+      }
+    }
+  }
+
+  function liftAnimTick(now) {
+    if (!previewMap) {
+      liftAnim.raf = 0;
+      return;
+    }
+    var elapsed = now - liftAnim.start;
+    var t = Math.min(1, elapsed / LIFT_DURATION_MS);
+    var eased = LIFT_EASE(t);
+    liftAnim.current = liftAnim.from + (liftAnim.to - liftAnim.from) * eased;
+    applyLiftGeometry(liftAnim.raised, liftAnim.current);
+    if (t < 1) {
+      liftAnim.raf = requestAnimationFrame(liftAnimTick);
+    } else {
+      liftAnim.current = liftAnim.to;
+      liftAnim.raf = 0;
+      applyLiftGeometry(liftAnim.raised, liftAnim.current);
+    }
+  }
+
+  function startLiftAnimation(raised, targetH) {
+    if (liftAnim.raf) {
+      cancelAnimationFrame(liftAnim.raf);
+      liftAnim.raf = 0;
+    }
+
+    /* Switching states mid-air: snap geometry ownership, keep height continuity */
+    if (raised !== liftAnim.raised && liftAnim.current > 0.15 && raised) {
+      applyLiftGeometry(raised, liftAnim.current);
+    }
+
+    liftAnim.raised = raised || '';
+    liftAnim.from = liftAnim.current;
+    liftAnim.to = targetH;
+    liftAnim.start = (typeof performance !== 'undefined' && performance.now)
+      ? performance.now()
+      : Date.now();
+
+    if (reduceMotion || Math.abs(liftAnim.to - liftAnim.from) < 0.2) {
+      liftAnim.current = liftAnim.to;
+      applyLiftGeometry(liftAnim.raised, liftAnim.current);
+      return;
+    }
+
+    liftAnim.raf = requestAnimationFrame(liftAnimTick);
   }
 
   function updateLiftLayers() {
     if (!previewMap) return;
     var raised = hoveredState || currentState || '';
-    var filter = stateNameFilter(raised);
-    var liftUp = reduceMotion ? [0, 0] : [0, LIFT_OFFSET_UP];
-    var liftDown = reduceMotion ? [0, 0] : [0, LIFT_OFFSET_SHADOW];
+    var targetH = targetLiftHeight(raised);
 
-    if (previewMap.getLayer('home-states-lift-shadow')) {
-      previewMap.setFilter('home-states-lift-shadow', filter);
-      previewMap.setPaintProperty('home-states-lift-shadow', 'fill-translate', liftDown);
+    /* When clearing lift, keep raised name until height reaches 0 so filter stays valid */
+    if (!raised && liftAnim.current > 0.15) {
+      startLiftAnimation(liftAnim.raised, 0);
+    } else if (!raised) {
+      liftAnim.raised = '';
+      liftAnim.current = 0;
+      liftAnim.to = 0;
+      applyLiftGeometry('', 0);
+    } else {
+      startLiftAnimation(raised, targetH);
     }
-    if (previewMap.getLayer('home-states-lift')) {
-      previewMap.setFilter('home-states-lift', filter);
-      previewMap.setPaintProperty('home-states-lift', 'fill-translate', liftUp);
+
+    updateHoverTip(hoveredState && hoveredState !== currentState ? hoveredState : null);
+    syncStageClasses();
+  }
+
+  function syncStageClasses() {
+    var screen = document.querySelector('.home-territory-screen--explorer');
+    var monitor = document.getElementById('home-territory-monitor');
+    if (screen) {
+      screen.classList.toggle('has-state', !!currentState);
     }
-    if (previewMap.getLayer('home-states-hover')) {
-      previewMap.setFilter('home-states-hover', stateNameFilter(currentState || ''));
+    if (monitor) {
+      monitor.classList.toggle('is-state-locked', !!currentState);
     }
+  }
+
+  function updateHoverTip(stateName) {
+    var tip = document.getElementById('home-map-hover-tip');
+    if (!tip) return;
+    if (!stateName || !coverage || !shared) {
+      tip.hidden = true;
+      tip.setAttribute('aria-hidden', 'true');
+      tip.textContent = '';
+      return;
+    }
+    var counts = shared.countByState(coverage);
+    var status = shared.getStateStatus(stateName, counts, coverage);
+    var n = counts[stateName] || 0;
+    var label = stateName;
+    if (status === 'unavailable') label += ' · Blocked';
+    else if (n > 0) label += ' · ' + n + ' cit' + (n === 1 ? 'y' : 'ies');
+    else label += ' · Coming soon';
+    tip.textContent = label;
+    tip.hidden = false;
+    tip.setAttribute('aria-hidden', 'false');
   }
 
   function lockMapView(map) {
@@ -216,38 +574,48 @@
     map.setMaxZoom(zoom);
   }
 
-  function setDockOpen(open) {
-    var dock = document.getElementById('home-coverage-dock');
-    if (!dock) return;
-    dock.classList.toggle('is-open', open);
-    dock.classList.toggle('is-collapsed', !open);
-  }
-
-  function showDockPanel(panelId) {
-    ['home-dock-hint', 'home-dock-search', 'home-dock-state'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.hidden = id !== panelId;
-    });
-    setDockOpen(panelId !== 'home-dock-hint');
-  }
-
-  function updateDockHead(title, sub) {
-    var titleEl = document.getElementById('home-dock-title');
-    var subEl = document.getElementById('home-dock-sub');
-    if (titleEl) titleEl.textContent = title || 'Explore coverage';
-    if (subEl) subEl.textContent = sub || '';
-  }
-
-  function onSelectCity(city) {
-    selectedCityId = city.id;
-    shared.syncCitySelection(city.id);
-    if (modal) modal.open(city);
-  }
-
   function setSpotlightHidden(hidden) {
     var el = document.getElementById('home-territory-spotlight');
-    if (el) el.hidden = !!hidden;
+    if (!el) return;
+    el.hidden = !!hidden;
+    el.classList.toggle('is-visible', !hidden);
+    var screen = document.querySelector('.home-territory-screen--explorer');
+    if (screen) screen.classList.toggle('has-dossier', !hidden);
+  }
+
+  function setComingSoonPanel(visible, stateName) {
+    var panel = document.getElementById('home-spotlight-coming-soon');
+    var title = document.getElementById('home-spotlight-coming-title');
+    var copy = document.getElementById('home-spotlight-coming-copy');
+    if (!panel) return;
+    panel.hidden = !visible;
+    if (!visible) return;
+    if (title) {
+      title.textContent = stateName
+        ? stateName + ' is next on the board'
+        : 'New market on deck';
+    }
+    if (copy) {
+      copy.textContent =
+        "We're lighting this territory up next — same pipeline as our live markets. " +
+        "Watch the map; when it goes live, you'll want to be first in.";
+    }
+  }
+
+  function setStatusStamp(status) {
+    var el = document.getElementById('home-spotlight-status');
+    if (!el) return;
+    el.classList.remove('is-live', 'is-blocked', 'is-soon');
+    if (status === 'unavailable') {
+      el.textContent = 'Blocked';
+      el.classList.add('is-blocked');
+    } else if (status === 'no-coverage') {
+      el.textContent = 'Coming soon';
+      el.classList.add('is-soon');
+    } else {
+      el.textContent = 'Live';
+      el.classList.add('is-live');
+    }
   }
 
   function renderSpotlight(stateName) {
@@ -255,128 +623,116 @@
     var titleEl = document.getElementById('home-spotlight-title');
     var metaEl = document.getElementById('home-spotlight-meta');
     var citiesEl = document.getElementById('home-spotlight-cities');
+    var listWrap = document.getElementById('home-spotlight-list-wrap');
     var hintEl = document.getElementById('home-spotlight-hint');
-    if (!root || !titleEl || !metaEl || !citiesEl || !hintEl || !coverage || !shared) return;
+    if (!root || !titleEl || !metaEl || !citiesEl || !coverage || !shared) return;
 
     var counts = shared.countByState(coverage);
     var status = shared.getStateStatus(stateName, counts, coverage);
     var cities = shared.stateCities(coverage, stateName, '');
-    var portalN = cities.filter(function (c) { return c.pin_type === 'portal'; }).length;
-    var liveN = cities.length - portalN;
-
     titleEl.textContent = stateName;
     metaEl.classList.remove('is-blocked');
+    root.classList.remove('is-blocked', 'is-empty', 'is-coming-soon');
     citiesEl.innerHTML = '';
+    if (listWrap) listWrap.hidden = true;
+    if (hintEl) {
+      hintEl.hidden = true;
+      hintEl.textContent = '';
+    }
+    setComingSoonPanel(false);
+    setStatusStamp(status === 'covered' ? 'covered' : status);
     setSpotlightHidden(false);
 
     if (status === 'unavailable') {
-      metaEl.textContent = 'Records unavailable — clerk systems block access';
+      root.classList.add('is-blocked');
+      metaEl.textContent = 'Records unavailable — clerk systems block access.';
       metaEl.classList.add('is-blocked');
-      hintEl.textContent = 'We can\'t pull public records from this state yet.';
+      if (hintEl) {
+        hintEl.hidden = false;
+        hintEl.textContent = "We can't pull public records from this state yet.";
+      }
       return;
     }
 
     if (status === 'no-coverage' || cities.length === 0) {
-      metaEl.textContent = 'Expanding — no cities listed yet';
-      hintEl.textContent = 'Check back as new markets go live.';
+      root.classList.add('is-empty', 'is-coming-soon');
+      setStatusStamp('no-coverage');
+      metaEl.textContent = 'Territory queued for expansion';
+      setComingSoonPanel(true, stateName);
       return;
     }
 
-    var mix = [];
-    if (portalN) mix.push(portalN + ' portal');
-    if (liveN) mix.push(liveN + ' PDF');
+    var groups = shared.groupCitiesByCounty
+      ? shared.groupCitiesByCounty(cities)
+      : [{ county: 'Markets', cities: cities }];
+    var countyN = groups.length;
     metaEl.textContent =
-      cities.length + ' cit' + (cities.length === 1 ? 'y' : 'ies') + ' live' +
-      (mix.length ? ' · ' + mix.join(' + ') : '');
+      countyN + ' count' + (countyN === 1 ? 'y' : 'ies') + ' · ' +
+      cities.length + ' cit' + (cities.length === 1 ? 'y' : 'ies');
 
-    var sample = cities.slice();
-    sample.sort(function (a, b) {
-      if (a.pin_type === 'portal' && b.pin_type !== 'portal') return -1;
-      if (b.pin_type === 'portal' && a.pin_type !== 'portal') return 1;
-      return a.city.localeCompare(b.city);
-    });
-    sample.slice(0, 8).forEach(function (city) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className =
-        'home-territory-spotlight-pill' +
-        (city.pin_type === 'portal' ? ' home-territory-spotlight-pill--portal' : '');
-      btn.textContent = city.city;
-      btn.addEventListener('click', function () {
-        onSelectCity(city);
+    var openCounty = expandedCountyByState[stateName] || '';
+
+    groups.forEach(function (group) {
+      var countyName = group.county || 'Unknown County';
+      var isOpen = openCounty === countyName;
+      var block = document.createElement('div');
+      block.className = 'home-territory-county' + (isOpen ? ' is-open' : '');
+      block.setAttribute('role', 'listitem');
+
+      var toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'home-territory-county-toggle';
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      var displayCounty = countyName.replace(/\s+County$/i, '');
+      if (!displayCounty || displayCounty === 'Unknown') displayCounty = countyName;
+      toggle.innerHTML =
+        '<span class="home-territory-county-chevron" aria-hidden="true"></span>' +
+        '<span class="home-territory-county-name">' + escapeTickerHtml(displayCounty) + '</span>' +
+        '<span class="home-territory-county-count">' + group.cities.length + '</span>';
+      toggle.addEventListener('click', function () {
+        if (expandedCountyByState[stateName] === countyName) {
+          expandedCountyByState[stateName] = '';
+        } else {
+          expandedCountyByState[stateName] = countyName;
+        }
+        renderSpotlight(stateName);
       });
-      citiesEl.appendChild(btn);
+
+      var cityList = document.createElement('div');
+      cityList.className = 'home-territory-county-cities';
+      cityList.hidden = !isOpen;
+
+      if (isOpen) {
+        group.cities.forEach(function (city) {
+          var row = document.createElement('div');
+          row.className = 'home-territory-city-row home-territory-city-row--static';
+          row.innerHTML =
+            '<span class="home-territory-city-row-pip is-live" aria-hidden="true"></span>' +
+            '<span class="home-territory-city-row-main">' +
+              '<span class="home-territory-city-row-name">' + escapeTickerHtml(city.city) + '</span>' +
+            '</span>';
+          cityList.appendChild(row);
+        });
+      }
+
+      block.appendChild(toggle);
+      block.appendChild(cityList);
+      citiesEl.appendChild(block);
     });
 
-    hintEl.textContent =
-      cities.length > 8
-        ? 'Click a city for full profile — or browse counties below.'
-        : 'Click a city for its full profile.';
-  }
-
-  function renderStateDock(stateName) {
-    if (!coverage || !shared) return;
-    var cities = shared.stateCities(coverage, stateName, searchQuery);
-    var browser = document.getElementById('home-dock-counties');
-    if (!expandedCounties.has(stateName)) expandedCounties.set(stateName, new Set());
-    shared.renderCountyBrowser(browser, stateName, cities, {
-      searchQuery: searchQuery,
-      selectedId: selectedCityId,
-      expandedCounties: expandedCounties.get(stateName),
-      onSelectCity: onSelectCity
-    });
-    var portalN = cities.filter(function (c) { return c.pin_type === 'portal'; }).length;
-    var completedN = cities.length - portalN;
-    updateDockHead(stateName, cities.length + ' cities · ' + portalN + ' portal · ' + completedN + ' PDF');
-    renderSpotlight(stateName);
-    showDockPanel('home-dock-state');
-    document.getElementById('home-dock-back').hidden = false;
-  }
-
-  function renderSearchDock() {
-    if (!coverage || !shared) return;
-    var matches = shared.searchCities(coverage, searchQuery);
-    var list = document.getElementById('home-dock-search-list');
-    shared.renderSearchList(list, matches, onSelectCity, selectedCityId);
-    updateDockHead('Search results', matches.length + ' matches');
-    setSpotlightHidden(true);
-    showDockPanel('home-dock-search');
-    document.getElementById('home-dock-back').hidden = !currentState;
+    if (listWrap) listWrap.hidden = false;
   }
 
   function selectState(stateName) {
     currentState = stateName;
-    searchQuery = document.getElementById('home-dock-search-input')?.value || '';
-    if (searchQuery.trim()) {
-      renderSearchDock();
-    } else {
-      renderStateDock(stateName);
-    }
+    renderSpotlight(stateName);
     updateLiftLayers();
   }
 
-  function resetDock() {
+  function resetState() {
     currentState = null;
-    selectedCityId = null;
-    searchQuery = '';
-    var input = document.getElementById('home-dock-search-input');
-    if (input) input.value = '';
-    updateDockHead('Explore territory', 'Click a state or search a city, county, or state');
     setSpotlightHidden(true);
-    showDockPanel('home-dock-hint');
-    document.getElementById('home-dock-back').hidden = true;
     updateLiftLayers();
-  }
-
-  function onSearchInput() {
-    searchQuery = document.getElementById('home-dock-search-input')?.value || '';
-    selectedCityId = null;
-    if (searchQuery.trim()) {
-      renderSearchDock();
-      return;
-    }
-    if (currentState) renderStateDock(currentState);
-    else resetDock();
   }
 
   function mountStateLayers(map, geo, cov) {
@@ -415,16 +771,71 @@
     }
 
     map.addLayer({
-      id: 'home-states-lift-shadow',
+      id: 'home-states-line',
+      type: 'line',
+      source: 'home-states',
+      paint: { 'line-color': 'rgba(240, 235, 227, 0.14)', 'line-width': 0.7 }
+    });
+
+    var faceColor = buildLiftFaceColor(maxCount);
+    var sideColor = buildLiftSideColor(maxCount);
+
+    /*
+     * Stack order (bottom → top):
+     * socket → soft shadow → core shadow → side slices → lit face → specular edge
+     */
+    map.addLayer({
+      id: 'home-states-lift-socket',
+      type: 'fill',
+      source: 'home-states',
+      filter: stateNameFilter(''),
+      paint: {
+        'fill-color': '#05080e',
+        'fill-opacity': 0,
+        'fill-translate-anchor': 'viewport'
+      }
+    });
+
+    map.addLayer({
+      id: 'home-states-lift-shadow-soft',
       type: 'fill',
       source: 'home-states',
       filter: stateNameFilter(''),
       paint: {
         'fill-color': '#000000',
-        'fill-opacity': 0.42,
-        'fill-translate': [0, LIFT_OFFSET_SHADOW]
+        'fill-opacity': 0,
+        'fill-translate': [0, 0],
+        'fill-translate-anchor': 'viewport'
       }
     });
+
+    map.addLayer({
+      id: 'home-states-lift-shadow-core',
+      type: 'fill',
+      source: 'home-states',
+      filter: stateNameFilter(''),
+      paint: {
+        'fill-color': '#000000',
+        'fill-opacity': 0,
+        'fill-translate': [0, 0],
+        'fill-translate-anchor': 'viewport'
+      }
+    });
+
+    for (var step = 1; step <= EXTRUDE_STEPS; step += 1) {
+      map.addLayer({
+        id: 'home-states-extrude-' + step,
+        type: 'fill',
+        source: 'home-states',
+        filter: stateNameFilter(''),
+        paint: {
+          'fill-color': sideColor,
+          'fill-opacity': 0,
+          'fill-translate': [0, 0],
+          'fill-translate-anchor': 'viewport'
+        }
+      });
+    }
 
     map.addLayer({
       id: 'home-states-lift',
@@ -432,49 +843,61 @@
       source: 'home-states',
       filter: stateNameFilter(''),
       paint: {
-        'fill-color': fillColor,
-        'fill-opacity': fillOpacity,
-        'fill-translate': [0, LIFT_OFFSET_UP]
+        'fill-color': faceColor,
+        'fill-opacity': 0,
+        'fill-translate': [0, 0],
+        'fill-translate-anchor': 'viewport'
       }
     });
 
     map.addLayer({
-      id: 'home-states-line',
+      id: 'home-states-lift-edge',
       type: 'line',
       source: 'home-states',
-      paint: { 'line-color': 'rgba(240, 235, 227, 0.18)', 'line-width': 0.8 }
-    });
-
-    map.addLayer({
-      id: 'home-states-hover',
-      type: 'line',
-      source: 'home-states',
-      paint: { 'line-color': '#eeb746', 'line-width': 2.2 },
-      filter: stateNameFilter('')
+      filter: stateNameFilter(''),
+      paint: {
+        'line-color': 'rgba(255, 248, 230, 0.55)',
+        'line-width': 0.75,
+        'line-opacity': 0,
+        'line-blur': 0.15,
+        'line-translate': [0, 0],
+        'line-translate-anchor': 'viewport'
+      }
     });
 
     mountSmallStateCallouts(map, counts, cov);
 
-    map.on('click', 'home-states-fill', function (e) {
-      if (!e.features || !e.features.length) return;
-      var name = e.features[0].properties.name;
-      selectState(name);
-    });
+    function hitStateName(point) {
+      var layers = ['home-states-lift', 'home-states-fill'];
+      for (var s = EXTRUDE_STEPS; s >= 1; s -= 1) {
+        layers.push('home-states-extrude-' + s);
+      }
+      var features = map.queryRenderedFeatures(point, { layers: layers });
+      if (!features || !features.length) return null;
+      return features[0].properties.name || null;
+    }
 
-    map.on('mousemove', 'home-states-fill', function (e) {
-      if (!e.features || !e.features.length) return;
-      map.getCanvas().style.cursor = 'pointer';
-      var name = e.features[0].properties.name;
+    map.on('mousemove', function (e) {
+      var name = hitStateName(e.point);
+      map.getCanvas().style.cursor = name ? 'pointer' : '';
       if (hoveredState !== name) {
         hoveredState = name;
         updateLiftLayers();
       }
     });
 
-    map.on('mouseleave', 'home-states-fill', function () {
+    map.on('mouseout', function () {
       map.getCanvas().style.cursor = '';
-      hoveredState = null;
-      updateLiftLayers();
+      if (hoveredState) {
+        hoveredState = null;
+        updateLiftLayers();
+      }
+    });
+
+    map.on('click', function (e) {
+      var name = hitStateName(e.point);
+      if (!name) return;
+      selectState(name);
     });
   }
 
@@ -704,7 +1127,7 @@
     if (!el || !shared) return;
     el.innerHTML =
       '<strong>' + shared.formatCount(cov.total_cities) + ' cities</strong> across ' +
-      '<strong>' + shared.formatCount(cov.total_states) + ' states</strong> — click a state to browse';
+      '<strong>' + shared.formatCount(cov.total_states) + ' states</strong> — click a state for its dossier';
     if (window.PhugleeCoverage && window.PhugleeCoverage.updateCoverageStats) {
       window.PhugleeCoverage.updateCoverageStats({
         total_cities: cov.total_cities,
@@ -739,9 +1162,10 @@
       statesGeo = await shared.fetchStatesGeo();
       updateSummary(coverage);
       buildTerritoryTicker(coverage);
-      if (modal) modal.prefetchImages();
-
-      await Promise.all([loadStylesheet(MAPLIBRE_CSS), loadScript(MAPLIBRE_JS)]);
+      await Promise.all([
+        loadFirstStylesheet(MAPLIBRE_CSS_URLS),
+        loadFirstScript(MAPLIBRE_JS_URLS)
+      ]);
       if (!window.maplibregl) throw new Error('maplibre missing');
 
       host.innerHTML = '';
@@ -766,27 +1190,57 @@
       });
 
       previewMap.on('load', function () {
-        mountStateLayers(previewMap, statesGeo, coverage);
-        document.getElementById('home-territory-monitor')?.classList.add('is-live');
-        previewMap.resize();
-        lockMapView(previewMap);
-        armTerritoryEntrance();
+        try {
+          mountStateLayers(previewMap, statesGeo, coverage);
+          document.getElementById('home-territory-monitor')?.classList.add('is-live');
+          previewMap.resize();
+          lockMapView(previewMap);
+          armTerritoryEntrance();
+        } catch (mountErr) {
+          if (typeof console !== 'undefined' && console.warn) {
+            console.warn('[territory] mount failed', mountErr);
+          }
+        }
+      });
+
+      previewMap.on('error', function (e) {
+        if (typeof console !== 'undefined' && console.warn) {
+          console.warn('[territory] map error', e && e.error ? e.error : e);
+        }
       });
 
       previewMap.on('resize', function () {
         lockMapView(previewMap);
       });
 
-      var searchInput = document.getElementById('home-dock-search-input');
-      if (searchInput) searchInput.addEventListener('input', onSearchInput);
-      document.getElementById('home-dock-back')?.addEventListener('click', resetDock);
+      document.getElementById('home-spotlight-close')?.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        resetState();
+      });
 
-      resetDock();
-    } catch (_) {
+      resetState();
+    } catch (err) {
+      if (typeof console !== 'undefined' && console.warn) {
+        console.warn('[territory] init failed', err);
+      }
       host.classList.remove('home-coverage-map--loading');
       host.classList.remove('home-coverage-map--live');
       if (coverage) buildTerritoryTicker(coverage);
-      await renderSvgFallback();
+      try {
+        await renderSvgFallback();
+      } catch (fallbackErr) {
+        host.innerHTML =
+          '<p class="home-map-error">Map unavailable — refresh in a moment.</p>' +
+          '<button type="button" class="home-map-retry" id="home-map-retry">Retry map</button>';
+        var retry = document.getElementById('home-map-retry');
+        if (retry) {
+          retry.addEventListener('click', function () {
+            previewStarted = false;
+            initExplorer();
+          });
+        }
+      }
       document.getElementById('home-territory-monitor')?.classList.add('is-live');
       armTerritoryEntrance();
     }

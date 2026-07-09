@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/collect-records.css?v=5">
-  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=5">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=6">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -56,27 +56,36 @@
     <div class="collect-hub">
       <header class="collect-hub-hero" data-phuglee-reveal-child>
         <p class="collect-hub-step">Step 01 · Collect</p>
-        <h1 class="landing-title">Request Your Data</h1>
-        <p class="landing-tagline premium-tagline">Pull distressed property lists straight from public records — days before aggregators drip the same addresses to everyone else.</p>
+        <h1 class="collect-hub-title">Hit the Clerk</h1>
+        <p class="collect-hub-lead">Pull distressed property lists straight from public records — days before aggregators drip the same addresses to everyone else.</p>
       </header>
 
-      <div class="collect-hub-grid" data-phuglee-reveal-child>
-        <button type="button" class="collect-hub-tile phuglee-panel is-interactive" id="btn-start-requests">
-          <span class="collect-hub-tile-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 8l8 5 8-5"/></svg>
-          </span>
-          <span class="collect-hub-tile-title">Start Requests</span>
-          <p class="collect-hub-tile-desc">Pick your cities, choose PDF email, plain email, or portal — then launch your batch.</p>
-          <span class="collect-hub-tile-cta">Choose cities →</span>
-        </button>
-        <a href="/forge/portal" class="collect-hub-tile phuglee-panel collect-hub-tile--tracker is-interactive">
-          <span class="collect-hub-tile-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
-          </span>
-          <span class="collect-hub-tile-title">Track Requests</span>
-          <p class="collect-hub-tile-desc">See what's pending, what's answered, and what's ready to bridge into your pipeline.</p>
-          <span class="collect-hub-tile-cta">View tracker →</span>
-        </a>
+      <div class="collect-desk" data-phuglee-reveal-child>
+        <section class="collect-desk-primary phuglee-panel">
+          <p class="collect-desk-kicker">Start a batch</p>
+          <h2 class="collect-desk-primary-title">Request public records</h2>
+          <p class="collect-desk-primary-desc">
+            Pick cities. Choose PDF email, plain email, or portal. Launch the batch —
+            nothing sends until you confirm.
+          </p>
+          <ul class="collect-desk-channels" aria-label="Request channels">
+            <li>PDF email</li>
+            <li>Plain email FOIA</li>
+            <li>Online portal</li>
+          </ul>
+          <button type="button" class="phuglee-btn phuglee-btn-primary collect-desk-cta" id="btn-start-requests">
+            Start Requests
+          </button>
+        </section>
+
+        <aside class="collect-desk-side">
+          <a href="/forge/portal" class="collect-desk-tracker">
+            <span class="collect-desk-tracker-label">Already waiting?</span>
+            <span class="collect-desk-tracker-title">Track Requests</span>
+            <span class="collect-desk-tracker-desc">Pending, answered, ready to bridge.</span>
+            <span class="collect-desk-tracker-cta">Open tracker →</span>
+          </a>
+        </aside>
       </div>
 
       <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>

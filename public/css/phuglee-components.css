@@ -65,34 +65,51 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.55rem;
   font-family: var(--font-display);
-  font-size: 0.95rem;
-  letter-spacing: 0.08em;
+  font-size: 0.92rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   text-decoration: none;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   cursor: pointer;
   transition:
-    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.2s ease,
-    border-color 0.2s ease,
-    background 0.2s ease;
+    transform var(--card-duration) var(--card-ease),
+    box-shadow var(--card-duration) ease,
+    border-color var(--card-duration) ease,
+    background var(--card-duration) ease,
+    color var(--card-duration) ease,
+    filter var(--card-duration) ease;
 }
 
 .phuglee-btn-primary {
   position: relative;
   overflow: hidden;
-  padding: 0.9rem 1.75rem;
+  padding: 0.95rem 1.85rem;
   color: var(--phuglee-black);
+  font-weight: 400;
   background: linear-gradient(
     135deg,
     var(--phuglee-gold) 0%,
-    var(--phuglee-orange) 45%,
+    var(--phuglee-orange) 48%,
     var(--phuglee-terracotta) 100%
   );
   box-shadow: var(--shadow-cta);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.phuglee-btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    transparent 45%
+  );
+  opacity: 0.85;
 }
 
 .phuglee-btn-primary::after {
@@ -101,34 +118,49 @@
   inset: 0;
   background: linear-gradient(
     105deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.22) 50%,
-    transparent 60%
+    transparent 38%,
+    rgba(255, 255, 255, 0.28) 50%,
+    transparent 62%
   );
   transform: translateX(-120%);
-  transition: transform 0.5s ease;
+  transition: transform 0.55s var(--card-ease);
 }
 
 .phuglee-btn-primary:hover {
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.015);
   box-shadow: var(--shadow-cta), var(--shadow-glow-orange);
+  filter: brightness(1.04);
 }
 
 .phuglee-btn-primary:hover::after {
   transform: translateX(120%);
 }
 
+.phuglee-btn-primary:active {
+  transform: translateY(0) scale(0.99);
+  filter: brightness(0.98);
+}
+
 .phuglee-btn-secondary {
-  padding: 0.85rem 1.5rem;
+  padding: 0.88rem 1.55rem;
   color: var(--phuglee-cream);
-  background: transparent;
-  border: 1px solid var(--phuglee-stone-warm);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(238, 183, 70, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 24px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
 }
 
 .phuglee-btn-secondary:hover {
-  border-color: var(--phuglee-orange);
-  color: var(--phuglee-orange);
+  border-color: rgba(229, 132, 53, 0.55);
+  color: var(--phuglee-gold);
+  background: rgba(229, 132, 53, 0.08);
   transform: translateY(-1px);
+  box-shadow:
+    0 0 24px rgba(229, 132, 53, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .phuglee-btn-ghost {
@@ -148,55 +180,58 @@
   border: 1px solid rgba(248, 113, 113, 0.25);
 }
 
-/* ── Panels ── */
+/* ── Panels — premium glassmorphism ── */
 .phuglee-panel {
   position: relative;
-  background:
-    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 40%),
-    var(--phuglee-charcoal);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem 1.75rem;
-  box-shadow: var(--shadow-panel);
+  isolation: isolate;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius, 14px);
+  padding: var(--card-pad-y, 1.5rem) var(--card-pad-x, 1.65rem);
+  box-shadow: var(--glass-shadow);
   overflow: hidden;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   transition:
-    border-color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
+    border-color var(--card-duration) ease,
+    transform var(--card-duration) var(--card-ease),
+    box-shadow var(--card-duration) ease,
+    background var(--card-duration) ease;
 }
 
+/* Fine grain + soft ambient wash */
 .phuglee-panel::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
+  border-radius: inherit;
   background:
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(229, 132, 53, 0.1), transparent 55%),
     repeating-linear-gradient(
       -3deg,
       transparent,
       transparent 3px,
-      rgba(255, 255, 255, 0.008) 3px,
-      rgba(255, 255, 255, 0.008) 4px
+      rgba(255, 255, 255, 0.01) 3px,
+      rgba(255, 255, 255, 0.01) 4px
     );
-  opacity: 0.6;
+  opacity: 0.9;
+  z-index: 0;
 }
 
+/* Hairline gold edge + inner top highlight */
 .phuglee-panel::after {
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--phuglee-orange),
-    var(--phuglee-gold),
-    var(--phuglee-terracotta),
-    transparent
-  );
-  opacity: 0.75;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: var(--glass-edge-shine);
+  opacity: 0.95;
+  box-shadow: 0 0 18px rgba(229, 132, 53, 0.25);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .phuglee-panel > * {
@@ -204,34 +239,85 @@
   z-index: 1;
 }
 
+/* Structural panels: glow only — no slide */
 .phuglee-panel:hover {
-  border-color: var(--border-hot);
-  transform: translateX(4px);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float);
+}
+
+/* Interactive / clickable cards */
+.phuglee-panel.is-interactive,
+.phuglee-panel--interactive {
+  cursor: pointer;
+}
+
+.phuglee-panel.is-interactive:hover,
+.phuglee-panel--interactive:hover {
+  transform: translateY(-3px) scale(1.008);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold);
+}
+
+.phuglee-panel.is-interactive:active,
+.phuglee-panel--interactive:active {
+  transform: translateY(-1px) scale(0.997);
 }
 
 .phuglee-panel-featured {
-  border-color: rgba(229, 132, 53, 0.4);
-  box-shadow: var(--shadow-panel), var(--shadow-glow-orange);
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+}
+
+.phuglee-panel-featured::after {
+  left: 4%;
+  right: 4%;
+  opacity: 1;
+  box-shadow: 0 0 22px rgba(229, 132, 53, 0.4);
 }
 
 .phuglee-panel-featured:hover {
-  border-color: var(--phuglee-orange);
-  transform: translateX(6px);
+  border-color: rgba(229, 132, 53, 0.7);
+  box-shadow: var(--glass-shadow-featured), var(--shadow-glow-orange);
+  transform: translateY(-2px);
 }
 
 .phuglee-panel-exclusive {
   border-style: dashed;
   border-color: rgba(172, 107, 50, 0.55);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.04) 0%, transparent 40%),
+    linear-gradient(165deg, rgba(172, 107, 50, 0.08) 0%, transparent 50%),
+    var(--glass-bg);
 }
 
 .phuglee-panel-vault {
-  border-color: rgba(201, 162, 39, 0.45);
-  box-shadow: var(--shadow-panel), 0 0 28px rgba(201, 162, 39, 0.12);
+  border-color: rgba(201, 162, 39, 0.48);
+  box-shadow: var(--glass-shadow), 0 0 32px rgba(201, 162, 39, 0.14);
+}
+
+.phuglee-panel-vault::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201, 162, 39, 0.35),
+    rgba(238, 183, 70, 0.7),
+    rgba(201, 162, 39, 0.35),
+    transparent
+  );
 }
 
 .phuglee-panel-vault:hover {
   border-color: #c9a227;
-  transform: translateX(6px);
+  box-shadow: var(--glass-shadow-float), 0 0 40px rgba(201, 162, 39, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Elevated float variant (modals, overlays) */
+.phuglee-panel.distress-glass--float,
+.phuglee-panel--float {
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
 }
 
 /* ── Inputs ── */
@@ -506,8 +592,14 @@ body:not(.home-page) .phuglee-logo-svg--hero {
   .phuglee-btn-primary:hover,
   .phuglee-btn-secondary:hover,
   .phuglee-panel:hover,
-  .phuglee-panel-featured:hover {
+  .phuglee-panel-featured:hover,
+  .phuglee-panel-vault:hover,
+  .phuglee-panel.is-interactive:hover,
+  .phuglee-panel--interactive:hover,
+  .phuglee-panel.is-interactive:active,
+  .phuglee-panel--interactive:active {
     transform: none;
+    filter: none;
   }
 
   .phuglee-modal-panel,

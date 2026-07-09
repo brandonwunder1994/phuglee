@@ -23,14 +23,13 @@
   <link rel="stylesheet" href="/css/distress-glass.css">
   <link rel="stylesheet" href="/css/distress-heat-v2.css">
   <link rel="stylesheet" href="/css/landing.css?v=5">
-  <link rel="stylesheet" href="/css/home.css?v=36">
-  <link rel="stylesheet" href="/css/home-chronicle.css?v=48">
+  <link rel="stylesheet" href="/css/home.css?v=40">
+  <link rel="stylesheet" href="/css/home-chronicle.css?v=54">
   <link rel="stylesheet" href="/css/home-ui-preview.css?v=14">
-  <link rel="stylesheet" href="/css/home-premium.css?v=6">
-  <link rel="stylesheet" href="/css/coverage/coverage-dock.css?v=3">
-  <link rel="stylesheet" href="/css/coverage/city-profile-modal.css?v=1">
+  <link rel="stylesheet" href="/css/home-premium.css?v=7">
+  <link rel="stylesheet" href="/css/coverage/coverage-dock.css?v=11">
 
-  <link rel="stylesheet" href="/css/auth.css?v=2">
+  <link rel="stylesheet" href="/css/auth.css?v=3">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
 </head>
@@ -105,20 +104,96 @@
 
       <div class="home-below-hero">
 
-        <section class="home-chapter home-chapter--edge" aria-labelledby="home-edge-title" data-phuglee-reveal-child>
+        <section class="home-chapter home-chapter--pipeline" aria-labelledby="home-pipeline-title" data-phuglee-reveal-child>
+          <header class="home-pipeline-head">
+            <p class="phuglee-eyebrow" id="home-pipeline-title">How It Works</p>
+            <h2 class="home-chapter-title home-chapter-title--sm">Collect. Filter. Analyze.</h2>
+            <p class="home-pipeline-lead">Three steps. One clean path. Pull the list, scrub the junk, rank who to dial first.</p>
+          </header>
+
+          <div class="home-story-strip" data-home-story aria-label="Pipeline story: Collect, Filter, Analyze">
+            <div class="home-story-bezel">
+              <div class="home-story-stages">
+                <article class="home-story-stage home-story-stage--collect">
+                  <header class="home-story-stage-head">
+                    <span class="home-story-stage-num">01</span>
+                    <span class="home-story-stage-name">Collect</span>
+                    <span class="home-story-stage-status">Clerk reply</span>
+                  </header>
+                  <div class="home-ui-preview home-ui-preview--collect home-ui-preview--story home-ui-preview--video">
+                    <div class="home-ui-preview-body home-collect-scene home-collect-scene--video">
+                      <video
+                        class="home-pipeline-video home-collect-video"
+                        src="/videos/collect.mp4"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        preload="metadata"
+                        aria-label="Collect: request the list from the clerk and receive records back"
+                      ></video>
+                    </div>
+                  </div>
+                  <p class="home-story-caption">Pulled straight from government sources — the freshest data available.</p>
+                </article>
+
+                <article class="home-story-stage home-story-stage--filter">
+                  <header class="home-story-stage-head">
+                    <span class="home-story-stage-num">02</span>
+                    <span class="home-story-stage-name">Filter</span>
+                    <span class="home-story-stage-status">Scrubbing</span>
+                  </header>
+                  <div class="home-ui-preview home-ui-preview--filter home-ui-preview--story home-ui-preview--video">
+                    <div class="home-ui-preview-body home-filter-scene home-filter-scene--video">
+                      <video
+                        class="home-pipeline-video home-filter-video"
+                        src="/videos/filter.mp4?v=2"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        preload="metadata"
+                        aria-label="Filter: remove weak types, low equity, and duplicates; keep the best leads"
+                      ></video>
+                    </div>
+                  </div>
+                  <p class="home-story-caption">Duplicates and non-distressed leads get cut — only real opportunities remain.</p>
+                </article>
+
+                <article class="home-story-stage home-story-stage--analyze">
+                  <header class="home-story-stage-head">
+                    <span class="home-story-stage-num">03</span>
+                    <span class="home-story-stage-name">Analyze</span>
+                    <span class="home-story-stage-status">Dial ready</span>
+                  </header>
+                  <div class="home-ui-preview home-ui-preview--analyze home-ui-preview--story home-ui-preview--video">
+                    <div class="home-ui-preview-body home-analyze-scene home-analyze-scene--video">
+                      <video
+                        class="home-pipeline-video home-analyze-video"
+                        src="/videos/analyze.mp4?v=1"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        preload="metadata"
+                        aria-label="Analyze: double-check property condition for hotter wholesale targets"
+                      ></video>
+                    </div>
+                  </div>
+                  <p class="home-story-caption">We double-check property condition so bad shape = hotter wholesale targets.</p>
+                </article>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="home-chapter home-chapter--edge" aria-label="Phuglee versus aggregator lead quality" data-phuglee-reveal-child>
           <div class="home-edge-stage" data-home-edge-gap>
             <div class="home-edge-bg" aria-hidden="true">
               <div class="home-edge-bg-photo"></div>
               <div class="home-edge-bg-grain"></div>
               <div class="home-edge-bg-scrim"></div>
             </div>
-
-            <header class="home-edge-intro">
-              <h2 class="home-edge-headline" id="home-edge-title">
-                <span class="home-edge-headline-line">Quality Over Quantity.</span>
-                <span class="home-edge-headline-line home-edge-headline-accent">Every Time.</span>
-              </h2>
-            </header>
 
             <div class="home-edge-compare" aria-label="Same-day Phuglee leads versus weeks-late aggregator lists">
               <div class="home-edge-side home-edge-side--phuglee">
@@ -128,24 +203,33 @@
                     role="img"
                     aria-label="Phuglee"
                   ></span>
+                  <p class="home-edge-side-micro">Same-day</p>
                 </div>
                 <div class="home-edge-side-mid">
                   <p class="p3d-carousel-sub">High-converting distressed leads on a loop — not the same leads everyone and their mother has been calling for the last 6 months.</p>
                 </div>
                 <div class="home-edge-side-body">
-                  <div
-                    class="p3d-carousel"
-                    data-property-carousel-3d
-                    aria-label="Current Phuglee distressed opportunities"
-                  >
-                    <div
-                      class="p3d-stage"
-                      data-p3d-stage
-                      role="group"
-                      aria-roledescription="3D carousel"
-                      aria-label="Auto-rotating property carousel"
-                    >
-                      <div class="p3d-track" data-p3d-track></div>
+                  <div class="home-edge-desk home-edge-desk--live">
+                    <div class="home-edge-desk-chrome">
+                      <span class="home-edge-desk-title">Phuglee · Live</span>
+                      <span class="home-edge-desk-status">Live</span>
+                    </div>
+                    <div class="home-edge-desk-body">
+                      <div
+                        class="p3d-carousel"
+                        data-property-carousel-3d
+                        aria-label="Current Phuglee distressed opportunities"
+                      >
+                        <div
+                          class="p3d-stage"
+                          data-p3d-stage
+                          role="group"
+                          aria-roledescription="carousel"
+                          aria-label="Auto-rotating property carousel"
+                        >
+                          <div class="p3d-track" data-p3d-track></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -164,178 +248,177 @@
                     role="img"
                     aria-label="The Other Guys"
                   ></span>
+                  <p class="home-edge-side-micro home-edge-side-micro--stale">Weeks late</p>
                 </div>
-                <div class="home-edge-side-mid home-edge-side-mid--chips">
-                  <div class="home-edge-chip-grid" aria-label="Competitor platforms">
-                    <span class="home-ui-preview-chip home-edge-competitor-chip">
-                      <span class="home-edge-chip-name">Batchleads</span>
-                    </span>
-                    <span class="home-ui-preview-chip home-edge-competitor-chip">
-                      <span class="home-edge-chip-name">Propstream</span>
-                    </span>
-                    <span class="home-ui-preview-chip home-edge-competitor-chip">
-                      <span class="home-edge-chip-name">Deal Sauce</span>
-                    </span>
-                    <span class="home-ui-preview-chip home-edge-competitor-chip">
-                      <span class="home-edge-chip-name">X Leads</span>
-                    </span>
-                    <span class="home-ui-preview-chip home-edge-competitor-chip">
-                      <span class="home-edge-chip-name">Deal Machine</span>
-                    </span>
-                    <span class="home-ui-preview-chip home-edge-competitor-chip">
-                      <span class="home-edge-chip-name">Propwire</span>
-                    </span>
+                <div class="home-edge-side-mid home-edge-side-mid--names">
+                  <div class="home-edge-name-band" aria-label="Competitor platforms">
+                    <span class="home-edge-name">Batchleads</span>
+                    <span class="home-edge-name">Propstream</span>
+                    <span class="home-edge-name">Deal Sauce</span>
+                    <span class="home-edge-name">X Leads</span>
+                    <span class="home-edge-name">Deal Machine</span>
+                    <span class="home-edge-name">Propwire</span>
                   </div>
                 </div>
                 <div class="home-edge-side-body">
-                  <figure class="home-edge-unknown-proof" aria-label="Competitor lists — property condition unknown">
-                    <div class="home-edge-unknown-visual" data-unknown-stage>
-                      <div class="home-edge-unknown-grid" data-unknown-flip-grid role="group" aria-label="Typical wasted leads from aggregator lists">
-                        <button
-                          type="button"
-                          class="home-edge-unknown-tile"
-                          data-unknown-flip
-                          aria-pressed="false"
-                          aria-label="Reveal: High Equity Investor Owned"
-                          data-story-kicker="Dead lead"
-                          data-story-title="High Equity Investor Owned"
-                          data-story-body="They own the house free and clear and they know it. Your &ldquo;we buy houses&rdquo; pitch lands as spam. They&rsquo;re fishing for free comps — not a discount close."
-                        >
-                          <span class="home-edge-unknown-tile-inner">
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
-                              <svg viewBox="0 0 40 40" focusable="false"><path d="M6 18 20 6l14 12v14H6V18z" fill="currentColor" opacity=".22"/><text x="20" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">?</text></svg>
-                            </span>
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
-                              <span class="home-edge-unknown-tile-kicker">Dead lead</span>
-                              <span class="home-edge-unknown-tile-title">High Equity Investor Owned</span>
-                              <span class="home-edge-unknown-tile-detail">Not motivated. Just fishing for offers.</span>
-                            </span>
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          class="home-edge-unknown-tile"
-                          data-unknown-flip
-                          aria-pressed="false"
-                          aria-label="Reveal: Probate Called by 1,000 Wholesalers"
-                          data-story-kicker="Burned list"
-                          data-story-title="Probate Called by 1,000 Wholesalers"
-                          data-story-body="The notice hit public record. Every dialer on the planet queued it. By the time you call, the family has already blocked half the area codes in the state. You&rsquo;re noise, not a solution."
-                        >
-                          <span class="home-edge-unknown-tile-inner">
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
-                              <svg viewBox="0 0 40 40" focusable="false"><path d="M6 18 20 6l14 12v14H6V18z" fill="currentColor" opacity=".22"/><text x="20" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">?</text></svg>
-                            </span>
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
-                              <span class="home-edge-unknown-tile-kicker">Burned list</span>
-                              <span class="home-edge-unknown-tile-title">Probate — Called by 1,000 Wholesalers</span>
-                              <span class="home-edge-unknown-tile-detail">Already exhausted. You&rsquo;re call #1,001.</span>
-                            </span>
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          class="home-edge-unknown-tile"
-                          data-unknown-flip
-                          aria-pressed="false"
-                          aria-label="Reveal: Pre-foreclosure Texted for Months"
-                          data-story-kicker="Spam fatigue"
-                          data-story-title="Pre-foreclosure Texted for Months"
-                          data-story-body="Four months of texts, postcards, and robocalls. The seller isn&rsquo;t evaluating offers — they&rsquo;re muting numbers. Your message dies in a graveyard of the same pitch."
-                        >
-                          <span class="home-edge-unknown-tile-inner">
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
-                              <svg viewBox="0 0 40 40" focusable="false"><path d="M6 18 20 6l14 12v14H6V18z" fill="currentColor" opacity=".22"/><text x="20" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">?</text></svg>
-                            </span>
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
-                              <span class="home-edge-unknown-tile-kicker">Spam fatigue</span>
-                              <span class="home-edge-unknown-tile-title">Pre-foreclosure Texted for Months</span>
-                              <span class="home-edge-unknown-tile-detail">Seller is annoyed and tuned out.</span>
-                            </span>
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          class="home-edge-unknown-tile"
-                          data-unknown-flip
-                          aria-pressed="false"
-                          aria-label="Reveal: Already Under Contract"
-                          data-story-kicker="Too late"
-                          data-story-title="Already Under Contract"
-                          data-story-body="Someone with fresher data locked it weeks ago. You&rsquo;re polishing a pitch for a deal that closed while the list was still in the warehouse."
-                        >
-                          <span class="home-edge-unknown-tile-inner">
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
-                              <svg viewBox="0 0 40 40" focusable="false"><path d="M6 18 20 6l14 12v14H6V18z" fill="currentColor" opacity=".22"/><text x="20" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">?</text></svg>
-                            </span>
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
-                              <span class="home-edge-unknown-tile-kicker">Too late</span>
-                              <span class="home-edge-unknown-tile-title">Already Under Contract</span>
-                              <span class="home-edge-unknown-tile-detail">Another wholesaler locked it weeks ago.</span>
-                            </span>
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          class="home-edge-unknown-tile"
-                          data-unknown-flip
-                          aria-pressed="false"
-                          aria-label="Reveal: I'm Not Interested"
-                          data-story-kicker="Hang-up"
-                          data-story-title="&ldquo;I&rsquo;m Not Interested&rdquo;"
-                          data-story-body="Four seconds. That&rsquo;s the average lifespan of this call. No discovery, no rapport — just another number on a recycled list that never should have been dialed."
-                        >
-                          <span class="home-edge-unknown-tile-inner">
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
-                              <svg viewBox="0 0 40 40" focusable="false"><path d="M6 18 20 6l14 12v14H6V18z" fill="currentColor" opacity=".22"/><text x="20" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">?</text></svg>
-                            </span>
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
-                              <span class="home-edge-unknown-tile-kicker">Hang-up</span>
-                              <span class="home-edge-unknown-tile-title">&ldquo;I&rsquo;m Not Interested&rdquo;</span>
-                              <span class="home-edge-unknown-tile-detail">Classic time waster. Call ends in 4 seconds.</span>
-                            </span>
-                          </span>
-                        </button>
-                        <button
-                          type="button"
-                          class="home-edge-unknown-tile"
-                          data-unknown-flip
-                          aria-pressed="false"
-                          aria-label="Reveal: Has an Agent Already"
-                          data-story-kicker="Locked out"
-                          data-story-title="Has an Agent Already"
-                          data-story-body="Listing agreement signed. You don&rsquo;t get the seller — you get a hard no from the agent. The window closed before the list ever hit your CRM."
-                        >
-                          <span class="home-edge-unknown-tile-inner">
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
-                              <svg viewBox="0 0 40 40" focusable="false"><path d="M6 18 20 6l14 12v14H6V18z" fill="currentColor" opacity=".22"/><text x="20" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">?</text></svg>
-                            </span>
-                            <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
-                              <span class="home-edge-unknown-tile-kicker">Locked out</span>
-                              <span class="home-edge-unknown-tile-title">Has an Agent Already</span>
-                              <span class="home-edge-unknown-tile-detail">Locked in. No chance you get to the seller.</span>
-                            </span>
-                          </span>
-                        </button>
-                      </div>
-
-                      <div
-                        class="home-edge-unknown-story"
-                        data-unknown-story
-                        hidden
-                        role="dialog"
-                        aria-modal="true"
-                        aria-labelledby="home-edge-story-title"
-                      >
-                        <button type="button" class="home-edge-unknown-story-close" data-unknown-story-close aria-label="Close story">
-                          <span aria-hidden="true">&times;</span>
-                        </button>
-                        <p class="home-edge-unknown-story-kicker" data-unknown-story-kicker></p>
-                        <h3 class="home-edge-unknown-story-title" id="home-edge-story-title" data-unknown-story-title></h3>
-                        <p class="home-edge-unknown-story-body" data-unknown-story-body></p>
-                      </div>
+                  <div class="home-edge-desk home-edge-desk--burned">
+                    <div class="home-edge-desk-chrome">
+                      <span class="home-edge-desk-title">The Other Guys · Burned lists</span>
+                      <span class="home-edge-desk-status home-edge-desk-status--stale">Stale</span>
                     </div>
-                  </figure>
+                    <div class="home-edge-desk-body">
+                      <figure class="home-edge-unknown-proof" aria-label="Competitor lists — property condition unknown">
+                        <div class="home-edge-unknown-visual" data-unknown-stage>
+                          <div class="home-edge-unknown-grid home-edge-unknown-grid--dossier" data-unknown-flip-grid role="group" aria-label="Typical wasted leads from aggregator lists">
+                            <button
+                              type="button"
+                              class="home-edge-unknown-tile"
+                              data-unknown-flip
+                              aria-pressed="false"
+                              aria-label="Reveal: High Equity Investor Owned"
+                              data-story-kicker="Dead lead"
+                              data-story-title="High Equity Investor Owned"
+                              data-story-body="They own the house free and clear and they know it. Your &ldquo;we buy houses&rdquo; pitch lands as spam. They&rsquo;re fishing for free comps — not a discount close."
+                            >
+                              <span class="home-edge-unknown-tile-inner">
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
+                                  <span class="home-edge-dossier-front">
+                                    <span class="home-edge-dossier-meta">Lead file · Redacted</span>
+                                    <span class="home-edge-dossier-addr">
+                                      <span class="home-edge-dossier-redact"></span>
+                                      <span class="home-edge-dossier-redact home-edge-dossier-redact--short"></span>
+                                    </span>
+                                    <span class="home-edge-dossier-fog"></span>
+                                    <span class="home-edge-dossier-mark">
+                                      <span class="home-edge-dossier-q">?</span>
+                                      <span class="home-edge-dossier-unknown">Unknown condition</span>
+                                    </span>
+                                  </span>
+                                </span>
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
+                                  <span class="home-edge-unknown-tile-kicker">Dead lead</span>
+                                  <span class="home-edge-unknown-tile-title">High Equity Investor Owned</span>
+                                  <span class="home-edge-unknown-tile-detail">Not motivated. Just fishing for offers.</span>
+                                </span>
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              class="home-edge-unknown-tile"
+                              data-unknown-flip
+                              aria-pressed="false"
+                              aria-label="Reveal: Probate Called by 1,000 Wholesalers"
+                              data-story-kicker="Burned list"
+                              data-story-title="Probate Called by 1,000 Wholesalers"
+                              data-story-body="The notice hit public record. Every dialer on the planet queued it. By the time you call, the family has already blocked half the area codes in the state. You&rsquo;re noise, not a solution."
+                            >
+                              <span class="home-edge-unknown-tile-inner">
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
+                                  <span class="home-edge-dossier-front">
+                                    <span class="home-edge-dossier-meta">Lead file · Redacted</span>
+                                    <span class="home-edge-dossier-addr">
+                                      <span class="home-edge-dossier-redact"></span>
+                                      <span class="home-edge-dossier-redact home-edge-dossier-redact--short"></span>
+                                    </span>
+                                    <span class="home-edge-dossier-fog"></span>
+                                    <span class="home-edge-dossier-mark">
+                                      <span class="home-edge-dossier-q">?</span>
+                                      <span class="home-edge-dossier-unknown">Unknown condition</span>
+                                    </span>
+                                  </span>
+                                </span>
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
+                                  <span class="home-edge-unknown-tile-kicker">Burned list</span>
+                                  <span class="home-edge-unknown-tile-title">Probate — Called by 1,000 Wholesalers</span>
+                                  <span class="home-edge-unknown-tile-detail">Already exhausted. You&rsquo;re call #1,001.</span>
+                                </span>
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              class="home-edge-unknown-tile"
+                              data-unknown-flip
+                              aria-pressed="false"
+                              aria-label="Reveal: Pre-foreclosure Texted for Months"
+                              data-story-kicker="Spam fatigue"
+                              data-story-title="Pre-foreclosure Texted for Months"
+                              data-story-body="Four months of texts, postcards, and robocalls. The seller isn&rsquo;t evaluating offers — they&rsquo;re muting numbers. Your message dies in a graveyard of the same pitch."
+                            >
+                              <span class="home-edge-unknown-tile-inner">
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
+                                  <span class="home-edge-dossier-front">
+                                    <span class="home-edge-dossier-meta">Lead file · Redacted</span>
+                                    <span class="home-edge-dossier-addr">
+                                      <span class="home-edge-dossier-redact"></span>
+                                      <span class="home-edge-dossier-redact home-edge-dossier-redact--short"></span>
+                                    </span>
+                                    <span class="home-edge-dossier-fog"></span>
+                                    <span class="home-edge-dossier-mark">
+                                      <span class="home-edge-dossier-q">?</span>
+                                      <span class="home-edge-dossier-unknown">Unknown condition</span>
+                                    </span>
+                                  </span>
+                                </span>
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
+                                  <span class="home-edge-unknown-tile-kicker">Spam fatigue</span>
+                                  <span class="home-edge-unknown-tile-title">Pre-foreclosure Texted for Months</span>
+                                  <span class="home-edge-unknown-tile-detail">Seller is annoyed and tuned out.</span>
+                                </span>
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              class="home-edge-unknown-tile"
+                              data-unknown-flip
+                              aria-pressed="false"
+                              aria-label="Reveal: Already Under Contract"
+                              data-story-kicker="Too late"
+                              data-story-title="Already Under Contract"
+                              data-story-body="Someone with fresher data locked it weeks ago. You&rsquo;re polishing a pitch for a deal that closed while the list was still in the warehouse."
+                            >
+                              <span class="home-edge-unknown-tile-inner">
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--front" aria-hidden="true">
+                                  <span class="home-edge-dossier-front">
+                                    <span class="home-edge-dossier-meta">Lead file · Redacted</span>
+                                    <span class="home-edge-dossier-addr">
+                                      <span class="home-edge-dossier-redact"></span>
+                                      <span class="home-edge-dossier-redact home-edge-dossier-redact--short"></span>
+                                    </span>
+                                    <span class="home-edge-dossier-fog"></span>
+                                    <span class="home-edge-dossier-mark">
+                                      <span class="home-edge-dossier-q">?</span>
+                                      <span class="home-edge-dossier-unknown">Unknown condition</span>
+                                    </span>
+                                  </span>
+                                </span>
+                                <span class="home-edge-unknown-tile-face home-edge-unknown-tile-face--back">
+                                  <span class="home-edge-unknown-tile-kicker">Too late</span>
+                                  <span class="home-edge-unknown-tile-title">Already Under Contract</span>
+                                  <span class="home-edge-unknown-tile-detail">Another wholesaler locked it weeks ago.</span>
+                                </span>
+                              </span>
+                            </button>
+                          </div>
+
+                          <div
+                            class="home-edge-unknown-story"
+                            data-unknown-story
+                            hidden
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="home-edge-story-title"
+                          >
+                            <button type="button" class="home-edge-unknown-story-close" data-unknown-story-close aria-label="Close story">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                            <p class="home-edge-unknown-story-kicker" data-unknown-story-kicker></p>
+                            <h3 class="home-edge-unknown-story-title" id="home-edge-story-title" data-unknown-story-title></h3>
+                            <p class="home-edge-unknown-story-body" data-unknown-story-body></p>
+                          </div>
+                        </div>
+                      </figure>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -345,9 +428,9 @@
         <section class="home-chapter home-chapter--thesis" aria-labelledby="home-thesis-title" data-phuglee-reveal-child>
           <div class="home-thesis-grid home-thesis-grid--feed">
             <div class="home-thesis-copy">
-              <p class="phuglee-eyebrow">What we do</p>
+              <p class="phuglee-eyebrow">Why We're Different</p>
               <h2 class="home-chapter-title" id="home-thesis-title">Leads this hot don't wait for aggregators.</h2>
-              <p class="home-chapter-lead">Think of that local flipper or wholesaler you follow — the one depositing assignments faster than you can count — and you're wondering how it's even possible. It's because these guys are not fishing in the same <em>red sea</em> as tens of thousands of other wholesalers fighting over the same burned lists, trying to win the lead lottery. They're in the <em>blue ocean</em> — drop a hook and catch. There is no secret in this industry. It's making enough offers to homeowners who <em>need</em> to sell. You can spam uninterested owners… or target the ones with obvious signs of distress.</p>
+              <p class="home-chapter-lead">Think of that local flipper or wholesaler you follow — the one depositing assignments faster than you can count. You're wondering how it's even possible. These guys aren't fishing in the same <em>red sea</em> as tens of thousands of other wholesalers. They're not fighting over the same burned lists or trying to win the lead lottery. They're in the <em>blue ocean</em> — drop a hook and catch. There is no secret in this industry. It's making enough offers to homeowners who <em>need</em> to sell. You can spam uninterested owners… or target the ones with obvious signs of distress.</p>
             </div>
             <aside class="home-thesis-feed" aria-label="Live distress signal feed">
               <div class="distress-monitor home-signal-monitor" data-home-monitor>
@@ -452,89 +535,6 @@
           </div>
         </section>
 
-        <section class="home-chapter home-chapter--pipeline" aria-labelledby="home-pipeline-title" data-phuglee-reveal-child>
-          <header class="home-pipeline-head">
-            <p class="phuglee-eyebrow" id="home-pipeline-title">The pipeline</p>
-            <h2 class="home-chapter-title home-chapter-title--sm">Collect. Filter. Analyze.</h2>
-            <p class="home-pipeline-lead">One lead. Three stamps. From clerk list to ranked dial — follow <strong>1842 W Culver St</strong>.</p>
-          </header>
-
-          <div class="home-story-strip" data-home-story aria-label="Pipeline story: Collect, Filter, Analyze">
-            <div class="home-story-bezel">
-              <div class="home-story-stages">
-                <article class="home-story-stage home-story-stage--collect">
-                  <header class="home-story-stage-head">
-                    <span class="home-story-stage-num">01</span>
-                    <span class="home-story-stage-name">Collect</span>
-                    <span class="home-story-stage-status">Clerk reply</span>
-                  </header>
-                  <div class="home-ui-preview home-ui-preview--collect home-ui-preview--story home-ui-preview--video">
-                    <div class="home-ui-preview-body home-collect-scene home-collect-scene--video">
-                      <video
-                        class="home-pipeline-video home-collect-video"
-                        src="/videos/collect.mp4"
-                        autoplay
-                        muted
-                        loop
-                        playsinline
-                        preload="metadata"
-                        aria-label="Collect: request the list from the clerk and receive records back"
-                      ></video>
-                    </div>
-                  </div>
-                  <p class="home-story-caption">Pulled straight from government sources — the freshest data available.</p>
-                </article>
-
-                <article class="home-story-stage home-story-stage--filter">
-                  <header class="home-story-stage-head">
-                    <span class="home-story-stage-num">02</span>
-                    <span class="home-story-stage-name">Filter</span>
-                    <span class="home-story-stage-status">Scrubbing</span>
-                  </header>
-                  <div class="home-ui-preview home-ui-preview--filter home-ui-preview--story home-ui-preview--video">
-                    <div class="home-ui-preview-body home-filter-scene home-filter-scene--video">
-                      <video
-                        class="home-pipeline-video home-filter-video"
-                        src="/videos/filter.mp4?v=2"
-                        autoplay
-                        muted
-                        loop
-                        playsinline
-                        preload="metadata"
-                        aria-label="Filter: remove weak types, low equity, and duplicates; keep the best leads"
-                      ></video>
-                    </div>
-                  </div>
-                  <p class="home-story-caption">Duplicates and non-distressed leads get cut — only real opportunities remain.</p>
-                </article>
-
-                <article class="home-story-stage home-story-stage--analyze">
-                  <header class="home-story-stage-head">
-                    <span class="home-story-stage-num">03</span>
-                    <span class="home-story-stage-name">Analyze</span>
-                    <span class="home-story-stage-status">Dial ready</span>
-                  </header>
-                  <div class="home-ui-preview home-ui-preview--analyze home-ui-preview--story home-ui-preview--video">
-                    <div class="home-ui-preview-body home-analyze-scene home-analyze-scene--video">
-                      <video
-                        class="home-pipeline-video home-analyze-video"
-                        src="/videos/analyze.mp4?v=1"
-                        autoplay
-                        muted
-                        loop
-                        playsinline
-                        preload="metadata"
-                        aria-label="Analyze: double-check property condition for hotter wholesale targets"
-                      ></video>
-                    </div>
-                  </div>
-                  <p class="home-story-caption">We double-check property condition so bad shape = hotter wholesale targets.</p>
-                </article>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <section class="home-chapter home-chapter--territory home-coverage home-coverage--compact" aria-labelledby="home-territory-title" data-phuglee-reveal-child>
           <header class="home-territory-head">
             <div class="home-territory-head-copy">
@@ -572,9 +572,35 @@
                   <span class="home-territory-live-badge">Live</span>
                   <ul class="home-map-legend home-map-legend--overlay" aria-label="Map legend">
                     <li><span class="home-map-swatch home-map-swatch--covered" aria-hidden="true"></span> Live</li>
-                    <li><span class="home-map-swatch home-map-swatch--pending" aria-hidden="true"></span> Soon</li>
+                    <li><span class="home-map-swatch home-map-swatch--pending" aria-hidden="true"></span> Coming soon</li>
                     <li><span class="home-map-swatch home-map-swatch--blocked" aria-hidden="true"></span> Blocked</li>
                   </ul>
+                  <div class="home-map-hover-tip" id="home-map-hover-tip" hidden aria-hidden="true"></div>
+                  <aside class="home-territory-dossier" id="home-territory-spotlight" hidden>
+                    <div class="home-territory-dossier-chrome">
+                      <span class="home-territory-dossier-stamp" id="home-spotlight-status">State</span>
+                      <button type="button" class="home-territory-dossier-close" id="home-spotlight-close" aria-label="Close state profile">×</button>
+                    </div>
+                    <div class="home-territory-spotlight-head">
+                      <h3 class="home-territory-spotlight-title" id="home-spotlight-title">—</h3>
+                      <p class="home-territory-spotlight-meta" id="home-spotlight-meta"></p>
+                    </div>
+                    <div class="home-territory-coming-soon" id="home-spotlight-coming-soon" hidden>
+                      <div class="home-territory-coming-soon-badge" aria-hidden="true">
+                        <span class="home-territory-coming-soon-pulse"></span>
+                        <span class="home-territory-coming-soon-label">Coming soon</span>
+                      </div>
+                      <p class="home-territory-coming-soon-title" id="home-spotlight-coming-title">New market on deck</p>
+                      <p class="home-territory-coming-soon-copy" id="home-spotlight-coming-copy">
+                        We're wiring this territory next. Same pipeline as live markets — stay ready.
+                      </p>
+                    </div>
+                    <div class="home-territory-city-list-wrap" id="home-spotlight-list-wrap" hidden>
+                      <p class="home-territory-city-list-label">Counties</p>
+                      <div class="home-territory-spotlight-cities home-territory-county-scroll" id="home-spotlight-cities" role="list"></div>
+                    </div>
+                    <p class="home-territory-spotlight-hint" id="home-spotlight-hint" hidden></p>
+                  </aside>
                   <span class="home-monitor-scan home-monitor-scan--map"></span>
                 </div>
 
@@ -587,54 +613,21 @@
                   </div>
                 </aside>
               </div>
-
-              <div class="coverage-dock is-collapsed" id="home-coverage-dock" aria-label="Coverage explorer">
-                <div class="coverage-dock-toolbar">
-                  <button type="button" class="coverage-dock-back" id="home-dock-back" hidden>← States</button>
-                  <label class="coverage-dock-search">
-                    <span class="sr-only">Search city, county, or state</span>
-                    <input type="search" id="home-dock-search-input" placeholder="Search city, county, or state…" autocomplete="off" />
-                  </label>
-                  <div class="coverage-dock-head">
-                    <h3 class="coverage-dock-title" id="home-dock-title">Explore territory</h3>
-                    <p class="coverage-dock-sub" id="home-dock-sub">Click a state or search</p>
-                  </div>
-                </div>
-                <div class="home-territory-spotlight" id="home-territory-spotlight" hidden>
-                  <div class="home-territory-spotlight-head">
-                    <h3 class="home-territory-spotlight-title" id="home-spotlight-title">—</h3>
-                    <p class="home-territory-spotlight-meta" id="home-spotlight-meta"></p>
-                  </div>
-                  <div class="home-territory-spotlight-cities" id="home-spotlight-cities"></div>
-                  <p class="home-territory-spotlight-hint" id="home-spotlight-hint"></p>
-                </div>
-                <div class="coverage-dock-body">
-                  <p class="coverage-dock-hint" id="home-dock-hint">Click any highlighted state to open its dossier. Select a city for the full profile.</p>
-                  <div class="coverage-dock-panel" id="home-dock-search" hidden>
-                    <div id="home-dock-search-list"></div>
-                  </div>
-                  <div class="coverage-dock-panel" id="home-dock-state" hidden>
-                    <div id="home-dock-counties"></div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
           <div class="home-territory-close" aria-label="Enter the platform">
-            <p class="home-close-proof" id="home-close-proof">Territory live. Same-day lists.</p>
             <button type="button" class="phuglee-btn phuglee-btn-primary home-close-cta" id="btn-heat-footer">
               Enter the Platform
             </button>
           </div>
         </section>
 
-      </div>
+        <footer class="home-footer">
+          <span class="home-footer-brand">PHUGLEE</span>
+        </footer>
 
-      <footer class="home-footer">
-        <span class="home-footer-brand">PHUGLEE</span>
-        <span class="home-footer-meta">Distress OS · Collect. Filter. Analyze.</span>
-      </footer>
+      </div>
 
     </div>
   </main>
@@ -642,14 +635,13 @@
   <script src="/js/phuglee-logo.js?v=2" defer></script>
   <script src="/js/phuglee-logo-ember.js?v=2" defer></script>
   <script src="/js/phuglee-motion.js" defer></script>
-  <script src="/js/home-coverage.js?v=11" defer></script>
-  <script src="/js/coverage/coverage-shared.js?v=1" defer></script>
-  <script src="/js/coverage/city-profile-modal.js?v=1" defer></script>
-  <script src="/js/home-coverage-explorer.js?v=11" defer></script>
-  <script src="/js/property-carousel-3d.js?v=17" defer></script>
+  <script src="/js/home-coverage.js?v=12" defer></script>
+  <script src="/js/coverage/coverage-shared.js?v=3" defer></script>
+  <script src="/js/home-coverage-explorer.js?v=23" defer></script>
+  <script src="/js/property-carousel-3d.js?v=18" defer></script>
   <script src="/js/home-below.js?v=10" defer></script>
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
-  <script src="/js/auth.js?v=10" defer></script>
+  <script src="/js/auth.js?v=13" defer></script>
 </body>
 </html>

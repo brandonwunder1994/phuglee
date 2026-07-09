@@ -8,9 +8,9 @@
   var openCityId = null;
 
   var TEASE_ROWS = [
-    '████ ██████ Ave · Distress signal tracked',
-    '████ ███ St · Code violation flagged',
-    '████ ██████ Blvd · Fresh lead updating'
+    { street: '14██ ██████ Ave', signal: 'Code violation · open' },
+    { street: '8██ ███ St', signal: 'Water shutoff · 7d' },
+    { street: '22██ ██████ Blvd', signal: 'Distress flag · new' }
   ];
 
   function isMember() {
@@ -23,12 +23,18 @@
     return false;
   }
 
-  function openLogin() {
-    if (global.PhugleeAuth && typeof global.PhugleeAuth.openLogin === 'function') {
-      global.PhugleeAuth.openLogin();
+  function openSignup() {
+    /* Close profile first so auth (plan picker + signup) is on top */
+    close();
+    if (global.PhugleeAuth && typeof global.PhugleeAuth.openSignup === 'function') {
+      global.PhugleeAuth.openSignup();
       return;
     }
-    window.location.href = '/?auth=login';
+    if (global.PhugleeAuth && typeof global.PhugleeAuth.openLogin === 'function') {
+      global.PhugleeAuth.openLogin('tiers');
+      return;
+    }
+    window.location.href = '/?auth=signup';
   }
 
   function apiBase() {
@@ -75,6 +81,10 @@
     return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   }
 
+  function escape(value) {
+    return shared ? shared.escapeHtml(value) : String(value);
+  }
+
   function ensureOverlay() {
     if (overlay) return overlay;
 
@@ -92,11 +102,8 @@
           '<h2 class="city-profile-title" id="city-profile-title"></h2>' +
           '<p class="city-profile-kicker" id="city-profile-kicker"></p>' +
           '<div class="city-profile-chips" id="city-profile-chips"></div>' +
-          '<p class="city-profile-section-title">What we pull</p>' +
-          '<ul class="city-profile-available" id="city-profile-available"></ul>' +
-          '<div class="city-profile-tease" id="city-profile-tease"></div>' +
+          '<div class="city-profile-content" id="city-profile-content"></div>' +
           '<div class="city-profile-actions" id="city-profile-actions"></div>' +
-          '<p class="city-profile-credit" id="city-profile-credit" hidden></p>' +
         '</div>' +
       '</article>';
 
@@ -115,6 +122,16 @@
     var hero = overlay.querySelector('#city-profile-hero');
     hero.innerHTML = '';
     var url = imageUrl(city, imageMeta);
+
+    var frame = document.createElement('div');
+    frame.className = 'city-profile-film-frame';
+    frame.setAttribute('aria-hidden', 'true');
+    frame.innerHTML =
+      '<span class="city-profile-film-corner city-profile-film-corner--tl"></span>' +
+      '<span class="city-profile-film-corner city-profile-film-corner--tr"></span>' +
+      '<span class="city-profile-film-corner city-profile-film-corner--bl"></span>' +
+      '<span class="city-profile-film-corner city-profile-film-corner--br"></span>';
+    hero.appendChild(frame);
 
     if (url) {
       var img = document.createElement('img');
@@ -136,8 +153,9 @@
   }
 
   function renderHeroFallback(city, hero) {
-    var existing = hero.querySelector('.city-profile-hero-gradient, .city-profile-hero-fallback-title');
-    if (existing) return;
+    if (hero.querySelector('.city-profile-hero-gradient')) return;
+    var existingImg = hero.querySelector('.city-profile-hero-img');
+    if (existingImg) existingImg.remove();
     var grad = document.createElement('div');
     grad.className = 'city-profile-hero-gradient';
     var title = document.createElement('div');
@@ -147,57 +165,55 @@
     hero.insertBefore(title, hero.firstChild);
   }
 
-  function escape(value) {
-    return shared ? shared.escapeHtml(value) : String(value);
+  function renderGuestContent(content) {
+    content.innerHTML =
+      '<div class="city-profile-tease">' +
+        '<div class="city-profile-tease-head">' +
+          '<p class="city-profile-section-title">Signal feed</p>' +
+          '<span class="city-profile-tease-lock">Members only</span>' +
+        '</div>' +
+        '<p class="city-profile-tease-copy">Live distress structure in this market. Unlock to dial.</p>' +
+        '<div class="city-profile-tease-rows city-profile-tease-rows--terminal">' +
+          TEASE_ROWS.map(function (row) {
+            return (
+              '<div class="city-profile-tease-row">' +
+                '<span class="city-profile-tease-street">' + escape(row.street) + '</span>' +
+                '<span class="city-profile-tease-signal">' + escape(row.signal) + '</span>' +
+              '</div>'
+            );
+          }).join('') +
+          '<div class="city-profile-tease-shimmer" aria-hidden="true"></div>' +
+        '</div>' +
+      '</div>';
   }
 
-  function renderAvailable(city) {
-    var list = overlay.querySelector('#city-profile-available');
-    list.innerHTML = '';
+  function renderMemberContent(city, content) {
     var isPortal = city.pin_type === 'portal';
     var items = isPortal
       ? ['Code violation lists', 'Water shutoff lists']
-      : ['Public records requests (FOIA)'];
-    items.forEach(function (text) {
-      var li = document.createElement('li');
-      li.textContent = text;
-      list.appendChild(li);
-    });
-  }
-
-  function renderTease(member) {
-    var tease = overlay.querySelector('#city-profile-tease');
-    if (member) {
-      tease.hidden = true;
-      tease.innerHTML = '';
-      return;
-    }
-
-    tease.hidden = false;
-    tease.innerHTML =
-      '<div class="city-profile-tease-head">' +
-        '<p class="city-profile-section-title">Live signal preview</p>' +
-        '<span class="city-profile-tease-lock">Members only</span>' +
-      '</div>' +
-      '<p class="city-profile-tease-copy">Distress signals tracked in this market. Fresh leads updating — unlock to dial.</p>' +
-      '<div class="city-profile-tease-rows">' +
-        TEASE_ROWS.map(function (row) {
-          return '<div class="city-profile-tease-row">' + escape(row) + '</div>';
+      : ['Public records requests (FOIA)', 'Completed form on file when available'];
+    content.innerHTML =
+      '<p class="city-profile-section-title">What we pull</p>' +
+      '<ul class="city-profile-available">' +
+        items.map(function (text) {
+          return '<li>' + escape(text) + '</li>';
         }).join('') +
-        '<div class="city-profile-tease-shimmer" aria-hidden="true"></div>' +
-      '</div>' +
-      '<div class="city-profile-tease-cta">' +
-        '<button type="button" class="city-profile-btn-primary" data-action="member">Become a member</button>' +
-      '</div>';
-
-    tease.querySelector('[data-action="member"]').addEventListener('click', openLogin);
+      '</ul>';
   }
 
   function renderActions(city, member) {
     var actions = overlay.querySelector('#city-profile-actions');
     actions.innerHTML = '';
 
-    if (!member) return;
+    if (!member) {
+      var cta = document.createElement('button');
+      cta.type = 'button';
+      cta.className = 'city-profile-btn-primary';
+      cta.textContent = 'Become a member';
+      cta.addEventListener('click', openSignup);
+      actions.appendChild(cta);
+      return;
+    }
 
     var isPortal = city.pin_type === 'portal';
     var portalUrl = city.url || city.portal_url || '';
@@ -222,21 +238,12 @@
       pdf.textContent = 'View completed form';
       actions.appendChild(pdf);
     }
-  }
 
-  function renderCredit(imageMeta) {
-    var credit = overlay.querySelector('#city-profile-credit');
-    if (!imageMeta || !imageMeta.credit) {
-      credit.hidden = true;
-      credit.textContent = '';
-      return;
-    }
-    credit.hidden = false;
-    if (imageMeta.credit_url) {
-      credit.innerHTML = 'Photo by <a href="' + escape(imageMeta.credit_url) + '" target="_blank" rel="noopener">' +
-        escape(imageMeta.credit) + '</a>' + (imageMeta.source ? ' on ' + escape(imageMeta.source) : '');
-    } else {
-      credit.textContent = 'Photo: ' + imageMeta.credit;
+    if (!actions.childNodes.length) {
+      var note = document.createElement('p');
+      note.className = 'city-profile-member-note';
+      note.textContent = 'Coverage confirmed. Open Collect / Filter to work this market.';
+      actions.appendChild(note);
     }
   }
 
@@ -246,23 +253,25 @@
     var county = shared && shared.cityCounty ? shared.cityCounty(data) : (data.county || '');
     var countyLabel = county && county !== 'Unknown County' ? county : '';
     var imageMeta = imageForCity(data);
+    var isPortal = data.pin_type === 'portal';
 
     overlay.querySelector('#city-profile-breadcrumb').textContent =
-      'United States · ' + data.state + (countyLabel ? ' · ' + countyLabel : '');
+      data.state + (countyLabel ? ' · ' + countyLabel : '');
     overlay.querySelector('#city-profile-title').textContent = data.city;
     overlay.querySelector('#city-profile-kicker').textContent =
-      (countyLabel ? countyLabel + ' · ' : '') + data.state + ' · Public records coverage';
+      isPortal ? 'Online portal · public records coverage' : 'FOIA form · public records coverage';
 
     var chips = overlay.querySelector('#city-profile-chips');
     chips.innerHTML = '';
-    var badge = document.createElement('span');
-    badge.className = 'city-profile-chip city-profile-chip--' + (data.pin_type === 'portal' ? 'portal' : 'live');
-    badge.textContent = data.pin_type === 'portal' ? 'Online Portal' : 'Records Form';
-    chips.appendChild(badge);
+
+    var typeChip = document.createElement('span');
+    typeChip.className = 'city-profile-chip city-profile-chip--' + (isPortal ? 'portal' : 'live');
+    typeChip.textContent = isPortal ? 'Portal' : 'FOIA';
+    chips.appendChild(typeChip);
 
     var live = document.createElement('span');
     live.className = 'city-profile-chip city-profile-chip--live';
-    live.textContent = data.pin_type === 'portal' ? 'Active data source' : 'Records access established';
+    live.textContent = 'Live';
     chips.appendChild(live);
 
     var since = formatSince(data.saved_at);
@@ -273,11 +282,12 @@
       chips.appendChild(sinceChip);
     }
 
+    var content = overlay.querySelector('#city-profile-content');
+    if (member) renderMemberContent(data, content);
+    else renderGuestContent(content);
+
     renderHero(data, imageMeta);
-    renderAvailable(data);
-    renderTease(member);
     renderActions(data, member);
-    renderCredit(imageMeta);
   }
 
   async function open(city, options) {

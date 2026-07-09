@@ -2,6 +2,10 @@
   'use strict';
 
   var HEALTH_TIMEOUT_MS = 8000;
+  var missionState = {
+    forgeUp: null,
+    analyzerUp: null
+  };
 
   function setModuleStatus(prefix, isUp) {
     var dot = document.getElementById(prefix + '-dot');
@@ -35,6 +39,54 @@
       });
   }
 
+  function readCoverageSnippet() {
+    var citiesEl = document.getElementById('command-city-count');
+    var statesEl = document.getElementById('command-state-count');
+    var cities = citiesEl && citiesEl.textContent ? citiesEl.textContent.trim() : '';
+    var states = statesEl && statesEl.textContent ? statesEl.textContent.trim() : '';
+    if (!cities || cities === '—' || !states || states === '—') return '';
+    return cities + ' cities · ' + states + ' states live. ';
+  }
+
+  function updateMissionFocus() {
+    var title = document.getElementById('command-mission-title');
+    var desc = document.getElementById('command-mission-desc');
+    var cta = document.getElementById('command-mission-cta');
+    if (!title || !desc || !cta) return;
+
+    var forgeUp = missionState.forgeUp;
+    var analyzerUp = missionState.analyzerUp;
+    var coverage = readCoverageSnippet();
+
+    // Default: work-first Collect
+    var next = {
+      title: 'Hit the Clerk',
+      desc: coverage
+        ? coverage + 'Pull fresh lists at the clerk before aggregators dilute them.'
+        : 'Pull fresh lists at the clerk before aggregators dilute them.',
+      href: '/collect',
+      cta: 'Open Collect →'
+    };
+
+    if (forgeUp === false && analyzerUp === false) {
+      next.desc =
+        'Forge and Analyze are offline. You can still open Collect when modules recover — check status on the right.';
+    } else if (forgeUp === false) {
+      next.desc =
+        (coverage || '') +
+        'Request tooling is offline — tracker/PDF may fail. Hit the clerk path still opens Collect.';
+    } else if (analyzerUp === false) {
+      next.desc =
+        (coverage || '') +
+        'Analyze is offline — you can still collect and scrub. Rank & dial when it recovers.';
+    }
+
+    title.textContent = next.title;
+    desc.textContent = next.desc;
+    cta.setAttribute('href', next.href);
+    cta.textContent = next.cta;
+  }
+
   function pollHealth() {
     setModuleStatus('command-forge', null);
     setModuleStatus('command-analyzer', null);
@@ -46,13 +98,35 @@
       })
       .then(function (data) {
         var modules = (data && data.modules) || {};
-        setModuleStatus('command-forge', modules.formForge === 'up');
-        setModuleStatus('command-analyzer', modules.propertyAnalyzer === 'up');
+        var forgeUp = modules.formForge === 'up';
+        var analyzerUp = modules.propertyAnalyzer === 'up';
+        missionState.forgeUp = forgeUp;
+        missionState.analyzerUp = analyzerUp;
+        setModuleStatus('command-forge', forgeUp);
+        setModuleStatus('command-analyzer', analyzerUp);
+        updateMissionFocus();
       })
       .catch(function () {
+        missionState.forgeUp = false;
+        missionState.analyzerUp = false;
         setModuleStatus('command-forge', false);
         setModuleStatus('command-analyzer', false);
+        updateMissionFocus();
       });
+  }
+
+  function watchCoverageCounts() {
+    var citiesEl = document.getElementById('command-city-count');
+    if (!citiesEl || typeof MutationObserver === 'undefined') return;
+
+    var obs = new MutationObserver(function () {
+      updateMissionFocus();
+    });
+    obs.observe(citiesEl, { childList: true, characterData: true, subtree: true });
+    var statesEl = document.getElementById('command-state-count');
+    if (statesEl) {
+      obs.observe(statesEl, { childList: true, characterData: true, subtree: true });
+    }
   }
 
   function hideShellLoading() {
@@ -67,6 +141,8 @@
 
   function init() {
     hideShellLoading();
+    updateMissionFocus();
+    watchCoverageCounts();
     pollHealth();
     window.setInterval(pollHealth, 30000);
     window.addEventListener('pageshow', hideShellLoading);

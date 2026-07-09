@@ -28,8 +28,9 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/hub.css?v=2">
+  <link rel="stylesheet" href="/css/hub.css?v=3">
   <link rel="stylesheet" href="/css/distress-heat-v2.css?v=2">
+  <link rel="stylesheet" href="/css/home-ui-preview.css?v=14">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -55,73 +56,96 @@
     <header class="hub-hero" data-phuglee-reveal-child>
       <p class="hub-eyebrow">How It Works</p>
       <h1 class="hub-title">Leads this hot don't wait for aggregators.</h1>
-      <p class="hub-lead hub-lead-wide">We pull lists straight from city and county clerks — not data warehouses that drip the same properties to thousands of wholesalers weeks later. You get distress signals <em>while the list is still premium.</em></p>
+      <p class="hub-lead hub-lead-wide">Clerk lists same day — not warehouse drips weeks later. Follow one address through the pipeline.</p>
     </header>
 
-    <section class="hub-vs-grid" aria-label="Fresh leads versus aggregators" data-phuglee-reveal-child>
-      <div class="hub-vs-panel hub-vs-panel--fresh distress-glass-card">
+    <section class="hub-edge-proof" aria-label="Fresh leads versus aggregators" data-phuglee-reveal-child>
+      <div class="hub-edge-proof-fresh">
         <span class="hub-vs-badge">Your edge</span>
-        <h2 class="hub-vs-title">Phuglee pipeline</h2>
-        <p>City clerk → your inbox → Filter scrubs → Analyze ranks → you dial.</p>
-        <p><strong>Same day.</strong> Premium list before they're diluted.</p>
+        <h2 class="hub-vs-title">Today</h2>
+        <p class="hub-edge-proof-addr">1842 W Culver St · Violation · <strong>New</strong></p>
+        <p><strong>Same day.</strong> Premium list before it's diluted.</p>
       </div>
-      <div class="hub-vs-panel hub-vs-panel--stale distress-glass-card">
+      <div class="hub-edge-proof-stale">
         <span class="hub-vs-badge">Everyone else</span>
-        <h2 class="hub-vs-title">Aggregator drip</h2>
-        <p>Portal scrape → data warehouse → sold to thousands of wholesalers → skip traced to death.</p>
-        <p><strong>Weeks.</strong> Same properties. Thousands of wholesalers. Dead on arrival.</p>
+        <h2 class="hub-vs-title">Weeks later</h2>
+        <p class="hub-edge-proof-addr">1842 W Culver St · 3 wks · 12 platforms</p>
+        <p><strong>Dead on arrival.</strong> Skip-traced by dozens.</p>
       </div>
     </section>
 
-    <nav class="distress-pipeline-rail distress-glass" aria-label="Pipeline overview" data-phuglee-reveal-child>
-      <div class="distress-pipeline-node">
-        <span class="distress-pipeline-num">01</span>
-        <span class="distress-pipeline-label">Collect</span>
-        <span class="distress-pipeline-sub">Public records</span>
-      </div>
-      <div class="distress-pipeline-node">
-        <span class="distress-pipeline-num">02</span>
-        <span class="distress-pipeline-label">Filter</span>
-        <span class="distress-pipeline-sub">Scrub &amp; tag</span>
-      </div>
-      <div class="distress-pipeline-node">
-        <span class="distress-pipeline-num">03</span>
-        <span class="distress-pipeline-label">Analyze</span>
-        <span class="distress-pipeline-sub">AI + human</span>
-      </div>
-    </nav>
-
-    <section class="hub-mockups" aria-label="Distress OS tools" data-phuglee-reveal-child>
-      <div class="distress-monitor">
-        <div class="distress-monitor-screen">
-          <div class="hub-mockup-ui" aria-hidden="true">
-            <div class="hub-mockup-bar"></div>
-            <div class="hub-mockup-line w80"></div>
-            <div class="hub-mockup-line w60"></div>
-            <div class="hub-mockup-block"></div>
-          </div>
+    <section class="hub-playbook-frames home-story-strip" aria-label="Pipeline frames" data-phuglee-reveal-child>
+      <div class="home-story-bezel">
+        <div class="home-story-thread">
+          <span class="home-story-thread-label">Playbook</span>
+          <strong class="home-story-thread-addr">1842 W Culver St</strong>
+          <span class="home-story-thread-meta">Collect → Filter → Analyze</span>
         </div>
-        <p class="hub-mockup-caption">Collect</p>
-      </div>
-      <div class="distress-monitor">
-        <div class="distress-monitor-screen">
-          <div class="hub-mockup-ui" aria-hidden="true">
-            <div class="hub-mockup-bar"></div>
-            <div class="hub-mockup-line w60"></div>
-            <div class="hub-mockup-block hub-mockup-block--green"></div>
-          </div>
+        <div class="home-story-stages">
+          <article class="home-story-stage home-story-stage--collect">
+            <header class="home-story-stage-head">
+              <span class="home-story-stage-num">01</span>
+              <span class="home-story-stage-name">Collect</span>
+            </header>
+            <div class="home-ui-preview home-ui-preview--collect home-ui-preview--story home-ui-preview--video">
+              <div class="home-ui-preview-body home-collect-scene home-collect-scene--video">
+                <video
+                  class="home-pipeline-video home-collect-video"
+                  src="/videos/collect.mp4"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                  aria-label="Collect: request the list from the clerk and receive records back"
+                ></video>
+              </div>
+            </div>
+            <p class="home-story-caption">Pulled straight from government sources — the freshest data available.</p>
+          </article>
+          <article class="home-story-stage home-story-stage--filter">
+            <header class="home-story-stage-head">
+              <span class="home-story-stage-num">02</span>
+              <span class="home-story-stage-name">Filter</span>
+            </header>
+            <div class="home-ui-preview home-ui-preview--filter home-ui-preview--story home-ui-preview--video">
+              <div class="home-ui-preview-body home-filter-scene home-filter-scene--video">
+                <video
+                  class="home-pipeline-video home-filter-video"
+                  src="/videos/filter.mp4?v=2"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                  aria-label="Filter: remove weak types, low equity, and duplicates; keep the best leads"
+                ></video>
+              </div>
+            </div>
+            <p class="home-story-caption">Duplicates and non-distressed leads get cut — only real opportunities remain.</p>
+          </article>
+          <article class="home-story-stage home-story-stage--analyze">
+            <header class="home-story-stage-head">
+              <span class="home-story-stage-num">03</span>
+              <span class="home-story-stage-name">Analyze</span>
+            </header>
+            <div class="home-ui-preview home-ui-preview--analyze home-ui-preview--story home-ui-preview--video">
+              <div class="home-ui-preview-body home-analyze-scene home-analyze-scene--video">
+                <video
+                  class="home-pipeline-video home-analyze-video"
+                  src="/videos/analyze.mp4?v=1"
+                  autoplay
+                  muted
+                  loop
+                  playsinline
+                  preload="metadata"
+                  aria-label="Analyze: double-check property condition for hotter wholesale targets"
+                ></video>
+              </div>
+            </div>
+            <p class="home-story-caption">We double-check property condition so bad shape = hotter wholesale targets.</p>
+          </article>
         </div>
-        <p class="hub-mockup-caption">Filter</p>
-      </div>
-      <div class="distress-monitor">
-        <div class="distress-monitor-screen">
-          <div class="hub-mockup-ui" aria-hidden="true">
-            <div class="hub-mockup-bar"></div>
-            <div class="hub-mockup-line w45"></div>
-            <div class="hub-mockup-block hub-mockup-block--gold"></div>
-          </div>
-        </div>
-        <p class="hub-mockup-caption">Analyze</p>
       </div>
     </section>
 
@@ -130,8 +154,7 @@
       <div class="hub-hotspot-inner phuglee-panel premium-panel">
         <span class="premium-panel-grain" aria-hidden="true"></span>
         <h2 class="hub-hotspot-title">Where the heat comes from</h2>
-        <p>These aren't cold lists scraped off a portal. They're real distress signals pulled from public records — code violations, water shutoffs for delinquency, probates that need to sell, foreclosures facing auction with a strict timeline, tax liens, and upcoming tax sales.</p>
-        <p>Instead of manually hunting through tens of thousands of records hoping someone wants to sell, we hand you properties that are <strong>already in distress</strong> for a variety of reasons. We provide the leads — closing them is on you — but we get you dramatically closer to a deal than starting from scratch.</p>
+        <p>Real distress signals from public records — not cold portal scrapes. Properties already in pressure.</p>
         <ul class="hub-signal-list">
           <li>Code violations</li>
           <li>Water shutoffs</li>
@@ -151,8 +174,8 @@
       <article class="hub-step">
         <div class="hub-step-num" aria-hidden="true">01</div>
         <div class="hub-step-body">
-          <h3>Collect leads at the source</h3>
-          <p>Request public records directly from cities and counties. While data aggregators make you wait weeks for stale lists everyone else is buying, you're getting fresh leads right from the source — your edge on the competition starts here.</p>
+          <h3>Hit the clerk</h3>
+          <p>Request public records from cities and counties while aggregators are still waiting on warehouse drips.</p>
           <a href="/collect" class="hub-btn hub-btn-primary phuglee-btn phuglee-btn-primary">Start Collecting</a>
         </div>
       </article>
@@ -160,9 +183,8 @@
       <article class="hub-step">
         <div class="hub-step-num" aria-hidden="true">02</div>
         <div class="hub-step-body">
-          <h3>Scrub with Filter</h3>
-          <p>When the city sends data back, drop it in — Excel, CSV, PDF, photos, whatever they throw at you. Filter normalizes it into a clean spreadsheet: address, city, state, zip, violation type, dates, and more.</p>
-          <p>Long descriptions? We read through them and cut anything that isn't a real distress signal. What's left is a scrubbed list of actual opportunities — ready to filter and skip trace.</p>
+          <h3>Scrub the mess</h3>
+          <p>Drop in Excel, CSV, PDF, or photos. Filter normalizes addresses, tags real distress, and drops junk.</p>
           <a href="/bridge" class="hub-btn hub-btn-ghost phuglee-btn phuglee-btn-secondary">Open Filter</a>
           <div class="hub-filter-box">
             <p class="hub-filter-label">Recommended filters after import</p>
@@ -179,9 +201,8 @@
       <article class="hub-step">
         <div class="hub-step-num" aria-hidden="true">03</div>
         <div class="hub-step-body">
-          <h3>Analyze with AI — verified by humans</h3>
-          <p>Take your refined list and import it into whatever software you normally use for real estate data. Apply your filters, skip trace, then reimport into Analyze.</p>
-          <p>Our AI reviews each property and classifies distress level — then a second layer of human review double-checks the AI. AI is incredible, but it can't be the sole source of truth when you need premium lead flow and deals that haven't officially hit the market yet.</p>
+          <h3>Rank &amp; dial</h3>
+          <p>AI + human review tiers Street View distress so you call the hottest deals first.</p>
           <a href="/analyzer/" class="hub-btn hub-btn-primary phuglee-btn phuglee-btn-primary">Open Analyze</a>
         </div>
       </article>

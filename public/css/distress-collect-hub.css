@@ -3,39 +3,210 @@
 .collect-hub {
   position: relative;
   z-index: 1;
-  max-width: 1040px;
+  max-width: 920px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 3.5rem;
+  padding: 1.75rem 1.5rem 3rem;
 }
 
 .collect-hub-hero {
-  text-align: center;
-  margin-bottom: 2rem;
+  text-align: left;
+  margin-bottom: 1.35rem;
 }
 
 .collect-hub-step {
   font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--phuglee-orange);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.45rem;
 }
 
+.collect-hub-title {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 9vw, 4rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.05;
+  color: var(--phuglee-cream);
+}
+
+/* legacy class if referenced elsewhere */
 .collect-hub-hero .landing-title {
-  font-size: clamp(2.5rem, 9vw, 4.5rem);
-  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: clamp(2.4rem, 9vw, 4rem);
+  color: var(--phuglee-cream);
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
 }
 
+.collect-hub-lead,
 .collect-hub-hero .premium-tagline {
-  max-width: 540px;
-  margin: 0.75rem auto 0;
+  max-width: 36rem;
+  margin: 0;
   font-size: 1rem;
   line-height: 1.6;
   color: var(--phuglee-taupe-mid);
+}
+
+/* Work-first desk — primary owns the page */
+.collect-desk {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(200px, 0.85fr);
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1.75rem;
+}
+
+.collect-desk-primary {
+  border: 1px solid color-mix(in oklab, var(--phuglee-orange) 32%, transparent);
+  background: var(--glass-fill-elevated);
+}
+
+.collect-desk-primary.phuglee-panel {
+  padding: 1.6rem 1.6rem 1.65rem;
+  box-shadow: var(--glass-shadow-float);
+}
+
+.collect-desk-primary.phuglee-panel:hover {
+  transform: none;
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-featured);
+}
+
+.collect-desk-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+}
+
+.collect-desk-primary-title {
+  margin: 0 0 0.55rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.75rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+.collect-desk-primary-desc {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--phuglee-taupe-mid);
+  max-width: 34rem;
+}
+
+.collect-desk-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+}
+
+.collect-desk-channels li {
+  padding: 0.3rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.collect-desk-cta {
+  min-width: 12rem;
+}
+
+.collect-desk-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.collect-desk-tracker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.2rem 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius, 14px);
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+  transition:
+    border-color var(--card-duration, 0.28s) ease,
+    background var(--card-duration, 0.28s) ease,
+    box-shadow var(--card-duration, 0.28s) ease,
+    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+.collect-desk-tracker:hover {
+  border-color: var(--glass-border-hover);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
+  transform: translateY(-2px);
+}
+
+.collect-desk-tracker-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.collect-desk-tracker-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+.collect-desk-tracker-desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--phuglee-taupe-mid);
+}
+
+.collect-desk-tracker-cta {
+  margin-top: 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  transition: color 0.2s ease, text-shadow 0.2s ease, letter-spacing 0.2s ease;
+}
+
+.collect-desk-tracker:hover .collect-desk-tracker-cta {
+  color: var(--phuglee-gold);
+  text-shadow: 0 0 16px rgba(229, 132, 53, 0.35);
+  letter-spacing: 0.14em;
+}
+
+@media (max-width: 720px) {
+  .collect-desk {
+    grid-template-columns: 1fr;
+  }
+
+  .collect-desk-cta {
+    width: 100%;
+  }
 }
 
 /* Proof rail */
@@ -46,7 +217,7 @@
   padding: 0;
   overflow: hidden;
   margin-bottom: 2rem;
-  background: rgba(40, 40, 39, 0.82);
+  background: var(--glass-fill);
 }
 
 .collect-proof-rail.phuglee-panel {
@@ -55,7 +226,8 @@
 
 .collect-proof-rail.phuglee-panel:hover {
   transform: none;
-  border-color: var(--border);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
 .collect-proof-rail.phuglee-panel::before {
@@ -171,100 +343,7 @@
   color: var(--phuglee-taupe-mid);
 }
 
-/* Primary action tiles */
-.collect-hub-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2.25rem;
-  max-width: 720px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.collect-hub-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.6rem;
-  padding: 1.35rem 1.4rem;
-  text-align: left;
-  border: none;
-  font-family: inherit;
-  color: inherit;
-  width: 100%;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    border-color 0.25s ease,
-    transform 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-.collect-hub-tile.phuglee-panel {
-  padding: 1.35rem 1.4rem;
-}
-
-.collect-hub-tile.phuglee-panel:hover,
-.collect-hub-tile.is-interactive:hover {
-  transform: translateX(5px);
-  border-color: var(--border-hot);
-  box-shadow: var(--shadow-panel), var(--shadow-glow-orange);
-}
-
-.collect-hub-tile-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-md);
-  color: var(--phuglee-orange);
-  background: rgba(229, 132, 53, 0.12);
-  border: 1px solid rgba(229, 132, 53, 0.28);
-  box-shadow: 0 0 20px rgba(229, 132, 53, 0.1);
-}
-
-.collect-hub-tile-icon svg {
-  width: 1.2rem;
-  height: 1.2rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.collect-hub-tile--map .collect-hub-tile-icon {
-  color: var(--phuglee-gold);
-  background: rgba(238, 183, 70, 0.1);
-  border-color: rgba(238, 183, 70, 0.3);
-  box-shadow: 0 0 20px rgba(238, 183, 70, 0.1);
-}
-
-.collect-hub-tile--tracker .collect-hub-tile-icon {
-  color: var(--phuglee-cream);
-  background: rgba(174, 163, 143, 0.1);
-  border-color: rgba(174, 163, 143, 0.25);
-}
-
-.collect-hub-tile-title {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--phuglee-cream);
-}
-
-.collect-hub-tile-desc {
-  font-size: 0.84rem;
-  line-height: 1.55;
-  color: var(--phuglee-taupe-mid);
-  margin: 0;
-  flex: 1;
-}
-
+/* Retired peer-tile hub (M5) — keep minimal CTA fallback if legacy markup appears */
 .collect-hub-tile-cta {
   margin-top: auto;
   padding-top: 0.35rem;
@@ -337,42 +416,50 @@
 
 .collect-tool-card.phuglee-panel:hover,
 .collect-tool-card.is-interactive:hover {
-  transform: translateY(-2px);
-  border-color: rgba(229, 132, 53, 0.35);
-  box-shadow: var(--shadow-glow-orange);
+  transform: translateY(-3px) scale(1.01);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold);
 }
 
 .collect-tool-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  color: var(--phuglee-orange);
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 10px;
+  color: var(--phuglee-gold);
+  background:
+    linear-gradient(145deg, rgba(229, 132, 53, 0.16), rgba(238, 183, 70, 0.04));
+  border: 1px solid rgba(238, 183, 70, 0.28);
+  box-shadow:
+    0 0 18px rgba(229, 132, 53, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .collect-tool-icon svg {
-  width: 1.1rem;
-  height: 1.1rem;
+  width: 1.05rem;
+  height: 1.05rem;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.75;
+  stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(229, 132, 53, 0.35));
 }
 
 .collect-tool-name {
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--phuglee-cream);
 }
 
 .collect-tool-desc {
-  font-size: 0.72rem;
-  line-height: 1.45;
-  color: var(--phuglee-stone);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-muted);
 }
 
 .collect-hub-trust {

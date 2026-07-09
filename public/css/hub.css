@@ -181,6 +181,48 @@
   font-weight: 600;
 }
 
+/* Asymmetric edge proof (M5 slim playbook) */
+.hub-edge-proof {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+}
+
+.hub-edge-proof-fresh,
+.hub-edge-proof-stale {
+  padding: 1.2rem 1.3rem;
+  border-radius: var(--card-radius, 14px);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+}
+
+.hub-edge-proof-fresh {
+  border-color: color-mix(in oklab, var(--phuglee-orange) 38%, transparent);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
+}
+
+.hub-edge-proof-addr {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85rem;
+  color: var(--phuglee-cream);
+  margin: 0.35rem 0 0.5rem;
+}
+
+.hub-playbook-frames {
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 720px) {
+  .hub-edge-proof {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Hotspot intro panel */
 .hub-hotspot {
   position: relative;

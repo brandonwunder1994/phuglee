@@ -68,9 +68,21 @@
   box-shadow: 0 0 20px rgba(229, 132, 53, 0.12);
 }
 
-.shell-settings-trigger svg {
-  width: 1.1rem;
-  height: 1.1rem;
+.shell-settings-trigger svg,
+.shell-settings-trigger .shell-settings-gear {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+}
+
+.shell-settings-trigger .shell-settings-gear {
+  /* Slight weight so the cog reads at nav scale */
+  stroke-width: 1.7;
+}
+
+.shell-settings-trigger:hover .shell-settings-gear,
+.shell-settings-trigger[aria-expanded="true"] .shell-settings-gear {
+  filter: drop-shadow(0 0 5px rgba(229, 132, 53, 0.35));
 }
 
 .shell-settings-dropdown {

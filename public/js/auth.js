@@ -222,7 +222,7 @@
 
     if (!fullName) return { ok: false, error: 'Full name is required.' };
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { ok: false, error: 'Enter a valid email address.' };
+      return { ok: false, error: 'Enter a valid contact address.' };
     }
     if (!username || username.length < 3) {
       return { ok: false, error: 'Username must be at least 3 characters.' };
@@ -249,7 +249,7 @@
       return users[k].email === email;
     });
     if (takenEmail) {
-      return { ok: false, error: 'An account with this email already exists.' };
+      return { ok: false, error: 'An account with this contact already exists.' };
     }
 
     users[username] = {
@@ -316,7 +316,7 @@
                 '</div>' +
                 '<form class="auth-form" id="auth-login-form" novalidate>' +
                   '<div class="auth-field">' +
-                    '<label for="auth-login-username">Email or username</label>' +
+                    '<label for="auth-login-username">Username</label>' +
                     '<input type="text" id="auth-login-username" name="username" autocomplete="username" required>' +
                   '</div>' +
                   '<div class="auth-field">' +
@@ -355,7 +355,7 @@
                     '<input type="text" id="auth-signup-name" name="fullName" autocomplete="name" required>' +
                   '</div>' +
                   '<div class="auth-field">' +
-                    '<label for="auth-signup-email">Email</label>' +
+                    '<label for="auth-signup-email">Contact</label>' +
                     '<input type="email" id="auth-signup-email" name="email" autocomplete="email" required>' +
                   '</div>' +
                   '<div class="auth-field">' +
@@ -458,7 +458,6 @@
     if (window.PhugleeGuide && typeof window.PhugleeGuide.close === 'function') {
       window.PhugleeGuide.close();
     }
-
     var overlay = $('#auth-overlay');
     if (!overlay) return;
     overlay.hidden = false;
@@ -466,10 +465,21 @@
     document.body.classList.add('auth-modal-open');
 
     if (preferredView === 'tiers' || preferredView === 'signup') {
+      if (preferredView === 'tiers') {
+        state.selectedPlan = null;
+        document.querySelectorAll('.auth-pricing-card').forEach(function (btn) {
+          btn.classList.remove('is-selected');
+          btn.setAttribute('aria-pressed', 'false');
+        });
+      }
       showView(preferredView === 'signup' && state.selectedPlan ? 'signup' : 'tiers');
     } else {
       resetModalState();
     }
+  }
+
+  function openSignup() {
+    openModal('tiers');
   }
 
   function closeModal() {
@@ -620,7 +630,7 @@
         var remember = ($('#auth-remember') || {}).checked;
 
         if (!username.trim()) {
-          showError($('#auth-login-error'), 'Enter your username or email.');
+          showError($('#auth-login-error'), 'Enter your username.');
           return;
         }
         if (!password) {
@@ -745,8 +755,13 @@
       });
     }
 
-    if ((wantsLogin || signedOut) && !isAuthenticated()) {
-      openModal();
+    var wantsSignup =
+      params.get('auth') === 'signup' ||
+      params.get('signup') === '1' ||
+      params.get('auth') === 'tiers';
+
+    if ((wantsLogin || signedOut || wantsSignup) && !isAuthenticated()) {
+      openModal(wantsSignup ? 'tiers' : undefined);
       var cleanUrl = '/';
       if (params.get('return')) {
         cleanUrl = '/?return=' + encodeURIComponent(params.get('return'));
@@ -778,6 +793,7 @@
       );
     },
     openLogin: openModal,
+    openSignup: openSignup,
     closeLogin: closeModal
   };
 

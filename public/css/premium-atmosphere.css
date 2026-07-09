@@ -19,7 +19,7 @@
 
 .premium-bg-photo {
   z-index: 0;
-  background: url('/images/ugly-house.jpg') center 16% / cover no-repeat;
+  background: url('/images/home-hero-distressed.jpg') center 42% / cover no-repeat;
   opacity: var(--premium-photo-opacity, 0.32);
   filter: grayscale(22%) contrast(1.16) brightness(0.5) saturate(0.74);
 }

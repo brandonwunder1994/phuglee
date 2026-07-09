@@ -222,12 +222,6 @@
     document.querySelectorAll('[data-coverage-city-count]').forEach(function (el) {
       el.textContent = cityLabel;
     });
-
-    var closeProof = document.getElementById('home-close-proof');
-    if (closeProof) {
-      closeProof.textContent =
-        cityLabel + ' cities · ' + stateLabel + ' states. Same-day lists.';
-    }
   }
 
   function updateMapSummary(summaryId, stats) {

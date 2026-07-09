@@ -421,10 +421,11 @@ body.home-page.logo-page .landing-actions {
 
 .home-chapter-title--sm {
   font-size: clamp(1.25rem, 3.5vw, 1.65rem);
-  background: none;
-  -webkit-background-clip: unset;
-  background-clip: unset;
-  color: var(--phuglee-cream);
+  /* Same cream → orange gradient as full chapter titles */
+  background: linear-gradient(180deg, var(--phuglee-cream) 15%, var(--phuglee-orange) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .home-chapter-lead {
@@ -852,6 +853,14 @@ body.home-page.logo-page .landing-actions {
   z-index: 3;
 }
 
+.home-territory-screen--explorer .home-map-hover-tip {
+  z-index: 4;
+}
+
+.home-territory-screen--explorer .home-territory-dossier {
+  z-index: 5;
+}
+
 /* Corner brackets — command display */
 .home-territory-corners {
   position: absolute;
@@ -1046,33 +1055,24 @@ body.home-page.logo-page .landing-actions {
   background: rgba(229, 132, 53, 0.25);
 }
 
-/* Fused close band — tight peak-end */
+/* Fused close band — centered CTA under map */
 .home-territory-close {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.65rem 1rem;
+  width: 100%;
   text-align: center;
-  padding: 0.85rem 0.5rem 0.15rem;
-  margin-top: 0.15rem;
-}
-
-.home-close-proof {
-  max-width: 28rem;
-  margin: 0;
-  text-align: center;
-  font-family: var(--font-display);
-  font-size: clamp(0.95rem, 2.2vw, 1.2rem);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1.2;
-  color: var(--phuglee-cream);
+  padding: 1rem 0.5rem 0.25rem;
+  margin-top: 0.25rem;
 }
 
 .home-territory-close .home-close-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 2.5rem;
   min-width: min(100%, 14rem);
+  margin-inline: auto;
   padding-inline: 1.25rem;
 }
 
@@ -1378,16 +1378,23 @@ body.home-page.logo-page .landing-actions {
   color: var(--phuglee-stone);
 }
 
-/* ── Footer ── */
+/* ── Footer — sits inside home-below-hero so scrim covers it uniformly ── */
 .home-footer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 0.75rem;
-  padding: 1.75rem 0 1rem;
-  border-top: 1px solid rgba(174, 163, 143, 0.15);
-  margin-top: 1.5rem;
+  padding: 2rem 0 1.75rem;
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  border-top: 1px solid rgba(174, 163, 143, 0.12);
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+body.home-page .home-below-hero {
+  padding-bottom: 0.25rem;
 }
 
 .home-footer-brand {

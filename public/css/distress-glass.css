@@ -1,61 +1,89 @@
-/* Distress OS — glass elevation system (look only) */
+/* Distress OS — premium glass elevation system (look only) */
 
 .distress-glass {
-  background: var(--glass-bg);
+  background: var(--glass-fill);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border-radius: var(--card-radius, 14px);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
 }
 
 .distress-glass--float {
-  background: var(--glass-bg-elevated);
+  background: var(--glass-fill-elevated);
   box-shadow: var(--glass-shadow-float);
 }
 
 .distress-glass--chrome {
   background: var(--glass-bg-chrome);
   border-color: var(--glass-border-chrome);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
 }
 
 .distress-solid-zone {
   background: var(--zone-solid-bg);
   border: 1px solid var(--zone-solid-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius, 14px);
 }
 
+/* ── Primary glass card primitive ── */
 .distress-glass-card {
   position: relative;
-  padding: 1.35rem 1.5rem;
-  border-radius: var(--radius-lg);
-  background: var(--glass-bg);
+  isolation: isolate;
+  padding: var(--card-pad-y, 1.5rem) var(--card-pad-x, 1.65rem);
+  border-radius: var(--card-radius, 14px);
+  background: var(--glass-fill);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(18px) saturate(130%);
-  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   box-shadow: var(--glass-shadow);
+  overflow: hidden;
   transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease,
-    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    border-color var(--card-duration, 0.28s) ease,
+    box-shadow var(--card-duration, 0.28s) ease,
+    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    background var(--card-duration, 0.28s) ease;
 }
 
+/* Soft ambient + grain */
 .distress-glass-card::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--phuglee-gold),
-    var(--phuglee-orange),
-    transparent
-  );
-  opacity: 0.7;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  inset: 0;
   pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 85% 50% at 50% -8%, rgba(229, 132, 53, 0.09), transparent 55%),
+    repeating-linear-gradient(
+      -3deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.008) 3px,
+      rgba(255, 255, 255, 0.008) 4px
+    );
+  z-index: 0;
+}
+
+/* Hairline gold top edge */
+.distress-glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: var(--glass-edge-shine);
+  opacity: 0.9;
+  box-shadow: 0 0 16px rgba(229, 132, 53, 0.22);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: var(--card-radius, 14px) var(--card-radius, 14px) 0 0;
+}
+
+.distress-glass-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .distress-glass-card:hover {
@@ -68,11 +96,119 @@
 }
 
 .distress-glass-card.is-interactive:hover {
-  transform: translateY(-3px);
+  transform: translateY(-3px) scale(1.008);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold);
 }
 
 .distress-glass-card.is-interactive:active {
   transform: translateY(-1px) scale(0.995);
+}
+
+.distress-glass-card.is-selected,
+.distress-glass-card[aria-checked="true"],
+.distress-glass-card[data-selected="true"] {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+}
+
+.distress-glass-card.is-selected::after,
+.distress-glass-card[aria-checked="true"]::after,
+.distress-glass-card[data-selected="true"]::after {
+  left: 4%;
+  right: 4%;
+  opacity: 1;
+  box-shadow: 0 0 20px rgba(229, 132, 53, 0.35);
+}
+
+/* Compact / dense card */
+.distress-glass-card--compact {
+  padding: 1rem 1.15rem;
+  border-radius: 12px;
+}
+
+/* Featured / hero card */
+.distress-glass-card--featured {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+  padding: 1.75rem 1.85rem;
+}
+
+/* Icon chip for elegant icons inside glass cards */
+.distress-glass-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  color: var(--phuglee-gold);
+  background:
+    linear-gradient(145deg, rgba(229, 132, 53, 0.16), rgba(238, 183, 70, 0.04));
+  border: 1px solid rgba(238, 183, 70, 0.28);
+  box-shadow:
+    0 0 20px rgba(229, 132, 53, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.distress-glass-icon--sm {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* Card title / meta helpers for consistent hierarchy */
+.distress-glass-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+}
+
+.distress-glass-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  color: var(--phuglee-cream);
+  text-wrap: balance;
+}
+
+.distress-glass-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.distress-glass-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  text-decoration: none;
+  transition: color 0.2s ease, gap 0.2s ease, text-shadow 0.2s ease;
+}
+
+.distress-glass-cta:hover {
+  color: var(--phuglee-gold);
+  gap: 0.55rem;
+  text-shadow: 0 0 18px rgba(229, 132, 53, 0.35);
 }
 
 .distress-monitor {
@@ -120,10 +256,13 @@
   align-items: stretch;
   gap: 0;
   margin: 2rem 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--card-radius, 14px);
   overflow: hidden;
   border: 1px solid var(--glass-border);
-  background: var(--glass-bg);
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
 }
 
 .distress-pipeline-node {
@@ -156,6 +295,7 @@
   color: var(--phuglee-orange);
   border: 1px solid rgba(229, 132, 53, 0.35);
   background: rgba(229, 132, 53, 0.1);
+  box-shadow: 0 0 16px rgba(229, 132, 53, 0.12);
   margin-bottom: 0.5rem;
 }
 

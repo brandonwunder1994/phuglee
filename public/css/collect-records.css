@@ -206,40 +206,41 @@ body.collect-page .collect-hub-grid {
 
 .collect-choice-body {
   display: block;
-  padding: 0.9rem 1rem;
-  border: 1px solid rgba(174, 163, 143, 0.16);
-  border-radius: var(--radius-md);
-  background: rgba(0, 0, 0, 0.28);
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius, 14px);
+  background: var(--glass-fill);
   transition:
-    border-color 0.25s ease,
-    background 0.25s ease,
-    box-shadow 0.25s ease,
-    transform 0.25s ease;
+    border-color var(--card-duration, 0.28s) ease,
+    background var(--card-duration, 0.28s) ease,
+    box-shadow var(--card-duration, 0.28s) ease,
+    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
 .collect-choice-body.distress-glass-card {
-  padding: 0.9rem 1rem;
+  padding: 1rem 1.15rem;
 }
 
 .collect-choice-body.distress-glass-card::before {
-  opacity: 0.5;
+  opacity: 0.85;
 }
 
 .collect-choice-body.distress-glass-card.is-interactive:hover {
-  transform: translateX(4px);
+  transform: translateY(-2px);
 }
 
 .collect-choice:hover .collect-choice-body {
-  border-color: rgba(229, 132, 53, 0.35);
-  transform: translateX(4px);
-  background: rgba(229, 132, 53, 0.05);
+  border-color: var(--glass-border-hover);
+  transform: translateY(-2px);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
 }
 
 .collect-choice input:checked + .collect-choice-body {
-  border-color: var(--phuglee-orange);
-  background: linear-gradient(165deg, rgba(229, 132, 53, 0.14) 0%, rgba(0, 0, 0, 0.32) 60%);
-  box-shadow: var(--shadow-glow-orange);
-  transform: translateX(6px);
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+  transform: translateY(-2px);
 }
 
 .collect-choice input:focus-visible + .collect-choice-body {
@@ -250,15 +251,16 @@ body.collect-page .collect-hub-grid {
 .collect-choice-title {
   display: block;
   font-weight: 600;
-  font-size: 0.95rem;
-  color: var(--text);
-  margin-bottom: 0.25rem;
+  font-size: 0.98rem;
+  letter-spacing: 0.01em;
+  color: var(--phuglee-cream);
+  margin-bottom: 0.3rem;
 }
 
 .collect-choice-desc {
   display: block;
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: 0.84rem;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 

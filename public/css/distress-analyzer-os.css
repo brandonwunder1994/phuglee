@@ -72,22 +72,30 @@ body.analyzer-embedded .panel-chrome {
 
 body.analyzer-embedded .analyze-panel.phuglee-panel,
 body.analyzer-embedded .empty-workspace.phuglee-panel {
-  background:
-    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 40%),
-    var(--phuglee-charcoal) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow-panel) !important;
+  background: var(--glass-fill) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
 }
 
 body.analyzer-embedded .prop-card.card-cyber {
-  border-radius: var(--radius-lg) !important;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+  border-radius: var(--card-radius, 14px) !important;
+  border: 1px solid var(--glass-border) !important;
+  background: var(--glass-fill) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+  box-shadow: var(--glass-shadow) !important;
+  transition:
+    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    box-shadow var(--card-duration, 0.28s) ease,
+    border-color var(--card-duration, 0.28s) ease !important;
 }
 
 body.analyzer-embedded .prop-card.card-cyber:hover {
-  transform: translateY(-4px) !important;
-  border-color: var(--border-hot) !important;
-  box-shadow: var(--shadow-panel), 0 0 28px rgba(229, 132, 53, 0.1) !important;
+  transform: translateY(-3px) scale(1.008) !important;
+  border-color: var(--glass-border-hover) !important;
+  box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold) !important;
 }
 
 body.analyzer-embedded .card-thumb {
@@ -119,9 +127,11 @@ body.analyzer-embedded .review-mode-overlay {
 
 body.analyzer-embedded .tool-modal-dialog,
 body.analyzer-embedded .cyber-dialog {
-  background: var(--phuglee-charcoal) !important;
-  border: 1px solid var(--border-hot) !important;
-  box-shadow: var(--shadow-panel) !important;
+  background: var(--glass-fill-elevated) !important;
+  border: 1px solid var(--glass-border-strong) !important;
+  box-shadow: var(--glass-shadow-float) !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
 }
 
 /* No shell footer or trust copy on Analyze — main nav is enough */

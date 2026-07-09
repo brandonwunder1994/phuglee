@@ -354,7 +354,7 @@ body.logo-page {
 .logo-page-photo {
   z-index: 0;
   background:
-    url('/images/ugly-house.jpg') center 16% / cover no-repeat;
+    url('/images/home-hero-distressed.jpg') center 42% / cover no-repeat;
   opacity: 0.48;
   filter: grayscale(28%) contrast(1.14) brightness(0.48) saturate(0.68) sepia(0.12);
 }

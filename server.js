@@ -23,6 +23,8 @@ const MIME = {
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
   '.gif': 'image/gif',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm',
   '.json': 'application/json; charset=utf-8',
   '.ico': 'image/x-icon',
   '.woff2': 'font/woff2'
@@ -45,24 +47,81 @@ function send(res, status, body, type, extraHeaders = {}) {
   res.end(body);
 }
 
-function serveStatic(urlPath, res) {
+function serveStatic(urlPath, req, res) {
   const rel = urlPath.replace(/^\//, '');
   const file = path.normalize(path.join(config.PUBLIC, rel));
   if (!file.startsWith(config.PUBLIC)) {
     send(res, 403, 'Forbidden');
     return;
   }
-  if (!fs.existsSync(file) || !fs.statSync(file).isFile()) {
+  let stat;
+  try {
+    stat = fs.statSync(file);
+  } catch (_) {
     send(res, 404, 'Not found');
     return;
   }
+  if (!stat.isFile()) {
+    send(res, 404, 'Not found');
+    return;
+  }
+
   const ext = path.extname(file).toLowerCase();
-  const headers = {
+  const size = stat.size;
+  const baseHeaders = {
     'Content-Type': MIME[ext] || 'application/octet-stream',
-    'Cache-Control': cacheControlForExt(ext)
+    'Cache-Control': cacheControlForExt(ext),
+    'Accept-Ranges': 'bytes'
   };
-  res.writeHead(200, headers);
-  res.end(fs.readFileSync(file));
+
+  // HEAD: metadata only (browsers probe video size this way)
+  if (req && req.method === 'HEAD') {
+    res.writeHead(200, {
+      ...baseHeaders,
+      'Content-Length': String(size)
+    });
+    res.end();
+    return;
+  }
+
+  // Range support for <video> progressive playback (esp. larger files like analyze.mp4)
+  const range = req && req.headers && req.headers.range;
+  if (range) {
+    const match = /^bytes=(\d*)-(\d*)$/.exec(String(range));
+    if (!match) {
+      res.writeHead(416, {
+        ...baseHeaders,
+        'Content-Range': `bytes */${size}`
+      });
+      res.end();
+      return;
+    }
+    let start = match[1] === '' ? 0 : parseInt(match[1], 10);
+    let end = match[2] === '' ? size - 1 : parseInt(match[2], 10);
+    if (Number.isNaN(start) || Number.isNaN(end) || start > end || start >= size) {
+      res.writeHead(416, {
+        ...baseHeaders,
+        'Content-Range': `bytes */${size}`
+      });
+      res.end();
+      return;
+    }
+    end = Math.min(end, size - 1);
+    const chunkSize = end - start + 1;
+    res.writeHead(206, {
+      ...baseHeaders,
+      'Content-Range': `bytes ${start}-${end}/${size}`,
+      'Content-Length': String(chunkSize)
+    });
+    fs.createReadStream(file, { start, end }).pipe(res);
+    return;
+  }
+
+  res.writeHead(200, {
+    ...baseHeaders,
+    'Content-Length': String(size)
+  });
+  fs.createReadStream(file).pipe(res);
 }
 
 function isDistressStatic(pathname) {
@@ -70,6 +129,7 @@ function isDistressStatic(pathname) {
     || pathname.startsWith('/js/')
     || pathname.startsWith('/assets/')
     || pathname.startsWith('/images/')
+    || pathname.startsWith('/videos/')
     || pathname.startsWith('/data/');
 }
 
@@ -202,11 +262,7 @@ async function handleRequest(req, res) {
   }
 
   if ((req.method === 'GET' || req.method === 'HEAD') && isDistressStatic(pathname)) {
-    if (req.method === 'HEAD') {
-      serveStatic(pathname, { writeHead: (s, h) => res.writeHead(s, h), end: () => res.end() });
-    } else {
-      serveStatic(pathname, res);
-    }
+    serveStatic(pathname, req, res);
     return;
   }
 
@@ -290,15 +346,23 @@ async function bootModules() {
 }
 
 function startStandaloneServer() {
-  server.listen(config.PORT, config.HOST, () => {
-    console.log(`Distress OS running at http://${config.HOST}:${config.PORT}`);
-    console.log(`Railway PORT env: ${process.env.PORT || '(unset)'} | bound: ${config.PORT}`);
-    console.log(`Form Forge proxy: http://${config.HOST}:${config.PORT}${config.FORGE_PREFIX}/`);
-    console.log(`Property Analyzer proxy: http://${config.HOST}:${config.PORT}${config.ANALYZER_PREFIX}/`);
+  const publicHost = config.loopbackHost(config.HOST);
+  const onListening = () => {
+    console.log(`Distress OS running at http://${publicHost}:${config.PORT}`);
+    console.log(`Railway PORT env: ${process.env.PORT || '(unset)'} | bound: ${config.PORT} host: ${config.HOST || '(dual-stack default)'}`);
+    console.log(`Form Forge proxy: http://${publicHost}:${config.PORT}${config.FORGE_PREFIX}/`);
+    console.log(`Property Analyzer proxy: http://${publicHost}:${config.PORT}${config.ANALYZER_PREFIX}/`);
     bootModules().catch((err) => {
       console.error('[Distress OS] Module boot error:', err);
     });
-  });
+  };
+
+  // Empty HOST → let Node pick dual-stack so both 127.0.0.1 and localhost (::1) work on Windows.
+  if (config.HOST) {
+    server.listen(config.PORT, config.HOST, onListening);
+  } else {
+    server.listen(config.PORT, onListening);
+  }
 }
 
 process.on('unhandledRejection', (err) => {

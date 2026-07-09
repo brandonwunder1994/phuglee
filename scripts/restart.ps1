@@ -1,11 +1,15 @@
-# Distress OS - stop stale servers and start fresh
+# Distress OS - stop stale servers and start headless (no console window).
+# Also registers a keep-alive scheduled task so the server stays up.
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\restart.ps1
 
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $ports = @(3000, 8787, 3456)
-$hostAddr = if ($env:DISTRESS_OS_HOST) { $env:DISTRESS_OS_HOST } else { "127.0.0.1" }
+$hostAddr = "127.0.0.1"
 $distressPort = if ($env:DISTRESS_OS_PORT) { [int]$env:DISTRESS_OS_PORT } else { 3000 }
+$taskName = "PhugleeDistressOS"
+$vbs = Join-Path $root "scripts\run-hidden.vbs"
+$ensurePs1 = Join-Path $root "scripts\ensure-server.ps1"
 
 function Stop-PortListener {
     param([int]$Port)
@@ -16,7 +20,7 @@ function Stop-PortListener {
     } catch {
         $lines = netstat -ano | Select-String ":$Port\s" | Select-String "LISTENING"
         foreach ($line in $lines) {
-            $procIds += [int]($line -split '\s+')[-1]
+            $procIds += [int](($line.ToString() -split '\s+')[-1])
         }
     }
     foreach ($procId in ($procIds | Sort-Object -Unique)) {
@@ -27,30 +31,92 @@ function Stop-PortListener {
     }
 }
 
+function Get-ListenerPid {
+    param([int]$Port)
+    try {
+        $id = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty OwningProcess -First 1
+        if ($id) { return [int]$id }
+    } catch {}
+    return $null
+}
+
+function Register-KeepAliveTask {
+    # Runs ensure-server at logon and every 2 minutes so a dead process comes back
+    # without any terminal window.
+    $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ensurePs1`""
+    try {
+        schtasks /Create /TN $taskName /TR $tr /SC MINUTE /MO 2 /F /RL LIMITED 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Keep-alive task registered: $taskName (every 2 min)" -ForegroundColor DarkGray
+            return $true
+        }
+    } catch {}
+    Write-Host "Could not register keep-alive task (optional). Server still starts now." -ForegroundColor DarkYellow
+    return $false
+}
+
 Write-Host ""
-Write-Host "Distress OS - restarting services" -ForegroundColor Yellow
+Write-Host "Distress OS - restarting (headless, no window)" -ForegroundColor Yellow
 Write-Host "Root: $root"
 Write-Host ""
 
 Write-Host "Stopping listeners on ports $($ports -join ', ')..." -ForegroundColor Cyan
 foreach ($port in $ports) { Stop-PortListener -Port $port }
+
+Get-Process cmd -ErrorAction SilentlyContinue | Where-Object {
+    $_.MainWindowTitle -match 'Distress OS'
+} | ForEach-Object {
+    Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
+    Write-Host "  Closed leftover console PID $($_.Id)"
+}
+
 Start-Sleep -Seconds 1
 
-Set-Location $root
 $logDir = Join-Path $root ".logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 $logFile = Join-Path $logDir "distress-os.log"
+$pidFile = Join-Path $logDir "distress-os.pid"
 
-# Launch via cmd with shell log redirection (keeps stdio valid; avoids EPIPE crashes from module spawns).
-$launchCmd = "cd /d `"$root`" && node server.js >> `"$logFile`" 2>>&1"
-$nodeProc = Start-Process -FilePath "cmd.exe" `
-    -ArgumentList "/c", $launchCmd `
-    -WorkingDirectory $root `
-    -WindowStyle Hidden `
-    -PassThru
+try {
+    Add-Content -Path $logFile -Value "=== restart $(Get-Date -Format o) ===" -Encoding utf8 -ErrorAction SilentlyContinue
+} catch {}
 
-Write-Host "Started Distress OS (PID $($nodeProc.Id))" -ForegroundColor Green
+if (-not (Test-Path $vbs)) {
+    Write-Host "Missing $vbs" -ForegroundColor Red
+    exit 1
+}
+
+# Launch OUTSIDE this process tree / Job Object.
+# Start-Process and child shells get killed when an agent shell ends.
+# Win32_Process.Create starts a fully independent process that survives.
+function Start-DetachedNode {
+    param([string]$WorkDir, [string]$LogPath)
+    # CurrentDirectory is set on Create; only need to run node with log redirect
+    $cmd = 'cmd.exe /c node server.js >> "' + $LogPath + '" 2>&1'
+    try {
+        $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
+            CommandLine      = $cmd
+            CurrentDirectory = $WorkDir
+        }
+        if ($r.ReturnValue -eq 0 -and $r.ProcessId) {
+            Write-Host "Started detached via Win32_Process.Create (cmd pid $($r.ProcessId))" -ForegroundColor Green
+            return [int]$r.ProcessId
+        }
+        Write-Host "Win32_Process.Create return=$($r.ReturnValue) - falling back to wscript" -ForegroundColor DarkYellow
+    } catch {
+        Write-Host "Win32_Process.Create failed: $($_.Exception.Message) - falling back to wscript" -ForegroundColor DarkYellow
+    }
+    # Fallback: wscript also detaches when not job-tied
+    Start-Process -FilePath "wscript.exe" -ArgumentList "//B","//Nologo","`"$vbs`"" -WindowStyle Hidden | Out-Null
+    Write-Host "Started headless via wscript + run-hidden.vbs" -ForegroundColor Green
+    return $null
+}
+
+Start-DetachedNode -WorkDir $root -LogPath $logFile | Out-Null
 Write-Host "Log: $logFile"
+
+Register-KeepAliveTask | Out-Null
 
 $healthUrl = "http://${hostAddr}:${distressPort}/api/health"
 $ready = $false
@@ -62,16 +128,23 @@ for ($i = 0; $i -lt 45; $i++) {
             $ready = $true
             break
         }
-    } catch {
-        # still starting
-    }
+    } catch {}
+}
+
+$listenPid = Get-ListenerPid -Port $distressPort
+if ($listenPid) {
+    Set-Content -Path $pidFile -Value $listenPid -Encoding ascii
+    Write-Host "PID file: $pidFile (node $listenPid)"
 }
 
 Write-Host ""
 if ($ready) {
-    Write-Host "Distress OS is up: http://${hostAddr}:${distressPort}/" -ForegroundColor Green
-    Write-Host "Collect Records: http://${hostAddr}:${distressPort}/collect" -ForegroundColor Green
-    Write-Host "Health: $healthUrl" -ForegroundColor DarkGray
+    Write-Host "Distress OS is up (background, no terminal):" -ForegroundColor Green
+    Write-Host "  http://127.0.0.1:${distressPort}/"
+    Write-Host "  http://localhost:${distressPort}/"
+    Write-Host "  Health: $healthUrl" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "Stop: powershell -File scripts\stop.ps1" -ForegroundColor DarkGray
     exit 0
 }
 
