@@ -761,10 +761,6 @@ body.home-page.logo-page .landing-actions {
   animation: home-territory-ticker-scroll-x 55s linear infinite;
 }
 
-.home-territory-ticker-track.is-marquee:hover {
-  animation-play-state: paused;
-}
-
 @keyframes home-territory-ticker-scroll-x {
   from {
     transform: translateX(0);
