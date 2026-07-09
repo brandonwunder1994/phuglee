@@ -557,19 +557,81 @@ body.home-page.logo-page .landing-actions {
 
 /* Territory / map */
 .home-territory-head {
-  margin-bottom: 1.15rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem 1.5rem;
+  align-items: end;
+  margin-bottom: 1.25rem;
+}
+
+.home-territory-head-copy {
+  min-width: 0;
 }
 
 .home-territory-summary {
-  margin: 0;
+  margin: 0.45rem 0 0;
   font-size: 0.86rem;
   line-height: 1.55;
   color: var(--phuglee-taupe-mid);
+  max-width: 38rem;
 }
 
 .home-territory-summary strong {
   color: var(--phuglee-cream);
   font-weight: 600;
+}
+
+/* War-room HUD totals */
+.home-territory-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem 1.25rem;
+  padding: 0.85rem 1.1rem 0.75rem;
+  background: rgba(8, 12, 20, 0.78);
+  border: 1px solid rgba(229, 132, 53, 0.3);
+  border-radius: var(--radius-md, 8px);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    0 0 28px rgba(238, 183, 70, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.home-territory-hud-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 4.5rem;
+}
+
+.home-territory-hud-stat strong {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-gold);
+  text-shadow: 0 0 24px rgba(238, 183, 70, 0.25);
+}
+
+.home-territory-hud-stat span {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.home-territory-hud-meta {
+  margin: 0;
+  width: 100%;
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(238, 183, 70, 0.75);
 }
 
 .home-territory-stage {
@@ -586,14 +648,150 @@ body.home-page.logo-page .landing-actions {
 .home-territory-screen--explorer {
   display: flex;
   flex-direction: column;
-  min-height: clamp(360px, 48vw, 460px);
+  min-height: clamp(380px, 52vw, 520px);
+  overflow: hidden;
 }
 
 .home-territory-screen--explorer .home-coverage-map {
   position: relative;
   flex: 1;
-  min-height: clamp(220px, 32vw, 320px);
+  min-height: clamp(260px, 36vw, 380px);
   inset: auto;
+}
+
+/* Ambient heat glow under map */
+.home-territory-screen::before {
+  content: '';
+  position: absolute;
+  inset: 12% 18% 18% 18%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 48%,
+    var(--territory-heat-glow, rgba(238, 183, 70, 0.22)) 0%,
+    transparent 68%
+  );
+  opacity: 0.85;
+}
+
+.home-territory-screen--explorer .home-coverage-map,
+.home-territory-screen--explorer .home-territory-corners,
+.home-territory-screen--explorer .home-territory-live-badge,
+.home-territory-screen--explorer .home-map-legend,
+.home-territory-screen--explorer .home-monitor-scan {
+  z-index: 1;
+}
+
+/* Corner brackets — command display */
+.home-territory-corners {
+  position: absolute;
+  inset: 0.55rem;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.home-territory-corner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: rgba(238, 183, 70, 0.55);
+  border-style: solid;
+  border-width: 0;
+  opacity: 0.7;
+}
+
+.home-territory-corner--tl {
+  top: 0;
+  left: 0;
+  border-top-width: 1px;
+  border-left-width: 1px;
+}
+
+.home-territory-corner--tr {
+  top: 0;
+  right: 0;
+  border-top-width: 1px;
+  border-right-width: 1px;
+}
+
+.home-territory-corner--bl {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+
+.home-territory-corner--br {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
+
+.home-territory-live-badge {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.55rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+  background: rgba(13, 13, 13, 0.82);
+  border: 1px solid rgba(229, 132, 53, 0.4);
+  border-radius: var(--radius-pill, 999px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.home-territory-live-badge::before {
+  content: '';
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--phuglee-gold);
+  box-shadow: 0 0 8px rgba(238, 183, 70, 0.7);
+  animation: home-territory-live-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes home-territory-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-territory-live-badge::before {
+    animation: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .home-territory-head {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .home-territory-hud {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .home-territory-hud-stat strong {
+    font-size: clamp(1.6rem, 9vw, 2.2rem);
+  }
 }
 
 .home-territory-monitor .coverage-dock {
@@ -618,6 +816,7 @@ body.home-page.logo-page .landing-actions {
   aspect-ratio: auto;
   min-height: clamp(300px, 44vw, 400px);
   position: relative;
+  isolation: isolate;
 }
 
 .home-coverage-map {
@@ -703,34 +902,9 @@ body.home-page.logo-page .landing-actions {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
+/* Legacy chip strip kept for any external refs; HUD owns counts now */
 .home-territory-chips {
-  position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
-  z-index: 3;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  pointer-events: none;
-}
-
-.home-territory-chip {
-  padding: 0.3rem 0.55rem;
-  font-size: 0.62rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--phuglee-stone);
-  background: rgba(13, 13, 13, 0.78);
-  border: 1px solid rgba(229, 132, 53, 0.28);
-  border-radius: var(--radius-pill);
-  backdrop-filter: blur(8px);
-}
-
-.home-territory-chip strong {
-  font-family: var(--font-display);
-  font-size: 0.78rem;
-  color: var(--phuglee-gold);
-  margin-right: 0.15rem;
+  display: none;
 }
 
 .home-territory-meta {
