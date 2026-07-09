@@ -16,8 +16,9 @@
 
   var EXCLUDED_FROM_MAP = new Set(['Alaska', 'Hawaii']);
 
-  var COLOR_COVERED_LOW = '#2a8f5c';
-  var COLOR_COVERED_HIGH = '#45c47e';
+  var COLOR_COVERED_LOW = '#8a4a18';
+  var COLOR_COVERED_MID = '#e58435';
+  var COLOR_COVERED_HIGH = '#eeb746';
   var COLOR_NO_DATA = '#3a4658';
   var COLOR_UNAVAILABLE = '#8f2a2a';
 
@@ -64,8 +65,13 @@
 
   function stateFillColor(count, maxCount) {
     if (!count) return COLOR_NO_DATA;
+    if (maxCount <= 1) return COLOR_COVERED_MID;
     var t = Math.min(Math.max(count / Math.max(maxCount, 1), 0), 1);
-    return lerpHex(COLOR_COVERED_LOW, COLOR_COVERED_HIGH, Math.max(t, 0.35));
+    t = Math.max(t, 0.2);
+    if (t <= 0.45) {
+      return lerpHex(COLOR_COVERED_LOW, COLOR_COVERED_MID, t / 0.45);
+    }
+    return lerpHex(COLOR_COVERED_MID, COLOR_COVERED_HIGH, (t - 0.45) / 0.55);
   }
 
   function countByState(coverage) {
@@ -206,6 +212,12 @@
     document.querySelectorAll('[data-coverage-city-count]').forEach(function (el) {
       el.textContent = cityLabel;
     });
+
+    var closeProof = document.getElementById('home-close-proof');
+    if (closeProof) {
+      closeProof.textContent =
+        cityLabel + ' cities across ' + stateLabel + ' states. Same-day lists.';
+    }
   }
 
   function updateMapSummary(summaryId, stats) {
@@ -424,7 +436,19 @@
         }
       }
     } catch (_) {
-      host.innerHTML = '<p class="' + prefix + '-map-error">Map unavailable — check back shortly.</p>';
+      mapRenderedHosts.delete(hostId);
+      host.innerHTML =
+        '<div class="' + prefix + '-map-error-wrap">' +
+          '<p class="' + prefix + '-map-error">Territory feed hitch — map couldn\'t load.</p>' +
+          '<button type="button" class="' + prefix + '-map-retry" data-map-retry="' + hostId + '">Retry map</button>' +
+        '</div>';
+      var btn = host.querySelector('[data-map-retry]');
+      if (btn) {
+        btn.addEventListener('click', function () {
+          mapRenderedHosts.delete(hostId);
+          renderCoverageMap(hostId, summaryId, prefix, options);
+        });
+      }
     }
   }
 
@@ -491,12 +515,29 @@
         .then(function (pair) {
           var stats = computeMapStats(pair[0], pair[1]);
           updateMapSummary('home-map-summary', stats);
+          updateCoverageStats(pair[0]);
         })
         .catch(function () {});
     }
 
-    if (document.getElementById('home-coverage-map') && !document.body.hasAttribute('data-home-map-preview')) {
-      observeHomeMap();
+    var homeMapHost = document.getElementById('home-coverage-map');
+    if (homeMapHost) {
+      if (document.body.hasAttribute('data-home-map-preview')) {
+        // MapLibre explorer owns the primary path; SVG safety net if it never paints.
+        window.setTimeout(function () {
+          var host = document.getElementById('home-coverage-map');
+          if (!host) return;
+          var painted =
+            host.querySelector('svg') ||
+            host.querySelector('canvas') ||
+            host.classList.contains('home-coverage-map--live');
+          if (painted) return;
+          mapRenderedHosts.delete('home-coverage-map');
+          renderHomeMap();
+        }, 4500);
+      } else {
+        observeHomeMap();
+      }
     }
   }
 

@@ -7,8 +7,9 @@
   var MAPLIBRE_CSS = '/forge/static/vendor/maplibre-gl.css';
   var MAPLIBRE_JS = '/forge/static/vendor/maplibre-gl.js';
 
-  var COLOR_COVERED_LOW = '#2a8f5c';
-  var COLOR_COVERED_HIGH = '#45c47e';
+  var COLOR_COVERED_LOW = '#8a4a18';
+  var COLOR_COVERED_MID = '#e58435';
+  var COLOR_COVERED_HIGH = '#eeb746';
   var COLOR_NO_DATA = '#3a4658';
   var COLOR_UNAVAILABLE_BASE = '#8f2a2a';
   var COLOR_UNAVAILABLE_ACCENT = '#c84848';
@@ -93,18 +94,27 @@
   }
 
   function buildStateFillColor(maxCount) {
+    var max = Math.max(maxCount || 1, 1);
+    var coveredExpr;
+    if (max <= 1) {
+      coveredExpr = COLOR_COVERED_MID;
+    } else {
+      var midStop = Math.max(2, Math.round(max * 0.45));
+      coveredExpr = [
+        'interpolate',
+        ['linear'],
+        ['get', 'count'],
+        1, COLOR_COVERED_LOW,
+        midStop, COLOR_COVERED_MID,
+        max, COLOR_COVERED_HIGH
+      ];
+    }
     return [
       'case',
       ['==', ['get', 'leadsUnavailable'], 1],
       COLOR_UNAVAILABLE_BASE,
       ['boolean', ['get', 'hasData'], false],
-      [
-        'interpolate',
-        ['linear'],
-        ['get', 'count'],
-        1, COLOR_COVERED_LOW,
-        maxCount, COLOR_COVERED_HIGH
-      ],
+      coveredExpr,
       COLOR_NO_DATA
     ];
   }
@@ -419,7 +429,9 @@
       resetDock();
     } catch (_) {
       host.classList.remove('home-coverage-map--loading');
+      host.classList.remove('home-coverage-map--live');
       await renderSvgFallback();
+      document.getElementById('home-territory-monitor')?.classList.add('is-live');
     }
   }
 

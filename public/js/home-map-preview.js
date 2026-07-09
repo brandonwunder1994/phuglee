@@ -5,8 +5,9 @@
   var MAPLIBRE_JS = '/forge/static/vendor/maplibre-gl.js';
   var STATES_GEO_URL = '/forge/static/geo/us-states.geojson';
 
-  var COLOR_COVERED_LOW = '#2a8f5c';
-  var COLOR_COVERED_HIGH = '#45c47e';
+  var COLOR_COVERED_LOW = '#8a4a18';
+  var COLOR_COVERED_MID = '#e58435';
+  var COLOR_COVERED_HIGH = '#eeb746';
   var COLOR_NO_DATA = '#3a4658';
   var COLOR_UNAVAILABLE_BASE = '#8f2a2a';
   var COLOR_UNAVAILABLE_ACCENT = '#c84848';
@@ -144,16 +145,20 @@
           ['==', ['get', 'leadsUnavailable'], 1],
           COLOR_UNAVAILABLE_BASE,
           ['boolean', ['get', 'hasData'], false],
-          COLOR_NO_DATA,
-          [
-            'interpolate',
-            ['linear'],
-            ['get', 'count'],
-            1,
-            COLOR_COVERED_LOW,
-            maxCount,
-            COLOR_COVERED_HIGH
-          ]
+          maxCount <= 1
+            ? COLOR_COVERED_MID
+            : [
+                'interpolate',
+                ['linear'],
+                ['get', 'count'],
+                1,
+                COLOR_COVERED_LOW,
+                Math.max(2, Math.round(maxCount * 0.45)),
+                COLOR_COVERED_MID,
+                maxCount,
+                COLOR_COVERED_HIGH
+              ],
+          COLOR_NO_DATA
         ],
         'fill-opacity': [
           'case',

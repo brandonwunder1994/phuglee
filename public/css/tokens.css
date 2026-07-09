@@ -21,6 +21,15 @@
   --phuglee-terracotta: #ac6b32;
   --phuglee-gold: #eeb746;
 
+  /* Territory map heat (homepage Live coverage) */
+  --territory-heat-low: #8a4a18;
+  --territory-heat-mid: #e58435;
+  --territory-heat-high: #eeb746;
+  --territory-heat-glow: rgba(238, 183, 70, 0.22);
+  --territory-soon: #3a4658;
+  --territory-blocked: #8f2a2a;
+  --territory-blocked-accent: #c84848;
+
   --phuglee-success: #3dd68c;
   --phuglee-danger: #f87171;
   --phuglee-warn: #eeb746;
@@ -88,9 +97,17 @@
   --nav-h: auto;
 
   /* Shadows (phuglee) */
-  --shadow-panel: 0 24px 64px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --shadow-cta: 0 8px 32px rgba(229, 132, 53, 0.45);
-  --shadow-glow-orange: 0 0 48px rgba(229, 132, 53, 0.25);
+  --shadow-panel:
+    0 4px 12px rgba(0, 0, 0, 0.28),
+    0 24px 64px rgba(0, 0, 0, 0.52),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  --shadow-cta:
+    0 4px 16px rgba(229, 132, 53, 0.35),
+    0 12px 36px rgba(229, 132, 53, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --shadow-glow-orange: 0 0 48px rgba(229, 132, 53, 0.28);
+  --shadow-glow-gold: 0 0 36px rgba(238, 183, 70, 0.16);
 
   /* Form Forge legacy aliases */
   --bg: var(--bg-deep);
@@ -114,18 +131,59 @@
   --ring: var(--ember);
   --radius: 12px;
 
-  /* Distress OS glass system */
-  --glass-blur: 20px;
-  --glass-bg: rgba(18, 18, 16, 0.72);
-  --glass-bg-elevated: rgba(22, 22, 20, 0.88);
-  --glass-bg-chrome: rgba(13, 13, 13, 0.92);
-  --glass-border: rgba(174, 163, 143, 0.14);
-  --glass-border-chrome: rgba(174, 163, 143, 0.12);
-  --glass-border-hover: rgba(229, 132, 53, 0.38);
-  --glass-shadow: 0 16px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --glass-shadow-float: 0 28px 72px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(229, 132, 53, 0.08);
+  /* Distress OS glass system — premium frosted elevation */
+  --glass-blur: 32px;
+  --glass-saturate: 165%;
+  --glass-bg: rgba(14, 12, 10, 0.48);
+  --glass-bg-elevated: rgba(18, 16, 14, 0.62);
+  --glass-bg-chrome: rgba(12, 11, 10, 0.78);
+  --glass-bg-solid: rgba(16, 14, 12, 0.92);
+  --glass-border: rgba(238, 183, 70, 0.14);
+  --glass-border-chrome: rgba(174, 163, 143, 0.14);
+  --glass-border-strong: rgba(229, 132, 53, 0.32);
+  --glass-border-hover: rgba(229, 132, 53, 0.55);
+  --glass-edge-shine: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(238, 183, 70, 0.15) 18%,
+    rgba(229, 132, 53, 0.55) 48%,
+    rgba(238, 183, 70, 0.35) 68%,
+    transparent 100%
+  );
+  --glass-fill:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.055) 0%, transparent 38%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.07) 0%, transparent 42%),
+    var(--glass-bg);
+  --glass-fill-elevated:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.07) 0%, transparent 36%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.09) 0%, transparent 45%),
+    var(--glass-bg-elevated);
+  --glass-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 22px 56px rgba(0, 0, 0, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  --glass-shadow-float:
+    0 8px 20px rgba(0, 0, 0, 0.35),
+    0 28px 72px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(229, 132, 53, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+  --glass-shadow-featured:
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 28px 72px rgba(0, 0, 0, 0.55),
+    0 0 48px rgba(229, 132, 53, 0.22),
+    0 0 0 1px rgba(229, 132, 53, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   --zone-solid-bg: rgba(8, 6, 5, 0.94);
   --zone-solid-border: rgba(255, 255, 255, 0.06);
+
+  /* Card rhythm */
+  --card-pad-y: 1.5rem;
+  --card-pad-x: 1.65rem;
+  --card-radius: 14px;
+  --card-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --card-duration: 0.28s;
 }
 
 /* Light theme — first-class, not washed-out dark */
@@ -156,19 +214,46 @@
   --border: rgba(26, 22, 18, 0.1);
   --border-hot: rgba(229, 132, 53, 0.45);
 
-  --glass-bg: rgba(255, 255, 255, 0.78);
-  --glass-bg-elevated: rgba(255, 255, 255, 0.92);
-  --glass-bg-chrome: rgba(245, 242, 236, 0.94);
-  --glass-border: rgba(26, 22, 18, 0.1);
-  --glass-border-chrome: rgba(26, 22, 18, 0.08);
-  --glass-border-hover: rgba(229, 132, 53, 0.5);
-  --glass-shadow: 0 16px 48px rgba(26, 22, 18, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  --glass-shadow-float: 0 28px 64px rgba(26, 22, 18, 0.16);
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.78);
+  --glass-bg-chrome: rgba(245, 242, 236, 0.88);
+  --glass-bg-solid: rgba(255, 255, 255, 0.94);
+  --glass-border: rgba(172, 107, 50, 0.16);
+  --glass-border-chrome: rgba(26, 22, 18, 0.1);
+  --glass-border-strong: rgba(229, 132, 53, 0.35);
+  --glass-border-hover: rgba(229, 132, 53, 0.55);
+  --glass-fill:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.72) 0%, transparent 40%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 45%),
+    var(--glass-bg);
+  --glass-fill-elevated:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.85) 0%, transparent 38%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.08) 0%, transparent 45%),
+    var(--glass-bg-elevated);
+  --glass-shadow:
+    0 4px 12px rgba(26, 22, 18, 0.06),
+    0 18px 48px rgba(26, 22, 18, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(26, 22, 18, 0.04);
+  --glass-shadow-float:
+    0 8px 20px rgba(26, 22, 18, 0.08),
+    0 28px 64px rgba(26, 22, 18, 0.14),
+    0 0 32px rgba(229, 132, 53, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow-featured:
+    0 8px 24px rgba(26, 22, 18, 0.1),
+    0 28px 64px rgba(26, 22, 18, 0.14),
+    0 0 40px rgba(229, 132, 53, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
   --zone-solid-bg: #ffffff;
   --zone-solid-border: rgba(26, 22, 18, 0.08);
 
-  --shadow-panel: 0 16px 48px rgba(26, 22, 18, 0.1);
+  --shadow-panel:
+    0 4px 12px rgba(26, 22, 18, 0.06),
+    0 16px 48px rgba(26, 22, 18, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --shadow-glow-orange: 0 0 32px rgba(229, 132, 53, 0.2);
+  --shadow-glow-gold: 0 0 28px rgba(238, 183, 70, 0.14);
 }
 
 [data-theme="light"] .premium-bg-photo,
