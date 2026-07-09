@@ -4,8 +4,13 @@ set -eu
 cd /app
 
 export NODE_ENV="${NODE_ENV:-production}"
-# Default: login required. Override with PHUGLEE_AUTH_DISABLED=1 only for open staging/dev.
-export PHUGLEE_AUTH_DISABLED="${PHUGLEE_AUTH_DISABLED:-0}"
+# Production requires login unless PHUGLEE_AUTH_OPEN=1 (explicit temporary open access).
+if [ "${NODE_ENV}" = "production" ] && [ "${PHUGLEE_AUTH_OPEN:-0}" != "1" ] && [ "${PHUGLEE_AUTH_OPEN:-0}" != "true" ]; then
+  export PHUGLEE_AUTH_DISABLED=0
+  echo "[entrypoint] Auth required (login enabled). Set PHUGLEE_AUTH_OPEN=1 only for open staging."
+else
+  export PHUGLEE_AUTH_DISABLED="${PHUGLEE_AUTH_DISABLED:-0}"
+fi
 export FORM_FORGE_HOST="${FORM_FORGE_HOST:-0.0.0.0}"
 export FORM_FORGE_PORT="${FORM_FORGE_PORT:-8787}"
 export PROPERTY_ANALYZER_HOST="${PROPERTY_ANALYZER_HOST:-0.0.0.0}"
