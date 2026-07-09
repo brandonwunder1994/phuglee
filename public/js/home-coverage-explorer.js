@@ -195,7 +195,7 @@
   }
 
   function lockMapView(map) {
-    map.fitBounds(US_MAP_BOUNDS, { padding: 28, duration: 0 });
+    map.fitBounds(US_MAP_BOUNDS, { padding: 16, duration: 0 });
     var zoom = map.getZoom();
     map.setMinZoom(zoom);
     map.setMaxZoom(zoom);

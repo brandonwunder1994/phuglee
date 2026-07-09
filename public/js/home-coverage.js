@@ -216,7 +216,7 @@
     var closeProof = document.getElementById('home-close-proof');
     if (closeProof) {
       closeProof.textContent =
-        cityLabel + ' cities across ' + stateLabel + ' states. Same-day lists.';
+        cityLabel + ' cities · ' + stateLabel + ' states. Same-day lists.';
     }
   }
 

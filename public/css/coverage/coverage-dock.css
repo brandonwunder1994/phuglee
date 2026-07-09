@@ -25,20 +25,35 @@
 }
 
 .coverage-dock.is-collapsed {
-  max-height: 3.25rem;
+  max-height: 2.75rem;
 }
 
 .coverage-dock.is-open {
-  max-height: min(360px, 52vh);
+  max-height: min(280px, 42vh);
 }
 
 .coverage-dock-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.75rem;
+  gap: 0.5rem;
+  padding: 0.4rem 0.65rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
+}
+
+/* Compact homepage: hide redundant dock title until open */
+.home-coverage--compact .coverage-dock.is-collapsed .coverage-dock-head {
+  display: none;
+}
+
+.home-coverage--compact .coverage-dock.is-collapsed .coverage-dock-search {
+  flex: 1;
+}
+
+.home-coverage--compact .coverage-dock-search input {
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.78rem;
 }
 
 .coverage-dock-search {
@@ -110,7 +125,7 @@
 /* State spotlight dossier */
 .home-territory-spotlight {
   flex-shrink: 0;
-  padding: 0.7rem 0.85rem 0.65rem;
+  padding: 0.5rem 0.75rem 0.5rem;
   border-bottom: 1px solid rgba(229, 132, 53, 0.18);
   background:
     linear-gradient(180deg, rgba(229, 132, 53, 0.08) 0%, transparent 100%),
@@ -128,7 +143,7 @@
 .home-territory-spotlight-title {
   margin: 0;
   font-family: var(--font-display, 'Anton', sans-serif);
-  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-size: clamp(1rem, 2vw, 1.25rem);
   font-weight: 400;
   letter-spacing: 0.04em;
   text-transform: uppercase;

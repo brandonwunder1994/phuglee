@@ -555,17 +555,46 @@ body.home-page.logo-page .landing-actions {
   max-width: 11rem;
 }
 
-/* Territory / map */
+/* Territory / map — compact command strip */
+.home-chapter--territory.home-coverage--compact {
+  margin-top: 0.5rem;
+}
+
 .home-territory-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem 1.5rem;
-  align-items: end;
-  margin-bottom: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem 1rem;
+  margin-bottom: 0.65rem;
 }
 
 .home-territory-head-copy {
   min-width: 0;
+  flex: 1 1 12rem;
+}
+
+.home-territory-head-copy .phuglee-eyebrow {
+  margin-bottom: 0.15rem;
+}
+
+.home-territory-head-copy .home-chapter-title--sm {
+  margin: 0;
+  font-size: clamp(1.35rem, 3.2vw, 1.85rem);
+  line-height: 1.1;
+}
+
+/* Summary kept for a11y / JS updates; HUD carries the proof visually */
+.home-territory-summary--sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .home-territory-summary {
@@ -581,57 +610,59 @@ body.home-page.logo-page .landing-actions {
   font-weight: 600;
 }
 
-/* War-room HUD totals */
+/* Compact HUD totals — inline, not a tall panel */
 .home-territory-hud {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.85rem 1.25rem;
-  padding: 0.85rem 1.1rem 0.75rem;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  padding: 0.4rem 0.85rem;
   background: rgba(8, 12, 20, 0.78);
   border: 1px solid rgba(229, 132, 53, 0.3);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-pill, 999px);
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.45),
-    0 0 28px rgba(238, 183, 70, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.4),
+    0 0 18px rgba(238, 183, 70, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .home-territory-hud-stat {
   display: flex;
-  flex-direction: column;
-  gap: 0.12rem;
-  min-width: 4.5rem;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
 .home-territory-hud-stat strong {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-size: clamp(1.25rem, 2.8vw, 1.65rem);
   font-weight: 400;
-  line-height: 0.95;
+  line-height: 1;
   letter-spacing: 0.02em;
   color: var(--phuglee-gold);
-  text-shadow: 0 0 24px rgba(238, 183, 70, 0.25);
+  text-shadow: 0 0 16px rgba(238, 183, 70, 0.22);
 }
 
 .home-territory-hud-stat span {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--phuglee-stone);
 }
 
+.home-territory-hud-divider {
+  width: 1px;
+  height: 1.35rem;
+  background: rgba(229, 132, 53, 0.28);
+  flex-shrink: 0;
+}
+
 .home-territory-hud-meta {
-  margin: 0;
-  width: 100%;
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: rgba(238, 183, 70, 0.75);
+  display: none;
 }
 
 .home-territory-stage {
@@ -645,63 +676,62 @@ body.home-page.logo-page .landing-actions {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Map on top, thin horizontal feed under it */
 .home-territory-main {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 260px);
+  display: flex;
+  flex-direction: column;
   gap: 0;
   min-height: 0;
-  align-items: stretch;
 }
 
 .home-territory-screen--explorer {
   display: flex;
   flex-direction: column;
-  min-height: clamp(380px, 52vw, 520px);
+  min-height: clamp(220px, 28vw, 300px);
   overflow: hidden;
 }
 
-/* Live territory ticker */
-.home-territory-ticker {
+/* Horizontal live strip (replaces tall side panel) */
+.home-territory-ticker,
+.home-territory-ticker--strip {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+  flex-shrink: 0;
   min-height: 0;
-  border-left: 1px solid rgba(229, 132, 53, 0.2);
-  background: rgba(6, 9, 14, 0.92);
+  height: 2.35rem;
+  padding: 0 0.65rem;
+  border-left: none;
+  border-top: 1px solid rgba(229, 132, 53, 0.18);
+  background: rgba(6, 9, 14, 0.94);
 }
 
 .home-territory-ticker-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-shrink: 0;
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: none;
 }
 
 .home-territory-ticker-label {
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--phuglee-stone);
+  display: none;
 }
 
 .home-territory-ticker-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.55rem;
+  gap: 0.28rem;
+  flex-shrink: 0;
+  font-size: 0.52rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--phuglee-gold);
+  white-space: nowrap;
 }
 
 .home-territory-ticker-status::before {
   content: '';
-  width: 0.35rem;
-  height: 0.35rem;
+  width: 0.32rem;
+  height: 0.32rem;
   border-radius: 50%;
   background: var(--phuglee-gold);
   box-shadow: 0 0 6px rgba(238, 183, 70, 0.65);
@@ -710,65 +740,74 @@ body.home-page.logo-page .landing-actions {
 .home-territory-ticker-viewport {
   position: relative;
   flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
-  mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
-  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 92%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 4%, #000 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 4%, #000 96%, transparent 100%);
 }
 
 .home-territory-ticker-track {
   display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 0.35rem 0;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.35rem;
+  width: max-content;
+  padding: 0;
 }
 
 .home-territory-ticker-track.is-marquee {
-  animation: home-territory-ticker-scroll 48s linear infinite;
+  animation: home-territory-ticker-scroll-x 55s linear infinite;
 }
 
 .home-territory-ticker-track.is-marquee:hover {
   animation-play-state: paused;
 }
 
-@keyframes home-territory-ticker-scroll {
+@keyframes home-territory-ticker-scroll-x {
   from {
-    transform: translateY(0);
+    transform: translateX(0);
   }
   to {
-    transform: translateY(-50%);
+    transform: translateX(-50%);
   }
 }
 
 .home-territory-ticker-row {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.42rem 0.75rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  justify-content: flex-start;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  background: rgba(229, 132, 53, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .home-territory-ticker-row:nth-child(odd) {
-  background: rgba(229, 132, 53, 0.04);
+  background: rgba(229, 132, 53, 0.08);
 }
 
 .home-territory-ticker-place {
   min-width: 0;
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 500;
   color: var(--phuglee-cream);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 11rem;
 }
 
 .home-territory-ticker-tag {
   flex-shrink: 0;
-  padding: 0.15rem 0.4rem;
-  font-size: 0.55rem;
+  padding: 0.1rem 0.32rem;
+  font-size: 0.5rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   border-radius: 999px;
   color: var(--phuglee-gold);
@@ -784,9 +823,10 @@ body.home-page.logo-page .landing-actions {
 
 .home-territory-ticker-empty {
   margin: 0;
-  padding: 1rem 0.75rem;
-  font-size: 0.72rem;
+  padding: 0 0.25rem;
+  font-size: 0.68rem;
   color: var(--phuglee-stone);
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -796,36 +836,16 @@ body.home-page.logo-page .landing-actions {
   }
 
   .home-territory-ticker-viewport {
-    overflow-y: auto;
+    overflow-x: auto;
     mask-image: none;
     -webkit-mask-image: none;
-  }
-}
-
-@media (max-width: 900px) {
-  .home-territory-main {
-    grid-template-columns: 1fr;
-  }
-
-  .home-territory-ticker {
-    border-left: none;
-    border-top: 1px solid rgba(229, 132, 53, 0.2);
-    max-height: 130px;
-  }
-
-  .home-territory-ticker-viewport {
-    max-height: 96px;
-  }
-
-  .home-territory-screen--explorer {
-    min-height: clamp(300px, 48vw, 420px);
   }
 }
 
 .home-territory-screen--explorer .home-coverage-map {
   position: relative;
   flex: 1;
-  min-height: clamp(260px, 36vw, 380px);
+  min-height: clamp(200px, 26vw, 280px);
   inset: auto;
 }
 
@@ -957,17 +977,24 @@ body.home-page.logo-page .landing-actions {
 
 @media (max-width: 720px) {
   .home-territory-head {
-    grid-template-columns: 1fr;
-    align-items: start;
+    align-items: flex-start;
   }
 
   .home-territory-hud {
-    width: 100%;
-    justify-content: flex-start;
+    width: auto;
+    max-width: 100%;
   }
 
   .home-territory-hud-stat strong {
-    font-size: clamp(1.6rem, 9vw, 2.2rem);
+    font-size: clamp(1.15rem, 5.5vw, 1.45rem);
+  }
+
+  .home-territory-screen--explorer {
+    min-height: clamp(200px, 48vw, 260px);
+  }
+
+  .home-territory-screen--explorer .home-coverage-map {
+    min-height: clamp(180px, 44vw, 240px);
   }
 }
 
@@ -991,7 +1018,7 @@ body.home-page.logo-page .landing-actions {
 
 .home-territory-screen {
   aspect-ratio: auto;
-  min-height: clamp(300px, 44vw, 400px);
+  min-height: clamp(200px, 28vw, 300px);
   position: relative;
   isolation: isolate;
 }
@@ -1046,28 +1073,34 @@ body.home-page.logo-page .landing-actions {
   background: rgba(229, 132, 53, 0.25);
 }
 
-/* Fused close band — peak-end of territory chapter */
+/* Fused close band — tight peak-end */
 .home-territory-close {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem 1rem;
   text-align: center;
-  padding: clamp(1.5rem, 4vw, 2.25rem) 1rem 0.25rem;
-  margin-top: 0.35rem;
+  padding: 0.85rem 0.5rem 0.15rem;
+  margin-top: 0.15rem;
 }
 
 .home-close-proof {
-  max-width: 32rem;
-  margin: 0 auto 1rem;
+  max-width: 28rem;
+  margin: 0;
   text-align: center;
   font-family: var(--font-display);
-  font-size: clamp(1.15rem, 3vw, 1.55rem);
+  font-size: clamp(0.95rem, 2.2vw, 1.2rem);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  line-height: 1.25;
+  line-height: 1.2;
   color: var(--phuglee-cream);
 }
 
 .home-territory-close .home-close-cta {
-  min-height: 2.75rem;
-  min-width: min(100%, 16rem);
+  min-height: 2.5rem;
+  min-width: min(100%, 14rem);
+  padding-inline: 1.25rem;
 }
 
 /* Entrance cascade veil */
