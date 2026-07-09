@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/home-chronicle.css?v=48">
   <link rel="stylesheet" href="/css/home-ui-preview.css?v=14">
   <link rel="stylesheet" href="/css/home-premium.css?v=6">
-  <link rel="stylesheet" href="/css/coverage/coverage-dock.css?v=1">
+  <link rel="stylesheet" href="/css/coverage/coverage-dock.css?v=2">
   <link rel="stylesheet" href="/css/coverage/city-profile-modal.css?v=1">
 
   <link rel="stylesheet" href="/css/auth.css?v=2">
@@ -598,12 +598,20 @@
                     <input type="search" id="home-dock-search-input" placeholder="Search city, county, or state…" autocomplete="off" />
                   </label>
                   <div class="coverage-dock-head">
-                    <h3 class="coverage-dock-title" id="home-dock-title">Explore coverage</h3>
+                    <h3 class="coverage-dock-title" id="home-dock-title">Explore territory</h3>
                     <p class="coverage-dock-sub" id="home-dock-sub">Click a state or search</p>
                   </div>
                 </div>
+                <div class="home-territory-spotlight" id="home-territory-spotlight" hidden>
+                  <div class="home-territory-spotlight-head">
+                    <h3 class="home-territory-spotlight-title" id="home-spotlight-title">—</h3>
+                    <p class="home-territory-spotlight-meta" id="home-spotlight-meta"></p>
+                  </div>
+                  <div class="home-territory-spotlight-cities" id="home-spotlight-cities"></div>
+                  <p class="home-territory-spotlight-hint" id="home-spotlight-hint"></p>
+                </div>
                 <div class="coverage-dock-body">
-                  <p class="coverage-dock-hint" id="home-dock-hint">Click any highlighted state to browse counties and cities. Select a city for its full profile.</p>
+                  <p class="coverage-dock-hint" id="home-dock-hint">Click any highlighted state to open its dossier. Select a city for the full profile.</p>
                   <div class="coverage-dock-panel" id="home-dock-search" hidden>
                     <div id="home-dock-search-list"></div>
                   </div>
@@ -641,7 +649,7 @@
   <script src="/js/home-coverage.js?v=8" defer></script>
   <script src="/js/coverage/coverage-shared.js?v=1" defer></script>
   <script src="/js/coverage/city-profile-modal.js?v=1" defer></script>
-  <script src="/js/home-coverage-explorer.js?v=5" defer></script>
+  <script src="/js/home-coverage-explorer.js?v=6" defer></script>
   <script src="/js/property-carousel-3d.js?v=17" defer></script>
   <script src="/js/home-below.js?v=10" defer></script>
   <script src="/js/auth-session.js"></script>

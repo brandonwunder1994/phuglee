@@ -188,6 +188,75 @@
     if (modal) modal.open(city);
   }
 
+  function setSpotlightHidden(hidden) {
+    var el = document.getElementById('home-territory-spotlight');
+    if (el) el.hidden = !!hidden;
+  }
+
+  function renderSpotlight(stateName) {
+    var root = document.getElementById('home-territory-spotlight');
+    var titleEl = document.getElementById('home-spotlight-title');
+    var metaEl = document.getElementById('home-spotlight-meta');
+    var citiesEl = document.getElementById('home-spotlight-cities');
+    var hintEl = document.getElementById('home-spotlight-hint');
+    if (!root || !titleEl || !metaEl || !citiesEl || !hintEl || !coverage || !shared) return;
+
+    var counts = shared.countByState(coverage);
+    var status = shared.getStateStatus(stateName, counts, coverage);
+    var cities = shared.stateCities(coverage, stateName, '');
+    var portalN = cities.filter(function (c) { return c.pin_type === 'portal'; }).length;
+    var liveN = cities.length - portalN;
+
+    titleEl.textContent = stateName;
+    metaEl.classList.remove('is-blocked');
+    citiesEl.innerHTML = '';
+    setSpotlightHidden(false);
+
+    if (status === 'unavailable') {
+      metaEl.textContent = 'Records unavailable — clerk systems block access';
+      metaEl.classList.add('is-blocked');
+      hintEl.textContent = 'We can\'t pull public records from this state yet.';
+      return;
+    }
+
+    if (status === 'no-coverage' || cities.length === 0) {
+      metaEl.textContent = 'Expanding — no cities listed yet';
+      hintEl.textContent = 'Check back as new markets go live.';
+      return;
+    }
+
+    var mix = [];
+    if (portalN) mix.push(portalN + ' portal');
+    if (liveN) mix.push(liveN + ' PDF');
+    metaEl.textContent =
+      cities.length + ' cit' + (cities.length === 1 ? 'y' : 'ies') + ' live' +
+      (mix.length ? ' · ' + mix.join(' + ') : '');
+
+    var sample = cities.slice();
+    sample.sort(function (a, b) {
+      if (a.pin_type === 'portal' && b.pin_type !== 'portal') return -1;
+      if (b.pin_type === 'portal' && a.pin_type !== 'portal') return 1;
+      return a.city.localeCompare(b.city);
+    });
+    sample.slice(0, 8).forEach(function (city) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className =
+        'home-territory-spotlight-pill' +
+        (city.pin_type === 'portal' ? ' home-territory-spotlight-pill--portal' : '');
+      btn.textContent = city.city;
+      btn.addEventListener('click', function () {
+        onSelectCity(city);
+      });
+      citiesEl.appendChild(btn);
+    });
+
+    hintEl.textContent =
+      cities.length > 8
+        ? 'Click a city for full profile — or browse counties below.'
+        : 'Click a city for its full profile.';
+  }
+
   function renderStateDock(stateName) {
     if (!coverage || !shared) return;
     var cities = shared.stateCities(coverage, stateName, searchQuery);
@@ -202,6 +271,7 @@
     var portalN = cities.filter(function (c) { return c.pin_type === 'portal'; }).length;
     var completedN = cities.length - portalN;
     updateDockHead(stateName, cities.length + ' cities · ' + portalN + ' portal · ' + completedN + ' PDF');
+    renderSpotlight(stateName);
     showDockPanel('home-dock-state');
     document.getElementById('home-dock-back').hidden = false;
   }
@@ -212,6 +282,7 @@
     var list = document.getElementById('home-dock-search-list');
     shared.renderSearchList(list, matches, onSelectCity, selectedCityId);
     updateDockHead('Search results', matches.length + ' matches');
+    setSpotlightHidden(true);
     showDockPanel('home-dock-search');
     document.getElementById('home-dock-back').hidden = !currentState;
   }
@@ -233,7 +304,8 @@
     searchQuery = '';
     var input = document.getElementById('home-dock-search-input');
     if (input) input.value = '';
-    updateDockHead('Explore coverage', 'Click a state or search a city, county, or state');
+    updateDockHead('Explore territory', 'Click a state or search a city, county, or state');
+    setSpotlightHidden(true);
     showDockPanel('home-dock-hint');
     document.getElementById('home-dock-back').hidden = true;
     updateLiftLayers();
