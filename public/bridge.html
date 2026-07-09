@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=4">
+  <link rel="stylesheet" href="/css/bridge.css?v=5">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -264,8 +264,17 @@
     </section>
 
     <section class="bridge-panel phuglee-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
-      <h2 id="bridge-lists-heading"><span class="bridge-step-badge" aria-hidden="true">·</span> Saved lists</h2>
-      <p class="bridge-panel-lead">Filtered lists stay here until you delete them. Download for enrichment, then import the final skip-traced file into Analyze yourself.</p>
+      <div class="bridge-lists-header">
+        <div>
+          <h2 id="bridge-lists-heading"><span class="bridge-step-badge" aria-hidden="true">·</span> Saved lists</h2>
+          <p class="bridge-panel-lead">Your master staging area. Save many city lists, download them all as one sheet for enrichment, or clear for a new day.</p>
+        </div>
+        <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
+          <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv">Download all (CSV)</button>
+          <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
+          <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
+        </div>
+      </div>
       <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file above, then click Save list.</div>
       <div id="bridge-lists-wrap" class="bridge-lists-wrap" hidden>
         <table class="bridge-lists-table" id="bridge-lists-table">
@@ -312,6 +321,6 @@
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
-  <script src="/js/bridge.js?v=5"></script>
+  <script src="/js/bridge.js?v=6"></script>
 </body>
 </html>

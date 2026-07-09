@@ -516,3 +516,49 @@ test('POST /api/bridge/lists rejects empty rows', async () => {
   assert.equal(status, 400);
   assert.equal(json.code, 'MISSING_ROWS');
 });
+
+test('download-all and clear-all for saved lists', async () => {
+  const headers = {
+    'content-type': 'application/json',
+    'x-phuglee-user': 'bulk-tester'
+  };
+  await callBridge('POST', '/api/bridge/lists', {
+    headers,
+    body: Buffer.from(JSON.stringify({
+      name: 'Bulk A',
+      cityName: 'Alpha',
+      state: 'AZ',
+      rows: [{ streetAddress: '10 Bulk', city: 'Alpha', state: 'AZ' }]
+    }))
+  });
+  await callBridge('POST', '/api/bridge/lists', {
+    headers,
+    body: Buffer.from(JSON.stringify({
+      name: 'Bulk B',
+      cityName: 'Beta',
+      state: 'TX',
+      rows: [{ streetAddress: '20 Bulk', city: 'Beta', state: 'TX' }]
+    }))
+  });
+
+  const all = await callBridge('GET', '/api/bridge/lists/download-all?format=csv', {
+    headers: { 'x-phuglee-user': 'bulk-tester' }
+  });
+  assert.equal(all.status, 200);
+  assert.match(String(all.headers['Content-Type'] || ''), /csv/i);
+  assert.match(all.body, /Bulk A/);
+  assert.match(all.body, /Bulk B/);
+  assert.match(all.body, /10 Bulk/);
+
+  const cleared = await callBridge('DELETE', '/api/bridge/lists', {
+    headers: { 'x-phuglee-user': 'bulk-tester' }
+  });
+  assert.equal(cleared.status, 200);
+  assert.equal(cleared.json.ok, true);
+  assert.ok(cleared.json.deleted >= 2);
+
+  const empty = await callBridge('GET', '/api/bridge/lists', {
+    headers: { 'x-phuglee-user': 'bulk-tester' }
+  });
+  assert.equal(empty.json.lists.length, 0);
+});

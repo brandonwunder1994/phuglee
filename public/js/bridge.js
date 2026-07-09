@@ -53,6 +53,10 @@
   const listsEmpty = document.getElementById('bridge-lists-empty');
   const listsWrap = document.getElementById('bridge-lists-wrap');
   const listsBody = document.getElementById('bridge-lists-body');
+  const listsToolbar = document.getElementById('bridge-lists-toolbar');
+  const downloadAllCsvBtn = document.getElementById('bridge-download-all-csv');
+  const downloadAllXlsxBtn = document.getElementById('bridge-download-all-xlsx');
+  const clearAllListsBtn = document.getElementById('bridge-clear-all-lists');
   const attachPanel = document.getElementById('bridge-attach-panel');
   const responseDateInput = document.getElementById('bridge-response-date');
   const responseHourSelect = document.getElementById('bridge-response-hour');
@@ -448,11 +452,13 @@
     if (!savedLists.length) {
       setHidden(listsEmpty, false);
       setHidden(listsWrap, true);
+      setHidden(listsToolbar, true);
       listsBody.innerHTML = '';
       return;
     }
     setHidden(listsEmpty, true);
     setHidden(listsWrap, false);
+    setHidden(listsToolbar, false);
     listsBody.innerHTML = savedLists.map((list) => {
       const cityLabel = [list.city, list.state].filter(Boolean).join(', ') || '—';
       return (
@@ -482,6 +488,49 @@
     }
   }
 
+  function resetImportAreaAfterSave(savedLabel) {
+    // Keep city + lead type so the next city file is one drop away; clear file + results.
+    lastResult = null;
+    selectedFile = null;
+    clearFileUi();
+    setHidden(resultsPanel, true);
+    setHidden(loadingPanel, true);
+    setHidden(savePanel, true);
+    setHidden(attachPanel, true);
+    setSaveStatus('', '');
+    setAttachStatus('', '');
+    if (listNameInput) listNameInput.value = '';
+    setPipelineStep(selectedUploadType ? 'upload' : (selectedCity ? 'type' : 'location'));
+    showError('');
+    // Brief confirmation on the saved-lists panel via empty-state note if needed
+    const note = document.getElementById('bridge-lists-empty');
+    if (note && !savedLists.length) {
+      /* lists refresh will repaint */
+    }
+    // Soft status on save panel is cleared; use a temporary toast-like note in lists lead
+    const listsPanel = document.getElementById('bridge-lists-panel');
+    if (listsPanel) {
+      let flash = document.getElementById('bridge-lists-flash');
+      if (!flash) {
+        flash = document.createElement('p');
+        flash.id = 'bridge-lists-flash';
+        flash.className = 'bridge-lists-flash';
+        flash.setAttribute('role', 'status');
+        const lead = listsPanel.querySelector('.bridge-panel-lead');
+        if (lead) lead.insertAdjacentElement('afterend', flash);
+        else listsPanel.prepend(flash);
+      }
+      flash.textContent = savedLabel
+        ? `Saved “${savedLabel}”. Upload the next city file when ready.`
+        : 'List saved. Upload the next city file when ready.';
+      flash.hidden = false;
+      window.setTimeout(() => {
+        if (flash) flash.hidden = true;
+      }, 6000);
+      listsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
   async function saveCurrentList() {
     if (!lastResult?.rows?.length) {
       setSaveStatus('Process a file with kept rows before saving.', 'error');
@@ -507,12 +556,65 @@
           processingMeta: lastResult.processingMeta || {}
         })
       });
-      setSaveStatus(`Saved “${data.list?.name || name}” — ${Number(data.list?.recordCount || lastResult.rows.length).toLocaleString()} records.`, 'success');
+      const savedName = data.list?.name || name;
       await loadSavedLists();
+      resetImportAreaAfterSave(savedName);
     } catch (err) {
       setSaveStatus(err.message || 'Could not save list.', 'error');
     } finally {
       if (saveListBtn) saveListBtn.disabled = false;
+    }
+  }
+
+  async function downloadAllSavedLists(format) {
+    if (!savedLists.length) {
+      showError('No saved lists to download yet.');
+      return;
+    }
+    const fmt = format === 'xlsx' ? 'xlsx' : 'csv';
+    try {
+      const res = await fetch(`/api/bridge/lists/download-all?format=${fmt}`, {
+        cache: 'no-store',
+        headers: bridgeHeaders()
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Download failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="?([^"]+)"?/i);
+      const filename = match?.[1] || `filter-lists-all.${fmt}`;
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+      await loadSavedLists();
+    } catch (err) {
+      showError(err.message || 'Could not download all lists.');
+    }
+  }
+
+  async function clearAllSavedLists() {
+    if (!savedLists.length) return;
+    const count = savedLists.length;
+    const total = savedLists.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0);
+    if (!window.confirm(
+      `Clear all ${count} saved list(s) (${total.toLocaleString()} records)?\n\nThis cannot be undone. Use this for a fresh day of city uploads.`
+    )) return;
+    try {
+      await fetchJson('/api/bridge/lists', { method: 'DELETE' });
+      await loadSavedLists();
+      const flash = document.getElementById('bridge-lists-flash');
+      if (flash) {
+        flash.textContent = 'All saved lists cleared. Ready for a new day.';
+        flash.hidden = false;
+        window.setTimeout(() => { flash.hidden = true; }, 5000);
+      }
+    } catch (err) {
+      showError(err.message || 'Could not clear saved lists.');
     }
   }
 
@@ -926,6 +1028,15 @@
       event.preventDefault();
       saveCurrentList().catch((e) => setSaveStatus(e.message, 'error'));
     }
+  });
+  downloadAllCsvBtn?.addEventListener('click', () => {
+    downloadAllSavedLists('csv').catch((e) => showError(e.message));
+  });
+  downloadAllXlsxBtn?.addEventListener('click', () => {
+    downloadAllSavedLists('xlsx').catch((e) => showError(e.message));
+  });
+  clearAllListsBtn?.addEventListener('click', () => {
+    clearAllSavedLists().catch((e) => showError(e.message));
   });
   listsBody?.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-action]');

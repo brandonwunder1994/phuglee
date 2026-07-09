@@ -26,7 +26,9 @@ const {
   getList,
   renameList,
   deleteList,
+  clearAllLists,
   buildDownload,
+  buildDownloadAll,
   markDownloaded
 } = require('../lib/bridge-list-store');
 
@@ -108,4 +110,50 @@ test('lists are scoped per user', () => {
   assert.ok(!aliceLists.includes(b.meta.id));
   assert.ok(bobLists.includes(b.meta.id));
   assert.ok(!bobLists.includes(a.meta.id));
+});
+
+test('buildDownloadAll combines rows with list name columns', () => {
+  saveList({
+    name: 'City A List',
+    rows: [{ streetAddress: '1 A St', city: 'Alpha', state: 'AZ', zip: '85001' }],
+    city: 'Alpha',
+    state: 'AZ',
+    username: 'bulkuser'
+  });
+  saveList({
+    name: 'City B List',
+    rows: [
+      { streetAddress: '2 B St', city: 'Beta', state: 'TX', zip: '75001' },
+      { streetAddress: '3 B St', city: 'Beta', state: 'TX', zip: '75001' }
+    ],
+    city: 'Beta',
+    state: 'TX',
+    username: 'bulkuser'
+  });
+  const dl = buildDownloadAll('csv', { username: 'bulkuser' });
+  assert.equal(dl.listCount, 2);
+  assert.equal(dl.recordCount, 3);
+  const text = dl.buffer.toString('utf8');
+  assert.match(text, /List Name/);
+  assert.match(text, /City A List/);
+  assert.match(text, /City B List/);
+  assert.match(text, /1 A St/);
+  assert.match(text, /2 B St/);
+});
+
+test('clearAllLists removes every list for the user', () => {
+  saveList({
+    name: 'Temp 1',
+    rows: [{ streetAddress: '9 Z', city: 'Z', state: 'ZZ' }],
+    username: 'clearuser'
+  });
+  saveList({
+    name: 'Temp 2',
+    rows: [{ streetAddress: '8 Y', city: 'Y', state: 'YY' }],
+    username: 'clearuser'
+  });
+  assert.equal(listSummaries({ username: 'clearuser' }).lists.length, 2);
+  const cleared = clearAllLists({ username: 'clearuser' });
+  assert.equal(cleared.deleted, 2);
+  assert.equal(listSummaries({ username: 'clearuser' }).lists.length, 0);
 });
