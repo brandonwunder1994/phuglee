@@ -347,6 +347,105 @@
     });
   }
 
+  var STATE_ABBREV = {
+    Alabama: 'AL', Alaska: 'AK', Arizona: 'AZ', Arkansas: 'AR', California: 'CA',
+    Colorado: 'CO', Connecticut: 'CT', Delaware: 'DE', Florida: 'FL', Georgia: 'GA',
+    Hawaii: 'HI', Idaho: 'ID', Illinois: 'IL', Indiana: 'IN', Iowa: 'IA',
+    Kansas: 'KS', Kentucky: 'KY', Louisiana: 'LA', Maine: 'ME', Maryland: 'MD',
+    Massachusetts: 'MA', Michigan: 'MI', Minnesota: 'MN', Mississippi: 'MS',
+    Missouri: 'MO', Montana: 'MT', Nebraska: 'NE', Nevada: 'NV', 'New Hampshire': 'NH',
+    'New Jersey': 'NJ', 'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC',
+    'North Dakota': 'ND', Ohio: 'OH', Oklahoma: 'OK', Oregon: 'OR', Pennsylvania: 'PA',
+    'Rhode Island': 'RI', 'South Carolina': 'SC', 'South Dakota': 'SD', Tennessee: 'TN',
+    Texas: 'TX', Utah: 'UT', Vermont: 'VT', Virginia: 'VA', Washington: 'WA',
+    'West Virginia': 'WV', Wisconsin: 'WI', Wyoming: 'WY', 'District of Columbia': 'DC'
+  };
+
+  function stateAbbrev(name) {
+    if (!name) return '';
+    if (name.length <= 2) return name.toUpperCase();
+    return STATE_ABBREV[name] || name;
+  }
+
+  function escapeTickerHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function pickTickerCities(cov) {
+    var cities = (cov && cov.cities) || [];
+    if (!cities.length) return [];
+
+    var portals = [];
+    var others = [];
+    cities.forEach(function (c) {
+      if (!c || !c.city) return;
+      if (c.pin_type === 'portal') portals.push(c);
+      else others.push(c);
+    });
+
+    var ordered = portals.concat(others);
+    var perState = {};
+    var picked = [];
+
+    ordered.forEach(function (c) {
+      if (picked.length >= 32) return;
+      var st = c.state || '';
+      perState[st] = perState[st] || 0;
+      if (perState[st] >= 2) return;
+      perState[st] += 1;
+      picked.push(c);
+    });
+
+    if (picked.length < 8) {
+      ordered.forEach(function (c) {
+        if (picked.length >= 32) return;
+        if (picked.indexOf(c) !== -1) return;
+        picked.push(c);
+      });
+    }
+
+    return picked;
+  }
+
+  function buildTerritoryTicker(cov) {
+    var track = document.getElementById('home-territory-ticker-track');
+    if (!track) return;
+
+    var picked = pickTickerCities(cov);
+    if (!picked.length) {
+      track.classList.remove('is-marquee');
+      track.innerHTML = '<p class="home-territory-ticker-empty">Territory loading…</p>';
+      return;
+    }
+
+    function rowHtml(c) {
+      var place = escapeTickerHtml(c.city) + ', ' + escapeTickerHtml(stateAbbrev(c.state));
+      var isPortal = c.pin_type === 'portal';
+      var tagClass = 'home-territory-ticker-tag' + (isPortal ? ' home-territory-ticker-tag--portal' : '');
+      var tagLabel = isPortal ? 'Portal' : 'Live';
+      return (
+        '<div class="home-territory-ticker-row">' +
+          '<span class="home-territory-ticker-place">' + place + '</span>' +
+          '<span class="' + tagClass + '">' + tagLabel + '</span>' +
+        '</div>'
+      );
+    }
+
+    var html = picked.map(rowHtml).join('');
+    var useMarquee = picked.length >= 4 && !reduceMotion;
+    if (useMarquee) {
+      html = html + html;
+      track.classList.add('is-marquee');
+    } else {
+      track.classList.remove('is-marquee');
+    }
+    track.innerHTML = html;
+  }
+
   function updateSummary(cov) {
     var el = document.getElementById('home-map-summary');
     if (!el || !shared) return;
@@ -359,6 +458,7 @@
         total_states: cov.total_states
       });
     }
+    buildTerritoryTicker(cov);
   }
 
   async function renderSvgFallback() {
@@ -385,6 +485,7 @@
       coverage = await shared.fetchCoverageMap();
       statesGeo = await shared.fetchStatesGeo();
       updateSummary(coverage);
+      buildTerritoryTicker(coverage);
       if (modal) modal.prefetchImages();
 
       await Promise.all([loadStylesheet(MAPLIBRE_CSS), loadScript(MAPLIBRE_JS)]);
@@ -430,10 +531,15 @@
     } catch (_) {
       host.classList.remove('home-coverage-map--loading');
       host.classList.remove('home-coverage-map--live');
+      if (coverage) buildTerritoryTicker(coverage);
       await renderSvgFallback();
       document.getElementById('home-territory-monitor')?.classList.add('is-live');
     }
   }
+
+  window.PhugleeTerritoryTicker = {
+    build: buildTerritoryTicker
+  };
 
   function observeExplorer() {
     if (!document.body.hasAttribute('data-home-map-preview')) return;

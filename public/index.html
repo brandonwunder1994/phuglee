@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="/css/distress-glass.css">
   <link rel="stylesheet" href="/css/distress-heat-v2.css">
   <link rel="stylesheet" href="/css/landing.css?v=5">
-  <link rel="stylesheet" href="/css/home.css?v=29">
+  <link rel="stylesheet" href="/css/home.css?v=30">
   <link rel="stylesheet" href="/css/home-chronicle.css?v=48">
   <link rel="stylesheet" href="/css/home-ui-preview.css?v=14">
   <link rel="stylesheet" href="/css/home-premium.css?v=6">
@@ -557,23 +557,37 @@
 
           <div class="home-territory-stage home-territory-stage--explorer">
             <div class="distress-monitor home-territory-monitor" id="home-territory-monitor">
-              <div class="distress-monitor-screen home-territory-screen home-territory-screen--explorer">
-                <div class="home-coverage-map" id="home-coverage-map" role="application" aria-label="United States coverage map">
-                  <p class="home-map-loading">Loading map…</p>
+              <div class="home-territory-main">
+                <div class="distress-monitor-screen home-territory-screen home-territory-screen--explorer">
+                  <div class="home-coverage-map" id="home-coverage-map" role="application" aria-label="United States coverage map">
+                    <p class="home-map-loading">Loading map…</p>
+                  </div>
+                  <div class="home-territory-corners" aria-hidden="true">
+                    <span class="home-territory-corner home-territory-corner--tl"></span>
+                    <span class="home-territory-corner home-territory-corner--tr"></span>
+                    <span class="home-territory-corner home-territory-corner--bl"></span>
+                    <span class="home-territory-corner home-territory-corner--br"></span>
+                  </div>
+                  <span class="home-territory-live-badge">Live</span>
+                  <ul class="home-map-legend home-map-legend--overlay" aria-label="Map legend">
+                    <li><span class="home-map-swatch home-map-swatch--covered" aria-hidden="true"></span> Live</li>
+                    <li><span class="home-map-swatch home-map-swatch--pending" aria-hidden="true"></span> Soon</li>
+                    <li><span class="home-map-swatch home-map-swatch--blocked" aria-hidden="true"></span> Blocked</li>
+                  </ul>
+                  <span class="home-monitor-scan home-monitor-scan--map"></span>
                 </div>
-                <div class="home-territory-corners" aria-hidden="true">
-                  <span class="home-territory-corner home-territory-corner--tl"></span>
-                  <span class="home-territory-corner home-territory-corner--tr"></span>
-                  <span class="home-territory-corner home-territory-corner--bl"></span>
-                  <span class="home-territory-corner home-territory-corner--br"></span>
-                </div>
-                <span class="home-territory-live-badge">Live</span>
-                <ul class="home-map-legend home-map-legend--overlay" aria-label="Map legend">
-                  <li><span class="home-map-swatch home-map-swatch--covered" aria-hidden="true"></span> Live</li>
-                  <li><span class="home-map-swatch home-map-swatch--pending" aria-hidden="true"></span> Soon</li>
-                  <li><span class="home-map-swatch home-map-swatch--blocked" aria-hidden="true"></span> Blocked</li>
-                </ul>
-                <span class="home-monitor-scan home-monitor-scan--map"></span>
+
+                <aside class="home-territory-ticker" aria-label="Live territory feed" id="home-territory-ticker">
+                  <div class="home-territory-ticker-head">
+                    <span class="home-territory-ticker-label">Territory feed</span>
+                    <span class="home-territory-ticker-status">Live</span>
+                  </div>
+                  <div class="home-territory-ticker-viewport">
+                    <div class="home-territory-ticker-track" id="home-territory-ticker-track" data-home-territory-ticker>
+                      <p class="home-territory-ticker-empty">Loading territory…</p>
+                    </div>
+                  </div>
+                </aside>
               </div>
 
               <div class="coverage-dock is-collapsed" id="home-coverage-dock" aria-label="Coverage explorer">
@@ -627,7 +641,7 @@
   <script src="/js/home-coverage.js?v=8" defer></script>
   <script src="/js/coverage/coverage-shared.js?v=1" defer></script>
   <script src="/js/coverage/city-profile-modal.js?v=1" defer></script>
-  <script src="/js/home-coverage-explorer.js?v=4" defer></script>
+  <script src="/js/home-coverage-explorer.js?v=5" defer></script>
   <script src="/js/property-carousel-3d.js?v=17" defer></script>
   <script src="/js/home-below.js?v=10" defer></script>
   <script src="/js/auth-session.js"></script>
