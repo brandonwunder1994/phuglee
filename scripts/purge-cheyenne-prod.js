@@ -41,6 +41,12 @@ async function purgeAt(base, label) {
       'X-Phuglee-User': 'admin',
       'X-Phuglee-Plan': plan
     };
+    const cleanup = await fetchUrl(`${base}/analyzer/api/disk-cleanup`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({})
+    });
+    console.log(`cleanup admin/${plan}: ${cleanup.status} ${cleanup.text.slice(0, 300)}`);
     const post = await fetchUrl(`${base}/analyzer/api/purge-location`, {
       method: 'POST',
       headers,

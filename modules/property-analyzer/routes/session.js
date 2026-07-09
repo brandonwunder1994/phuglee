@@ -2,6 +2,81 @@ const { writeFileAtomic } = require('../lib/fs-atomic');
 const backupLogic = require('../lib/backup-logic');
 const { scopeSessionPath } = require('../lib/user-session');
 
+function freeSessionDiskSpace(fs, path, config, { aggressive = false } = {}) {
+  const dirs = [
+    config.ARCHIVE_REJECTED_DIR,
+    config.AUTO_BACKUPS_DIR,
+    config.ARCHIVE_DIR
+  ];
+  if (aggressive) {
+    dirs.push(config.MILESTONE_BACKUPS_DIR, config.MANUAL_BACKUPS_DIR, config.GEMINI_AUDIT_DIR);
+  }
+  let files = 0;
+  let bytes = 0;
+
+  function rmTree(dir, depth = 0) {
+    if (!dir || !fs.existsSync(dir)) return;
+    let entries = [];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (_) {
+      return;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      try {
+        if (entry.isDirectory()) {
+          // Keep archive root structure; wipe rejected contents fully.
+          if (depth === 0 && /archive$/i.test(dir) && entry.name !== 'rejected') {
+            continue;
+          }
+          rmTree(full, depth + 1);
+          try {
+            fs.rmdirSync(full);
+          } catch (_) {}
+        } else {
+          // Never delete live latest session files.
+          if (/distressAnalyzerSession_LATEST\.json$/i.test(entry.name)) continue;
+          const st = fs.statSync(full);
+          fs.unlinkSync(full);
+          files += 1;
+          bytes += st.size || 0;
+        }
+      } catch (_) {}
+    }
+  }
+
+  for (const dir of dirs) rmTree(dir, 0);
+
+  // Also clear *.tmp near data root users folders
+  try {
+    const usersDir = path.join(config.DATA_ROOT, 'users');
+    if (fs.existsSync(usersDir)) {
+      for (const user of fs.readdirSync(usersDir)) {
+        const uDir = path.join(usersDir, user);
+        let entries = [];
+        try {
+          entries = fs.readdirSync(uDir);
+        } catch (_) {
+          continue;
+        }
+        for (const name of entries) {
+          if (!/\.tmp$/i.test(name) && !/\.bak-/i.test(name)) continue;
+          const full = path.join(uDir, name);
+          try {
+            const st = fs.statSync(full);
+            fs.unlinkSync(full);
+            files += 1;
+            bytes += st.size || 0;
+          } catch (_) {}
+        }
+      }
+    }
+  } catch (_) {}
+
+  return { files, bytes };
+}
+
 function register(ctx) {
   const { router, sendJson, readBody, backups, safety, config, fs, path } = ctx;
   const { DATA_ROOT, SESSION_BACKUP_FILES, SESSION_LATEST_FILE, ARCHIVE_REJECTED_DIR } = config;
@@ -336,14 +411,26 @@ function register(ctx) {
       next.processed = Math.min(next.processed, keptResults.length);
     }
 
-    backups.writeLatestSessionFileForScope(scope, next);
+    // Free disk before rewrite (Railway ephemeral volumes fill up with rejected backups).
+    const freed = freeSessionDiskSpace(fs, path, config);
+
+    try {
+      backups.writeLatestSessionFileForScope(scope, next);
+    } catch (err) {
+      if (err && (err.code === 'ENOSPC' || /no space left/i.test(String(err.message || '')))) {
+        freeSessionDiskSpace(fs, path, config, { aggressive: true });
+        backups.writeLatestSessionFileForScope(scope, next);
+      } else {
+        throw err;
+      }
+    }
     try {
       safety.writeMirrorLatest(next);
     } catch (_) {}
 
     console.log(
       `[Session] purge-location ${city}/${stateRaw || '*'} ` +
-      `(${scope.storageKey}): -${removedRecords} records, -${removedResults} results`
+      `(${scope.storageKey}): -${removedRecords} records, -${removedResults} results, freed~${freed.files} files`
     );
 
     sendJson(res, 200, {
@@ -355,8 +442,17 @@ function register(ctx) {
       scope: scope.kind,
       storageKey: scope.storageKey,
       city: body.city,
-      state: body.state || ''
+      state: body.state || '',
+      diskFreedFiles: freed.files,
+      diskFreedBytes: freed.bytes
     });
+    return true;
+  });
+
+  /** Lightweight disk cleanup for full volumes (does not touch live session). */
+  router.post('/api/disk-cleanup', async (req, res) => {
+    const freed = freeSessionDiskSpace(fs, path, config, { aggressive: true });
+    sendJson(res, 200, { ok: true, ...freed });
     return true;
   });
 
