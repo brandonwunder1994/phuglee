@@ -96,22 +96,34 @@ Upload and process a city response file. Does **not** persist to city profile.
     "importIndexCount": 10482,
     "importIndexSources": { "records": 10200, "results": 282 },
     "durationMs": 420
-  },
-  "analyzerPush": {
-    "ok": true,
-    "added": 130,
-    "skipped": 12,
-    "totalRecords": 10582,
-    "mode": "api"
   }
 }
 ```
 
-After processing, kept rows are automatically appended to the Property Analyzer session. `analyzerPush.added` is the count of new leads pushed; `skipped` are duplicates already in the session.
+Processing **does not** push to Analyze. Save filtered lists via `POST /api/bridge/lists`, then download for third-party enrichment. Analyze only receives data when you manually import an enriched list there.
+
+Addresses already present in the Analyze session are still removed from kept rows (`stats.alreadyImported`).
 
 **Response 400:** Invalid upload type, unsupported file, empty file, city not found.
 
 **Response 422:** File parsed but zero usable rows.
+
+---
+
+## Saved lists (`/api/bridge/lists`)
+
+User-scoped Filter staging store. Independent of Analyze.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/api/bridge/lists` | List saved list summaries |
+| `POST` | `/api/bridge/lists` | Save processed rows as a named list |
+| `GET` | `/api/bridge/lists/:id?includeRows=1` | Get one list (optional full rows) |
+| `PATCH` | `/api/bridge/lists/:id` | Rename (`{ "name": "..." }`) |
+| `DELETE` | `/api/bridge/lists/:id` | Delete list |
+| `GET` | `/api/bridge/lists/:id/download?format=csv\|xlsx` | Download export |
+
+**POST body:** `{ name?, rows, stats?, cityId?, cityName?, state?, uploadType?, sourceFile?, processingMeta? }`
 
 ---
 

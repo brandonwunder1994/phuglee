@@ -89,16 +89,16 @@ The index is cached for 5 minutes. Matching uses the same address similarity thr
 
 **Stats:** `alreadyImported` counts rows removed by this filter. `processingMeta.importIndexCount` reports how many addresses were in the Analyzer index at processing time.
 
-## Property Analyzer Auto-Push
+## Filter Saved Lists (no Auto-Push)
 
-After processing, kept rows are **automatically appended** to the user's Property Analyzer session (`records[]`). Duplicates against existing `records` and `results` are skipped (same `email|phone|address` key).
+After processing, kept rows stay on the Filter page until the user explicitly saves them.
 
-- API: `POST /api/bridge-import-records` on Property Analyzer (Distress OS calls this server-side)
-- Fallback: direct merge into `distressAnalyzerSession_LATEST.json` on disk if the API is unavailable
-- Response field: `analyzerPush: { added, skipped, totalRecords, mode }`
-- Bridge metadata on each record: `bridgeTag`, `bridgeIssueType`, `bridgeNotes`, `bridgeViolationDate`, `bridgeSourceFile`
+- API: `POST /api/bridge/lists` (user-scoped filesystem store under `data/filter-lists/`)
+- Download: `GET /api/bridge/lists/:id/download?format=csv|xlsx`
+- Rename / delete: `PATCH` / `DELETE` on `/api/bridge/lists/:id`
+- **No automatic push to Analyze.** Import enriched skip-traced lists into Analyze manually.
 
-Open Property Analyzer after a Bridge upload — new leads appear in the queue ready for **Start Analysis** without a manual spreadsheet upload.
+The legacy `POST /api/bridge-import-records` Analyzer endpoint may still exist for compatibility but is not called from Filter process.
 
 ## Response Received Timestamp (Turnaround KPI)
 

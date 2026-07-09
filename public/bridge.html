@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phuglee — Filter</title>
-  <meta name="description" content="Scrub messy city files into clean distressed lead lists — normalize, tag signals, and attach versioned datasets before you analyze.">
+  <meta name="description" content="Scrub messy city files into clean distressed lead lists — normalize, tag signals, save multiple lists, and download for enrichment.">
   <meta property="og:title" content="Phuglee — Filter">
-  <meta property="og:description" content="Drop in spreadsheets, PDFs, or photos. Filter tags distress signals and prepares your list for Analyze.">
+  <meta property="og:description" content="Drop in spreadsheets, PDFs, or photos. Filter tags distress signals and stages clean lists for download.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=3">
+  <link rel="stylesheet" href="/css/bridge.css?v=4">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -48,7 +48,7 @@
     <header class="bridge-hero" data-phuglee-reveal-child>
       <p class="bridge-step-label">Step 02 · Filter</p>
       <h1>Scrub the Mess</h1>
-      <p class="bridge-lead">Drop in whatever the city sent — Excel, CSV, PDF, Word, or photos of a printed list. Filter normalizes addresses, tags distress signals, and builds a clean spreadsheet ready for Analyze.</p>
+      <p class="bridge-lead">Drop in whatever the city sent — Excel, CSV, PDF, Word, or photos of a printed list. Filter normalizes addresses, tags distress signals, and saves clean lists you can download for enrichment. Analyze stays separate — import there only after skip-trace.</p>
     </header>
 
     <section class="bridge-proof-rail phuglee-panel" aria-label="Filter steps" data-phuglee-reveal-child>
@@ -193,7 +193,7 @@
     </section>
 
     <section class="bridge-panel phuglee-panel" id="bridge-results-panel" hidden aria-labelledby="bridge-step-results" data-phuglee-reveal-child>
-      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Results &amp; attach</h2>
+      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Results &amp; save</h2>
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
       <p class="bridge-note" id="bridge-stub-note" hidden></p>
@@ -241,14 +241,47 @@
       </div>
       <div class="bridge-pagination" id="bridge-pagination" hidden></div>
 
+      <section class="bridge-save-panel" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
+        <h3 id="bridge-save-heading">Save filtered list</h3>
+        <p class="bridge-panel-lead">Store this list on Filter so you can process more cities, then download when you’re ready for third-party enrichment. Nothing is sent to Analyze.</p>
+        <div class="bridge-save-row">
+          <label class="bridge-save-name" for="bridge-list-name">List name
+            <input type="text" id="bridge-list-name" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
+          </label>
+          <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
+        </div>
+        <p class="bridge-save-status" id="bridge-save-status" hidden role="status"></p>
+      </section>
+
       <section class="bridge-attach-panel" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
-        <h3 id="bridge-attach-heading">Attach to city profile</h3>
-        <p class="bridge-panel-lead">Save this scrubbed dataset to the city profile. Response received time was set in step 3 — change it there if needed before attaching.</p>
+        <h3 id="bridge-attach-heading">Optional · Attach to city profile</h3>
+        <p class="bridge-panel-lead">Log this response on the Form Forge city profile for turnaround tracking. This does not send leads to Analyze.</p>
         <div class="bridge-attach-row">
-          <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-attach">Attach versioned dataset</button>
+          <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-attach">Attach versioned dataset</button>
         </div>
         <p class="bridge-attach-status" id="bridge-attach-status" hidden role="status"></p>
       </section>
+    </section>
+
+    <section class="bridge-panel phuglee-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
+      <h2 id="bridge-lists-heading"><span class="bridge-step-badge" aria-hidden="true">·</span> Saved lists</h2>
+      <p class="bridge-panel-lead">Filtered lists stay here until you delete them. Download for enrichment, then import the final skip-traced file into Analyze yourself.</p>
+      <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file above, then click Save list.</div>
+      <div id="bridge-lists-wrap" class="bridge-lists-wrap" hidden>
+        <table class="bridge-lists-table" id="bridge-lists-table">
+          <thead>
+            <tr>
+              <th scope="col">List name</th>
+              <th scope="col">Uploaded</th>
+              <th scope="col">Records</th>
+              <th scope="col">Status</th>
+              <th scope="col">City</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bridge-lists-body"></tbody>
+        </table>
+      </div>
     </section>
 
     <p class="bridge-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
@@ -279,6 +312,6 @@
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
-  <script src="/js/bridge.js?v=4"></script>
+  <script src="/js/bridge.js?v=5"></script>
 </body>
 </html>

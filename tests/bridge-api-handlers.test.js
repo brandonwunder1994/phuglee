@@ -68,12 +68,20 @@ function createMockRes() {
     statusCode: 200,
     headers: {},
     body: '',
+    bodyBuffer: null,
     writeHead(status, headers) {
       this.statusCode = status;
-      this.headers = headers;
+      this.headers = headers || {};
+      this.headersSent = true;
     },
     end(data) {
-      this.body = typeof data === 'string' ? data : data?.toString('utf8') || '';
+      if (Buffer.isBuffer(data)) {
+        this.bodyBuffer = data;
+        this.body = data.toString('utf8');
+      } else {
+        this.body = typeof data === 'string' ? data : data?.toString('utf8') || '';
+        this.bodyBuffer = Buffer.from(this.body, 'utf8');
+      }
     },
     headersSent: false
   };
@@ -85,18 +93,31 @@ async function callBridge(method, pathname, { headers = {}, body = null } = {}) 
   const res = createMockRes();
   const handled = await bridgeApi.handle(req, res, url.pathname, url);
   assert.equal(handled, true);
+  let json = {};
+  const contentType = String(res.headers['Content-Type'] || res.headers['content-type'] || '');
+  if (res.body && contentType.includes('json')) {
+    json = JSON.parse(res.body);
+  } else if (res.body && res.body.trim().startsWith('{')) {
+    try { json = JSON.parse(res.body); } catch (_) {}
+  }
   return {
     status: res.statusCode,
-    json: res.body ? JSON.parse(res.body) : {}
+    headers: res.headers,
+    body: res.body,
+    bodyBuffer: res.bodyBuffer,
+    json
   };
 }
 
 let originalLoadIndex;
-let originalPush;
 let indexModule;
-let pushModule;
+let listRootOriginal;
+let listRootTemp;
+let config;
 
 before(async () => {
+  listRootTemp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'bridge-lists-api-'));
+
   indexModule = require('../lib/analyzer-import-index');
   originalLoadIndex = indexModule.loadImportAddressIndex;
   indexModule.loadImportAddressIndex = async () => ({
@@ -104,16 +125,6 @@ before(async () => {
     addresses: new Set(),
     count: 0,
     sources: null
-  });
-
-  pushModule = require('../lib/bridge-analyzer-push');
-  originalPush = pushModule.pushRowsToAnalyzer;
-  pushModule.pushRowsToAnalyzer = async () => ({
-    ok: true,
-    added: 0,
-    skipped: 0,
-    totalRecords: 0,
-    mode: 'test'
   });
 
   mockForge = http.createServer((req, res) => {
@@ -191,10 +202,14 @@ before(async () => {
   for (const mod of [
     '../lib/config',
     '../lib/bridge-engine',
+    '../lib/bridge-list-store',
     '../lib/bridge-api'
   ]) {
     delete require.cache[require.resolve(mod)];
   }
+  config = require('../lib/config');
+  listRootOriginal = config.FILTER_LISTS_ROOT;
+  config.FILTER_LISTS_ROOT = listRootTemp;
   bridgeApi = require('../lib/bridge-api');
 });
 
@@ -205,9 +220,12 @@ after(async () => {
   if (indexModule && originalLoadIndex) {
     indexModule.loadImportAddressIndex = originalLoadIndex;
   }
-  if (pushModule && originalPush) {
-    pushModule.pushRowsToAnalyzer = originalPush;
+  if (config && listRootOriginal !== undefined) {
+    config.FILTER_LISTS_ROOT = listRootOriginal;
   }
+  try {
+    if (listRootTemp) fs.rmSync(listRootTemp, { recursive: true, force: true });
+  } catch (_) {}
 });
 
 test('GET /api/bridge/states returns aggregated states', async () => {
@@ -339,7 +357,7 @@ test('POST /api/bridge/process succeeds with valid CSV fixture', async () => {
   assert.equal(json.ok, true);
   assert.ok(json.stats.kept >= 1);
   assert.ok(Array.isArray(json.rows));
-  assert.ok(json.analyzerPush);
+  assert.equal(json.analyzerPush, undefined);
 });
 
 test('POST /api/bridge/attach rejects invalid JSON', async () => {
@@ -398,4 +416,103 @@ test('GET /api/bridge/history returns 404 for unknown city', async () => {
   const { status, json } = await callBridge('GET', '/api/bridge/history/unknown-city');
   assert.equal(status, 404);
   assert.equal(json.code, 'CITY_NOT_FOUND');
+});
+
+test('Filter lists CRUD + download without Analyze push', async () => {
+  const empty = await callBridge('GET', '/api/bridge/lists', {
+    headers: { 'x-phuglee-user': 'list-tester' }
+  });
+  assert.equal(empty.status, 200);
+  assert.equal(empty.json.ok, true);
+  assert.deepEqual(empty.json.lists, []);
+
+  const created = await callBridge('POST', '/api/bridge/lists', {
+    headers: {
+      'content-type': 'application/json',
+      'x-phuglee-user': 'list-tester'
+    },
+    body: Buffer.from(JSON.stringify({
+      name: 'API Test List',
+      cityName: 'Marana',
+      state: 'Arizona',
+      uploadType: 'code_violation',
+      sourceFile: 'api-test.csv',
+      rows: [
+        {
+          streetAddress: '100 Test Ave',
+          city: 'Marana',
+          state: 'Arizona',
+          zip: '85704',
+          distressedSignalTag: 'Standard Code Violation',
+          confidenceLevel: 'high'
+        }
+      ]
+    }))
+  });
+  assert.equal(created.status, 200);
+  assert.equal(created.json.ok, true);
+  assert.equal(created.json.list.name, 'API Test List');
+  assert.equal(created.json.list.recordCount, 1);
+  const listId = created.json.list.id;
+  assert.ok(listId);
+
+  const listed = await callBridge('GET', '/api/bridge/lists', {
+    headers: { 'x-phuglee-user': 'list-tester' }
+  });
+  assert.equal(listed.status, 200);
+  assert.equal(listed.json.lists.length, 1);
+
+  const renamed = await callBridge('PATCH', `/api/bridge/lists/${listId}`, {
+    headers: {
+      'content-type': 'application/json',
+      'x-phuglee-user': 'list-tester'
+    },
+    body: Buffer.from(JSON.stringify({ name: 'Renamed API List' }))
+  });
+  assert.equal(renamed.status, 200);
+  assert.equal(renamed.json.list.name, 'Renamed API List');
+
+  const download = await callBridge('GET', `/api/bridge/lists/${listId}/download?format=csv`, {
+    headers: { 'x-phuglee-user': 'list-tester' }
+  });
+  assert.equal(download.status, 200);
+  assert.match(String(download.headers['Content-Type'] || ''), /csv/i);
+  assert.match(download.body, /Street Address/);
+  assert.match(download.body, /100 Test Ave/);
+
+  const afterDl = await callBridge('GET', `/api/bridge/lists/${listId}`, {
+    headers: { 'x-phuglee-user': 'list-tester' }
+  });
+  assert.equal(afterDl.status, 200);
+  assert.equal(afterDl.json.list.status, 'downloaded');
+
+  const otherUser = await callBridge('GET', '/api/bridge/lists', {
+    headers: { 'x-phuglee-user': 'someone-else' }
+  });
+  assert.equal(otherUser.status, 200);
+  assert.equal(otherUser.json.lists.length, 0);
+
+  const deleted = await callBridge('DELETE', `/api/bridge/lists/${listId}`, {
+    headers: { 'x-phuglee-user': 'list-tester' }
+  });
+  assert.equal(deleted.status, 200);
+  assert.equal(deleted.json.ok, true);
+
+  const gone = await callBridge('GET', `/api/bridge/lists/${listId}`, {
+    headers: { 'x-phuglee-user': 'list-tester' }
+  });
+  assert.equal(gone.status, 404);
+  assert.equal(gone.json.code, 'LIST_NOT_FOUND');
+});
+
+test('POST /api/bridge/lists rejects empty rows', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/lists', {
+    headers: {
+      'content-type': 'application/json',
+      'x-phuglee-user': 'list-tester'
+    },
+    body: Buffer.from(JSON.stringify({ name: 'Nope', rows: [] }))
+  });
+  assert.equal(status, 400);
+  assert.equal(json.code, 'MISSING_ROWS');
 });

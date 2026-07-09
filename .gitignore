@@ -17,6 +17,9 @@ modules/form-forge/logs/
 modules/form-forge/data/backups/
 modules/form-forge/.env
 
+# Filter page saved lists (user staging)
+data/filter-lists/
+
 # Property Analyzer runtime (modules/property-analyzer)
 modules/property-analyzer/node_modules/
 modules/property-analyzer/.env

@@ -32,7 +32,7 @@
 | C-06 | Legacy .doc file | 400 UNSUPPORTED_FILE | ✓ handlers |
 | C-07 | Empty file (0 bytes) | 400 EMPTY_FILE | ✓ handlers |
 | C-08 | Unknown cityId | 404 CITY_NOT_FOUND | ✓ handlers |
-| C-09 | Valid CSV code_violation | 200, rows + stats + analyzerPush | ✓ engine |
+| C-09 | Valid CSV code_violation | 200, rows + stats (no analyzerPush) | ✓ engine |
 | C-10 | Valid TXT water_shut_off | 200, water tags | ✓ engine |
 | C-11 | Valid XLSX | 200, spreadsheet parser | ✓ engine |
 | C-12 | Valid PDF (text extract) | 200, pdf parser | ✓ engine |
@@ -43,7 +43,8 @@
 | C-17 | Empty spreadsheet | 400 PARSE_FAILED | ✓ edge |
 | C-18 | Near-duplicate rows | deduplicated stat | ✓ engine |
 | C-19 | OCR low confidence | needsReview flag | ✓ engine |
-| C-20 | Analyzer push succeeds | analyzerPush.added > 0 | integration |
+| C-20 | Process does not push to Analyze | analyzerPush absent | ✓ handlers |
+| C-21 | Save / rename / download / delete lists | CRUD + CSV download | ✓ list-store + handlers |
 | C-21 | Analyzer push fails | disk fallback, ok:false possible | manual |
 
 ## D. API — `POST /api/bridge/attach`
@@ -151,7 +152,8 @@
 | L-03 | Unsupported file in dropzone | client error | manual |
 | L-04 | 422 shows user message | error wrap | manual |
 | L-05 | Attach requires response datetime | validation message | manual |
-| L-06 | KPI grid shows pushed count | analyzerPush.added | manual |
+| L-06 | KPI grid has no Pushed to Analyze | Already in Analyze only | manual |
+| L-09 | Saved lists panel multi-upload | lists persist across process | manual |
 | L-07 | History panel loads on city select | fetch history | manual |
 | L-08 | CSV export download | client-side blob | manual |
 | L-09 | Pagination 50 rows | page controls | manual |

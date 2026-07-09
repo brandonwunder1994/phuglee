@@ -8,7 +8,7 @@
     'Tagging distressed signals…',
     'Deduplicating upload…',
     'Cross-checking Analyze…',
-    'Pushing new leads to Analyze…'
+    'Building filtered list…'
   ];
   const EXPORT_COLUMNS = [
     ['streetAddress', 'Street Address'],
@@ -46,6 +46,13 @@
   const filterConfidence = document.getElementById('bridge-filter-confidence');
   const filterReview = document.getElementById('bridge-filter-review');
   const exportCsvBtn = document.getElementById('bridge-export-csv');
+  const savePanel = document.getElementById('bridge-save-panel');
+  const listNameInput = document.getElementById('bridge-list-name');
+  const saveListBtn = document.getElementById('bridge-save-list');
+  const saveStatus = document.getElementById('bridge-save-status');
+  const listsEmpty = document.getElementById('bridge-lists-empty');
+  const listsWrap = document.getElementById('bridge-lists-wrap');
+  const listsBody = document.getElementById('bridge-lists-body');
   const attachPanel = document.getElementById('bridge-attach-panel');
   const responseDateInput = document.getElementById('bridge-response-date');
   const responseHourSelect = document.getElementById('bridge-response-hour');
@@ -75,6 +82,7 @@
   let selectedUploadType = '';
   let selectedFile = null;
   let lastResult = null;
+  let savedLists = [];
   let tableState = {
     sortKey: 'streetAddress',
     sortDir: 'asc',
@@ -381,7 +389,6 @@
       { label: 'Kept', value: stats.kept, accent: true },
       { label: 'Discarded', value: stats.discarded },
       { label: 'Already in Analyze', value: stats.alreadyImported },
-      { label: 'Pushed to Analyze', value: stats.pushedToAnalyzer },
       { label: 'Needs review', value: stats.needsReview || stats.lowConfidence },
       { label: 'Deduped', value: stats.deduplicated }
     ];
@@ -391,6 +398,178 @@
       `<span class="bridge-kpi-label">${esc(card.label)}</span>` +
       '</div>'
     )).join('');
+  }
+
+  function setSaveStatus(message, tone) {
+    if (!saveStatus) return;
+    setHidden(saveStatus, !message);
+    saveStatus.textContent = message || '';
+    saveStatus.classList.remove('is-error', 'is-success');
+    if (tone) saveStatus.classList.add(`is-${tone}`);
+  }
+
+  function defaultNameFromResult(data) {
+    if (!data) return '';
+    const typeLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
+    const city = data.city?.city || selectedCity?.city || 'List';
+    const when = new Date();
+    const datePart = when.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+    return `${city} · ${typeLabel} · ${datePart}`;
+  }
+
+  function statusLabel(status) {
+    if (status === 'downloaded') return 'Downloaded';
+    return 'Ready';
+  }
+
+  function formatListWhen(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    } catch (err) {
+      return String(iso);
+    }
+  }
+
+  function renderSavedLists() {
+    if (!listsBody) return;
+    if (!savedLists.length) {
+      setHidden(listsEmpty, false);
+      setHidden(listsWrap, true);
+      listsBody.innerHTML = '';
+      return;
+    }
+    setHidden(listsEmpty, true);
+    setHidden(listsWrap, false);
+    listsBody.innerHTML = savedLists.map((list) => {
+      const cityLabel = [list.city, list.state].filter(Boolean).join(', ') || '—';
+      return (
+        `<tr data-list-id="${esc(list.id)}">` +
+        `<td><input type="text" class="bridge-list-name-input" data-action="rename" value="${esc(list.name)}" maxlength="120" aria-label="List name" /></td>` +
+        `<td>${esc(formatListWhen(list.createdAt))}</td>` +
+        `<td>${Number(list.recordCount || 0).toLocaleString()}</td>` +
+        `<td><span class="bridge-list-status bridge-list-status--${esc(list.status || 'ready')}">${esc(statusLabel(list.status))}</span></td>` +
+        `<td>${esc(cityLabel)}</td>` +
+        `<td class="bridge-list-actions">` +
+        `<button type="button" class="bridge-list-action" data-action="download" data-format="csv">CSV</button>` +
+        `<button type="button" class="bridge-list-action" data-action="download" data-format="xlsx">XLSX</button>` +
+        `<button type="button" class="bridge-list-action bridge-list-action--danger" data-action="delete">Delete</button>` +
+        `</td>` +
+        `</tr>`
+      );
+    }).join('');
+  }
+
+  async function loadSavedLists() {
+    try {
+      const data = await fetchJson('/api/bridge/lists');
+      savedLists = Array.isArray(data.lists) ? data.lists : [];
+      renderSavedLists();
+    } catch (err) {
+      console.warn('[Filter] Could not load saved lists:', err.message);
+    }
+  }
+
+  async function saveCurrentList() {
+    if (!lastResult?.rows?.length) {
+      setSaveStatus('Process a file with kept rows before saving.', 'error');
+      return;
+    }
+    const name = String(listNameInput?.value || '').trim() || defaultNameFromResult(lastResult);
+    if (saveListBtn) saveListBtn.disabled = true;
+    setSaveStatus('Saving list…', '');
+    lastFailedAction = 'saveList';
+    try {
+      const data = await fetchJson('/api/bridge/lists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          rows: lastResult.rows,
+          stats: lastResult.stats || {},
+          cityId: lastResult.city?.id || selectedCity?.id || '',
+          cityName: lastResult.city?.city || selectedCity?.city || '',
+          state: lastResult.city?.state || selectedCity?.state || '',
+          uploadType: lastResult.uploadType || selectedUploadType,
+          sourceFile: lastResult.sourceFile || '',
+          processingMeta: lastResult.processingMeta || {}
+        })
+      });
+      setSaveStatus(`Saved “${data.list?.name || name}” — ${Number(data.list?.recordCount || lastResult.rows.length).toLocaleString()} records.`, 'success');
+      await loadSavedLists();
+    } catch (err) {
+      setSaveStatus(err.message || 'Could not save list.', 'error');
+    } finally {
+      if (saveListBtn) saveListBtn.disabled = false;
+    }
+  }
+
+  async function renameSavedList(listId, name) {
+    const cleaned = String(name || '').trim();
+    if (!cleaned) {
+      await loadSavedLists();
+      return;
+    }
+    try {
+      await fetchJson(`/api/bridge/lists/${encodeURIComponent(listId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: cleaned })
+      });
+      await loadSavedLists();
+    } catch (err) {
+      showError(err.message || 'Could not rename list.');
+      await loadSavedLists();
+    }
+  }
+
+  async function deleteSavedList(listId) {
+    const list = savedLists.find((row) => row.id === listId);
+    const label = list?.name || 'this list';
+    if (!window.confirm(`Delete “${label}”? This cannot be undone.`)) return;
+    try {
+      await fetchJson(`/api/bridge/lists/${encodeURIComponent(listId)}`, { method: 'DELETE' });
+      await loadSavedLists();
+    } catch (err) {
+      showError(err.message || 'Could not delete list.');
+    }
+  }
+
+  async function downloadSavedList(listId, format) {
+    const fmt = format === 'xlsx' ? 'xlsx' : 'csv';
+    const url = `/api/bridge/lists/${encodeURIComponent(listId)}/download?format=${fmt}`;
+    try {
+      const res = await fetch(url, { cache: 'no-store', headers: bridgeHeaders() });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Download failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="?([^"]+)"?/i);
+      const filename = match?.[1] || `filter-list.${fmt}`;
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+      await loadSavedLists();
+    } catch (err) {
+      showError(err.message || 'Download failed.');
+    }
   }
 
   function tagClass(tag) {
@@ -569,9 +748,6 @@
       : '';
     resultsMeta.textContent =
       `${rows.length.toLocaleString()} record(s) kept from ${data.sourceFile} · ${uploadLabel} · ${data.city.city}, ${data.city.state}${parserLabel}${indexLabel}`;
-    if (data.analyzerPush) {
-      stats.pushedToAnalyzer = data.analyzerPush.added || 0;
-    }
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');
@@ -579,12 +755,15 @@
     setHidden(resultsToolbar, !showTable);
     setHidden(tableWrap, !showTable);
     setHidden(paginationEl, !showTable);
+    setHidden(savePanel, !showTable);
     setHidden(attachPanel, !showTable);
 
     if (showTable) {
       populateTagFilter(rows);
       renderResultsTable();
       setAttachStatus('', '');
+      setSaveStatus('', '');
+      if (listNameInput) listNameInput.value = defaultNameFromResult(data);
     }
 
     if (stubNote) {
@@ -594,16 +773,13 @@
           ? ` ${data.stats.needsReview} row(s) flagged for review (low-confidence extraction).`
           : '';
         const importedNote = data.stats.alreadyImported
-          ? ` ${data.stats.alreadyImported} already in Analyze.`
-          : '';
-        const pushedNote = data.analyzerPush?.added
-          ? ` ${data.analyzerPush.added} new lead(s) pushed to Analyze.`
+          ? ` ${data.stats.alreadyImported} already in Analyze (hidden from this list).`
           : '';
         stubNote.textContent = data.stats.discarded
-          ? `${data.stats.discarded} row(s) discarded.${importedNote}${pushedNote}${reviewNote}`
-          : `Processing complete.${importedNote}${pushedNote}${reviewNote}`;
+          ? `${data.stats.discarded} row(s) discarded.${importedNote}${reviewNote}`
+          : `Processing complete.${importedNote}${reviewNote} Save the list below — nothing was sent to Analyze.`;
         setHidden(stubNote, !data.stats.discarded && !data.stats.alreadyImported
-          && !data.analyzerPush?.added && !data.stats.needsReview);
+          && !data.stats.needsReview);
       }
     }
     setHidden(resultsPanel, false);
@@ -688,6 +864,8 @@
     try {
       if (lastFailedAction === 'attach') {
         await attachDataset();
+      } else if (lastFailedAction === 'saveList') {
+        await saveCurrentList();
       } else if (lastFailedAction === 'process') {
         await processUpload();
       } else if (lastFailedAction === 'stateChange') {
@@ -742,6 +920,40 @@
     });
   });
   attachBtn?.addEventListener('click', () => { attachDataset().catch((e) => setAttachStatus(e.message, 'error')); });
+  saveListBtn?.addEventListener('click', () => { saveCurrentList().catch((e) => setSaveStatus(e.message, 'error')); });
+  listNameInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      saveCurrentList().catch((e) => setSaveStatus(e.message, 'error'));
+    }
+  });
+  listsBody?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-action]');
+    if (!btn || btn.tagName === 'INPUT') return;
+    const row = btn.closest('tr[data-list-id]');
+    const listId = row?.dataset.listId;
+    if (!listId) return;
+    if (btn.dataset.action === 'download') {
+      downloadSavedList(listId, btn.dataset.format).catch((e) => showError(e.message));
+    } else if (btn.dataset.action === 'delete') {
+      deleteSavedList(listId).catch((e) => showError(e.message));
+    }
+  });
+  listsBody?.addEventListener('change', (event) => {
+    const input = event.target.closest('input[data-action="rename"]');
+    if (!input) return;
+    const row = input.closest('tr[data-list-id]');
+    const listId = row?.dataset.listId;
+    if (!listId) return;
+    renameSavedList(listId, input.value).catch((e) => showError(e.message));
+  });
+  listsBody?.addEventListener('keydown', (event) => {
+    if (event.key !== 'Enter') return;
+    const input = event.target.closest('input[data-action="rename"]');
+    if (!input) return;
+    event.preventDefault();
+    input.blur();
+  });
 
   dropzone?.addEventListener('dragover', (event) => {
     event.preventDefault();
@@ -797,4 +1009,5 @@
 
   initResponseDateTimePicker();
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));
+  loadSavedLists().catch(() => {});
 })();
