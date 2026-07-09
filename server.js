@@ -233,17 +233,24 @@ async function handleRequest(req, res) {
   }
 
   if (pathname === '/js/auth-config.js' && (req.method === 'GET' || req.method === 'HEAD')) {
-    const body = [
-      '(function () {',
-      `  window.__PHUGLEE_AUTH_DISABLED__ = ${config.AUTH_DISABLED ? 'true' : 'false'};`,
-      '  if (!window.__PHUGLEE_AUTH_DISABLED__) return;',
-      "  try {",
-      "    sessionStorage.removeItem('phuglee_logout');",
-      "    sessionStorage.setItem('phuglee_session', 'admin');",
-      '  } catch (_) {}',
-      '})();',
-      ''
-    ].join('\n');
+    // When auth is required, only export the flag. Never auto-login as admin.
+    const body = config.AUTH_DISABLED
+      ? [
+          '(function () {',
+          '  window.__PHUGLEE_AUTH_DISABLED__ = true;',
+          "  try {",
+          "    sessionStorage.removeItem('phuglee_logout');",
+          "    sessionStorage.setItem('phuglee_session', 'admin');",
+          '  } catch (_) {}',
+          '})();',
+          ''
+        ].join('\n')
+      : [
+          '(function () {',
+          '  window.__PHUGLEE_AUTH_DISABLED__ = false;',
+          '})();',
+          ''
+        ].join('\n');
     if (req.method === 'HEAD') {
       send(res, 200, '', 'application/javascript; charset=utf-8');
     } else {
