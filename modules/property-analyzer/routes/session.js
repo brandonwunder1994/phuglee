@@ -166,6 +166,9 @@ function register(ctx) {
     delete session._mergedFromIncremental;
     const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, scope);
     const allowDowngrade = url.searchParams.get('allowDowngrade') === '1';
+    // forceReplace=1 writes the incoming session as-is (skips merge). Pair with allowDowngrade=1
+    // when intentionally removing leads (e.g. clear a city so Filter can re-import).
+    const forceReplace = url.searchParams.get('forceReplace') === '1';
     let existingSession = null;
     let existingResults = 0;
     let existingProcessed = 0;
@@ -181,12 +184,14 @@ function register(ctx) {
       } catch (_) {}
     }
     const incomingCount = Array.isArray(session.results) ? session.results.length : 0;
-    if (existingSession && incomingCount > 0) {
+    if (existingSession && incomingCount > 0 && !forceReplace) {
       const before = incomingCount;
       session = backupLogic.mergeSessionSave(existingSession, session);
       if ((session.results || []).length !== before || incomingCount < existingResults) {
         console.log(`[Session] Merged client save (${scope.storageKey}: ${before} → ${(session.results || []).length} results)`);
       }
+    } else if (forceReplace) {
+      console.log(`[Session] Force replace (${scope.storageKey}: existing ${existingResults} → incoming ${incomingCount} results)`);
     }
     const results = Array.isArray(session.results) ? session.results.length : 0;
     const processed = session.processed || 0;
