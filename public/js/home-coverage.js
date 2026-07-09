@@ -22,17 +22,14 @@
   var COLOR_NO_DATA = '#3a4658';
   var COLOR_UNAVAILABLE = '#8f2a2a';
 
-  /** Tiny NE/Mid-Atlantic states get leader callouts on national view */
+  /** Tiny NE states — only covered/blocked get callouts; spaced vertical ladder */
   var SMALL_STATE_CALLOUTS = [
-    { name: 'Vermont', label: 'VT', center: [-72.65, 44.05], callout: [-68.9, 45.35] },
-    { name: 'New Hampshire', label: 'NH', center: [-71.55, 43.7], callout: [-68.55, 44.45] },
-    { name: 'Massachusetts', label: 'MA', center: [-71.8, 42.25], callout: [-68.35, 42.95] },
-    { name: 'Rhode Island', label: 'RI', center: [-71.5, 41.68], callout: [-68.2, 41.85] },
-    { name: 'Connecticut', label: 'CT', center: [-72.7, 41.6], callout: [-68.15, 40.85] },
-    { name: 'New Jersey', label: 'NJ', center: [-74.55, 40.15], callout: [-68.4, 39.85] },
-    { name: 'Delaware', label: 'DE', center: [-75.5, 39.0], callout: [-68.55, 38.65] },
-    { name: 'Maryland', label: 'MD', center: [-76.7, 39.05], callout: [-68.7, 37.55] },
-    { name: 'District of Columbia', label: 'DC', center: [-77.02, 38.9], callout: [-68.9, 36.65] }
+    { name: 'Rhode Island', label: 'Rhode Island', center: [-71.48, 41.68], callout: [-67.55, 43.55] },
+    { name: 'Connecticut', label: 'Connecticut', center: [-72.72, 41.58], callout: [-67.55, 41.15] },
+    { name: 'New Jersey', label: 'New Jersey', center: [-74.55, 40.15], callout: [-67.55, 39.55] },
+    { name: 'Delaware', label: 'Delaware', center: [-75.52, 39.0], callout: [-67.55, 37.85] },
+    { name: 'Maryland', label: 'Maryland', center: [-76.7, 39.05], callout: [-67.55, 36.15] },
+    { name: 'District of Columbia', label: 'D.C.', center: [-77.02, 38.9], callout: [-67.55, 34.55] }
   ];
 
   var MAP_BOUNDS = {
@@ -337,12 +334,12 @@
 
     SMALL_STATE_CALLOUTS.forEach(function (item) {
       var status = getStateStatus(item.name, counts);
+      if (status !== 'covered' && status !== 'unavailable') return;
+
       var fill =
         status === 'covered'
           ? COLOR_COVERED_HIGH
-          : status === 'unavailable'
-            ? COLOR_UNAVAILABLE
-            : COLOR_NO_DATA;
+          : COLOR_UNAVAILABLE;
       var c0 = project(item.center[0], item.center[1], width, height);
       var c1 = project(item.callout[0], item.callout[1], width, height);
 

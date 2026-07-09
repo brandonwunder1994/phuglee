@@ -19,20 +19,16 @@
   var LIFT_OFFSET_SHADOW = 2;
 
   /**
-   * Tiny coastal states are unreadable/unclickable at national zoom.
-   * Callouts sit in the Atlantic with leader lines back to the state.
-   * center ≈ in-state anchor; callout ≈ label position (must stay in map bounds).
+   * Tiny coastal states — callouts only when covered or blocked (skip gray "soon").
+   * Positions are a vertical ladder in the Atlantic so labels never stack.
    */
   var SMALL_STATE_CALLOUTS = [
-    { name: 'Vermont', label: 'VT', center: [-72.65, 44.05], callout: [-68.9, 45.35] },
-    { name: 'New Hampshire', label: 'NH', center: [-71.55, 43.7], callout: [-68.55, 44.45] },
-    { name: 'Massachusetts', label: 'MA', center: [-71.8, 42.25], callout: [-68.35, 42.95] },
-    { name: 'Rhode Island', label: 'RI', center: [-71.5, 41.68], callout: [-68.2, 41.85] },
-    { name: 'Connecticut', label: 'CT', center: [-72.7, 41.6], callout: [-68.15, 40.85] },
-    { name: 'New Jersey', label: 'NJ', center: [-74.55, 40.15], callout: [-68.4, 39.85] },
-    { name: 'Delaware', label: 'DE', center: [-75.5, 39.0], callout: [-68.55, 38.65] },
-    { name: 'Maryland', label: 'MD', center: [-76.7, 39.05], callout: [-68.7, 37.55] },
-    { name: 'District of Columbia', label: 'DC', center: [-77.02, 38.9], callout: [-68.9, 36.65] }
+    { name: 'Rhode Island', label: 'Rhode Island', center: [-71.48, 41.68], callout: [-67.55, 43.55] },
+    { name: 'Connecticut', label: 'Connecticut', center: [-72.72, 41.58], callout: [-67.55, 41.15] },
+    { name: 'New Jersey', label: 'New Jersey', center: [-74.55, 40.15], callout: [-67.55, 39.55] },
+    { name: 'Delaware', label: 'Delaware', center: [-75.52, 39.0], callout: [-67.55, 37.85] },
+    { name: 'Maryland', label: 'Maryland', center: [-76.7, 39.05], callout: [-67.55, 36.15] },
+    { name: 'District of Columbia', label: 'D.C.', center: [-77.02, 38.9], callout: [-67.55, 34.55] }
   ];
 
   var previewStarted = false;
@@ -213,8 +209,8 @@
   }
 
   function lockMapView(map) {
-    // Extra right padding so NE callouts (RI/CT/DE…) stay on-canvas
-    map.fitBounds(US_MAP_BOUNDS, { padding: { top: 14, bottom: 14, left: 12, right: 48 }, duration: 0 });
+    // Extra right padding so full-name NE callouts stay on-canvas
+    map.fitBounds(US_MAP_BOUNDS, { padding: { top: 12, bottom: 12, left: 10, right: 72 }, duration: 0 });
     var zoom = map.getZoom();
     map.setMinZoom(zoom);
     map.setMaxZoom(zoom);
@@ -500,6 +496,9 @@
 
     SMALL_STATE_CALLOUTS.forEach(function (item) {
       var status = shared.getStateStatus(item.name, counts, cov);
+      // Only pull out states that matter: live heat or blocked red — not gray clutter
+      if (status !== 'covered' && status !== 'unavailable') return;
+
       var color = calloutFillForStatus(status);
       var stroke = calloutStrokeForStatus(status);
 

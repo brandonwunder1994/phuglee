@@ -1152,18 +1152,18 @@ body.home-page.logo-page .landing-actions {
   display: none;
 }
 
-/* Small-state callouts (RI, CT, DE, etc.) — leader-line endpoints */
+/* Small-state callouts — spaced ladder, full names, only live/blocked */
 .home-map-callout {
   display: inline-flex;
   align-items: center;
-  gap: 0.28rem;
-  min-height: 1.65rem;
-  padding: 0.18rem 0.45rem 0.18rem 0.28rem;
+  gap: 0.4rem;
+  min-height: 1.9rem;
+  padding: 0.28rem 0.65rem 0.28rem 0.38rem;
   margin: 0;
   border-radius: 999px;
-  border: 1px solid rgba(240, 235, 227, 0.35);
-  background: rgba(8, 12, 20, 0.92);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(240, 235, 227, 0.4);
+  background: rgba(6, 9, 14, 0.94);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
   cursor: pointer;
   font: inherit;
   color: var(--phuglee-cream, #f5f2e4);
@@ -1175,14 +1175,15 @@ body.home-page.logo-page .landing-actions {
 .home-map-callout:hover,
 .home-map-callout:focus-visible {
   outline: none;
-  border-color: rgba(238, 183, 70, 0.75);
+  border-color: rgba(238, 183, 70, 0.8);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55), 0 0 12px rgba(238, 183, 70, 0.2);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.6), 0 0 14px rgba(238, 183, 70, 0.22);
+  z-index: 5;
 }
 
 .home-map-callout-dot {
-  width: 0.55rem;
-  height: 0.55rem;
+  width: 0.62rem;
+  height: 0.62rem;
   border-radius: 50%;
   flex-shrink: 0;
   background: var(--territory-soon, #3a4658);
@@ -1191,12 +1192,12 @@ body.home-page.logo-page .landing-actions {
 
 .home-map-callout--covered .home-map-callout-dot {
   background: var(--territory-heat-high, #eeb746);
-  box-shadow: 0 0 6px rgba(238, 183, 70, 0.55);
+  box-shadow: 0 0 8px rgba(238, 183, 70, 0.6);
 }
 
 .home-map-callout--unavailable .home-map-callout-dot {
   background: var(--territory-blocked, #8f2a2a);
-  box-shadow: 0 0 0 1px #c84848, 0 0 8px rgba(200, 72, 72, 0.45);
+  box-shadow: 0 0 0 1.5px #c84848, 0 0 10px rgba(200, 72, 72, 0.5);
 }
 
 .home-map-callout--no-coverage .home-map-callout-dot {
@@ -1204,10 +1205,10 @@ body.home-page.logo-page .landing-actions {
 }
 
 .home-map-callout-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  line-height: 1;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
 }
 
 .home-coverage-map .maplibregl-marker {
