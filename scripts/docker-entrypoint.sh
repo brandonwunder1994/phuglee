@@ -19,7 +19,11 @@ export FORGE_BOOT_LOG="${FORGE_BOOT_LOG:-/tmp/forge-boot.log}"
 export FORGE_EXTERNAL_BOOT=1
 export PYTHONUNBUFFERED=1
 export PDA_DATA_ROOT="${PDA_DATA_ROOT:-/app/pda-data}"
-mkdir -p "${PDA_DATA_ROOT}"
+# Filter saved lists live on the same durable volume as Analyze session data.
+# Never store user lists only inside the container filesystem — redeploys wipe that.
+export FILTER_LISTS_ROOT="${FILTER_LISTS_ROOT:-${PDA_DATA_ROOT}/filter-lists}"
+mkdir -p "${PDA_DATA_ROOT}" "${FILTER_LISTS_ROOT}"
+echo "[entrypoint] Filter lists root: ${FILTER_LISTS_ROOT}"
 
 SEED_SESSION="/app/scripts/seed-data/distressAnalyzerSession_LATEST.json"
 LIVE_SESSION="${PDA_DATA_ROOT}/distressAnalyzerSession_LATEST.json"

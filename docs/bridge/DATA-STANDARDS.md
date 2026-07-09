@@ -93,7 +93,7 @@ The index is cached for 5 minutes. Matching uses the same address similarity thr
 
 After processing, kept rows stay on the Filter page until the user explicitly saves them.
 
-- API: `POST /api/bridge/lists` (user-scoped filesystem store under `data/filter-lists/`)
+- API: `POST /api/bridge/lists` (user-scoped filesystem store under `FILTER_LISTS_ROOT`, default `PDA_DATA_ROOT/filter-lists` so Railway volumes keep lists across deploys)
 - Download: `GET /api/bridge/lists/:id/download?format=csv|xlsx`
 - Rename / delete: `PATCH` / `DELETE` on `/api/bridge/lists/:id`
 - **No automatic push to Analyze.** Import enriched skip-traced lists into Analyze manually.

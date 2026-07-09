@@ -37,8 +37,9 @@ test('processUpload keeps open and closed violations with usable addresses', asy
   });
 
   assert.equal(result.stub, false);
-  assert.equal(result.stats.kept, 3);
-  assert.equal(result.stats.discarded, 1);
+  // Fence permit is not distress → discarded; empty City Hall row discarded too
+  assert.equal(result.stats.kept, 2);
+  assert.ok(result.stats.noDistress >= 1);
   assert.ok(result.rows.some((row) => row.violationIssueType.includes('Overgrown')));
   assert.ok(result.rows.some((row) => row.violationIssueType.includes('trash')));
   assert.equal(result.rows.every((row) => row.city === 'Marana'), true);

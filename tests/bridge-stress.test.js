@@ -172,7 +172,7 @@ describe('Filter stress — address parsing and discard rules', () => {
       'Property Address,Violation Type',
       '100 N Main St,Weeds',
       '200 S Oak Ave,Trash',
-      '300 E Pine Blvd,Vehicle',
+      '300 E Pine Blvd,Abandoned vehicle',
       '400 W Cedar Ln,Debris'
     ].join('\n');
     const result = await runCsv(csv);
@@ -249,11 +249,12 @@ describe('Filter stress — file format variants', () => {
       city: CITY,
       uploadType: 'code_violation'
     });
-    assert.equal(result.stats.kept, 2);
+    // Sign permit is not distress — only abandoned vehicle row is kept
+    assert.equal(result.stats.kept, 1);
+    assert.equal(result.stats.noDistress, 1);
     const strong = result.rows.find((r) => r.streetAddress === '12 Desert View');
-    const standard = result.rows.find((r) => r.streetAddress === '14 Desert View');
     assert.match(strong.distressedSignalTag, /Strong/i);
-    assert.equal(standard.distressedSignalTag, 'Standard Code Violation');
+    assert.equal(result.rows.some((r) => r.streetAddress === '14 Desert View'), false);
   });
 
   test('water shutoff list with mixed disconnect wording', async () => {
@@ -318,7 +319,7 @@ describe('Filter stress — deduplication and analyze cross-reference', () => {
       'Property Address,Violation Type,ZIP',
       '100 Elm St,Weeds,85704',
       '200 Oak Ave,Trash,85705',
-      '300 Pine Rd,Vehicle,85706'
+      '300 Pine Rd,Abandoned vehicle,85706'
     ].join('\n');
 
     try {
@@ -359,7 +360,9 @@ describe('Filter stress — messy municipal export scenarios', () => {
       '333 Third Dr,Sign violation,Open'
     ].join('\n');
     const result = await runCsv(csv);
-    assert.equal(result.stats.kept, 3);
+    // Sign violation dropped as non-distress; blank rows discarded
+    assert.equal(result.stats.kept, 2);
+    assert.ok(result.stats.noDistress >= 1);
   });
 
   test('closed status rows are retained for code violations', async () => {
@@ -382,7 +385,7 @@ describe('Filter stress — messy municipal export scenarios', () => {
     assert.match(result.rows[0].distressedSignalTag, /Strong/i);
   });
 
-  test('mixed strong and standard in one upload produces correct KPI split', async () => {
+  test('mixed strong and standard keeps only distress leads', async () => {
     const csv = [
       'Property Address,Violation Type',
       '10 Alpha Rd,Overgrown weeds',
@@ -392,11 +395,12 @@ describe('Filter stress — messy municipal export scenarios', () => {
       '50 Epsilon Way,Accumulation of trash'
     ].join('\n');
     const result = await runCsv(csv);
-    assert.equal(result.stats.kept, 5);
+    assert.equal(result.stats.kept, 3);
+    assert.equal(result.stats.noDistress, 2);
     const strong = result.rows.filter((r) => r.distressedSignalTag === STRONG_DISTRESSED_TAG);
     const standard = result.rows.filter((r) => r.distressedSignalTag === 'Standard Code Violation');
     assert.equal(strong.length, 3);
-    assert.equal(standard.length, 2);
+    assert.equal(standard.length, 0);
     assert.ok(result.stats.tagBreakdown[STRONG_DISTRESSED_TAG] >= 3);
   });
 

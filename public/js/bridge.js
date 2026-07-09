@@ -390,8 +390,9 @@
 
   function renderKpis(stats) {
     const cards = [
-      { label: 'Kept', value: stats.kept, accent: true },
-      { label: 'Discarded', value: stats.discarded },
+      { label: 'Kept (distress)', value: stats.kept, accent: true },
+      { label: 'No distress signal', value: stats.noDistress || stats.discardReasons?.no_distress_signal || 0 },
+      { label: 'Discarded (other)', value: Math.max(0, (stats.discarded || 0) - (stats.noDistress || stats.discardReasons?.no_distress_signal || 0)) },
       { label: 'Already in Analyze', value: stats.alreadyImported },
       { label: 'Needs review', value: stats.needsReview || stats.lowConfidence },
       { label: 'Deduped', value: stats.deduplicated }
@@ -877,11 +878,15 @@
         const importedNote = data.stats.alreadyImported
           ? ` ${data.stats.alreadyImported} already in Analyze (hidden from this list).`
           : '';
+        const noDistress = data.stats.noDistress || data.stats.discardReasons?.no_distress_signal || 0;
+        const distressNote = noDistress
+          ? ` ${noDistress} generic code violation(s) dropped (no distress signal).`
+          : '';
         stubNote.textContent = data.stats.discarded
-          ? `${data.stats.discarded} row(s) discarded.${importedNote}${reviewNote}`
-          : `Processing complete.${importedNote}${reviewNote} Save the list below — nothing was sent to Analyze.`;
+          ? `${data.stats.discarded} row(s) discarded.${distressNote}${importedNote}${reviewNote}`
+          : `Processing complete.${distressNote}${importedNote}${reviewNote} Save the list below — nothing was sent to Analyze.`;
         setHidden(stubNote, !data.stats.discarded && !data.stats.alreadyImported
-          && !data.stats.needsReview);
+          && !data.stats.needsReview && !noDistress);
       }
     }
     setHidden(resultsPanel, false);

@@ -81,7 +81,9 @@ test('parses pipe-delimited TXT violation list', async () => {
       city: CITY,
       uploadType: 'code_violation'
     });
-    assert.equal(result.stats.kept, 2);
+    // Sign violation is generic — only the weeds row is kept as distress
+    assert.equal(result.stats.kept, 1);
+    assert.equal(result.stats.noDistress, 1);
   } finally {
     indexModule.loadImportAddressIndex = originalLoad;
     delete require.cache[enginePath];

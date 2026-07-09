@@ -9,8 +9,11 @@
 1. Search text is built from: `Violation/Issue Type` + `Description/Notes` + `Street Address`
 2. If **any** strong indicator category matches → tag **Strong Distressed Signal** and list matched categories
 3. If no strong match → tag **Standard Code Violation**
+4. **Retention:** only **Strong Distressed Signal** rows are kept. Standard/generic rows are discarded with reason `no_distress_signal` (permits, parking, noise, zoning, etc.).
 
-Open/closed status does **not** affect tagging or retention.
+Open/closed status does **not** affect tagging. Vegetation / property maintenance / blight matching is intentionally **loose** so vague city labels still keep.
+
+**Not kept as distress:** parking on lawn, fence/pool/sign permits, noise, HOA admin, business license, etc.
 
 ### Water Shut Off
 
