@@ -3,7 +3,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [env]
-PHUGLEE_AUTH_DISABLED = "1"
+# Require account login in production (admin, etc.). Set to "1" only for temporary open staging.
+PHUGLEE_AUTH_DISABLED = "0"
 
 [deploy]
 startCommand = "sh scripts/docker-entrypoint.sh"

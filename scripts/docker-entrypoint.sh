@@ -4,7 +4,8 @@ set -eu
 cd /app
 
 export NODE_ENV="${NODE_ENV:-production}"
-export PHUGLEE_AUTH_DISABLED="${PHUGLEE_AUTH_DISABLED:-1}"
+# Default: login required. Override with PHUGLEE_AUTH_DISABLED=1 only for open staging/dev.
+export PHUGLEE_AUTH_DISABLED="${PHUGLEE_AUTH_DISABLED:-0}"
 export FORM_FORGE_HOST="${FORM_FORGE_HOST:-0.0.0.0}"
 export FORM_FORGE_PORT="${FORM_FORGE_PORT:-8787}"
 export PROPERTY_ANALYZER_HOST="${PROPERTY_ANALYZER_HOST:-0.0.0.0}"
