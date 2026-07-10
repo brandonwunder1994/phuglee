@@ -385,6 +385,20 @@ describe('Filter stress — messy municipal export scenarios', () => {
     assert.match(result.rows[0].distressedSignalTag, /Strong/i);
   });
 
+  test('keeps distress when keywords live only in unmapped city columns', async () => {
+    const csv = [
+      'Situs Address,Case Number,Ordinance Description,Status',
+      '10 Prairie Ln,CE-100,High grass and weeds,Open',
+      '20 Prairie Ln,CE-101,Trash debris in yard,Open',
+      '30 Prairie Ln,CE-102,Abandoned vehicle inoperable,Open',
+      '40 Prairie Ln,CE-103,Parking on street overnight,Open'
+    ].join('\n');
+    const result = await runCsv(csv);
+    assert.equal(result.stats.kept, 3);
+    assert.equal(result.stats.noDistress, 1);
+    assert.ok(result.rows.every((r) => /Strong/i.test(r.distressedSignalTag)));
+  });
+
   test('mixed strong and standard keeps only distress leads', async () => {
     const csv = [
       'Property Address,Violation Type',

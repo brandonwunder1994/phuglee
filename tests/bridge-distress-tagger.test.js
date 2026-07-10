@@ -73,6 +73,34 @@ test('parking on lawn is not strong distress', () => {
   assert.equal(result.distressedSignalTag, 'Standard Code Violation');
 });
 
+test('tags distress keywords from unmapped raw spreadsheet columns', () => {
+  const mapped = row({
+    streetAddress: '100 Main St',
+    violationIssueType: '',
+    descriptionNotes: ''
+  });
+  // City file puts the real signal in a column we never mapped
+  const raw = {
+    'Situs Address': '100 Main St',
+    'Ordinance Description': 'High grass and weeds with trash debris',
+    'Case Number': 'CE-2024-99'
+  };
+  const result = tagRow(mapped, 'code_violation', raw);
+  assert.equal(result.distressedSignalTag, STRONG_DISTRESSED_TAG);
+  assert.ok(result.matchedIndicators.length >= 1);
+});
+
+test('tags abandoned vehicle from raw-only case notes', () => {
+  const mapped = row({ streetAddress: '200 Oak', violationIssueType: 'CE', descriptionNotes: '' });
+  const raw = {
+    Address: '200 Oak',
+    'Case Type': 'Code Enforcement',
+    Notes: 'Abandoned inoperable vehicle on property'
+  };
+  const result = tagRow(mapped, 'code_violation', raw);
+  assert.equal(result.distressedSignalTag, STRONG_DISTRESSED_TAG);
+});
+
 test('water shut off always receives high value distress tag', () => {
   const result = tagRow(row({ descriptionNotes: 'Delinquent water account' }), 'water_shut_off');
   assert.equal(result.distressedSignalTag, 'Water Shut Off – High Value Distress Signal');
