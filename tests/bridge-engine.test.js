@@ -366,17 +366,20 @@ test('processUpload parses Excel workbooks', async () => {
   assert.match(result.rows[0].distressedSignalTag, /Strong Distressed Signal/i);
 });
 
-test('processUpload parses PDF text extracts', async () => {
+test('processUpload converts PDF text table to Excel then filters', async () => {
   const text = fs.readFileSync(path.join(FIXTURES, 'violation-list-plain.txt'), 'utf8');
   const pdfParsePath = require.resolve('pdf-parse');
   const pdfParserPath = require.resolve('../lib/bridge-engine/parsers/pdf');
   const enginePath = require.resolve('../lib/bridge-engine');
   const originalPdfParse = require(pdfParsePath);
 
-  // pdf-parse v2 API: class PDFParse with getText() / destroy()
+  // pdf-parse v2: getTable (empty) + getText (fixture) → text-table-to-xlsx path
   require.cache[pdfParsePath].exports = {
     PDFParse: class {
       constructor() {}
+      async getTable() {
+        return { total: 1, pages: [], mergedTables: [] };
+      }
       async getText() {
         return { text, total: 1 };
       }
@@ -394,11 +397,64 @@ test('processUpload parses PDF text extracts', async () => {
       city: CITY,
       uploadType: 'code_violation',
       username: 'admin',
-      confirmedTypeHeader: 'Violation/Issue Type'
+      confirmedTypeHeader: 'Violation Type'
     });
     assert.equal(result.stats.kept, 3);
-    assert.equal(result.processingMeta.parser, 'pdf');
-    assert.equal(result.processingMeta.parseMode, 'table');
+    assert.equal(result.processingMeta.parser, 'pdf-xlsx');
+    assert.equal(result.processingMeta.parseMode, 'text-table-to-xlsx');
+  } finally {
+    require.cache[pdfParsePath].exports = originalPdfParse;
+    delete require.cache[pdfParserPath];
+    delete require.cache[enginePath];
+  }
+});
+
+test('processUpload prefers PDF getTable grid converted to Excel', async () => {
+  const pdfParsePath = require.resolve('pdf-parse');
+  const pdfParserPath = require.resolve('../lib/bridge-engine/parsers/pdf');
+  const enginePath = require.resolve('../lib/bridge-engine');
+  const originalPdfParse = require(pdfParsePath);
+
+  const grid = [
+    ['Property Address', 'Violation Type', 'Violation Date'],
+    ['123 Main St', 'Overgrown weeds', '2026-04-02'],
+    ['456 Oak Ave', 'Accumulation of trash', '2026-04-15'],
+    ['789 Pine Dr', 'Abandoned vehicle', '2026-05-01']
+  ];
+
+  require.cache[pdfParsePath].exports = {
+    PDFParse: class {
+      constructor() {}
+      async getTable() {
+        return {
+          total: 1,
+          pages: [{ num: 1, tables: [grid] }],
+          mergedTables: []
+        };
+      }
+      async getText() {
+        return { text: '', total: 1 };
+      }
+      async destroy() {}
+    }
+  };
+  delete require.cache[pdfParserPath];
+  delete require.cache[enginePath];
+  const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
+
+  try {
+    const result = await processUploadFresh({
+      buffer: Buffer.from('%PDF-1.4 fake'),
+      filename: 'grid-violations.pdf',
+      city: CITY,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
+    });
+    assert.equal(result.stats.kept, 3);
+    assert.equal(result.processingMeta.parser, 'pdf-xlsx');
+    assert.equal(result.processingMeta.parseMode, 'table-to-xlsx');
+    assert.ok(result.rows.some((r) => /Main/i.test(r.streetAddress)));
   } finally {
     require.cache[pdfParsePath].exports = originalPdfParse;
     delete require.cache[pdfParserPath];
