@@ -1,0 +1,34 @@
+CODE CASES OPENED BY STATUS (06/06/2026 TO 07/06/2026)
+FOR CITY OF LAWRENCEVILLE
+Project	Case # Case Type District Parcel	Case Status Main Address Opened
+Date
+Closed
+Date	Assigned To
+CLOSED
+CEU2026-17909 High Grass Derek Phillips 06/10/2026	75 Dogwood Park Trce,
+Lawrenceville, GA 30046
+06/08/2026	5110 311	Closed Residential
+CEU2026-17910 International Property
+Maintenance Code -
+IPMC
+Juan Pablo
+Rebolledo
+07/01/2026	275 Brady Walk,
+Lawrenceville, GA 30046
+06/08/2026	5149 303	Closed Residential
+CEU2026-17913 Vehicles Todd Parry 06/09/2026	95 Benson St,
+Lawrenceville, GA 30046
+06/08/2026	5146B123	Closed Residential
+TOTAL CASES OPENED FOR CLOSED: 3
+OPEN
+CEU2026-17911* International Property
+Maintenance Code -
+IPMC
+Juan Pablo
+Rebolledo
+280 Brady Walk,
+Lawrenceville, GA 30046
+06/08/2026	5149 184	Open Residential
+CEU2026-17956 Unlicensed Business Todd Parry	377 W Pike St,
+Lawrenceville, GA 30046
+06/15/2026	5143 023	Open BG
