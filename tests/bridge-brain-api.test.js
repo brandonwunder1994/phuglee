@@ -301,3 +301,231 @@ test('invalid action returns 400', async () => {
     `expected INVALID_DECISION or MISSING_FIELDS, got ${json.code}`
   );
 });
+
+// ─── PHRASE-03: GET /api/bridge/brain + POST rules/:id/status ────────────────
+
+function seedBrainWithRules() {
+  const { saveBrain, emptyBrain } = require('../lib/bridge-brain-store');
+  const brain = emptyBrain();
+  brain.version = 3;
+  brain.typeRules = [
+    {
+      id: 'tr_active_1',
+      kind: 'suppress_type',
+      violationTypeKey: 'fence permit',
+      violationTypeLabel: 'Fence Permit',
+      status: 'active',
+      source: 'admin_review',
+      createdAt: '2026-07-01T00:00:00.000Z',
+      hitCount: 1
+    }
+  ];
+  brain.phraseRules = [
+    {
+      id: 'pr_proposed_1',
+      kind: 'suppress_phrase',
+      pattern: 'administrative only',
+      patternType: 'literal',
+      status: 'proposed',
+      evidenceEventIds: ['ev_1', 'ev_2'],
+      createdAt: '2026-07-02T00:00:00.000Z',
+      reviewedAt: null,
+      reviewedBy: null
+    },
+    {
+      id: 'pr_active_1',
+      kind: 'promote_phrase',
+      pattern: 'boarded windows',
+      patternType: 'literal',
+      status: 'active',
+      evidenceEventIds: ['ev_3'],
+      createdAt: '2026-07-03T00:00:00.000Z',
+      reviewedAt: '2026-07-04T00:00:00.000Z',
+      reviewedBy: 'admin'
+    }
+  ];
+  brain.metrics = {
+    totalDecisions: 2,
+    typeRulesActive: 1,
+    phraseRulesActive: 1,
+    phraseRulesProposed: 1
+  };
+  brain.events = Array.from({ length: 25 }, (_, i) => ({
+    id: `ev_seed_${i}`,
+    at: `2026-07-01T00:00:${String(i).padStart(2, '0')}.000Z`,
+    by: 'admin',
+    action: 'deny_group'
+  }));
+  return saveBrain(brain);
+}
+
+test('PHRASE-03: non-admin GET /api/bridge/brain returns 403 ADMIN_REQUIRED', async () => {
+  const { status, json } = await callBridge('GET', '/api/bridge/brain', {
+    headers: { 'x-phuglee-user': 'bob' }
+  });
+  assert.equal(status, 403);
+  assert.equal(json.code, 'ADMIN_REQUIRED');
+});
+
+test('PHRASE-03: admin GET /api/bridge/brain returns version, typeRules, phraseRules, metrics', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge('GET', '/api/bridge/brain', {
+    headers: adminHeaders()
+  });
+
+  assert.equal(status, 200);
+  assert.equal(json.version, 3);
+  assert.ok(Array.isArray(json.typeRules));
+  assert.ok(Array.isArray(json.phraseRules));
+  assert.ok(json.metrics && typeof json.metrics === 'object');
+  assert.equal(json.typeRules.length, 1);
+  assert.equal(json.phraseRules.length, 2);
+  assert.equal(json.metrics.typeRulesActive, 1);
+  assert.equal(json.metrics.phraseRulesProposed, 1);
+  // Events omitted or capped to tail of 20
+  if (Array.isArray(json.events)) {
+    assert.ok(json.events.length <= 20, 'events tail must be ≤20');
+  }
+});
+
+test('PHRASE-03: non-admin POST rules/:id/status returns 403 ADMIN_REQUIRED', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge(
+    'POST',
+    '/api/bridge/brain/rules/pr_proposed_1/status',
+    {
+      headers: {
+        'content-type': 'application/json',
+        'x-phuglee-user': 'bob'
+      },
+      body: jsonBody({ status: 'active' })
+    }
+  );
+
+  assert.equal(status, 403);
+  assert.equal(json.code, 'ADMIN_REQUIRED');
+
+  const { loadBrain } = require('../lib/bridge-brain-store');
+  const brain = loadBrain();
+  const rule = brain.phraseRules.find((r) => r.id === 'pr_proposed_1');
+  assert.equal(rule.status, 'proposed', 'non-admin must not mutate status');
+});
+
+test('PHRASE-03: admin activate proposed phrase → active and persists', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge(
+    'POST',
+    '/api/bridge/brain/rules/pr_proposed_1/status',
+    {
+      headers: adminHeaders(),
+      body: jsonBody({ status: 'active' })
+    }
+  );
+
+  assert.equal(status, 200);
+  assert.equal(json.ok, true);
+  assert.ok(json.rule);
+  assert.equal(json.rule.status, 'active');
+  assert.equal(json.rule.id, 'pr_proposed_1');
+  assert.ok(json.rule.reviewedAt);
+  assert.equal(json.rule.reviewedBy, 'admin');
+  assert.ok(json.brainSummary);
+  assert.ok(json.brainSummary.version >= 3);
+
+  const { loadBrain } = require('../lib/bridge-brain-store');
+  const brain = loadBrain();
+  const rule = brain.phraseRules.find((r) => r.id === 'pr_proposed_1');
+  assert.equal(rule.status, 'active');
+  assert.equal(rule.reviewedBy, 'admin');
+});
+
+test('PHRASE-03: admin reject proposed phrase → rejected', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge(
+    'POST',
+    '/api/bridge/brain/rules/pr_proposed_1/status',
+    {
+      headers: adminHeaders(),
+      body: jsonBody({ status: 'rejected' })
+    }
+  );
+
+  assert.equal(status, 200);
+  assert.equal(json.rule.status, 'rejected');
+
+  const { loadBrain } = require('../lib/bridge-brain-store');
+  const brain = loadBrain();
+  assert.equal(brain.phraseRules.find((r) => r.id === 'pr_proposed_1').status, 'rejected');
+});
+
+test('PHRASE-03: admin disable active type rule → disabled', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge(
+    'POST',
+    '/api/bridge/brain/rules/tr_active_1/status',
+    {
+      headers: adminHeaders(),
+      body: jsonBody({ status: 'disabled' })
+    }
+  );
+
+  assert.equal(status, 200);
+  assert.equal(json.rule.status, 'disabled');
+
+  const { loadBrain } = require('../lib/bridge-brain-store');
+  const brain = loadBrain();
+  assert.equal(brain.typeRules.find((r) => r.id === 'tr_active_1').status, 'disabled');
+});
+
+test('PHRASE-03: admin disable active phrase → disabled', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge(
+    'POST',
+    '/api/bridge/brain/rules/pr_active_1/status',
+    {
+      headers: adminHeaders(),
+      body: jsonBody({ status: 'disabled' })
+    }
+  );
+
+  assert.equal(status, 200);
+  assert.equal(json.rule.status, 'disabled');
+});
+
+test('PHRASE-03: unknown rule id → 404 RULE_NOT_FOUND', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge(
+    'POST',
+    '/api/bridge/brain/rules/missing_rule_xyz/status',
+    {
+      headers: adminHeaders(),
+      body: jsonBody({ status: 'active' })
+    }
+  );
+
+  assert.equal(status, 404);
+  assert.equal(json.code, 'RULE_NOT_FOUND');
+});
+
+test('PHRASE-03: invalid status body → 400 INVALID_STATUS', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge(
+    'POST',
+    '/api/bridge/brain/rules/pr_proposed_1/status',
+    {
+      headers: adminHeaders(),
+      body: jsonBody({ status: 'banana' })
+    }
+  );
+
+  assert.equal(status, 400);
+  assert.equal(json.code, 'INVALID_STATUS');
+});
