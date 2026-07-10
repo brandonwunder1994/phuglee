@@ -93,7 +93,12 @@ Plans:
   1. Admin can view paired learning metrics: Approve/Deny (or decisions-per-comparable-process) trend **and** gold-set precision/recall not degrading
   2. Metrics cannot be “won” by hiding Train groups, auto-activating phrases, or silent-dropping rows — success requires real rule apply coverage
   3. Type suppress/promote still apply on process from admin decisions; phrase rules remain proposed-only until admin activate (no unsupervised live ML)
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 58-01-PLAN.md — Pure learning metrics module (trend + gold P/R + apply coverage + anti-game pure)
+- [ ] 58-02-PLAN.md — Wire GET brain/metrics + brain GET with learning nest
+- [ ] 58-03-PLAN.md — Brain panel chips + LRN-02/03 locks + suite/live gate
 
 ### Phase 59: Efficiency Operator Path
 **Goal**: Day-2 / known-format operators reach a saved downloadable list faster via format reuse, stacked Train, and bulk download — without trading accuracy or re-coupling Filter to Analyze
@@ -125,7 +130,7 @@ Plans:
 | 55. Independence Lock | 0/3 | Planned | - |
 | 56. List Factory UX | 0/3 | Planned | - |
 | 57. Accuracy Structure Pass | 0/3 | Planned | - |
-| 58. Learning Loop Strength | 0/TBD | Not started | - |
+| 58. Learning Loop Strength | 0/3 | Planned | - |
 | 59. Efficiency Operator Path | 0/TBD | Not started | - |
 | 60. Regression QA Lock | 0/TBD | Not started | - |
 
