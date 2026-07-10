@@ -17,7 +17,7 @@
 **Milestone:** v1.8 Type Column Intelligence  
 **Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress/export.
 
-**Status:** Phase 53 planned (4 plans) — display-only short labels; next execute Phase 53
+**Status:** Phase 53 in progress (1/4 plans) — Wave 0 RED short-label contracts done; next 53-02 pure green
 
 ---
 
@@ -72,10 +72,10 @@ Plans:
   1. Train / review group titles show a deterministic short label when type or description is a long wall of text (~48–64 chars / first clause / before em-dash)
   2. Full raw type/description remains on the row for distress matching, export, brain keys, and decision payloads — short label never replaces stored `violationIssueType` or becomes the group key
   3. Decision POST and undo paths use full type labels from group metadata, not scraped truncated DOM titles
-**Plans**: 4 plans
+**Plans**: 1/4 plans complete
 
 Plans:
-- [ ] 53-01-PLAN.md — Wave 0 RED tests (pure short-label + groups + train LBL-03 contracts)
+- [x] 53-01-PLAN.md — Wave 0 RED tests (pure short-label + groups + train LBL-03 contracts)
 - [ ] 53-02-PLAN.md — Pure lib/bridge-short-label.js until unit green
 - [ ] 53-03-PLAN.md — Attach shortLabel on review groups; keys/full/export unchanged
 - [ ] 53-04-PLAN.md — Train UI prefer shortLabel + kill DOM scrape + verify-live
@@ -172,7 +172,7 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 |-------|-----------|----------------|--------|-----------|
 | 51. COL Scoring + Map Wire | 3/3 | Complete    | 2026-07-10 | - |
 | 52. Format Memory + Confirm Gate | 4/4 | Complete    | 2026-07-10 | - |
-| 53. Display-Only Short Labels | v1.8 | 0/4 | Planned | - |
+| 53. Display-Only Short Labels | 1/4 | In Progress|  | - |
 | 54. Regression Lock | v1.8 | 0/? | Not started | - |
 | 48–50. Filter Accuracy & Grouping | v1.7 | 4/4 | Complete | 2026-07-10 |
 | 42–47. Filter Superpower Brain | v1.6 | 12/12 | Complete | 2026-07-10 |

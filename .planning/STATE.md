@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
-status: ready_to_execute
-stopped_at: Phase 53 plans created (53-01..04)
-last_updated: "2026-07-10T13:37:15.971Z"
-last_activity: 2026-07-10 — Phase 53 plans created (4 plans)
+status: executing
+stopped_at: Completed 53-01-PLAN.md
+last_updated: "2026-07-10T13:44:10.571Z"
+last_activity: 2026-07-10 — Phase 53 plans created
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 11
-  completed_plans: 7
-  percent: 64
+  completed_plans: 8
+  percent: 73
 ---
 
 # State
@@ -21,24 +21,24 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 53 planned — display-only short labels (execute next)
+**Current focus:** Phase 53 in progress — display-only short labels (Wave 0 RED done)
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
-**Phase:** 53 of 54 (Display-Only Short Labels) — PLANNED  
-**Plan:** 0 of 4 planned  
-**Status:** Ready to execute
-**Last activity:** 2026-07-10 — Phase 53 plans created
+**Phase:** 53 of 54 (Display-Only Short Labels) — IN PROGRESS  
+**Plan:** 1 of 4 complete  
+**Status:** Ready to execute plan 02
+**Last activity:** 2026-07-10 — Completed 53-01 Wave 0 RED tests
 
-Progress: [██████░░░░] 64% (v1.8 plans 7/11 done; phase 53 ready)
+Progress: [███████░░░] 73% (v1.8 plans 8/11 done; phase 53 plan 1/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v1.8): 7
-- Average duration: 5.7min
-- Total execution time: 40min
+- Total plans completed (v1.8): 8
+- Average duration: 5.5min
+- Total execution time: 44min
 
 **By Phase:**
 
@@ -46,7 +46,7 @@ Progress: [██████░░░░] 64% (v1.8 plans 7/11 done; phase 53 r
 |-------|-------|-------|----------|
 | 51 | 3/3 | 5min | 1.7min |
 | 52 | 4/4 | 35min | 8.8min |
-| 53 | 0/4 | TBD | — |
+| 53 | 1/4 | 4min | 4min |
 | 54 | 0 | TBD | — |
 
 **Performance Metrics (detail):**
@@ -60,6 +60,7 @@ Progress: [██████░░░░] 64% (v1.8 plans 7/11 done; phase 53 r
 | 52-format-memory-confirm-gate | 02 | 3min | 2 | 4 |
 | 52-format-memory-confirm-gate | 03 | 12min | 2 | 3 |
 | 52-format-memory-confirm-gate | 04 | 18min | 2 | 7 |
+| 53-display-only-short-labels | 01 | 4min | 2 | 3 |
 
 ## Accumulated Context
 
@@ -110,6 +111,8 @@ Phase 53 plan decisions:
 - Kill resolveTrainGroupFromCard DOM scrape of .bridge-train-group-title (fail closed / group metadata only)
 - Zero new npm packages; do not re-touch type scorer or format confirm gate (51/52)
 - After public/ edits: verify-live.ps1
+- [Phase 53]: Wave 0 RED only: pure short-label matrix + group/train LBL contracts; no production short-label yet
+- [Phase 53]: DEFAULT_MAX locked at 56; hard-slice uses unicode ellipsis; LBL-03 fail-closed null (no DOM title scrape)
 
 ### Pending Todos
 
@@ -117,11 +120,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None — Phase 53 plans ready for execute.
+None — Phase 53 plan 01 complete; continue with 53-02 pure short-label green.
 
 ## Session Continuity
 
-Last session: 2026-07-10T13:37:15.971Z
-Stopped at: Phase 53 plans created (53-01..04)
+Last session: 2026-07-10T13:44:10.564Z
+Stopped at: Completed 53-01-PLAN.md
 Resume file: None
-Next: Execute Phase 53 — `/gsd:execute-phase 53`
+Next: Execute 53-02 — pure `lib/bridge-short-label.js` until unit green

@@ -25,9 +25,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Display short labels (LBL)
 
-- [ ] **LBL-01**: Train / review group titles use a **display-only** short label when type or description is a long wall of text (deterministic heuristic: first clause / before em-dash / max ~48–64 chars; strip incidental timestamps where already cleaned)
-- [ ] **LBL-02**: Full raw type/description remains on the row for distress matching, export, brain keys, and decision payloads — short label must **never** replace stored `violationIssueType` or become the group key
-- [ ] **LBL-03**: Decision POST / undo paths use full type labels from group metadata (not scraped truncated DOM titles)
+- [x] **LBL-01**: Train / review group titles use a **display-only** short label when type or description is a long wall of text (deterministic heuristic: first clause / before em-dash / max ~48–64 chars; strip incidental timestamps where already cleaned)
+- [x] **LBL-02**: Full raw type/description remains on the row for distress matching, export, brain keys, and decision payloads — short label must **never** replace stored `violationIssueType` or become the group key
+- [x] **LBL-03**: Decision POST / undo paths use full type labels from group metadata (not scraped truncated DOM titles)
 
 ### Process meta & regression (META / TEST)
 
@@ -74,9 +74,9 @@ Deferred — not in this milestone.
 | GATE-05 | Phase 52 | Complete |
 | GATE-06 | Phase 52 | Complete |
 | META-01 | Phase 52 | Complete |
-| LBL-01 | Phase 53 | Pending |
-| LBL-02 | Phase 53 | Pending |
-| LBL-03 | Phase 53 | Pending |
+| LBL-01 | Phase 53 | Complete |
+| LBL-02 | Phase 53 | Complete |
+| LBL-03 | Phase 53 | Complete |
 | TEST-01 | Phase 54 | Pending |
 | TEST-02 | Phase 54 | Pending |
 | TEST-03 | Phase 54 | Pending |
