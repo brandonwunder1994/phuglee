@@ -52,29 +52,33 @@ Deferred — not in this milestone.
 
 ## Traceability
 
-Filled by roadmapper.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GROUP-01 | TBD | Pending |
-| GROUP-02 | TBD | Pending |
-| GROUP-03 | TBD | Pending |
-| GROUP-04 | TBD | Pending |
-| MAP-01 | TBD | Pending |
-| MAP-02 | TBD | Pending |
-| MAP-03 | TBD | Pending |
-| SHAPE-01 | TBD | Pending |
-| SHAPE-02 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
+| MAP-01 | Phase 48 | Pending |
+| MAP-02 | Phase 48 | Pending |
+| MAP-03 | Phase 48 | Pending |
+| SHAPE-01 | Phase 48 | Pending |
+| SHAPE-02 | Phase 48 | Pending |
+| GROUP-01 | Phase 49 | Pending |
+| GROUP-02 | Phase 49 | Pending |
+| GROUP-03 | Phase 49 | Pending |
+| GROUP-04 | Phase 49 | Pending |
+| TEST-01 | Phase 50 | Pending |
+| TEST-02 | Phase 50 | Pending |
+| TEST-03 | Phase 50 | Pending |
 
 **Coverage:**
 - v1.7 requirements: 12 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 12
+- Mapped to phases: 12/12 ✓
+- Unmapped: 0
+
+| Phase | Requirements | Count |
+|-------|--------------|-------|
+| 48 Category Promotion & Signal Shape | MAP-01–03, SHAPE-01–02 | 5 |
+| 49 Stable Group Keys | GROUP-01–04 | 4 |
+| 50 Regression Lock | TEST-01–03 | 3 |
 
 ---
 *Requirements defined: 2026-07-10*  
 *Source: MILESTONE-CONTEXT + `.planning/debug/filter-singleton-no-category.md`*  
-*Last updated: 2026-07-10 after `/gsd:new-milestone`*
+*Last updated: 2026-07-10 — roadmap phases 48–50 mapped*

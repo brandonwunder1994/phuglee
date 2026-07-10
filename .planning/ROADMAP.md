@@ -9,16 +9,64 @@
 - ✅ **v1.4 Gritty Premium Surfaces** — Phases 32–36 (implemented)
 - ✅ **v1.5 Territory Theater** — Phases 37–41 (implemented)
 - ✅ **v1.6 Filter Superpower Brain** — Phases 42–47 (shipped 2026-07-10) — [archive](./milestones/v1.6-ROADMAP.md)
+- 🚧 **v1.7 Filter Accuracy & Grouping** — Phases 48–50 (in progress)
 
 ## Active Work
 
-**Status:** Between milestones — plan next with `/gsd:new-milestone`
+**Milestone:** v1.7 Filter Accuracy & Grouping  
+**Status:** Roadmap ready — next `/gsd:plan-phase 48`  
+**Goal:** Train/Filter grouping stacks real categories; timestamps do not create false singletons; FN rows show city categories; signal chips stay visible.
 
-No active milestone. Last shipped: **v1.6 Filter Superpower Brain**.
+**Diagnosis:** [debug/filter-singleton-no-category.md](./debug/filter-singleton-no-category.md)
 
 ---
 
 ## Phases
+
+### 🚧 v1.7 Filter Accuracy & Grouping (Phases 48–50)
+
+- [ ] **Phase 48: Category Promotion & Signal Shape** - Promote real categories into type; keep indicator arrays on process path
+- [ ] **Phase 49: Stable Group Keys** - Strip incidental timestamps; stack same category; singleton only when count === 1
+- [ ] **Phase 50: Regression Lock** - Automated accuracy tests; `npm test` + verify-live green
+
+---
+
+## Phase Details
+
+### Phase 48: Category Promotion & Signal Shape
+**Goal**: Process path yields real city categories on rows and array-shaped signals so Train can label FN/distressed groups and render chips
+**Depends on**: Nothing (v1.6 foundation shipped)
+**Requirements**: MAP-01, MAP-02, MAP-03, SHAPE-01, SHAPE-02
+**Success Criteria** (what must be TRUE):
+  1. When a source category/issue-type column is present but unmapped (or only in raw cells), process promotes a real category into `violationIssueType` for Train labels
+  2. Not-distressed (false-negative) groups show the real city category when the spreadsheet had one — not only notes or `(no type)`
+  3. Promotion does not invent fake types from pure free-text noise when no category signal exists; prefers category-like headers/cells over timestamp-only notes
+  4. Process/review rows keep `matchedIndicators` as string arrays so Train chips can render matches
+  5. Spreadsheet/export path still joins indicators to a single cell string (export contract unchanged for Analyzer)
+**Plans**: TBD
+
+### Phase 49: Stable Group Keys
+**Goal**: Same real-world category stacks into one group; incidental timestamps no longer flood Train with false singletons
+**Depends on**: Phase 48
+**Requirements**: GROUP-01, GROUP-02, GROUP-03, GROUP-04
+**Success Criteria** (what must be TRUE):
+  1. When `violationIssueType` is empty, review groups key free-text descriptions after stripping incidental dates/times so rows that differ only by timestamp stack into one group
+  2. When type values themselves embed per-row timestamps/dates, grouping still stacks rows that share the same category phrase
+  3. Rows that already have a clean shared `violationIssueType` (e.g. typed High Grass) continue to stack on the normalized type key (no regression)
+  4. Singleton (`isSingleton` / badge) is true only when the stabilized group has count === 1
+**Plans**: TBD
+
+### Phase 50: Regression Lock
+**Goal**: Accuracy fixes stay locked by automated tests; full suite and live server remain green
+**Depends on**: Phase 49
+**Requirements**: TEST-01, TEST-02, TEST-03
+**Success Criteria** (what must be TRUE):
+  1. Automated test: Description-only High Grass rows with differing timestamps → one distressed group with count N
+  2. Automated test: Unmapped category column → `violationIssueType` populated and FN/distressed labels use it
+  3. Automated test: Typed clean High Grass still stacks; `npm test` and `scripts/verify-live.ps1` green
+**Plans**: TBD
+
+---
 
 <details>
 <summary>✅ v1.6 Filter Superpower Brain (Phases 42–47) — SHIPPED 2026-07-10</summary>
@@ -84,10 +132,13 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration, unit tes
 
 ## Progress
 
-| Phase | Milestone | Plans | Status | Completed |
-|-------|-----------|-------|--------|-----------|
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
 | 42–47 | v1.6 | 12/12 | Complete | 2026-07-10 |
+| 48. Category Promotion & Signal Shape | v1.7 | 0/TBD | Not started | - |
+| 49. Stable Group Keys | v1.7 | 0/TBD | Not started | - |
+| 50. Regression Lock | v1.7 | 0/TBD | Not started | - |
 
 ---
 
-*Roadmap updated: 2026-07-10 — v1.6 Filter Superpower Brain shipped*
+*Roadmap updated: 2026-07-10 — v1.7 Filter Accuracy & Grouping phases 48–50 drafted*
