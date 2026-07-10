@@ -75,7 +75,7 @@ Each task was committed atomically:
 1. **Task 1: Write failing phrase-miner tests (RED)** - `0f27527` (test)
 2. **Task 2: Implement miner + hook decisions (GREEN)** - `c8457a1` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `41ccab3` (docs: complete plan)
 
 _Note: TDD tasks may have multiple commits (test → feat → refactor)_
 
