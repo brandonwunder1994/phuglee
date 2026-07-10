@@ -809,6 +809,7 @@
         const snap = popTrainUndoSnapshot();
         if (snap) {
           applyTrainSnapshot(snap);
+          if (snap.decidedKey) trainDecidedKeys.delete(snap.decidedKey);
           renderResults(lastResult);
           setResultsMode('train');
         }
