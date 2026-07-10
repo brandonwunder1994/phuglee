@@ -21,8 +21,8 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 
 ### City dossier & exception path (CITY)
 
-- [ ] **CITY-01**: Selecting a city opens a **city dossier** (ops case file): prior attaches / last scrub / lists staged for that city / relevant status — not a void dual-select only
-- [ ] **CITY-02**: “City replied, no usable list” outcomes live as a **secondary scrap / drawer** on the dossier — not a 5-radio wall competing with the happy path on step 1
+- [x] **CITY-01**: Selecting a city opens a **city dossier** (ops case file): prior attaches / last scrub / lists staged for that city / relevant status — not a void dual-select only
+- [x] **CITY-02**: “City replied, no usable list” outcomes live as a **secondary scrap / drawer** on the dossier — not a 5-radio wall competing with the happy path on step 1
 
 ### Idle proof & process climax (IDLE)
 
@@ -113,8 +113,8 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | DESK-04 | 61 | Complete |
 | DESK-05 | 61 | Complete |
 | DESK-06 | 61 | Complete |
-| CITY-01 | 62 | Pending |
-| CITY-02 | 62 | Pending |
+| CITY-01 | 62 | Complete |
+| CITY-02 | 62 | Complete |
 | IDLE-01 | 63 | Pending |
 | IDLE-02 | 63 | Pending |
 | FEED-01 | 64 | Pending |

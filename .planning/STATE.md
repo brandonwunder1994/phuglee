@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2
-status: executing
-stopped_at: Completed 62-01-PLAN.md
-last_updated: "2026-07-10T23:48:23.553Z"
-last_activity: 2026-07-10 — 62-01 Wave 0 city dossier contracts + city-outcome handler tests
+current_plan: 2 of 2
+status: verifying
+stopped_at: Completed 62-02-PLAN.md
+last_updated: "2026-07-10T23:52:14.936Z"
+last_activity: 2026-07-10 — 62-02 city dossier UI + demoted outcomes shipped
 progress:
   total_phases: 8
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 20
-  completed_plans: 4
-  percent: 20
+  completed_plans: 5
+  percent: 25
 ---
 
 # State
@@ -22,7 +22,7 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 62 City Dossier (Wave 0 contracts done; Plan 02 UI next)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 62 City Dossier complete (ready for verification); next Phase 63
 
 ## Current Position
 
@@ -30,17 +30,17 @@ See: `.planning/PROJECT.md`
 **Phase:** 62 — City Dossier  
 **Current Plan:** 2 of 2  
 **Total Plans in Phase:** 2  
-**Status:** Executing  
-**Last activity:** 2026-07-10 — 62-01 Wave 0 city dossier contracts + city-outcome handler tests
+**Status:** Phase complete — ready for verification  
+**Last activity:** 2026-07-10 — 62-02 city dossier UI + demoted outcomes shipped
 
-Progress: [██░░░░░░░░] 20% (4/20 plans executed)
+Progress: [███░░░░░░░] 25% (5/20 plans executed)
 
 ## Phase map (v2.1)
 
 | Phase | Name | Plans | Plan-check |
 |-------|------|-------|------------|
 | 61 | Scrub Desk Foundation | 3 (3 done) | PASS |
-| 62 | City Dossier | 2 (1 done) | PASS |
+| 62 | City Dossier | 2 (2 done) | PASS |
 | 63 | Idle Proof & Process Climax | 2 | PASS |
 | 64 | Live Scrub Feed | 2 | PASS |
 | 65 | Kill-Rate Scrub Report | 3 | PASS |
@@ -74,6 +74,8 @@ Progress: [██░░░░░░░░] 20% (4/20 plans executed)
 - [61] Ghost deny maps to phuglee-btn-secondary (match 61-02 fallback), not a new ghost alias
 - [61] DESK-06 live path: BridgeTrain.renderTrainGroupCard must use phuglee-btn (bridge.js is fallback only)
 - [62] Wave 0 contracts only — no production UI; dossier history via loadCityDossierHistory or onCityChange loadHistory; no GET /api/bridge/dossier route
+- [62] Hybrid dossier inline under city selects; outcomes in collapsed button+panel scrap drawer
+- [62] Client-compose dossier from history+lists APIs; loadCityDossierHistory named helper with race guard; no GET /api/bridge/dossier
 
 ## Performance Metrics
 
@@ -83,16 +85,17 @@ Progress: [██░░░░░░░░] 20% (4/20 plans executed)
 | 61 | 02 | 15min | 3 | 3 |
 | 61 | 03 | 8min | 2 | 3 |
 | 62 | 01 | 2min | 2 | 2 |
+| 62 | 02 | 12min | 3 | 3 |
 
 ## Next command
 
 ```text
-/gsd:execute-phase 62
+/gsd:verify-work 62
 ```
 
-(Or continue with 62-02 City Dossier UI)
+(Or `/gsd:execute-phase 63` after verification)
 
 ## Session
 
-**Last session:** 2026-07-10T23:48:23.544Z
-**Stopped at:** Completed 62-01-PLAN.md
+**Last session:** 2026-07-10T23:52:14.924Z
+**Stopped at:** Completed 62-02-PLAN.md

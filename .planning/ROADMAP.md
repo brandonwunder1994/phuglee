@@ -42,7 +42,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 ## Phases
 
 - [ ] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
-- [ ] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
+- [x] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
 - [ ] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
 - [ ] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
 - [ ] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
@@ -75,9 +75,9 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 **Success Criteria** (what must be TRUE):
   1. After selecting a city, operator sees a **city dossier** (prior attaches / last scrub / lists staged / relevant status) — not only dual selects in a void
   2. “City replied, no usable list” outcomes live in a **secondary scrap/drawer** on the dossier — not a 5-radio wall competing with step-1 happy path
-**Plans**: 1/2 plans complete · plan-check **PASS** · status: In Progress
+**Plans**: 2/2 plans complete · plan-check **PASS** · status: Complete
 - [x] 62-01-PLAN.md — Wave 0 TDD: dossier/drawer static contracts + city-outcome handler soft gap
-- [ ] 62-02-PLAN.md — Client dossier compose (history + lists) + demote outcomes to scrap/drawer; preserve outcome POST payload
+- [x] 62-02-PLAN.md — Client dossier compose (history + lists) + demote outcomes to scrap/drawer; preserve outcome POST payload
 
 ### Phase 63: Idle Proof & Process Climax
 **Goal**: Desk proves inventory before process; upload step makes Process the one fire climax
@@ -161,7 +161,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | Phase | Plans | Status | Plan-check | Completed |
 |-------|-------|--------|------------|-----------|
 | 61. Scrub Desk Foundation | 3/3 | Complete (re-verify) | PASS | 2026-07-10 |
-| 62. City Dossier | 1/2 | In Progress | PASS | — |
+| 62. City Dossier | 2/2 | Complete | PASS | 2026-07-10 |
 | 63. Idle Proof & Process Climax | 0/2 | Ready to execute | PASS | — |
 | 64. Live Scrub Feed | 0/2 | Ready to execute | PASS | — |
 | 65. Kill-Rate Scrub Report | 0/3 | Ready to execute | PASS | — |
