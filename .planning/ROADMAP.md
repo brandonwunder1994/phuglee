@@ -23,7 +23,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 59 in progress — Plan 01 complete; next Plan 02 polish  
+**Status:** Phase 59 in progress — Plan 02 complete; next Plan 03 Train keyboard + EFF-02 gate  
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
@@ -111,7 +111,7 @@ Plans:
 
 Plans:
 - [x] 59-01-PLAN.md — Wave 0 EFF-01/02 path tests (as-built green + polish RED)
-- [ ] 59-02-PLAN.md — Format reuse meta + post-save Download this list (CSV)
+- [x] 59-02-PLAN.md — Format reuse meta + post-save Download this list (CSV)
 - [ ] 59-03-PLAN.md — Train A/D keyboard + suite/live EFF-02 gate
 
 ### Phase 60: Regression QA Lock
@@ -136,7 +136,7 @@ Plans:
 | 56. List Factory UX | 3/3 | Complete | 2026-07-10 |
 | 57. Accuracy Structure Pass | 3/3 | Complete | 2026-07-10 |
 | 58. Learning Loop Strength | 3/3 | Complete | 2026-07-10 |
-| 59. Efficiency Operator Path | 1/3 | In Progress | - |
+| 59. Efficiency Operator Path | 2/3 | In Progress | - |
 | 60. Regression QA Lock | 0/TBD | Not started | - |
 
 ### Coverage Map

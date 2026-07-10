@@ -34,7 +34,7 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Efficiency (EFF)
 
-- [ ] **EFF-01**: Operator path to a saved list is shorter for day-2 / known formats: format auto-reuse, stacked Train where applicable, bulk download — without trading away accuracy
+- [x] **EFF-01**: Operator path to a saved list is shorter for day-2 / known formats: format auto-reuse, stacked Train where applicable, bulk download — without trading away accuracy
 - [ ] **EFF-02**: No single-dimension “efficiency” that increases silent drops, skips Train when needed, or re-couples Filter to Analyze
 
 ### Regression (TEST)
@@ -88,7 +88,7 @@ Deferred — not in this milestone roadmap.
 | LRN-01 | Phase 58 | Complete |
 | LRN-02 | Phase 58 | Complete |
 | LRN-03 | Phase 58 | Complete |
-| EFF-01 | Phase 59 | Pending |
+| EFF-01 | Phase 59 | Complete |
 | EFF-02 | Phase 59 | Pending |
 | TEST-01 | Phase 60 | Pending |
 | TEST-02 | Phase 60 | Pending |
