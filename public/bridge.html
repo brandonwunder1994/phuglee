@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/distress-glass.css">
   <link rel="stylesheet" href="/css/heat-base.css">
+  <link rel="stylesheet" href="/css/heat-atmosphere.css">
   <link rel="stylesheet" href="/css/premium-atmosphere.css">
   <link rel="stylesheet" href="/css/premium-components.css">
   <link rel="stylesheet" href="/css/shell.css">
@@ -26,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=14">
+  <link rel="stylesheet" href="/css/bridge.css?v=15">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -36,54 +37,28 @@
 </head>
 <body class="has-premium-bg bridge-page">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
-  <div class="premium-bg premium-bg--subtle" aria-hidden="true">
+  <div class="premium-bg premium-bg--strong" aria-hidden="true">
     <div class="premium-bg-photo"></div>
     <div class="premium-bg-grain"></div>
     <div class="premium-bg-wear"></div>
   </div>
-  <div class="bridge-bg" aria-hidden="true"></div>
+  <div class="heat-field" aria-hidden="true">
+    <div class="heat-glow heat-glow-a"></div>
+    <div class="heat-glow heat-glow-b"></div>
+    <div class="heat-grid"></div>
+    <div class="heat-noise"></div>
+  </div>
   <div id="distress-os-nav-mount"></div>
 
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
     <header class="bridge-hero" data-phuglee-reveal-child>
       <p class="bridge-step-label">Step 02 · Filter</p>
-      <h1>Scrub the Mess</h1>
-      <p class="bridge-lead">Drop in whatever the city sent — Excel, CSV, PDF, Word, or photos of a printed list. Filter normalizes addresses, tags distress signals, and saves clean lists you can download for enrichment. Analyze stays separate — import there only after skip-trace.</p>
+      <h1 class="bridge-title">Scrub the Mess</h1>
+      <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
     </header>
 
-    <section class="bridge-proof-rail phuglee-panel" aria-label="Filter steps" data-phuglee-reveal-child>
-      <article class="bridge-proof-item bridge-proof-item--featured">
-        <span class="bridge-proof-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-        </span>
-        <div class="bridge-proof-copy">
-          <p class="bridge-proof-metric">
-            <span class="bridge-proof-num bridge-proof-num--gold">Pick Your City</span>
-          </p>
-        </div>
-      </article>
-      <article class="bridge-proof-item">
-        <span class="bridge-proof-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h14"/><circle cx="18" cy="12" r="2"/></svg>
-        </span>
-        <div class="bridge-proof-copy">
-          <p class="bridge-proof-metric">
-            <span class="bridge-proof-num bridge-proof-num--gold">Choose the Lead Type</span>
-          </p>
-        </div>
-      </article>
-      <article class="bridge-proof-item">
-        <span class="bridge-proof-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
-        </span>
-        <div class="bridge-proof-copy">
-          <p class="bridge-proof-metric">
-            <span class="bridge-proof-num bridge-proof-num--gold">Filter Quality Results</span>
-          </p>
-        </div>
-      </article>
-    </section>
-
+    <div class="bridge-desk">
+      <div class="bridge-desk-primary">
     <nav class="bridge-pipeline" aria-label="Intake steps" data-phuglee-reveal-child>
       <ol class="bridge-pipeline-list" id="bridge-pipeline">
         <li class="bridge-pipeline-step is-active" data-step="location"><span>1</span> City</li>
@@ -356,6 +331,16 @@
         <p class="bridge-attach-status" id="bridge-attach-status" hidden role="status"></p>
       </section>
     </section>
+      </div>
+      <aside class="bridge-desk-side" aria-label="Staging scrap">
+        <a href="#bridge-lists-panel" class="bridge-desk-scrap phuglee-panel">
+          <span class="bridge-desk-scrap-label">Already staged?</span>
+          <span class="bridge-desk-scrap-title">Saved lists</span>
+          <span class="bridge-desk-scrap-desc">Jump to staging inventory below.</span>
+          <span class="bridge-desk-scrap-cta">Open lists →</span>
+        </a>
+      </aside>
+    </div>
 
     <section class="bridge-panel phuglee-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
       <div class="bridge-lists-header">
