@@ -40,7 +40,7 @@
 
 - [x] **PHRASE-01**: System mines phrase candidates from free-text / singleton decisions into proposed rules only
 - [x] **PHRASE-02**: Proposed phrase rules never affect process until admin activates them
-- [ ] **PHRASE-03**: Admin can view, activate, reject, or disable type and phrase rules in a Filter brain panel
+- [x] **PHRASE-03**: Admin can view, activate, reject, or disable type and phrase rules in a Filter brain panel
 
 ### Hardening
 
@@ -89,7 +89,7 @@
 | DEC-06 | Phase 45 | Complete |
 | PHRASE-01 | Phase 46 | Complete |
 | PHRASE-02 | Phase 46 | Complete |
-| PHRASE-03 | Phase 46 | Pending |
+| PHRASE-03 | Phase 46 | Complete |
 | HARD-01 | Phase 47 | Pending |
 | HARD-02 | Phase 47 | Pending |
 | HARD-03 | Phase 47 | Pending |

@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
 status: in_progress
-last_updated: "2026-07-10T02:22:00.000Z"
-last_activity: 2026-07-10 — phrase miner + decisions hook (46-01)
+last_updated: "2026-07-10T02:31:00.000Z"
+last_activity: 2026-07-10 — brain panel + rule status API (46-02)
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 12
-  completed_plans: 10
-  percent: 83
+  completed_plans: 11
+  percent: 92
 ---
 
 # State
 
 ## Current Position
 
-Phase: **46** (phrase-mining-brain-panel) — **In Progress**  
-Plan: **02** of 02 (next)  
-Status: **46-01 complete** — pure phrase miner + decisions hook green  
-Last activity: 2026-07-10 — phrase miner + decisions hook (46-01)
+Phase: **46** (phrase-mining-brain-panel) — **Complete**  
+Plan: **02** of 02 (done)  
+Status: **46-02 complete** — brain GET/status API + Filter brain panel green  
+Last activity: 2026-07-10 — brain panel + rule status API (46-02)
 
-Progress: [████████░░] 83% (10/12 plans)
+Progress: [█████████░] 92% (11/12 plans)
 
 ## What ran (real GSD)
 
@@ -44,6 +44,7 @@ Progress: [████████░░] 83% (10/12 plans)
 | Execute | `gsd-executor` 45-02 | **COMPLETE** — decisions API + requireAdmin |
 | Execute | `gsd-executor` 45-03 | **COMPLETE** — client Train Approve/Deny wire |
 | Execute | `gsd-executor` 46-01 | **COMPLETE** — phrase miner + decisions hook |
+| Execute | `gsd-executor` 46-02 | **COMPLETE** — brain panel + rule status API |
 
 ## Plan inventory
 
@@ -53,7 +54,7 @@ Progress: [████████░░] 83% (10/12 plans)
 | 43 | 43-01, 43-02 | PASSED | 2/2 complete |
 | 44 | 44-01, 44-02 | PASSED | 2/2 complete |
 | 45 | 45-01, 45-02, 45-03 | PASSED | 3/3 complete |
-| 46 | 46-01, 46-02 | PASSED | 1/2 |
+| 46 | 46-01, 46-02 | PASSED | 2/2 complete |
 | 47 | 47-01 | PASSED | 0/1 |
 
 ## Decisions
@@ -88,6 +89,9 @@ Progress: [████████░░] 83% (10/12 plans)
 | 46 | Evidence units are description samples only (label extracts candidates, not evidence tally) |
 | 46 | Opposite-direction evidence for same candidate blocks phrase propose |
 | 46 | Miner never overwrites active/rejected/disabled phrase rules |
+| 46 | Third results-mode tab Filter brain (not separate drawer) to match Train chrome |
+| 46 | Rejected rules cannot re-open in v1; illegal transitions return INVALID_STATUS |
+| 46 | Status change bumps version, recounts metrics, appends audit event |
 
 ## Performance Metrics
 
@@ -103,14 +107,15 @@ Progress: [████████░░] 83% (10/12 plans)
 | 45 | 02 | 5min | 2 | 2 |
 | 45 | 03 | 10min | 2 | 1 |
 | 46 | 01 | 12min | 2 | 3 |
+| 46 | 02 | 18min | 2 | 5 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 46-01-PLAN.md |
-| Next | Execute 46-02 (brain panel + rule status API) |
+| Stopped At | Completed 46-02-PLAN.md |
+| Next | Execute 47-01 (metrics / undo / hardening) |
 
 ## Superseded
 
@@ -120,6 +125,6 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Continue phase 46 — brain panel + status API
-/gsd:execute-phase 46
+# Start phase 47 — metrics, undo, hardening
+/gsd:execute-phase 47
 ```

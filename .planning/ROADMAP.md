@@ -40,7 +40,7 @@
 - [x] **Phase 43: Review payload + grouping** — Full FN rows, type groups, signals, stable rowIds
 - [x] **Phase 44: Admin Train brain UX** — Two train sections, group ✓/✗, admin-only chrome
 - [x] **Phase 45: Decisions + type rules + list mutation** — Mutate current list + live type learning
-- [ ] **Phase 46: Phrase mining + brain panel** — Proposed phrases + admin rule management
+- [x] **Phase 46: Phrase mining + brain panel** — Proposed phrases + admin rule management
 - [ ] **Phase 47: Hardening + metrics + docs** — Undo, caps, metrics, docs, QA green
 
 ### Phase dependency
@@ -163,7 +163,7 @@ Plans:
 
 Plans:
 - [x] 46-01-PLAN.md — Pure phrase miner + decisions hook; proposed never auto-live (PHRASE-01, PHRASE-02)
-- [ ] 46-02-PLAN.md — Admin brain API + Filter brain panel activate/reject/disable (PHRASE-03)
+- [x] 46-02-PLAN.md — Admin brain API + Filter brain panel activate/reject/disable (PHRASE-03)
 
 ---
 
