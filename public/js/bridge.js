@@ -249,8 +249,15 @@
       `<div class="bridge-train-signals">${signals}</div>` +
       (desc ? `<ul class="bridge-train-descriptions">${desc}</ul>` : '') +
       `<div class="bridge-train-actions">` +
-      `<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" aria-label="Approve ${esc(label)}">✓ Approve</button>` +
-      `<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" aria-label="Deny ${esc(label)}">✗ Deny</button>` +
+      (function () {
+        const isFn = section === 'not_distressed';
+        const approveLabel = isFn ? '✅ Not Distressed' : '🏚️ Distressed';
+        const denyLabel = isFn ? '🏚️ Distressed' : '✅ Not Distressed';
+        return (
+          `<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" aria-label="${esc(approveLabel + ' ' + label)}">${esc(approveLabel)}</button>` +
+          `<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" aria-label="${esc(denyLabel + ' ' + label)}">${esc(denyLabel)}</button>`
+        );
+      })() +
       `</div></article>`
     );
   }
@@ -955,8 +962,9 @@
         const moveHint = section === 'not_distressed'
           ? 'They will move to distressed and a promote rule will be trained.'
           : 'They will move to not-distressed and a suppress rule will be trained.';
+        const outcomeLabel = section === 'not_distressed' ? 'Distressed' : 'Not Distressed';
         const ok = window.confirm(
-          `Deny ${count} records for “${displayLabel}”? ${moveHint}`
+          `Mark ${count} records as ${outcomeLabel} for “${displayLabel}”? ${moveHint}`
         );
         if (!ok) return;
       }

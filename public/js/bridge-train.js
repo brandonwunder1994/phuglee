@@ -105,6 +105,8 @@
       ? ' <span class="bridge-train-badge bridge-train-badge--singleton">Singleton</span>'
       : '';
 
+    var btn = trainActionButtonLabels(section);
+
     return (
       '<article class="bridge-train-group" data-group-id="' + esc(groupId) + '" data-section="' + esc(section) + '">' +
         '<div class="bridge-train-group-head">' +
@@ -119,18 +121,43 @@
         addrHtml +
         '<div class="bridge-train-actions">' +
           '<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" title="' +
-            (section === 'not_distressed'
-              ? 'AI was right — leave off the distressed list'
-              : 'AI was right — keep as distressed') +
-            '" aria-label="Approve ' + esc(label) + '">✓ Approve</button>' +
+            esc(btn.approveTitle) +
+            '" aria-label="' + esc(btn.approveLabel + ' ' + label) + '">' +
+            esc(btn.approveLabel) +
+          '</button>' +
           '<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" title="' +
-            (section === 'not_distressed'
-              ? 'AI was wrong — move to distressed and promote this type'
-              : 'AI was wrong — move to not-distressed and suppress this type') +
-            '" aria-label="Deny ' + esc(label) + '">✗ Deny</button>' +
+            esc(btn.denyTitle) +
+            '" aria-label="' + esc(btn.denyLabel + ' ' + label) + '">' +
+            esc(btn.denyLabel) +
+          '</button>' +
         '</div>' +
       '</article>'
     );
+  }
+
+  /**
+   * Outcome-oriented button copy for Train cards (data-action stays approve/deny).
+   * Distressed: confirm distressed vs mark not distressed.
+   * Not distressed: confirm not distressed vs mark distressed.
+   * @param {string} section
+   * @returns {{ approveLabel: string, denyLabel: string, approveTitle: string, denyTitle: string }}
+   */
+  function trainActionButtonLabels(section) {
+    var isFn = section === 'not_distressed';
+    if (isFn) {
+      return {
+        approveLabel: '✅ Not Distressed',
+        denyLabel: '🏚️ Distressed',
+        approveTitle: 'AI was right — leave off the distressed list',
+        denyTitle: 'AI was wrong — move to distressed and promote this type'
+      };
+    }
+    return {
+      approveLabel: '🏚️ Distressed',
+      denyLabel: '✅ Not Distressed',
+      approveTitle: 'AI was right — keep as distressed',
+      denyTitle: 'AI was wrong — move to not-distressed and suppress this type'
+    };
   }
 
   root.BridgeTrain = {
@@ -139,6 +166,7 @@
     trainDecisionKey: trainDecisionKey,
     filterUndecidedTrainGroups: filterUndecidedTrainGroups,
     renderTrainGroupCard: renderTrainGroupCard,
+    trainActionButtonLabels: trainActionButtonLabels,
     truncateTrainSample: truncateTrainSample,
     esc: esc
   };

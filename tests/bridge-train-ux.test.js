@@ -340,7 +340,7 @@ test('filterUndecidedTrainGroups removes only the decided groupId, not all __unk
   assert.ok(remaining.length > badKeyBug.length, 'groupId key keeps sibling __unknown__ cards');
 });
 
-test('renderTrainGroupCard includes label, count, signals, samples, and Approve/Deny', () => {
+test('renderTrainGroupCard includes label, count, signals, samples, and outcome buttons', () => {
   const api = loadBridgeTrain({ sessionUser: 'admin' });
   const html = api.renderTrainGroupCard(SAMPLE_GROUP);
   assert.ok(html.includes('Vacant Structure'), 'violationTypeLabel');
@@ -352,8 +352,39 @@ test('renderTrainGroupCard includes label, count, signals, samples, and Approve/
   assert.ok(html.includes('data-section="distressed"'), 'data-section');
   assert.ok(html.includes('data-action="approve"'), 'approve action');
   assert.ok(html.includes('data-action="deny"'), 'deny action');
-  assert.ok(html.includes('✓ Approve'), 'Approve label');
-  assert.ok(html.includes('✗ Deny'), 'Deny label');
+  // Distressed section: primary = Distressed, secondary = Not Distressed
+  assert.ok(html.includes('Distressed'), 'Distressed outcome label');
+  assert.ok(html.includes('Not Distressed'), 'Not Distressed outcome label');
+  assert.ok(!html.includes('✓ Approve'), 'legacy Approve label removed');
+  assert.ok(!html.includes('✗ Deny'), 'legacy Deny label removed');
+});
+
+test('renderTrainGroupCard not_distressed swaps outcome button labels', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  const html = api.renderTrainGroupCard({
+    ...SAMPLE_GROUP,
+    section: 'not_distressed',
+    groupId: 'g-fn'
+  });
+  assert.ok(html.includes('data-section="not_distressed"'), 'FN section');
+  assert.ok(html.includes('data-action="approve"'), 'approve action kept');
+  assert.ok(html.includes('data-action="deny"'), 'deny action kept');
+  // Approve path → Not Distressed; Deny path → Distressed
+  const approveIdx = html.indexOf('data-action="approve"');
+  const denyIdx = html.indexOf('data-action="deny"');
+  assert.ok(approveIdx >= 0 && denyIdx > approveIdx, 'approve button before deny');
+  const approveChunk = html.slice(approveIdx, denyIdx);
+  const denyChunk = html.slice(denyIdx, denyIdx + 200);
+  assert.ok(approveChunk.includes('Not Distressed'), 'FN approve labeled Not Distressed');
+  assert.ok(
+    /🏚️\s*Distressed/.test(denyChunk) || denyChunk.includes('Distressed'),
+    'FN deny labeled Distressed'
+  );
+  // Deny button should not be the Not Distressed control
+  assert.ok(
+    !/data-action="deny"[^>]*>[^<]*Not Distressed/.test(html),
+    'FN deny is Distressed, not Not Distressed'
+  );
 });
 
 test('renderTrainGroupCard escapes HTML in labels and samples (XSS)', () => {
