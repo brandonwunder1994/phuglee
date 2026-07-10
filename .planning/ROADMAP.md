@@ -23,7 +23,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 59 complete — next Phase 60 Regression QA Lock  
+**Status:** Phase 60 in progress — Plan 01 complete, Plan 02 next  
 
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
@@ -126,7 +126,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 60-01-PLAN.md — Permanent bar packaging: TEST-01/02 (v2.0) titles + IND-04 in independence + TEST-PLAN map
+- [x] 60-01-PLAN.md — Permanent bar packaging: TEST-01/02 (v2.0) titles + IND-04 in independence + TEST-PLAN map
 - [ ] 60-02-PLAN.md — Ship gate: focused Type/format/water + full npm test + verify-live
 
 ---
@@ -142,7 +142,7 @@ Plans:
 | 57. Accuracy Structure Pass | 3/3 | Complete | 2026-07-10 |
 | 58. Learning Loop Strength | 3/3 | Complete | 2026-07-10 |
 | 59. Efficiency Operator Path | 3/3 | Complete | 2026-07-10 |
-| 60. Regression QA Lock | 0/2 | Not started | - |
+| 60. Regression QA Lock | 1/2 | In Progress | - |
 
 ### Coverage Map
 

@@ -39,9 +39,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Regression (TEST)
 
-- [ ] **TEST-01**: Independence regression suite locks no-push + `already_imported` default-off behavior
-- [ ] **TEST-02**: Gold accuracy fixtures from ACC run in CI (`npm test`) and stay green
-- [ ] **TEST-03**: `scripts/verify-live.ps1` green after milestone work; processUpload e2e still covers Type/format/water paths
+- [x] **TEST-01**: Independence regression suite locks no-push + `already_imported` default-off behavior
+- [x] **TEST-02**: Gold accuracy fixtures from ACC run in CI (`npm test`) and stay green
+- [x] **TEST-03**: `scripts/verify-live.ps1` green after milestone work; processUpload e2e still covers Type/format/water paths
 
 ## Future Requirements
 
@@ -90,9 +90,9 @@ Deferred — not in this milestone roadmap.
 | LRN-03 | Phase 58 | Complete |
 | EFF-01 | Phase 59 | Complete |
 | EFF-02 | Phase 59 | Complete |
-| TEST-01 | Phase 60 | Pending |
-| TEST-02 | Phase 60 | Pending |
-| TEST-03 | Phase 60 | Pending |
+| TEST-01 | Phase 60 | Complete |
+| TEST-02 | Phase 60 | Complete |
+| TEST-03 | Phase 60 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 18 total
