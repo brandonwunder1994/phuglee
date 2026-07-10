@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Filter Independence & Learning
 status: executing
-stopped_at: Completed 59-02-PLAN.md
-last_updated: "2026-07-10T17:00:00Z"
-last_activity: 2026-07-10 — Phase 59 Plan 02 format reuse meta + flash download
+stopped_at: Completed 59-03-PLAN.md
+last_updated: "2026-07-10T17:05:00Z"
+last_activity: 2026-07-10 — Phase 59 Plan 03 Train keyboard + EFF-02 gate complete
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 14
-  percent: 93
+  completed_plans: 15
+  percent: 100
 ---
 
 # State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → **save lists** → external enrich → **manual** Analyze import.  
-**Current focus:** Phase 59 — Efficiency Operator Path (Plan 02 complete; Plan 03 next)
+**Current focus:** Phase 59 complete — next Phase 60 Regression QA Lock
 
 ## Current Position
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Phase:** 59 of 60 — Efficiency Operator Path  
-**Plan:** 02 of 03 complete  
-**Status:** In progress — EFF-01 polish shipped; EFF-02 gate remains for Plan 03  
-**Next:** 59-03 Train A/D keyboard + suite/live EFF-02 gate  
+**Phase:** 59 of 60 — Efficiency Operator Path (complete)  
+**Plan:** 03 of 03 complete  
+**Status:** Phase 59 done — EFF-01 + EFF-02 satisfied  
+**Next:** Phase 60 Regression QA Lock / `/gsd:verify-work`
 
-Progress: [█████████░] 93% (14/15 plans)
+Progress: [██████████] 100% (15/15 plans)
 
 ## Shipped this milestone
 
@@ -43,6 +43,7 @@ Progress: [█████████░] 93% (14/15 plans)
 | 58 | Paired learning metrics (trend + gold P/R + coverage) |
 | 59-01 | Wave 0 efficiency path tests (as-built GREEN + polish RED + EFF-02 GREEN) |
 | 59-02 | Format reused meta + post-save Download this list (CSV) flash |
+| 59-03 | Train A/D keyboard + EFF-02 suite/live gate + day-2 docs |
 
 ## Decisions
 
@@ -51,6 +52,7 @@ Progress: [█████████░] 93% (14/15 plans)
 - Requirements EFF-01 complete after Plan 02; EFF-02 open until Plan 03
 - [Phase 59]: Flash download via data-action outside resetImportAreaAfterSave to keep EFF-02 auto-invoke ban
 - [Phase 59]: Format reused + durationMs results meta on auto_reuse day-2 path
+- [Phase 59]: Train A/D keyboard reuses onTrainDecision (Deny≥10 confirm preserved); first undecided card only
 
 ## Performance Metrics
 
@@ -58,14 +60,17 @@ Progress: [█████████░] 93% (14/15 plans)
 |------------|----------|-------|-------|-------|
 | 59-01 | 12min | 2 | 1 | tests only; 11 pass / 2 intentional RED |
 | 59-02 | 18min | 2 | 4 | EFF-01 polish green; verify-live ok |
+| 59-03 | 15min | 2 | 6 | keyboard + suite/live EFF-02; 519 tests green |
 
 ## Session
 
 **Last session:** 2026-07-10  
-**Stopped at:** Completed 59-02-PLAN.md  
+**Stopped at:** Completed 59-03-PLAN.md  
 
 ## Next
 
 ```text
-/gsd:execute-phase 59  (continue Plan 03)
+/gsd:verify-work 59
+# or
+/gsd:execute-phase 60
 ```

@@ -23,7 +23,8 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 59 in progress — Plan 02 complete; next Plan 03 Train keyboard + EFF-02 gate  
+**Status:** Phase 59 complete — next Phase 60 Regression QA Lock  
+
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
@@ -34,7 +35,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 - [x] **Phase 56: List Factory UX** — Save → Download is the hero path; multi-city lists persist until operator deletes
 - [x] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
 - [x] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
-- [ ] **Phase 59: Efficiency Operator Path** — Shorter day-2 path to saved list without accuracy or Analyze re-coupling tradeoffs
+- [x] **Phase 59: Efficiency Operator Path** — Shorter day-2 path to saved list without accuracy or Analyze re-coupling tradeoffs
 - [ ] **Phase 60: Regression QA Lock** — Independence + gold + processUpload e2e + suite + verify-live green
 
 ## Phase Details
@@ -112,7 +113,7 @@ Plans:
 Plans:
 - [x] 59-01-PLAN.md — Wave 0 EFF-01/02 path tests (as-built green + polish RED)
 - [x] 59-02-PLAN.md — Format reuse meta + post-save Download this list (CSV)
-- [ ] 59-03-PLAN.md — Train A/D keyboard + suite/live EFF-02 gate
+- [x] 59-03-PLAN.md — Train A/D keyboard + suite/live EFF-02 gate
 
 ### Phase 60: Regression QA Lock
 **Goal**: Independence, gold accuracy, processUpload e2e, full suite, and live server stay permanently green for the milestone bar
@@ -136,7 +137,7 @@ Plans:
 | 56. List Factory UX | 3/3 | Complete | 2026-07-10 |
 | 57. Accuracy Structure Pass | 3/3 | Complete | 2026-07-10 |
 | 58. Learning Loop Strength | 3/3 | Complete | 2026-07-10 |
-| 59. Efficiency Operator Path | 2/3 | In Progress | - |
+| 59. Efficiency Operator Path | 3/3 | Complete | 2026-07-10 |
 | 60. Regression QA Lock | 0/TBD | Not started | - |
 
 ### Coverage Map
