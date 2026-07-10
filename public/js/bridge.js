@@ -86,6 +86,7 @@
   let selectedUploadType = '';
   let selectedFile = null;
   let lastResult = null;
+  let resultsMode = 'kept';
   let savedLists = [];
   let tableState = {
     sortKey: 'streetAddress',
@@ -106,6 +107,170 @@
   function setHidden(el, hidden) {
     if (el) el.hidden = hidden;
   }
+
+  // --- BridgeTrain pure helpers (also on window.BridgeTrain via bridge-train.js) ---
+  function isBridgeAdmin() {
+    try {
+      if (window.BridgeTrain && typeof window.BridgeTrain.isBridgeAdmin === 'function') {
+        return window.BridgeTrain.isBridgeAdmin() === true;
+      }
+      if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function') {
+        return window.PhugleeSettings.isAdmin() === true;
+      }
+      const u = (window.PhugleeSession && typeof window.PhugleeSession.getSessionUser === 'function')
+        ? window.PhugleeSession.getSessionUser()
+        : (sessionStorage.getItem('phuglee_session') || '');
+      return String(u || '').trim() === 'admin';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function getReviewGroups(data) {
+    if (window.BridgeTrain && typeof window.BridgeTrain.getReviewGroups === 'function') {
+      return window.BridgeTrain.getReviewGroups(data);
+    }
+    const g = data && data.reviewGroups;
+    return {
+      distressed: Array.isArray(g && g.distressed) ? g.distressed : [],
+      notDistressed: Array.isArray(g && g.notDistressed) ? g.notDistressed : []
+    };
+  }
+
+  function renderTrainGroupCard(group) {
+    if (window.BridgeTrain && typeof window.BridgeTrain.renderTrainGroupCard === 'function') {
+      return window.BridgeTrain.renderTrainGroupCard(group);
+    }
+    // Fallback if bridge-train.js failed to load — still escape dynamic text
+    const label = (group && group.violationTypeLabel) || 'Unknown type';
+    const count = Number(group && group.count) || 0;
+    const groupId = (group && group.groupId) || '';
+    const section = (group && group.section) || '';
+    const indicators = Array.isArray(group && group.matchedIndicators) ? group.matchedIndicators : [];
+    const samples = Array.isArray(group && group.descriptionSamples) ? group.descriptionSamples : [];
+    const signals = indicators.length
+      ? indicators.map((ind) => `<span class="bridge-tag bridge-tag--strong">${esc(ind)}</span>`).join('')
+      : '<span class="bridge-train-muted">No matched signals</span>';
+    const desc = samples.slice(0, 5).map((s) => {
+      const t = String(s || '');
+      const clipped = t.length > 160 ? `${t.slice(0, 160)}…` : t;
+      return `<li>${esc(clipped)}</li>`;
+    }).join('');
+    return (
+      `<article class="bridge-train-group" data-group-id="${esc(groupId)}" data-section="${esc(section)}">` +
+      `<div class="bridge-train-group-head"><div class="bridge-train-group-title">${esc(label)} ` +
+      `<span class="bridge-train-count">×${esc(String(count))}</span></div></div>` +
+      `<div class="bridge-train-signals">${signals}</div>` +
+      (desc ? `<ul class="bridge-train-descriptions">${desc}</ul>` : '') +
+      `<div class="bridge-train-actions">` +
+      `<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" aria-label="Approve ${esc(label)}">✓ Approve</button>` +
+      `<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" aria-label="Deny ${esc(label)}">✗ Deny</button>` +
+      `</div></article>`
+    );
+  }
+
+  function setTrainStatus(msg, kind) {
+    const el = document.getElementById('bridge-train-status');
+    if (!el) return;
+    const text = msg || '';
+    setHidden(el, !text);
+    el.textContent = text;
+    el.classList.remove('is-error', 'is-success');
+    if (kind === 'error') el.classList.add('is-error');
+    if (kind === 'success') el.classList.add('is-success');
+  }
+
+  function renderTrainGroups(groups, data) {
+    const distressedEl = document.getElementById('bridge-train-distressed');
+    const notEl = document.getElementById('bridge-train-not-distressed');
+    const distressed = (groups && groups.distressed) || [];
+    const notDistressed = (groups && groups.notDistressed) || [];
+
+    function fill(el, list) {
+      if (!el) return;
+      if (!list.length) {
+        el.innerHTML = '<p class="bridge-train-muted">No groups in this section.</p>';
+        return;
+      }
+      el.innerHTML = list.map(renderTrainGroupCard).join('');
+    }
+
+    fill(distressedEl, distressed);
+    fill(notEl, notDistressed);
+
+    if (!distressed.length && !notDistressed.length) {
+      const missingShape = !data || !data.reviewGroups;
+      if (missingShape) {
+        setTrainStatus('Train brain needs a process response with review groups (phase 43).', '');
+      } else {
+        setTrainStatus(
+          'No review groups in this batch. Process a code-violation file with mixed types to train.',
+          ''
+        );
+      }
+    } else {
+      setTrainStatus('', '');
+    }
+  }
+
+  function setResultsMode(mode) {
+    resultsMode = mode === 'train' ? 'train' : 'kept';
+    const modeKept = document.getElementById('bridge-mode-kept');
+    const modeTrain = document.getElementById('bridge-mode-train');
+    const trainPanel = document.getElementById('bridge-train-panel');
+
+    if (modeKept) {
+      modeKept.classList.toggle('is-active', resultsMode === 'kept');
+      modeKept.setAttribute('aria-selected', resultsMode === 'kept' ? 'true' : 'false');
+    }
+    if (modeTrain) {
+      modeTrain.classList.toggle('is-active', resultsMode === 'train');
+      modeTrain.setAttribute('aria-selected', resultsMode === 'train' ? 'true' : 'false');
+    }
+
+    if (resultsMode === 'train') {
+      setHidden(trainPanel, false);
+      setHidden(resultsToolbar, true);
+      setHidden(tableWrap, true);
+      setHidden(paginationEl, true);
+      // Save/attach stay visible (discretion) — do not hide
+    } else {
+      setHidden(trainPanel, true);
+      const rows = lastResult?.rows || [];
+      const showTable = Boolean(lastResult && !lastResult.stub && rows.length > 0);
+      setHidden(resultsToolbar, !showTable);
+      setHidden(tableWrap, !showTable);
+      setHidden(paginationEl, !showTable);
+    }
+  }
+
+  function onTrainDecision(action, group, card) {
+    // PHASE45: POST /api/bridge/brain/decisions with phugleeSessionHeaders
+    // Stub only — no fetch, no list mutation, no fake success write.
+    const type = (group && group.violationTypeLabel) || 'group';
+    if (action === 'approve') {
+      setTrainStatus(`Approve queued for "${type}" · training API ships in phase 45`, '');
+    } else {
+      setTrainStatus(`Deny queued for "${type}" · training API ships in phase 45`, '');
+    }
+    if (card) card.classList.add('is-pending');
+  }
+
+  function resolveTrainGroupFromCard(card) {
+    if (!card || !lastResult) return null;
+    const groupId = card.dataset.groupId || '';
+    const section = card.dataset.section || '';
+    const groups = getReviewGroups(lastResult);
+    const list = section === 'not_distressed' ? groups.notDistressed : groups.distressed;
+    const found = list.find((g) => String(g.groupId) === String(groupId));
+    if (found) return found;
+    return {
+      groupId,
+      section,
+      violationTypeLabel: card.querySelector('.bridge-train-group-title')?.childNodes?.[0]?.textContent?.trim() || 'group'
+    };
+  }
+  // --- end BridgeTrain pure helpers ---
 
   function showError(msg) {
     const hasError = Boolean(msg);
@@ -901,6 +1066,22 @@
           && !data.stats.needsReview && !noDistress);
       }
     }
+
+    // Train brain (admin-only) — additive; non-admin never sees train chrome
+    const trainWrap = document.getElementById('bridge-train-wrap');
+    if (isBridgeAdmin()) {
+      setHidden(trainWrap, false);
+      renderTrainGroups(getReviewGroups(data), data);
+      setResultsMode(resultsMode || 'kept');
+    } else {
+      setHidden(trainWrap, true);
+      const d = document.getElementById('bridge-train-distressed');
+      const n = document.getElementById('bridge-train-not-distressed');
+      if (d) d.innerHTML = '';
+      if (n) n.innerHTML = '';
+      setTrainStatus('', '');
+    }
+
     setHidden(resultsPanel, false);
     setPipelineStep('results');
   }
@@ -1134,6 +1315,28 @@
   historyDialog?.addEventListener('click', (event) => {
     if (event.target === historyDialog) closeHistoryDialog();
   });
+
+  // Train brain mode tabs + Approve/Deny (event delegation, once)
+  document.querySelector('.bridge-results-mode')?.addEventListener('click', (event) => {
+    const tab = event.target.closest('[data-mode]');
+    if (!tab || !isBridgeAdmin()) return;
+    setResultsMode(tab.dataset.mode);
+  });
+  document.getElementById('bridge-train-panel')?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-action="approve"], [data-action="deny"]');
+    if (!btn || !isBridgeAdmin()) return;
+    const card = btn.closest('.bridge-train-group');
+    if (!card) return;
+    const group = resolveTrainGroupFromCard(card);
+    onTrainDecision(btn.dataset.action, group, card);
+  });
+
+  // Test seam for pure helpers (mirrors bridge-train.js when present)
+  window.BridgeTrain = window.BridgeTrain || {
+    isBridgeAdmin,
+    getReviewGroups,
+    renderTrainGroupCard
+  };
 
   initResponseDateTimePicker();
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));

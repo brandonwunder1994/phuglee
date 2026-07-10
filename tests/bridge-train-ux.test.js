@@ -84,10 +84,19 @@ function loadBridgeTrain(opts = {}) {
     };
   }
 
+  // Share host constructors so deepEqual works across the vm boundary
   const sandbox = {
     window: windowObj,
     sessionStorage,
-    console
+    console,
+    Object,
+    Array,
+    String,
+    Number,
+    Boolean,
+    JSON,
+    Math,
+    Error
   };
 
   let src;
@@ -222,11 +231,18 @@ test('isBridgeAdmin true only for exact session user admin', () => {
 
 test('getReviewGroups returns empty arrays when data or reviewGroups missing', () => {
   const api = loadBridgeTrain({ sessionUser: 'admin' });
-  assert.deepEqual(api.getReviewGroups(undefined), { distressed: [], notDistressed: [] });
-  assert.deepEqual(api.getReviewGroups(null), { distressed: [], notDistressed: [] });
-  assert.deepEqual(api.getReviewGroups({}), { distressed: [], notDistressed: [] });
-  assert.deepEqual(api.getReviewGroups({ reviewGroups: null }), { distressed: [], notDistressed: [] });
-  assert.deepEqual(api.getReviewGroups({ reviewGroups: {} }), { distressed: [], notDistressed: [] });
+  function assertEmpty(g, label) {
+    assert.ok(g && typeof g === 'object', `${label}: object`);
+    assert.ok(Array.isArray(g.distressed), `${label}: distressed array`);
+    assert.ok(Array.isArray(g.notDistressed), `${label}: notDistressed array`);
+    assert.equal(g.distressed.length, 0, `${label}: distressed empty`);
+    assert.equal(g.notDistressed.length, 0, `${label}: notDistressed empty`);
+  }
+  assertEmpty(api.getReviewGroups(undefined), 'undefined');
+  assertEmpty(api.getReviewGroups(null), 'null');
+  assertEmpty(api.getReviewGroups({}), '{}');
+  assertEmpty(api.getReviewGroups({ reviewGroups: null }), 'reviewGroups null');
+  assertEmpty(api.getReviewGroups({ reviewGroups: {} }), 'reviewGroups {}');
 });
 
 test('getReviewGroups maps distressed and notDistressed arrays when present', () => {
