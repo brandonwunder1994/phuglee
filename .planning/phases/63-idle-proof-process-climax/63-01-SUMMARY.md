@@ -73,7 +73,7 @@ Each task was committed atomically:
 1. **Task 1: Mount idle proof strip + compact CSS** - `5049a5f` (feat)
 2. **Task 2: computeIdleProof + renderIdleProof from savedLists** - `8c9a7ef` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `5447adc` (docs: complete plan)
 
 ## Files Created/Modified
 - `public/bridge.html` — `#bridge-idle-proof` mount; css v=18 / js v=37 cache busters
