@@ -1146,7 +1146,7 @@ test('GATE-04: admin resume with confirmedTypeHeader Vio Cat succeeds (admin_con
   );
 });
 
-test('GATE-03: matching fingerprint reuses confirmed Type without confirm field (auto_reuse)', async () => {
+test('GATE-03 / TEST-02 (v1.8): matching fingerprint reuses confirmed Type without confirm field (auto_reuse)', async () => {
   // Seed memory via admin confirm, then process again without confirmedTypeHeader.
   const seed = await processUpload({
     buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
@@ -1425,5 +1425,64 @@ test('TEST-01 (v1.8): processUpload maps Type to Vio Cat; cells High Grass not O
   assert.ok(
     !/^Open$/i.test(String(grass.violationIssueType || '').trim()),
     `TEST-01 (v1.8): type must not be bare Open, got: ${grass.violationIssueType}`
+  );
+});
+
+test('TEST-02 (v1.8): fingerprint change after confirm requires TYPE_COLUMN_CONFIRM_REQUIRED again', async () => {
+  // Dedicated city so GATE-02/03 on CITY stay stable.
+  const city = { id: 'v18-fp-change-city', city: 'FpChange', state: 'Arizona' };
+  const formatA = [
+    'Property Address,Status Description,Vio Cat,Open Date',
+    '100 Main St,Open,High Grass,01/15/2024'
+  ].join('\n');
+  // Different header multiset (rename Type column) — not reorder, not cell-only.
+  const formatB = [
+    'Property Address,Status Description,Issue Type,Open Date',
+    '100 Main St,Open,High Grass,01/15/2024'
+  ].join('\n');
+
+  const seed = await processUpload({
+    buffer: Buffer.from(formatA, 'utf8'),
+    filename: 'v18-fp-a.csv',
+    city,
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Vio Cat'
+  });
+  assert.equal(seed.ok, true, 'TEST-02 (v1.8): format A admin confirm must succeed');
+
+  await assert.rejects(
+    () =>
+      processUpload({
+        buffer: Buffer.from(formatB, 'utf8'),
+        filename: 'v18-fp-b.csv',
+        city,
+        uploadType: 'code_violation'
+        // no confirmedTypeHeader — fingerprint change must reconfirm
+      }),
+    (err) => {
+      assert.equal(
+        err && err.code,
+        'TYPE_COLUMN_CONFIRM_REQUIRED',
+        `TEST-02 (v1.8): fingerprint change must require confirm again, got ${err && err.code}`
+      );
+      return true;
+    }
+  );
+
+  // Optional strengthen: admin can confirm the new format.
+  const confirmedB = await processUpload({
+    buffer: Buffer.from(formatB, 'utf8'),
+    filename: 'v18-fp-b-confirm.csv',
+    city,
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Issue Type'
+  });
+  assert.equal(confirmedB.ok, true, 'TEST-02 (v1.8): format B admin confirm must succeed');
+  assert.equal(
+    confirmedB.processingMeta.columnMap.violationIssueType,
+    'Issue Type',
+    'TEST-02 (v1.8): format B Type map is Issue Type'
   );
 });
