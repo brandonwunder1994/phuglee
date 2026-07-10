@@ -42,13 +42,20 @@ function Get-ListenerPid {
 }
 
 function Register-KeepAliveTask {
-    # Runs ensure-server at logon and every 2 minutes so a dead process comes back
-    # without any terminal window.
-    $tr = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ensurePs1`""
+    # Pure VBS keep-alive — NEVER powershell.exe (Task Scheduler still flashes a
+    # console for Hidden PowerShell every 2 minutes). wscript //B is silent.
+    $ensureVbs = Join-Path $root "scripts\ensure-server-hidden.vbs"
+    if (-not (Test-Path $ensureVbs)) {
+        Write-Host "Missing $ensureVbs — keep-alive not registered" -ForegroundColor DarkYellow
+        return $false
+    }
+    $tr = "wscript.exe //B //Nologo `"$ensureVbs`""
     try {
+        # Replace any old PowerShell-based task
+        schtasks /Delete /TN $taskName /F 2>$null | Out-Null
         schtasks /Create /TN $taskName /TR $tr /SC MINUTE /MO 2 /F /RL LIMITED 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
-            Write-Host "Keep-alive task registered: $taskName (every 2 min)" -ForegroundColor DarkGray
+            Write-Host "Keep-alive task registered: $taskName (every 2 min, silent wscript)" -ForegroundColor DarkGray
             return $true
         }
     } catch {}
@@ -87,33 +94,23 @@ if (-not (Test-Path $vbs)) {
     exit 1
 }
 
-# Launch OUTSIDE this process tree / Job Object.
-# Start-Process and child shells get killed when an agent shell ends.
-# Win32_Process.Create starts a fully independent process that survives.
+# Launch OUTSIDE this process tree / Job Object via wscript only.
+# NEVER Win32_Process.Create(cmd.exe) — that flashes a black terminal.
+# NEVER bare powershell keep-alive — Task Scheduler flashes those too.
 function Start-DetachedNode {
-    param([string]$WorkDir, [string]$LogPath)
-    # CurrentDirectory is set on Create; only need to run node with log redirect
-    $cmd = 'cmd.exe /c node server.js >> "' + $LogPath + '" 2>&1'
-    try {
-        $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
-            CommandLine      = $cmd
-            CurrentDirectory = $WorkDir
-        }
-        if ($r.ReturnValue -eq 0 -and $r.ProcessId) {
-            Write-Host "Started detached via Win32_Process.Create (cmd pid $($r.ProcessId))" -ForegroundColor Green
-            return [int]$r.ProcessId
-        }
-        Write-Host "Win32_Process.Create return=$($r.ReturnValue) - falling back to wscript" -ForegroundColor DarkYellow
-    } catch {
-        Write-Host "Win32_Process.Create failed: $($_.Exception.Message) - falling back to wscript" -ForegroundColor DarkYellow
+    if (-not (Test-Path $vbs)) {
+        Write-Host "Missing $vbs" -ForegroundColor Red
+        return $false
     }
-    # Fallback: wscript also detaches when not job-tied
-    Start-Process -FilePath "wscript.exe" -ArgumentList "//B","//Nologo","`"$vbs`"" -WindowStyle Hidden | Out-Null
-    Write-Host "Started headless via wscript + run-hidden.vbs" -ForegroundColor Green
-    return $null
+    Start-Process -FilePath "wscript.exe" `
+        -ArgumentList @("//B", "//Nologo", $vbs) `
+        -WindowStyle Hidden `
+        -WorkingDirectory $root | Out-Null
+    Write-Host "Started headless via wscript + run-hidden.vbs (no console)" -ForegroundColor Green
+    return $true
 }
 
-Start-DetachedNode -WorkDir $root -LogPath $logFile | Out-Null
+[void](Start-DetachedNode)
 Write-Host "Log: $logFile"
 
 Register-KeepAliveTask | Out-Null

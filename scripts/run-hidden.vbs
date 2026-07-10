@@ -1,5 +1,7 @@
 ' Start Distress OS fully hidden (no console window).
-' Called by restart.ps1 / scheduled task / ensure-server.
+' Called by restart.ps1 / ensure-server.ps1 / ensure-server-hidden.vbs.
+' MUST use WScript.Shell.Run with window style 0 — never bare CreateProcess/cmd
+' without hide, or a black terminal flashes on the desktop.
 Option Explicit
 
 Dim fso, shell, root, logFile, cmd
@@ -8,7 +10,9 @@ Set shell = CreateObject("WScript.Shell")
 
 root = fso.GetParentFolderName(fso.GetParentFolderName(WScript.ScriptFullName))
 If Not fso.FolderExists(root & "\.logs") Then
+  On Error Resume Next
   fso.CreateFolder root & "\.logs"
+  On Error GoTo 0
 End If
 logFile = root & "\.logs\distress-os.log"
 

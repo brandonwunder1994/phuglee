@@ -1,6 +1,9 @@
 # Ensure Distress OS is listening. Start headless if not.
 # Safe to run repeatedly (scheduled task / logon / manual).
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\ensure-server.ps1
+#
+# IMPORTANT: Do not use Win32_Process.Create with cmd.exe — that flashes a
+# console. Always start via wscript + run-hidden.vbs (window style 0).
 
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
@@ -31,28 +34,28 @@ function Get-ListenerPid {
     return $null
 }
 
+function Start-HiddenServer {
+    if (-not (Test-Path $vbs)) {
+        Write-Host "Missing $vbs"
+        return $false
+    }
+    # wscript //B never shows UI; VBS Run style 0 hides cmd
+    Start-Process -FilePath "wscript.exe" `
+        -ArgumentList @("//B", "//Nologo", $vbs) `
+        -WindowStyle Hidden `
+        -WorkingDirectory $root | Out-Null
+    return $true
+}
+
 if (Test-ServerUp) {
     $listenPid = Get-ListenerPid -ListenPort $port
     if ($listenPid) { Set-Content -Path $pidFile -Value $listenPid -Encoding ascii }
-    Write-Host "Distress OS already up on port $port"
+    # Quiet when already up (scheduled task runs often — avoid noise)
     exit 0
 }
 
 Write-Host "Distress OS not responding - starting headless..."
-# Launch outside Job Objects (agent shells kill Start-Process trees on exit).
-$logFile = Join-Path $logDir "distress-os.log"
-$started = $false
-try {
-    $cmd = 'cmd.exe /c node server.js >> "' + $logFile + '" 2>&1'
-    $r = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{
-        CommandLine      = $cmd
-        CurrentDirectory = $root
-    }
-    if ($r.ReturnValue -eq 0) { $started = $true }
-} catch {}
-if (-not $started) {
-    Start-Process -FilePath "wscript.exe" -ArgumentList "//B","//Nologo","`"$vbs`"" -WindowStyle Hidden | Out-Null
-}
+[void](Start-HiddenServer)
 
 $ready = $false
 for ($i = 0; $i -lt 40; $i++) {
