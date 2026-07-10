@@ -78,6 +78,9 @@ test('EFF-01 polish: post-save Download this list flash affordance', () => {
     hasFlashId || hasFlashAction,
     'bridge.js must expose bridge-flash-download id or data-action="flash-download" for post-save download'
   );
+  // Post-save session is fully reset so next city cannot inherit prior city/type/results
+  assert.match(js, /selectedCity\s*=\s*null/);
+  assert.match(js, /Filter reset|pick the next city/i);
 });
 
 // ---------------------------------------------------------------------------

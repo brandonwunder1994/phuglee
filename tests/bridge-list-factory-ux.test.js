@@ -79,6 +79,29 @@ test('LIST-01: save flash teaches download from Saved lists', () => {
   assert.match(js, /download from Saved lists for enrichment/);
 });
 
+test('LIST-01: resetImportAreaAfterSave fully resets filter session for next city', () => {
+  const start = js.indexOf('function resetImportAreaAfterSave');
+  assert.ok(start >= 0, 'resetImportAreaAfterSave must exist');
+  const rest = js.slice(start + 1);
+  const next = rest.search(/\n  (?:async )?function \w+/);
+  const slice = next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 4500);
+  // Full fresh-list reset (not partial keep-city) so Port Arthur etc. cannot inherit prior city
+  assert.match(slice, /selectedCity\s*=\s*null/);
+  assert.match(slice, /selectedUploadType\s*=\s*['"]['"]/);
+  assert.match(slice, /lastResult\s*=\s*null/);
+  assert.match(slice, /clearResponseDateTime/);
+  assert.match(slice, /clearTrainDecidedKeys|trainDecidedKeys\.clear/);
+  assert.match(slice, /trainUndoStack\.length\s*=\s*0/);
+  assert.match(slice, /setPipelineStep\(\s*['"]location['"]\s*\)/);
+  assert.match(slice, /Filter reset|pick the next city/i);
+  // Still no auto-download on save
+  const withoutStrings = slice
+    .replace(/`(?:\\.|[^`\\])*`/g, '``')
+    .replace(/'(?:\\.|[^'\\])*'/g, "''")
+    .replace(/"(?:\\.|[^"\\])*"/g, '""');
+  assert.equal(/downloadSavedList\s*\(/.test(withoutStrings), false);
+});
+
 test('LIST-03: teaching pack corpus in HTML', () => {
   assert.match(html, /download from Saved lists for external enrichment/);
   assert.match(html, /lists stay until you delete/);
@@ -89,5 +112,6 @@ test('LIST-03: teaching pack corpus in HTML', () => {
 
 test('LIST-03: independence process stub still present in JS', () => {
   assert.match(js, /nothing was sent to Analyze/);
-  assert.match(js, /Decision saved to brain\. Save list below when this city is ready\./);
+  // Train success still steers operator to Save list (kept count optional)
+  assert.match(js, /Decision saved.*Save list/i);
 });

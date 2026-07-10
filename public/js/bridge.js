@@ -1564,26 +1564,94 @@
     }
   }
 
+  /**
+   * After Save list: full fresh-filter reset so the next city cannot inherit
+   * the previous session's city, type, file, response time, results, or Train state.
+   * Saved lists + optional flash download stay; never auto-downloads.
+   */
   function resetImportAreaAfterSave(savedLabel, savedListId) {
-    // Keep city + lead type so the next city file is one drop away; clear file + results.
+    // --- Working set & train session ---
     lastResult = null;
+    selectedCity = null;
+    selectedUploadType = '';
     selectedFiles = [];
+    trainUndoStack.length = 0;
+    clearTrainDecidedKeys();
+    trainSearchQuery = '';
+    trainPage = { distressed: 1, notDistressed: 1 };
+    brainVersion = null;
+    resultsMode = 'kept';
+    const trainSearchInput = document.getElementById('bridge-train-search');
+    if (trainSearchInput) trainSearchInput.value = '';
+
+    // --- Location / type / file / response chrome ---
     clearFileUi();
+    clearResponseDateTime();
+    resetCityOutcomeUi();
+    document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
+      input.checked = false;
+    });
+    // Clear city pick; keep state + city dropdown options so next TX city is one click
+    if (citySelect && !citySelect.disabled) {
+      citySelect.value = '';
+    }
+    setHidden(cityActions, true);
+    setHidden(cityOutcomePanel, true);
+    setHidden(typePanel, true);
+    setHidden(uploadPanel, true);
+
+    // --- Results / save / attach / train chrome ---
     setHidden(resultsPanel, true);
     setHidden(loadingPanel, true);
     setHidden(savePanel, true);
     setHidden(attachPanel, true);
+    setHidden(resultsToolbar, true);
+    setHidden(tableWrap, true);
+    setHidden(paginationEl, true);
     setSaveStatus('', '');
     setAttachStatus('', '');
     if (listNameInput) listNameInput.value = '';
-    setPipelineStep(selectedUploadType ? 'upload' : (selectedCity ? 'type' : 'location'));
-    showError('');
-    // Brief confirmation on the saved-lists panel via empty-state note if needed
-    const note = document.getElementById('bridge-lists-empty');
-    if (note && !savedLists.length) {
-      /* lists refresh will repaint */
+    if (resultsMeta) resultsMeta.textContent = '';
+    if (kpiGrid) kpiGrid.innerHTML = '';
+    if (resultsBody) resultsBody.innerHTML = '';
+    if (filterSearch) filterSearch.value = '';
+    if (filterTag) filterTag.value = '';
+    if (filterConfidence) filterConfidence.value = '';
+    if (filterReview) filterReview.checked = false;
+    const stubNote = document.getElementById('bridge-stub-note');
+    if (stubNote) {
+      stubNote.textContent = '';
+      setHidden(stubNote, true);
     }
-    // Soft status on save panel is cleared; use a temporary toast-like note in lists lead
+    const trainWrap = document.getElementById('bridge-train-wrap');
+    setHidden(trainWrap, true);
+    const trainD = document.getElementById('bridge-train-distressed');
+    const trainN = document.getElementById('bridge-train-not-distressed');
+    if (trainD) trainD.innerHTML = '';
+    if (trainN) trainN.innerHTML = '';
+    setTrainStatus('', '');
+    updateTrainUndoButton();
+    // Mode tabs back to default kept (results panel is hidden)
+    const modeKept = document.getElementById('bridge-mode-kept');
+    const modeTrain = document.getElementById('bridge-mode-train');
+    const modeBrain = document.getElementById('bridge-mode-brain');
+    if (modeKept) {
+      modeKept.classList.add('is-active');
+      modeKept.setAttribute('aria-selected', 'true');
+    }
+    if (modeTrain) {
+      modeTrain.classList.remove('is-active');
+      modeTrain.setAttribute('aria-selected', 'false');
+    }
+    if (modeBrain) {
+      modeBrain.classList.remove('is-active');
+      modeBrain.setAttribute('aria-selected', 'false');
+    }
+
+    setPipelineStep('location');
+    showError('');
+
+    // Soft status on save panel is cleared; toast on Saved lists (download is click-only)
     const listsPanel = document.getElementById('bridge-lists-panel');
     if (listsPanel) {
       let flash = document.getElementById('bridge-lists-flash');
@@ -1601,8 +1669,8 @@
       const teaching = document.createElement('span');
       teaching.className = 'bridge-lists-flash-text';
       teaching.textContent = savedLabel
-        ? `Saved “${savedLabel}”. Upload the next city when ready — or download from Saved lists for enrichment.`
-        : 'List saved. Upload the next city when ready — or download from Saved lists for enrichment.';
+        ? `Saved “${savedLabel}”. Filter reset — pick the next city to start a fresh list, or download from Saved lists for enrichment.`
+        : 'List saved. Filter reset — pick the next city to start a fresh list, or download from Saved lists for enrichment.';
       flash.appendChild(teaching);
       // One-click CSV for the just-saved list only — never auto-download.
       // Wire via data-action; click handled outside this function (EFF-02).
@@ -1620,9 +1688,13 @@
       flash.hidden = false;
       window.setTimeout(() => {
         if (flash) flash.hidden = true;
-      }, 8000);
+      }, 10000);
       listsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    // Focus location step so the next city is obvious
+    try {
+      citySelect?.focus();
+    } catch (_) { /* ignore */ }
   }
 
   async function saveCurrentList() {
