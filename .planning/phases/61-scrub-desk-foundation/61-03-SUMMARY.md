@@ -69,7 +69,7 @@ Each task was committed atomically:
 2. **Task 1 GREEN: Migrate live train CTAs + cache-bust** - `58bcd00` (feat)
 3. **Task 2: Gate** — no code commit (train suite green + verify-live exit 0)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `70fe3c2` (docs: complete plan)
 
 _Note: TDD RED → GREEN for Task 1; Task 2 verification-only_
 
