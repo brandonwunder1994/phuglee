@@ -207,26 +207,9 @@
               <span class="bridge-datetime-label">Date</span>
               <input type="date" id="bridge-response-date" required aria-describedby="bridge-response-hint" />
             </label>
-            <div class="bridge-datetime-time" role="group" aria-labelledby="bridge-time-label">
-              <span class="bridge-datetime-label" id="bridge-time-label">Time</span>
-              <div class="bridge-datetime-time-row">
-                <select id="bridge-response-hour" required aria-label="Hour">
-                  <option value="">Hr</option>
-                </select>
-                <span class="bridge-datetime-sep" aria-hidden="true">:</span>
-                <select id="bridge-response-minute" required aria-label="Minute">
-                  <option value="">Min</option>
-                </select>
-                <select id="bridge-response-ampm" required aria-label="AM or PM">
-                  <option value="">AM/PM</option>
-                  <option value="AM">AM</option>
-                  <option value="PM">PM</option>
-                </select>
-              </div>
-            </div>
           </div>
         </fieldset>
-        <p class="bridge-panel-lead bridge-response-hint" id="bridge-response-hint">Enter when you received the response — email arrival, portal download, etc. This is not when you process the file, and it feeds Form Forge turnaround KPIs.</p>
+        <p class="bridge-panel-lead bridge-response-hint" id="bridge-response-hint">Enter the date you received the response (email, portal, etc.). Time is not required — this feeds Form Forge turnaround KPIs.</p>
       </div>
       <div class="bridge-dropzone" id="bridge-dropzone" tabindex="0" role="button" aria-describedby="bridge-drop-hint">
         <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" multiple hidden />
@@ -455,6 +438,6 @@
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=4"></script>
-  <script src="/js/bridge.js?v=30"></script>
+  <script src="/js/bridge.js?v=31"></script>
 </body>
 </html>

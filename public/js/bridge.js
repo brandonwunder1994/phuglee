@@ -65,9 +65,6 @@
   const clearAllListsBtn = document.getElementById('bridge-clear-all-lists');
   const attachPanel = document.getElementById('bridge-attach-panel');
   const responseDateInput = document.getElementById('bridge-response-date');
-  const responseHourSelect = document.getElementById('bridge-response-hour');
-  const responseMinuteSelect = document.getElementById('bridge-response-minute');
-  const responseAmpmSelect = document.getElementById('bridge-response-ampm');
   const attachBtn = document.getElementById('bridge-attach');
   const attachStatus = document.getElementById('bridge-attach-status');
   const historyDialog = document.getElementById('bridge-history-dialog');
@@ -1272,61 +1269,26 @@
     });
   }
 
-  function initResponseDateTimePicker() {
-    if (!responseHourSelect || !responseMinuteSelect) return;
-    if (!responseHourSelect.options.length || responseHourSelect.options.length === 1) {
-      for (let hour = 1; hour <= 12; hour += 1) {
-        const opt = document.createElement('option');
-        opt.value = String(hour);
-        opt.textContent = String(hour);
-        responseHourSelect.appendChild(opt);
-      }
-    }
-    if (!responseMinuteSelect.options.length || responseMinuteSelect.options.length === 1) {
-      for (let minute = 0; minute <= 59; minute += 1) {
-        const opt = document.createElement('option');
-        opt.value = String(minute).padStart(2, '0');
-        opt.textContent = String(minute).padStart(2, '0');
-        responseMinuteSelect.appendChild(opt);
-      }
-    }
-  }
-
   function clearResponseDateTime() {
     if (responseDateInput) responseDateInput.value = '';
-    if (responseHourSelect) responseHourSelect.value = '';
-    if (responseMinuteSelect) responseMinuteSelect.value = '';
-    if (responseAmpmSelect) responseAmpmSelect.value = '';
   }
 
+  /**
+   * Date-only response received value (ISO).
+   * Uses local noon so the calendar day does not shift across timezones.
+   */
   function getResponseAtValue() {
     const date = String(responseDateInput?.value || '').trim();
-    const hour12 = Number(responseHourSelect?.value || '');
-    const minute = String(responseMinuteSelect?.value || '').trim();
-    const ampm = String(responseAmpmSelect?.value || '').trim();
-    if (!date || !hour12 || !minute || !ampm) return '';
-
-    let hour24 = hour12 % 12;
-    if (ampm === 'PM') hour24 += 12;
-    const local = new Date(`${date}T${String(hour24).padStart(2, '0')}:${minute}:00`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return '';
+    const local = new Date(`${date}T12:00:00`);
     if (Number.isNaN(local.getTime())) return '';
     return local.toISOString();
   }
 
   function focusResponseDateTime() {
-    if (responseDateInput && !responseDateInput.value) {
-      responseDateInput.focus();
-      return;
-    }
-    if (responseHourSelect && !responseHourSelect.value) {
-      responseHourSelect.focus();
-      return;
-    }
-    if (responseMinuteSelect && !responseMinuteSelect.value) {
-      responseMinuteSelect.focus();
-      return;
-    }
-    responseAmpmSelect?.focus();
+    try {
+      responseDateInput?.focus();
+    } catch (_) { /* ignore */ }
   }
 
   async function loadStates() {
@@ -2621,7 +2583,7 @@
     }
     const responseAt = getResponseAtValue();
     if (!responseAt) {
-      showError('Enter when the city sent this list (date and time) before processing.');
+      showError('Enter the date the city sent this list before processing.');
       focusResponseDateTime();
       return;
     }
@@ -2791,7 +2753,7 @@
     if (!lastResult || !selectedCity) return;
     const responseAt = getResponseAtValue();
     if (!responseAt) {
-      setAttachStatus('Response received date/time is required.', 'error');
+      setAttachStatus('Response received date is required.', 'error');
       focusResponseDateTime();
       return;
     }
@@ -3091,7 +3053,7 @@
     renderTrainGroupCard
   };
 
-  initResponseDateTimePicker();
+
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));
   loadSavedLists().catch(() => {});
 })();

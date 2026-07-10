@@ -40,6 +40,13 @@ test('parseResponseReceivedAt accepts datetime-local style values', () => {
   assert.match(iso, /^2026-07-04T/);
 });
 
+test('parseResponseReceivedAt accepts date-only YYYY-MM-DD', () => {
+  const iso = parseResponseReceivedAt('2026-07-04');
+  assert.match(iso, /^2026-07-0[34]T/); // noon local may shift UTC day near TZ edges
+  const d = new Date(iso);
+  assert.equal(Number.isNaN(d.getTime()), false);
+});
+
 test('parseResponseReceivedAt rejects empty values', () => {
   assert.throws(() => parseResponseReceivedAt(''), /required/i);
 });

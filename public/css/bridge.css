@@ -1449,13 +1449,6 @@ body {
   gap: 0.3rem;
 }
 
-.bridge-datetime-time {
-  flex: 1 1 260px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
 .bridge-datetime-label {
   font-size: 0.72rem;
   font-weight: 600;
@@ -1464,38 +1457,14 @@ body {
   color: var(--phuglee-stone);
 }
 
-.bridge-datetime-time-row {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.bridge-datetime-sep {
-  color: var(--phuglee-taupe-mid);
-  font-weight: 600;
-  padding-bottom: 0.1rem;
-}
-
-.bridge-datetime-picker input[type="date"],
-.bridge-datetime-picker select {
+.bridge-datetime-picker input[type="date"] {
   padding: 0.55rem 0.65rem;
   font-size: 0.88rem;
   color: var(--phuglee-cream);
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(174, 163, 143, 0.2);
   border-radius: var(--radius-sm);
-}
-
-.bridge-datetime-picker select {
-  min-width: 4.25rem;
-}
-
-.bridge-datetime-picker #bridge-response-hour {
-  min-width: 3.5rem;
-}
-
-.bridge-datetime-picker #bridge-response-ampm {
-  min-width: 5.5rem;
+  min-width: 12rem;
 }
 
 .bridge-response-hint {
