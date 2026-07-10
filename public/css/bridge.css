@@ -7,19 +7,10 @@ body {
   min-height: 100vh;
 }
 
-.bridge-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 70% 50% at 10% 0%, rgba(229, 132, 53, 0.1) 0%, transparent 55%),
-    var(--bg-deep);
-}
-
 .bridge-main {
   position: relative;
   z-index: 1;
-  max-width: 920px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
 }
@@ -30,8 +21,8 @@ body {
 }
 
 .bridge-hero {
-  margin-bottom: 1.75rem;
-  text-align: center;
+  margin-bottom: 1.35rem;
+  text-align: left;
 }
 
 .bridge-step-label {
@@ -52,161 +43,107 @@ body {
   margin-bottom: 0.6rem;
 }
 
-.bridge-hero h1 {
+.bridge-hero h1,
+.bridge-title {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 5vw, 2.6rem);
+  font-size: clamp(2.2rem, 8vw, 3.75rem);
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
   margin-bottom: 0.75rem;
-  background: linear-gradient(180deg, var(--phuglee-cream) 25%, var(--phuglee-orange) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--phuglee-cream);
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: unset;
 }
 
 .bridge-lead {
   color: var(--phuglee-taupe-mid);
   line-height: 1.65;
-  max-width: 640px;
-  margin: 0 auto;
+  max-width: 36rem;
+  margin: 0;
   font-size: 1rem;
 }
 
-/* Proof rail */
-.bridge-proof-rail {
+/* Scrub desk — dominant work + quiet scrap (DESK-01) */
+.bridge-desk {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  padding: 0;
-  overflow: hidden;
-  margin-bottom: 1.75rem;
-  background: var(--glass-fill);
+  grid-template-columns: minmax(0, 1.7fr) minmax(200px, 0.85fr);
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1.5rem;
 }
 
-.bridge-proof-rail.phuglee-panel {
-  padding: 0;
+.bridge-desk-primary {
+  min-width: 0;
 }
 
-.bridge-proof-rail.phuglee-panel:hover {
-  transform: none;
-  border-color: var(--glass-border);
-  box-shadow: var(--glass-shadow);
-}
-
-.bridge-proof-rail.phuglee-panel::before {
-  opacity: 0.05;
-}
-
-.bridge-proof-item {
-  position: relative;
+.bridge-desk-side {
   display: flex;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 1.2rem 1.05rem;
-  text-align: left;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.bridge-proof-item:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  top: 1rem;
-  right: 0;
-  bottom: 1rem;
-  width: 1px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(174, 163, 143, 0.28) 20%,
-    rgba(174, 163, 143, 0.28) 80%,
-    transparent
-  );
-}
-
-.bridge-proof-item--featured {
-  background: linear-gradient(135deg, rgba(229, 132, 53, 0.08) 0%, transparent 55%);
-}
-
-.bridge-proof-item--featured::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--phuglee-gold), var(--phuglee-orange));
-}
-
-.bridge-proof-icon {
-  flex-shrink: 0;
+.bridge-desk-scrap {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.4rem;
-  height: 2.4rem;
-  margin-top: 0.1rem;
-  color: var(--phuglee-gold);
-  background:
-    linear-gradient(145deg, rgba(229, 132, 53, 0.16), rgba(238, 183, 70, 0.04));
-  border: 1px solid rgba(238, 183, 70, 0.28);
-  border-radius: 10px;
-  box-shadow:
-    0 0 18px rgba(229, 132, 53, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.15rem 1.2rem;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid rgba(174, 163, 143, 0.18);
+  background: rgba(0, 0, 0, 0.22);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.bridge-proof-icon svg {
-  width: 1.15rem;
-  height: 1.15rem;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.bridge-desk-scrap.phuglee-panel {
+  padding: 1.15rem 1.2rem;
 }
 
-.bridge-proof-kicker {
-  display: block;
+.bridge-desk-scrap.phuglee-panel:hover {
+  transform: translateY(-2px);
+  border-color: var(--glass-border-hover);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
+}
+
+.bridge-desk-scrap-label {
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--phuglee-stone);
-  margin-bottom: 0.25rem;
 }
 
-.bridge-proof-metric {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.2rem 0.35rem;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.bridge-proof-num {
+.bridge-desk-scrap-title {
   font-family: var(--font-display);
-  font-size: 1.2rem;
-  letter-spacing: 0.02em;
+  font-size: 1.05rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--phuglee-cream);
 }
 
-.bridge-proof-num--gold {
-  color: var(--phuglee-gold);
-}
-
-.bridge-proof-unit {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--phuglee-stone);
-}
-
-.bridge-proof-detail {
-  margin: 0.35rem 0 0;
-  font-size: 0.68rem;
+.bridge-desk-scrap-desc {
+  font-size: 0.8rem;
   line-height: 1.45;
   color: var(--phuglee-taupe-mid);
+}
+
+.bridge-desk-scrap-cta {
+  margin-top: 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+}
+
+.bridge-desk-scrap:hover .bridge-desk-scrap-cta {
+  color: var(--phuglee-gold);
+  text-shadow: 0 0 16px rgba(229, 132, 53, 0.35);
+  letter-spacing: 0.14em;
 }
 
 .bridge-panel-lead {
@@ -225,9 +162,9 @@ body {
   color: var(--phuglee-stone);
 }
 
-/* Step pipeline */
+/* Step pipeline — slim teaching chrome (DESK-04) */
 .bridge-pipeline {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .bridge-dropzone {
@@ -311,9 +248,9 @@ body {
 .bridge-pipeline-step {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.55rem 0.7rem;
-  font-size: 0.68rem;
+  gap: 0.4rem;
+  padding: 0.4rem 0.55rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -328,10 +265,10 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.35rem;
-  height: 1.35rem;
+  width: 1.2rem;
+  height: 1.2rem;
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   color: var(--phuglee-stone);
   background: rgba(255, 255, 255, 0.04);
   border-radius: 4px;
@@ -763,24 +700,8 @@ body {
 }
 
 @media (max-width: 720px) {
-  .bridge-proof-rail {
+  .bridge-desk {
     grid-template-columns: 1fr;
-  }
-
-  .bridge-proof-item:not(:last-child)::after {
-    top: auto;
-    right: 1.1rem;
-    left: 1.1rem;
-    bottom: 0;
-    width: auto;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(174, 163, 143, 0.28) 20%,
-      rgba(174, 163, 143, 0.28) 80%,
-      transparent
-    );
   }
 
   .bridge-next-step {
