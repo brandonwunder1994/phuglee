@@ -46,11 +46,24 @@ test('classifies discard reasons', () => {
     'Clearly non-property record'
   );
   assert.equal(
+    classifyDiscardReason({}, { streetAddress: 'Apartment Complex', violationIssueType: 'weeds' }),
+    'Clearly non-property record'
+  );
+  assert.equal(
+    classifyDiscardReason({}, { streetAddress: 'Shopping Mall', violationIssueType: 'x' }),
+    'Clearly non-property record'
+  );
+  assert.equal(
     classifyDiscardReason({}, { streetAddress: 'nowhere', violationIssueType: 'trash' }),
     'No usable street address'
   );
   assert.equal(
     classifyDiscardReason({}, { streetAddress: '123 Oak St', violationIssueType: 'trash' }),
+    null
+  );
+  // Vacant lots stay usable addresses
+  assert.equal(
+    classifyDiscardReason({}, { streetAddress: 'Lot 12 Oak Tract', violationIssueType: 'weeds' }),
     null
   );
 });

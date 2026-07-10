@@ -1210,7 +1210,8 @@
       const labels = {
         needs_clarification: 'Needs clarification — respond to get list',
         no: 'No records of this kind',
-        other_source: 'Contact another source'
+        other_source: 'Contact another source',
+        they_charge: 'They charge for the list'
       };
       const label = labels[responseStatus] || responseStatus;
       setOutcomeStatus(`Saved: ${label} for ${selectedCity.city}. Filter it in City Tracker.`, 'success');

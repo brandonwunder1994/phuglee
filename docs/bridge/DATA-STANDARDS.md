@@ -43,7 +43,7 @@ Every kept record is mapped to these fields (see `lib/bridge-intake-schema.js`):
 |--------|-------------|
 | `no_address` | No usable street address after parsing |
 | `blank_row` | Entirely empty or whitespace-only |
-| `non_property` | Clearly non-property (e.g. "City Hall", "Parking Lot") |
+| `non_property` | Clearly non-property / non-house (e.g. City Hall, parking lot, apartment complex, commercial building, highway ROW). Vacant lots still keep. |
 | `duplicate` | Near-duplicate of another kept row in the same upload |
 | `already_imported` | Address already exists in the user's Property Analyzer session |
 | `parse_error` | Row could not be parsed from source |

@@ -49,6 +49,52 @@ test('trash cans left out is NOT strong distress', () => {
   }
 });
 
+test('non-residential targets are NOT strong distress (even with weeds/trash)', () => {
+  const { isNonResidentialLead } = require('../lib/bridge-distress-tagger');
+  const cases = [
+    'High grass at apartment complex common area',
+    'Weeds at commercial building parking strip',
+    'Trash and debris at shopping center',
+    'Overgrown weeds along highway median',
+    'Litter on interstate right of way',
+    'Property maintenance — office building exterior',
+    'Abandoned vehicle at hotel lot',
+    'Blight at warehouse site'
+  ];
+  for (const descriptionNotes of cases) {
+    assert.equal(
+      isNonResidentialLead(descriptionNotes),
+      true,
+      `should detect non-residential: ${descriptionNotes}`
+    );
+    const result = tagRow(row({ descriptionNotes }), 'code_violation');
+    assert.equal(
+      result.distressedSignalTag,
+      'Standard Code Violation',
+      `expected not kept for: ${descriptionNotes}`
+    );
+    assert.deepEqual(result.matchedIndicators, []);
+  }
+});
+
+test('vacant lots and houses still keep as distress', () => {
+  const keepCases = [
+    { descriptionNotes: 'High grass and weeds on vacant lot' },
+    { descriptionNotes: 'Lot maintenance — overgrown vegetation' },
+    { descriptionNotes: 'Accumulation of trash and debris in yard' },
+    { descriptionNotes: 'Dilapidated house open to elements' },
+    { streetAddress: '123 Old Highway 50', descriptionNotes: 'High grass and weeds' }
+  ];
+  for (const overrides of keepCases) {
+    const result = tagRow(row(overrides), 'code_violation');
+    assert.equal(
+      result.distressedSignalTag,
+      STRONG_DISTRESSED_TAG,
+      `expected keep for: ${JSON.stringify(overrides)}`
+    );
+  }
+});
+
 test('trash cans with real debris still distressed', () => {
   const result = tagRow(
     row({ descriptionNotes: 'Trash cans and debris all over the yard' }),

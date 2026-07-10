@@ -51,6 +51,8 @@ Matches improper outdoor storage of waste, furniture, appliances, tires, or buil
 
 **Not distress (excluded):** trash cans / garbage cans / recycle bins / refuse containers left out — containers alone are not a trashed property. Real debris, dump piles, and “trashed house” still keep.
 
+**Not kept (non-residential / non-house):** apartment complexes, commercial buildings, shopping centers, warehouses, hotels, schools/hospitals/churches, parking lots, and highway / interstate right-of-way or median work. These are discarded as `non_property` (not lead targets). **Vacant lots and single-family houses still keep.** Residential street names like “Old Highway 50” alone are not excluded.
+
 ### 3. Abandoned, Inoperable, Derelict, or Unregistered Vehicles
 
 Matches vehicles left on the property in non-operational condition.
