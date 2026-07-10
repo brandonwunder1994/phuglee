@@ -120,12 +120,12 @@
         descHtml +
         addrHtml +
         '<div class="bridge-train-actions">' +
-          '<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" title="' +
+          '<button type="button" class="phuglee-btn phuglee-btn-primary bridge-train-approve" data-action="approve" title="' +
             esc(btn.approveTitle) +
             '" aria-label="' + esc(btn.approveLabel + ' ' + label) + '">' +
             esc(btn.approveLabel) +
           '</button>' +
-          '<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" title="' +
+          '<button type="button" class="phuglee-btn phuglee-btn-secondary bridge-train-deny" data-action="deny" title="' +
             esc(btn.denyTitle) +
             '" aria-label="' + esc(btn.denyLabel + ' ' + label) + '">' +
             esc(btn.denyLabel) +
