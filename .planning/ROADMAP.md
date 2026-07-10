@@ -78,7 +78,12 @@ Plans:
   1. Gold city fixtures pass: real distress kept, junk denied, water shut-off never type-suppressed — fixes land in code, not audit-only notes
   2. Process never silent-drops leads solely for “no Type,” unresolved map, or cleaner kept counts — rows remain for review / FN pool / explicit reasons
   3. v1.7–v1.8 locks still hold: single Type winner (no blend), empty-only category promote, stable group keys, display-only short labels, format confirm on first/changed fingerprint
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 57-01-PLAN.md — Wave 0 gold fixtures + ACC-01/02 processUpload contracts
+- [ ] 57-02-PLAN.md — Fix only gold reds (tagger/engine) until ACC-01 green
+- [ ] 57-03-PLAN.md — ACC-02 silent-drop bans + ACC-03 v1.7–v1.8 regression lock
 
 ### Phase 58: Learning Loop Strength
 **Goal**: Admin can see the brain getting smarter for the right reason — paired metrics (decision volume trend + gold precision/recall) with real rule apply coverage; type rules live, phrases stay proposed-only
@@ -119,7 +124,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 55. Independence Lock | 0/3 | Planned | - |
 | 56. List Factory UX | 0/3 | Planned | - |
-| 57. Accuracy Structure Pass | 0/TBD | Not started | - |
+| 57. Accuracy Structure Pass | 0/3 | Planned | - |
 | 58. Learning Loop Strength | 0/TBD | Not started | - |
 | 59. Efficiency Operator Path | 0/TBD | Not started | - |
 | 60. Regression QA Lock | 0/TBD | Not started | - |

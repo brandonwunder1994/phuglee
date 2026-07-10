@@ -1,8 +1,8 @@
 ---
 phase: 57
 slug: accuracy-structure-pass
-status: draft
-nyquist_compliant: false
+status: ready
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-10
 ---
@@ -29,13 +29,16 @@ created: 2026-07-10
 
 | Task | Plan | Wave | Req | Automated Command | Status |
 |------|------|------|-----|-------------------|--------|
-| Gold fixtures + ACC-01/02 tests | 01 | 1 | ACC-01, ACC-02 | `node --test tests/bridge-accuracy-gold.test.js` | ⬜ |
-| Fix reds in tagger/engine | 02 | 2 | ACC-01 | gold + tagger | ⬜ |
-| Silent-drop + ACC-03 locks | 03 | 3 | ACC-02, ACC-03 | gold + engine pattern | ⬜ |
+| Gold fixtures (5 shapes) | 01 | 1 | ACC-01, ACC-02 | fixture existence node -e gate | ⬜ |
+| ACC-01/02 processUpload gold suite | 01 | 1 | ACC-01, ACC-02 | `node --test tests/bridge-accuracy-gold.test.js` | ⬜ |
+| Fix reds in tagger/engine only | 02 | 2 | ACC-01 | `node --test --test-name-pattern="ACC-01" tests/bridge-accuracy-gold.test.js` | ⬜ |
+| Full gold green after fixes | 02 | 2 | ACC-01 | `node --test tests/bridge-accuracy-gold.test.js` | ⬜ |
+| ACC-02 silent-drop bans + FN inventory | 03 | 3 | ACC-02 | `node --test --test-name-pattern="ACC-02" tests/bridge-accuracy-gold.test.js` | ⬜ |
+| ACC-03 regression + full suite | 03 | 3 | ACC-03 | gold + engine COL/GATE/… pattern + `npm test` | ⬜ |
 
 ## Wave 0 Requirements
 
-- [ ] `tests/fixtures/bridge/gold/*` — ACC keep/deny/water fixtures
+- [ ] `tests/fixtures/bridge/gold/*` — ACC keep/deny/type-trap/no-type/water fixtures
 - [ ] `tests/bridge-accuracy-gold.test.js` — ACC-01/02 processUpload contracts
 - [ ] Optional ACC-03 wrapper titles or document existing COL/GATE/LBL/GROUP locks
 
@@ -45,8 +48,8 @@ None required if processUpload e2e covers gold (optional operator spot-check on 
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify
-- [ ] No watch-mode flags
-- [ ] `nyquist_compliant: true` after plans align
+- [x] All tasks have automated verify
+- [x] No watch-mode flags
+- [x] `nyquist_compliant: true` after plans align
 
-**Approval:** pending
+**Approval:** plans ready for execute-phase
