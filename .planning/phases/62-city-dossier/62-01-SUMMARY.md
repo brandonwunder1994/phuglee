@@ -71,7 +71,7 @@ Each task was committed atomically:
 1. **Task 1: Wave 0 static contracts for CITY-01/02** - `90bc207` (test)
 2. **Task 2: Close city-outcome handler soft gap** - `57eb2ce` (test)
 
-**Plan metadata:** (docs commit after this file)
+**Plan metadata:** `13be71d` (docs: complete plan)
 
 _Note: TDD Wave 0 — failing product contracts expected until Plan 02 greens them._
 
