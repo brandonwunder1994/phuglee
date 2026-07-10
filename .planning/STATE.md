@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
 status: executing
-stopped_at: Completed 53-02-PLAN.md
-last_updated: "2026-07-10T13:46:31.438Z"
-last_activity: 2026-07-10 — Completed 53-02 pure shortLabelForDisplay green
+stopped_at: Completed 53-03-PLAN.md
+last_updated: "2026-07-10T13:48:14.645Z"
+last_activity: 2026-07-10 — Completed 53-03 groups shortLabel wire
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 11
-  completed_plans: 9
-  percent: 82
+  completed_plans: 10
+  percent: 91
 ---
 
 # State
@@ -21,24 +21,24 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 53 in progress — pure short-label green; next groups wire
+**Current focus:** Phase 53 in progress — groups shortLabel green; next Train UI
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
 **Phase:** 53 of 54 (Display-Only Short Labels) — IN PROGRESS  
-**Plan:** 2 of 4 complete  
-**Status:** Ready to execute plan 03
-**Last activity:** 2026-07-10 — Completed 53-02 pure shortLabelForDisplay green
+**Plan:** 3 of 4 complete  
+**Status:** Ready to execute plan 04
+**Last activity:** 2026-07-10 — Completed 53-03 groups shortLabel wire
 
-Progress: [████████░░] 82% (v1.8 plans 9/11 done; phase 53 plan 2/4)
+Progress: [█████████░] 91% (v1.8 plans 10/11 done; phase 53 plan 3/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v1.8): 9
-- Average duration: 5min
-- Total execution time: 45min
+- Total plans completed (v1.8): 10
+- Average duration: 4.6min
+- Total execution time: 46min
 
 **By Phase:**
 
@@ -46,7 +46,7 @@ Progress: [████████░░] 82% (v1.8 plans 9/11 done; phase 53 p
 |-------|-------|-------|----------|
 | 51 | 3/3 | 5min | 1.7min |
 | 52 | 4/4 | 35min | 8.8min |
-| 53 | 2/4 | 5min | 2.5min |
+| 53 | 3/4 | 6min | 2.0min |
 | 54 | 0 | TBD | — |
 
 **Performance Metrics (detail):**
@@ -62,6 +62,7 @@ Progress: [████████░░] 82% (v1.8 plans 9/11 done; phase 53 p
 | 52-format-memory-confirm-gate | 04 | 18min | 2 | 7 |
 | 53-display-only-short-labels | 01 | 4min | 2 | 3 |
 | 53-display-only-short-labels | 02 | 1min | 2 | 1 |
+| 53-display-only-short-labels | 03 | 1min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -116,6 +117,7 @@ Phase 53 plan decisions:
 - [Phase 53]: DEFAULT_MAX locked at 56; hard-slice uses unicode ellipsis; LBL-03 fail-closed null (no DOM title scrape)
 - [Phase 53]: Dash/clause on raw text before stripIncidentalTimestamps so em/en break points survive
 - [Phase 53]: Pure shortLabelForDisplay green (DEFAULT_MAX 56); groups/UI still unwired until 53-03/04
+- [Phase 53]: shortLabel set after isSingleton before public strip; export assert-only; Train UI deferred to 53-04
 
 ### Pending Todos
 
@@ -123,11 +125,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None — Phase 53 plan 02 complete; continue with 53-03 groups shortLabel wire.
+None — Phase 53 plan 03 complete; continue with 53-04 Train UI + DOM scrape kill.
 
 ## Session Continuity
 
-Last session: 2026-07-10T13:46:31.431Z
-Stopped at: Completed 53-02-PLAN.md
+Last session: 2026-07-10T13:48:14.638Z
+Stopped at: Completed 53-03-PLAN.md
 Resume file: None
-Next: Execute 53-03 — attach parallel shortLabel in buildReviewGroups
+Next: Execute 53-04 — Train title prefers shortLabel + kill DOM scrape
