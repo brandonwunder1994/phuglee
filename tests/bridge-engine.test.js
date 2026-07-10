@@ -1486,3 +1486,66 @@ test('TEST-02 (v1.8): fingerprint change after confirm requires TYPE_COLUMN_CONF
     'TEST-02 (v1.8): format B Type map is Issue Type'
   );
 });
+
+test('TEST-03 (v1.8): processUpload long type → shortLabel; full label/keys/row type preserved', async () => {
+  // Long ordinance-style type that still tags Strong Distressed (High Grass / weeds).
+  const longType =
+    'High Grass and Weeds — Sec. 12-34 of the municipal code regarding vegetation height limits on residential parcels and enforcement procedures';
+  const csv = [
+    'Property Address,Violation Type,Notes',
+    `100 Main St,"${longType}",inspector field notes`,
+    `200 Oak Ave,"${longType}",second parcel`
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'v18-shortlabel.csv',
+    city: { id: 'v18-lbl-city', city: 'LabelVille', state: 'Arizona' },
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
+  });
+
+  assert.equal(result.ok, true, 'TEST-03 (v1.8): process must succeed');
+  assert.ok(result.rows.length >= 1, 'TEST-03 (v1.8): at least one kept row');
+
+  const groups = [
+    ...(result.reviewGroups && result.reviewGroups.distressed
+      ? result.reviewGroups.distressed
+      : []),
+    ...(result.reviewGroups && result.reviewGroups.notDistressed
+      ? result.reviewGroups.notDistressed
+      : [])
+  ];
+  const g = groups.find((x) => /high grass/i.test(x.violationTypeLabel || ''));
+  assert.ok(g, 'TEST-03 (v1.8): distressed/group with High Grass full label exists');
+  assert.equal(typeof g.shortLabel, 'string', 'TEST-03 (v1.8): shortLabel must be string');
+  assert.ok(
+    g.shortLabel.length <= 64,
+    `TEST-03 (v1.8): shortLabel length <= 64, got ${g.shortLabel.length}`
+  );
+  assert.ok(
+    g.shortLabel.length < g.violationTypeLabel.length,
+    'TEST-03 (v1.8): shortLabel shorter than full violationTypeLabel'
+  );
+  assert.ok(
+    g.violationTypeLabel.includes('Sec.') ||
+      g.violationTypeLabel.length > g.shortLabel.length,
+    'TEST-03 (v1.8): full label still long / contains Sec.'
+  );
+  assert.ok(
+    !String(g.violationTypeKey || '').includes('…'),
+    'TEST-03 (v1.8): group key must not be hard-sliced display (no ellipsis)'
+  );
+
+  const row = result.rows.find((r) => String(r.streetAddress || '').includes('100 Main'));
+  assert.ok(row, 'TEST-03 (v1.8): 100 Main row present');
+  assert.ok(
+    String(row.violationIssueType || '').includes('High Grass'),
+    `TEST-03 (v1.8): row type includes High Grass, got: ${row.violationIssueType}`
+  );
+  assert.ok(
+    String(row.violationIssueType || '').length >= g.shortLabel.length,
+    'TEST-03 (v1.8): stored row type is full (length >= shortLabel)'
+  );
+});
