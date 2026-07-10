@@ -113,7 +113,11 @@ Plans:
   3. Non-admin users never see train controls on the Filter results page
   4. Each group card shows matched signals and description samples
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 44-01-PLAN.md - Train shell: tests, markup (two sections + mode tabs), bridge CSS
+- [ ] 44-02-PLAN.md - Admin gate, reviewGroups render, Approve/Deny stubs, live verify
 
 ---
 
@@ -132,7 +136,12 @@ Plans:
   4. Every decision appends an audit event (who, when, type, counts, samples)
   5. Non-admin callers of brain write APIs receive 403 `ADMIN_REQUIRED`
 
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 45-01-PLAN.md — Pure applyDecision matrix + type rules + audit events (DEC-01–05 TDD)
+- [ ] 45-02-PLAN.md — requireAdmin + POST /api/bridge/brain/decisions (DEC-06 + persist)
+- [ ] 45-03-PLAN.md — Client Train Approve/Deny wire + lastResult re-render
 
 ---
 
@@ -178,8 +187,8 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 42. Brain store + runtime apply | v1.6 | 0/2 | Not started | - |
 | 43. Review payload + grouping | v1.6 | 0/2 | Not started | - |
-| 44. Admin Train brain UX | v1.6 | 0/TBD | Not started | - |
-| 45. Decisions + type rules + list mutation | v1.6 | 0/TBD | Not started | - |
+| 44. Admin Train brain UX | v1.6 | 0/2 | Planned | - |
+| 45. Decisions + type rules + list mutation | v1.6 | 0/3 | Planned | - |
 | 46. Phrase mining + brain panel | v1.6 | 0/TBD | Not started | - |
 | 47. Hardening + metrics + docs | v1.6 | 0/TBD | Not started | - |
 
