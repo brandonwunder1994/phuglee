@@ -72,7 +72,7 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 42-01-PLAN.md - Durable global brain store (config path, atomic load/save, unit tests)
+- [x] 42-01-PLAN.md - Durable global brain store (config path, atomic load/save, unit tests)
 - [ ] 42-02-PLAN.md - Pure apply module + processUpload wire + integration tests
 
 ---
@@ -192,7 +192,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 42. Brain store + runtime apply | v1.6 | 0/2 | Not started | - |
+| 42. Brain store + runtime apply | v1.6 | 1/2 | In Progress | - |
 | 43. Review payload + grouping | v1.6 | 0/2 | Not started | - |
 | 44. Admin Train brain UX | v1.6 | 0/2 | Planned | - |
 | 45. Decisions + type rules + list mutation | v1.6 | 0/3 | Planned | - |
