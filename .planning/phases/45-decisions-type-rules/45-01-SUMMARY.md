@@ -72,7 +72,7 @@ Each task was committed atomically:
 1. **Task 1: Write failing decision matrix tests (RED)** - `f300101` (test)
 2. **Task 2: Implement applyDecision + type rule helpers (GREEN)** - `03e0637` (feat)
 
-**Plan metadata:** `1b7becf` (docs: complete plan)
+**Plan metadata:** `7f7af53` (docs: complete plan)
 
 _Note: TDD tasks use separate test → feat commits_
 
