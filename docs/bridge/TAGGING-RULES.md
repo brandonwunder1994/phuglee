@@ -49,6 +49,8 @@ Matches improper outdoor storage of waste, furniture, appliances, tires, or buil
 - furniture, appliances, tires, building materials, mattress, sofa, couch near outside/yard/property/curb
 - yard waste, illegal dumping, open storage
 
+**Not distress (excluded):** trash cans / garbage cans / recycle bins / refuse containers left out — containers alone are not a trashed property. Real debris, dump piles, and “trashed house” still keep.
+
 ### 3. Abandoned, Inoperable, Derelict, or Unregistered Vehicles
 
 Matches vehicles left on the property in non-operational condition.

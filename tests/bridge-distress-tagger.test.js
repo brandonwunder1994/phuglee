@@ -29,6 +29,39 @@ test('tags trash accumulation as strong distressed signal', () => {
   assert.ok(result.matchedIndicators.some((m) => /trash/i.test(m)));
 });
 
+test('trash cans left out is NOT strong distress', () => {
+  const cases = [
+    'Trash cans left out',
+    'Garbage cans on curb',
+    'Refuse containers not put away',
+    'Recycling bins left out overnight',
+    'Trash can violation'
+  ];
+  for (const descriptionNotes of cases) {
+    const result = tagRow(row({ descriptionNotes, violationIssueType: 'Solid Waste' }), 'code_violation');
+    // "Solid Waste" alone might still match trash_debris — use description-only rows
+    const descOnly = tagRow(row({ descriptionNotes, violationIssueType: '' }), 'code_violation');
+    assert.equal(
+      descOnly.distressedSignalTag,
+      'Standard Code Violation',
+      `expected not distressed for: ${descriptionNotes}`
+    );
+  }
+});
+
+test('trash cans with real debris still distressed', () => {
+  const result = tagRow(
+    row({ descriptionNotes: 'Trash cans and debris all over the yard' }),
+    'code_violation'
+  );
+  assert.equal(result.distressedSignalTag, STRONG_DISTRESSED_TAG);
+});
+
+test('trashed house still distressed via structures', () => {
+  const result = tagRow(row({ descriptionNotes: 'Trashed house open to elements' }), 'code_violation');
+  assert.equal(result.distressedSignalTag, STRONG_DISTRESSED_TAG);
+});
+
 test('tags abandoned vehicles as strong distressed signal', () => {
   const result = tagRow(row({ descriptionNotes: 'Abandoned inoperable vehicle on property' }), 'code_violation');
   assert.equal(result.distressedSignalTag, STRONG_DISTRESSED_TAG);
