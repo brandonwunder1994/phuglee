@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2 of 2
-status: verifying
+current_plan: Not started
+status: planning
 stopped_at: Completed 62-02-PLAN.md
-last_updated: "2026-07-10T23:52:14.936Z"
+last_updated: "2026-07-10T23:54:44.147Z"
 last_activity: 2026-07-10 — 62-02 city dossier UI + demoted outcomes shipped
 progress:
   total_phases: 8
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 62 — City Dossier  
-**Current Plan:** 2 of 2  
+**Current Plan:** Not started
 **Total Plans in Phase:** 2  
-**Status:** Phase complete — ready for verification  
+**Status:** Ready to plan
 **Last activity:** 2026-07-10 — 62-02 city dossier UI + demoted outcomes shipped
 
 Progress: [███░░░░░░░] 25% (5/20 plans executed)
