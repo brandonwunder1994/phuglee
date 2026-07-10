@@ -7,17 +7,30 @@ const XLSX = require('xlsx');
 
 const config = require('../lib/config');
 const originalBrainRoot = config.BRIDGE_BRAIN_ROOT;
+const originalFormatsRoot = config.BRIDGE_CITY_FORMATS_ROOT;
 let tempBrainRoot;
+let tempFormatsRoot;
 
 before(() => {
   tempBrainRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bridge-brain-engine-'));
   config.BRIDGE_BRAIN_ROOT = tempBrainRoot;
+  // Phase 52: isolate city-format memory (Plan 02 adds config key; set always for isolation).
+  tempFormatsRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bridge-city-formats-engine-'));
+  config.BRIDGE_CITY_FORMATS_ROOT = tempFormatsRoot;
 });
 
 after(() => {
   config.BRIDGE_BRAIN_ROOT = originalBrainRoot;
+  if (originalFormatsRoot === undefined) {
+    delete config.BRIDGE_CITY_FORMATS_ROOT;
+  } else {
+    config.BRIDGE_CITY_FORMATS_ROOT = originalFormatsRoot;
+  }
   try {
     fs.rmSync(tempBrainRoot, { recursive: true, force: true });
+  } catch (_) {}
+  try {
+    if (tempFormatsRoot) fs.rmSync(tempFormatsRoot, { recursive: true, force: true });
   } catch (_) {}
 });
 
@@ -972,4 +985,299 @@ test('COL-03: scorer-mapped Issue Type cells are not overridden by unmapped Cat 
     !/Junk Vehicle/i.test(String(grass.violationIssueType || '')),
     `COL-03: promote must not replace non-empty scorer cell with Cat, got: ${grass.violationIssueType}`
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Phase 52 Wave 0 RED — GATE-02/03/04/06 + META-01 confirm-gate contracts
+// Production gate/store land in Plans 02–03; these must fail until then.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Shared code_violation CSV with Status Description trap + Vio Cat Type column. */
+function gateTypeConfirmCsv() {
+  return [
+    'Property Address,Status Description,Vio Cat,Open Date',
+    '100 Main St,Open,High Grass,01/15/2024'
+  ].join('\n');
+}
+
+test('GATE-02: first code_violation process without confirm rejects TYPE_COLUMN_CONFIRM_REQUIRED', async () => {
+  // Empty formats root (before hook) + no confirmedTypeHeader → must refuse before rows.
+  await assert.rejects(
+    () =>
+      processUpload({
+        buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
+        filename: 'gate-first-upload.csv',
+        city: CITY,
+        uploadType: 'code_violation'
+      }),
+    (err) => {
+      assert.equal(
+        err && err.code,
+        'TYPE_COLUMN_CONFIRM_REQUIRED',
+        `GATE-02: expected TYPE_COLUMN_CONFIRM_REQUIRED, got ${err && err.code}`
+      );
+      return true;
+    }
+  );
+});
+
+test('GATE-04: TYPE_COLUMN_CONFIRM_REQUIRED details include fingerprint, candidates, suggestedHeader', async () => {
+  let caught;
+  try {
+    await processUpload({
+      buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
+      filename: 'gate-409-details.csv',
+      city: CITY,
+      uploadType: 'code_violation'
+    });
+  } catch (err) {
+    caught = err;
+  }
+
+  assert.ok(caught, 'GATE-04: process must throw when confirm required');
+  assert.equal(caught.code, 'TYPE_COLUMN_CONFIRM_REQUIRED');
+
+  const details = caught.details || caught;
+  assert.ok(
+    typeof details.formatFingerprint === 'string' && details.formatFingerprint.length > 0,
+    'GATE-04: details.formatFingerprint must be non-empty string'
+  );
+  assert.ok(Array.isArray(details.candidates), 'GATE-04: details.candidates must be array');
+  assert.ok(details.candidates.length >= 1, 'GATE-04: candidates length >= 1');
+  const first = details.candidates[0];
+  assert.ok(first && typeof first.header === 'string', 'GATE-04: candidate.header required');
+  assert.ok(
+    typeof first.score === 'number' || first.score === null,
+    'GATE-04: candidate.score number|null'
+  );
+  assert.ok(
+    details.suggestedHeader === null || typeof details.suggestedHeader === 'string',
+    'GATE-04: suggestedHeader string or null'
+  );
+});
+
+test('GATE-04: admin resume with confirmedTypeHeader Vio Cat succeeds (admin_confirm)', async () => {
+  const result = await processUpload({
+    buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
+    filename: 'gate-admin-confirm.csv',
+    city: CITY,
+    uploadType: 'code_violation',
+    confirmedTypeHeader: 'Vio Cat',
+    username: 'admin'
+  });
+
+  assert.equal(result.ok, true, 'GATE-04: admin confirm resume must succeed');
+  assert.equal(
+    result.processingMeta.columnMap.violationIssueType,
+    'Vio Cat',
+    'GATE-04: columnMap.violationIssueType must be confirmed Vio Cat'
+  );
+
+  const tr = result.processingMeta.typeResolution;
+  assert.ok(tr, 'META-01/GATE-04: processingMeta.typeResolution required on success');
+  assert.equal(tr.source, 'admin_confirm');
+  assert.equal(tr.header, 'Vio Cat');
+  assert.ok(
+    typeof tr.fingerprint === 'string' && tr.fingerprint.length > 0,
+    'GATE-04: typeResolution.fingerprint non-empty'
+  );
+});
+
+test('GATE-03: matching fingerprint reuses confirmed Type without confirm field (auto_reuse)', async () => {
+  // Seed memory via admin confirm, then process again without confirmedTypeHeader.
+  const seed = await processUpload({
+    buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
+    filename: 'gate-reuse-seed.csv',
+    city: CITY,
+    uploadType: 'code_violation',
+    confirmedTypeHeader: 'Vio Cat',
+    username: 'admin'
+  });
+  assert.equal(seed.ok, true, 'GATE-03 seed confirm must succeed');
+
+  const result = await processUpload({
+    buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
+    filename: 'gate-reuse-second.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+    // no confirmedTypeHeader — memory fingerprint match must auto-reuse
+  });
+
+  assert.equal(result.ok, true, 'GATE-03: reuse process must succeed without confirm field');
+  assert.equal(
+    result.processingMeta.columnMap.violationIssueType,
+    'Vio Cat',
+    'GATE-03: columnMap must remain confirmed Vio Cat'
+  );
+  const tr = result.processingMeta.typeResolution;
+  assert.ok(tr, 'GATE-03: typeResolution required');
+  assert.equal(tr.source, 'auto_reuse');
+  assert.equal(tr.header, 'Vio Cat');
+  assert.equal(tr.formatMatched, true);
+});
+
+test('GATE-04: confirmedTypeHeader __none__ forces no Type column without silent drop', async () => {
+  const noTypeCity = { id: 'test-no-type-city', city: 'NoTypeVille', state: 'Arizona' };
+  const result = await processUpload({
+    buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
+    filename: 'gate-none-type.csv',
+    city: noTypeCity,
+    uploadType: 'code_violation',
+    confirmedTypeHeader: '__none__',
+    username: 'admin'
+  });
+
+  assert.equal(result.ok, true, 'GATE-04 none: process must succeed');
+  const typeMap = result.processingMeta.columnMap.violationIssueType;
+  assert.ok(
+    typeMap == null || typeMap === '',
+    `GATE-04 none: Type map must be falsy, got: ${typeMap}`
+  );
+
+  const tr = result.processingMeta.typeResolution;
+  assert.ok(tr, 'GATE-04 none: typeResolution required');
+  assert.ok(
+    tr.source === 'admin_confirm' || tr.source === 'unresolved',
+    `GATE-04 none: source admin_confirm|unresolved, got: ${tr.source}`
+  );
+  assert.equal(tr.header, null);
+
+  const keptOrFn =
+    result.rows.find((row) => String(row.streetAddress || '').includes('100 Main')) ||
+    (result.notDistressedRows || []).find((row) =>
+      String(row.streetAddress || '').includes('100 Main')
+    );
+  assert.ok(keptOrFn, 'GATE-04 none: must not silently drop all rows solely for no type');
+});
+
+test('META-01: success typeResolution has header, score, source enum, fingerprint, formatMatched', async () => {
+  const result = await processUpload({
+    buffer: Buffer.from(gateTypeConfirmCsv(), 'utf8'),
+    filename: 'gate-meta-shape.csv',
+    city: { id: 'meta-shape-city', city: 'MetaCity', state: 'Arizona' },
+    uploadType: 'code_violation',
+    confirmedTypeHeader: 'Vio Cat',
+    username: 'admin'
+  });
+
+  assert.equal(result.ok, true);
+  const tr = result.processingMeta.typeResolution;
+  assert.ok(tr && typeof tr === 'object', 'META-01: typeResolution object required');
+  assert.ok(
+    tr.header === null || typeof tr.header === 'string',
+    'META-01: header string|null'
+  );
+  assert.ok(
+    tr.score === null || typeof tr.score === 'number',
+    'META-01: score number|null'
+  );
+  assert.ok(
+    ['auto_reuse', 'admin_confirm', 'scorer', 'unresolved'].includes(tr.source),
+    `META-01: source enum, got: ${tr.source}`
+  );
+  assert.ok(
+    typeof tr.fingerprint === 'string' && tr.fingerprint.length > 0,
+    'META-01: fingerprint non-empty string'
+  );
+  assert.equal(typeof tr.formatMatched, 'boolean', 'META-01: formatMatched boolean');
+});
+
+test('GATE-06: processUploadBatch mixed Type header sets hard-fails (no silent one-map)', async () => {
+  const fileA = [
+    'Property Address,Status Description,Vio Cat,Open Date',
+    '100 Main St,Open,High Grass,01/15/2024'
+  ].join('\n');
+  // Different header multiset — Issue Type instead of Vio Cat (distinct fingerprint).
+  const fileB = [
+    'Property Address,Status Description,Issue Type,Open Date',
+    '200 Oak Ave,Open,Trash,02/01/2024'
+  ].join('\n');
+
+  await assert.rejects(
+    () =>
+      processUploadBatch(
+        [
+          { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+          { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+        ],
+        {
+          city: { id: 'gate-mixed-batch-city', city: 'MixedTown', state: 'Arizona' },
+          uploadType: 'code_violation'
+        }
+      ),
+    (err) => {
+      const code = err && err.code;
+      assert.ok(
+        code === 'TYPE_COLUMN_CONFIRM_REQUIRED' || code === 'FORMAT_MISMATCH',
+        `GATE-06: expected TYPE_COLUMN_CONFIRM_REQUIRED or FORMAT_MISMATCH, got ${code}`
+      );
+      return true;
+    }
+  );
+});
+
+test('GATE-06: processUploadBatch same fingerprint can confirm once / reuse path', async () => {
+  const sameCsv = gateTypeConfirmCsv();
+  const sameCity = {
+    id: 'gate-same-fp-batch-city',
+    city: 'SameFormat',
+    state: 'Arizona'
+  };
+
+  // Without confirm: both files need confirm (same fingerprint) → hard refuse, not partial merge.
+  await assert.rejects(
+    () =>
+      processUploadBatch(
+        [
+          { filename: 'same-a.csv', data: Buffer.from(sameCsv, 'utf8') },
+          { filename: 'same-b.csv', data: Buffer.from(sameCsv, 'utf8') }
+        ],
+        { city: sameCity, uploadType: 'code_violation' }
+      ),
+    (err) => err && err.code === 'TYPE_COLUMN_CONFIRM_REQUIRED'
+  );
+
+  // With admin confirm on batch context: one confirm applies to shared fingerprint.
+  const confirmed = await processUploadBatch(
+    [
+      { filename: 'same-a.csv', data: Buffer.from(sameCsv, 'utf8') },
+      { filename: 'same-b.csv', data: Buffer.from(sameCsv, 'utf8') }
+    ],
+    {
+      city: sameCity,
+      uploadType: 'code_violation',
+      confirmedTypeHeader: 'Vio Cat',
+      username: 'admin'
+    }
+  );
+  assert.equal(confirmed.ok, true, 'GATE-06 same-fp: confirm path must succeed');
+  assert.equal(
+    confirmed.processingMeta.columnMap.violationIssueType,
+    'Vio Cat',
+    'GATE-06 same-fp: shared Type map is Vio Cat'
+  );
+});
+
+test('GATE water skip: water_shut_off processes without TYPE_COLUMN_CONFIRM_REQUIRED', async () => {
+  // Empty formats root — water must not hit Type confirm gate.
+  let threw = null;
+  let result;
+  try {
+    const buffer = fs.readFileSync(path.join(FIXTURES, 'water-shutoffs.txt'));
+    result = await processUpload({
+      buffer,
+      filename: 'shutoffs-gate-skip.txt',
+      city: CITY,
+      uploadType: 'water_shut_off'
+    });
+  } catch (err) {
+    threw = err;
+  }
+
+  assert.ok(
+    !threw || threw.code !== 'TYPE_COLUMN_CONFIRM_REQUIRED',
+    `water_shut_off must not throw TYPE_COLUMN_CONFIRM_REQUIRED, got: ${threw && threw.code}`
+  );
+  assert.ok(result && result.ok !== false, 'water process should complete');
+  assert.ok(result.stats.kept >= 1, 'water keep at least one row');
 });
