@@ -359,6 +359,23 @@ test('renderTrainGroupCard includes label, count, signals, samples, and outcome 
   assert.ok(!html.includes('✗ Deny'), 'legacy Deny label removed');
 });
 
+/** DESK-06: live BridgeTrain path must emit phuglee-btn* (not dead bridge-btn*). */
+test('renderTrainGroupCard approve/deny use phuglee-btn vocabulary (DESK-06)', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  const html = api.renderTrainGroupCard(SAMPLE_GROUP);
+  assert.ok(
+    html.includes('phuglee-btn phuglee-btn-primary bridge-train-approve'),
+    'approve uses phuglee-btn-primary + bridge-train-approve hook'
+  );
+  assert.ok(
+    html.includes('phuglee-btn phuglee-btn-secondary bridge-train-deny'),
+    'deny uses phuglee-btn-secondary + bridge-train-deny hook'
+  );
+  assert.ok(!html.includes('bridge-btn'), 'no dead bridge-btn classes on train CTAs');
+  assert.ok(html.includes('data-action="approve"'), 'approve data-action preserved');
+  assert.ok(html.includes('data-action="deny"'), 'deny data-action preserved');
+});
+
 test('renderTrainGroupCard not_distressed swaps outcome button labels', () => {
   const api = loadBridgeTrain({ sessionUser: 'admin' });
   const html = api.renderTrainGroupCard({
