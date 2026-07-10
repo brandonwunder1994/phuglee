@@ -1,554 +1,470 @@
 # Architecture Research
 
-**Domain:** Distress OS Filter (Data Bridge) — Type Column Intelligence (v1.8)
-**Researched:** 2026-07-09
-**Confidence:** HIGH (integration points verified in current `lib/` pipeline; scoring heuristics MEDIUM until unit matrix)
+**Domain:** Distress OS Filter (Data Bridge) — Independence, multi-list staging, accuracy & learning (v2.0)
+**Researched:** 2026-07-10
+**Confidence:** HIGH for as-built seams (verified in `lib/`, `public/js/bridge.js`); MEDIUM for product-gap sizing (UX elevation vs greenfield)
 
 ## Standard Architecture
 
 ### System Overview
 
-v1.8 extends the existing in-process Filter pipeline. It does **not** introduce multi-tenant auth, ML services, or a new product surface. Three concerns plug into known seams:
+v2.0 does **not** invent a new product surface or shared DB. It re-centers Filter as a **standalone list factory** and strengthens the **in-Filter learning loop**. Three product moves plug into existing seams:
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│  UI  public/js/bridge.js + bridge-train.js                               │
-│  · process upload · Type-column confirm modal · Train shortLabel display │
-└───────────────────────────────┬──────────────────────────────────────────┘
-                                │ POST /api/bridge/process
-                                │ POST /api/bridge/process/confirm  (new)
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  UI  public/bridge.html + public/js/bridge.js (+ bridge-train.js)            │
+│  · process · Train Approve/Deny · Save list (primary CTA) · multi-list panel │
+│  · download / download-all · attach to Collect (optional)                    │
+│  · single lastResult working set (ephemeral until Save)                      │
+└───────────────────────────────┬──────────────────────────────────────────────┘
+                                │ /api/bridge/*
                                 ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│  API  lib/bridge-api.js                                                  │
-│  handleProcess / handleProcessConfirm                                    │
-└───────────────────────────────┬──────────────────────────────────────────┘
-                                │
-                                ▼
-┌──────────────────────────────────────────────────────────────────────────┐
-│  Engine  lib/bridge-engine/index.js  processUpload                       │
-│                                                                          │
-│  parse → [TYPE RESOLVE + CONFIRM GATE] → normalize → dedupe → import    │
-│       → brain apply → distress filter → assignRowIds → review groups     │
-└───┬──────────────┬──────────────────────────────┬────────────────────────┘
-    │              │                              │
-    ▼              ▼                              ▼
-┌─────────┐  ┌──────────────┐              ┌────────────────────┐
-│ Scorer  │  │ City format  │              │ Short label        │
-│ (pure)  │  │ memory store │              │ (display-only)     │
-│ NEW     │  │ NEW          │              │ NEW helper         │
-└─────────┘  └──────────────┘              └────────────────────┘
-     │              │                              │
-     │              │                              ▼
-     │              │                    buildReviewGroups
-     │              │                    + Train UI title
-     ▼              ▼
- enhanceColumnMap / resolveTypeColumn
- → columnMap.violationIssueType = single winner
- → mapRawRow / promoteCategoryFromRaw (fallback only)
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  API  lib/bridge-api.js                                                      │
+│  process · lists CRUD/download · brain decisions/undo/rules · attach/history │
+│  ★ NO process-path write to Analyze (already true; v2.0 locks + purges dead) │
+└───┬─────────────────────┬──────────────────────────┬─────────────────────────┘
+    │                     │                          │
+    ▼                     ▼                          ▼
+┌─────────────┐   ┌──────────────────┐    ┌────────────────────┐
+│ Engine      │   │ List store       │    │ Brain stack        │
+│ processUp-  │   │ bridge-list-     │    │ store / apply /    │
+│ load + batch│   │ store.js         │    │ decisions / miner  │
+└──────┬──────┘   └────────┬─────────┘    └─────────┬──────────┘
+       │                   │                        │
+       │                   ▼                        ▼
+       │          data/filter-lists/         BRIDGE_BRAIN_ROOT/
+       │          {scopeKey}/                global-brain.json
+       │            index.json
+       │            {listId}/meta.json
+       │            {listId}/rows.json
+       │
+       │  READ-ONLY soft link (keep)
+       ▼
+┌──────────────────┐     optional legacy (quarantine / delete in v2.0)
+│ analyzer-import- │     lib/bridge-analyzer-push.js  ──X──► Analyze write
+│ index.js         │     (NOT called from handleProcess today)
+└──────────────────┘
 ```
+
+**Product pipeline after v2.0 (locked):**
+
+```
+Collect (city files)
+    → Filter process (tag + brain + dedupe + optional already_imported)
+    → Train (admin) → brain rules (global)
+    → Save list(s) → Download → external enrich/skip-trace
+    → Manual Analyze import
+```
+
+No Filter → Analyze **write** path. Analyze → Filter **read** (address index) remains intentional soft coupling.
 
 ### Component Responsibilities
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| Type column scorer | Rank columns by header aliases + value-shape samples; pick **one** winner | New pure module `lib/bridge-type-column-score.js` |
-| Column map resolver | Merge alias map + scorer + confirmed override into `columnMap` | Extend `enhanceColumnMap` / thin orchestrator in normalizer; **do not** grow `detectIntakeColumnMap` into a scorer |
-| City format store | Persist per-city fingerprint + last confirmed Type header | New `lib/bridge-city-format-store.js` (file JSON, volume-safe) |
-| Confirm gate | Pause process when city is new or format changed; resume with chosen header | Early return from `processUpload` + API + UI modal |
-| Short label | Display truncation for Train/group titles; never mutates stored type | Pure `lib/bridge-short-label.js` + field on review groups |
-| Promote (existing) | Fill empty type from unmapped category-like headers | Keep `lib/bridge-category-promote.js` as **fallback only** when no Type column mapped |
-| Review groups (existing) | Group by stable type key; expose labels for Train | Add `shortLabel`; keep full `violationTypeLabel` |
+| Component | Responsibility | New vs modified | Typical implementation |
+|-----------|----------------|-----------------|------------------------|
+| `handleProcess` | Upload → `processUpload(Batch)`; return payload only | **Modified** (lock: assert no push; docs/tests) | `lib/bridge-api.js` |
+| `processUpload` | Parse → type gate → normalize/tag → dedupe → import-filter → **brain apply** → distress filter → rowIds → review groups | **Modified** (accuracy/learning only) | `lib/bridge-engine/index.js` |
+| List store | User-scoped multi-list durable staging | **Mostly exists; modify** for any meta/UX gaps | `lib/bridge-list-store.js` |
+| Lists API | CRUD, download, download-all, clear | **Exists; polish** | `lib/bridge-api.js` list handlers |
+| Filter UI | Process results, Train, Save/Download CTAs, multi-list panel | **Modified** (CTA primacy, working-set hygiene) | `public/js/bridge.js` |
+| Brain store | Global rules + events + metrics | **Modified** (learning bar metrics) | `lib/bridge-brain-store.js` |
+| Brain apply | Promote/suppress type+phrase before distress filter | **Modified** (accuracy) | `lib/bridge-brain-apply.js` |
+| Brain decisions | Admin Approve/Deny → rules + list mutation | **Modified** (learning quality) | `lib/bridge-brain-decisions.js` |
+| Phrase miner | Proposed phrases from deny events | **Modified** (activation efficiency) | `lib/bridge-phrase-miner.js` |
+| Review groups | Train grouping keys (timestamp-stable) | **Modified** (accuracy) | `lib/bridge-review-groups.js` |
+| Type column + city format | Scorer + confirm gate + format memory | **Carry forward** (v1.8); accuracy touch only if needed | `bridge-type-column-score.js`, `bridge-city-format-store.js` |
+| Distress tagger | Base keep/kill regex categories | **Modified** (accuracy pass) | `lib/bridge-distress-tagger.js` |
+| Import address index | Strip rows already in Analyze session | **Keep** (read-only soft coupling) | `analyzer-import-index.js` + `import-filter.js` |
+| Analyzer push adapter | Bridge rows → Analyze session write | **Delete or quarantine** | `lib/bridge-analyzer-push.js` |
+| Forge attach | Version dataset + response KPI on city | **Unchanged** (independent of Analyze) | attach handlers + `forge-client` |
+| Format store | Per-city Type header fingerprint | **Unchanged** domain boundary | `BRIDGE_CITY_FORMATS_ROOT` |
 
 ## Recommended Project Structure
 
+v2.0 stays in the existing shell layout. Prefer **pure modules + thin API wiring** (v1.6–v1.8 pattern). No new top-level product folder.
+
 ```
 lib/
-├── bridge-type-column-score.js     # NEW pure: scoreColumns(headers, sampleRows) → ranked
-├── bridge-city-format-store.js     # NEW: load/save per-city format memory
-├── bridge-short-label.js           # NEW pure: shortLabel(fullText) display helper
-├── bridge-intake-schema.js         # KEEP: aliases, detectIntakeColumnMap, mapRawRow
-├── bridge-category-promote.js      # KEEP: empty-type fallback (unchanged role)
+├── bridge-api.js                 # MODIFY — routes; independence lock; list/brain polish
 ├── bridge-engine/
-│   ├── normalizer.js               # MODIFY: resolve Type via scorer/memory before mapRawRow
-│   └── index.js                    # MODIFY: confirm gate after parse, before full normalize
-├── bridge-api.js                   # MODIFY: process response codes + confirm endpoint
-├── bridge-review-groups.js         # MODIFY: attach shortLabel (display-only)
-├── bridge-brain-store.js           # UNCHANGED (rules brain ≠ city format memory)
-├── config.js                       # MODIFY: BRIDGE_CITY_FORMATS_ROOT (or nest under brain root)
-public/js/
-├── bridge.js                       # MODIFY: confirm modal flow on process response
-└── bridge-train.js                 # MODIFY: prefer shortLabel for card titles
+│   ├── index.js                  # MODIFY — processUpload order; accuracy/learning hooks only
+│   ├── normalizer.js             # MODIFY only if type/map accuracy needs it
+│   ├── import-filter.js          # KEEP (read-only Analyze soft link)
+│   └── parsers/                  # KEEP
+├── bridge-list-store.js          # MODIFY if meta/status/fields needed; API surface largely done
+├── bridge-export.js              # KEEP (CSV/XLSX for downloads)
+├── bridge-analyzer-push.js       # DELETE or move to legacy/ — not on process path
+├── bridge-brain-store.js         # MODIFY — metrics for learning bar
+├── bridge-brain-apply.js         # MODIFY — apply order / rule quality
+├── bridge-brain-decisions.js     # MODIFY — decision → rule quality
+├── bridge-phrase-miner.js        # MODIFY — propose → activate efficiency
+├── bridge-review-groups.js       # MODIFY — grouping accuracy
+├── bridge-distress-tagger.js     # MODIFY — keep/kill accuracy
+├── bridge-type-column-score.js   # KEEP (v1.8)
+├── bridge-city-format-store.js   # KEEP (v1.8)
+├── bridge-short-label.js         # KEEP (display-only)
+├── analyzer-import-index.js      # KEEP read-only
+└── config.js                     # KEEP FILTER_LISTS_ROOT / BRIDGE_BRAIN_ROOT
+
+public/
+├── bridge.html                   # MODIFY — CTA hierarchy (Save/Download first-class)
+└── js/
+    ├── bridge.js                 # MODIFY — lastResult lifecycle, lists UX, no push
+    └── bridge-train.js           # MODIFY — Train efficiency / labels only
+
+data/                             # runtime (gitignored) — DO NOT wipe in agents
+├── filter-lists/{scopeKey}/      # multi-list store
+└── bridge-brain/global-brain.json
+
 tests/
-├── bridge-type-column-score.test.js
-├── bridge-city-format-store.test.js
-├── bridge-short-label.test.js
-└── processUpload / confirm gate e2e locks
+├── bridge-list-store.test.js     # KEEP + extend
+├── bridge-api-handlers.test.js   # MODIFY — process never pushes
+├── bridge-engine*.test.js        # MODIFY — accuracy locks
+└── bridge-analyzer-push.test.js  # DELETE with module or reframe as “must not be required by process”
 ```
 
 ### Structure Rationale
 
-- **New pure scorer module:** Scoring is value-aware and multi-candidate; stuffing it into `detectIntakeColumnMap` (alias-first / first-match) conflates two algorithms and makes TDD harder. Mirror v1.7 pattern: pure helper (`bridge-category-promote.js`) + thin normalizer wire.
-- **Separate city format store:** Not the global brain. Brain is **shared quality rules** (type/phrase suppress/promote). Format memory is **per-city sheet layout** (which header is Type). Mixing them creates version-conflict noise on every confirm and couples Train decisions to upload UX.
-- **shortLabel as pure display helper:** Same lesson as SHAPE (v1.7): do not reshape stored distress/export fields for UI convenience.
-- **Confirm at engine, not only UI:** Server must refuse full process without confirmation when format is new/changed; client modal is the UX, not the security/consistency boundary.
+- **In-process Filter:** Same as v1.x — zero new service boundary; roadmapper phases stay file-local.
+- **List store under `FILTER_LISTS_ROOT`:** Already volume-safe; multi-list is directory-per-list + `index.json` — extend, don’t replace.
+- **Brain separate from list store and from Analyzer learned-brain:** Carry-forward v1.6 decision; accuracy/learning must not merge domains.
+- **Push module as dead code:** Treating it as “optional library” invites re-coupling. Quarantine/delete in independence phase.
 
 ## Architectural Patterns
 
-### Pattern 1: Pure scorer + thin orchestrator (prefer over bloating detectIntakeColumnMap)
+### Pattern 1: Independence boundary (Filter write ban)
 
-**What:** Keep `detectIntakeColumnMap` for address/date/notes and as a **header-alias signal** for Type. New scorer ranks **all** columns; orchestrator picks single winner.
+**What:** Filter may **read** Analyze state for de-dupe; Filter must never **write** Analyze session/records from process, save, or Train.
+**When to use:** Every v2.0 phase that touches process, lists, or brain.
+**Trade-offs:** Operators must manually import after enrich (product intent). Soft read coupling still requires Analyzer data root / process availability for `already_imported` stats.
 
-**When to use:** Any column-detection that needs cell samples, confidence scores, or “best of N” — not exact alias match.
-
-**Trade-offs:**
-- Pro: Unit-testable without engine; clear single-winner policy; promote stays fallback
-- Con: Two Type signals (alias map + scorer) need an explicit precedence table (below)
-
-**Precedence (locked for v1.8):**
-
-```
-1. Confirmed override for this city + matching format fingerprint
-2. Scorer top candidate (if score ≥ threshold OR clear margin vs #2)
-3. detectIntakeColumnMap.violationIssueType (alias-only)
-4. leave empty → promoteCategoryFromRaw may still fill per-row (existing MAP)
-5. still empty → keep rows for review (no silent discard)
-```
-
-**Example:**
+**Example (as-built process handler):**
 
 ```javascript
-// lib/bridge-type-column-score.js (shape)
-function scoreTypeColumns(headers, sampleRows, { aliases } = {}) {
-  // per header: headerScore(aliases) + valueShapeScore(samples)
-  // return [{ header, score, reasons, samples }, ...] sorted desc
-}
-
-function pickTypeColumn(ranked, { minScore, minMargin } = {}) {
-  // single winner or null — never blend columns
-}
+// lib/bridge-api.js handleProcess — keep this contract
+const payload = await processUploadBatch(fileList, batchArgs);
+// Filter only — do not auto-push to Analyze. Lists are saved explicitly via /api/bridge/lists.
+sendJson(res, 200, payload);
 ```
 
-```javascript
-// normalizer resolve (conceptual)
-function resolveTypeColumn(headers, sampleRows, { confirmedHeader } = {}) {
-  if (confirmedHeader && headers.includes(confirmedHeader)) {
-    return { header: confirmedHeader, source: 'city_memory' };
-  }
-  const ranked = scoreTypeColumns(headers, sampleRows, {
-    aliases: INTAKE_FIELD_ALIASES.violationIssueType
-  });
-  const picked = pickTypeColumn(ranked);
-  if (picked) return { header: picked.header, source: 'scorer', ranked };
-  const aliasMap = detectIntakeColumnMap(headers);
-  if (aliasMap.violationIssueType) {
-    return { header: aliasMap.violationIssueType, source: 'alias', ranked };
-  }
-  return { header: null, source: 'none', ranked };
-}
-```
+**Enforcement for v2.0:**
 
-### Pattern 2: Confirm gate as early processUpload branch
+1. Static: process path must not `require('bridge-analyzer-push')`.
+2. Test: handler/unit lock that `pushRowsToAnalyzer` is never invoked from process.
+3. UI: primary CTA is Save / Download, not “Send to Analyze”.
 
-**What:** After parse (headers + rows available), compute fingerprint + score, consult city memory. If confirm required, **return a structured pause payload** without running tag/brain/distress/groups. Client shows picker; second request continues with locked Type header.
+### Pattern 2: Ephemeral working set → durable multi-list store
 
-**When to use:** First upload for city, or format fingerprint ≠ last confirmed for that city.
-
-**Trade-offs:**
-- Pro: Never builds Train groups from the wrong Type column; cheap pause (parse-only cost)
-- Con: Two-step upload UX; need durable or re-upload buffer for the second step
-
-**Recommended resume strategy (opinionated):**
-
-| Option | Verdict |
-|--------|---------|
-| Re-upload file on confirm | Simple, no server buffer; preferred for v1.8 |
-| Server-side temp staging of parse result | Faster UX, more state/TTL/cleanup; defer |
-
-**Resume = same multipart process with extra fields:**
-- `confirmedTypeHeader` (required when resuming)
-- `formatFingerprint` (echo from pause payload; server re-validates against re-parsed headers)
-
-**Example gate placement:**
+**What:** `lastResult` in `public/js/bridge.js` is a **single working set** (process + Train mutations). Durability is only via `POST /api/bridge/lists` into `data/filter-lists/{scopeKey}/`.
+**When to use:** Multi-city sequential days; external enrichment batches.
+**Trade-offs:** Processing city B without saving city A loses the working set. That is correct if Save is primary — v2.0 UX must make the risk obvious (and ideally block silent overwrite).
 
 ```
-processUpload({ buffer, filename, city, uploadType, confirmedTypeHeader? })
-  │
-  ├─ parse → { headers, rows }
-  ├─ fingerprint = formatFingerprint(headers, parseMeta)
-  ├─ memory = loadCityFormat(city.id, uploadType)
-  ├─ ranked = scoreTypeColumns(headers, sample(rows))
-  ├─ needConfirm =
-  │     !memory
-  │  || memory.fingerprint !== fingerprint
-  │  || (confirmedTypeHeader provided but not in headers)  // hard error
-  │
-  ├─ if needConfirm && !confirmedTypeHeader:
-  │     return {
-  │       ok: false,
-  │       code: 'TYPE_COLUMN_CONFIRM_REQUIRED',
-  │       city, uploadType, sourceFile,
-  │       formatFingerprint: fingerprint,
-  │       candidates: ranked.slice(0, N),   // header + score + samples
-  │       suggestedHeader: ranked[0]?.header || null,
-  │       lastConfirmed: memory || null
-  │     }
-  │     // API maps to HTTP 409 (or 200 with gate flag — prefer 409 so clients
-  │     // cannot treat as finished process)
-  │
-  ├─ typeHeader = confirmedTypeHeader
-  │     || (memory.fingerprint === fingerprint && memory.typeHeader)
-  │     || pickTypeColumn(ranked)?.header
-  │     || detectIntakeColumnMap(headers).violationIssueType
-  │
-  ├─ if confirmedTypeHeader: saveCityFormat({ cityId, fingerprint, typeHeader, … })
-  │
-  └─ normalizeRawRows(..., { typeColumnOverride: typeHeader })
-       → mapRawRow → promote (only if still empty) → tag → …
+lastResult (client memory)
+    │  processUpload overwrites
+    │  Train decision mutates rows / reviewGroups / stats
+    ▼
+POST /api/bridge/lists  →  saveList()  →  index.json + {id}/meta.json + {id}/rows.json
+    │
+    ▼
+GET .../download | download-all  →  CSV/XLSX (markDownloaded status)
 ```
 
-**Where the gate sits relative to existing stages:**
+**Do not** invent a second parallel store (e.g. session draft DB) unless UX research proves multi-working-set is required. Prefer: Save → clear working set → next city (already partially implemented via `resetImportAreaAfterSave`).
 
-| Stage | Runs before confirm? | Runs after confirm / reuse? |
-|-------|----------------------|-----------------------------|
-| Parse | Yes | Yes |
-| Type score + fingerprint | Yes | Yes |
-| Full `normalizeRawRows` / promote / tag | **No** | Yes |
-| Dedupe / import index / brain / distress | **No** | Yes |
-| `buildReviewGroups` | **No** | Yes |
+### Pattern 3: Brain apply before distress filter (learning plug-in)
 
-This is the critical integration answer: **gate after parse + score, before normalize**. Not after full process.
-
-### Pattern 3: Per-city format memory (file store, not brain)
-
-**What:** Durable JSON keyed by `cityId` (+ `uploadType` if water vs code sheets differ).
-
-**When to use:** Every successful confirm; every same-format reuse check.
-
-**Trade-offs:**
-- Pro: Survives restarts; volume-safe like brain/lists; no multi-tenant auth needed
-- Con: Another file root to gitignore / volume-mount
-
-**Recommended storage shape:**
+**What:** Global brain rules re-tag rows **after** import-filter and **before** `filterDistressOnly`, so suppress/promote changes who enters kept vs FN review pools.
+**When to use:** All code_violation process runs; water is no-op (BRAIN-03).
+**Trade-offs:** Suppress-last-wins means promote can be overridden — intentional (v1.6). Accuracy work must preserve water early-exit and order tests.
 
 ```
-{BRIDGE_CITY_FORMATS_ROOT}/
-  index or per-city files:
-  {
-    "version": 1,
-    "cities": {
-      "<cityId>": {
-        "code_violation": {
-          "fingerprint": "sha1…",
-          "typeHeader": "Vio Cat",
-          "confirmedAt": "ISO",
-          "confirmedBy": "admin",
-          "sourceFileLast": "…",
-          "headerSnapshot": ["Property Address", "Vio Cat", …]
-        },
-        "water_shut_off": { … }
-      }
-    }
-  }
+normalize/tagRow → dedupe → filterAlreadyImported
+    → applyBrainToRows (promote_type → promote_phrase → suppress_phrase → suppress_type)
+    → filterDistressOnly
+    → assignRowIds + buildReviewGroups
 ```
 
-**Config path pattern (mirror brain):**
+### Pattern 4: Decision write path is brain + client lists only
 
-```javascript
-// lib/config.js
-BRIDGE_CITY_FORMATS_ROOT: process.env.BRIDGE_CITY_FORMATS_ROOT
-  ? path.resolve(process.env.BRIDGE_CITY_FORMATS_ROOT)
-  : (process.env.PDA_DATA_ROOT
-    ? path.join(path.resolve(process.env.PDA_DATA_ROOT), 'bridge-city-formats')
-    : path.join(ROOT, 'data', 'bridge-city-formats')),
-```
+**What:** `POST /api/bridge/brain/decisions` mutates global brain and returns mutated `rows` / `notDistressedRows` / `reviewGroups`. Client applies to `lastResult`. **Does not** touch list store or Analyze.
+**When to use:** Admin Train Approve/Deny.
+**Trade-offs:** Saving a list **after** Train is the operator’s job; list store has no automatic “save trained result” unless v2.0 adds optional auto-save. Prefer explicit Save CTA over silent list writes.
 
-**Fingerprint inputs (opinionated):**
-- Sorted normalized header list (primary)
-- Optional: sheet name / parser kind for multi-sheet Excel
-- **Do not** hash all cell values (too brittle); header set = “sheet format”
-- Column order change that renames headers → new fingerprint → re-confirm (correct)
-- Column order only, same headers → same fingerprint → reuse (acceptable)
+### Pattern 5: Pure helper + thin engine wire (accuracy modules)
 
-**Who can confirm:** Admin-only write (same `requireAdmin` / `X-Phuglee-User === admin` pattern as brain decisions). Non-admin process on new format: still pause; either block with “admin must map Type column once” or allow process with scorer suggestion but **do not persist** memory — product choice: **prefer admin-only persist + pause for all until confirmed** so wrong maps do not silently stick.
-
-### Pattern 4: Display-only short labels
-
-**What:** `shortLabel` derived from full type/description for Train cards and group list chrome. Full `violationIssueType` / `descriptionNotes` / `violationTypeLabel` remain authoritative for distress match, group keys, export, brain rules.
-
-**When to use:** Any UI that shows long ordinance walls of text.
-
-**Trade-offs:**
-- Pro: Zero impact on tagging accuracy or export contracts
-- Con: Two fields in group payload; UI must pick the right one
-
-**Example:**
-
-```javascript
-// lib/bridge-short-label.js
-function shortLabel(text, { maxLen = 48 } = {}) {
-  const cleaned = stripIncidentalTimestamps(text).replace(/\s+/g, ' ').trim();
-  if (cleaned.length <= maxLen) return cleaned;
-  return cleaned.slice(0, maxLen - 1).trimEnd() + '…';
-}
-
-// bridge-review-groups.js inside buildReviewGroups
-g.violationTypeLabel = fullLabel;           // existing — full cleaned
-g.shortLabel = shortLabel(fullLabel);       // NEW display-only
-// group keys still from stableTypeKey(raw type) — unchanged
-```
-
-**UI:**
-
-```
-Train card title  → group.shortLabel || group.violationTypeLabel
-Expand / tooltip  → group.violationTypeLabel (full)
-Export / CSV      → row.violationIssueType (never shortLabel)
-Brain type rules  → violationTypeKey(full type) — never shortLabel
-```
+**What:** Accuracy improvements ship as pure functions (score, group key, phrase mine) with engine/API only wiring. Matches v1.7–v1.8 (e.g. `bridge-type-column-score.js`).
+**When to use:** Any keep/kill, Type, grouping, or learning algorithm change.
+**Trade-offs:** Slightly more files; massively better testability and no Analyze dependency leakage.
 
 ## Data Flow
 
-### Request Flow — same-format reuse (happy path)
+### Request Flow — process (no Analyze write)
 
 ```
-User selects city + file
+[User: city + file(s)]
     ↓
-POST /api/bridge/process (multipart)
+public/js/bridge.js processUpload()
+    ↓ POST multipart /api/bridge/process
+handleProcess → processUploadBatch → processUpload
     ↓
-parse → fingerprint matches city memory
+parse → type confirm gate (v1.8) → normalizeRawRows/tagRow
+    → dedupeRows → loadImportAddressIndex (READ Analyze)
+    → filterAlreadyImported
+    → loadBrain + applyBrainToRows
+    → filterDistressOnly
+    → assignRowIds + buildReviewGroups
     ↓
-typeHeader = memory.typeHeader
+JSON { rows, notDistressedRows, reviewGroups, stats, processingMeta }
     ↓
-normalize with override → tag → brain → distress → groups
-    ↓
-200 { rows, reviewGroups (w/ shortLabel), processingMeta.columnMap, … }
-    ↓
-Train UI shows shortLabel titles; full text in details
+lastResult = data; renderResults; Train chrome if admin
+    ✗ never pushRowsToAnalyzer
 ```
 
-### Request Flow — confirm required (new city or format change)
+### Request Flow — save / multi-list / download (primary product path)
 
 ```
-POST /api/bridge/process
+[User: Save list]
+    ↓ POST /api/bridge/lists { name, rows: lastResult.rows, city, stats, ... }
+handleListCreate → saveList
     ↓
-parse → score → fingerprint mismatch / no memory
+FILTER_LISTS_ROOT/{storageKey}/index.json + {listId}/…
     ↓
-409 TYPE_COLUMN_CONFIRM_REQUIRED
-    { candidates, suggestedHeader, formatFingerprint, lastConfirmed? }
-    ↓
-UI modal: pick Type column (show samples)
-    ↓
-POST /api/bridge/process again with confirmedTypeHeader + same file
-    (or dedicated /process/confirm that re-runs processUpload with override)
-    ↓
-saveCityFormat(cityId, fingerprint, typeHeader)
-    ↓
-full pipeline → 200 process result
+UI: loadSavedLists + resetImportAreaAfterSave (ready for next city)
+
+[User: Download all]
+    ↓ GET /api/bridge/lists/download-all?format=csv|xlsx
+buildDownloadAll → browser file
+    ↓ external enrich / skip-trace
+    ↓ manual Analyze import (outside Filter)
 ```
 
-### Key Data Flows
+### Request Flow — Train → brain learning (independent of lists & Analyze)
 
-1. **Type column resolution:** headers + sample rows → scorer → single header → `columnMap.violationIssueType` → `mapRawRow` copies that cell into `violationIssueType` for every row.
-2. **Empty after map:** existing `promoteCategoryFromRaw` may still promote from other category-like unmapped headers (v1.7 MAP). Scorer should usually make this rare.
-3. **No Type column at all:** leave empty; groups fall into `__unknown__` + description keys (v1.7 GROUP); rows stay for review — **no** `no_distress` discard solely for missing type.
-4. **Short labels:** full label → `shortLabel` on group only; rows and export untouched.
-5. **Batch multi-file:** each file may have its own headers; fingerprint **per file**. If any file needs confirm, pause that file (or whole batch) before merge. Prefer: confirm once per distinct fingerprint in the batch; reuse within batch after first confirm.
+```
+[Admin: Approve/Deny group]
+    ↓ POST /api/bridge/brain/decisions
+applyDecision(brain, currentRows, notDistressedRows)
+    → typeRules upsert/disable + events + phrase mine (proposed)
+    → saveBrain (version RMW)
+    ↓
+response mutates lastResult lists + reviewGroups
+    ↓ (later process runs)
+applyBrainToRows uses active rules → fewer wrong keeps/kills → fewer Train actions
+```
 
 ### State Management
 
-```
-BRIDGE_CITY_FORMATS_ROOT  (new, durable, volume-safe)
-    ↓ load on process
-city format memory ──► type override
-    ↑ save on admin confirm
+| State | Location | Owner | Lifetime |
+|-------|----------|-------|----------|
+| Working process result | `lastResult` in `bridge.js` | Client | Until next process or page reload; cleared after successful Save |
+| Saved lists | `FILTER_LISTS_ROOT/{scope}/` | List store | Until user delete/clear |
+| Global brain | `BRIDGE_BRAIN_ROOT/global-brain.json` | Brain store | Durable; admin decisions |
+| City Type format memory | `BRIDGE_CITY_FORMATS_ROOT` | Format store | Durable; admin confirm |
+| Analyze session addresses | Analyzer data root / API | Import index (read) | Soft cache (~5 min TTL; force on process) |
+| Forge bridge datasets | Form Forge city profile | Attach API | Independent KPI/history |
 
-BRIDGE_BRAIN_ROOT / global-brain.json  (unchanged)
-    ↓ after normalize
-type/phrase rules
+### Key Data Flows (v2.0 deltas)
 
-FILTER_LISTS_ROOT  (unchanged)
-    ↓ explicit save
-user lists (full type text, no shortLabel required on rows)
-```
+1. **Independence:** Process/save/Train remain write-isolated from Analyze; purge dead push so it cannot be re-wired casually.
+2. **Multi-list:** Sequential cities accumulate in list store; download-all is the enrichment handoff; not a single `lastResult`.
+3. **Learning bar:** Decision events + active rules + (recommended) process-time rule-hit counters feed “Approve/Deny volume falls over time.”
+4. **Accuracy:** Changes stay inside tagger / groups / brain apply / type gate — never “fix accuracy by pushing to Analyze for re-scan.”
 
 ## Scaling Considerations
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| Local single-admin (current) | File JSON city-format store + in-process scorer is correct |
-| Multi-city dozens of formats | Single index file fine; optional per-city files if index grows |
-| Multi-tenant / many admins | Needs real sessions (already out of scope); do **not** invent now |
-| Huge sheets (100k rows) | Score on **sample only** (first N non-empty rows, e.g. 50–200), never full scan |
+| Scale | Architecture adjustments |
+|-------|---------------------------|
+| Single admin, local/Railway (current) | Monolith shell + file stores; fine. Header user scope OK. |
+| Multi-operator same tenant | Scope keys already isolate lists; brain remains **global** (product). Don’t split brain per user. |
+| Very large city files / many lists | List `rows.json` size + decision POST body (15MB soft debt) — stream/export and decision payload thinning only if operator pain appears. |
+| Multi-tenant SaaS | Out of scope for v2.0 (needs real sessions); independence work should not depend on it. |
 
 ### Scaling Priorities
 
-1. **First bottleneck:** Wrong Type column destroys Train quality — fix detection + confirm before polish.
-2. **Second bottleneck:** Re-upload latency on confirm — only optimize with parse staging if UX complains.
+1. **First bottleneck:** Operator time on Train Approve/Deny (learning quality), not HTTP scale.
+2. **Second bottleneck:** Process runtime on large OCR/PDF batches — optimize parsers/tagger only after independence + list UX.
+3. **Third bottleneck:** Decision POST shipping full row arrays — defer unless Train latency hurts.
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Grow `detectIntakeColumnMap` into the scorer
+### Anti-Pattern 1: Re-coupling “for convenience”
 
-**What people do:** Add value sampling and ranking inside `detectIntakeColumnMap`.
-**Why it's wrong:** Function is pure header alias first-match; callers and tests assume that contract. Value scoring needs samples and ranked output for the confirm UI.
-**Do this instead:** New `bridge-type-column-score.js`; orchestrator composes alias map + scorer + memory.
+**What people do:** Re-enable `pushRowsToAnalyzer` after process or after Save “so Analyze has the list.”
+**Why it's wrong:** Violates core value (enrich outside; manual import); blurs Filter/Analyze domains; undoes independence milestone.
+**Do this instead:** Save + Download + document manual Analyze import. Keep push deleted/quarantined.
 
-### Anti-Pattern 2: Confirm after full process
+### Anti-Pattern 2: Treating import-filter as “push coupling” to remove
 
-**What people do:** Run tag/brain/groups, then ask admin which column was Type.
-**Why it's wrong:** Groups and brain keys already wrong; user trains on garbage; reprocess expensive.
-**Do this instead:** Gate after parse + score, before `normalizeRawRows`.
+**What people do:** Strip `filterAlreadyImported` to “fully decouple.”
+**Why it's wrong:** That path is **read-only** and prevents re-working leads already in Analyze; product still wants it.
+**Do this instead:** Keep import-filter; label it soft coupling in architecture docs; never write back.
 
-### Anti-Pattern 3: Store city format memory inside `global-brain.json`
+### Anti-Pattern 3: Merging Filter brain with Analyzer learned-brain
 
-**What people do:** Add `cityFormats` to the brain document.
-**Why it's wrong:** Brain version bumps on every column confirm; Train decision 409s collide with format saves; different product concepts.
-**Do this instead:** Separate store under `BRIDGE_CITY_FORMATS_ROOT`.
+**What people do:** Share stores so “one brain rules all.”
+**Why it's wrong:** Different domains (text tags vs vision tiers); v1.6 explicitly separated.
+**Do this instead:** Improve Filter brain metrics/apply only; Analyzer brain stays out of scope.
 
-### Anti-Pattern 4: Replace stored type with shortLabel
+### Anti-Pattern 4: Accuracy fixes that only work after Analyze import
 
-**What people do:** Truncate `violationIssueType` for display convenience.
-**Why it's wrong:** Breaks distress keyword match, export fidelity, brain type keys, group stability.
-**Do this instead:** Parallel `shortLabel` on review groups (and UI-only).
+**What people do:** Defer keep/kill quality to Analyze classification.
+**Why it's wrong:** Re-couples product flow; learning bar is **Filter Train volume**, not Analyze review volume.
+**Do this instead:** Fix tagger/brain/groups so kept lists are trustworthy before download.
 
-### Anti-Pattern 5: Multi-column blend
+### Anti-Pattern 5: Multi-list store rewrite
 
-**What people do:** Concatenate several candidate columns into type.
-**Why it's wrong:** Explicitly forbidden (v1.8 lock); creates noisy keys and false promotes.
-**Do this instead:** Single winner; descriptionNotes remains the narrative field.
+**What people do:** Replace filesystem list store with DB or Analyzer session-as-lists.
+**Why it's wrong:** Store already matches product (`index` + per-list meta/rows, scope keys, download-all); rewrite burns phase budget.
+**Do this instead:** Elevate UX and any missing meta; keep atomic JSON writes.
 
-### Anti-Pattern 6: Silent drop when no Type column
+### Anti-Pattern 6: Auto-save every process without Train
 
-**What people do:** Treat missing type as non-distress / discard.
-**Why it's wrong:** Product lock — keep for review.
-**Do this instead:** Empty type → existing FN/distressed paths + description grouping.
+**What people do:** Persist every process result immediately to lists.
+**Why it's wrong:** Admin may Train-mutate `lastResult` after process; auto-save freezes pre-Train rows or creates junk lists.
+**Do this instead:** Explicit Save after Train (admin) or after process (customer). Optional “Save & next city” CTA is fine; silent auto-save is not.
 
-### Anti-Pattern 7: ML / external column classifier service
+### Anti-Pattern 7: lastResult multi-city without durable save
 
-**What people do:** Call an API to classify columns.
-**Why it's wrong:** Offline-first Filter stack; latency; not required for header+shape heuristics.
-**Do this instead:** Deterministic scorer + admin confirm.
+**What people do:** Array of in-memory results across cities with no disk.
+**Why it's wrong:** Refresh/reload loses a day’s work; contradicts multi-list store purpose.
+**Do this instead:** One working set + durable multi-list panel.
 
 ## Integration Points
 
-### New vs Modified (explicit)
+### External Services
 
-| Artifact | Action | Notes |
-|----------|--------|-------|
-| `lib/bridge-type-column-score.js` | **NEW** | Pure scoring + pick |
-| `lib/bridge-city-format-store.js` | **NEW** | Load/save/fingerprint helpers |
-| `lib/bridge-short-label.js` | **NEW** | Display truncation |
-| `lib/config.js` | **MODIFY** | `BRIDGE_CITY_FORMATS_ROOT` |
-| `lib/bridge-engine/normalizer.js` | **MODIFY** | Accept type override; call resolver |
-| `lib/bridge-engine/index.js` | **MODIFY** | Gate + pass override into normalize |
-| `lib/bridge-api.js` | **MODIFY** | Map `TYPE_COLUMN_CONFIRM_REQUIRED`; optional confirm route |
-| `lib/bridge-review-groups.js` | **MODIFY** | Attach `shortLabel` |
-| `public/js/bridge.js` | **MODIFY** | Confirm modal + re-POST |
-| `public/js/bridge-train.js` | **MODIFY** | Title uses `shortLabel` |
-| `lib/bridge-intake-schema.js` | **MINIMAL** | May export shared sample helpers; keep `detectIntakeColumnMap` alias-first |
-| `lib/bridge-category-promote.js` | **UNCHANGED role** | Fallback only |
-| `lib/bridge-brain-*` | **UNCHANGED** | No format memory here |
-| Analyzer / Forge | **UNTOUCHED** | Out of milestone |
+| Service | Integration pattern | Notes |
+|---------|---------------------|-------|
+| Property Analyzer | **Read** address index only (`analyzer-import-index` / `/api/import-address-index`) | Soft coupling; keep. **No** Filter write via process. |
+| Property Analyzer bridge-import | Legacy HTTP/disk push via `bridge-analyzer-push.js` | **Not** on process path; delete/quarantine in independence phase. Manual import UI in Analyze remains the product path. |
+| Form Forge | City summaries; attach dataset + response KPI | Independent of Analyze; keep. |
+| External enrich / skip-trace | Offline / third-party after download | Outside codebase; download-all is the handoff. |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| API ↔ Engine | Direct require; structured error codes | `TYPE_COLUMN_CONFIRM_REQUIRED` like `NO_USABLE_ROWS` |
-| Engine ↔ Scorer | Pure function call | No I/O |
-| Engine ↔ City format store | Sync file I/O | Atomic write pattern from brain/list store |
-| Engine ↔ Review groups | After full process only | shortLabel computed here |
-| UI ↔ API | Multipart process + JSON confirm fields | Admin for persist |
-| Scorer ↔ Promote | No direct link | Sequential: map first, promote if empty |
+| UI ↔ Bridge API | REST JSON / multipart | Same origin shell |
+| API ↔ Engine | In-process function call | `processUpload` / batch |
+| API ↔ List store | In-process | Scope from `X-Phuglee-User` / plan |
+| API ↔ Brain | In-process load/save | Admin gate on writes |
+| Engine ↔ Import index | Async load Set | Force refresh each process |
+| Engine ↔ Brain apply | Pure function | No fs inside apply |
+| List store ↔ Brain | **None** | Save does not train; train does not auto-save |
+| List store ↔ Analyze | **None** | Download is human bridge |
+| Format store ↔ Brain | **None** | Separate roots (v1.8) |
+| Filter brain ↔ Analyzer learned-brain | **None** | Hard domain split |
 
-### External Services
+### New vs Modified (v2.0 summary)
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Form Forge city list | Existing `loadCitySummaries` | City id keys format memory |
-| Analyzer import index | Unchanged after gate | Runs only on full process |
-| ML / Gemini | **None** | Explicit non-requirement |
+| Kind | Items |
+|------|--------|
+| **NEW (only if learning bar needs it)** | Process-time rule-hit metrics helper; optional UI “Save & next city” / dirty-working-set guard; independence regression tests |
+| **MODIFY** | `bridge-api.js`, `bridge-engine`, tagger, review-groups, brain-*, list-store (meta only), `bridge.js` / `bridge.html` CTAs, docs (`DATA-STANDARDS`, audit that still list auto-push as a feature) |
+| **DELETE / QUARANTINE** | Process-path use of `pushRowsToAnalyzer`; ideally module + tests that imply push is product behavior |
+| **KEEP AS-IS** | Multi-list filesystem layout; import-filter read path; Forge attach; city format memory; short labels display-only |
 
-## Suggested Build Order (for roadmap phases ~51+)
+## Suggested Build Order (phases from 55)
 
-Dependencies flow top → bottom. Parallelizable items noted.
+Dependency rule: **decouple push before list UX elevation; accuracy/learning must not reintroduce Analyze writes.**
 
-1. **COL-Score (pure scorer + tests)**  
-   - `bridge-type-column-score.js`  
-   - No API/UI yet  
-   - Unblocks everything Type-related
+```
+55 Independence lock
+    → 56 List factory UX (Save/Download primary; multi-list workflow)
+        → 57 Accuracy structure pass (tagger / type / groups / process)
+            → 58 Learning loop strength (decisions → rules → fewer Train actions)
+                → 59 Efficiency (runtime + operator time + cross-city reuse)
+                    → 60 Integration QA / regression (no re-couple; verify-live)
+```
 
-2. **COL-Wire into column map (no confirm)**  
-   - Resolver in normalizer: scorer winner → `columnMap.violationIssueType`  
-   - Keep promote as empty fallback  
-   - processUpload contract: wrong-header cases improve without UI  
-   - Depends on: (1)
+| Phase (suggested) | Goal | Touches | Depends on | Avoids |
+|-------------------|------|---------|------------|--------|
+| **55 — Independence lock** | Prove and harden “Filter never writes Analyze”; remove dead push surface; docs/tests | `bridge-api`, `bridge-analyzer-push` (delete/quarantine), tests, docs, UI copy that still implies push | Nothing | List redesign, accuracy rewrites |
+| **56 — List factory UX** | Make multi-list Save/Download the hero path; working-set hygiene after process/Train; sequential city day workflow | `bridge.js`, `bridge.html`, minor `bridge-list-store` / list API if gaps | 55 (so Save isn’t “instead of push” half-done) | Brain algorithm changes; Analyze features |
+| **57 — Accuracy structure** | Keep/kill, Type/format, grouping correctness so first-pass lists need less Train | tagger, review-groups, normalizer/type gate, engine only | 55 (boundary clear); 56 optional but preferred so correct rows land in lists | Any Analyze write; brain store schema churn unless required |
+| **58 — Learning loop** | Stronger decision→rule→apply so Approve/Deny volume falls; metrics for the bar | brain-decisions, brain-apply, phrase-miner, brain-store metrics, Train UI | 57 (train against better groups/types) | Push; list store rewrite |
+| **59 — Efficiency** | Operator time, process duration, cross-city reuse (format memory, batch) | engine perf, format reuse UX, Train batching | 57–58 for meaningful “reuse” | New product modules |
+| **60 — QA lock** | processUpload e2e + list e2e + “no push require” + verify-live | tests, `scripts/verify-live.ps1` | 55–59 | New features |
 
-3. **COL-City format memory store**  
-   - `bridge-city-format-store.js` + `BRIDGE_CITY_FORMATS_ROOT`  
-   - fingerprint + load/save  
-   - Depends on: nothing hard (can parallel with 1)
+**Ordering rationale:**
 
-4. **COL-Confirm gate in processUpload + API**  
-   - Early return `TYPE_COLUMN_CONFIRM_REQUIRED`  
-   - Resume with `confirmedTypeHeader` → save memory  
-   - Depends on: (1), (2), (3)
+1. **Independence first** — product definition of done for v2.0; prevents later phases from “temporarily” calling push.
+2. **Lists second** — store/API already exist; UX elevation is the real gap (primary CTA, multi-city day). Doing this before deep accuracy means operators can stage correct-enough lists immediately.
+3. **Accuracy before learning strength** — bad groups/types poison rules; fix structure then reinforce brain.
+4. **Learning before pure perf** — success metric is fewer Approve/Deny actions; runtime secondary.
+5. **QA last** — regression suite must include independence invariants forever.
 
-5. **COL-Confirm UI**  
-   - Modal in `bridge.js`; re-process with chosen header  
-   - Admin-only persist messaging  
-   - Depends on: (4)
+**Research flags for later phase digs:**
 
-6. **LBL-Short labels**  
-   - `bridge-short-label.js` + review-groups field + Train title  
-   - Independent of confirm; can parallel (1)–(4)  
-   - Depends on: none of COL critically
+- Phase 55: Inventory all references to push (docs, GSD-AUDIT, tests) — mostly mechanical.
+- Phase 56: Whether dirty-guard / “Save & next” needs design research (UX), not architecture rewrite.
+- Phase 57–58: Likely need deeper per-topic research (tagger false positives, phrase activation rates, learning metrics schema).
+- Phase 59: Profile processUpload duration only after accuracy freezes.
 
-7. **TEST-Regression lock**  
-   - Wrong-column maps, format reuse, confirm pause, shortLabel display-only  
-   - Depends on: (1)–(6)
+## processUpload stage diagram (v2.0 target — same skeleton)
 
-**Phase ordering rationale:**
-- Scorer before gate (gate needs candidates).
-- Store before gate (gate needs memory compare).
-- Wire-without-confirm ships value early and locks mapping correctness before UX.
-- Short labels are orthogonal — schedule anytime after groups exist (already shipped); prefer before final TEST phase.
-- Do not start multi-tenant sessions or ML classifiers.
+```
+buffer + filename + city + uploadType + user scope
+        │
+        ▼
+   [parse tabular | document/OCR]
+        │
+        ▼
+   [type column gate + city format memory]     ← v1.8; accuracy-only tweaks
+        │
+        ▼
+   normalizeRawRows ── tagRow (base distress)
+        │
+        ▼
+   dedupeRows (within file / batch merge)
+        │
+        ▼
+   loadImportAddressIndex (Analyze READ)       ← soft coupling KEEP
+        │
+        ▼
+   filterAlreadyImported
+        │
+        ▼
+   applyBrainToRows (global brain)             ← learning path
+        │
+        ▼
+   filterDistressOnly (code violations)
+        │
+        ▼
+   assignRowIds → buildReviewGroups
+        │
+        ▼
+   { rows, notDistressedRows, reviewGroups, stats, processingMeta }
+        │
+        ✗  NO pushRowsToAnalyzer
+        │
+        ▼
+   [UI lastResult] → Train? → POST /lists → download → external → manual Analyze
+```
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Pipeline integration points | HIGH | Verified in `processUpload` / normalizer / API |
-| New module vs extend detectIntakeColumnMap | HIGH | Matches v1.7 pure-helper precedent |
-| Confirm gate placement | HIGH | Must be pre-normalize |
-| City format storage location | HIGH | Pattern from brain/lists; separate from brain |
-| shortLabel data flow | HIGH | Display-only parallel field |
-| Scoring heuristics details | MEDIUM | Header+shape weights need unit matrix in phase research |
-| Multi-file batch confirm UX | MEDIUM | Spec per distinct fingerprint; implement carefully |
-| Admin-only confirm policy | MEDIUM | Aligned with brain admin writes; confirm product copy in REQUIREMENTS |
-
-## Gaps to Address in Phase Research
-
-- Exact score weights / thresholds / sample size N
-- HTTP status for gate: **recommend 409** vs soft 200 flag (clients differ)
-- Whether non-admin may process with suggested column without persisting memory
-- Batch: pause whole batch vs per-file confirm
-- Fingerprint: include sheet name or not for multi-sheet workbooks
+| Process has no auto-push today | HIGH | `handleProcess` comment + no require of push module in process path |
+| Multi-list store exists | HIGH | `bridge-list-store.js` + full lists API + UI panel |
+| Soft Analyze read coupling | HIGH | `import-filter` + `analyzer-import-index` every process |
+| Brain learning plug-in points | HIGH | apply → decisions → phrase miner verified |
+| UX gap vs greenfield lists | MEDIUM | Store done; product elevation is UI/workflow, not new persistence |
+| Exact phase count 55–60 | MEDIUM | Suggested for roadmapper; may compress 59/60 |
 
 ## Sources
 
-- Current pipeline: `lib/bridge-engine/index.js` `processUpload`
-- Column map: `lib/bridge-intake-schema.js` `detectIntakeColumnMap`, `mapRawRow`
-- Promote fallback: `lib/bridge-category-promote.js`
-- Groups/labels: `lib/bridge-review-groups.js`, `lib/bridge-stable-text.js`
-- Brain store pattern (do **not** reuse for formats): `lib/bridge-brain-store.js`, `lib/config.js` `BRIDGE_BRAIN_ROOT`
-- Volume-safe list store pattern: `lib/bridge-list-store.js`
-- Product locks: `.planning/PROJECT.md` v1.8, `.planning/STATE.md`
-- Codebase architecture: `.planning/codebase/ARCHITECTURE.md`
-- Prior pure-helper research: `.planning/phases/48-category-promotion-signal-shape/48-RESEARCH.md`
+- Code (2026-07-10): `lib/bridge-api.js`, `lib/bridge-engine/index.js`, `lib/bridge-list-store.js`, `lib/bridge-analyzer-push.js`, `lib/bridge-brain-*.js`, `public/js/bridge.js`, `public/bridge.html`
+- Product: `.planning/PROJECT.md` (v2.0 goals, out of scope auto-push), `.planning/STATE.md`
+- Prior architecture: `.planning/codebase/ARCHITECTURE.md` (2026-07-09)
+- Docs: `docs/bridge/DATA-STANDARDS.md` (Filter saved lists; no auto-push), `docs/bridge/API.md`
+- Prior milestone research: `.planning/research/ARCHITECTURE.md` (v1.8 Type Column — superseded by this file for roadmap focus)
 
 ---
-*Architecture research for: Type Column Intelligence (v1.8 Filter / Data Bridge)*
-*Researched: 2026-07-09*
-*Confidence: HIGH on integration; MEDIUM on scoring heuristics*
+*Architecture research for: Filter Independence & Learning (v2.0)*
+*Researched: 2026-07-10*
+*Feeds roadmap phases starting at 55; do not commit from researcher — orchestrator commits*
+```
