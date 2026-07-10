@@ -75,7 +75,7 @@ Each task was committed atomically:
 1. **Task 1: Write failing store tests (RED)** - `23d8972` (test)
 2. **Task 2: Implement config + store + gitignore (GREEN)** - `407a7a7` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `e5b5dda` (docs: complete plan)
 
 _Note: TDD tasks used RED → GREEN (no refactor needed)._
 
