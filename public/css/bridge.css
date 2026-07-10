@@ -1551,3 +1551,228 @@ body {
   color: var(--phuglee-stone);
   font-style: italic;
 }
+
+/* ── Train brain (admin review shell) ─────────────────────────── */
+
+.bridge-results-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin: 0.85rem 0 0.65rem;
+  padding: 0.35rem;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(174, 163, 143, 0.14);
+  border-radius: var(--radius-md);
+}
+
+.bridge-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.85rem;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.bridge-mode-tab:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(174, 163, 143, 0.2);
+}
+
+.bridge-mode-tab.is-active,
+.bridge-mode-tab[aria-selected="true"] {
+  color: var(--phuglee-black);
+  background: linear-gradient(135deg, var(--phuglee-gold), var(--phuglee-orange));
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(229, 132, 53, 0.28);
+}
+
+.bridge-mode-tab:focus-visible {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
+}
+
+.bridge-train-status {
+  margin: 0.35rem 0 0.65rem;
+  font-size: 0.88rem;
+  color: var(--phuglee-taupe-mid);
+}
+
+.bridge-train-status.is-error {
+  color: #e8a0a0;
+}
+
+.bridge-train-status.is-success {
+  color: #9fd4a8;
+}
+
+.bridge-train-section {
+  margin-top: 1.15rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.12);
+}
+
+.bridge-train-section:first-child {
+  margin-top: 0.5rem;
+  padding-top: 0;
+  border-top: none;
+}
+
+.bridge-train-section h3 {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 0.35rem;
+  color: var(--text);
+}
+
+.bridge-train-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.bridge-train-group {
+  padding: 0.85rem;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(174, 163, 143, 0.14);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0;
+  transition: opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.bridge-train-group.is-pending {
+  opacity: 0.55;
+  border-color: rgba(229, 132, 53, 0.25);
+}
+
+.bridge-train-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.bridge-train-group-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--phuglee-cream);
+  letter-spacing: 0.02em;
+}
+
+.bridge-train-count {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--phuglee-orange);
+  letter-spacing: 0.04em;
+}
+
+.bridge-train-badge {
+  display: inline-block;
+  padding: 0.12rem 0.4rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: 3px;
+}
+
+.bridge-train-badge--singleton {
+  color: var(--phuglee-gold);
+  background: rgba(229, 132, 53, 0.12);
+  border-color: rgba(229, 132, 53, 0.35);
+}
+
+.bridge-train-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.45rem 0;
+}
+
+.bridge-train-descriptions {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--phuglee-stone);
+}
+
+.bridge-train-descriptions li {
+  margin: 0.15rem 0;
+  padding-left: 0.65rem;
+  border-left: 2px solid rgba(174, 163, 143, 0.2);
+}
+
+.bridge-train-addresses {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--phuglee-taupe-mid);
+}
+
+.bridge-train-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.bridge-train-approve {
+  /* Reuses .bridge-btn / .bridge-btn-primary; optional hook for plan 02 */
+}
+
+.bridge-train-deny {
+  color: #e8a0a0;
+  border-color: rgba(220, 120, 120, 0.4);
+  background: rgba(220, 120, 120, 0.08);
+}
+
+.bridge-train-deny:hover {
+  color: #f0b8b8;
+  border-color: rgba(220, 120, 120, 0.55);
+  background: rgba(220, 120, 120, 0.14);
+}
+
+.bridge-train-muted {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  color: var(--phuglee-stone);
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .bridge-results-mode {
+    grid-template-columns: 1fr;
+  }
+
+  .bridge-mode-tab {
+    width: 100%;
+  }
+
+  .bridge-train-actions {
+    flex-direction: column;
+  }
+
+  .bridge-train-actions .bridge-btn {
+    width: 100%;
+  }
+}
