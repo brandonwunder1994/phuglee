@@ -17,7 +17,7 @@
 **Milestone:** v1.8 Type Column Intelligence  
 **Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress/export.
 
-**Status:** Phase 52 planned — Format Memory + Confirm Gate ready to execute
+**Status:** Phase 52 in progress — Plan 01 Wave 0 RED complete; next Plan 02 store
 
 ---
 
@@ -56,10 +56,10 @@ Plans:
   3. Confirm persist is admin-only; non-admin uploads on new/changed format get a clear pending/confirm-required state (no infinite hang)
   4. Multi-file batch (up to 5) applies fingerprint/confirm per file or explicit same-city batch policy — mixed formats never silently apply one file’s Type column to another
   5. Process/review meta exposes Type resolution (winner header, score or null, optional runner-up, source: `auto_reuse` | `admin_confirm` | `scorer` | `unresolved`)
-**Plans**: 4 plans
+**Plans**: 1/4 plans complete
 
 Plans:
-- [ ] 52-01-PLAN.md — Wave 0 RED tests (store fingerprint + engine GATE/META contracts)
+- [x] 52-01-PLAN.md — Wave 0 RED tests (store fingerprint + engine GATE/META contracts)
 - [ ] 52-02-PLAN.md — Pure city-format store + BRIDGE_CITY_FORMATS_ROOT + gitignore
 - [ ] 52-03-PLAN.md — processUpload gate + normalizer override + batch + META
 - [ ] 52-04-PLAN.md — API 409/403 + admin confirm UI + verify-live
@@ -165,7 +165,7 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 51. COL Scoring + Map Wire | 3/3 | Complete    | 2026-07-10 | - |
-| 52. Format Memory + Confirm Gate | v1.8 | 0/4 | Planned | - |
+| 52. Format Memory + Confirm Gate | 1/4 | In Progress|  | - |
 | 53. Display-Only Short Labels | v1.8 | 0/? | Not started | - |
 | 54. Regression Lock | v1.8 | 0/? | Not started | - |
 | 48–50. Filter Accuracy & Grouping | v1.7 | 4/4 | Complete | 2026-07-10 |

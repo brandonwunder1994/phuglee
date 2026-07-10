@@ -16,12 +16,12 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Format memory & confirm gate (GATE)
 
-- [ ] **GATE-01**: Each city (+ upload type) stores a durable **format fingerprint** (order-independent normalized headers + light value-shape signature — not full-file hash) and last confirmed Type header
-- [ ] **GATE-02**: First upload for a city format **or** fingerprint differs from last confirmed for that city → process **pauses** for admin Type-column confirmation before normalize/tag/brain
-- [ ] **GATE-03**: Matching fingerprint reuses last confirmed Type column with **no** confirm modal
-- [ ] **GATE-04**: Confirm UI shows ranked candidates, suggested winner pre-selected, sample cell values, ability to pick another column, and “No type column” (keep for review)
-- [ ] **GATE-05**: Confirm persist is admin-only; non-admin uploads with new/changed format do not hang forever (clear pending/confirm-required state; no infinite server wait)
-- [ ] **GATE-06**: Multi-file batch (up to 5): fingerprint/confirm policy is explicit per file or batch (same city); mixed formats do not silently apply one file’s Type column to another
+- [x] **GATE-01**: Each city (+ upload type) stores a durable **format fingerprint** (order-independent normalized headers + light value-shape signature — not full-file hash) and last confirmed Type header
+- [x] **GATE-02**: First upload for a city format **or** fingerprint differs from last confirmed for that city → process **pauses** for admin Type-column confirmation before normalize/tag/brain
+- [x] **GATE-03**: Matching fingerprint reuses last confirmed Type column with **no** confirm modal
+- [x] **GATE-04**: Confirm UI shows ranked candidates, suggested winner pre-selected, sample cell values, ability to pick another column, and “No type column” (keep for review)
+- [x] **GATE-05**: Confirm persist is admin-only; non-admin uploads with new/changed format do not hang forever (clear pending/confirm-required state; no infinite server wait)
+- [x] **GATE-06**: Multi-file batch (up to 5): fingerprint/confirm policy is explicit per file or batch (same city); mixed formats do not silently apply one file’s Type column to another
 
 ### Display short labels (LBL)
 
@@ -31,7 +31,7 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Process meta & regression (META / TEST)
 
-- [ ] **META-01**: Process/review meta exposes Type resolution: winner header, score (or null), runner-up optional, source (`auto_reuse` | `admin_confirm` | `scorer` | `unresolved`)
+- [x] **META-01**: Process/review meta exposes Type resolution: winner header, score (or null), runner-up optional, source (`auto_reuse` | `admin_confirm` | `scorer` | `unresolved`)
 - [ ] **TEST-01**: Automated: sheet where alias-first would map a narrative/date/status column → scorer maps the true category Type column
 - [ ] **TEST-02**: Automated: same city same fingerprint reuses confirmed header without confirm; fingerprint change requires confirm again
 - [ ] **TEST-03**: Automated: short label shortens display; stored type + export + group keys unchanged; `npm test` + `scripts/verify-live.ps1` green
@@ -67,13 +67,13 @@ Deferred — not in this milestone.
 | COL-02 | Phase 51 | Complete |
 | COL-03 | Phase 51 | Complete |
 | COL-04 | Phase 51 | Complete |
-| GATE-01 | Phase 52 | Pending |
-| GATE-02 | Phase 52 | Pending |
-| GATE-03 | Phase 52 | Pending |
-| GATE-04 | Phase 52 | Pending |
-| GATE-05 | Phase 52 | Pending |
-| GATE-06 | Phase 52 | Pending |
-| META-01 | Phase 52 | Pending |
+| GATE-01 | Phase 52 | Complete |
+| GATE-02 | Phase 52 | Complete |
+| GATE-03 | Phase 52 | Complete |
+| GATE-04 | Phase 52 | Complete |
+| GATE-05 | Phase 52 | Complete |
+| GATE-06 | Phase 52 | Complete |
+| META-01 | Phase 52 | Complete |
 | LBL-01 | Phase 53 | Pending |
 | LBL-02 | Phase 53 | Pending |
 | LBL-03 | Phase 53 | Pending |
