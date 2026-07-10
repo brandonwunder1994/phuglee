@@ -504,7 +504,7 @@
     if (typeEl) {
       typeEl.innerHTML = activeTypes.length
         ? activeTypes.map((r) => renderBrainRuleCard(r, [{ status: 'disabled', label: 'Disable' }])).join('')
-        : '<p class="bridge-train-muted">No active type rules yet. Deny a distressed group in Train brain to suppress a type.</p>';
+        : '<p class="bridge-train-muted">No active type rules yet. Deny on distressed suppresses a type; Deny on not-distressed promotes a type.</p>';
     }
     if (proposedEl) {
       proposedEl.innerHTML = proposedPhrases.length

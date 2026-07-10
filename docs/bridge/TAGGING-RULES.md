@@ -127,6 +127,11 @@ After base regex tagging, the global Filter brain can adjust Strong vs Standard 
 ### Training
 
 - **Admin-only** on `/bridge` → **Train brain** (Approve / Deny groups)
+- **Operator model:** ✓ Approve = AI was right (leave on this list). ✗ Deny = AI was wrong (move to the other list + type rule).
+  - **Distressed + Approve** — keep as distressed
+  - **Distressed + Deny** — move to not-distressed + **suppress type** for future uploads
+  - **Not distressed + Approve** — leave off the list
+  - **Not distressed + Deny** — move to distressed + **promote type** for future uploads
 - **Type rules** go live immediately on the next process (and list mutation for the current batch)
 - **Phrase rules** are **proposed** from training evidence, then **activated** (or rejected) in the **Filter brain** panel
 - Non-admins only receive improved automatic tagging; they cannot train or edit rules

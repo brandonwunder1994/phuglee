@@ -162,10 +162,10 @@ test('opposite-direction conflict for same candidate → no proposed rule', () =
     section: 'distressed',
     descriptionSamples: ['Trash cans everywhere']
   });
-  // promote evidence for same phrase
+  // promote evidence for same phrase (not_distressed + deny = AI wrong, is distress)
   const promoteEv = makeEvent({
     id: 'ev_pro',
-    action: 'approve_group',
+    action: 'deny_group',
     section: 'not_distressed',
     descriptionSamples: ['Trash cans everywhere']
   });
@@ -210,19 +210,19 @@ test('distressed+approve skips phrase mining', () => {
   assert.equal(out.phraseRules.length, 0);
 });
 
-test('not_distressed+deny skips phrase mining', () => {
+test('not_distressed+approve skips phrase mining', () => {
   const brain = emptyBrain();
   brain.events = [
     makeEvent({
       id: 'ev_prior',
-      action: 'deny_group',
+      action: 'approve_group',
       section: 'not_distressed',
       descriptionSamples: ['Parking on lawn']
     })
   ];
   const event = makeEvent({
     id: 'ev_aff',
-    action: 'deny_group',
+    action: 'approve_group',
     section: 'not_distressed',
     descriptionSamples: ['Parking on lawn']
   });
@@ -230,24 +230,24 @@ test('not_distressed+deny skips phrase mining', () => {
   assert.equal(out.phraseRules.length, 0);
 });
 
-test('not_distressed+approve mines promote_phrase when ≥2 evidence', () => {
+test('not_distressed+deny mines promote_phrase when ≥2 evidence', () => {
   const brain = emptyBrain();
   const ev1 = makeEvent({
     id: 'ev_p1',
-    action: 'approve_group',
+    action: 'deny_group',
     section: 'not_distressed',
     descriptionSamples: ['Trash cans everywhere']
   });
   brain.events = [ev1];
   const ev2 = makeEvent({
     id: 'ev_p2',
-    action: 'approve_group',
+    action: 'deny_group',
     section: 'not_distressed',
     descriptionSamples: ['Trash cans everywhere on curb']
   });
   const out = minePhrasesFromEvent(ev2, brain);
   const promote = out.phraseRules.filter((r) => r.kind === 'promote_phrase');
-  assert.ok(promote.length >= 1, 'expected promote_phrase from FN path');
+  assert.ok(promote.length >= 1, 'expected promote_phrase from FN deny path');
   assert.ok(promote.every((r) => r.status === 'proposed'));
 });
 

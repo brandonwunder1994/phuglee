@@ -118,7 +118,7 @@ function denyDistressedBody(overrides = {}) {
   };
 }
 
-function approveFnBody(overrides = {}) {
+function denyFnBody(overrides = {}) {
   const notDistressedRows = overrides.notDistressedRows || [
     sampleRow({
       rowId: 'fn_1',
@@ -127,7 +127,7 @@ function approveFnBody(overrides = {}) {
     })
   ];
   return {
-    action: 'approve',
+    action: 'deny',
     section: 'not_distressed',
     groupId: 'g_boarded',
     rowIds: ['fn_1'],
@@ -207,7 +207,7 @@ test('DEC-06: missing x-phuglee-user returns 403 ADMIN_REQUIRED', async () => {
 
 // ─── Admin happy paths ──────────────────────────────────────────────────────
 
-test('admin distressed+deny removes rowIds, persists suppress_type, event.by=admin', async () => {
+test('admin distressed+deny moves rowIds to notDistressed, persists suppress_type, event.by=admin', async () => {
   const { loadBrain } = require('../lib/bridge-brain-store');
 
   const { status, json } = await callBridge('POST', '/api/bridge/brain/decisions', {
@@ -220,6 +220,7 @@ test('admin distressed+deny removes rowIds, persists suppress_type, event.by=adm
   assert.ok(Array.isArray(json.rows));
   assert.equal(json.rows.some((r) => r.rowId === 'r_drop'), false);
   assert.equal(json.rows.some((r) => r.rowId === 'r_keep'), true);
+  assert.equal(json.notDistressedRows.some((r) => r.rowId === 'r_drop'), true);
   assert.ok(json.event);
   assert.equal(json.event.by, 'admin');
   assert.equal(json.event.action, 'deny_group');
@@ -236,13 +237,13 @@ test('admin distressed+deny removes rowIds, persists suppress_type, event.by=adm
   assert.ok(brain.events.length >= 1);
 });
 
-test('admin not_distressed+approve promotes rows and persists promote_type', async () => {
+test('admin not_distressed+deny promotes rows and persists promote_type', async () => {
   const { loadBrain } = require('../lib/bridge-brain-store');
   const { STRONG_DISTRESSED_TAG } = require('../lib/bridge-distress-tagger');
 
   const { status, json } = await callBridge('POST', '/api/bridge/brain/decisions', {
     headers: adminHeaders(),
-    body: jsonBody(approveFnBody())
+    body: jsonBody(denyFnBody())
   });
 
   assert.equal(status, 200);

@@ -37,9 +37,9 @@ function ctx(brain, currentRows, notDistressedRows, by = 'admin') {
   return { brain, currentRows, notDistressedRows, by };
 }
 
-// ─── DEC-01: distressed + deny removes rowIds from kept ─────────────────────
+// ─── DEC-01: distressed + deny moves rowIds to not-distressed ───────────────
 
-test('DEC-01: distressed deny removes matching rowIds from rows; keeps others', () => {
+test('DEC-01: distressed deny moves matching rowIds to notDistressed; keeps others', () => {
   const brain = makeBrain();
   const rows = [
     row({ rowId: 'r_keep', violationIssueType: 'Weeds' }),
@@ -59,13 +59,16 @@ test('DEC-01: distressed deny removes matching rowIds from rows; keeps others', 
 
   assert.equal(result.rows.length, 1);
   assert.equal(result.rows[0].rowId, 'r_keep');
+  assert.equal(result.notDistressedRows.length, 2);
+  assert.ok(result.notDistressedRows.every((r) => r.rowId === 'r_drop' || r.rowId === 'r_drop2'));
+  assert.ok(result.notDistressedRows.every((r) => r.brainDecision === 'demoted'));
   assert.ok(Array.isArray(result.reviewGroups.distressed));
   assert.ok(Array.isArray(result.reviewGroups.notDistressed));
 });
 
-// ─── DEC-02: not_distressed + approve promotes into kept with Strong tag ────
+// ─── DEC-02: not_distressed + deny promotes into kept with Strong tag ───────
 
-test('DEC-02: not_distressed approve moves rows into kept with Strong Distressed Signal', () => {
+test('DEC-02: not_distressed deny moves rows into kept with Strong Distressed Signal', () => {
   const brain = makeBrain();
   const currentRows = [row({ rowId: 'r_existing', violationIssueType: 'Weeds' })];
   const notDistressedRows = [
@@ -79,7 +82,7 @@ test('DEC-02: not_distressed approve moves rows into kept with Strong Distressed
 
   const result = applyDecision(
     {
-      action: 'approve',
+      action: 'deny',
       section: 'not_distressed',
       rowIds: ['r_promote'],
       violationTypeKey: violationTypeKey('High Grass and Weeds'),
@@ -135,9 +138,9 @@ test('DEC-03: distressed deny upserts active suppress_type and disables promote_
   assert.ok(promote.disabledAt);
 });
 
-// ─── DEC-04: not_distressed + approve upserts promote_type; disables suppress ─
+// ─── DEC-04: not_distressed + deny upserts promote_type; disables suppress ──
 
-test('DEC-04: not_distressed approve upserts promote_type and disables suppress_type same key', () => {
+test('DEC-04: not_distressed deny upserts promote_type and disables suppress_type same key', () => {
   const key = violationTypeKey('High Grass and Weeds');
   const brain = makeBrain({
     typeRules: [
@@ -157,7 +160,7 @@ test('DEC-04: not_distressed approve upserts promote_type and disables suppress_
 
   const result = applyDecision(
     {
-      action: 'approve',
+      action: 'deny',
       section: 'not_distressed',
       rowIds: ['r_p'],
       violationTypeKey: key,
@@ -256,14 +259,14 @@ test('affirmation: distressed+approve does NOT add promote_type; disables suppre
   assert.equal(suppress.status, 'disabled');
 });
 
-test('affirmation: not_distressed+deny does NOT add suppress_type or promote_type', () => {
+test('affirmation: not_distressed+approve does NOT add suppress_type or promote_type', () => {
   const key = violationTypeKey('Fence Permit');
   const brain = makeBrain();
   const notDistressedRows = [row({ rowId: 'r1', violationIssueType: 'Fence Permit' })];
 
   const result = applyDecision(
     {
-      action: 'deny',
+      action: 'approve',
       section: 'not_distressed',
       rowIds: ['r1'],
       violationTypeKey: key,
@@ -274,7 +277,7 @@ test('affirmation: not_distressed+deny does NOT add suppress_type or promote_typ
 
   assert.equal(result.rows.length, 0);
   assert.equal(result.notDistressedRows.length, 1);
-  assert.equal(result.brain.typeRules.length, 0, 'no type rules from FN deny affirmation');
+  assert.equal(result.brain.typeRules.length, 0, 'no type rules from FN approve affirmation');
 });
 
 // ─── Invalid action/section ─────────────────────────────────────────────────

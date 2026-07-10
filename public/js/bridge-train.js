@@ -90,8 +90,16 @@
         descHtml +
         addrHtml +
         '<div class="bridge-train-actions">' +
-          '<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" aria-label="Approve ' + esc(label) + '">✓ Approve</button>' +
-          '<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" aria-label="Deny ' + esc(label) + '">✗ Deny</button>' +
+          '<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" title="' +
+            (section === 'not_distressed'
+              ? 'AI was right — leave off the distressed list'
+              : 'AI was right — keep as distressed') +
+            '" aria-label="Approve ' + esc(label) + '">✓ Approve</button>' +
+          '<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" title="' +
+            (section === 'not_distressed'
+              ? 'AI was wrong — move to distressed and promote this type'
+              : 'AI was wrong — move to not-distressed and suppress this type') +
+            '" aria-label="Deny ' + esc(label) + '">✗ Deny</button>' +
         '</div>' +
       '</article>'
     );

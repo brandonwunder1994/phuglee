@@ -218,13 +218,13 @@
           </div>
           <section class="bridge-train-section" aria-labelledby="train-distressed-h">
             <h3 id="train-distressed-h">Marked distressed</h3>
-            <p class="bridge-panel-lead">Approve if the tagger is right. Deny removes these from the kept list and trains a suppress rule.</p>
+            <p class="bridge-panel-lead">✓ Approve = AI was right (keep as distressed). ✗ Deny = not distress — move to not-distressed and suppress this type next time.</p>
             <div id="bridge-train-distressed" class="bridge-train-groups"></div>
             <div id="bridge-train-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
           <section class="bridge-train-section" aria-labelledby="train-fn-h">
             <h3 id="train-fn-h">Not marked distressed</h3>
-            <p class="bridge-panel-lead">Catch false negatives. Approve promotes into the kept list and trains a promote rule.</p>
+            <p class="bridge-panel-lead">✓ Approve = AI was right (leave off the list). ✗ Deny = is distress — move to distressed and promote this type next time.</p>
             <div id="bridge-train-not-distressed" class="bridge-train-groups"></div>
             <div id="bridge-train-not-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
@@ -373,7 +373,7 @@
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
-  <script src="/js/bridge-train.js?v=1"></script>
-  <script src="/js/bridge.js?v=10"></script>
+  <script src="/js/bridge-train.js?v=2"></script>
+  <script src="/js/bridge.js?v=11"></script>
 </body>
 </html>
