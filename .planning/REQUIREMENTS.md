@@ -27,9 +27,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Verification (TEST)
 
-- [ ] **TEST-01**: Automated test: Description-only High Grass rows with differing timestamps → one distressed group with count N
-- [ ] **TEST-02**: Automated test: Unmapped category column → `violationIssueType` populated and FN/distressed labels use it
-- [ ] **TEST-03**: Automated test: Typed clean High Grass still stacks; `npm test` and `scripts/verify-live.ps1` green
+- [x] **TEST-01**: Automated test: Description-only High Grass rows with differing timestamps → one distressed group with count N
+- [x] **TEST-02**: Automated test: Unmapped category column → `violationIssueType` populated and FN/distressed labels use it
+- [x] **TEST-03**: Automated test: Typed clean High Grass still stacks; `npm test` and `scripts/verify-live.ps1` green
 
 ## Future Requirements
 
@@ -63,9 +63,9 @@ Deferred — not in this milestone.
 | GROUP-02 | Phase 49 | Complete |
 | GROUP-03 | Phase 49 | Complete |
 | GROUP-04 | Phase 49 | Complete |
-| TEST-01 | Phase 50 | Pending |
-| TEST-02 | Phase 50 | Pending |
-| TEST-03 | Phase 50 | Pending |
+| TEST-01 | Phase 50 | Complete |
+| TEST-02 | Phase 50 | Complete |
+| TEST-03 | Phase 50 | Complete |
 
 **Coverage:**
 - v1.7 requirements: 12 total

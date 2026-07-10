@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Filter Accuracy & Grouping
-status: "Phase 49 complete — next Phase 50 regression lock"
-stopped_at: Completed 49-01-PLAN.md
-last_updated: "2026-07-10T03:30:00.000Z"
-last_activity: "2026-07-10 — Executed 49-01 stable group keys (GROUP-01..04 green)"
+status: "Phase 50 complete — v1.7 accuracy locked"
+stopped_at: Completed 50-01-PLAN.md
+last_updated: "2026-07-10T03:33:20.708Z"
+last_activity: 2026-07-10 — Completed 50-01 regression lock
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
   percent: 100
 ---
 
@@ -19,19 +19,19 @@ progress:
 ## Current Position
 
 **Milestone:** v1.7 Filter Accuracy & Grouping  
-**Phase:** 49 of 50 (Stable Group Keys) — **COMPLETE**  
+**Phase:** 50 of 50 (Regression Lock) — **COMPLETE**  
 **Plan:** 1/1  
-**Status:** Phase 49 complete — next Phase 50 regression lock  
-**Last activity:** 2026-07-10 — Executed 49-01 stable group keys (GROUP-01..04 green)
+**Status:** Phase 50 complete — TEST-01..03 locked; ready for verify-work / complete-milestone  
+**Last activity:** 2026-07-10 — Completed 50-01 processUpload e2e + gates
 
-Progress: [██████████] 100% (milestone plans 3/3 complete for phases 48–49; Phase 50 TBD)
+Progress: [██████████] 100% (4/4 milestone plans complete)
 
 ## Project Reference
 
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 50 — regression e2e lock suite
+**Current focus:** Milestone v1.7 complete — verify-work / complete-milestone next
 
 ## Accumulated Context
 
@@ -55,6 +55,12 @@ See: `.planning/PROJECT.md`
 - [Phase 49]: Pure helpers in bridge-stable-text.js; reuse violationTypeKey after strip (do not edit brain-store)
 - [Phase 49]: Labels prefer cleaned phrase; descriptionSamples keep raw timestamped strings
 - [Phase 49]: brain-apply still uses raw type keys (known gap, out of Phase 49)
+- [Phase 50]: Single plan 50-01 locks TEST-01..03 via processUpload e2e in bridge-engine.test.js (extend, no new file)
+- [Phase 50]: Success gates = npm test + scripts/verify-live.ps1; brief TAGGING-RULES note on stable grouping / category promote
+- [Phase 50]: No product features — only tests/docs unless a contract exposes a 48/49 regression
+- [Phase 50]: Extend existing bridge-engine.test.js rather than new test file — processUpload contracts already live there; grouping units already in bridge-review-groups.test.js
+- [Phase 50]: TEST-02 renames/strengthens MAP Vio Cat processUpload (no duplicate fixture) — MAP-01/02 already covered type+FN; TEST-02 needs distressed label assert + requirement ID
+- [Phase 50]: Brief TAGGING-RULES note only — no HARD-style doc test — Operator-facing accuracy note; avoid doc bit-rot harness for tiny optional section
 
 ### From v1.6 (shipped)
 - Global brain + Train UX + decisions + phrases + hardening
@@ -62,10 +68,10 @@ See: `.planning/PROJECT.md`
 - Debug: `.planning/debug/filter-singleton-no-category.md`
 
 ### Pending Todos
-None yet.
+- /gsd:verify-work 50 and /gsd:complete-milestone for v1.7
 
 ### Blockers/Concerns
-None yet. Known non-blocking gap: brain-apply still uses raw violationTypeKey (timestamped type cells may miss type rules) — out of Phase 49 scope.
+None. Known non-blocking gap: brain-apply still uses raw violationTypeKey (timestamped type cells may miss type rules) — out of Phase 50 scope.
 
 ## Performance Metrics
 
@@ -74,10 +80,11 @@ None yet. Known non-blocking gap: brain-apply still uses raw violationTypeKey (t
 | 48 | 01 | 2 min | 3 | 5 |
 | 48 | 02 | 1 min | 3 | 4 |
 | 49 | 01 | 4 min | 3 | 4 |
+| 50 | 01 | 2 min | 3 | 2 |
 
 ## Session Continuity
 
-Last session: 2026-07-10T03:30:00.000Z  
-Stopped at: Completed 49-01-PLAN.md  
-Resume file: None  
-Next: Plan/execute Phase 50 regression lock (`/gsd:plan-phase 50` or roadmap Phase 50)
+Last session: 2026-07-10T03:33:20.699Z
+Stopped at: Completed 50-01-PLAN.md
+Resume file: None
+Next: Execute Phase 50 (`/gsd:execute-phase 50` or execute 50-01-PLAN.md)
