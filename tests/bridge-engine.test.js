@@ -61,7 +61,7 @@ test('processUpload keeps open and closed violations with usable addresses', asy
   });
 
   assert.equal(result.stub, false);
-  // Fence permit is not distress ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ FN pool; empty City Hall row discarded (no address)
+  // Fence permit is not distress ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ FN pool; empty City Hall row discarded (no address)
   assert.equal(result.stats.kept, 2);
   assert.ok(result.stats.noDistress >= 1);
   assert.ok(result.rows.some((row) => row.violationIssueType.includes('Overgrown')));
@@ -553,7 +553,7 @@ test('processUpload water_shut_off ignores type suppress (BRAIN-03)', async () =
   }
 });
 
-test('processUpload promotes unmapped Vio Cat into type and FN labels (MAP-01/02)', async () => {
+test('processUpload promotes unmapped Vio Cat into type and FN/distressed labels (MAP-01/02, TEST-02)', async () => {
   const csv = [
     'Property Address,Vio Cat,Notes',
     '100 Main St,High Grass,overgrown weeds in yard',
@@ -578,7 +578,7 @@ test('processUpload promotes unmapped Vio Cat into type and FN labels (MAP-01/02
     `distressed type should include High Grass, got: ${grass.violationIssueType}`
   );
 
-  // FN Fence: type from Vio Cat (MAP-01/02) Ã¢â‚¬â€ not gated on distress
+  // FN Fence: type from Vio Cat (MAP-01/02) — not gated on distress
   const fenceFn = result.notDistressedRows.find(
     (row) => String(row.streetAddress || '').includes('200 Oak')
   );
@@ -606,6 +606,12 @@ test('processUpload promotes unmapped Vio Cat into type and FN labels (MAP-01/02
     '(no type)',
     'FN label must not be (no type) when Vio Cat existed'
   );
+  // Distressed group label uses city category from Vio Cat (TEST-02)
+  const grassGroup = (result.reviewGroups.distressed || []).find((g) =>
+    /high grass/i.test(String(g.violationTypeLabel || g.violationTypeKey || ''))
+  );
+  assert.ok(grassGroup, 'distressed reviewGroups should label High Grass from Vio Cat');
+  assert.notEqual(String(grassGroup.violationTypeLabel || ''), '(no type)');
 });
 
 test('processUpload does not invent type from description-only free text (MAP-03)', async () => {
@@ -644,7 +650,7 @@ test('processUpload does not invent type from description-only free text (MAP-03
   );
 });
 
-test('processUpload: description-only High Grass + timestamps â†’ 1 distressed group count N (TEST-01)', async () => {
+test('processUpload: description-only High Grass + timestamps → 1 distressed group count N (TEST-01)', async () => {
   const csv = [
     'Property Address,Description',
     '100 Main St,High Grass and Weeds - 01/15/2024 10:30',
@@ -670,4 +676,29 @@ test('processUpload: description-only High Grass + timestamps â†’ 1 distres
   assert.equal(distressed[0].count, 3);
   assert.equal(distressed[0].isSingleton, false);
   assert.equal(distressed[0].violationTypeKey, '__unknown__');
+});
+
+test('processUpload: typed clean High Grass stacks count N (TEST-03)', async () => {
+  const csv = [
+    'Property Address,Violation Type,Notes',
+    '100 Main St,High Grass and Weeds,yard check A',
+    '200 Oak Ave,High Grass and Weeds,yard check B',
+    '300 Pine Rd,High Grass and Weeds,yard check C'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'typed-high-grass.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true);
+  assert.ok(result.rows.length >= 3);
+  const grassGroups = (result.reviewGroups.distressed || []).filter((g) =>
+    /high grass/i.test(g.violationTypeLabel || g.violationTypeKey || '')
+  );
+  assert.equal(grassGroups.length, 1);
+  assert.ok(grassGroups[0].count >= 3);
+  assert.equal(grassGroups[0].isSingleton, false);
 });
