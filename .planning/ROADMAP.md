@@ -1,4 +1,4 @@
-# Roadmap: Distress OS
+﻿# Roadmap: Distress OS
 
 ## Milestones
 
@@ -14,7 +14,7 @@
 ## Active Work
 
 **Milestone:** v1.7 Filter Accuracy & Grouping  
-**Status:** Phase 48 complete — next Phase 49 stable group keys  
+**Status:** Phase 49 complete — next Phase 50 regression lock  
 **Goal:** Train/Filter grouping stacks real categories; timestamps do not create false singletons; FN rows show city categories; signal chips stay visible.
 
 **Diagnosis:** [debug/filter-singleton-no-category.md](./debug/filter-singleton-no-category.md)
@@ -26,7 +26,7 @@
 ### ðŸš§ v1.7 Filter Accuracy & Grouping (Phases 48â€“50)
 
 - [x] **Phase 48: Category Promotion & Signal Shape** - Promote real categories into type; keep indicator arrays on process path
-- [ ] **Phase 49: Stable Group Keys** - Strip incidental timestamps; stack same category; singleton only when count === 1
+- [x] **Phase 49: Stable Group Keys** - Strip incidental timestamps; stack same category; singleton only when count === 1
 - [ ] **Phase 50: Regression Lock** - Automated accuracy tests; `npm test` + verify-live green
 
 ---
@@ -58,7 +58,10 @@ Plans:
   2. When type values themselves embed per-row timestamps/dates, grouping still stacks rows that share the same category phrase
   3. Rows that already have a clean shared `violationIssueType` (e.g. typed High Grass) continue to stack on the normalized type key (no regression)
   4. Singleton (`isSingleton` / badge) is true only when the stabilized group has count === 1
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [x] 49-01-PLAN.md — TDD: strip/stable helpers + wire buildReviewGroups (GROUP-01..04)
 
 ### Phase 50: Regression Lock
 **Goal**: Accuracy fixes stay locked by automated tests; full suite and live server remain green
@@ -139,10 +142,10 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration, unit tes
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42â€“47 | v1.6 | 12/12 | Complete | 2026-07-10 |
-| 48. Category Promotion & Signal Shape | 2/2 | Complete   | 2026-07-10 | - |
-| 49. Stable Group Keys | v1.7 | 0/TBD | Not started | - |
+| 48. Category Promotion & Signal Shape | v1.7 | 2/2 | Complete | 2026-07-10 |
+| 49. Stable Group Keys | v1.7 | 1/1 | Complete | 2026-07-10 |
 | 50. Regression Lock | v1.7 | 0/TBD | Not started | - |
 
 ---
 
-*Roadmap updated: 2026-07-10 — Phase 48 complete (SHAPE + MAP)*
+*Roadmap updated: 2026-07-10 — Phase 49 complete (stable group keys GROUP-01..04)*

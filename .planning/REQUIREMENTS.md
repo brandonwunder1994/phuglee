@@ -9,10 +9,10 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Grouping stability (GROUP)
 
-- [ ] **GROUP-01**: When `violationIssueType` is empty, review groups key free-text descriptions after stripping incidental dates/times so rows that differ only by timestamp stack into one group
-- [ ] **GROUP-02**: When type values themselves embed per-row timestamps/dates, grouping still stacks rows that share the same category phrase
-- [ ] **GROUP-03**: Rows that already have a clean shared `violationIssueType` (e.g. typed High Grass) continue to stack on the normalized type key (no regression)
-- [ ] **GROUP-04**: Singleton (`isSingleton` / badge) is true only when the stabilized group has count === 1
+- [x] **GROUP-01**: When `violationIssueType` is empty, review groups key free-text descriptions after stripping incidental dates/times so rows that differ only by timestamp stack into one group
+- [x] **GROUP-02**: When type values themselves embed per-row timestamps/dates, grouping still stacks rows that share the same category phrase
+- [x] **GROUP-03**: Rows that already have a clean shared `violationIssueType` (e.g. typed High Grass) continue to stack on the normalized type key (no regression)
+- [x] **GROUP-04**: Singleton (`isSingleton` / badge) is true only when the stabilized group has count === 1
 
 ### Category mapping (MAP)
 
@@ -59,10 +59,10 @@ Deferred — not in this milestone.
 | MAP-03 | Phase 48 | Complete |
 | SHAPE-01 | Phase 48 | Complete |
 | SHAPE-02 | Phase 48 | Complete |
-| GROUP-01 | Phase 49 | Pending |
-| GROUP-02 | Phase 49 | Pending |
-| GROUP-03 | Phase 49 | Pending |
-| GROUP-04 | Phase 49 | Pending |
+| GROUP-01 | Phase 49 | Complete |
+| GROUP-02 | Phase 49 | Complete |
+| GROUP-03 | Phase 49 | Complete |
+| GROUP-04 | Phase 49 | Complete |
 | TEST-01 | Phase 50 | Pending |
 | TEST-02 | Phase 50 | Pending |
 | TEST-03 | Phase 50 | Pending |
