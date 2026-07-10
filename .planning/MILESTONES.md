@@ -1,16 +1,25 @@
 # Project Milestones: Distress OS
 
-## v1.6 Filter Superpower Brain (Planned: 2026-07-09)
+## v1.6 Filter Superpower Brain (Shipped: 2026-07-10)
 
-**Goal:** Global admin-only Filter brain — grouped Approve/Deny trains type + phrase rules; every future upload improves for all customers.
+**Delivered:** Admin-only global Filter brain — grouped Approve/Deny trains type + phrase rules so every future city upload improves for all customers.
 
-**Phases:** 42–47
+**Phases completed:** 42–47 (6 phases, 12 plans)
 
-**Design spec:** `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md`
+**Design spec:** `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md`  
+**GSD doc:** `docs/gsd/milestones/M7-filter-superpower-brain.md`  
+**Audit:** `.planning/milestones/v1.6-MILESTONE-AUDIT.md` (passed 24/24)  
+**Archive:** `.planning/milestones/v1.6-ROADMAP.md`, `v1.6-REQUIREMENTS.md`
 
-**GSD doc:** `docs/gsd/milestones/M7-filter-superpower-brain.md`
+**Key accomplishments:**
+- Durable global brain store (`BRIDGE_BRAIN_ROOT`) + pure apply on every `processUpload` (water-safe)
+- Full false-negative pool + type-stacked review groups with signals/samples and stable `rowId`s
+- Admin Train brain UX (two sections, group Approve/Deny; non-admin chrome hidden)
+- Live type suppress/promote via `POST /api/bridge/brain/decisions` with list mutation + audit events
+- Phrase mining → proposed-only rules; Filter brain panel activate/reject/disable
+- Production harden: split undo, caps, 409 version conflicts, metrics, TAGGING-RULES; **345** tests + verify-live green
 
-**Status:** `planned` — full audit + phase plans written; execute on user command only
+**Git range:** `23d8972` → `e6ae3ab` (~55 commits, +8.5k / −118 LOC across 45 files)
 
 ---
 

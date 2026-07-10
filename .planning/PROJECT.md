@@ -2,11 +2,11 @@
 
 ## What This Is
 
-A unified local shell for **Form Forge** (FOIA/public-records workflows) and **Property Distress Analyzer** (AI lead screening). Distress OS provides the landing page, Command Hub, reverse proxy, optional Data Bridge, and shared navigation — while each module runs on its original engine unchanged.
+A unified local shell for **Form Forge** (FOIA/public-records workflows) and **Property Distress Analyzer** (AI lead screening). Distress OS provides the landing page, Command Hub, reverse proxy, optional Data Bridge / Filter pipeline, shared navigation, and an **admin-trained global Filter brain** that improves tagging quality for every customer on subsequent city uploads.
 
 ## Core Value
 
-One operating system feel: collect public records → analyze distressed leads → export dial-ready lists, with seamless navigation between every tool surface.
+One operating system feel: collect public records → **filter non-deals (with admin learning)** → analyze distressed leads → export dial-ready lists, with seamless navigation between every tool surface.
 
 ## Requirements
 
@@ -24,6 +24,21 @@ One operating system feel: collect public records → analyze distressed leads �
 
 - [x] **PREM-01–28**: Premium brand pass on post-login surfaces (M3)
 
+### Validated (v1.3 — shipped 2026-07-06)
+
+- [x] **BRAND-***: Phuglee signature brand system and full-site surfaces (M4)
+
+### Validated (v1.6 — shipped 2026-07-10)
+
+- [x] **BRAIN-01–03**: Global durable Filter brain + runtime apply; water shut-off never type-suppressed
+- [x] **REV-01–04**: Full FN pool, type stacking, signals/samples, stable rowIds
+- [x] **TRAIN-01–04**: Admin Train brain UX; non-admin chrome hidden
+- [x] **DEC-01–06**: List mutation + live type rules + audit + admin-only writes
+- [x] **PHRASE-01–03**: Proposed phrase mining + Filter brain panel lifecycle
+- [x] **HARD-01–04**: Undo, caps, 409 conflicts, metrics, docs, QA green
+
+Full requirement text: `.planning/milestones/v1.6-REQUIREMENTS.md`
+
 ### In progress (v1.1 Unified Heat Design)
 
 - [ ] **HEAT-01–05**: Canonical Heat design system (superseded by v1.3 `--phuglee-*` tokens)
@@ -32,28 +47,22 @@ One operating system feel: collect public records → analyze distressed leads �
 - [ ] **PA-01–07**: Property Analyzer Heat reskin
 - [ ] **QA-01–03**: Cross-app visual audit
 
-### Active (v1.3 Phuglee Signature Brand)
+### Active (next milestone)
 
-- [ ] **BRAND-01–37**: Full-site signature brand rebuild — logo-ground-truth palette, design system, all pages, states, a11y
+_None yet — define via `/gsd:new-milestone`_
 
-### Active (v1.6 Filter Superpower Brain — M7)
+Candidates from backlog / future list:
+- Server-side authenticated sessions (replace spoofable `X-Phuglee-User` for multi-tenant)
+- Embedded bridge workflow (upload without leaving Analyzer)
+- Single sign-on / session sharing between modules
+- React/Framer Motion migration (optional)
 
-- [ ] **BRAIN-***, **REV-***, **TRAIN-***, **DEC-***, **PHRASE-***, **HARD-*** — see `.planning/REQUIREMENTS.md`
-- [ ] Global admin-trained Filter brain; next-upload learning for all customers
-
-### Future (post v1.6)
-
-- [ ] React/Framer Motion migration (optional)
-- [ ] Embedded bridge workflow (upload without leaving Analyzer)
-- [ ] Single sign-on / session sharing between modules
-- [ ] Per-market custom distressed photography
-- [ ] Server-side auth sessions (replace header-only admin)
-
-### Out of Scope (v1.6)
+### Out of Scope
 
 | Feature | Reason |
 |---------|--------|
 | Analyze vision review redesign | Separate learned-brain domain |
+| Shared store with Analyzer learned-brain | Different domain (vision tiers vs text tags) |
 | Per-user / per-city brains | Global shared quality product |
 | Non-admin training | Quality control |
 | ML fine-tunes without admin gate | Controllability |
@@ -62,51 +71,49 @@ One operating system feel: collect public records → analyze distressed leads �
 
 **Stack:** Node.js 20+ shell (`server.js`), vanilla HTML/CSS/JS in `public/`, child apps via junction modules.
 
-**Brand reference (v1.3):** `phuglee-logo.svg` palette — `#0D0D0D` bg, `#E58435` CTA, taupes, creams. Premium · Edgy · Artistic · High-end streetwear.
+**Filter Superpower Brain (v1.6):** `lib/bridge-brain-*` modules, process path in `lib/bridge-engine`, Train + Filter brain UI in `public/js/bridge.js` / `bridge-train.js`, durable file at `BRIDGE_BRAIN_ROOT` / `global-brain.json`.
 
-**Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`  
-**Site audit:** `.planning/SITE-AUDIT.md`
+**Brand reference (v1.3):** `phuglee-logo.svg` palette — `#0D0D0D` bg, `#E58435` CTA, taupes, creams.
 
 **Child repos:**
 - Form Forge: `C:\Users\brand\Projects\city-list-requests` (Python Flask, port 8787)
 - Property Analyzer: `C:\Users\brand\Projects\property-distress-analyzer` (Node, port 3456)
 
-**Tests:** `npm test` (distress-os), `python scripts/gsd.py verify` (Form Forge), `npm test` (Analyzer 190+)
+**Tests:** `npm test` (distress-os **345** after v1.6), `scripts/verify-live.ps1`, Form Forge / Analyzer suites separately
+
+**Known soft debt (accepted at v1.6 ship):**
+- Dedicated `GET /api/bridge/brain/metrics` unused by UI (metrics via `GET /brain`)
+- Decision POST ships full row arrays (15MB cap)
+- Header-based admin is acceptable for single-tenant local; multi-tenant needs server sessions
+
+## Key Decisions (v1.6)
+
+| Decision | Outcome |
+|----------|---------|
+| Global brain file, not Analyzer learned-brain store | ✓ Good — separate domains |
+| Suppress applied last (wins over promote) | ✓ Good — conflicts demote to Standard |
+| Water early-return skips all brain apply | ✓ Good — BRAIN-03 |
+| Phrases proposed-only until admin activate | ✓ Good — controllability |
+| Split undo (client list snapshot + server rule revert) | ✓ Good — HARD-01 |
+| Volume-safe `BRIDGE_BRAIN_ROOT` mirrors filter lists | ✓ Good — durability |
+
+## Current State
+
+**Shipped:** v1.6 Filter Superpower Brain (2026-07-10)  
+**Focus:** Planning next milestone  
+**Phase artifacts:** remain under `.planning/phases/42-*` … `47-*` (not moved to archive)
 
 ---
-
-## Current Milestone: v1.6 Filter Superpower Brain
-
-**Goal:** Admin-only global Filter brain — grouped Approve/Deny trains type + phrase rules so every future city upload improves for all customers.
-
-**Target features:**
-- Global durable brain store applied on every `processUpload`
-- Reviewable not-distressed rows + violation-type grouping
-- Admin Train brain UX (distressed + not distressed, signals + descriptions, ✓/✗)
-- List mutation (deny remove / approve promote) + type suppress/promote
-- Phrase mining → proposed rules → admin activate
-- Undo, metrics, caps, docs, production QA
-
-**Phases:** Assigned by gsd-roadmapper (continue after last shipped phase numbering)  
-**Requirements:** `.planning/REQUIREMENTS.md`  
-**Codebase map:** `.planning/codebase/`  
-**Context:** `.planning/MILESTONE-CONTEXT.md`
-
-**Last updated:** 2026-07-09
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
-
-**After each phase transition** (via `/gsd:transition`):
-1. Requirements invalidated? → Move to Out of Scope with reason
-2. Requirements validated? → Move to Validated with phase reference
-3. New requirements emerged? → Add to Active
-4. Decisions to log? → Add to Key Decisions
-5. "What This Is" still accurate? → Update if drifted
 
 **After each milestone** (via `/gsd:complete-milestone`):
 1. Full review of all sections
 2. Core Value check — still the right priority?
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
+
+---
+*Last updated: 2026-07-10 after v1.6 milestone*
