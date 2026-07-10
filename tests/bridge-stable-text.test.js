@@ -3,6 +3,8 @@ const assert = require('node:assert/strict');
 
 const {
   stripIncidentalTimestamps,
+  stripIncidentalNoise,
+  extractLeadingTypeCodes,
   stableTypeKey,
   stableDescriptionKey
 } = require('../lib/bridge-stable-text');
@@ -105,4 +107,84 @@ test('stableDescriptionKey: empty-after-strip → empty string (not __unknown__)
   // pure timestamp / noise only
   assert.equal(stableDescriptionKey('01/15/2024 10:30'), '');
   assert.notEqual(stableDescriptionKey('01/15/2024'), '__unknown__');
+});
+
+// --- Phase stack: incidental noise beyond timestamps ---
+
+test('stripIncidentalNoise: case IDs removed, category code kept', () => {
+  const out = stripIncidentalNoise(
+    'HGWx2- entire property \nPS-2026-04-3104-ICS; April 22, 2026'
+  );
+  assert.ok(/HGW/i.test(out), `expected HGW in "${out}"`);
+  assert.ok(!/PS-2026/i.test(out), `case id left in "${out}"`);
+  assert.ok(!/April 22/i.test(out), `date phrase left in "${out}"`);
+});
+
+test('stripIncidentalNoise: asterisk meta and X2 multipliers stripped', () => {
+  const out = stripIncidentalNoise('HGW\n*CALL BACK WITH UPDATES* X2');
+  assert.ok(/HGW/i.test(out));
+  assert.ok(!/CALL BACK/i.test(out), `meta left in "${out}"`);
+  assert.ok(!/\bX2\b/i.test(out), `multiplier left in "${out}"`);
+});
+
+test('stripIncidentalNoise: ordinance-like short numbers not stripped as dates', () => {
+  assert.equal(stripIncidentalNoise('Code 12-3457'), 'Code 12-3457');
+});
+
+// --- Leading municipal type codes ---
+
+test('extractLeadingTypeCodes: pure HGW and HGW with notes → [hgw]', () => {
+  assert.deepEqual(extractLeadingTypeCodes('HGW'), ['hgw']);
+  assert.deepEqual(extractLeadingTypeCodes('HGW - OVERGROWN GRASS'), ['hgw']);
+  assert.deepEqual(
+    extractLeadingTypeCodes('HGW\n*CALL BACK WITH UPDATES*'),
+    ['hgw']
+  );
+});
+
+test('extractLeadingTypeCodes: combos sort unique (HGW/TD, HGW, TD)', () => {
+  assert.deepEqual(extractLeadingTypeCodes('HGW/TD'), ['hgw', 'td']);
+  assert.deepEqual(extractLeadingTypeCodes('HGW, TD - trash'), ['hgw', 'td']);
+  assert.deepEqual(extractLeadingTypeCodes('TD/HGW'), ['hgw', 'td']);
+});
+
+test('extractLeadingTypeCodes: O/S is one code (os), not o+s', () => {
+  assert.deepEqual(extractLeadingTypeCodes('O/S - washer in driveway'), ['os']);
+  assert.deepEqual(extractLeadingTypeCodes('O/S, TD - move out'), ['os', 'td']);
+});
+
+test('extractLeadingTypeCodes: denylist English pseudo-codes', () => {
+  assert.equal(extractLeadingTypeCodes('OTHER - gas meter tree'), null);
+  assert.equal(extractLeadingTypeCodes('STOP SIGN DOWN BETWEEN BANKS'), null);
+  assert.equal(extractLeadingTypeCodes('Test case for workflow'), null);
+});
+
+test('extractLeadingTypeCodes: free-text English without codes → null', () => {
+  assert.equal(extractLeadingTypeCodes('High Grass and Weeds'), null);
+  assert.equal(extractLeadingTypeCodes('fence permit only'), null);
+  assert.equal(extractLeadingTypeCodes('pool permit expired'), null);
+});
+
+test('stableTypeKey: HGW note variants share key; combo distinct', () => {
+  const a = stableTypeKey('HGW');
+  const b = stableTypeKey('HGW - OVERGROWN GRASS');
+  const c = stableTypeKey('HGW\n*CALL BACK*');
+  const combo = stableTypeKey('HGW/TD - front yard');
+  assert.equal(a, b);
+  assert.equal(a, c);
+  assert.equal(a, 'hgw');
+  assert.equal(combo, 'hgw+td');
+  assert.notEqual(a, combo);
+});
+
+test('stableTypeKey: clean English High Grass still normalizes (no false code)', () => {
+  const k = stableTypeKey('High Grass and Weeds');
+  assert.equal(k, violationTypeKey('High Grass and Weeds'));
+  assert.notEqual(k, 'hgw');
+});
+
+test('stableDescriptionKey: empty-type HGW tails stack on hgw', () => {
+  assert.equal(stableDescriptionKey('HGW - SIDEWALK'), 'hgw');
+  assert.equal(stableDescriptionKey('HGW X2'), 'hgw');
+  assert.equal(stableDescriptionKey('fence permit only'), 'fence permit only');
 });

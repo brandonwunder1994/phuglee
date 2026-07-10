@@ -305,6 +305,100 @@ test('buildReviewGroups: after timestamp stack isSingleton false when count > 1'
   assert.equal(singletonGroups[0].isSingleton, true);
 });
 
+// --- Confident category stack (STACK-01..04) ---
+
+test('buildReviewGroups: Irving-like HGW note variants stack (STACK-01)', () => {
+  const rows = assignRowIds([
+    row({ violationIssueType: 'HGW' }),
+    row({
+      violationIssueType: 'HGW - OVERGROWN GRASS',
+      streetAddress: '100 A St'
+    }),
+    row({
+      violationIssueType: 'HGW\n*CALL BACK WITH UPDATES*',
+      streetAddress: '200 B St'
+    }),
+    row({
+      violationIssueType: 'HGW X2',
+      streetAddress: '300 C St'
+    }),
+    row({
+      violationIssueType: 'HGW-AROUND FOUNDATION OF HOME',
+      streetAddress: '400 D St'
+    })
+  ]);
+  const groups = buildReviewGroups(rows, 'distressed');
+  assert.equal(groups.length, 1, 'STACK-01: all pure HGW tails → 1 group');
+  assert.equal(groups[0].count, 5);
+  assert.equal(groups[0].isSingleton, false);
+  assert.equal(groups[0].violationTypeKey, 'hgw');
+});
+
+test('buildReviewGroups: HGW combo set separate from pure HGW (STACK-02)', () => {
+  const rows = assignRowIds([
+    row({ violationIssueType: 'HGW' }),
+    row({ violationIssueType: 'HGW - OVERGROWN', streetAddress: '2' }),
+    row({ violationIssueType: 'HGW/TD - trash front', streetAddress: '3' }),
+    row({ violationIssueType: 'HGW, TD - move out', streetAddress: '4' })
+  ]);
+  const groups = buildReviewGroups(rows, 'distressed');
+  assert.equal(groups.length, 2, 'STACK-02: pure HGW vs HGW+TD');
+  const byKey = Object.fromEntries(groups.map((g) => [g.violationTypeKey, g]));
+  assert.equal(byKey.hgw.count, 2);
+  assert.equal(byKey['hgw+td'].count, 2);
+});
+
+test('buildReviewGroups: O/S stacks as os not letter-split (STACK-01)', () => {
+  const rows = assignRowIds([
+    row({ violationIssueType: 'O/S - washer in driveway' }),
+    row({
+      violationIssueType: 'O/S - containers on curb',
+      streetAddress: '9 Oak'
+    })
+  ]);
+  const groups = buildReviewGroups(rows, 'distressed');
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].count, 2);
+  assert.equal(groups[0].violationTypeKey, 'os');
+});
+
+test('buildReviewGroups: free-text fence vs pool still 2 groups (STACK-03)', () => {
+  const rows = assignRowIds([
+    row({ violationIssueType: '', descriptionNotes: 'fence permit only' }),
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'pool permit expired',
+      streetAddress: '2'
+    })
+  ]);
+  const groups = buildReviewGroups(rows, 'not_distressed');
+  assert.equal(groups.length, 2);
+  assert.ok(groups.every((g) => g.isSingleton && g.count === 1));
+});
+
+test('buildReviewGroups: empty-type HGW free-text tails stack (STACK-01 desc path)', () => {
+  const rows = assignRowIds([
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'HGW - FRONT AND BACK'
+    }),
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'HGW SIDEWALK',
+      streetAddress: '2'
+    }),
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'Hgw',
+      streetAddress: '3'
+    })
+  ]);
+  const groups = buildReviewGroups(rows, 'distressed');
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].count, 3);
+  assert.equal(groups[0].isSingleton, false);
+});
+
 // --- Phase 53: display-only shortLabel (LBL-01 / LBL-02) — RED until Plan 03 ---
 
 const LONG_ORDINANCE_TYPE =

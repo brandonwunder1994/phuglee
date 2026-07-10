@@ -73,9 +73,15 @@ Progress: [██████████] 100% (17/17 plans)
 **Last session:** 2026-07-10T17:09:00.000Z  
 **Stopped at:** Completed 60-02-PLAN.md
 
+## Quick Tasks Completed
+
+| ID | Description | Date | Status |
+|----|-------------|------|--------|
+| 260710-k9c | Confident category stacking for Train review groups (municipal codes + noise strip) | 2026-07-10 | complete — 570 tests green |
+
 ## Next
 
 ```text
-/gsd:verify-work 60
-# or milestone close for v2.0 Filter Independence & Learning
+Re-process Irving (or any code-heavy city) on Filter → Train should stack HGW-class variants
+# optional: /gsd:verify-work 60 or milestone close for v2.0
 ```
