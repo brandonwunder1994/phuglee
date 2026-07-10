@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=13">
+  <link rel="stylesheet" href="/css/bridge.css?v=14">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -361,7 +361,7 @@
       <div class="bridge-lists-header">
         <div>
           <h2 id="bridge-lists-heading"><span class="bridge-step-badge" aria-hidden="true">·</span> Saved lists</h2>
-          <p class="bridge-panel-lead">Master staging: lists stay until you delete them. Download one or all for skip-trace / enrichment, then import into Analyze manually.</p>
+          <p class="bridge-panel-lead">Master staging: lists stay until you delete them. Download one or all for skip-trace / enrichment, then import into Analyze manually. <span class="bridge-lists-legend" title="List type key">⚠️ Code violation · 💧 Water shut-off</span></p>
         </div>
         <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
           <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv">Download all (CSV)</button>
@@ -374,6 +374,7 @@
         <table class="bridge-lists-table" id="bridge-lists-table">
           <thead>
             <tr>
+              <th scope="col">Type</th>
               <th scope="col">List name</th>
               <th scope="col">Uploaded</th>
               <th scope="col">Records</th>
@@ -438,6 +439,6 @@
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=5"></script>
-  <script src="/js/bridge.js?v=33"></script>
+  <script src="/js/bridge.js?v=34"></script>
 </body>
 </html>

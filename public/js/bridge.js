@@ -1705,6 +1705,26 @@
     }
   }
 
+  /** Saved-list kind chip: hazard for code violation, water for shut-off. */
+  function listUploadTypeBadge(uploadType) {
+    const t = String(uploadType || '').trim().toLowerCase();
+    if (t === 'water_shut_off' || t === 'water' || t.includes('water')) {
+      return {
+        kind: 'water',
+        emoji: '💧',
+        label: 'Water shut-off',
+        title: 'Water shut-off list'
+      };
+    }
+    // Default / code_violation / anything else → hazard (code violation)
+    return {
+      kind: 'violation',
+      emoji: '⚠️',
+      label: 'Code violation',
+      title: 'Code violation list'
+    };
+  }
+
   function renderSavedLists() {
     const listsTotalEl = document.getElementById('bridge-lists-total');
     if (!listsBody) return;
@@ -1724,8 +1744,14 @@
     setHidden(listsToolbar, false);
     listsBody.innerHTML = savedLists.map((list) => {
       const cityLabel = [list.city, list.state].filter(Boolean).join(', ') || '—';
+      const kind = listUploadTypeBadge(list.uploadType);
       return (
-        `<tr data-list-id="${esc(list.id)}">` +
+        `<tr data-list-id="${esc(list.id)}" data-upload-type="${esc(list.uploadType || kind.kind)}">` +
+        `<td class="bridge-list-type-cell">` +
+        `<span class="bridge-list-type bridge-list-type--${esc(kind.kind)}" title="${esc(kind.title)}" aria-label="${esc(kind.title)}">` +
+        `<span class="bridge-list-type-emoji" aria-hidden="true">${kind.emoji}</span>` +
+        `<span class="bridge-list-type-text">${esc(kind.label)}</span>` +
+        `</span></td>` +
         `<td><input type="text" class="bridge-list-name-input" data-action="rename" value="${esc(list.name)}" maxlength="120" aria-label="List name" /></td>` +
         `<td>${esc(formatListWhen(list.createdAt))}</td>` +
         `<td>${Number(list.recordCount || 0).toLocaleString()}</td>` +
