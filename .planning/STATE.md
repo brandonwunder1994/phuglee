@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: idle
-last_updated: "2026-07-10T02:36:00Z"
-last_activity: 2026-07-10 — completed v1.6 Filter Superpower Brain
+milestone: v1.7
+milestone_name: Filter Accuracy & Grouping
+status: defining_requirements
+last_updated: "2026-07-10T03:05:00Z"
+last_activity: 2026-07-10 — Milestone v1.7 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -17,36 +17,32 @@ progress:
 
 ## Current Position
 
-**Milestone:** none (between milestones)  
-**Last shipped:** **v1.6 Filter Superpower Brain** (2026-07-10)  
-**Status:** Ready for `/gsd:new-milestone`  
-**Last activity:** 2026-07-10 — archive + tag v1.6
+**Milestone:** v1.7 Filter Accuracy & Grouping  
+**Phase:** Not started (defining requirements)  
+**Plan:** —  
+**Status:** Defining requirements  
+**Last activity:** 2026-07-10 — Milestone v1.7 started from gsd-debugger diagnosis + user `/gsd:new-milestone`
 
 ## Project Reference
 
-See: `.planning/PROJECT.md` (updated 2026-07-10)
+See: `.planning/PROJECT.md`
 
-**Core value:** Collect → filter non-deals (with admin learning) → analyze → export, with seamless navigation.  
-**Current focus:** Planning next milestone
+**Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
+**Current focus:** Fix Train grouping accuracy (singletons + missing categories + signal chips)
 
-## Shipped (v1.6)
+## Accumulated Context
 
-| Phase | Result |
-|-------|--------|
-| 42 | Brain store + runtime apply |
-| 43 | Review payload + grouping |
-| 44 | Admin Train brain UX |
-| 45 | Decisions + type rules + list mutation |
-| 46 | Phrase mining + brain panel |
-| 47 | Hardening + metrics + docs |
+### From v1.6 (shipped)
+- Global brain store + runtime apply; Train UX; decisions; phrase mining; hardening
+- Phase 43 locked "empty type → exact description" — correct for uniqueness then, wrong for timestamped free text now
+- Debug: `.planning/debug/filter-singleton-no-category.md`
 
-**Audit:** passed 24/24 — `.planning/milestones/v1.6-MILESTONE-AUDIT.md`  
-**Archives:** `.planning/milestones/v1.6-ROADMAP.md`, `v1.6-REQUIREMENTS.md`
+### Locked for v1.7
+- GROUP + MAP + SHAPE only
+- Out of scope: Train CSS, phrase rules, Analyzer vision
 
 ## Next
 
-```text
-/gsd:new-milestone
-```
-
-Phase directories remain in `.planning/phases/` for history; optional move via cleanup later.
+1. REQUIREMENTS.md  
+2. ROADMAP via gsd-roadmapper (phases from 48)  
+3. `/gsd:plan-phase` then `/gsd:execute-phase` per phase  

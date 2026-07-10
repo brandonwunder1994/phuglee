@@ -1,51 +1,50 @@
-# Milestone Context — Filter Superpower Brain (v1.6)
+# Milestone Context — Filter Accuracy & Grouping (v1.7)
 
-**Source:** User conversation 2026-07-09 (product decisions locked)  
-**Consumed by:** `/gsd:new-milestone`
+**Source:** User conversation + gsd-debugger diagnose-only (2026-07-09/10)  
+**Debug artifact:** `.planning/debug/filter-singleton-no-category.md`  
+**Consumed by:** `/gsd:new-milestone`  
+**User directive:** Write GSD plans and execute them (scope approved)
 
 ## Goal
 
-Build a **global, admin-only human feedback and training system** on the Filter (Bridge) results page so Approve/Deny:
+Fix Filter / Train brain **accuracy and efficiency** so real-world categories stack correctly, timestamps do not create false singletons, false-negative rows show real city categories, and signal chips remain visible.
 
-1. Fixes the current batch (deny removes kept; approve on not-distressed promotes into kept)
-2. Trains a durable shared brain so **every future upload** (all customers) tags distress better
-
-## Locked decisions
+## Locked product decisions
 
 | ID | Decision |
 |----|----------|
-| D1 | Surface: **Filter / Bridge only** (not Analyze vision review) |
-| D2 | Current list: **Deny → remove** from kept; **Approve** on non-distressed → **promote** into kept |
-| D3 | Brain scope: **Global** (shared for product sale) |
-| D4 | Who trains: **Admin only** (`username === admin`, server-enforced) |
-| D5 | Grouping: **City Violation/Issue Type** label (normalized); stack N identical types into one ✓/✗; unique free-text one-by-one |
-| D6 | Learning model: **HITL hybrid** — type suppress/promote live immediately; phrase mining → **proposed** rules → admin activate before live |
-| D7 | Future uploads **must** apply brain on every `processUpload` |
-| D8 | Stack: existing Node shell + vanilla HTML/CSS/JS + atomic JSON (same pattern as filter lists) |
-| D9 | Show exact **matchedIndicators** + **description** that triggered distress |
-| D10 | Second section: items **not** marked distressed (false-negative review) |
+| D1 | Surface: **Filter / Bridge Train grouping + normalizer only** (not Analyze, not phrase-miner rules) |
+| D2 | **GROUP:** Stabilize empty/free-text group keys — strip dates/times; stack same category/phrase/indicator |
+| D3 | **MAP:** Promote real category columns into `violationIssueType` when unmapped/raw |
+| D4 | **SHAPE:** Keep `matchedIndicators` as **arrays** on process rows for Train chips; join only on export |
+| D5 | Singleton badge remains pure `count === 1` after correct keys (no UI inventing) |
+| D6 | Existing typed High Grass rows still stack on type key as today |
+| D7 | Stack: same Node + vanilla Bridge stack; pure modules + tests first |
+
+## Symptoms (user)
+
+1. Distressed flooded with **singletons** that only differ by **timestamp** but share the same category (e.g. High Grass and Weeds)
+2. Not-distressed shows **no category** when source data had one
+
+## Root causes (diagnosed)
+
+- Empty `violationIssueType` → group by exact full description; timestamps → N keys
+- Free-text mapped into type with timestamps → distinct type keys
+- Category columns unmapped → type never promoted; FN labels fall back to notes / `(no type)`
+- `matchedIndicators` stringified before grouping → empty chips in Train
 
 ## Explicit non-goals
 
-- Analyze Keep/Change vision review redesign
-- Per-user or per-city brains
-- Black-box ML fine-tunes
-- Non-admin training (quality control)
+- Train CSS redesign
+- Phrase mining rule changes / brain panel redesign
+- Analyzer vision review
+- Per-user brains / multi-tenant auth
+- Rewriting tagger keep/discard policy (v1.6 distress-only rules stay)
 
-## Why this milestone
+## Success tests (must pass)
 
-User sells the tool; quality must be admin-controlled and improve as admin grades files. Not a one-off clean-list tool — a **superpower brain that learns as we go**.
-
-## Existing insertion points (from prior review)
-
-- `lib/bridge-distress-tagger.js` — regex tagger
-- `lib/bridge-engine/index.js` — processUpload, filterDistressOnly drops FN rows today
-- `lib/bridge-api.js` — process + lists routes
-- `lib/bridge-list-store.js` — atomic JSON pattern to copy
-- `public/bridge.html` + `public/js/bridge.js` — results UI (no train chrome today)
-- `public/js/auth.js` — bootstrap admin user
-
-## Draft design (reference only — roadmapper/planner own structure)
-
-`docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md`  
-(Hand notes; GSD agents produce authoritative ROADMAP + phase PLANs)
+1. Description-only rows + timestamps for same High Grass category → **1 distressed group**, count N
+2. Unmapped category column (e.g. "Vio Cat") → `violationIssueType` set; Train shows category
+3. Typed High Grass still stacks on type
+4. Signal chips show matched indicators arrays on process path
+5. `npm test` + `scripts/verify-live.ps1` green

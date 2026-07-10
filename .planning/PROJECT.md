@@ -47,11 +47,18 @@ Full requirement text: `.planning/milestones/v1.6-REQUIREMENTS.md`
 - [ ] **PA-01–07**: Property Analyzer Heat reskin
 - [ ] **QA-01–03**: Cross-app visual audit
 
-### Active (next milestone)
+### Active (v1.7 — Filter Accuracy & Grouping)
 
-_None yet — define via `/gsd:new-milestone`_
+**Goal:** Fix Train/Filter grouping so same-category rows stack, timestamps do not create false singletons, FN rows show real city categories, and signal chips stay visible.
 
-Candidates from backlog / future list:
+**Target features:**
+- Stable group keys (strip timestamps; stack on category / phrase / indicator)
+- Promote real category columns into `violationIssueType` (MAP)
+- Keep `matchedIndicators` as arrays for Train chips; join only on export (SHAPE)
+- Regression tests for singleton flood + unmapped category + typed stacking
+
+### Backlog (later)
+
 - Server-side authenticated sessions (replace spoofable `X-Phuglee-User` for multi-tenant)
 - Embedded bridge workflow (upload without leaving Analyzer)
 - Single sign-on / session sharing between modules
@@ -97,11 +104,17 @@ Candidates from backlog / future list:
 | Split undo (client list snapshot + server rule revert) | ✓ Good — HARD-01 |
 | Volume-safe `BRIDGE_BRAIN_ROOT` mirrors filter lists | ✓ Good — durability |
 
+## Current Milestone: v1.7 Filter Accuracy & Grouping
+
+**Goal:** Train brain shows accurate stacked categories and real FN labels after every upload.
+
+**Diagnosis:** `.planning/debug/filter-singleton-no-category.md` (gsd-debugger, root cause confirmed)
+
 ## Current State
 
 **Shipped:** v1.6 Filter Superpower Brain (2026-07-10)  
-**Focus:** Planning next milestone  
-**Phase artifacts:** remain under `.planning/phases/42-*` … `47-*` (not moved to archive)
+**Focus:** v1.7 Filter Accuracy & Grouping  
+**Phase artifacts:** v1.6 remains under `.planning/phases/42-*` … `47-*`; v1.7 continues numbering from 48
 
 ---
 
@@ -116,4 +129,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 after v1.6 milestone*
+*Last updated: 2026-07-10 after starting v1.7 Filter Accuracy*
