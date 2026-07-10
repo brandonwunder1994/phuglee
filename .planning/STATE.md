@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
-status: ready_to_execute
-stopped_at: Planned Phase 54 (2 plans)
-last_updated: "2026-07-10T14:01:57.888Z"
+status: executing
+stopped_at: Completed 54-01-PLAN.md
+last_updated: "2026-07-10T14:07:12.718Z"
 last_activity: 2026-07-10 — Phase 54 plans created (54-01, 54-02)
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 13
-  completed_plans: 11
-  percent: 85
+  completed_plans: 12
+  percent: 92
 ---
 
 # State
@@ -21,24 +21,24 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 54 planned — ready to execute regression lock
+**Current focus:** Phase 54 Plan 01 complete — processUpload v1.8 TEST locks green
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
-**Phase:** 54 of 54 (Regression Lock) — PLANNED  
-**Plan:** 0 of 2 complete  
-**Status:** Ready to execute
-**Last activity:** 2026-07-10 — Phase 54 plans created (54-01, 54-02)
+**Phase:** 54 of 54 (Regression Lock) — IN PROGRESS  
+**Plan:** 1 of 2 complete  
+**Status:** Ready to execute Plan 02  
+**Last activity:** 2026-07-10 — Completed 54-01 (TEST-01/02/03 v1.8 processUpload locks)
 
-Progress: [████████░░] 85% (v1.8 plans 11/13 done; phase 54 plan 0/2)
+Progress: [█████████░] 92% (v1.8 plans 12/13 done; phase 54 plan 1/2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v1.8): 11
-- Average duration: 4.5min
-- Total execution time: 49min
+- Total plans completed (v1.8): 12
+- Average duration: 4.8min
+- Total execution time: 57min
 
 **By Phase:**
 
@@ -47,7 +47,7 @@ Progress: [████████░░] 85% (v1.8 plans 11/13 done; phase 54 
 | 51 | 3/3 | 5min | 1.7min |
 | 52 | 4/4 | 35min | 8.8min |
 | 53 | 4/4 | 9min | 2.3min |
-| 54 | 0/2 | — | — |
+| 54 | 1/2 | 8min | 8min |
 
 **Performance Metrics (detail):**
 
@@ -64,6 +64,7 @@ Progress: [████████░░] 85% (v1.8 plans 11/13 done; phase 54 
 | 53-display-only-short-labels | 02 | 1min | 2 | 1 |
 | 53-display-only-short-labels | 03 | 1min | 2 | 2 |
 | 53-display-only-short-labels | 04 | 3min | 2 | 3 |
+| 54-regression-lock | 01 | 8min | 3 | 1 |
 
 ## Accumulated Context
 
@@ -129,6 +130,7 @@ Phase 54 plan decisions:
 - Extend tests/bridge-engine.test.js only; titles `TEST-0N (v1.8): …` (do not overwrite v1.7 TEST-*)
 - Gaps locked: 409 suggestedHeader equality, fingerprint-change reconfirm, processUpload shortLabel composition
 - Unique city.ids for format store isolation; zero new packages; no product re-implement unless lock fails
+- [Phase 54]: Extend bridge-engine.test.js only with TEST-0N (v1.8) titles; dual-tag COL/GATE; unique city.ids; tests-only no product fixes
 
 ### Pending Todos
 
@@ -136,11 +138,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None — Phase 54 planned (2 plans). Ready to execute.
+None — Plan 01 complete. Ready for Plan 02 (suite + verify-live).
 
 ## Session Continuity
 
-Last session: 2026-07-10T14:01:57.888Z
-Stopped at: Planned 54-01 + 54-02
+Last session: 2026-07-10T14:07:12.711Z
+Stopped at: Completed 54-01-PLAN.md
 Resume file: None
-Next: Execute Phase 54 — `/gsd:execute-phase 54`
+Next: Execute 54-02-PLAN.md — full suite + verify-live

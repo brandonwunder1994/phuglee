@@ -32,9 +32,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 ### Process meta & regression (META / TEST)
 
 - [x] **META-01**: Process/review meta exposes Type resolution: winner header, score (or null), runner-up optional, source (`auto_reuse` | `admin_confirm` | `scorer` | `unresolved`)
-- [ ] **TEST-01**: Automated: sheet where alias-first would map a narrative/date/status column → scorer maps the true category Type column
-- [ ] **TEST-02**: Automated: same city same fingerprint reuses confirmed header without confirm; fingerprint change requires confirm again
-- [ ] **TEST-03**: Automated: short label shortens display; stored type + export + group keys unchanged; `npm test` + `scripts/verify-live.ps1` green
+- [x] **TEST-01**: Automated: sheet where alias-first would map a narrative/date/status column → scorer maps the true category Type column
+- [x] **TEST-02**: Automated: same city same fingerprint reuses confirmed header without confirm; fingerprint change requires confirm again
+- [x] **TEST-03**: Automated: short label shortens display; stored type + export + group keys unchanged; `npm test` + `scripts/verify-live.ps1` green
 
 ## Future Requirements
 
@@ -77,8 +77,8 @@ Deferred — not in this milestone.
 | LBL-01 | Phase 53 | Complete |
 | LBL-02 | Phase 53 | Complete |
 | LBL-03 | Phase 53 | Complete |
-| TEST-01 | Phase 54 | Pending |
-| TEST-02 | Phase 54 | Pending |
-| TEST-03 | Phase 54 | Pending |
+| TEST-01 | Phase 54 | Complete |
+| TEST-02 | Phase 54 | Complete |
+| TEST-03 | Phase 54 | Complete |
 
 **Coverage:** 17/17 v1.8 requirements mapped ✓
