@@ -177,7 +177,10 @@ Plans:
   3. Admin can view brain metrics (decision counts, active/proposed rule counts)
   4. Tagging documentation describes base regex + brain layers; `npm test` and `scripts/verify-live.ps1` pass
 
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 47-01-PLAN.md — Caps, version 409, split undo, metrics, train polish, TAGGING-RULES, phase gate (HARD-01–04)
 
 ---
 
@@ -189,8 +192,8 @@ Plans:
 | 43. Review payload + grouping | v1.6 | 0/2 | Not started | - |
 | 44. Admin Train brain UX | v1.6 | 0/2 | Planned | - |
 | 45. Decisions + type rules + list mutation | v1.6 | 0/3 | Planned | - |
-| 46. Phrase mining + brain panel | v1.6 | 0/TBD | Not started | - |
-| 47. Hardening + metrics + docs | v1.6 | 0/TBD | Not started | - |
+| 46. Phrase mining + brain panel | v1.6 | 0/2 | Not started | - |
+| 47. Hardening + metrics + docs | v1.6 | 0/1 | Not started | - |
 
 **Coverage:** 24/24 v1.6 requirements mapped âœ“
 
