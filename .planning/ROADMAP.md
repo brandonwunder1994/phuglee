@@ -123,7 +123,11 @@ Plans:
   1. Independence regression suite locks no-push + `already_imported` default-off behavior in CI
   2. Gold accuracy fixtures from ACC run in `npm test` and stay green
   3. `scripts/verify-live.ps1` is green after milestone work; processUpload e2e still covers Type/format/water paths
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 60-01-PLAN.md — Permanent bar packaging: TEST-01/02 (v2.0) titles + IND-04 in independence + TEST-PLAN map
+- [ ] 60-02-PLAN.md — Ship gate: focused Type/format/water + full npm test + verify-live
 
 ---
 
@@ -138,7 +142,7 @@ Plans:
 | 57. Accuracy Structure Pass | 3/3 | Complete | 2026-07-10 |
 | 58. Learning Loop Strength | 3/3 | Complete | 2026-07-10 |
 | 59. Efficiency Operator Path | 3/3 | Complete | 2026-07-10 |
-| 60. Regression QA Lock | 0/TBD | Not started | - |
+| 60. Regression QA Lock | 0/2 | Not started | - |
 
 ### Coverage Map
 
