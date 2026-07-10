@@ -87,7 +87,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   1. At idle (before process), operator sees **live proof metrics** from existing list/API data (e.g. lists staged, total records ready, last save) — not only post-process KPIs
   2. Upload step presents **Process** as the visual climax (dropzone stage + one fire CTA); response date is tight meta, not a peer form block
 **Plans**: 2 plans · plan-check **PASS**
-- [ ] 63-01-PLAN.md — Live idle proof strip from `savedLists` (IDLE-01)
+- [x] 63-01-PLAN.md — Live idle proof strip from `savedLists` (IDLE-01)
 - [ ] 63-02-PLAN.md — Process climax + demoted date meta + static locks (IDLE-02)
 
 ### Phase 64: Live Scrub Feed

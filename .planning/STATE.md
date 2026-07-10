@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: Not started
-status: planning
-stopped_at: Completed 62-02-PLAN.md
-last_updated: "2026-07-10T23:54:44.147Z"
-last_activity: 2026-07-10 — 62-02 city dossier UI + demoted outcomes shipped
+current_plan: 2
+status: executing
+stopped_at: Completed 63-01-PLAN.md
+last_updated: "2026-07-10T23:56:41.840Z"
+last_activity: 2026-07-10 — 63-01 idle proof strip from savedLists shipped
 progress:
   total_phases: 8
   completed_phases: 2
   total_plans: 20
-  completed_plans: 5
-  percent: 25
+  completed_plans: 6
+  percent: 30
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 62 City Dossier complete (ready for verification); next Phase 63
+**Current focus:** v2.1 Filter Scrub Theater — Phase 63 Idle Proof & Process Climax (plan 01 done; next 63-02)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
-**Phase:** 62 — City Dossier  
-**Current Plan:** Not started
+**Phase:** 63 — Idle Proof & Process Climax  
+**Current Plan:** 2 of 2  
 **Total Plans in Phase:** 2  
-**Status:** Ready to plan
-**Last activity:** 2026-07-10 — 62-02 city dossier UI + demoted outcomes shipped
+**Status:** In progress  
+**Last activity:** 2026-07-10 — 63-01 idle proof strip from savedLists shipped
 
-Progress: [███░░░░░░░] 25% (5/20 plans executed)
+Progress: [███░░░░░░░] 30% (6/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -41,7 +41,7 @@ Progress: [███░░░░░░░] 25% (5/20 plans executed)
 |-------|------|-------|------------|
 | 61 | Scrub Desk Foundation | 3 (3 done) | PASS |
 | 62 | City Dossier | 2 (2 done) | PASS |
-| 63 | Idle Proof & Process Climax | 2 | PASS |
+| 63 | Idle Proof & Process Climax | 2 (1 done) | PASS |
 | 64 | Live Scrub Feed | 2 | PASS |
 | 65 | Kill-Rate Scrub Report | 3 | PASS |
 | 66 | Superpower Train Theater | 3 | PASS |
@@ -76,6 +76,8 @@ Progress: [███░░░░░░░] 25% (5/20 plans executed)
 - [62] Wave 0 contracts only — no production UI; dossier history via loadCityDossierHistory or onCityChange loadHistory; no GET /api/bridge/dossier route
 - [62] Hybrid dossier inline under city selects; outcomes in collapsed button+panel scrap drawer
 - [62] Client-compose dossier from history+lists APIs; loadCityDossierHistory named helper with race guard; no GET /api/bridge/dossier
+- [63] Idle strip always-on under hero from savedLists; Last save = lists[0].createdAt via formatListWhen
+- [63] Empty renderSavedLists path must call renderIdleProof so strip never goes stale
 
 ## Performance Metrics
 
@@ -86,16 +88,17 @@ Progress: [███░░░░░░░] 25% (5/20 plans executed)
 | 61 | 03 | 8min | 2 | 3 |
 | 62 | 01 | 2min | 2 | 2 |
 | 62 | 02 | 12min | 3 | 3 |
+| 63 | 01 | 2min | 2 | 3 |
 
 ## Next command
 
 ```text
-/gsd:verify-work 62
+/gsd:execute-phase 63
 ```
 
-(Or `/gsd:execute-phase 63` after verification)
+(Or continue with plan 63-02 Process climax)
 
 ## Session
 
-**Last session:** 2026-07-10T23:52:14.924Z
-**Stopped at:** Completed 62-02-PLAN.md
+**Last session:** 2026-07-10T23:56:41.829Z
+**Stopped at:** Completed 63-01-PLAN.md

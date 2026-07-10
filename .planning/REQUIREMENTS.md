@@ -26,7 +26,7 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 
 ### Idle proof & process climax (IDLE)
 
-- [ ] **IDLE-01**: At idle (before process), operator sees **live proof metrics** from existing list/API data (e.g. lists staged, total records ready, last save) — not only post-process KPIs
+- [x] **IDLE-01**: At idle (before process), operator sees **live proof metrics** from existing list/API data (e.g. lists staged, total records ready, last save) — not only post-process KPIs
 - [ ] **IDLE-02**: Upload step makes **Process** the visual climax (dropzone stage + one fire CTA); response date is tight meta, not a peer form block
 
 ### Live scrub feed (FEED)
@@ -115,7 +115,7 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | DESK-06 | 61 | Complete |
 | CITY-01 | 62 | Complete |
 | CITY-02 | 62 | Complete |
-| IDLE-01 | 63 | Pending |
+| IDLE-01 | 63 | Complete |
 | IDLE-02 | 63 | Pending |
 | FEED-01 | 64 | Pending |
 | FEED-02 | 64 | Pending |
