@@ -1,16 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Filter Independence & Learning
-status: completed
-stopped_at: Completed 60-02-PLAN.md
-last_updated: "2026-07-10T17:07:01.836Z"
+milestone: v2.1
+milestone_name: Filter Scrub Theater
+status: executing
+stopped_at: Completed 61-01-PLAN.md
+last_updated: "2026-07-10T23:42:00.000Z"
+last_activity: "2026-07-10 — Executed 61-01 scrub desk foundation shell"
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_phases: 8
+  completed_phases: 0
+  total_plans: 19
+  completed_plans: 1
+  percent: 5
 ---
 
 # State
@@ -19,69 +20,70 @@ progress:
 
 See: `.planning/PROJECT.md`
 
-**Core value:** Collect → filter non-deals (with admin learning) → **save lists** → external enrich → **manual** Analyze import.  
-**Current focus:** Phase 60 Regression QA Lock complete — v2.0 permanent bar ship-ready
+**Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
+**Current focus:** v2.1 Filter Scrub Theater — executing Phase 61 Scrub Desk Foundation
 
 ## Current Position
 
-**Milestone:** v2.0 Filter Independence & Learning  
-**Phase:** 60 of 60 — Regression QA Lock  
-**Plan:** 02 of 02 complete  
-**Status:** Milestone complete
-**Next:** `/gsd:verify-work 60` or milestone close
+**Milestone:** v2.1 Filter Scrub Theater (M8)  
+**Phase:** 61 — Scrub Desk Foundation (In Progress)  
+**Current Plan:** 2 of 2 in phase  
+**Total Plans in Phase:** 2  
+**Status:** 61-01 complete — next 61-02 DESK-06 voice/buttons  
+**Last activity:** 2026-07-10 — feat desk shell + cream hero + heat atmosphere
 
-Progress: [██████████] 100% (17/17 plans)
+Progress: [█░░░░░░░░░] 5% (1/19 plans executed)
 
-## Shipped this milestone
+## Phase map (v2.1)
 
-| Phase | Result |
-|-------|--------|
-| 55 | Independence Lock |
-| 56 | List Factory UX |
-| 57 | ACC gold fixtures |
-| 58 | Paired learning metrics (trend + gold P/R + coverage) |
-| 59-01 | Wave 0 efficiency path tests (as-built GREEN + polish RED + EFF-02 GREEN) |
-| 59-02 | Format reused meta + post-save Download this list (CSV) flash |
-| 59-03 | Train A/D keyboard + EFF-02 suite/live gate + day-2 docs |
-| 60-01 | Permanent bar packaging TEST-01/02 (v2.0) + TEST-PLAN section N |
-| 60-02 | Ship gate: 522/0 suite + verify-live 200 + focused 21+23 bars |
+| Phase | Name | Plans | Plan-check |
+|-------|------|-------|------------|
+| 61 | Scrub Desk Foundation | 2 (1 done) | PASS |
+| 62 | City Dossier | 2 | PASS |
+| 63 | Idle Proof & Process Climax | 2 | PASS |
+| 64 | Live Scrub Feed | 2 | PASS |
+| 65 | Kill-Rate Scrub Report | 3 | PASS |
+| 66 | Superpower Train Theater | 3 | PASS |
+| 67 | Multi-City Shift & Staging | 3 | PASS |
+| 68 | Regression QA Lock | 2 | PASS |
 
-## Decisions
+## GSD artifacts
 
-- Wave 0 single test file locks EFF-01 as-built GREEN + polish RED + EFF-02 anti-patterns GREEN
-- renderResults slice uses exact signature to avoid renderResultsTable prefix match
-- Requirements EFF-01 complete after Plan 02; EFF-02 open until Plan 03
-- [Phase 59]: Flash download via data-action outside resetImportAreaAfterSave to keep EFF-02 auto-invoke ban
-- [Phase 59]: Format reused + durationMs results meta on auto_reuse day-2 path
-- [Phase 59]: Train A/D keyboard reuses onTrainDecision (Deny≥10 confirm preserved); first undecided card only
-- [Phase 60]: Dual-tag IND/ACC titles with TEST-0N (v2.0); leave v1.7/v1.8 engine titles untouched
-- [Phase 60]: Option A: already_imported default-off locked in independence suite (mirrors IND-04)
-- [Phase 60]: Ship gate gates-only: zero product edits when permanent bar green on first run
+| Artifact | Path |
+|----------|------|
+| Requirements | `.planning/REQUIREMENTS.md` (24 REQs) |
+| Roadmap | `.planning/ROADMAP.md` |
+| Design bible | `.planning/v2.1-FILTER-SCRUB-THEATER.md` |
+| UI map | `.planning/codebase/filter-page-ui-map.md` |
+| Milestone doc | `docs/gsd/milestones/M8-filter-scrub-theater.md` |
+| Phase dirs | `.planning/phases/61-*` … `68-*` |
+
+## Decisions (v2.1)
+
+- Scope: all 10 composition upgrades + all 5 showstoppers
+- Surface: `/bridge` only; no keep/kill engine rewrite; Analyze independence preserved
+- Feed: client-staged from process response (no SSE v1)
+- Execute: one phase at a time after user says execute
+- Order: 61 → 68 only
+- [61] Dropped .bridge-bg under strong+heat to avoid double-orange mud
+- [61] bridge-main max-width 1040px for desk+scrap asymmetry without equal columns
+- [61] Scrap is quiet link-to-lists only — idle metrics deferred to phase 63
 
 ## Performance Metrics
 
-| Phase-Plan | Duration | Tasks | Files | Notes |
-|------------|----------|-------|-------|-------|
-| 59-01 | 12min | 2 | 1 | tests only; 11 pass / 2 intentional RED |
-| 59-02 | 18min | 2 | 4 | EFF-01 polish green; verify-live ok |
-| 59-03 | 15min | 2 | 6 | keyboard + suite/live EFF-02; 519 tests green |
-| 60-01 | 12min | 2 | 3 | independence + gold packaging; 21/21 bar green |
-| 60-02 | 5min | 2 | 0 | ship gate; 522/0 + live 200; zero product edits |
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 61 | 01 | 12min | 2 | 2 |
+
+## Next command
+
+```text
+/gsd:execute-phase 61
+```
+
+(Continues with plan 61-02 — DESK-06 button/voice)
 
 ## Session
 
-**Last session:** 2026-07-10T17:09:00.000Z  
-**Stopped at:** Completed 60-02-PLAN.md
-
-## Quick Tasks Completed
-
-| ID | Description | Date | Status |
-|----|-------------|------|--------|
-| 260710-k9c | Confident category stacking for Train review groups (municipal codes + noise strip) | 2026-07-10 | complete — 570 tests green |
-
-## Next
-
-```text
-Re-process Irving (or any code-heavy city) on Filter → Train should stack HGW-class variants
-# optional: /gsd:verify-work 60 or milestone close for v2.0
-```
+**Last session:** 2026-07-10T23:42:00.000Z  
+**Stopped at:** Completed 61-01-PLAN.md

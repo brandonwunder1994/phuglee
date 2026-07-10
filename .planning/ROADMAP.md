@@ -1,5 +1,11 @@
 # Roadmap: Distress OS
 
+> **Archive-ready path (on complete-milestone):** `.planning/milestones/v2.1-ROADMAP.md` + `v2.1-REQUIREMENTS.md`  
+> **Active roadmap:** this file (v2.1 Filter Scrub Theater)  
+> **GSD tracking:** `docs/gsd/milestones/M8-filter-scrub-theater.md`  
+> **Design bible:** `.planning/v2.1-FILTER-SCRUB-THEATER.md`  
+> **UI map:** `.planning/codebase/filter-page-ui-map.md`
+
 ## Milestones
 
 - ✅ **v1.0 Shell & Integration** — Phases 1–6 (shipped 2026-07-01)
@@ -11,166 +17,217 @@
 - ✅ **v1.6 Filter Superpower Brain** — Phases 42–47 (shipped 2026-07-10) — [archive](./milestones/v1.6-ROADMAP.md)
 - ✅ **v1.7 Filter Accuracy & Grouping** — Phases 48–50 (shipped 2026-07-10) — [archive](./milestones/v1.7-ROADMAP.md)
 - ✅ **v1.8 Type Column Intelligence** — Phases 51–54 (shipped 2026-07-10) — [archive](./milestones/v1.8-ROADMAP.md)
-- 🚧 **v2.0 Filter Independence & Learning** — Phases 55–60 (in progress)
+- ✅ **v2.0 Filter Independence & Learning** — Phases 55–60 (shipped 2026-07-10)
+- 🚧 **v2.1 Filter Scrub Theater** — Phases 61–68 (planning → execute)
 
 ## Overview
 
-v2.0 makes Filter a **standalone list factory**: process city files → admin Train when needed → save multi-city lists → download for external enrich/skip-trace → **manual** Analyze import. Independence locks first so later work cannot re-couple; list UX elevates Save/Download; accuracy gold fixtures protect the brain; learning metrics prove Approve/Deny falls for the right reason; efficiency shortens day-2 paths without silent drops; regression QA freezes the whole bar.
+v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric foundation, city dossier, live idle proof + Process climax, live kill feed during process, cinematic kill-rate report, admin Train superpower theater, multi-city shift inventory — matching Collect/Command quality bar without rewriting the keep/kill engine or re-coupling Analyze.
 
-**Granularity:** standard (6 phases)  
-**Coverage:** 18/18 v2.0 requirements mapped
+**Granularity:** standard (8 phases)  
+**Coverage:** 24/24 v2.1 requirements mapped  
+**Surface:** Filter `/bridge` UI only (vanilla HTML/CSS/JS)  
+**Dependency order (design bible D2):** Foundation desk → city dossier → idle/process climax → live feed → kill report → train theater → shift/staging → QA
 
 ## Active Work
 
-**Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 60 complete — permanent regression bar ship-ready (522/0 + live 200)  
+**Milestone:** v2.1 Filter Scrub Theater  
+**Status:** GSD pipeline complete (map → requirements → roadmap → research → plan-phase **checked**) — awaiting user **execute**  
 
-
-**Phase numbering:** 55–60 (continues from v1.8 phase 54)
+**Phase numbering:** 61–68 (continues from v2.0 phase 60)  
+**Plans:** **19** executable plans (all plan-checker **PASS**)
 
 ---
 
 ## Phases
 
-- [x] **Phase 55: Independence Lock** — Process/save/Train never write Analyze; push adapter gone; `already_imported` off by default
-- [x] **Phase 56: List Factory UX** — Save → Download is the hero path; multi-city lists persist until operator deletes
-- [x] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
-- [x] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
-- [x] **Phase 59: Efficiency Operator Path** — Shorter day-2 path to saved list without accuracy or Analyze re-coupling tradeoffs
-- [x] **Phase 60: Regression QA Lock** — Independence + gold + processUpload e2e + suite + verify-live green
+- [ ] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
+- [ ] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
+- [ ] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
+- [ ] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
+- [ ] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
+- [ ] **Phase 66: Superpower Train Theater** — Admin Train climax when open groups; brain secondary; non-admin gate
+- [ ] **Phase 67: Multi-City Shift & Staging** — Sticky shift queue; inventory HUD; brand-heat success
+- [ ] **Phase 68: Regression QA Lock** — v1.6–v2.0 locks + suite + verify-live + mobile/a11y motion
 
 ## Phase Details
 
-### Phase 55: Independence Lock
-**Goal**: Filter is write-isolated from Analyze — process, save, Train, and list APIs never push leads into Analyze; residual push surfaces cannot resurrect; re-work lists stay full because `already_imported` filtering is off by default
-**Depends on**: Nothing (v1.8 shipped — Type column + format gate baseline)
-**Requirements**: IND-01, IND-02, IND-03, IND-04
+### Phase 61: Scrub Desk Foundation
+**Goal**: First paint is an asymmetric scrub desk in the same grit world as Collect/Command — not a centered multi-step form wizard with fake proof tiles
+**Depends on**: Nothing (v2.0 shipped — independence + list factory + accuracy bar)
+**Requirements**: DESK-01, DESK-02, DESK-03, DESK-04, DESK-05, DESK-06
 **Success Criteria** (what must be TRUE):
-  1. Operator can process a city file, Train (if admin), and save/download a list without any Analyze session write or `bridge-import-records` side effect
-  2. Legacy Analyze-push adapter (`bridge-analyzer-push` and call sites/UI) is deleted or quarantined so re-wiring it fails automated tests
-  3. Automated negative tests prove process + save paths never require Analyze push and never invent Analyze session writes
-  4. Re-filtering or purging a city keeps the full kept list by default — `already_imported` Analyze-index filtering does not hard-drop rows unless an explicit future opt-in is enabled
-**Plans**: 3 plans
+  1. Operator opens `/bridge` and sees a **dominant work surface + supporting scrap**, not a 920px centered essay wizard
+  2. Equal 3-up decorative “proof rail” (icon + step-title metrics) is **gone or replaced** — first paint never ships an M5-forbidden equal feature grid
+  3. Atmosphere reads Collect-grade intensity (`premium-bg--strong` and/or heat field), not subtle admin wash only
+  4. Teaching chrome is slim for veterans (no triple stack of tutorial rail + pipeline essay + long H1 lead); step orthography remains usable
+  5. Hero is **left-aligned solid cream Anton** “Scrub the Mess” with a short ops lead — not centered gradient marketing H1
+  6. Buttons use unified `phuglee-btn` vocabulary and ops slang throughout (no dual `bridge-btn` + `phuglee-btn` systems as the default)
+**Plans**: 1/2 plans complete · plan-check **PASS** · status: In Progress
+- [x] 61-01-PLAN.md — Atmosphere + kill proof rail + asymmetric desk shell (DESK-01–05)
+- [ ] 61-02-PLAN.md — Ops voice + `phuglee-btn` unify + suite/live gate (DESK-06)
 
-Plans:
-- [x] 55-01-PLAN.md — Default-off already_imported in processUpload (IND-04)
-- [x] 55-02-PLAN.md — Delete push adapter + independence negative tests (IND-01/02/03)
-- [x] 55-03-PLAN.md — Docs + light UI copy for independence messaging
-
-### Phase 56: List Factory UX
-**Goal**: Operators treat Filter as a multi-city list factory — primary path is Save list then Download (one or all) for external enrich, with copy that teaches Process → (Train) → Save → Download → manual Analyze import
-**Depends on**: Phase 55
-**Requirements**: LIST-01, LIST-02, LIST-03
+### Phase 62: City Dossier
+**Goal**: City selection opens an ops case file; “city said no list” is a secondary scrap — happy path is file scrub, not a radio wall
+**Depends on**: Phase 61
+**Requirements**: CITY-01, CITY-02
 **Success Criteria** (what must be TRUE):
-  1. After process (and optional Train), the primary CTAs are **Save list** and **Download** (one or all) — not “send to Analyze”
-  2. Operator can save multiple city lists and they remain after process, restart, and deploy until the operator deletes them
-  3. UI workflow and copy clearly teach Process → (Train) → Save → Download for external enrich → manual Analyze import
-**Plans:** 3 plans
+  1. After selecting a city, operator sees a **city dossier** (prior attaches / last scrub / lists staged / relevant status) — not only dual selects in a void
+  2. “City replied, no usable list” outcomes live in a **secondary scrap/drawer** on the dossier — not a 5-radio wall competing with step-1 happy path
+**Plans**: 2 plans · plan-check **PASS**
+- [ ] 62-01-PLAN.md — Wave 0 TDD: dossier/drawer static contracts + city-outcome handler soft gap
+- [ ] 62-02-PLAN.md — Client dossier compose (history + lists) + demote outcomes to scrap/drawer; preserve outcome POST payload
 
-Plans:
-- [x] 56-01-PLAN.md — LIST-03 teaching pack + LIST-01 CTA hierarchy (Save primary, Preview CSV, workflow strip)
-- [x] 56-02-PLAN.md — Dirty-guard + soft Train-before-Save + save flash download path
-- [x] 56-03-PLAN.md — factory-ux tests + list-store accumulate + docs light + suite gate
-
-### Phase 57: Accuracy Structure Pass
-**Goal**: Residual heterogeneous-city keep/kill and Type/format failures are fixed with gold fixtures — real distress stays kept, junk is denied, water is never type-suppressed, and accuracy changes never silent-drop inventory
-**Depends on**: Phase 56 (operators can stage lists while accuracy hardens; independence already locked)
-**Requirements**: ACC-01, ACC-02, ACC-03
+### Phase 63: Idle Proof & Process Climax
+**Goal**: Desk proves inventory before process; upload step makes Process the one fire climax
+**Depends on**: Phase 62 (dossier context available; desk shell stable)
+**Requirements**: IDLE-01, IDLE-02
 **Success Criteria** (what must be TRUE):
-  1. Gold city fixtures pass: real distress kept, junk denied, water shut-off never type-suppressed — fixes land in code, not audit-only notes
-  2. Process never silent-drops leads solely for “no Type,” unresolved map, or cleaner kept counts — rows remain for review / FN pool / explicit reasons
-  3. v1.7–v1.8 locks still hold: single Type winner (no blend), empty-only category promote, stable group keys, display-only short labels, format confirm on first/changed fingerprint
-**Plans:** 3 plans
+  1. At idle (before process), operator sees **live proof metrics** from existing list/API data (e.g. lists staged, total records ready, last save) — not only post-process KPIs
+  2. Upload step presents **Process** as the visual climax (dropzone stage + one fire CTA); response date is tight meta, not a peer form block
+**Plans**: 2 plans · plan-check **PASS**
+- [ ] 63-01-PLAN.md — Live idle proof strip from `savedLists` (IDLE-01)
+- [ ] 63-02-PLAN.md — Process climax + demoted date meta + static locks (IDLE-02)
 
-Plans:
-- [x] 57-01-PLAN.md — Wave 0 gold fixtures + ACC-01/02 processUpload contracts
-- [x] 57-02-PLAN.md — Fix only gold reds (tagger/engine) until ACC-01 green
-- [x] 57-03-PLAN.md — ACC-02 silent-drop bans + ACC-03 v1.7–v1.8 regression lock
-
-### Phase 58: Learning Loop Strength
-**Goal**: Admin can see the brain getting smarter for the right reason — paired metrics (decision volume trend + gold precision/recall) with real rule apply coverage; type rules live, phrases stay proposed-only
-**Depends on**: Phase 57 (good groups/types before strengthening learning)
-**Requirements**: LRN-01, LRN-02, LRN-03
+### Phase 64: Live Scrub Feed
+**Goal**: While process runs, the operator watches real scrub activity — kept / no-distress / discarded — not only a passive bar and rotating slogans
+**Depends on**: Phase 63 (process path is the desk climax; feed mounts on that beat)
+**Requirements**: FEED-01, FEED-02
 **Success Criteria** (what must be TRUE):
-  1. Admin can view paired learning metrics: Approve/Deny (or decisions-per-comparable-process) trend **and** gold-set precision/recall not degrading
-  2. Metrics cannot be “won” by hiding Train groups, auto-activating phrases, or silent-dropping rows — success requires real rule apply coverage
-  3. Type suppress/promote still apply on process from admin decisions; phrase rules remain proposed-only until admin activate (no unsupervised live ML)
-**Plans:** 3 plans
+  1. During process, operator sees a **live scrub activity feed** (addresses and/or types with kept / no-distress / discarded / already-in-Analyze language) derived from real process outcomes (client-staged from response preferred)
+  2. Feed respects `prefers-reduced-motion` (static summary / crossfade allowed; motion never required for comprehension)
+**Plans**: 2 plans · plan-check **PASS**
+- [ ] 64-01-PLAN.md — Pure `bridge-scrub-feed.js` + Wave 0 unit tests (FEED-01/02)
+- [ ] 64-02-PLAN.md — DOM/CSS feed theater + process play + live gate
 
-Plans:
-- [x] 58-01-PLAN.md — Pure learning metrics module (trend + gold P/R + apply coverage + anti-game pure)
-- [x] 58-02-PLAN.md — Wire GET brain/metrics + brain GET with learning nest
-- [x] 58-03-PLAN.md — Brain panel chips + LRN-02/03 locks + suite/live gate
-
-### Phase 59: Efficiency Operator Path
-**Goal**: Day-2 / known-format operators reach a saved downloadable list faster via format reuse, stacked Train, and bulk download — without trading accuracy or re-coupling Filter to Analyze
-**Depends on**: Phases 57–58 (accuracy frozen; learning path trustworthy)
-**Requirements**: EFF-01, EFF-02
+### Phase 65: Kill-Rate Scrub Report
+**Goal**: Results open as a cinematic kill-rate mission readout — RAW → KILLED → KEPT — with proof chips and Save/Stage still the operator primary
+**Depends on**: Phase 64 (process theater completes into results)
+**Requirements**: KILL-01, KILL-02, KILL-03
 **Success Criteria** (what must be TRUE):
-  1. For known formats / day-2 cities, operator path to a saved list is shorter: format auto-reuse, stacked Train where applicable, bulk download — without measurable accuracy regression on gold fixtures
-  2. No efficiency change increases silent drops, skips Train when needed, or re-introduces Filter → Analyze push/write coupling
-**Plans:** 3 plans
+  1. After process, results open with a **kill-rate scrub report**: display-scale RAW → KILLED → KEPT hierarchy, kill-reason breakdown, optional sample kept dossiers — not only equal KPI tiles
+  2. Process meta already computed (duration, format reuse, discard story) surfaces as **proof chips/HUD**, not a single buried meta sentence
+  3. Primary post-scrub CTA remains **Save list / Stage**; Preview CSV stays secondary; Analyze boundary language preserved
+**Plans**: 3 plans · plan-check **PASS**
+- [ ] 65-01-PLAN.md — Wave 0 TDD: kill-rate contracts (KILL-01–03)
+- [ ] 65-02-PLAN.md — Kill-rate HUD: reforge `renderKpis` RAW→KILLED→KEPT + proof chips
+- [ ] 65-03-PLAN.md — Elevate Save/Stage; Preview secondary; suite + verify-live
 
-Plans:
-- [x] 59-01-PLAN.md — Wave 0 EFF-01/02 path tests (as-built green + polish RED)
-- [x] 59-02-PLAN.md — Format reuse meta + post-save Download this list (CSV)
-- [x] 59-03-PLAN.md — Train A/D keyboard + suite/live EFF-02 gate
-
-### Phase 60: Regression QA Lock
-**Goal**: Independence, gold accuracy, processUpload e2e, full suite, and live server stay permanently green for the milestone bar
-**Depends on**: Phases 55–59
-**Requirements**: TEST-01, TEST-02, TEST-03
+### Phase 66: Superpower Train Theater
+**Goal**: When admin has open train groups after process, UI pivots into Train theater; Filter brain is armory, not a peer tab; non-admins never see train/brain chrome
+**Depends on**: Phase 65 (results/report shell exists for theater pivot)
+**Requirements**: THTR-01, THTR-02, THTR-03
 **Success Criteria** (what must be TRUE):
-  1. Independence regression suite locks no-push + `already_imported` default-off behavior in CI
-  2. Gold accuracy fixtures from ACC run in `npm test` and stay green
-  3. `scripts/verify-live.ps1` is green after milestone work; processUpload e2e still covers Type/format/water paths
-**Plans:** 2 plans
+  1. Admin with open train groups after process sees **Train theater** (mission header with open-group count; Distressed / Not Distressed with live kept-count feedback) — not equal peer tabs with Kept / Brain by default
+  2. Filter brain panel is **secondary** (rules armory), not a third equal-weight peer competing with the scrub win
+  3. Non-admin never sees train/brain chrome (v1.6 TRAIN-03 / admin gate preserved)
+**Plans**: 3 plans · plan-check **PASS**
+- [ ] 66-01-PLAN.md — Open-count helper + process→train theater pivot + mission header (THTR-01)
+- [ ] 66-02-PLAN.md — Live kept HUD + theater chrome / demoted Kept (THTR-01)
+- [ ] 66-03-PLAN.md — Rules armory demotion + admin gate + suite/live (THTR-02, THTR-03)
 
-Plans:
-- [x] 60-01-PLAN.md — Permanent bar packaging: TEST-01/02 (v2.0) titles + IND-04 in independence + TEST-PLAN map
-- [x] 60-02-PLAN.md — Ship gate: focused Type/format/water + full npm test + verify-live
+### Phase 67: Multi-City Shift & Staging
+**Goal**: Operators run a multi-city shift with sticky inventory, brand-heat success, and one-click next city without re-teaching chrome
+**Depends on**: Phase 66 (post-process/train path stable; save still primary)
+**Requirements**: SHIFT-01, SHIFT-02, SHIFT-03
+**Success Criteria** (what must be TRUE):
+  1. Operator can run a **multi-city shift**: sticky queue/inventory of staged cities/lists; after save, next city is one-click without full wizard restart / re-teaching chrome
+  2. Saved lists read as **staging inventory** (counts, type heat, ready/download language) while rename / download / delete / download-all APIs still work
+  3. Post-save success uses **brand heat** (ember/gold), not green SaaS flash; optional “Download this list” path remains
+**Plans**: 3 plans · plan-check **PASS**
+- [ ] 67-01-PLAN.md — Brand-heat post-save flash (SHIFT-03)
+- [ ] 67-02-PLAN.md — Staging inventory HUD over lists table (SHIFT-02)
+- [ ] 67-03-PLAN.md — Sticky client shift queue + next-city posture (SHIFT-01)
+
+### Phase 68: Regression QA Lock
+**Goal**: Milestone bar is permanent — independence/accuracy/brain/processUpload locks green, live server healthy, mobile + reduced-motion paths verified for theater
+**Depends on**: Phases 61–67
+**Requirements**: QA-01, QA-02, QA-03
+**Success Criteria** (what must be TRUE):
+  1. All Filter independence / accuracy / brain / processUpload locks from v1.6–v2.0 stay green (`npm test`)
+  2. `scripts/verify-live.ps1` exits 0 after milestone work; `/bridge` health + homepage HTTP 200
+  3. Mobile 390 + desktop 1440: no horizontal overflow; primary CTAs ≥ 44px; reduced-motion paths verified for FEED/KILL/THTR motion
+**Plans**: 2 plans · plan-check **PASS**
+- [ ] 68-01-PLAN.md — Theater contracts packaging + TEST-PLAN §O + QA checklist
+- [ ] 68-02-PLAN.md — Ship gate: full suite + verify-live + `/bridge` 200 + checklist evidence
 
 ---
 
 ## Progress
 
-**Execution Order:** 55 → 56 → 57 → 58 → 59 → 60
+**Execution Order:** 61 → 62 → 63 → 64 → 65 → 66 → 67 → 68
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 55. Independence Lock | 3/3 | Complete | 2026-07-10 |
-| 56. List Factory UX | 3/3 | Complete | 2026-07-10 |
-| 57. Accuracy Structure Pass | 3/3 | Complete | 2026-07-10 |
-| 58. Learning Loop Strength | 3/3 | Complete | 2026-07-10 |
-| 59. Efficiency Operator Path | 3/3 | Complete | 2026-07-10 |
-| 60. Regression QA Lock | 2/2 | Complete | 2026-07-10 |
+| Phase | Plans | Status | Plan-check | Completed |
+|-------|-------|--------|------------|-----------|
+| 61. Scrub Desk Foundation | 0/2 | Ready to execute | PASS | — |
+| 62. City Dossier | 0/2 | Ready to execute | PASS | — |
+| 63. Idle Proof & Process Climax | 0/2 | Ready to execute | PASS | — |
+| 64. Live Scrub Feed | 0/2 | Ready to execute | PASS | — |
+| 65. Kill-Rate Scrub Report | 0/3 | Ready to execute | PASS | — |
+| 66. Superpower Train Theater | 0/3 | Ready to execute | PASS | — |
+| 67. Multi-City Shift & Staging | 0/3 | Ready to execute | PASS | — |
+| 68. Regression QA Lock | 0/2 | Ready to execute | PASS | — |
 
 ### Coverage Map
 
 | Requirement | Phase |
 |-------------|-------|
-| IND-01 | 55 |
-| IND-02 | 55 |
-| IND-03 | 55 |
-| IND-04 | 55 |
-| LIST-01 | 56 |
-| LIST-02 | 56 |
-| LIST-03 | 56 |
-| ACC-01 | 57 |
-| ACC-02 | 57 |
-| ACC-03 | 57 |
-| LRN-01 | 58 |
-| LRN-02 | 58 |
-| LRN-03 | 58 |
-| EFF-01 | 59 |
-| EFF-02 | 59 |
-| TEST-01 | 60 |
-| TEST-02 | 60 |
-| TEST-03 | 60 |
+| DESK-01 | 61 |
+| DESK-02 | 61 |
+| DESK-03 | 61 |
+| DESK-04 | 61 |
+| DESK-05 | 61 |
+| DESK-06 | 61 |
+| CITY-01 | 62 |
+| CITY-02 | 62 |
+| IDLE-01 | 63 |
+| IDLE-02 | 63 |
+| FEED-01 | 64 |
+| FEED-02 | 64 |
+| KILL-01 | 65 |
+| KILL-02 | 65 |
+| KILL-03 | 65 |
+| THTR-01 | 66 |
+| THTR-02 | 66 |
+| THTR-03 | 66 |
+| SHIFT-01 | 67 |
+| SHIFT-02 | 67 |
+| SHIFT-03 | 67 |
+| QA-01 | 68 |
+| QA-02 | 68 |
+| QA-03 | 68 |
 
-**Mapped:** 18/18 ✓
+**Mapped:** 24/24 ✓
+
+### Per-phase verification spirit
+
+Every phase: observable success criteria + `npm test` green + `scripts/verify-live.ps1` exit 0 in spirit.  
+**Phase 68 owns formal lock** of the full suite, live gate, and mobile/a11y motion bar.
+
+### Constraints (all phases)
+
+- Filter `/bridge` UI only
+- No processUpload keep/kill engine rewrite
+- Preserve Analyze independence (v2.0)
+- Vanilla stack (no React)
+- Never wipe filter-lists / bridge-brain data
+- Preserve stable DOM IDs used by tests unless plan migrates with tests
 
 ---
+
+<details>
+<summary>✅ v2.0 Filter Independence & Learning (Phases 55–60) — SHIPPED 2026-07-10</summary>
+
+- [x] Phase 55: Independence Lock (3/3 plans) — completed 2026-07-10
+- [x] Phase 56: List Factory UX (3/3 plans) — completed 2026-07-10
+- [x] Phase 57: Accuracy Structure Pass (3/3 plans) — completed 2026-07-10
+- [x] Phase 58: Learning Loop Strength (3/3 plans) — completed 2026-07-10
+- [x] Phase 59: Efficiency Operator Path (3/3 plans) — completed 2026-07-10
+- [x] Phase 60: Regression QA Lock (2/2 plans) — completed 2026-07-10
+
+**Mapped:** IND · LIST · ACC · LRN · EFF · TEST (18/18)
+
+</details>
 
 <details>
 <summary>✅ v1.8 Type Column Intelligence (Phases 51–54) — SHIPPED 2026-07-10</summary>
@@ -247,14 +304,3 @@ Premium atmosphere + components on post-login surfaces; Form Forge and Analyzer 
 Heat tokens + nav + reskin partially overtaken by `--phuglee-*` signature brand.
 
 </details>
-
-<details>
-<summary>✅ v1.0 Shell & Integration (Phases 1–6) — shipped 2026-07-01</summary>
-
-Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
-
-</details>
-
----
-*Roadmap created: 2026-07-10 for v2.0 Filter Independence & Learning*  
-*Phases 55–60 · 18/18 requirements mapped*
