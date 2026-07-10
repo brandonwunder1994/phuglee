@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 3 of 3 in phase
-status: ready_for_verification
+current_plan: Not started
+status: planning
 stopped_at: Completed 61-03-PLAN.md
-last_updated: "2026-07-10T23:43:38.034Z"
-last_activity: 2026-07-10
+last_updated: "2026-07-10T23:45:53.952Z"
+last_activity: 2026-07-10 — gap-close DESK-06 live BridgeTrain phuglee-btn
 progress:
   total_phases: 8
   completed_phases: 1
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 61 — Scrub Desk Foundation (Complete — ready for re-verification)  
-**Current Plan:** 3 of 3 in phase  
+**Current Plan:** Not started
 **Total Plans in Phase:** 3  
-**Status:** Phase complete — ready for verification  
+**Status:** Ready to plan
 **Last activity:** 2026-07-10 — gap-close DESK-06 live BridgeTrain phuglee-btn
 
 Progress: [██░░░░░░░░] 15% (3/20 plans executed)
