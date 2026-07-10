@@ -107,7 +107,12 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. For known formats / day-2 cities, operator path to a saved list is shorter: format auto-reuse, stacked Train where applicable, bulk download — without measurable accuracy regression on gold fixtures
   2. No efficiency change increases silent drops, skips Train when needed, or re-introduces Filter → Analyze push/write coupling
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 59-01-PLAN.md — Wave 0 EFF-01/02 path tests (as-built green + polish RED)
+- [ ] 59-02-PLAN.md — Format reuse meta + post-save Download this list (CSV)
+- [ ] 59-03-PLAN.md — Train A/D keyboard + suite/live EFF-02 gate
 
 ### Phase 60: Regression QA Lock
 **Goal**: Independence, gold accuracy, processUpload e2e, full suite, and live server stay permanently green for the milestone bar
@@ -131,7 +136,7 @@ Plans:
 | 56. List Factory UX | 0/3 | Planned | - |
 | 57. Accuracy Structure Pass | 0/3 | Planned | - |
 | 58. Learning Loop Strength | 0/3 | Planned | - |
-| 59. Efficiency Operator Path | 0/TBD | Not started | - |
+| 59. Efficiency Operator Path | 0/3 | Planned | - |
 | 60. Regression QA Lock | 0/TBD | Not started | - |
 
 ### Coverage Map
