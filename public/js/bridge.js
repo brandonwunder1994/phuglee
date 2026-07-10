@@ -1474,10 +1474,17 @@
       const text = String(value ?? '');
       return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
     };
+    const cellValue = (row, key) => {
+      const value = row[key];
+      if (key === 'matchedIndicators' && Array.isArray(value)) {
+        return value.filter(Boolean).join('; ');
+      }
+      return value;
+    };
     const headers = EXPORT_COLUMNS.map(([, label]) => label);
     const lines = [
       headers.map(escape).join(','),
-      ...rows.map((row) => EXPORT_COLUMNS.map(([key]) => escape(row[key])).join(','))
+      ...rows.map((row) => EXPORT_COLUMNS.map(([key]) => escape(cellValue(row, key))).join(','))
     ];
     return `${lines.join('\n')}\n`;
   }
