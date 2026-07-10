@@ -70,7 +70,9 @@
 
   function renderTrainGroupCard(group) {
     group = group || {};
-    var label = group.violationTypeLabel || 'Unknown type';
+    // Display-only short title; full label stays on group for decisions / tooltip
+    var fullLabel = group.violationTypeLabel || 'Unknown type';
+    var label = group.shortLabel || fullLabel;
     var count = Number(group.count) || 0;
     var groupId = group.groupId || '';
     var section = group.section || '';
@@ -106,7 +108,7 @@
     return (
       '<article class="bridge-train-group" data-group-id="' + esc(groupId) + '" data-section="' + esc(section) + '">' +
         '<div class="bridge-train-group-head">' +
-          '<div class="bridge-train-group-title">' +
+          '<div class="bridge-train-group-title" title="' + esc(fullLabel) + '">' +
             esc(label) +
             ' <span class="bridge-train-count">×' + esc(String(count)) + '</span>' +
             badge +

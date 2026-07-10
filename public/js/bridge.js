@@ -226,7 +226,9 @@
       return window.BridgeTrain.renderTrainGroupCard(group);
     }
     // Fallback if bridge-train.js failed to load — still escape dynamic text
-    const label = (group && group.violationTypeLabel) || 'Unknown type';
+    // Display-only short title; full label for tooltip / decisions stay on group
+    const fullLabel = (group && group.violationTypeLabel) || 'Unknown type';
+    const label = (group && group.shortLabel) || fullLabel;
     const count = Number(group && group.count) || 0;
     const groupId = (group && group.groupId) || '';
     const section = (group && group.section) || '';
@@ -242,7 +244,7 @@
     }).join('');
     return (
       `<article class="bridge-train-group" data-group-id="${esc(groupId)}" data-section="${esc(section)}">` +
-      `<div class="bridge-train-group-head"><div class="bridge-train-group-title">${esc(label)} ` +
+      `<div class="bridge-train-group-head"><div class="bridge-train-group-title" title="${esc(fullLabel)}">${esc(label)} ` +
       `<span class="bridge-train-count">×${esc(String(count))}</span></div></div>` +
       `<div class="bridge-train-signals">${signals}</div>` +
       (desc ? `<ul class="bridge-train-descriptions">${desc}</ul>` : '') +
@@ -777,15 +779,16 @@
     if (modeBefore === 'train') setResultsMode('train');
     updateTrainUndoButton();
 
-    const label = group.violationTypeLabel || 'group';
+    // Chrome only — POST body above already used full group.violationTypeLabel
+    const displayLabel = group.shortLabel || group.violationTypeLabel || 'group';
     const verb = action === 'approve' ? 'Approved' : 'Denied';
     const remaining = filterUndecidedTrainGroups(
       (getReviewGroups(lastResult).distressed || []).concat(getReviewGroups(lastResult).notDistressed || [])
     ).length;
     if (remaining === 0) {
-      setTrainStatus(`${verb} “${label}” · all groups reviewed for this batch`, 'success');
+      setTrainStatus(`${verb} “${displayLabel}” · all groups reviewed for this batch`, 'success');
     } else {
-      setTrainStatus(`${verb} “${label}” · ${remaining} group(s) left`, 'success');
+      setTrainStatus(`${verb} “${displayLabel}” · ${remaining} group(s) left`, 'success');
     }
     return data;
   }
@@ -860,13 +863,14 @@
     if (action === 'deny') {
       const count = Number(group.count) || (Array.isArray(group.rowIds) ? group.rowIds.length : 0);
       if (count >= DENY_CONFIRM_THRESHOLD) {
-        const label = group.violationTypeLabel || 'this group';
+        // Confirm chrome only — decision POST uses full group.violationTypeLabel
+        const displayLabel = group.shortLabel || group.violationTypeLabel || 'this group';
         const section = (group && group.section) || (card && card.dataset.section) || '';
         const moveHint = section === 'not_distressed'
           ? 'They will move to distressed and a promote rule will be trained.'
           : 'They will move to not-distressed and a suppress rule will be trained.';
         const ok = window.confirm(
-          `Deny ${count} records for “${label}”? ${moveHint}`
+          `Deny ${count} records for “${displayLabel}”? ${moveHint}`
         );
         if (!ok) return;
       }
@@ -896,12 +900,9 @@
     const groups = getReviewGroups(lastResult);
     const list = section === 'not_distressed' ? groups.notDistressed : groups.distressed;
     const found = list.find((g) => String(g.groupId) === String(groupId));
+    // Fail closed: never invent violationTypeLabel from DOM title (short labels would poison brain)
     if (found) return found;
-    return {
-      groupId,
-      section,
-      violationTypeLabel: card.querySelector('.bridge-train-group-title')?.childNodes?.[0]?.textContent?.trim() || 'group'
-    };
+    return null;
   }
   // --- end BridgeTrain pure helpers ---
 
