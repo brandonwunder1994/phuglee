@@ -164,6 +164,7 @@
 | L-08 | CSV export download | client-side blob | manual |
 | L-09 | Pagination 50 rows | page controls | manual |
 | L-10 | Filter by tag/confidence/review | table filters | manual |
+| EFF-01/02 | Day-2 efficiency path (reuse UI, post-save download, Train keyboard guards, anti silent-drop/push/auto-save) | static + engine contracts | ✓ `bridge-efficiency-path.test.js` |
 
 ## M. Multipart parser
 

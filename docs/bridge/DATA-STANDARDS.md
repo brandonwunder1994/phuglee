@@ -101,6 +101,7 @@ After processing, kept rows stay on the Filter page until the user explicitly sa
 - **Multi-city staging:** lists **persist until the operator deletes them**. Process, restart, and deploy do **not** wipe the list store (volume-safe `FILTER_LISTS_ROOT`).
 - **No automatic push to Analyze.** Process, save, Train, and list APIs never write Analyze sessions. Legacy Filter adapter `bridge-analyzer-push.js` is **deleted**; independence locked by `tests/bridge-independence.test.js`.
 - **Workflow:** Process → (Train, admin optional) → **Save list** → **Download** one or all → external enrich / skip-trace → **manual** Analyze import.
+- **Day-2 / known format:** when the upload fingerprint matches a prior city format, Type reuses automatically (`auto_reuse`, no Type-column modal). First upload or a changed layout still requires confirm (GATE-02). Operator path stays Process → (Train, A/D keys for admin) → Save → Download; never auto-save or Analyze push.
 
 The Analyzer `POST /api/bridge-import-records` endpoint may still exist for **manual** import compatibility but is not called from Filter process/save/Train.
 
