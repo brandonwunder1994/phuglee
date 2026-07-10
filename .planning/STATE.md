@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
-status: phase_complete
+status: planning
 stopped_at: Completed 51-03-PLAN.md
-last_updated: "2026-07-10T05:49:00.451Z"
+last_updated: "2026-07-10T05:51:29.944Z"
 last_activity: 2026-07-09 — Completed 51-03 force Type map wire
 progress:
   total_phases: 4
@@ -28,7 +28,7 @@ See: `.planning/PROJECT.md`
 **Milestone:** v1.8 Type Column Intelligence  
 **Phase:** 51 of 54 (COL Scoring + Map Wire) — COMPLETE  
 **Plan:** 03 of 03 (all plans complete)  
-**Status:** Phase complete  
+**Status:** Ready to plan
 **Last activity:** 2026-07-09 — Completed 51-03 force Type map wire
 
 Progress: [██████████] 100%
