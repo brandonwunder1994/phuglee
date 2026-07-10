@@ -63,22 +63,22 @@ Deferred — not in this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COL-01 | TBD | Pending |
-| COL-02 | TBD | Pending |
-| COL-03 | TBD | Pending |
-| COL-04 | TBD | Pending |
-| GATE-01 | TBD | Pending |
-| GATE-02 | TBD | Pending |
-| GATE-03 | TBD | Pending |
-| GATE-04 | TBD | Pending |
-| GATE-05 | TBD | Pending |
-| GATE-06 | TBD | Pending |
-| LBL-01 | TBD | Pending |
-| LBL-02 | TBD | Pending |
-| LBL-03 | TBD | Pending |
-| META-01 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
+| COL-01 | Phase 51 | Pending |
+| COL-02 | Phase 51 | Pending |
+| COL-03 | Phase 51 | Pending |
+| COL-04 | Phase 51 | Pending |
+| GATE-01 | Phase 52 | Pending |
+| GATE-02 | Phase 52 | Pending |
+| GATE-03 | Phase 52 | Pending |
+| GATE-04 | Phase 52 | Pending |
+| GATE-05 | Phase 52 | Pending |
+| GATE-06 | Phase 52 | Pending |
+| META-01 | Phase 52 | Pending |
+| LBL-01 | Phase 53 | Pending |
+| LBL-02 | Phase 53 | Pending |
+| LBL-03 | Phase 53 | Pending |
+| TEST-01 | Phase 54 | Pending |
+| TEST-02 | Phase 54 | Pending |
+| TEST-03 | Phase 54 | Pending |
 
-**Coverage:** filled by roadmapper after phase structure.
+**Coverage:** 17/17 v1.8 requirements mapped ✓

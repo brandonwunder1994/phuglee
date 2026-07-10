@@ -10,16 +10,71 @@
 - ✅ **v1.5 Territory Theater** — Phases 37–41 (implemented)
 - ✅ **v1.6 Filter Superpower Brain** — Phases 42–47 (shipped 2026-07-10) — [archive](./milestones/v1.6-ROADMAP.md)
 - ✅ **v1.7 Filter Accuracy & Grouping** — Phases 48–50 (shipped 2026-07-10) — [archive](./milestones/v1.7-ROADMAP.md)
+- 🚧 **v1.8 Type Column Intelligence** — Phases 51–54 (active)
 
 ## Active Work
 
-**Status:** Between milestones — plan next with `/gsd:new-milestone`
+**Milestone:** v1.8 Type Column Intelligence  
+**Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress/export.
 
-No active milestone. Last shipped: **v1.7 Filter Accuracy & Grouping**.
+**Status:** Ready to plan Phase 51
 
 ---
 
 ## Phases
+
+- [ ] **Phase 51: COL Scoring + Map Wire** — Score all columns; force single Type winner into columnMap
+- [ ] **Phase 52: Format Memory + Confirm Gate** — Per-city fingerprint, admin confirm, reuse, process meta
+- [ ] **Phase 53: Display-Only Short Labels** — Short Train titles; full raw for match/export/decisions
+- [ ] **Phase 54: Regression Lock** — processUpload e2e locks + npm test + verify-live green
+
+## Phase Details
+
+### Phase 51: COL Scoring + Map Wire
+**Goal**: Process maps exactly one best Violation Type column using header aliases and value shapes — never alias-first first-match, never multi-column blend
+**Depends on**: Nothing (v1.7 shipped — promote + groups baseline)
+**Requirements**: COL-01, COL-02, COL-03, COL-04
+**Success Criteria** (what must be TRUE):
+  1. On process, a sheet whose narrative/date/status column would win under alias-first instead maps the true category-like Type column into `columnMap.violationIssueType`
+  2. When no column meets Type candidacy, Type stays empty and distressed rows remain available for review (no silent drop solely for “no type column”)
+  3. v1.7 `promoteCategoryFromRaw` still fills empty Type cells only — it never overrides a scorer-chosen Type column
+  4. Scorer choice is the forced map winner; alias table is a scoring feature only, not a parallel first-match path that can undercut the scorer
+**Plans**: TBD
+
+### Phase 52: Format Memory + Confirm Gate
+**Goal**: First-time or format-changed city uploads pause for admin Type-column confirmation; same fingerprint reuses last confirmed mapping with no modal
+**Depends on**: Phase 51
+**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, META-01
+**Success Criteria** (what must be TRUE):
+  1. First upload for a city format (or fingerprint differs from last confirmed) pauses process before normalize/tag/brain and shows admin confirm UI with ranked candidates, suggested winner, samples, alternate pick, and “No type column”
+  2. Matching fingerprint reuses last confirmed Type header with no confirm modal and continues process automatically
+  3. Confirm persist is admin-only; non-admin uploads on new/changed format get a clear pending/confirm-required state (no infinite hang)
+  4. Multi-file batch (up to 5) applies fingerprint/confirm per file or explicit same-city batch policy — mixed formats never silently apply one file’s Type column to another
+  5. Process/review meta exposes Type resolution (winner header, score or null, optional runner-up, source: `auto_reuse` | `admin_confirm` | `scorer` | `unresolved`)
+**Plans**: TBD
+
+### Phase 53: Display-Only Short Labels
+**Goal**: Train/group titles are scannable short labels while full type/description text stays authoritative for distress, export, brain keys, and decisions
+**Depends on**: Phase 51 (correct type text on groups; Phase 52 preferred for real city maps)
+**Requirements**: LBL-01, LBL-02, LBL-03
+**Success Criteria** (what must be TRUE):
+  1. Train / review group titles show a deterministic short label when type or description is a long wall of text (~48–64 chars / first clause / before em-dash)
+  2. Full raw type/description remains on the row for distress matching, export, brain keys, and decision payloads — short label never replaces stored `violationIssueType` or becomes the group key
+  3. Decision POST and undo paths use full type labels from group metadata, not scraped truncated DOM titles
+**Plans**: TBD
+
+### Phase 54: Regression Lock
+**Goal**: Automated locks prove scorer, format reuse/confirm, and display-only labels stay correct on the process path — suite and live server green
+**Depends on**: Phases 51–53
+**Requirements**: TEST-01, TEST-02, TEST-03
+**Success Criteria** (what must be TRUE):
+  1. Automated fixture: sheet where alias-first would map a narrative/date/status column → scorer maps the true category Type column on processUpload
+  2. Automated fixture: same city same fingerprint reuses confirmed header without confirm; fingerprint change requires confirm again
+  3. Automated fixture: short label shortens display; stored type + export + group keys unchanged
+  4. `npm test` and `scripts/verify-live.ps1` are green
+**Plans**: TBD
+
+---
 
 <details>
 <summary>✅ v1.7 Filter Accuracy & Grouping (Phases 48–50) — SHIPPED 2026-07-10</summary>
@@ -91,3 +146,40 @@ Heat tokens + nav + reskin partially overtaken by `--phuglee-*` signature brand.
 Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 
 </details>
+
+## Progress
+
+**Execution Order:** 51 → 52 → 53 → 54
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 51. COL Scoring + Map Wire | v1.8 | 0/? | Not started | - |
+| 52. Format Memory + Confirm Gate | v1.8 | 0/? | Not started | - |
+| 53. Display-Only Short Labels | v1.8 | 0/? | Not started | - |
+| 54. Regression Lock | v1.8 | 0/? | Not started | - |
+| 48–50. Filter Accuracy & Grouping | v1.7 | 4/4 | Complete | 2026-07-10 |
+| 42–47. Filter Superpower Brain | v1.6 | 12/12 | Complete | 2026-07-10 |
+
+## Coverage
+
+| Requirement | Phase |
+|-------------|-------|
+| COL-01 | 51 |
+| COL-02 | 51 |
+| COL-03 | 51 |
+| COL-04 | 51 |
+| GATE-01 | 52 |
+| GATE-02 | 52 |
+| GATE-03 | 52 |
+| GATE-04 | 52 |
+| GATE-05 | 52 |
+| GATE-06 | 52 |
+| META-01 | 52 |
+| LBL-01 | 53 |
+| LBL-02 | 53 |
+| LBL-03 | 53 |
+| TEST-01 | 54 |
+| TEST-02 | 54 |
+| TEST-03 | 54 |
+
+**Coverage:** 17/17 v1.8 requirements mapped ✓
