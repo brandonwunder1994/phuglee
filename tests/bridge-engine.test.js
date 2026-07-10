@@ -76,6 +76,30 @@ test('processUploadBatch merges two files and cross-file dedupes', async () => {
   assert.equal(result.processingMeta.files.length, 2);
 });
 
+test('processUploadBatch address-dedupes same parcel with different violation text', async () => {
+  // Reproduces 14-address / 28-kept bug: multi-file merge used issue-aware dedupe,
+  // so "overgrown weeds" vs "tall grass and weeds" at the same address both survived.
+  const makeCsv = (issue) => {
+    const lines = ['Property Address,Violation Type'];
+    for (let i = 1; i <= 14; i += 1) {
+      lines.push(`${i} Pine Rd,${issue}`);
+    }
+    return Buffer.from(lines.join('\n'));
+  };
+  const result = await processUploadBatch(
+    [
+      { filename: 'part-a.csv', data: makeCsv('overgrown weeds') },
+      { filename: 'part-b.csv', data: makeCsv('tall grass and weeds') }
+    ],
+    { city: CITY, uploadType: 'code_violation' }
+  );
+  assert.equal(result.fileCount, 2);
+  assert.equal(result.stats.totalParsed, 28);
+  assert.equal(result.stats.kept, 14, 'one lead per address across files');
+  assert.equal(result.rows.length, 14);
+  assert.ok(result.stats.deduplicated >= 14);
+});
+
 test('mergeProcessResults single payload is pass-through with fileCount 1', () => {
   const one = {
     ok: true,

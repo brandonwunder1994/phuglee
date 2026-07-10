@@ -4,7 +4,8 @@ const {
   normalizeAddress,
   similarityScore,
   isNearDuplicate,
-  dedupeRows
+  dedupeRows,
+  dedupeRowsByAddress
 } = require('../lib/bridge-dedup');
 
 function row(address, issue = 'Trash', date = '2026-01-01') {
@@ -65,6 +66,29 @@ test('dedupeRows allows same address with different issue types', () => {
     row('123 Main St', 'Sign violation')
   ];
   const result = dedupeRows(input);
+  assert.equal(result.rows.length, 2);
+  assert.equal(result.removedCount, 0);
+});
+
+test('dedupeRowsByAddress collapses same address regardless of issue type', () => {
+  const input = [
+    row('123 Main St', 'Overgrown weeds'),
+    row('123 Main Street', 'Tall grass and weeds'),
+    row('789 Pine Rd', 'Trash')
+  ];
+  const result = dedupeRowsByAddress(input);
+  assert.equal(result.rows.length, 2);
+  assert.equal(result.removedCount, 1);
+  assert.equal(result.rows[0].streetAddress, '123 Main St');
+  assert.equal(result.rows[0].violationIssueType, 'Overgrown weeds');
+});
+
+test('dedupeRowsByAddress does not merge adjacent house numbers', () => {
+  const input = [
+    row('123 Main St', 'Weeds'),
+    row('124 Main St', 'Weeds')
+  ];
+  const result = dedupeRowsByAddress(input);
   assert.equal(result.rows.length, 2);
   assert.equal(result.removedCount, 0);
 });
