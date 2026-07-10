@@ -23,6 +23,9 @@ data/filter-lists/
 # Filter global brain (runtime)
 data/bridge-brain/
 
+# Per-city Type-column format memory (runtime)
+data/bridge-city-formats/
+
 # Property Analyzer runtime (modules/property-analyzer)
 modules/property-analyzer/node_modules/
 modules/property-analyzer/.env
