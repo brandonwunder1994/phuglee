@@ -73,7 +73,7 @@ Each task was committed atomically:
 2. **Task 2: TEST-02 strengthen + TEST-03 typed stack** - `289558a` (test)
 3. **Task 3: TAGGING-RULES brief note + suite/live gates** - `d9e4133` (docs)
 
-**Plan metadata:** (see final docs commit)
+**Plan metadata:** 9820ce6 (docs: complete plan)
 
 ## Files Created/Modified
 
