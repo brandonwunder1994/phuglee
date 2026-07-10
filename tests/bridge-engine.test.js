@@ -819,8 +819,8 @@ test('processUpload: typed clean High Grass stacks count N (TEST-03)', async () 
 });
 
 // ---------------------------------------------------------------------------
-// Phase 51 Wave 0 RED — COL-01 / COL-02 / COL-04 process wire contracts
-// Scorer force map not yet wired (Plan 03); alias-first must fail these asserts.
+// Phase 51 COL-01 / COL-02 / COL-04 process wire contracts
+// Scorer force map wired in normalizeRawRows (Plan 03).
 // ---------------------------------------------------------------------------
 
 test('COL-01/04: processUpload forces Status Description trap → columnMap Type is Vio Cat', async () => {
@@ -933,5 +933,43 @@ test('COL-02: processUpload with Address+Notes+Open Date only keeps weeds row (n
   assert.ok(
     weedsKept,
     'COL-02: weeds address must remain kept or FN — no silent total drop'
+  );
+});
+
+// COL-03: promote remains empty-cell-only after scorer force map
+test('COL-03: scorer-mapped Issue Type cells are not overridden by unmapped Cat column', async () => {
+  const csv = [
+    'Property Address,Issue Type,Cat,Notes',
+    '100 Main St,High Grass,Junk Vehicle,overgrown weeds in yard',
+    '200 Oak Ave,Trash,Fence Permit,debris pile'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'col-03-scorer-vs-promote.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true, 'COL-03 process must succeed');
+  assert.equal(
+    result.processingMeta.columnMap.violationIssueType,
+    'Issue Type',
+    'COL-03: scorer must map Issue Type (not Cat)'
+  );
+
+  const grass =
+    result.rows.find((row) => String(row.streetAddress || '').includes('100 Main')) ||
+    result.notDistressedRows.find((row) =>
+      String(row.streetAddress || '').includes('100 Main')
+    );
+  assert.ok(grass, 'COL-03: High Grass row must be kept');
+  assert.ok(
+    String(grass.violationIssueType || '').includes('High Grass'),
+    `COL-03: type must stay scorer Issue Type value High Grass, got: ${grass.violationIssueType}`
+  );
+  assert.ok(
+    !/Junk Vehicle/i.test(String(grass.violationIssueType || '')),
+    `COL-03: promote must not replace non-empty scorer cell with Cat, got: ${grass.violationIssueType}`
   );
 });
