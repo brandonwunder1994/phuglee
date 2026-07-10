@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
-status: completed
-last_updated: "2026-07-10T01:54:55.843Z"
-last_activity: 2026-07-10 — admin train gate + group cards + decision stubs
+status: in_progress
+last_updated: "2026-07-10T01:59:40.000Z"
+last_activity: 2026-07-10 — pure applyDecision matrix + tests (45-01)
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 12
-  completed_plans: 6
-  percent: 50
+  completed_plans: 7
+  percent: 58
 ---
 
 # State
 
 ## Current Position
 
-Phase: **44** (admin-train-brain-ux) — **Complete**  
-Plan: **02** of 02 (done)  
-Status: **44-02 complete** — admin train UX wired; phase 45 next  
-Last activity: 2026-07-10 — admin train gate + group cards + decision stubs
+Phase: **45** (decisions-type-rules) — **In Progress**  
+Plan: **02** of 03 (next)  
+Status: **45-01 complete** — pure applyDecision DEC-01–05 green  
+Last activity: 2026-07-10 — pure applyDecision matrix + tests (45-01)
 
-Progress: [█████░░░░░] 50% (6/12 plans)
+Progress: [██████░░░░] 58% (7/12 plans)
 
 ## What ran (real GSD)
 
@@ -40,6 +40,7 @@ Progress: [█████░░░░░] 50% (6/12 plans)
 | Execute | `gsd-executor` 43-02 | **COMPLETE** — FN payload + groups wire |
 | Execute | `gsd-executor` 44-01 | **COMPLETE** — train shell tests + markup + CSS |
 | Execute | `gsd-executor` 44-02 | **COMPLETE** — admin gate + cards + stubs |
+| Execute | `gsd-executor` 45-01 | **COMPLETE** — applyDecision + type rules |
 
 ## Plan inventory
 
@@ -48,7 +49,7 @@ Progress: [█████░░░░░] 50% (6/12 plans)
 | 42 | 42-01, 42-02 | PASSED | 2/2 complete |
 | 43 | 43-01, 43-02 | PASSED | 2/2 complete |
 | 44 | 44-01, 44-02 | PASSED | 2/2 complete |
-| 45 | 45-01, 45-02, 45-03 | PASSED | 0/3 |
+| 45 | 45-01, 45-02, 45-03 | PASSED | 1/3 |
 | 46 | 46-01, 46-02 | PASSED | 0/2 |
 | 47 | 47-01 | PASSED | 0/1 |
 
@@ -72,6 +73,9 @@ Progress: [█████░░░░░] 50% (6/12 plans)
 | 44 | Extract pure train helpers to bridge-train.js for vm unit tests without full bridge DOM IIFE |
 | 44 | Admin gate uses PhugleeSettings.isAdmin or exact PhugleeSession.getSessionUser === admin |
 | 44 | Approve/Deny stub only sets status + is-pending; no fetch or list mutation until phase 45 |
+| 45 | applyDecision is pure/HTTP-free; requireAdmin + saveBrain deferred to plan 02 |
+| 45 | Affirmation paths: distressed+approve only disables suppress; not_distressed+deny writes no type rule |
+| 45 | suppress_type on distressed deny disables promote_type same key to keep brain clean |
 
 ## Performance Metrics
 
@@ -83,14 +87,15 @@ Progress: [█████░░░░░] 50% (6/12 plans)
 | 43 | 02 | 12min | 2 | 2 |
 | 44 | 01 | 12min | 3 | 3 |
 | 44 | 02 | 25min | 3 | 4 |
+| 45 | 01 | 2min | 2 | 2 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 44-02-PLAN.md |
-| Next | Execute phase 45 (decision persistence) |
+| Stopped At | Completed 45-01-PLAN.md |
+| Next | Execute 45-02 (decisions API + requireAdmin) |
 
 ## Superseded
 
@@ -100,6 +105,6 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Start phase 45 — decision persistence
+# Continue phase 45 — decisions API
 /gsd:execute-phase 45
 ```

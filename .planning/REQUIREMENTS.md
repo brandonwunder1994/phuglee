@@ -29,11 +29,11 @@
 
 ### Decisions and list mutation
 
-- [ ] **DEC-01**: Admin Deny on distressed removes those rows from the current kept list
-- [ ] **DEC-02**: Admin Approve on not-distressed promotes those rows into the current kept list as distressed
-- [ ] **DEC-03**: Deny on distressed writes an active global suppress_type rule for that violation type
-- [ ] **DEC-04**: Approve on not-distressed writes an active global promote_type rule for that violation type
-- [ ] **DEC-05**: Every decision appends an audit event (who, when, type, counts, samples)
+- [x] **DEC-01**: Admin Deny on distressed removes those rows from the current kept list
+- [x] **DEC-02**: Admin Approve on not-distressed promotes those rows into the current kept list as distressed
+- [x] **DEC-03**: Deny on distressed writes an active global suppress_type rule for that violation type
+- [x] **DEC-04**: Approve on not-distressed writes an active global promote_type rule for that violation type
+- [x] **DEC-05**: Every decision appends an audit event (who, when, type, counts, samples)
 - [ ] **DEC-06**: Non-admin brain write APIs return 403 ADMIN_REQUIRED
 
 ### Phrase learning depth
@@ -81,11 +81,11 @@
 | TRAIN-02 | Phase 44 | Complete |
 | TRAIN-03 | Phase 44 | Complete |
 | TRAIN-04 | Phase 44 | Complete |
-| DEC-01 | Phase 45 | Pending |
-| DEC-02 | Phase 45 | Pending |
-| DEC-03 | Phase 45 | Pending |
-| DEC-04 | Phase 45 | Pending |
-| DEC-05 | Phase 45 | Pending |
+| DEC-01 | Phase 45 | Complete |
+| DEC-02 | Phase 45 | Complete |
+| DEC-03 | Phase 45 | Complete |
+| DEC-04 | Phase 45 | Complete |
+| DEC-05 | Phase 45 | Complete |
 | DEC-06 | Phase 45 | Pending |
 | PHRASE-01 | Phase 46 | Pending |
 | PHRASE-02 | Phase 46 | Pending |

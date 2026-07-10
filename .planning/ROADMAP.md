@@ -139,7 +139,7 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 45-01-PLAN.md — Pure applyDecision matrix + type rules + audit events (DEC-01–05 TDD)
+- [x] 45-01-PLAN.md — Pure applyDecision matrix + type rules + audit events (DEC-01–05 TDD)
 - [ ] 45-02-PLAN.md — requireAdmin + POST /api/bridge/brain/decisions (DEC-06 + persist)
 - [ ] 45-03-PLAN.md — Client Train Approve/Deny wire + lastResult re-render
 
@@ -195,7 +195,7 @@ Plans:
 | 42. Brain store + runtime apply | v1.6 | 2/2 | Complete | 2026-07-10 |
 | 43. Review payload + grouping | v1.6 | 2/2 | Complete | 2026-07-10 |
 | 44. Admin Train brain UX | v1.6 | 2/2 | Complete | 2026-07-10 |
-| 45. Decisions + type rules + list mutation | v1.6 | 0/3 | Planned | - |
+| 45. Decisions + type rules + list mutation | v1.6 | 1/3 | In Progress | - |
 | 46. Phrase mining + brain panel | v1.6 | 0/2 | Not started | - |
 | 47. Hardening + metrics + docs | v1.6 | 0/1 | Not started | - |
 
