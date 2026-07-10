@@ -61,7 +61,7 @@ test('processUpload keeps open and closed violations with usable addresses', asy
   });
 
   assert.equal(result.stub, false);
-  // Fence permit is not distress â†’ FN pool; empty City Hall row discarded (no address)
+  // Fence permit is not distress ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ FN pool; empty City Hall row discarded (no address)
   assert.equal(result.stats.kept, 2);
   assert.ok(result.stats.noDistress >= 1);
   assert.ok(result.rows.some((row) => row.violationIssueType.includes('Overgrown')));
@@ -578,7 +578,7 @@ test('processUpload promotes unmapped Vio Cat into type and FN labels (MAP-01/02
     `distressed type should include High Grass, got: ${grass.violationIssueType}`
   );
 
-  // FN Fence: type from Vio Cat (MAP-01/02) — not gated on distress
+  // FN Fence: type from Vio Cat (MAP-01/02) Ã¢â‚¬â€ not gated on distress
   const fenceFn = result.notDistressedRows.find(
     (row) => String(row.streetAddress || '').includes('200 Oak')
   );
@@ -642,4 +642,32 @@ test('processUpload does not invent type from description-only free text (MAP-03
     type === '' || !type.toLowerCase().includes('everywhere in the front yard'),
     `type should not be free-text narrative dump, got: ${type}`
   );
+});
+
+test('processUpload: description-only High Grass + timestamps â†’ 1 distressed group count N (TEST-01)', async () => {
+  const csv = [
+    'Property Address,Description',
+    '100 Main St,High Grass and Weeds - 01/15/2024 10:30',
+    '200 Oak Ave,High Grass and Weeds - 01/16/2024 11:00',
+    '300 Pine Rd,High Grass and Weeds - 01/17/2024 09:15'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'desc-timestamps.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.rows.length, 3, 'all three High Grass rows kept Strong');
+  for (const row of result.rows) {
+    assert.equal(String(row.violationIssueType || '').trim(), '');
+  }
+
+  const distressed = result.reviewGroups.distressed || [];
+  assert.equal(distressed.length, 1, 'timestamp variants must stack into one group');
+  assert.equal(distressed[0].count, 3);
+  assert.equal(distressed[0].isSingleton, false);
+  assert.equal(distressed[0].violationTypeKey, '__unknown__');
 });
