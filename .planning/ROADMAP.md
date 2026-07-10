@@ -36,7 +36,7 @@
 
 ### v1.6 Filter Superpower Brain (Phases 42–47)
 
-- [ ] **Phase 42: Brain store + runtime apply** — Global durable brain file applied on every process
+- [x] **Phase 42: Brain store + runtime apply** — Global durable brain file applied on every process
 - [ ] **Phase 43: Review payload + grouping** — Full FN rows, type groups, signals, stable rowIds
 - [ ] **Phase 44: Admin Train brain UX** — Two train sections, group ✓/✗, admin-only chrome
 - [ ] **Phase 45: Decisions + type rules + list mutation** — Mutate current list + live type learning
@@ -73,7 +73,7 @@
 
 Plans:
 - [x] 42-01-PLAN.md - Durable global brain store (config path, atomic load/save, unit tests)
-- [ ] 42-02-PLAN.md - Pure apply module + processUpload wire + integration tests
+- [x] 42-02-PLAN.md - Pure apply module + processUpload wire + integration tests
 
 ---
 
@@ -192,7 +192,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 42. Brain store + runtime apply | v1.6 | 1/2 | In Progress | - |
+| 42. Brain store + runtime apply | v1.6 | 2/2 | Complete | 2026-07-10 |
 | 43. Review payload + grouping | v1.6 | 0/2 | Not started | - |
 | 44. Admin Train brain UX | v1.6 | 0/2 | Planned | - |
 | 45. Decisions + type rules + list mutation | v1.6 | 0/3 | Planned | - |

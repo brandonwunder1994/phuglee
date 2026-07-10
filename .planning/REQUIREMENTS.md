@@ -10,8 +10,8 @@
 ### Runtime brain
 
 - [x] **BRAIN-01**: System persists a global Filter brain file on a durable volume-safe path (same durability pattern as filter lists)
-- [ ] **BRAIN-02**: System applies active brain rules on every Filter process so future uploads improve for all users
-- [ ] **BRAIN-03**: Water shut-off uploads are never type-suppressed by the brain
+- [x] **BRAIN-02**: System applies active brain rules on every Filter process so future uploads improve for all users
+- [x] **BRAIN-03**: Water shut-off uploads are never type-suppressed by the brain
 
 ### Review payload
 
@@ -71,8 +71,8 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BRAIN-01 | Phase 42 | Complete |
-| BRAIN-02 | Phase 42 | Pending |
-| BRAIN-03 | Phase 42 | Pending |
+| BRAIN-02 | Phase 42 | Complete |
+| BRAIN-03 | Phase 42 | Complete |
 | REV-01 | Phase 43 | Pending |
 | REV-02 | Phase 43 | Pending |
 | REV-03 | Phase 43 | Pending |
