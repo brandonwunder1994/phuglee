@@ -17,7 +17,7 @@
 **Milestone:** v1.8 Type Column Intelligence  
 **Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress/export.
 
-**Status:** Phase 51 planned - ready to execute
+**Status:** Phase 51 in progress — Plan 01 complete (Wave 0 RED)
 
 ---
 
@@ -42,7 +42,7 @@
 **Plans**: 3 plans
 
 Plans:
-- [ ] 51-01-PLAN.md - Wave 0 RED tests (pure trap matrix + process wire contracts)
+- [x] 51-01-PLAN.md - Wave 0 RED tests (pure trap matrix + process wire contracts)
 - [ ] 51-02-PLAN.md - Pure lib/bridge-type-column-score.js until unit green
 - [ ] 51-03-PLAN.md - Force Type in normalizeRawRows + full suite green
 
@@ -158,7 +158,7 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 51. COL Scoring + Map Wire | v1.8 | 0/3 | Planned | - |
+| 51. COL Scoring + Map Wire | 1/3 | In Progress|  | - |
 | 52. Format Memory + Confirm Gate | v1.8 | 0/? | Not started | - |
 | 53. Display-Only Short Labels | v1.8 | 0/? | Not started | - |
 | 54. Regression Lock | v1.8 | 0/? | Not started | - |
