@@ -380,7 +380,13 @@ test('POST /api/bridge/process succeeds with valid CSV fixture', async () => {
   assert.equal(json.ok, true);
   assert.ok(json.stats.kept >= 1);
   assert.ok(Array.isArray(json.rows));
+  // Independence: process never auto-pushes to Analyze (IND-01/03)
   assert.equal(json.analyzerPush, undefined);
+  assert.equal(json.analyzerPushResult, undefined);
+  assert.equal(json.importBatchId, undefined);
+  assert.equal(json.pushResult, undefined);
+  // Empty import index → no already_imported hard-drop noise on this path
+  assert.equal(json.stats.alreadyImported, 0);
 });
 
 test('POST /api/bridge/process returns 409 TYPE_COLUMN_CONFIRM_REQUIRED without confirm', async () => {
