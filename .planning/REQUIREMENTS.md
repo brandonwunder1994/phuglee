@@ -73,34 +73,32 @@ Deferred — not in this milestone roadmap.
 
 ## Traceability
 
-Filled by roadmapper.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IND-01 | — | Pending |
-| IND-02 | — | Pending |
-| IND-03 | — | Pending |
-| IND-04 | — | Pending |
-| LIST-01 | — | Pending |
-| LIST-02 | — | Pending |
-| LIST-03 | — | Pending |
-| ACC-01 | — | Pending |
-| ACC-02 | — | Pending |
-| ACC-03 | — | Pending |
-| LRN-01 | — | Pending |
-| LRN-02 | — | Pending |
-| LRN-03 | — | Pending |
-| EFF-01 | — | Pending |
-| EFF-02 | — | Pending |
-| TEST-01 | — | Pending |
-| TEST-02 | — | Pending |
-| TEST-03 | — | Pending |
+| IND-01 | Phase 55 | Pending |
+| IND-02 | Phase 55 | Pending |
+| IND-03 | Phase 55 | Pending |
+| IND-04 | Phase 55 | Pending |
+| LIST-01 | Phase 56 | Pending |
+| LIST-02 | Phase 56 | Pending |
+| LIST-03 | Phase 56 | Pending |
+| ACC-01 | Phase 57 | Pending |
+| ACC-02 | Phase 57 | Pending |
+| ACC-03 | Phase 57 | Pending |
+| LRN-01 | Phase 58 | Pending |
+| LRN-02 | Phase 58 | Pending |
+| LRN-03 | Phase 58 | Pending |
+| EFF-01 | Phase 59 | Pending |
+| EFF-02 | Phase 59 | Pending |
+| TEST-01 | Phase 60 | Pending |
+| TEST-02 | Phase 60 | Pending |
+| TEST-03 | Phase 60 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 18 total
-- Mapped to phases: 0 (roadmap next)
-- Unmapped: 18
+- Mapped to phases: 18 (roadmap complete)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-07-10*  
-*Last updated: 2026-07-10 after `/gsd:new-milestone` scoping*
+*Last updated: 2026-07-10 after roadmap — traceability filled (phases 55–60)*

@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Filter Independence & Learning
-status: defining_requirements
-last_updated: "2026-07-10T18:00:00Z"
-last_activity: 2026-07-10 — Milestone v2.0 started
+status: ready_to_plan
+last_updated: "2026-07-10T20:00:00Z"
+last_activity: 2026-07-10 — Roadmap created (phases 55–60)
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -15,56 +15,60 @@ progress:
 
 # State
 
-## Current Position
-
-**Milestone:** v2.0 Filter Independence & Learning  
-**Phase:** Not started (defining requirements)  
-**Plan:** —  
-**Status:** Defining requirements  
-**Last activity:** 2026-07-10 — Milestone v2.0 started
-
 ## Project Reference
 
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → **save lists** → external enrich → **manual** Analyze import.  
-**Current focus:** v2.0 requirements → roadmap (phases from 55)
+**Current focus:** Phase 55 — Independence Lock (ready to plan)
 
-## Milestone Intent (locked in discuss)
+## Current Position
 
-| Topic | Decision |
-|-------|----------|
-| Done definition | Audit + implement what matters for accuracy/efficiency in this milestone |
-| Pain ranking | All peer (Type/format, Train Approve/Deny volume, keep/kill, list workflow) |
-| Analyze coupling | **No push** — save/download lists only; re-import to Analyze after external work |
-| In scope | Process, Type/format, tagging, Train/brain, lists UX, admin + customer Filter |
-| Efficiency | Operator time + runtime + cross-city reuse |
-| Accuracy bar | Approve/Deny code violations less frequent over time as brain learns |
+**Milestone:** v2.0 Filter Independence & Learning  
+**Phase:** 55 of 60 (Independence Lock)  
+**Plan:** —  
+**Status:** Ready to plan  
+**Last activity:** 2026-07-10 — Roadmap created; 18/18 requirements mapped to phases 55–60
 
-## Shipped (prior)
+Progress: [░░░░░░░░░░] 0%
 
-| Milestone | Result |
-|-----------|--------|
-| v1.8 | Type column intelligence (phases 51–54), 460 tests |
-| v1.7 | Filter accuracy & grouping (48–50) |
-| v1.6 | Filter superpower brain (42–47) |
+## Performance Metrics
 
-**Archives:** `.planning/milestones/v1.8-*`, `v1.7-*`, `v1.6-*`
+**Velocity:**
+- Total plans completed: 0 (this milestone)
+- Average duration: —
+- Total execution time: —
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 55–60 | — | TBD | — |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
-- Filter/Analyze independence was product direction pre-v2.0; auto-push still exists in code path until this milestone removes it
-- Heterogeneous city files are the permanent constraint (not a temporary bug)
-- Learning loop (admin Train → global brain → fewer future Train actions) is the primary accuracy success metric
+### Decisions
 
-## Next
+- v2.0: No Filter → Analyze auto-push; save/download only; manual Analyze import after external enrich
+- v2.0: `already_imported` hard-drop **off by default** (IND-04) — re-work keeps full lists
+- v2.0: Accuracy + efficiency + learning bar are peer priorities in one major milestone
+- Phase order: Independence → Lists → Accuracy → Learning → Efficiency → QA (research-backed)
+- Global brain remains single shared quality product (carry from v1.6)
 
-```text
-/gsd:new-milestone  (continue: research decision → requirements → roadmap)
-```
+### Pending Todos
 
-After requirements + roadmap approved:
+None yet.
 
-```text
-/gsd:discuss-phase 55
-```
+### Blockers/Concerns
+
+- Phase 57 residual accuracy bugs need real city fixtures during plan/research (not invent at roadmap)
+- Learning metrics formula (paired decision ↓ + precision not ↓) defined at requirements level; exact schema in Phase 58 planning
+
+## Session Continuity
+
+Last session: 2026-07-10  
+Stopped at: ROADMAP.md + STATE.md written; REQUIREMENTS.md traceability filled  
+Resume file: None  
+Next: `/gsd:plan-phase 55` or `/gsd:discuss-phase 55`
