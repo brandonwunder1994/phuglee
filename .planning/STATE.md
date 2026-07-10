@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
 status: executing
-stopped_at: Completed 52-03-PLAN.md
-last_updated: "2026-07-10T06:42:00.000Z"
-last_activity: 2026-07-10 — Completed 52-03 engine gate green
+stopped_at: Completed 52-04-PLAN.md
+last_updated: "2026-07-10T06:35:00.000Z"
+last_activity: 2026-07-10 — Completed 52-04 API+UI confirm gate
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # State
@@ -21,31 +21,31 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 52 Plan 03 complete (engine gate green) — next Plan 04 API+UI
+**Current focus:** Phase 52 complete (format memory + confirm gate end-to-end) — next Phase 53 short labels
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
-**Phase:** 52 of 54 (Format Memory + Confirm Gate) — IN PROGRESS  
-**Plan:** 3 of 4 complete  
-**Status:** Ready to execute Plan 04  
-**Last activity:** 2026-07-10 — Completed 52-03 engine gate green
+**Phase:** 52 of 54 (Format Memory + Confirm Gate) — COMPLETE  
+**Plan:** 4 of 4 complete  
+**Status:** Phase 52 done — ready for Phase 53  
+**Last activity:** 2026-07-10 — Completed 52-04 API+UI confirm gate
 
-Progress: [█████████░] 86%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v1.8): 6
-- Average duration: 3.7min
-- Total execution time: 22min
+- Total plans completed (v1.8): 7
+- Average duration: 5.7min
+- Total execution time: 40min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 51 | 3/3 | 5min | 1.7min |
-| 52 | 3/4 | 17min | 5.7min |
+| 52 | 4/4 | 35min | 8.8min |
 | 53 | 0 | TBD | — |
 | 54 | 0 | TBD | — |
 
@@ -59,6 +59,7 @@ Progress: [█████████░] 86%
 | 52-format-memory-confirm-gate | 01 | 2min | 2 | 2 |
 | 52-format-memory-confirm-gate | 02 | 3min | 2 | 4 |
 | 52-format-memory-confirm-gate | 03 | 12min | 2 | 3 |
+| 52-format-memory-confirm-gate | 04 | 18min | 2 | 7 |
 
 ## Accumulated Context
 
@@ -97,6 +98,8 @@ Phase 52 plan decisions:
 - Fingerprint = sorted normalizeHeader join U+0001 + sha1; typeHeader null is confirmed no-type
 - typeColumnOverride always set for CV confirm/reuse (incl null); water omits for live scorer
 - Non-admin confirmedTypeHeader → ADMIN_REQUIRED 403; mixed batch without confirm → FORMAT_MISMATCH
+- Confirm resume rebuilds FormData from selectedFiles; non-admin 409 message only
+- API maps 409/403/400 for Type confirm; suite isolates BRIDGE_CITY_FORMATS_ROOT
 
 ### Pending Todos
 
@@ -104,11 +107,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None for Phase 52 — engine gate green; Plan 04 wires API 409 + confirm UI.
+None — Phase 52 complete. Phase 53 short labels next.
 
 ## Session Continuity
 
-Last session: 2026-07-10T06:42:00.000Z
-Stopped at: Completed 52-03-PLAN.md
+Last session: 2026-07-10T06:35:00.000Z
+Stopped at: Completed 52-04-PLAN.md
 Resume file: None
-Next: Execute 52-04-PLAN.md (API 409/403 + admin confirm UI + verify-live)
+Next: Phase 53 (short labels) — plan when ready
