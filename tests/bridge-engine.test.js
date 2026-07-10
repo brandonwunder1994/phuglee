@@ -1417,9 +1417,17 @@ test('GATE-06: processUploadBatch mixed headers succeed with per-format confirme
   const confirmedFormats = formats.map((f) => {
     const names = (f.filenames || []).join(' ');
     if (/mixed-a/i.test(names)) {
-      return { formatFingerprint: f.formatFingerprint, confirmedTypeHeader: 'Vio Cat' };
+      return {
+        formatFingerprint: f.formatFingerprint,
+        confirmedTypeHeader: 'Vio Cat',
+        filenames: f.filenames || ['mixed-a.csv']
+      };
     }
-    return { formatFingerprint: f.formatFingerprint, confirmedTypeHeader: 'Issue Type' };
+    return {
+      formatFingerprint: f.formatFingerprint,
+      confirmedTypeHeader: 'Issue Type',
+      filenames: f.filenames || ['mixed-b.csv']
+    };
   });
 
   const result = await processUploadBatch(
@@ -1443,6 +1451,64 @@ test('GATE-06: processUploadBatch mixed headers succeed with per-format confirme
   const headers = metas.map((m) => m.typeHeader).filter(Boolean);
   assert.ok(headers.includes('Vio Cat'), `expected Vio Cat in ${headers}`);
   assert.ok(headers.includes('Issue Type'), `expected Issue Type in ${headers}`);
+});
+
+test('GATE-06: confirmedFormats by filename still process when fingerprint drifts', async () => {
+  const fileA = [
+    'Property Address,Status Description,Vio Cat,Open Date',
+    '100 Main St,Open,High Grass,01/15/2024'
+  ].join('\n');
+  const fileB = [
+    'Property Address,Status Description,Issue Type,Open Date',
+    '200 Oak Ave,Open,Junk vehicles,02/01/2024'
+  ].join('\n');
+  const city = {
+    id: 'gate-filename-confirm-city',
+    city: 'FileNameTown',
+    state: 'Arizona'
+  };
+
+  let gateErr;
+  try {
+    await processUploadBatch(
+      [
+        { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+        { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+      ],
+      { city, uploadType: 'code_violation' }
+    );
+  } catch (err) {
+    gateErr = err;
+  }
+  assert.equal(gateErr?.code, 'TYPE_COLUMN_CONFIRM_REQUIRED');
+  const formats = gateErr.details.formats;
+  assert.equal(formats.length, 2);
+
+  // Intentionally wrong fingerprints — only filenames carry the mapping (PDF drift case)
+  const confirmedFormats = formats.map((f) => {
+    const names = f.filenames || [];
+    const isA = names.some((n) => /mixed-a/i.test(n));
+    return {
+      formatFingerprint: 'stale-or-wrong-fingerprint-' + (isA ? 'a' : 'b'),
+      confirmedTypeHeader: isA ? 'Vio Cat' : 'Issue Type',
+      filenames: names
+    };
+  });
+
+  const result = await processUploadBatch(
+    [
+      { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+      { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+    ],
+    {
+      city,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedFormats
+    }
+  );
+  assert.equal(result.ok, true);
+  assert.ok(result.stats.kept >= 2, `expected both files kept, got ${result.stats.kept}`);
 });
 
 test('GATE-06: processUploadBatch same fingerprint can confirm once / reuse path', async () => {

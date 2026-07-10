@@ -75,18 +75,20 @@ test('LIST-02: dirty-guard strings present on processUpload', () => {
 test('processUpload never silent-cancels Type column confirm', () => {
   const i = js.indexOf('async function processUpload');
   assert.ok(i >= 0);
-  // Include enough of processUpload for type-confirm + resume paths
-  const slice = js.slice(i, i + 12000);
+  // Include enough of processUpload for type-confirm + multi-round resume
+  const slice = js.slice(i, i + 16000);
   assert.match(
     slice,
     /Type column confirmation was cancelled/,
     'cancel must showError — not silent return after loader'
   );
   assert.match(slice, /collectMultiFormatConfirms/, 'process walks each format via helper');
+  assert.match(slice, /maxConfirmRounds|mergeConfirmedFormats/, 'multi-round confirm until process succeeds');
   assert.match(js, /openTypeColumnConfirmDialog/, 'type confirm dialog still used');
   assert.match(js, /fallbackTypeColumnConfirm/, 'must have showModal fallback');
   assert.match(js, /confirmedFormats/, 'client must resume multi-format confirms');
   assert.match(js, /formatsNeedingConfirm/, 'client normalizes formats[] from 409');
+  assert.match(js, /filenames/, 'confirms include sheet filenames for server mapping');
   assert.match(slice, /processUploadInFlight/, 'must guard double Process clicks');
 });
 
