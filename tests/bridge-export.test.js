@@ -61,3 +61,24 @@ test('rowsToCsv joins array matchedIndicators with semicolon space', () => {
     'CSV must join array indicators with "; " (not Array.toString commas alone)'
   );
 });
+
+// LBL-02: export always uses full row.violationIssueType — never shortLabel / …
+test('LBL-02: rowsToCsv emits full long violationIssueType (not shortLabel or ellipsis)', () => {
+  const longType =
+    'High Grass and Weeds — Sec. 12-34 of the municipal code regarding vegetation height limits on residential parcels and enforcement procedures';
+  assert.ok(longType.length > 64, 'fixture must be longer than short-label max');
+  const longRow = {
+    ...sampleRow,
+    violationIssueType: longType
+    // intentionally no shortLabel on the row
+  };
+  const csv = rowsToCsv([longRow]);
+  assert.ok(
+    csv.includes(longType),
+    'LBL-02: export CSV must contain the full Violation/Issue Type from the row'
+  );
+  assert.ok(
+    !csv.includes('…'),
+    'LBL-02: export must not substitute shortLabel ellipsis for full type'
+  );
+});
