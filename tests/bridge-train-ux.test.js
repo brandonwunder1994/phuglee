@@ -472,3 +472,146 @@ test('bridge.js trainDecisionKey path prefers groupId (not type-key-first)', () 
   assert.ok(typeIdx !== -1, 'fallback may still use typeKey as last resort');
   assert.ok(gidIdx < typeIdx, 'fallback must check groupId before violationTypeKey');
 });
+
+// ─── Phase 53: display-only short labels + LBL-03 no DOM scrape (RED until Plan 04) ───
+
+const LONG_FULL_LABEL =
+  'High Grass and Weeds — Sec. 12-34 of the municipal code regarding vegetation height limits on residential parcels';
+const SHORT_DISPLAY = 'High Grass and Weeds';
+
+test('LBL-01: renderTrainGroupCard prefers shortLabel as title; full label in title= tooltip', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  const group = {
+    ...SAMPLE_GROUP,
+    shortLabel: SHORT_DISPLAY,
+    violationTypeLabel: LONG_FULL_LABEL
+  };
+  const html = api.renderTrainGroupCard(group);
+
+  // Primary title text uses short display label
+  assert.ok(
+    html.includes(SHORT_DISPLAY),
+    'LBL-01: card HTML must include shortLabel text in the title area'
+  );
+
+  // Full wall must not be the primary visible title text when short differs
+  // (title= tooltip is allowed to hold the full string)
+  const titleDivMatch = html.match(
+    /<div class="bridge-train-group-title"[^>]*>([\s\S]*?)<\/div>/
+  );
+  assert.ok(titleDivMatch, 'LBL-01: must render .bridge-train-group-title');
+  const titleInner = titleDivMatch[1];
+  // Visible text content (ignore attributes) should start with short, not full wall
+  assert.ok(
+    titleInner.includes(SHORT_DISPLAY),
+    'LBL-01: title div inner HTML includes shortLabel'
+  );
+  assert.ok(
+    !titleInner.includes('Sec. 12-34') && !titleInner.includes('municipal code'),
+    'LBL-01: primary title text must NOT dump the full ordinance wall when shortLabel differs'
+  );
+
+  // Full label available via title= attribute (tooltip) on the title element
+  assert.ok(
+    /class="bridge-train-group-title"[^>]*title="/.test(html) ||
+      /title="[^"]*High Grass and Weeds[^"]*Sec\. 12-34/.test(html) ||
+      html.includes(`title="${LONG_FULL_LABEL}"`) ||
+      html.includes('title="' + LONG_FULL_LABEL.replace(/—/g, '&#8212;')) ||
+      /bridge-train-group-title[^>]*title=/.test(html),
+    'LBL-01: full violationTypeLabel must appear in title= tooltip on the title element'
+  );
+  // Escaped or raw full label somewhere in a title attribute
+  const titleAttrMatch = html.match(
+    /class="bridge-train-group-title"[^>]*\btitle="([^"]*)"/
+  );
+  assert.ok(
+    titleAttrMatch,
+    'LBL-01: .bridge-train-group-title must have title="..." for full-label tooltip'
+  );
+  const tip = titleAttrMatch[1];
+  assert.ok(
+    tip.includes('High Grass') && (tip.includes('Sec') || tip.includes('municipal') || tip.length > SHORT_DISPLAY.length),
+    `LBL-01: tooltip title attr must carry full label (got: ${tip.slice(0, 80)})`
+  );
+});
+
+test('LBL-03: resolveTrainGroupFromCard must NOT scrape .bridge-train-group-title for violationTypeLabel', () => {
+  const src = readBridgeJs();
+  assert.ok(
+    src.includes('function resolveTrainGroupFromCard'),
+    'LBL-03: resolveTrainGroupFromCard must exist'
+  );
+
+  const fnStart = src.indexOf('function resolveTrainGroupFromCard');
+  // Slice until next top-level function or end-marker
+  const after = src.slice(fnStart);
+  const endMarker = after.indexOf('// --- end BridgeTrain');
+  const nextFn = after.indexOf('\n  function ', 10);
+  const end =
+    endMarker !== -1
+      ? endMarker
+      : nextFn !== -1
+        ? nextFn
+        : Math.min(after.length, 800);
+  const fnBody = after.slice(0, end);
+
+  // Forbidden: DOM scrape of short title into violationTypeLabel
+  assert.ok(
+    !fnBody.includes('.bridge-train-group-title'),
+    'LBL-03: resolveTrainGroupFromCard must NOT query .bridge-train-group-title (short title would poison decisions)'
+  );
+  assert.ok(
+    !/querySelector\s*\(\s*['"]\.bridge-train-group-title/.test(fnBody),
+    'LBL-03: no querySelector(.bridge-train-group-title) in resolveTrainGroupFromCard'
+  );
+});
+
+test('LBL-03: resolveTrainGroupFromCard fail-closed — miss returns null (no invented DOM label)', () => {
+  const src = readBridgeJs();
+  const fnStart = src.indexOf('function resolveTrainGroupFromCard');
+  assert.ok(fnStart !== -1, 'LBL-03: resolveTrainGroupFromCard present');
+  const after = src.slice(fnStart);
+  const endMarker = after.indexOf('// --- end BridgeTrain');
+  const nextFn = after.indexOf('\n  function ', 10);
+  const end =
+    endMarker !== -1
+      ? endMarker
+      : nextFn !== -1
+        ? nextFn
+        : Math.min(after.length, 800);
+  const fnBody = after.slice(0, end);
+
+  // Prefer fail-closed: return null when groupId not found
+  assert.ok(
+    /return\s+null/.test(fnBody),
+    'LBL-03: miss path should return null (fail closed), not invent label from DOM'
+  );
+  // Must not build a synthetic group with scraped violationTypeLabel on miss
+  assert.ok(
+    !/violationTypeLabel\s*:\s*card\.querySelector/.test(fnBody),
+    'LBL-03: must not assign violationTypeLabel from card.querySelector on miss'
+  );
+  assert.ok(
+    !/textContent/.test(fnBody),
+    'LBL-03: resolveTrainGroupFromCard must not read textContent from the card title'
+  );
+});
+
+test('LBL-03: submitTrainDecision body uses group.violationTypeLabel (full), not shortLabel', () => {
+  const src = readBridgeJs();
+  assert.ok(
+    src.includes('function submitTrainDecision') || src.includes('submitTrainDecision'),
+    'LBL-03: submitTrainDecision must exist'
+  );
+
+  // Decision payload must post full label from group metadata
+  assert.ok(
+    /violationTypeLabel\s*:\s*group\.violationTypeLabel/.test(src),
+    'LBL-03: body must include violationTypeLabel: group.violationTypeLabel (FULL)'
+  );
+  // Must not post shortLabel as the decision type label
+  assert.ok(
+    !/violationTypeLabel\s*:\s*group\.shortLabel/.test(src),
+    'LBL-03: must NOT send group.shortLabel as violationTypeLabel'
+  );
+});
