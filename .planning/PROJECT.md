@@ -47,15 +47,18 @@ Full requirement text: `.planning/milestones/v1.6-REQUIREMENTS.md`
 - [ ] **PA-01–07**: Property Analyzer Heat reskin
 - [ ] **QA-01–03**: Cross-app visual audit
 
-### Active (v1.7 — Filter Accuracy & Grouping)
+### Validated (v1.7 — shipped 2026-07-10)
 
-**Goal:** Fix Train/Filter grouping so same-category rows stack, timestamps do not create false singletons, FN rows show real city categories, and signal chips stay visible.
+- [x] **MAP-01–03**: Category promotion for unmapped city type columns; no invent from free-text noise
+- [x] **SHAPE-01–02**: Process-path `matchedIndicators` arrays; export join preserved
+- [x] **GROUP-01–04**: Timestamp-stable group keys; singleton only when count === 1
+- [x] **TEST-01–03**: processUpload e2e lock + full suite + verify-live
 
-**Target features:**
-- Stable group keys (strip timestamps; stack on category / phrase / indicator)
-- Promote real category columns into `violationIssueType` (MAP)
-- Keep `matchedIndicators` as arrays for Train chips; join only on export (SHAPE)
-- Regression tests for singleton flood + unmapped category + typed stacking
+Full requirement text: `.planning/milestones/v1.7-REQUIREMENTS.md`
+
+### Active (next milestone)
+
+_None yet — define via `/gsd:new-milestone`_
 
 ### Backlog (later)
 
@@ -104,17 +107,14 @@ Full requirement text: `.planning/milestones/v1.6-REQUIREMENTS.md`
 | Split undo (client list snapshot + server rule revert) | ✓ Good — HARD-01 |
 | Volume-safe `BRIDGE_BRAIN_ROOT` mirrors filter lists | ✓ Good — durability |
 
-## Current Milestone: v1.7 Filter Accuracy & Grouping
-
-**Goal:** Train brain shows accurate stacked categories and real FN labels after every upload.
-
-**Diagnosis:** `.planning/debug/filter-singleton-no-category.md` (gsd-debugger, root cause confirmed)
-
 ## Current State
 
-**Shipped:** v1.6 Filter Superpower Brain (2026-07-10)  
-**Focus:** v1.7 Filter Accuracy & Grouping  
-**Phase artifacts:** v1.6 remains under `.planning/phases/42-*` … `47-*`; v1.7 continues numbering from 48
+**Shipped:** v1.7 Filter Accuracy & Grouping (2026-07-10)  
+**Prior:** v1.6 Filter Superpower Brain (2026-07-10)  
+**Focus:** Planning next milestone  
+**Phase artifacts:** remain under `.planning/phases/42-*` … `50-*`
+
+**Filter accuracy stack (v1.7):** `lib/bridge-category-promote.js`, `lib/bridge-stable-text.js`, normalizer + review-groups wiring; process rows keep indicator arrays; export joins.
 
 ---
 
@@ -129,4 +129,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 after starting v1.7 Filter Accuracy*
+*Last updated: 2026-07-10 after completing v1.7 Filter Accuracy*

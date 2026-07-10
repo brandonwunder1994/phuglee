@@ -1,5 +1,25 @@
 # Project Milestones: Distress OS
 
+## v1.7 Filter Accuracy & Grouping (Shipped: 2026-07-10)
+
+**Delivered:** Train/Filter grouping accuracy — real city categories on labels, timestamp-stable stacks (no false singletons), process-path signal chips as arrays, processUpload regression lock.
+
+**Phases completed:** 48–50 (3 phases, 4 plans)
+
+**Diagnosis:** `.planning/debug/filter-singleton-no-category.md`  
+**Archive:** `.planning/milestones/v1.7-ROADMAP.md`, `v1.7-REQUIREMENTS.md`
+
+**Key accomplishments:**
+- `matchedIndicators` stay string arrays on process/review rows; join `'; '` only at export (SHAPE)
+- Pure `bridge-category-promote` promotes unmapped category-like columns into `violationIssueType` (MAP)
+- `bridge-stable-text` + review-groups strip incidental dates/times so same category stacks (GROUP)
+- processUpload e2e: description-only timestamps → 1 group; Vio Cat labels; typed High Grass stack
+- **380** tests + `scripts/verify-live.ps1` green
+
+**Git range:** `a5a10f5` → `5899e60` (16 commits, +1.5k / −121 across 21 files)
+
+---
+
 ## v1.6 Filter Superpower Brain (Shipped: 2026-07-10)
 
 **Delivered:** Admin-only global Filter brain — grouped Approve/Deny trains type + phrase rules so every future city upload improves for all customers.
