@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
-status: planning
-stopped_at: Completed 53-04-PLAN.md
-last_updated: "2026-07-10T13:52:22.541Z"
-last_activity: 2026-07-10 — Completed 53-04 Train UI short labels + DOM scrape kill
+status: ready_to_execute
+stopped_at: Planned Phase 54 (2 plans)
+last_updated: "2026-07-10T14:01:57.888Z"
+last_activity: 2026-07-10 — Phase 54 plans created (54-01, 54-02)
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 11
+  total_plans: 13
   completed_plans: 11
-  percent: 100
+  percent: 85
 ---
 
 # State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 53 complete — next Phase 54 lock-and-ship
+**Current focus:** Phase 54 planned — ready to execute regression lock
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
-**Phase:** 53 of 54 (Display-Only Short Labels) — COMPLETE  
-**Plan:** 4 of 4 complete  
-**Status:** Ready to plan
-**Last activity:** 2026-07-10 — Completed 53-04 Train UI short labels + DOM scrape kill
+**Phase:** 54 of 54 (Regression Lock) — PLANNED  
+**Plan:** 0 of 2 complete  
+**Status:** Ready to execute
+**Last activity:** 2026-07-10 — Phase 54 plans created (54-01, 54-02)
 
-Progress: [██████████] 100% (v1.8 plans 11/11 done; phase 53 plan 4/4)
+Progress: [████████░░] 85% (v1.8 plans 11/13 done; phase 54 plan 0/2)
 
 ## Performance Metrics
 
@@ -47,7 +47,7 @@ Progress: [██████████] 100% (v1.8 plans 11/11 done; phase 53
 | 51 | 3/3 | 5min | 1.7min |
 | 52 | 4/4 | 35min | 8.8min |
 | 53 | 4/4 | 9min | 2.3min |
-| 54 | 0 | TBD | — |
+| 54 | 0/2 | — | — |
 
 **Performance Metrics (detail):**
 
@@ -123,17 +123,24 @@ Phase 53 plan decisions:
 - [Phase 53]: resolveTrainGroupFromCard fail-closed null (no DOM title scrape for decisions)
 - [Phase 53]: displayLabel for toast/confirm chrome; POST always full group.violationTypeLabel
 
+Phase 54 plan decisions:
+
+- 2 plans: Wave 1 processUpload v1.8 TEST locks → Wave 2 full suite + verify-live
+- Extend tests/bridge-engine.test.js only; titles `TEST-0N (v1.8): …` (do not overwrite v1.7 TEST-*)
+- Gaps locked: 409 suggestedHeader equality, fingerprint-change reconfirm, processUpload shortLabel composition
+- Unique city.ids for format store isolation; zero new packages; no product re-implement unless lock fails
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
 
-None — Phase 53 complete (all 4 plans). Ready for Phase 54 lock-and-ship.
+None — Phase 54 planned (2 plans). Ready to execute.
 
 ## Session Continuity
 
-Last session: 2026-07-10T13:52:00.000Z
-Stopped at: Completed 53-04-PLAN.md
+Last session: 2026-07-10T14:01:57.888Z
+Stopped at: Planned 54-01 + 54-02
 Resume file: None
-Next: Phase 54 — lock-and-ship / processUpload e2e
+Next: Execute Phase 54 — `/gsd:execute-phase 54`

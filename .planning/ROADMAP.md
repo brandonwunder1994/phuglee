@@ -17,7 +17,7 @@
 **Milestone:** v1.8 Type Column Intelligence  
 **Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress/export.
 
-**Status:** Phase 53 complete (4/4 plans) — short Train titles + fail-closed decisions; next Phase 54 lock-and-ship
+**Status:** Phase 54 planned (2 plans) — ready to execute lock-and-ship
 
 ---
 
@@ -89,7 +89,11 @@ Plans:
   2. Automated fixture: same city same fingerprint reuses confirmed header without confirm; fingerprint change requires confirm again
   3. Automated fixture: short label shortens display; stored type + export + group keys unchanged
   4. `npm test` and `scripts/verify-live.ps1` are green
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 54-01-PLAN.md — v1.8 processUpload e2e locks (TEST-01/02/03 gaps)
+- [ ] 54-02-PLAN.md — Full suite + verify-live milestone gate
 
 ---
 
@@ -173,7 +177,7 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 | 51. COL Scoring + Map Wire | 3/3 | Complete    | 2026-07-10 | - |
 | 52. Format Memory + Confirm Gate | 4/4 | Complete    | 2026-07-10 | - |
 | 53. Display-Only Short Labels | 4/4 | Complete    | 2026-07-10 | - |
-| 54. Regression Lock | v1.8 | 0/? | Not started | - |
+| 54. Regression Lock | v1.8 | 0/2 | Planned | - |
 | 48–50. Filter Accuracy & Grouping | v1.7 | 4/4 | Complete | 2026-07-10 |
 | 42–47. Filter Superpower Brain | v1.6 | 12/12 | Complete | 2026-07-10 |
 
