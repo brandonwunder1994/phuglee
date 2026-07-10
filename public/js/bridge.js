@@ -101,9 +101,58 @@
   const UNDO_LIMIT = 10;
   const TRAIN_PAGE_SIZE = 40;
   const DENY_CONFIRM_THRESHOLD = 10;
+  /** Type keys decided this batch — cards leave the queue until re-process */
+  const trainDecidedKeys = new Set();
   let brainVersion = null;
   let trainSearchQuery = '';
   let trainPage = { distressed: 1, notDistressed: 1 };
+
+  function trainDecisionKey(group) {
+    if (!group) return '';
+    const typeKey = group.violationTypeKey != null ? String(group.violationTypeKey).trim() : '';
+    if (typeKey) return typeKey;
+    const gid = group.groupId != null ? String(group.groupId).trim() : '';
+    return gid;
+  }
+
+  function clearTrainDecidedKeys() {
+    trainDecidedKeys.clear();
+  }
+
+  function filterUndecidedTrainGroups(list) {
+    return (list || []).filter((g) => {
+      const k = trainDecisionKey(g);
+      return !k || !trainDecidedKeys.has(k);
+    });
+  }
+
+  function animateTrainCardExit(card) {
+    return new Promise((resolve) => {
+      if (!card || !card.isConnected) {
+        resolve();
+        return;
+      }
+      const height = card.offsetHeight;
+      card.style.maxHeight = `${height}px`;
+      card.style.overflow = 'hidden';
+      // Force layout so the transition starts from full height
+      void card.offsetHeight;
+      card.classList.add('is-exiting');
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        card.removeEventListener('transitionend', onEnd);
+        if (card.parentNode) card.parentNode.removeChild(card);
+        resolve();
+      };
+      const onEnd = (e) => {
+        if (e.target === card) finish();
+      };
+      card.addEventListener('transitionend', onEnd);
+      setTimeout(finish, 380);
+    });
+  }
 
   function esc(text) {
     return String(text || '')
@@ -207,9 +256,10 @@
     };
   }
 
-  function pushTrainUndoSnapshot() {
+  function pushTrainUndoSnapshot(extra = {}) {
     const snap = snapshotTrainState();
     if (!snap) return;
+    snap.decidedKey = extra.decidedKey || null;
     trainUndoStack.push(snap);
     while (trainUndoStack.length > UNDO_LIMIT) trainUndoStack.shift();
     updateTrainUndoButton();
@@ -312,10 +362,14 @@
     const notPager = document.getElementById('bridge-train-not-distressed-pager');
 
     const distressedAll = sortGroupsByCountDesc(
-      filterGroupsBySearch((groups && groups.distressed) || [], trainSearchQuery)
+      filterUndecidedTrainGroups(
+        filterGroupsBySearch((groups && groups.distressed) || [], trainSearchQuery)
+      )
     );
     const notAll = sortGroupsByCountDesc(
-      filterGroupsBySearch((groups && groups.notDistressed) || [], trainSearchQuery)
+      filterUndecidedTrainGroups(
+        filterGroupsBySearch((groups && groups.notDistressed) || [], trainSearchQuery)
+      )
     );
 
     // Clamp pages when filter shrinks the list
@@ -359,6 +413,8 @@
       }
     } else if (!distressedAll.length && !notAll.length && trainSearchQuery.trim()) {
       setTrainStatus('No train groups match your search.', '');
+    } else if (!distressedAll.length && !notAll.length && trainDecidedKeys.size > 0) {
+      setTrainStatus('All groups reviewed for this batch. Process another file or Undo to revise.', 'success');
     } else {
       // Keep error/success messages; clear only empty-state hints
       const el = document.getElementById('bridge-train-status');
@@ -611,7 +667,7 @@
    * Does not auto-save the list store — Save list remains a separate user action.
    * Pushes trainUndoStack snapshot before POST; pops on non-OK (incl 409).
    */
-  async function submitTrainDecision({ action, section, group }) {
+  async function submitTrainDecision({ action, section, group, card }) {
     if (!lastResult) return null;
     if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function'
         && !window.PhugleeSettings.isAdmin()) {
@@ -628,7 +684,8 @@
       throw new Error('Invalid train action');
     }
 
-    pushTrainUndoSnapshot();
+    const decidedKey = trainDecisionKey(group);
+    pushTrainUndoSnapshot({ decidedKey });
 
     const body = {
       action,
@@ -681,7 +738,14 @@
       }
     }
 
-    // Preserve train mode across re-render
+    // Leave the train queue so Approve and Deny both clear the card
+    if (decidedKey) trainDecidedKeys.add(decidedKey);
+
+    // Fade card out, then rebuild list so remaining cards push up
+    if (card) {
+      await animateTrainCardExit(card);
+    }
+
     const modeBefore = resultsMode;
     renderResults(lastResult);
     if (modeBefore === 'train') setResultsMode('train');
@@ -689,7 +753,14 @@
 
     const label = group.violationTypeLabel || 'group';
     const verb = action === 'approve' ? 'Approved' : 'Denied';
-    setTrainStatus(`${verb} “${label}” · brain updated`, 'success');
+    const remaining = filterUndecidedTrainGroups(
+      (getReviewGroups(lastResult).distressed || []).concat(getReviewGroups(lastResult).notDistressed || [])
+    ).length;
+    if (remaining === 0) {
+      setTrainStatus(`${verb} “${label}” · all groups reviewed for this batch`, 'success');
+    } else {
+      setTrainStatus(`${verb} “${label}” · ${remaining} group(s) left`, 'success');
+    }
     return data;
   }
 
@@ -718,6 +789,7 @@
       if (data && data.brainSummary) rememberBrainVersion(data.brainSummary);
       const snap = popTrainUndoSnapshot();
       applyTrainSnapshot(snap);
+      if (snap && snap.decidedKey) trainDecidedKeys.delete(snap.decidedKey);
       const modeBefore = resultsMode;
       renderResults(lastResult);
       if (modeBefore === 'train' || modeBefore === 'brain') setResultsMode(modeBefore);
@@ -762,8 +834,12 @@
       const count = Number(group.count) || (Array.isArray(group.rowIds) ? group.rowIds.length : 0);
       if (count >= DENY_CONFIRM_THRESHOLD) {
         const label = group.violationTypeLabel || 'this group';
+        const section = (group && group.section) || (card && card.dataset.section) || '';
+        const moveHint = section === 'not_distressed'
+          ? 'They will move to distressed and a promote rule will be trained.'
+          : 'They will move to not-distressed and a suppress rule will be trained.';
         const ok = window.confirm(
-          `Deny ${count} records for “${label}”? They will leave the kept list and a suppress rule will be trained.`
+          `Deny ${count} records for “${label}”? ${moveHint}`
         );
         if (!ok) return;
       }
@@ -775,7 +851,8 @@
       await submitTrainDecision({
         action,
         section: (group && group.section) || (card && card.dataset.section) || '',
-        group
+        group,
+        card
       });
     } catch (err) {
       setTrainCardBusy(card, false);
@@ -1649,6 +1726,7 @@
       const data = await fetchJson('/api/bridge/process', { method: 'POST', body: form });
       // New process batch — reset client undo stack and train polish state
       trainUndoStack.length = 0;
+      clearTrainDecidedKeys();
       trainSearchQuery = '';
       trainPage = { distressed: 1, notDistressed: 1 };
       const searchInput = document.getElementById('bridge-train-search');

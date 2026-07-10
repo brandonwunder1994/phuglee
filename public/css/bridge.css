@@ -1760,12 +1760,30 @@ body {
   border: 1px solid rgba(174, 163, 143, 0.14);
   border-radius: var(--radius-sm);
   margin-bottom: 0;
-  transition: opacity 0.2s ease, border-color 0.2s ease;
+  transition:
+    opacity 0.28s ease,
+    transform 0.28s ease,
+    max-height 0.32s ease,
+    padding 0.28s ease,
+    margin 0.28s ease,
+    border-color 0.2s ease;
 }
 
 .bridge-train-group.is-pending {
   opacity: 0.55;
   border-color: rgba(229, 132, 53, 0.25);
+}
+
+.bridge-train-group.is-exiting {
+  opacity: 0;
+  transform: translateY(-0.35rem) scale(0.98);
+  max-height: 0 !important;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  border-color: transparent;
+  pointer-events: none;
 }
 
 .bridge-train-group-head {
