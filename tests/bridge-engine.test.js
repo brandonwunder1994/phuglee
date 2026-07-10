@@ -51,6 +51,54 @@ test('parses CSV with varied violation headers', () => {
   assert.equal(parsed.rows.length, 4);
 });
 
+test('parses CSV with multiline quoted addresses without doubling rows', () => {
+  // Johns Creek-style export: street + city/state/zip on separate lines inside quotes
+  const csv = [
+    'Code Case Number,Address,Code Case Description,Violation Code Number',
+    'CODE-1,"11190 Bramshill DR',
+    'Johns Creek, GA 30022",Tall weeds and grass,302.4 Weeds',
+    'CODE-2,"11877 Douglas RD',
+    'Johns Creek, GA 30005",JV and rubbish,308.1 Accumulation of rubbish or garbage'
+  ].join('\n');
+  const parsed = parseSpreadsheet(Buffer.from(csv), 'multiline.csv');
+  assert.equal(parsed.rows.length, 2, 'must not split quoted multiline fields into extra rows');
+  assert.match(parsed.rows[0].Address, /11190 Bramshill DR/i);
+  assert.match(parsed.rows[0].Address, /Johns Creek/i);
+  assert.match(parsed.rows[1].Address, /11877 Douglas RD/i);
+});
+
+test('processUploadBatch real-style multiline CSVs keep one row per case', async () => {
+  const weeds = [
+    'Code Case Number,Address,Code Case Opened Date,Code Case Closed Date,Code Case Description,Code Case Assigned To,Violation Code Number',
+    'CODE-26-0318,"11190 Bramshill DR',
+    'Johns Creek, GA 30022",6/11/2026,7/1/2026,This property has grass and weeds several feet high,William Wharton,302.4 Weeds',
+    'CODE-26-0321,"11105 Rotherick DR',
+    'Johns Creek, GA 30022",6/12/2026,7/1/2026,High grass,William Wharton,302.4 Weeds'
+  ].join('\n');
+  const rubbish = [
+    'Code Case Number,Address,Code Case Opened Date,Code Case Type,Code Case Closed Date,Code Case Description,Code Case Assigned To,Violation Code Number',
+    'CODE-26-0315,"11877 Douglas RD',
+    'Johns Creek, GA 30005",6/9/2026,Code Compliance,7/6/2026,JV and rubbish,Reginald Miller,308.1 Accumulation of rubbish or garbage',
+    'CODE-26-0347,"11165 Rotherick DR',
+    'Johns Creek, GA 30022",6/25/2026,Code Compliance,7/6/2026,Accumulation of Rubbish,William Wharton,308.1 Accumulation of rubbish or garbage'
+  ].join('\n');
+
+  const result = await processUploadBatch(
+    [
+      { filename: '302.4_Weeds.csv', data: Buffer.from(weeds) },
+      { filename: '308.1_Rubbish.csv', data: Buffer.from(rubbish) }
+    ],
+    { city: { id: 'ga-johns-creek', city: 'Johns Creek', state: 'Georgia' }, uploadType: 'code_violation' }
+  );
+
+  assert.equal(result.stats.totalParsed, 4, '14→28 style bug: multiline addresses doubled every row');
+  assert.equal(result.stats.kept, 4);
+  assert.equal(result.rows.length, 4);
+  assert.ok(result.rows.every((r) => /^\d/.test(String(r.streetAddress || ''))), 'streetAddress starts with house number');
+  assert.ok(result.rows.some((r) => /Bramshill/i.test(r.streetAddress)));
+  assert.ok(result.rows.some((r) => /Douglas/i.test(r.streetAddress)));
+});
+
 test('processUploadBatch merges two files and cross-file dedupes', async () => {
   assert.equal(MAX_BATCH_FILES, 5);
   const buffer = fs.readFileSync(path.join(FIXTURES, 'code-violations-varied.csv'));
