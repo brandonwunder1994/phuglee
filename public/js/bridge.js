@@ -2526,6 +2526,38 @@
       showError((e && e.message) || 'Could not save train decision');
     });
   });
+
+  // Train hotkeys: A/Enter approve, D deny — first visible undecided card only.
+  // Reuses onTrainDecision so Deny≥10 confirm (DENY_CONFIRM_THRESHOLD) still applies.
+  function handleTrainHotkeys(event) {
+    if (resultsMode !== 'train' || !isBridgeAdmin()) return;
+    const el = event.target;
+    if (el) {
+      if (el.closest && el.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (el.tagName && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (el.isContentEditable) return;
+    }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const key = event.key;
+    let action = null;
+    if (key === 'a' || key === 'A' || key === 'Enter') action = 'approve';
+    else if (key === 'd' || key === 'D') action = 'deny';
+    else return;
+    const panel = document.getElementById('bridge-train-panel');
+    if (!panel || panel.hidden) return;
+    const approveBtn = panel.querySelector(
+      '.bridge-train-group button[data-action="approve"]:not([disabled])'
+    );
+    const card = approveBtn ? approveBtn.closest('.bridge-train-group') : null;
+    if (!card) return;
+    event.preventDefault();
+    const group = resolveTrainGroupFromCard(card);
+    onTrainDecision(action, group, card).catch((e) => {
+      showError((e && e.message) || 'Could not save train decision');
+    });
+  }
+  document.addEventListener('keydown', handleTrainHotkeys);
+
   document.getElementById('bridge-train-search')?.addEventListener('input', (event) => {
     trainSearchQuery = event.target.value || '';
     trainPage.distressed = 1;
