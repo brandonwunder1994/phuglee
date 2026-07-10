@@ -76,7 +76,7 @@ Each task was committed atomically:
 2. **Task 2: TEST-02 (v1.8) auto_reuse + fingerprint-change reconfirm** - `501dffc` (test)
 3. **Task 3: TEST-03 (v1.8) processUpload shortLabel composition** - `d517d9f` (test)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `b658029` (docs: complete plan)
 
 _Note: TDD RED expected to pass immediately — product already shipped in Phases 51–53; locks assert composition gaps only._
 
