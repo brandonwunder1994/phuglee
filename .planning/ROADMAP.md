@@ -17,7 +17,7 @@
 **Milestone:** v1.8 Type Column Intelligence  
 **Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress/export.
 
-**Status:** Ready to plan Phase 51
+**Status:** Phase 51 planned - ready to execute
 
 ---
 
@@ -39,7 +39,12 @@
   2. When no column meets Type candidacy, Type stays empty and distressed rows remain available for review (no silent drop solely for “no type column”)
   3. v1.7 `promoteCategoryFromRaw` still fills empty Type cells only — it never overrides a scorer-chosen Type column
   4. Scorer choice is the forced map winner; alias table is a scoring feature only, not a parallel first-match path that can undercut the scorer
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 51-01-PLAN.md - Wave 0 RED tests (pure trap matrix + process wire contracts)
+- [ ] 51-02-PLAN.md - Pure lib/bridge-type-column-score.js until unit green
+- [ ] 51-03-PLAN.md - Force Type in normalizeRawRows + full suite green
 
 ### Phase 52: Format Memory + Confirm Gate
 **Goal**: First-time or format-changed city uploads pause for admin Type-column confirmation; same fingerprint reuses last confirmed mapping with no modal
@@ -153,7 +158,7 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 51. COL Scoring + Map Wire | v1.8 | 0/? | Not started | - |
+| 51. COL Scoring + Map Wire | v1.8 | 0/3 | Planned | - |
 | 52. Format Memory + Confirm Gate | v1.8 | 0/? | Not started | - |
 | 53. Display-Only Short Labels | v1.8 | 0/? | Not started | - |
 | 54. Regression Lock | v1.8 | 0/? | Not started | - |
