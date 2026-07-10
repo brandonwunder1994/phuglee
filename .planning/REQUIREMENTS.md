@@ -15,7 +15,7 @@
 
 ### Review payload
 
-- [ ] **REV-01**: Admin can access full not-distressed row payloads after process (false-negative pool), not only discard previews
+- [x] **REV-01**: Admin can access full not-distressed row payloads after process (false-negative pool), not only discard previews
 - [x] **REV-02**: System groups review rows by normalized city Violation/Issue Type (stack identical types; empty type uses description)
 - [x] **REV-03**: Each review group exposes matched distress signals and description samples that triggered (or failed) the flag
 - [x] **REV-04**: Each process row has a stable rowId for decision targeting
@@ -73,7 +73,7 @@
 | BRAIN-01 | Phase 42 | Complete |
 | BRAIN-02 | Phase 42 | Complete |
 | BRAIN-03 | Phase 42 | Complete |
-| REV-01 | Phase 43 | Pending |
+| REV-01 | Phase 43 | Complete |
 | REV-02 | Phase 43 | Complete |
 | REV-03 | Phase 43 | Complete |
 | REV-04 | Phase 43 | Complete |

@@ -37,7 +37,7 @@
 ### v1.6 Filter Superpower Brain (Phases 42–47)
 
 - [x] **Phase 42: Brain store + runtime apply** — Global durable brain file applied on every process
-- [ ] **Phase 43: Review payload + grouping** — Full FN rows, type groups, signals, stable rowIds
+- [x] **Phase 43: Review payload + grouping** — Full FN rows, type groups, signals, stable rowIds
 - [ ] **Phase 44: Admin Train brain UX** — Two train sections, group ✓/✗, admin-only chrome
 - [ ] **Phase 45: Decisions + type rules + list mutation** — Mutate current list + live type learning
 - [ ] **Phase 46: Phrase mining + brain panel** — Proposed phrases + admin rule management
@@ -95,7 +95,7 @@ Plans:
 
 Plans:
 - [x] 43-01-PLAN.md - Pure review groups module (rowIds, type stacking, signals/samples)
-- [ ] 43-02-PLAN.md - processUpload FN payload + groups wire + engine contract tests
+- [x] 43-02-PLAN.md - processUpload FN payload + groups wire + engine contract tests
 
 ---
 
