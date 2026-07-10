@@ -46,6 +46,30 @@ test('parseMultipart preserves binary file bytes', () => {
   assert.deepEqual(files.file.data, binary);
 });
 
+test('parseMultipart accumulates multiple file parts with same name', () => {
+  const { collectUploadFiles } = require('../lib/multipart');
+  const boundary = 'MultiFileBound';
+  const a = Buffer.from('aaa');
+  const b = Buffer.from('bbb');
+  const body = Buffer.concat([
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="cityId"\r\n\r\ncity-1\r\n`),
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="a.csv"\r\nContent-Type: text/csv\r\n\r\n`),
+    a,
+    Buffer.from(`\r\n--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="b.csv"\r\nContent-Type: text/csv\r\n\r\n`),
+    b,
+    Buffer.from(`\r\n--${boundary}--\r\n`)
+  ]);
+  const { files } = parseMultipart(body, `multipart/form-data; boundary=${boundary}`);
+  assert.ok(Array.isArray(files.file), 'repeated file field becomes array');
+  assert.equal(files.file.length, 2);
+  assert.equal(files.file[0].filename, 'a.csv');
+  assert.equal(files.file[1].filename, 'b.csv');
+  const list = collectUploadFiles(files);
+  assert.equal(list.length, 2);
+  assert.deepEqual(list[0].data, a);
+  assert.deepEqual(list[1].data, b);
+});
+
 test('parseMultipart throws when boundary missing', () => {
   assert.throws(
     () => parseMultipart(Buffer.from('data'), 'multipart/form-data'),

@@ -29,7 +29,7 @@ const emptyImportIndex = async () => ({
   sources: null
 });
 indexModule.loadImportAddressIndex = emptyImportIndex;
-const { processUpload } = require('../lib/bridge-engine');
+const { processUpload, processUploadBatch, mergeProcessResults, MAX_BATCH_FILES } = require('../lib/bridge-engine');
 const { parseSpreadsheet } = require('../lib/bridge-engine/parsers/spreadsheet');
 const { parseTextFile } = require('../lib/bridge-engine/parsers/text');
 const { normalizeRawRows } = require('../lib/bridge-engine/normalizer');
@@ -49,6 +49,49 @@ test('parses CSV with varied violation headers', () => {
   const parsed = parseSpreadsheet(buffer, 'violations.csv');
   assert.equal(parsed.headers.includes('Property Address'), true);
   assert.equal(parsed.rows.length, 4);
+});
+
+test('processUploadBatch merges two files and cross-file dedupes', async () => {
+  assert.equal(MAX_BATCH_FILES, 5);
+  const buffer = fs.readFileSync(path.join(FIXTURES, 'code-violations-varied.csv'));
+  const result = await processUploadBatch(
+    [
+      { filename: 'part-a.csv', data: buffer },
+      { filename: 'part-b.csv', data: buffer }
+    ],
+    { city: CITY, uploadType: 'code_violation' }
+  );
+  assert.equal(result.fileCount, 2);
+  assert.ok(result.sourceFile.includes('part-a.csv'));
+  assert.ok(result.sourceFile.includes('part-b.csv'));
+  // Same CSV twice → kept rows should match single-file count after cross-file dedupe
+  const single = await processUpload({
+    buffer,
+    filename: 'violations.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+  assert.equal(result.stats.kept, single.stats.kept);
+  assert.ok(result.processingMeta.multiFile === true);
+  assert.equal(result.processingMeta.files.length, 2);
+});
+
+test('mergeProcessResults single payload is pass-through with fileCount 1', () => {
+  const one = {
+    ok: true,
+    city: CITY,
+    uploadType: 'code_violation',
+    sourceFile: 'a.csv',
+    rows: [{ streetAddress: '1 Main', distressedSignalTag: STRONG_DISTRESSED_TAG }],
+    notDistressedRows: [],
+    discarded: [],
+    stats: { totalParsed: 1, kept: 1, discarded: 0, deduplicated: 0, alreadyImported: 0 },
+    processingMeta: { brainVersion: 2, durationMs: 10 }
+  };
+  const merged = mergeProcessResults([one], { city: CITY, uploadType: 'code_violation' });
+  assert.equal(merged.fileCount, 1);
+  assert.equal(merged.sourceFile, 'a.csv');
+  assert.equal(merged.rows.length, 1);
 });
 
 test('processUpload keeps open and closed violations with usable addresses', async () => {

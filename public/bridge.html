@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=8">
+  <link rel="stylesheet" href="/css/bridge.css?v=9">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -186,8 +186,8 @@
     </section>
 
     <section class="bridge-panel phuglee-panel" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
-      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Upload city response file</h2>
-      <p class="bridge-panel-lead">Drag and drop or browse. Photos and scans work — shoot the printed violation or shutoff list if that's what the clerk sent.</p>
+      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Upload city response file(s)</h2>
+      <p class="bridge-panel-lead">Drag and drop or browse up to <strong>5 files</strong> from the same city. Photos and scans work — shoot the printed violation or shutoff list if that's what the clerk sent.</p>
       <div class="bridge-format-badges" aria-hidden="true">
         <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
       </div>
@@ -221,16 +221,16 @@
         <p class="bridge-panel-lead bridge-response-hint" id="bridge-response-hint">Enter when you received the response — email arrival, portal download, etc. This is not when you process the file, and it feeds Form Forge turnaround KPIs.</p>
       </div>
       <div class="bridge-dropzone" id="bridge-dropzone" tabindex="0" role="button" aria-describedby="bridge-drop-hint">
-        <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" hidden />
+        <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" multiple hidden />
         <div class="bridge-dropzone-inner" id="bridge-dropzone-inner">
-          <p class="bridge-drop-title">Drop file here</p>
-          <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button></p>
+          <p class="bridge-drop-title">Drop files here</p>
+          <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button> · up to 5</p>
           <p class="bridge-drop-file" id="bridge-file-name" hidden></p>
         </div>
       </div>
       <div class="bridge-actions bridge-actions--upload">
         <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Process upload</button>
-        <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear file</button>
+        <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
       </div>
     </section>
 
@@ -423,6 +423,6 @@
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=3"></script>
-  <script src="/js/bridge.js?v=15"></script>
+  <script src="/js/bridge.js?v=16"></script>
 </body>
 </html>

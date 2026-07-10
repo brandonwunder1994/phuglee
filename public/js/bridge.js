@@ -90,7 +90,9 @@
   let cities = [];
   let selectedCity = null;
   let selectedUploadType = '';
-  let selectedFile = null;
+  const MAX_UPLOAD_FILES = 5;
+  /** @type {File[]} */
+  let selectedFiles = [];
   let lastResult = null;
   let resultsMode = 'kept';
   let savedLists = [];
@@ -960,7 +962,7 @@
     if (from === 'state') {
       selectedCity = null;
       selectedUploadType = '';
-      selectedFile = null;
+      selectedFiles = [];
       lastResult = null;
       setHidden(cityActions, true);
       setHidden(cityOutcomePanel, true);
@@ -973,7 +975,7 @@
     }
     if (from === 'city') {
       selectedUploadType = '';
-      selectedFile = null;
+      selectedFiles = [];
       lastResult = null;
       setHidden(typePanel, true);
       setHidden(uploadPanel, true);
@@ -986,7 +988,7 @@
       setHidden(cityActions, !selectedCity);
     }
     if (from === 'type') {
-      selectedFile = null;
+      selectedFiles = [];
       setHidden(uploadPanel, true);
       setHidden(resultsPanel, true);
       lastResult = null;
@@ -1001,31 +1003,97 @@
   }
 
   function clearFileUi() {
-    selectedFile = null;
+    selectedFiles = [];
     if (fileInput) fileInput.value = '';
     setHidden(fileNameEl, true);
     if (fileNameEl) fileNameEl.textContent = '';
-    if (processBtn) processBtn.disabled = true;
+    if (processBtn) {
+      processBtn.disabled = true;
+      processBtn.textContent = 'Process upload';
+    }
     setHidden(clearFileBtn, true);
     dropzone?.classList.remove('has-file', 'is-dragover');
   }
 
-  function setSelectedFile(file) {
-    if (!file) return;
-    if (!ACCEPTED_EXT.test(file.name)) {
-      showError('Unsupported file type. Use Excel, CSV, PDF, Word, TXT, or JPG/PNG list images.');
+  function syncFileUi() {
+    const count = selectedFiles.length;
+    if (!count) {
+      setHidden(fileNameEl, true);
+      if (fileNameEl) fileNameEl.textContent = '';
+      if (processBtn) {
+        processBtn.disabled = true;
+        processBtn.textContent = 'Process upload';
+      }
+      setHidden(clearFileBtn, true);
+      dropzone?.classList.remove('has-file');
       return;
     }
-    selectedFile = file;
-    showError('');
+    const lines = selectedFiles.map((f, i) => `${i + 1}. ${f.name} (${formatBytes(f.size)})`);
     setHidden(fileNameEl, false);
-    if (fileNameEl) fileNameEl.textContent = `${file.name} (${formatBytes(file.size)})`;
+    if (fileNameEl) {
+      fileNameEl.textContent =
+        count === 1
+          ? lines[0].replace(/^1\.\s*/, '')
+          : `${count} files selected\n${lines.join('\n')}`;
+    }
     dropzone?.classList.add('has-file');
-    if (processBtn) processBtn.disabled = false;
+    if (processBtn) {
+      processBtn.disabled = false;
+      processBtn.textContent = count === 1 ? 'Process upload' : `Process ${count} files`;
+    }
     setHidden(clearFileBtn, false);
+  }
+
+  /**
+   * Add files to the batch (max MAX_UPLOAD_FILES). Keeps existing picks when
+   * dropping/browsing more; skips unsupported types and name duplicates.
+   */
+  function addSelectedFiles(fileList) {
+    const incoming = Array.from(fileList || []).filter(Boolean);
+    if (!incoming.length) return;
+
+    const rejected = [];
+    const next = selectedFiles.slice();
+    const seen = new Set(next.map((f) => `${f.name}::${f.size}`));
+
+    for (const file of incoming) {
+      if (next.length >= MAX_UPLOAD_FILES) {
+        rejected.push(`${file.name} (max ${MAX_UPLOAD_FILES} files)`);
+        continue;
+      }
+      if (!ACCEPTED_EXT.test(file.name)) {
+        rejected.push(`${file.name} (unsupported type)`);
+        continue;
+      }
+      const key = `${file.name}::${file.size}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      next.push(file);
+    }
+
+    selectedFiles = next;
+    if (rejected.length && !selectedFiles.length) {
+      showError(
+        rejected.some((r) => /unsupported/i.test(r))
+          ? 'Unsupported file type. Use Excel, CSV, PDF, Word, TXT, or JPG/PNG list images.'
+          : `Could not add files: ${rejected.join('; ')}`
+      );
+    } else if (rejected.length) {
+      showError(`Some files were skipped: ${rejected.join('; ')}`);
+    } else {
+      showError('');
+    }
+
+    syncFileUi();
     setHidden(resultsPanel, true);
     lastResult = null;
     setPipelineStep('upload');
+  }
+
+  /** @deprecated use addSelectedFiles — kept name for drop/browse call sites */
+  function setSelectedFile(file) {
+    if (!file) return;
+    addSelectedFiles([file]);
   }
 
   function formatBytes(bytes) {
@@ -1378,7 +1446,7 @@
   function resetImportAreaAfterSave(savedLabel) {
     // Keep city + lead type so the next city file is one drop away; clear file + results.
     lastResult = null;
-    selectedFile = null;
+    selectedFiles = [];
     clearFileUi();
     setHidden(resultsPanel, true);
     setHidden(loadingPanel, true);
@@ -1742,8 +1810,12 @@
     const indexLabel = Number.isFinite(indexCount) && indexCount > 0
       ? ` · ${indexCount.toLocaleString()} address(es) in Analyze`
       : '';
+    const fileCount = Number(data.fileCount) || (Array.isArray(data.sourceFiles) ? data.sourceFiles.length : 1) || 1;
+    const fileLabel = fileCount > 1
+      ? `${fileCount} files (${data.sourceFile})`
+      : data.sourceFile;
     resultsMeta.textContent =
-      `${rows.length.toLocaleString()} record(s) kept from ${data.sourceFile} · ${uploadLabel} · ${data.city.city}, ${data.city.state}${parserLabel}${indexLabel}`;
+      `${rows.length.toLocaleString()} record(s) kept from ${fileLabel} · ${uploadLabel} · ${data.city.city}, ${data.city.state}${parserLabel}${indexLabel}`;
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');
@@ -1803,7 +1875,7 @@
   }
 
   async function processUpload() {
-    if (!selectedCity || !selectedUploadType || !selectedFile) return;
+    if (!selectedCity || !selectedUploadType || !selectedFiles.length) return;
     const responseAt = getResponseAtValue();
     if (!responseAt) {
       showError('Enter when the city sent this list (date and time) before processing.');
@@ -1821,7 +1893,9 @@
       const form = new FormData();
       form.append('cityId', selectedCity.id);
       form.append('uploadType', selectedUploadType);
-      form.append('file', selectedFile, selectedFile.name);
+      for (const file of selectedFiles) {
+        form.append('file', file, file.name);
+      }
       const data = await fetchJson('/api/bridge/process', { method: 'POST', body: form });
       // New process batch — reset client undo stack and train polish state
       trainUndoStack.length = 0;
@@ -1839,7 +1913,8 @@
     } finally {
       stopLoadingAnimation();
       setHidden(loadingPanel, true);
-      if (processBtn) processBtn.disabled = !selectedFile;
+      if (processBtn) processBtn.disabled = !selectedFiles.length;
+      syncFileUi();
     }
   }
 
@@ -2000,8 +2075,8 @@
   dropzone?.addEventListener('drop', (event) => {
     event.preventDefault();
     dropzone.classList.remove('is-dragover');
-    const file = event.dataTransfer?.files?.[0];
-    if (file) setSelectedFile(file);
+    const list = event.dataTransfer?.files;
+    if (list && list.length) addSelectedFiles(list);
   });
   dropzone?.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -2018,8 +2093,11 @@
     fileInput?.click();
   });
   fileInput?.addEventListener('change', () => {
-    const file = fileInput.files?.[0];
-    if (file) setSelectedFile(file);
+    if (fileInput.files && fileInput.files.length) {
+      addSelectedFiles(fileInput.files);
+    }
+    // Allow re-selecting the same file set after clear
+    fileInput.value = '';
   });
   clearFileBtn?.addEventListener('click', () => {
     resetDownstream('file');

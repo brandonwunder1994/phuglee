@@ -59,7 +59,7 @@ Upload and process a city response file. Does **not** persist to city profile.
 |-------|----------|-------------|
 | `cityId` | Yes | Existing city profile ID |
 | `uploadType` | Yes | `code_violation` or `water_shut_off` |
-| `file` | Yes | Source file (xlsx, csv, pdf, docx, txt, jpg, png) |
+| `file` | Yes | Source file(s) — repeat the `file` field up to **5** times for the same city (xlsx, csv, pdf, docx, txt, jpg, png). Results are merged with cross-file address dedupe. |
 
 > `responseReceivedAt` is collected at **attach** time (step 4), not during process. See `POST /api/bridge/attach`.
 
