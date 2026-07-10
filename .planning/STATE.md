@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
 status: in_progress
-last_updated: "2026-07-10T01:56:00Z"
-last_activity: 2026-07-10 — train brain shell markup + CSS + tests
+last_updated: "2026-07-10T02:15:00Z"
+last_activity: 2026-07-10 — admin train gate + group cards + decision stubs
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 12
-  completed_plans: 5
-  percent: 42
+  completed_plans: 6
+  percent: 50
 ---
 
 # State
 
 ## Current Position
 
-Phase: **44** (admin-train-brain-ux) — **In Progress**  
-Plan: **01** of 02 (done) → next **02**  
-Status: **44-01 complete** — train shell tests/markup/CSS green  
-Last activity: 2026-07-10 — train brain shell markup + CSS + tests
+Phase: **44** (admin-train-brain-ux) — **Complete**  
+Plan: **02** of 02 (done)  
+Status: **44-02 complete** — admin train UX wired; phase 45 next  
+Last activity: 2026-07-10 — admin train gate + group cards + decision stubs
 
-Progress: [████░░░░░░] 42% (5/12 plans)
+Progress: [█████░░░░░] 50% (6/12 plans)
 
 ## What ran (real GSD)
 
@@ -39,6 +39,7 @@ Progress: [████░░░░░░] 42% (5/12 plans)
 | Execute | `gsd-executor` 43-01 | **COMPLETE** — pure review groups + tests |
 | Execute | `gsd-executor` 43-02 | **COMPLETE** — FN payload + groups wire |
 | Execute | `gsd-executor` 44-01 | **COMPLETE** — train shell tests + markup + CSS |
+| Execute | `gsd-executor` 44-02 | **COMPLETE** — admin gate + cards + stubs |
 
 ## Plan inventory
 
@@ -46,7 +47,7 @@ Progress: [████░░░░░░] 42% (5/12 plans)
 |-------|-------|-------|----------|
 | 42 | 42-01, 42-02 | PASSED | 2/2 complete |
 | 43 | 43-01, 43-02 | PASSED | 2/2 complete |
-| 44 | 44-01, 44-02 | PASSED | 1/2 |
+| 44 | 44-01, 44-02 | PASSED | 2/2 complete |
 | 45 | 45-01, 45-02, 45-03 | PASSED | 0/3 |
 | 46 | 46-01, 46-02 | PASSED | 0/2 |
 | 47 | 47-01 | PASSED | 0/1 |
@@ -68,6 +69,9 @@ Progress: [████░░░░░░] 42% (5/12 plans)
 | 43 | brainMeta carries notDistressedTruncated/Total/Returned; processingMeta brain fields preserved from 42 |
 | 44 | Omit `#bridge-kept-view` wrapper; JS toggles existing toolbar/table/pagination |
 | 44 | Train wrap fail-closed with `hidden` in static HTML; mode tabs use gold/orange active state |
+| 44 | Extract pure train helpers to bridge-train.js for vm unit tests without full bridge DOM IIFE |
+| 44 | Admin gate uses PhugleeSettings.isAdmin or exact PhugleeSession.getSessionUser === admin |
+| 44 | Approve/Deny stub only sets status + is-pending; no fetch or list mutation until phase 45 |
 
 ## Performance Metrics
 
@@ -78,14 +82,15 @@ Progress: [████░░░░░░] 42% (5/12 plans)
 | 43 | 01 | 10min | 2 | 2 |
 | 43 | 02 | 12min | 2 | 2 |
 | 44 | 01 | 12min | 3 | 3 |
+| 44 | 02 | 25min | 3 | 4 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 44-01-PLAN.md |
-| Next | Execute 44-02 (admin gate + reviewGroups render) |
+| Stopped At | Completed 44-02-PLAN.md |
+| Next | Execute phase 45 (decision persistence) |
 
 ## Superseded
 
@@ -95,7 +100,6 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Continue phase 44
-/gsd:execute-phase 44
-# or specifically plan 02
+# Start phase 45 — decision persistence
+/gsd:execute-phase 45
 ```

@@ -38,7 +38,7 @@
 
 - [x] **Phase 42: Brain store + runtime apply** — Global durable brain file applied on every process
 - [x] **Phase 43: Review payload + grouping** — Full FN rows, type groups, signals, stable rowIds
-- [ ] **Phase 44: Admin Train brain UX** — Two train sections, group ✓/✗, admin-only chrome
+- [x] **Phase 44: Admin Train brain UX** — Two train sections, group ✓/✗, admin-only chrome
 - [ ] **Phase 45: Decisions + type rules + list mutation** — Mutate current list + live type learning
 - [ ] **Phase 46: Phrase mining + brain panel** — Proposed phrases + admin rule management
 - [ ] **Phase 47: Hardening + metrics + docs** — Undo, caps, metrics, docs, QA green
@@ -117,7 +117,7 @@ Plans:
 
 Plans:
 - [x] 44-01-PLAN.md - Train shell: tests, markup (two sections + mode tabs), bridge CSS
-- [ ] 44-02-PLAN.md - Admin gate, reviewGroups render, Approve/Deny stubs, live verify
+- [x] 44-02-PLAN.md - Admin gate, reviewGroups render, Approve/Deny stubs, live verify
 
 ---
 
@@ -194,7 +194,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 42. Brain store + runtime apply | v1.6 | 2/2 | Complete | 2026-07-10 |
 | 43. Review payload + grouping | v1.6 | 2/2 | Complete | 2026-07-10 |
-| 44. Admin Train brain UX | v1.6 | 1/2 | In Progress | - |
+| 44. Admin Train brain UX | v1.6 | 2/2 | Complete | 2026-07-10 |
 | 45. Decisions + type rules + list mutation | v1.6 | 0/3 | Planned | - |
 | 46. Phrase mining + brain panel | v1.6 | 0/2 | Not started | - |
 | 47. Hardening + metrics + docs | v1.6 | 0/1 | Not started | - |
