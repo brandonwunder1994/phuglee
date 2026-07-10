@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
 status: in_progress
-last_updated: "2026-07-10T02:06:30.000Z"
-last_activity: 2026-07-10 — brain decisions API + requireAdmin (45-02)
+last_updated: "2026-07-10T02:14:00.000Z"
+last_activity: 2026-07-10 — client Train Approve/Deny wire (45-03)
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 8
-  percent: 67
+  completed_plans: 9
+  percent: 75
 ---
 
 # State
 
 ## Current Position
 
-Phase: **45** (decisions-type-rules) — **In Progress**  
-Plan: **03** of 03 (next)  
-Status: **45-02 complete** — POST /brain/decisions + DEC-06 requireAdmin green  
-Last activity: 2026-07-10 — brain decisions API + requireAdmin (45-02)
+Phase: **45** (decisions-type-rules) — **Complete**  
+Plan: **03** of 03 (done)  
+Status: **45-03 complete** — client submitTrainDecision + lastResult re-render green  
+Last activity: 2026-07-10 — client Train Approve/Deny wire (45-03)
 
-Progress: [███████░░░] 67% (8/12 plans)
+Progress: [████████░░] 75% (9/12 plans)
 
 ## What ran (real GSD)
 
@@ -42,6 +42,7 @@ Progress: [███████░░░] 67% (8/12 plans)
 | Execute | `gsd-executor` 44-02 | **COMPLETE** — admin gate + cards + stubs |
 | Execute | `gsd-executor` 45-01 | **COMPLETE** — applyDecision + type rules |
 | Execute | `gsd-executor` 45-02 | **COMPLETE** — decisions API + requireAdmin |
+| Execute | `gsd-executor` 45-03 | **COMPLETE** — client Train Approve/Deny wire |
 
 ## Plan inventory
 
@@ -50,7 +51,7 @@ Progress: [███████░░░] 67% (8/12 plans)
 | 42 | 42-01, 42-02 | PASSED | 2/2 complete |
 | 43 | 43-01, 43-02 | PASSED | 2/2 complete |
 | 44 | 44-01, 44-02 | PASSED | 2/2 complete |
-| 45 | 45-01, 45-02, 45-03 | PASSED | 2/3 |
+| 45 | 45-01, 45-02, 45-03 | PASSED | 3/3 complete |
 | 46 | 46-01, 46-02 | PASSED | 0/2 |
 | 47 | 47-01 | PASSED | 0/1 |
 
@@ -80,6 +81,9 @@ Progress: [███████░░░] 67% (8/12 plans)
 | 45 | requireAdmin always strict — AUTH_DISABLED must not open brain writes |
 | 45 | Pre-check ROW_IDS_NOT_FOUND for mutating paths before applyDecision |
 | 45 | MAX_BRAIN_DECISION_BYTES = 15_000_000 → 413 PAYLOAD_TOO_LARGE |
+| 45 | submitTrainDecision applies rows/notDistressedRows/reviewGroups then renderResults; preserve train mode |
+| 45 | Belt-and-suspenders admin check via PhugleeSettings.isAdmin before POST |
+| 45 | Double-submit guarded with disabled buttons + is-pending class |
 
 ## Performance Metrics
 
@@ -93,14 +97,15 @@ Progress: [███████░░░] 67% (8/12 plans)
 | 44 | 02 | 25min | 3 | 4 |
 | 45 | 01 | 2min | 2 | 2 |
 | 45 | 02 | 5min | 2 | 2 |
+| 45 | 03 | 10min | 2 | 1 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 45-02-PLAN.md |
-| Next | Execute 45-03 (client Train Approve/Deny wire) |
+| Stopped At | Completed 45-03-PLAN.md |
+| Next | Execute phase 46 (phrase mining + brain panel) |
 
 ## Superseded
 
@@ -110,6 +115,6 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Continue phase 45 — client wire
-/gsd:execute-phase 45
+# Start phase 46 — phrase mining + brain panel
+/gsd:execute-phase 46
 ```
