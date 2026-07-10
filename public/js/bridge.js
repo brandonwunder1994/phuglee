@@ -1524,12 +1524,17 @@
   }
 
   function renderSavedLists() {
+    const listsTotalEl = document.getElementById('bridge-lists-total');
     if (!listsBody) return;
     if (!savedLists.length) {
       setHidden(listsEmpty, false);
       setHidden(listsWrap, true);
       setHidden(listsToolbar, true);
       listsBody.innerHTML = '';
+      if (listsTotalEl) {
+        listsTotalEl.textContent = '';
+        setHidden(listsTotalEl, true);
+      }
       return;
     }
     setHidden(listsEmpty, true);
@@ -1552,6 +1557,18 @@
         `</tr>`
       );
     }).join('');
+    // Combined record count across all staged lists
+    const totalRecords = savedLists.reduce(
+      (sum, row) => sum + (Number(row.recordCount) || 0),
+      0
+    );
+    const listCount = savedLists.length;
+    if (listsTotalEl) {
+      listsTotalEl.textContent =
+        `Total: ${totalRecords.toLocaleString()} record${totalRecords === 1 ? '' : 's'}` +
+        ` across ${listCount.toLocaleString()} list${listCount === 1 ? '' : 's'}`;
+      setHidden(listsTotalEl, false);
+    }
   }
 
   async function loadSavedLists() {

@@ -29,7 +29,9 @@ const {
   clearAllLists,
   buildDownload,
   buildDownloadAll,
-  markDownloaded
+  markDownloaded,
+  setListStatus,
+  resetCitiesStatusToReady
 } = require('../lib/bridge-list-store');
 
 test('saveList creates a list and appears in summaries', () => {
@@ -108,6 +110,60 @@ test('buildDownload returns csv and markDownloaded updates status', () => {
   const got = getList(meta.id, { username: 'tester' });
   assert.equal(got.meta.status, 'downloaded');
   assert.ok(got.meta.downloadedAt);
+});
+
+test('setListStatus ready clears downloadedAt', () => {
+  const user = 'status-ready-user';
+  const { meta } = saveList({
+    name: 'Cheyenne test list',
+    rows: [{ streetAddress: '1 Main', city: 'Cheyenne', state: 'WY' }],
+    city: 'Cheyenne',
+    state: 'WY',
+    username: user
+  });
+  markDownloaded(meta.id, { username: user });
+  const reset = setListStatus(meta.id, 'ready', { username: user });
+  assert.equal(reset.meta.status, 'ready');
+  assert.equal(reset.meta.downloadedAt, null);
+});
+
+test('resetCitiesStatusToReady matches Cheyenne and Midlothian once', () => {
+  const user = 'ops-city-reset';
+  const chey = saveList({
+    name: 'Cheyenne Code · test',
+    rows: [
+      { streetAddress: '1 A', city: 'Cheyenne', state: 'WY' },
+      { streetAddress: '2 B', city: 'Cheyenne', state: 'WY' }
+    ],
+    city: 'Cheyenne',
+    state: 'WY',
+    username: user
+  });
+  const mid = saveList({
+    name: 'Midlothian Code · test',
+    rows: [{ streetAddress: '3 C', city: 'Midlothian', state: 'TX' }],
+    city: 'Midlothian',
+    state: 'TX',
+    username: user
+  });
+  markDownloaded(chey.meta.id, { username: user });
+  markDownloaded(mid.meta.id, { username: user });
+
+  const first = resetCitiesStatusToReady(['Cheyenne', 'Midlothian'], {
+    onceKey: 'test-ready-chey-mid-v1'
+  });
+  assert.equal(first.skipped, false);
+  assert.ok(first.updated >= 2, `expected >=2 updates, got ${first.updated}`);
+  assert.equal(getList(chey.meta.id, { username: user }).meta.status, 'ready');
+  assert.equal(getList(mid.meta.id, { username: user }).meta.status, 'ready');
+
+  // Re-download then re-run with same onceKey → no-op (marker)
+  markDownloaded(chey.meta.id, { username: user });
+  const second = resetCitiesStatusToReady(['Cheyenne', 'Midlothian'], {
+    onceKey: 'test-ready-chey-mid-v1'
+  });
+  assert.equal(second.skipped, true);
+  assert.equal(getList(chey.meta.id, { username: user }).meta.status, 'downloaded');
 });
 
 test('deleteList removes list', () => {

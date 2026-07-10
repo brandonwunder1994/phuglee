@@ -352,6 +352,28 @@ async function bootModules() {
   }
 }
 
+function runListOpsMigrations() {
+  try {
+    const { resetCitiesStatusToReady } = require('./lib/bridge-list-store');
+    // One-time: Cheyenne / Midlothian were marked Downloaded during testing — back to Ready.
+    const result = resetCitiesStatusToReady(['Cheyenne', 'Midlothian'], {
+      onceKey: 'ready-cheyenne-midlothian-v1'
+    });
+    if (result.skipped) {
+      console.log('[Filter lists] status reset already applied (Cheyenne/Midlothian)');
+    } else if (result.updated > 0) {
+      console.log(
+        `[Filter lists] reset ${result.updated} list(s) to Ready:`,
+        result.matches.join(', ')
+      );
+    } else {
+      console.log('[Filter lists] no Cheyenne/Midlothian lists needed status reset');
+    }
+  } catch (err) {
+    console.warn('[Filter lists] status migration skipped:', err.message);
+  }
+}
+
 function startStandaloneServer() {
   const publicHost = config.loopbackHost(config.HOST);
   const onListening = () => {
@@ -359,6 +381,7 @@ function startStandaloneServer() {
     console.log(`Railway PORT env: ${process.env.PORT || '(unset)'} | bound: ${config.PORT} host: ${config.HOST || '(dual-stack default)'}`);
     console.log(`Form Forge proxy: http://${publicHost}:${config.PORT}${config.FORGE_PREFIX}/`);
     console.log(`Property Analyzer proxy: http://${publicHost}:${config.PORT}${config.ANALYZER_PREFIX}/`);
+    runListOpsMigrations();
     bootModules().catch((err) => {
       console.error('[Distress OS] Module boot error:', err);
     });

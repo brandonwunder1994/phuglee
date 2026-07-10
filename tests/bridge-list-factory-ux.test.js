@@ -33,6 +33,13 @@ test('LIST-01: Download all bulk path present', () => {
   assert.match(html, /Download all \(XLSX\)/);
 });
 
+test('LIST-01: saved lists total records footer present', () => {
+  assert.match(html, /id="bridge-lists-total"/);
+  assert.match(js, /Total:.*record/i);
+  assert.match(js, /across.*list/i);
+  assert.match(js, /recordCount/);
+});
+
 test('LIST-01: Preview CSV de-emphasizes export (not Export CSV label)', () => {
   assert.match(html, /id="bridge-export-csv"/);
   assert.match(html, /Preview CSV/);

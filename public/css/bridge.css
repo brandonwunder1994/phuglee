@@ -1322,6 +1322,18 @@ body {
   font-size: 0.88rem;
 }
 
+.bridge-lists-total {
+  margin: 0.75rem 0 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--phuglee-muted, #a8b0b8);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .bridge-lists-table th,
 .bridge-lists-table td {
   padding: 0.7rem 0.55rem;
