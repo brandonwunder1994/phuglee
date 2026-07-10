@@ -1,5 +1,8 @@
 /**
  * Phase 55 Independence Lock (IND-01, IND-02, IND-03)
+ * Phase 60 permanent regression bar — TEST-01 (v2.0):
+ *   no Analyze push on Filter write paths + process/save negatives
+ *   already_imported hard-drop off by default (opt-in only)
  *
  * Negative contracts: Filter process / save / Train write paths must never
  * re-wire Analyze push, require the deleted adapter, or invent Analyzer
@@ -63,7 +66,7 @@ function findAnalyzerSessionFiles(root) {
 // ── Static bans + module absence (IND-01 / IND-02) ──────────────────────────
 
 for (const rel of FILTER_WRITE_PATHS) {
-  test(`IND-01/02: ${rel} must not reference Analyze push strings`, () => {
+  test(`IND-01/02 / TEST-01 (v2.0): ${rel} must not reference Analyze push strings`, () => {
     const src = fs.readFileSync(path.join(ROOT, rel), 'utf8');
     for (const banned of FORBIDDEN) {
       assert.equal(
@@ -75,14 +78,14 @@ for (const rel of FILTER_WRITE_PATHS) {
   });
 }
 
-test('IND-02: lib/bridge-analyzer-push.js does not exist on disk', () => {
+test('IND-02 / TEST-01 (v2.0): lib/bridge-analyzer-push.js does not exist on disk', () => {
   assert.equal(
     fs.existsSync(path.join(ROOT, 'lib', 'bridge-analyzer-push.js')),
     false
   );
 });
 
-test('IND-02: bridge-analyzer-push module is not loadable (require.resolve throws)', () => {
+test('IND-02 / TEST-01 (v2.0): bridge-analyzer-push module is not loadable (require.resolve throws)', () => {
   assert.throws(
     () => require.resolve('../lib/bridge-analyzer-push'),
     (err) => err && err.code === 'MODULE_NOT_FOUND'
@@ -299,7 +302,7 @@ async function callBridge(method, pathname, { headers = {}, body = null } = {}) 
   };
 }
 
-test('IND-01/03: POST /api/bridge/process success never includes analyzerPush or invents session files', async () => {
+test('IND-01/03 / TEST-01 (v2.0): POST /api/bridge/process success never includes analyzerPush or invents session files', async () => {
   const beforeSessions = findAnalyzerSessionFiles(analyzerRootTemp);
   assert.equal(beforeSessions.length, 0, 'analyzer temp must start without session files');
 
@@ -347,7 +350,7 @@ test('IND-01/03: POST /api/bridge/process success never includes analyzerPush or
   );
 });
 
-test('IND-01/03: POST /api/bridge/lists save writes only under FILTER_LISTS_ROOT, no Analyzer sessions', async () => {
+test('IND-01/03 / TEST-01 (v2.0): POST /api/bridge/lists save writes only under FILTER_LISTS_ROOT, no Analyzer sessions', async () => {
   const beforeSessions = findAnalyzerSessionFiles(analyzerRootTemp);
   assert.equal(beforeSessions.length, 0);
 
@@ -410,4 +413,88 @@ test('IND-01/03: POST /api/bridge/lists save writes only under FILTER_LISTS_ROOT
   // Response must not invent push fields
   assert.equal(json.analyzerPush, undefined);
   assert.equal(json.importBatchId, undefined);
+});
+
+// ── TEST-01 (v2.0) already_imported hard-drop default-off (mirrors engine IND-04) ──
+
+const CITY_MARANA = { id: 'arizona-marana', city: 'Marana', state: 'Arizona' };
+
+function emptyIndependenceImportIndex() {
+  return {
+    loadedAt: Date.now(),
+    addresses: new Set(),
+    count: 0,
+    sources: null
+  };
+}
+
+test('TEST-01 (v2.0): already_imported hard-drop off by default', async () => {
+  const enginePath = require.resolve('../lib/bridge-engine');
+  const { normalizeAddressKey } = indexModule;
+  let loadCalled = false;
+
+  indexModule.loadImportAddressIndex = async () => {
+    loadCalled = true;
+    return {
+      loadedAt: Date.now(),
+      addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona, 85704')]),
+      count: 1,
+      sources: { records: 1, results: 0 }
+    };
+  };
+  delete require.cache[enginePath];
+  const { processUpload } = require('../lib/bridge-engine');
+
+  try {
+    const buffer = fs.readFileSync(path.join(FIXTURES, 'code-violations-varied.csv'));
+    const result = await processUpload({
+      buffer,
+      filename: 'violations.csv',
+      city: CITY_MARANA,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
+      // applyAlreadyImportedFilter intentionally omitted — default must be off
+    });
+    assert.equal(result.stats.alreadyImported, 0);
+    assert.ok(result.rows.some((row) => row.streetAddress === '123 Main St'));
+    assert.equal(result.processingMeta.importIndexCount, 0);
+    assert.equal(loadCalled, false, 'loadImportAddressIndex must not run when filter is off');
+  } finally {
+    indexModule.loadImportAddressIndex = async () => emptyIndependenceImportIndex();
+    delete require.cache[enginePath];
+  }
+});
+
+test('TEST-01 (v2.0): already_imported hard-drop only when applyAlreadyImportedFilter === true', async () => {
+  const enginePath = require.resolve('../lib/bridge-engine');
+  const { normalizeAddressKey } = indexModule;
+
+  indexModule.loadImportAddressIndex = async () => ({
+    loadedAt: Date.now(),
+    addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona, 85704')]),
+    count: 1,
+    sources: { records: 1, results: 0 }
+  });
+  delete require.cache[enginePath];
+  const { processUpload } = require('../lib/bridge-engine');
+
+  try {
+    const buffer = fs.readFileSync(path.join(FIXTURES, 'code-violations-varied.csv'));
+    const result = await processUpload({
+      buffer,
+      filename: 'violations.csv',
+      city: CITY_MARANA,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type',
+      applyAlreadyImportedFilter: true
+    });
+    assert.equal(result.stats.alreadyImported, 1);
+    assert.ok(!result.rows.some((row) => row.streetAddress === '123 Main St'));
+    assert.equal(result.processingMeta.importIndexCount, 1);
+  } finally {
+    indexModule.loadImportAddressIndex = async () => emptyIndependenceImportIndex();
+    delete require.cache[enginePath];
+  }
 });
