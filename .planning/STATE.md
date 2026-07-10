@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
-status: completed
-last_updated: "2026-07-10T02:09:35.813Z"
-last_activity: 2026-07-10 — client Train Approve/Deny wire (45-03)
+status: in_progress
+last_updated: "2026-07-10T02:22:00.000Z"
+last_activity: 2026-07-10 — phrase miner + decisions hook (46-01)
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 12
-  completed_plans: 9
-  percent: 75
+  completed_plans: 10
+  percent: 83
 ---
 
 # State
 
 ## Current Position
 
-Phase: **45** (decisions-type-rules) — **Complete**  
-Plan: **03** of 03 (done)  
-Status: **45-03 complete** — client submitTrainDecision + lastResult re-render green  
-Last activity: 2026-07-10 — client Train Approve/Deny wire (45-03)
+Phase: **46** (phrase-mining-brain-panel) — **In Progress**  
+Plan: **02** of 02 (next)  
+Status: **46-01 complete** — pure phrase miner + decisions hook green  
+Last activity: 2026-07-10 — phrase miner + decisions hook (46-01)
 
-Progress: [████████░░] 75% (9/12 plans)
+Progress: [████████░░] 83% (10/12 plans)
 
 ## What ran (real GSD)
 
@@ -43,6 +43,7 @@ Progress: [████████░░] 75% (9/12 plans)
 | Execute | `gsd-executor` 45-01 | **COMPLETE** — applyDecision + type rules |
 | Execute | `gsd-executor` 45-02 | **COMPLETE** — decisions API + requireAdmin |
 | Execute | `gsd-executor` 45-03 | **COMPLETE** — client Train Approve/Deny wire |
+| Execute | `gsd-executor` 46-01 | **COMPLETE** — phrase miner + decisions hook |
 
 ## Plan inventory
 
@@ -52,7 +53,7 @@ Progress: [████████░░] 75% (9/12 plans)
 | 43 | 43-01, 43-02 | PASSED | 2/2 complete |
 | 44 | 44-01, 44-02 | PASSED | 2/2 complete |
 | 45 | 45-01, 45-02, 45-03 | PASSED | 3/3 complete |
-| 46 | 46-01, 46-02 | PASSED | 0/2 |
+| 46 | 46-01, 46-02 | PASSED | 1/2 |
 | 47 | 47-01 | PASSED | 0/1 |
 
 ## Decisions
@@ -84,6 +85,9 @@ Progress: [████████░░] 75% (9/12 plans)
 | 45 | submitTrainDecision applies rows/notDistressedRows/reviewGroups then renderResults; preserve train mode |
 | 45 | Belt-and-suspenders admin check via PhugleeSettings.isAdmin before POST |
 | 45 | Double-submit guarded with disabled buttons + is-pending class |
+| 46 | Evidence units are description samples only (label extracts candidates, not evidence tally) |
+| 46 | Opposite-direction evidence for same candidate blocks phrase propose |
+| 46 | Miner never overwrites active/rejected/disabled phrase rules |
 
 ## Performance Metrics
 
@@ -98,14 +102,15 @@ Progress: [████████░░] 75% (9/12 plans)
 | 45 | 01 | 2min | 2 | 2 |
 | 45 | 02 | 5min | 2 | 2 |
 | 45 | 03 | 10min | 2 | 1 |
+| 46 | 01 | 12min | 2 | 3 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 45-03-PLAN.md |
-| Next | Execute phase 46 (phrase mining + brain panel) |
+| Stopped At | Completed 46-01-PLAN.md |
+| Next | Execute 46-02 (brain panel + rule status API) |
 
 ## Superseded
 
@@ -115,6 +120,6 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Start phase 46 — phrase mining + brain panel
+# Continue phase 46 — brain panel + status API
 /gsd:execute-phase 46
 ```

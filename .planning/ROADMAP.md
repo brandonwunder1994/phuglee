@@ -162,7 +162,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 46-01-PLAN.md — Pure phrase miner + decisions hook; proposed never auto-live (PHRASE-01, PHRASE-02)
+- [x] 46-01-PLAN.md — Pure phrase miner + decisions hook; proposed never auto-live (PHRASE-01, PHRASE-02)
 - [ ] 46-02-PLAN.md — Admin brain API + Filter brain panel activate/reject/disable (PHRASE-03)
 
 ---

@@ -38,8 +38,8 @@
 
 ### Phrase learning depth
 
-- [ ] **PHRASE-01**: System mines phrase candidates from free-text / singleton decisions into proposed rules only
-- [ ] **PHRASE-02**: Proposed phrase rules never affect process until admin activates them
+- [x] **PHRASE-01**: System mines phrase candidates from free-text / singleton decisions into proposed rules only
+- [x] **PHRASE-02**: Proposed phrase rules never affect process until admin activates them
 - [ ] **PHRASE-03**: Admin can view, activate, reject, or disable type and phrase rules in a Filter brain panel
 
 ### Hardening
@@ -87,8 +87,8 @@
 | DEC-04 | Phase 45 | Complete |
 | DEC-05 | Phase 45 | Complete |
 | DEC-06 | Phase 45 | Complete |
-| PHRASE-01 | Phase 46 | Pending |
-| PHRASE-02 | Phase 46 | Pending |
+| PHRASE-01 | Phase 46 | Complete |
+| PHRASE-02 | Phase 46 | Complete |
 | PHRASE-03 | Phase 46 | Pending |
 | HARD-01 | Phase 47 | Pending |
 | HARD-02 | Phase 47 | Pending |
