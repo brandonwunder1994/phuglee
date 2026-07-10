@@ -35,6 +35,32 @@
     };
   }
 
+  /**
+   * Stable id for a train card leaving the queue after Approve/Deny.
+   * Prefer groupId — multiple groups can share violationTypeKey (notably
+   * __unknown__ description clusters). Using type key alone clears the whole
+   * list when the first shared-key card is reviewed.
+   */
+  function trainDecisionKey(group) {
+    if (!group) return '';
+    var gid = group.groupId != null ? String(group.groupId).trim() : '';
+    if (gid) return gid;
+    // Fallback for malformed cards without groupId
+    var section = group.section != null ? String(group.section).trim() : '';
+    var typeKey = group.violationTypeKey != null ? String(group.violationTypeKey).trim() : '';
+    var desc = group.descriptionKey != null ? String(group.descriptionKey).trim() : '';
+    if (!section && !typeKey && !desc) return '';
+    return [section, typeKey, desc].filter(function (p) { return p !== ''; }).join('|');
+  }
+
+  function filterUndecidedTrainGroups(list, decidedKeys) {
+    var set = decidedKeys instanceof Set ? decidedKeys : new Set(decidedKeys || []);
+    return (list || []).filter(function (g) {
+      var k = trainDecisionKey(g);
+      return !k || !set.has(k);
+    });
+  }
+
   function truncateTrainSample(text, maxLen) {
     var s = String(text || '');
     var max = maxLen || 160;
@@ -108,6 +134,8 @@
   root.BridgeTrain = {
     isBridgeAdmin: isBridgeAdmin,
     getReviewGroups: getReviewGroups,
+    trainDecisionKey: trainDecisionKey,
+    filterUndecidedTrainGroups: filterUndecidedTrainGroups,
     renderTrainGroupCard: renderTrainGroupCard,
     truncateTrainSample: truncateTrainSample,
     esc: esc

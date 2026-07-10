@@ -258,6 +258,88 @@ test('getReviewGroups maps distressed and notDistressed arrays when present', ()
   assert.equal(groups.distressed[0].groupId, 'a');
 });
 
+// ─── Fade-queue decision keys (regression: first Approve/Deny must not wipe list) ─
+
+test('trainDecisionKey prefers groupId over shared violationTypeKey', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  assert.ok(typeof api.trainDecisionKey === 'function', 'must export trainDecisionKey');
+
+  // Shared __unknown__ type key with distinct groupIds (description clusters)
+  const a = {
+    groupId: 'g_unknown_fence',
+    section: 'not_distressed',
+    violationTypeKey: '__unknown__',
+    descriptionKey: 'fence permit only'
+  };
+  const b = {
+    groupId: 'g_unknown_pool',
+    section: 'not_distressed',
+    violationTypeKey: '__unknown__',
+    descriptionKey: 'pool permit expired'
+  };
+  assert.equal(api.trainDecisionKey(a), 'g_unknown_fence');
+  assert.equal(api.trainDecisionKey(b), 'g_unknown_pool');
+  assert.notEqual(api.trainDecisionKey(a), api.trainDecisionKey(b));
+
+  // Known type still keys by groupId (section is encoded in groupId server-side)
+  assert.equal(
+    api.trainDecisionKey({
+      groupId: 'g_weeds_d',
+      section: 'distressed',
+      violationTypeKey: 'weeds'
+    }),
+    'g_weeds_d'
+  );
+});
+
+test('filterUndecidedTrainGroups removes only the decided groupId, not all __unknown__', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  assert.ok(typeof api.filterUndecidedTrainGroups === 'function');
+
+  const list = [
+    {
+      groupId: 'g1',
+      section: 'not_distressed',
+      violationTypeKey: '__unknown__',
+      descriptionKey: 'fence'
+    },
+    {
+      groupId: 'g2',
+      section: 'not_distressed',
+      violationTypeKey: '__unknown__',
+      descriptionKey: 'pool'
+    },
+    {
+      groupId: 'g3',
+      section: 'not_distressed',
+      violationTypeKey: '__unknown__',
+      descriptionKey: 'driveway'
+    },
+    {
+      groupId: 'g4',
+      section: 'distressed',
+      violationTypeKey: 'vacant structure'
+    }
+  ];
+
+  const decided = new Set([api.trainDecisionKey(list[0])]);
+  const remaining = api.filterUndecidedTrainGroups(list, decided);
+
+  assert.equal(remaining.length, 3, 'only one card should leave the queue');
+  assert.deepEqual(
+    remaining.map((g) => g.groupId),
+    ['g2', 'g3', 'g4']
+  );
+
+  // Old bug: keying by violationTypeKey would wipe all three __unknown__ cards
+  const badKeyBug = list.filter((g) => {
+    const typeKey = g.violationTypeKey != null ? String(g.violationTypeKey).trim() : '';
+    return typeKey !== '__unknown__';
+  });
+  assert.equal(badKeyBug.length, 1, 'sanity: type-key filtering would leave only 1');
+  assert.ok(remaining.length > badKeyBug.length, 'groupId key keeps sibling __unknown__ cards');
+});
+
 test('renderTrainGroupCard includes label, count, signals, samples, and Approve/Deny', () => {
   const api = loadBridgeTrain({ sessionUser: 'admin' });
   const html = api.renderTrainGroupCard(SAMPLE_GROUP);
@@ -369,4 +451,24 @@ test('bridge.html cache-busts bridge.js at v>=10 after train logic', () => {
   assert.ok(m, 'extract bridge.js version');
   const ver = Number(m[1]);
   assert.ok(ver >= 10, `bridge.js cache bust should be >= 10 after train UX (got ${ver})`);
+});
+
+test('bridge.js trainDecisionKey path prefers groupId (not type-key-first)', () => {
+  const src = readBridgeJs();
+  // Regression guard: old bug returned violationTypeKey before groupId, which
+  // wiped every __unknown__ card when the first one was approved/denied.
+  assert.ok(src.includes('trainDecisionKey'), 'must define trainDecisionKey');
+  assert.ok(
+    src.includes('BridgeTrain.trainDecisionKey') || src.includes('prefer groupId'),
+    'must route through BridgeTrain.trainDecisionKey or document groupId preference'
+  );
+  // Must not reintroduce type-key-first ordering in the local fallback
+  const fallbackStart = src.indexOf('// Fallback if bridge-train.js failed to load');
+  assert.ok(fallbackStart !== -1, 'local fallback present');
+  const fallbackSlice = src.slice(fallbackStart, fallbackStart + 500);
+  const gidIdx = fallbackSlice.indexOf('group.groupId');
+  const typeIdx = fallbackSlice.indexOf('group.violationTypeKey');
+  assert.ok(gidIdx !== -1, 'fallback references groupId');
+  assert.ok(typeIdx !== -1, 'fallback may still use typeKey as last resort');
+  assert.ok(gidIdx < typeIdx, 'fallback must check groupId before violationTypeKey');
 });

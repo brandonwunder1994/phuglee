@@ -107,18 +107,25 @@
   const UNDO_LIMIT = 10;
   const TRAIN_PAGE_SIZE = 40;
   const DENY_CONFIRM_THRESHOLD = 10;
-  /** Type keys decided this batch — cards leave the queue until re-process */
+  /** Group ids decided this batch — cards leave the queue until re-process / undo */
   const trainDecidedKeys = new Set();
   let brainVersion = null;
   let trainSearchQuery = '';
   let trainPage = { distressed: 1, notDistressed: 1 };
 
   function trainDecisionKey(group) {
+    if (window.BridgeTrain && typeof window.BridgeTrain.trainDecisionKey === 'function') {
+      return window.BridgeTrain.trainDecisionKey(group);
+    }
+    // Fallback if bridge-train.js failed to load — prefer groupId (never type-only)
     if (!group) return '';
-    const typeKey = group.violationTypeKey != null ? String(group.violationTypeKey).trim() : '';
-    if (typeKey) return typeKey;
     const gid = group.groupId != null ? String(group.groupId).trim() : '';
-    return gid;
+    if (gid) return gid;
+    const section = group.section != null ? String(group.section).trim() : '';
+    const typeKey = group.violationTypeKey != null ? String(group.violationTypeKey).trim() : '';
+    const desc = group.descriptionKey != null ? String(group.descriptionKey).trim() : '';
+    if (!section && !typeKey && !desc) return '';
+    return [section, typeKey, desc].filter((p) => p !== '').join('|');
   }
 
   function clearTrainDecidedKeys() {
@@ -126,6 +133,9 @@
   }
 
   function filterUndecidedTrainGroups(list) {
+    if (window.BridgeTrain && typeof window.BridgeTrain.filterUndecidedTrainGroups === 'function') {
+      return window.BridgeTrain.filterUndecidedTrainGroups(list, trainDecidedKeys);
+    }
     return (list || []).filter((g) => {
       const k = trainDecisionKey(g);
       return !k || !trainDecidedKeys.has(k);
