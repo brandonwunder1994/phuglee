@@ -23,7 +23,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 56 complete — next: Phase 57 Accuracy Structure Pass  
+**Status:** Phase 57 complete — next: Phase 58 Learning Loop Strength  
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
@@ -32,7 +32,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 
 - [x] **Phase 55: Independence Lock** — Process/save/Train never write Analyze; push adapter gone; `already_imported` off by default
 - [x] **Phase 56: List Factory UX** — Save → Download is the hero path; multi-city lists persist until operator deletes
-- [ ] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
+- [x] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
 - [ ] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
 - [ ] **Phase 59: Efficiency Operator Path** — Shorter day-2 path to saved list without accuracy or Analyze re-coupling tradeoffs
 - [ ] **Phase 60: Regression QA Lock** — Independence + gold + processUpload e2e + suite + verify-live green
@@ -81,9 +81,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 57-01-PLAN.md — Wave 0 gold fixtures + ACC-01/02 processUpload contracts
-- [ ] 57-02-PLAN.md — Fix only gold reds (tagger/engine) until ACC-01 green
-- [ ] 57-03-PLAN.md — ACC-02 silent-drop bans + ACC-03 v1.7–v1.8 regression lock
+- [x] 57-01-PLAN.md — Wave 0 gold fixtures + ACC-01/02 processUpload contracts
+- [x] 57-02-PLAN.md — Fix only gold reds (tagger/engine) until ACC-01 green
+- [x] 57-03-PLAN.md — ACC-02 silent-drop bans + ACC-03 v1.7–v1.8 regression lock
 
 ### Phase 58: Learning Loop Strength
 **Goal**: Admin can see the brain getting smarter for the right reason — paired metrics (decision volume trend + gold precision/recall) with real rule apply coverage; type rules live, phrases stay proposed-only

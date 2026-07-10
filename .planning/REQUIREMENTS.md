@@ -22,9 +22,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Accuracy (ACC)
 
-- [ ] **ACC-01**: Gold city fixtures lock residual keep/kill failures (real distress kept; junk denied; water never type-suppressed) — implement fixes, not audit-only
-- [ ] **ACC-02**: Accuracy changes never silent-drop leads solely for “no Type,” unresolved map, or cleaner kept counts — rows stay for review / FN pool / explicit reasons
-- [ ] **ACC-03**: v1.7–v1.8 locks preserved: single Type winner (no blend), empty-only category promote, stable group keys, display-only short labels, format confirm on first/changed fingerprint
+- [x] **ACC-01**: Gold city fixtures lock residual keep/kill failures (real distress kept; junk denied; water never type-suppressed) — implement fixes, not audit-only
+- [x] **ACC-02**: Accuracy changes never silent-drop leads solely for “no Type,” unresolved map, or cleaner kept counts — rows stay for review / FN pool / explicit reasons
+- [x] **ACC-03**: v1.7–v1.8 locks preserved: single Type winner (no blend), empty-only category promote, stable group keys, display-only short labels, format confirm on first/changed fingerprint
 
 ### Learning (LRN)
 
@@ -82,9 +82,9 @@ Deferred — not in this milestone roadmap.
 | LIST-01 | Phase 56 | Complete |
 | LIST-02 | Phase 56 | Complete |
 | LIST-03 | Phase 56 | Complete |
-| ACC-01 | Phase 57 | Pending |
-| ACC-02 | Phase 57 | Pending |
-| ACC-03 | Phase 57 | Pending |
+| ACC-01 | Phase 57 | Complete |
+| ACC-02 | Phase 57 | Complete |
+| ACC-03 | Phase 57 | Complete |
 | LRN-01 | Phase 58 | Pending |
 | LRN-02 | Phase 58 | Pending |
 | LRN-03 | Phase 58 | Pending |
