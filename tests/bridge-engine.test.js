@@ -817,3 +817,121 @@ test('processUpload: typed clean High Grass stacks count N (TEST-03)', async () 
   assert.ok(grassGroups[0].count >= 3);
   assert.equal(grassGroups[0].isSingleton, false);
 });
+
+// ---------------------------------------------------------------------------
+// Phase 51 Wave 0 RED — COL-01 / COL-02 / COL-04 process wire contracts
+// Scorer force map not yet wired (Plan 03); alias-first must fail these asserts.
+// ---------------------------------------------------------------------------
+
+test('COL-01/04: processUpload forces Status Description trap → columnMap Type is Vio Cat', async () => {
+  const csv = [
+    'Property Address,Status Description,Vio Cat,Description,Open Date',
+    '100 Main St,Open,High Grass,Weeds exceeding 12 inches as of 01/15/2024 10:30,01/15/2024',
+    '200 Oak Ave,Closed,Trash,Junk in yard observed 02/01/2024 09:00,02/01/2024'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'col-status-vio-cat.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true, 'COL-01 process must succeed');
+  assert.equal(
+    result.processingMeta.columnMap.violationIssueType,
+    'Vio Cat',
+    'COL-01: scorer must force columnMap.violationIssueType to Vio Cat'
+  );
+  assert.notEqual(
+    result.processingMeta.columnMap.violationIssueType,
+    'Status Description',
+    'COL-04: alias-first Status Description must not remain as Type map'
+  );
+
+  const grass =
+    result.rows.find((row) => String(row.streetAddress || '').includes('100 Main')) ||
+    result.notDistressedRows.find((row) =>
+      String(row.streetAddress || '').includes('100 Main')
+    );
+  assert.ok(grass, 'COL-01: High Grass row must be kept (distressed or FN)');
+  assert.ok(
+    String(grass.violationIssueType || '').includes('High Grass'),
+    `COL-01: type cell must be High Grass not Open, got: ${grass.violationIssueType}`
+  );
+  assert.ok(
+    !/^Open$/i.test(String(grass.violationIssueType || '').trim()),
+    `COL-01: type must not be status value Open, got: ${grass.violationIssueType}`
+  );
+});
+
+test('COL-01: processUpload forces Violation Description trap → columnMap Type is Issue Type', async () => {
+  const csv = [
+    'Property Address,Violation Description,Issue Type,Notes',
+    '100 Main St,Property observed with overgrown vegetation and debris piles along the fence line as of 03/10/2024 14:22,High Grass,inspector notes only',
+    '200 Oak Ave,Accumulation of junk and abandoned materials in the side yard reported 03/12/2024 08:15,Trash,follow up'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'col-violation-desc-issue-type.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true, 'COL-01 alt process must succeed');
+  assert.equal(
+    result.processingMeta.columnMap.violationIssueType,
+    'Issue Type',
+    'COL-01: scorer must force columnMap.violationIssueType to Issue Type'
+  );
+  assert.notEqual(
+    result.processingMeta.columnMap.violationIssueType,
+    'Violation Description',
+    'COL-04: alias-first Violation Description must not remain as Type map'
+  );
+});
+
+test('COL-02: processUpload with Address+Notes+Open Date only keeps weeds row (no silent drop)', async () => {
+  const csv = [
+    'Property Address,Notes,Open Date',
+    '100 Main St,overgrown weeds and tall grass covering the front yard,01/15/2024',
+    '200 Oak Ave,debris pile near fence line,02/01/2024'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'col-no-type-column.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true, 'COL-02: process must succeed without type column');
+
+  const typeMap = result.processingMeta.columnMap.violationIssueType;
+  assert.ok(
+    typeMap == null || typeMap === '',
+    `COL-02: columnMap.violationIssueType must be falsy when no Type candidacy, got: ${typeMap}`
+  );
+
+  const discardReasons = [
+    ...(result.discarded || []).map((d) => String(d.reason || d.discardReason || '')),
+    ...(result.stats?.discardReasons
+      ? Object.keys(result.stats.discardReasons)
+      : [])
+  ].join(' ');
+  assert.ok(
+    !/no_type(_column)?/i.test(discardReasons),
+    `COL-02: must not introduce no_type / no_type_column discard reason, got: ${discardReasons}`
+  );
+
+  const weedsKept =
+    result.rows.find((row) => String(row.streetAddress || '').includes('100 Main')) ||
+    result.notDistressedRows.find((row) =>
+      String(row.streetAddress || '').includes('100 Main')
+    );
+  assert.ok(
+    weedsKept,
+    'COL-02: weeds address must remain kept or FN — no silent total drop'
+  );
+});
