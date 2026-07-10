@@ -189,6 +189,28 @@ before(async () => {
       });
       return;
     }
+    // City Tracker response log (POST /api/bridge/city-outcome → Forge portal)
+    if (
+      url.pathname === '/api/portal/city/arizona-marana/response' &&
+      req.method === 'POST'
+    ) {
+      let raw = '';
+      req.on('data', (chunk) => { raw += chunk; });
+      req.on('end', () => {
+        const body = JSON.parse(raw || '{}');
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          ok: true,
+          event: {
+            id: 'evt-city-outcome-test',
+            response_status: body.response_status,
+            request_type: body.request_type
+          },
+          city: { id: 'arizona-marana', city: 'Marana', state: 'Arizona' }
+        }));
+      });
+      return;
+    }
     res.writeHead(404);
     res.end();
   });
@@ -612,4 +634,108 @@ test('download-all and clear-all for saved lists', async () => {
     headers: { 'x-phuglee-user': 'bulk-tester' }
   });
   assert.equal(empty.json.lists.length, 0);
+});
+
+// ---------------------------------------------------------------------------
+// CITY-02 / city-outcome — POST handler soft gap (must stay GREEN)
+// Does not wipe Filter lists; proxies to Forge City Tracker response log.
+// ---------------------------------------------------------------------------
+
+test('city-outcome: POST needs_clarification + code_violation succeeds', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/city-outcome', {
+    headers: { 'content-type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      cityId: 'arizona-marana',
+      response_status: 'needs_clarification',
+      request_type: 'code_violation',
+      notes: '',
+      response_raw: ''
+    }))
+  });
+  assert.equal(status, 200);
+  assert.equal(json.ok, true);
+  assert.equal(json.response_status, 'needs_clarification');
+  assert.equal(json.request_type, 'code_violation');
+});
+
+test('city-outcome: other_source without notes → 400 MISSING_NOTES', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/city-outcome', {
+    headers: { 'content-type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      cityId: 'arizona-marana',
+      response_status: 'other_source',
+      request_type: 'code_violation',
+      notes: '',
+      response_raw: ''
+    }))
+  });
+  assert.equal(status, 400);
+  assert.equal(json.code, 'MISSING_NOTES');
+});
+
+test('city-outcome: invalid response_status → 400 INVALID_STATUS', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/city-outcome', {
+    headers: { 'content-type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      cityId: 'arizona-marana',
+      response_status: 'nope',
+      request_type: 'code_violation'
+    }))
+  });
+  assert.equal(status, 400);
+  assert.equal(json.code, 'INVALID_STATUS');
+});
+
+test('city-outcome: missing cityId → 400 MISSING_CITY', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/city-outcome', {
+    headers: { 'content-type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      response_status: 'no',
+      request_type: 'code_violation'
+    }))
+  });
+  assert.equal(status, 400);
+  assert.equal(json.code, 'MISSING_CITY');
+});
+
+test('city-outcome: request_type water_shutoff with status no accepted', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/city-outcome', {
+    headers: { 'content-type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      cityId: 'arizona-marana',
+      response_status: 'no',
+      request_type: 'water_shutoff',
+      notes: '',
+      response_raw: ''
+    }))
+  });
+  assert.equal(status, 200);
+  assert.equal(json.ok, true);
+  assert.equal(json.response_status, 'no');
+  assert.equal(json.request_type, 'water_shutoff');
+});
+
+test('CITY-02 city-outcome: handler does not delete filter lists on save', async () => {
+  // Product rule: logging a tracker outcome must not wipe Filter lists.
+  // Handler only posts to Forge response log — assert source contract + green POST.
+  const apiSrc = fs.readFileSync(path.join(__dirname, '..', 'lib', 'bridge-api.js'), 'utf8');
+  const start = apiSrc.indexOf('async function handleCityOutcome');
+  assert.ok(start >= 0, 'handleCityOutcome must exist');
+  const rest = apiSrc.slice(start + 1);
+  const next = rest.search(/\n(?:async )?function \w+/);
+  const slice = next >= 0 ? apiSrc.slice(start, start + 1 + next) : apiSrc.slice(start, start + 4000);
+  assert.equal(slice.includes('clearAllLists'), false, 'city-outcome must not call clearAllLists');
+  assert.equal(slice.includes('deleteList'), false, 'city-outcome must not call deleteList');
+  assert.match(slice, /Does not wipe lists|postForgeJson/);
+
+  const { status, json } = await callBridge('POST', '/api/bridge/city-outcome', {
+    headers: { 'content-type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      cityId: 'arizona-marana',
+      response_status: 'they_charge',
+      request_type: 'code_violation'
+    }))
+  });
+  assert.equal(status, 200);
+  assert.equal(json.ok, true);
 });
