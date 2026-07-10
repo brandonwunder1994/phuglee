@@ -72,7 +72,7 @@ Each task was committed atomically:
 1. **Task 1: Write failing review-groups tests (RED)** - `e5053c6` (test)
 2. **Task 2: Implement bridge-review-groups (GREEN)** - `da14c13` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `aa30ed1` (docs: complete plan)
 
 _Note: TDD tasks use test → feat commits; no refactor needed._
 
