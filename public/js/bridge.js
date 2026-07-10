@@ -1087,9 +1087,10 @@
         throw new Error((data.error || 'No usable addresses found in this file.') + detail);
       }
       if (data.code === 'FORMAT_MISMATCH') {
+        // Legacy: server used to hard-fail mixed headers. Prefer multi-format confirm path.
         const err = new Error(
-          (data.error || 'Mixed file formats in batch') +
-          ' Tip: process one file at a time when headers differ between files.'
+          data.error ||
+            'Mixed file formats in batch — confirm Type column for each sheet format.'
         );
         err.code = 'FORMAT_MISMATCH';
         err.status = res.status;
@@ -1106,6 +1107,8 @@
         if (data.formatFingerprint != null) err.formatFingerprint = data.formatFingerprint;
         if (data.candidates != null) err.candidates = data.candidates;
         if (data.suggestedHeader !== undefined) err.suggestedHeader = data.suggestedHeader;
+        if (Array.isArray(data.formats)) err.formats = data.formats;
+        if (data.multiFormat != null) err.multiFormat = data.multiFormat;
       }
       throw err;
     }
@@ -2180,7 +2183,9 @@
 
   /**
    * Build multipart FormData for /api/bridge/process.
-   * Optional resume fields: confirmedTypeHeader + formatFingerprint (format memory gate).
+   * Optional resume fields:
+   * - confirmedTypeHeader + formatFingerprint (single format)
+   * - confirmedFormats: [{ formatFingerprint, confirmedTypeHeader }] (mixed sheets)
    */
   function buildProcessFormData(confirmOpts) {
     const form = new FormData();
@@ -2199,7 +2204,64 @@
     if (confirmOpts && confirmOpts.formatFingerprint) {
       form.append('formatFingerprint', String(confirmOpts.formatFingerprint));
     }
+    if (confirmOpts && Array.isArray(confirmOpts.confirmedFormats) && confirmOpts.confirmedFormats.length) {
+      form.append('confirmedFormats', JSON.stringify(confirmOpts.confirmedFormats));
+    }
     return form;
+  }
+
+  /**
+   * Normalize TYPE_COLUMN_CONFIRM_REQUIRED payload into one or more format steps.
+   * Mixed-header batches return formats[]; single-format keeps top-level fields.
+   */
+  function formatsNeedingConfirm(details) {
+    if (!details) return [];
+    if (Array.isArray(details.formats) && details.formats.length) {
+      return details.formats.map((f) => ({
+        formatFingerprint: f.formatFingerprint,
+        candidates: f.candidates || [],
+        suggestedHeader: f.suggestedHeader != null ? f.suggestedHeader : null,
+        filenames: Array.isArray(f.filenames) ? f.filenames : [],
+        city: details.city
+      }));
+    }
+    return [{
+      formatFingerprint: details.formatFingerprint,
+      candidates: details.candidates || [],
+      suggestedHeader: details.suggestedHeader != null ? details.suggestedHeader : null,
+      filenames: Array.isArray(details.files)
+        ? details.files.map((x) => (x && x.filename) || x).filter(Boolean)
+        : [],
+      city: details.city
+    }];
+  }
+
+  /**
+   * Walk each distinct sheet format and collect Type column confirms.
+   * @returns {Promise<Array|{cancelled:true}>}
+   */
+  async function collectMultiFormatConfirms(details) {
+    const steps = formatsNeedingConfirm(details);
+    const confirmedFormats = [];
+    for (let i = 0; i < steps.length; i += 1) {
+      const step = steps[i];
+      const stepDetails = {
+        ...step,
+        city: step.city || details.city,
+        multiFormat: steps.length > 1,
+        formatIndex: i + 1,
+        formatTotal: steps.length
+      };
+      const choice = await openTypeColumnConfirmDialog(stepDetails);
+      if (choice === undefined) {
+        return { cancelled: true };
+      }
+      confirmedFormats.push({
+        formatFingerprint: step.formatFingerprint,
+        confirmedTypeHeader: choice
+      });
+    }
+    return confirmedFormats;
   }
 
   /**
@@ -2247,8 +2309,24 @@
         : (selectedCity ? [selectedCity.city, selectedCity.state].filter(Boolean).join(', ') : 'this city');
 
       if (typeConfirmLead) {
-        typeConfirmLead.textContent =
-          `${cityLabel} format needs a Type column confirmation before processing. Pick the column that holds the violation or issue type.`;
+        const idx = details && details.formatIndex;
+        const total = details && details.formatTotal;
+        const multi = details && (details.multiFormat || (total != null && total > 1));
+        const names = Array.isArray(details && details.filenames)
+          ? details.filenames.filter(Boolean)
+          : [];
+        const fileNote = names.length
+          ? ` Sheet${names.length > 1 ? 's' : ''}: ${names.slice(0, 4).join(', ')}${names.length > 4 ? '…' : ''}.`
+          : '';
+        if (multi && idx != null && total != null) {
+          typeConfirmLead.textContent =
+            `${cityLabel} — format ${idx} of ${total}.${fileNote} ` +
+            `Headers differ across your upload; pick the Type column for this sheet format.`;
+        } else {
+          typeConfirmLead.textContent =
+            `${cityLabel} format needs a Type column confirmation before processing.${fileNote} ` +
+            `Pick the column that holds the violation or issue type.`;
+        }
       }
       if (typeConfirmSuggested) {
         if (suggested) {
@@ -2475,15 +2553,21 @@
           }
 
           const details = err.details || err;
+          const steps = formatsNeedingConfirm(details);
+          const multi = steps.length > 1 || details.multiFormat;
           // Visible cue while modal is up (modal may be missed if dialog fails)
           showError(
-            'Confirm the Type column in the dialog to continue processing this city format…'
+            multi
+              ? `Confirm the Type column for each sheet format (${steps.length} formats)…`
+              : 'Confirm the Type column in the dialog to continue processing this city format…'
           );
-          const choice = await openTypeColumnConfirmDialog(details);
-          if (choice === undefined) {
+
+          // One dialog per distinct header set — keep all files in the batch
+          const collected = await collectMultiFormatConfirms(details);
+          if (collected && collected.cancelled) {
             showError(
               'Type column confirmation was cancelled — nothing was processed. ' +
-              'Click Process again and confirm the Type column (or choose “No type column”).'
+              'Click Process again and confirm the Type column for each sheet format.'
             );
             return;
           }
@@ -2493,17 +2577,22 @@
           if (processBtn) processBtn.disabled = true;
           startLoadingAnimation();
 
-          const resumeForm = buildProcessFormData({
-            confirmedTypeHeader: choice,
-            formatFingerprint: details.formatFingerprint || err.formatFingerprint
-          });
+          const resumeOpts = {
+            confirmedFormats: collected
+          };
+          // Single-format also send legacy fields for older servers / tests
+          if (collected.length === 1) {
+            resumeOpts.confirmedTypeHeader = collected[0].confirmedTypeHeader;
+            resumeOpts.formatFingerprint = collected[0].formatFingerprint;
+          }
+          const resumeForm = buildProcessFormData(resumeOpts);
           try {
             data = await fetchJson('/api/bridge/process', { method: 'POST', body: resumeForm });
           } catch (resumeErr) {
             if (resumeErr && resumeErr.code === 'TYPE_COLUMN_CONFIRM_REQUIRED') {
               showError(
                 resumeErr.message ||
-                  'Type column confirmation was not accepted. Try again or pick a different column.'
+                  'Type column confirmation was not accepted. Try again or pick a different column for each sheet format.'
               );
               return;
             }

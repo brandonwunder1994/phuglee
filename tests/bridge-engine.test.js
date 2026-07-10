@@ -1348,7 +1348,7 @@ test('META-01: success typeResolution has header, score, source enum, fingerprin
   assert.equal(typeof tr.formatMatched, 'boolean', 'META-01: formatMatched boolean');
 });
 
-test('GATE-06: processUploadBatch mixed Type header sets hard-fails (no silent one-map)', async () => {
+test('GATE-06: processUploadBatch mixed headers asks multi-format confirm (not hard FORMAT_MISMATCH)', async () => {
   const fileA = [
     'Property Address,Status Description,Vio Cat,Open Date',
     '100 Main St,Open,High Grass,01/15/2024'
@@ -1359,27 +1359,90 @@ test('GATE-06: processUploadBatch mixed Type header sets hard-fails (no silent o
     '200 Oak Ave,Open,Trash,02/01/2024'
   ].join('\n');
 
-  await assert.rejects(
-    () =>
-      processUploadBatch(
-        [
-          { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
-          { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
-        ],
-        {
-          city: { id: 'gate-mixed-batch-city', city: 'MixedTown', state: 'Arizona' },
-          uploadType: 'code_violation'
-        }
-      ),
-    (err) => {
-      const code = err && err.code;
-      assert.ok(
-        code === 'TYPE_COLUMN_CONFIRM_REQUIRED' || code === 'FORMAT_MISMATCH',
-        `GATE-06: expected TYPE_COLUMN_CONFIRM_REQUIRED or FORMAT_MISMATCH, got ${code}`
-      );
-      return true;
+  let gateErr;
+  try {
+    await processUploadBatch(
+      [
+        { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+        { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+      ],
+      {
+        city: { id: 'gate-mixed-batch-city', city: 'MixedTown', state: 'Arizona' },
+        uploadType: 'code_violation'
+      }
+    );
+  } catch (err) {
+    gateErr = err;
+  }
+  assert.ok(gateErr, 'GATE-06 mixed: must refuse without confirms');
+  assert.equal(gateErr.code, 'TYPE_COLUMN_CONFIRM_REQUIRED');
+  assert.notEqual(gateErr.code, 'FORMAT_MISMATCH');
+  assert.ok(Array.isArray(gateErr.details?.formats), 'GATE-06 mixed: formats[] for each sheet');
+  assert.equal(gateErr.details.formats.length, 2, 'GATE-06 mixed: two formats need confirm');
+  assert.equal(gateErr.details.multiFormat, true);
+});
+
+test('GATE-06: processUploadBatch mixed headers succeed with per-format confirmedFormats', async () => {
+  const fileA = [
+    'Property Address,Status Description,Vio Cat,Open Date',
+    '100 Main St,Open,High Grass,01/15/2024'
+  ].join('\n');
+  const fileB = [
+    'Property Address,Status Description,Issue Type,Open Date',
+    '200 Oak Ave,Open,Junk vehicles,02/01/2024'
+  ].join('\n');
+  const city = {
+    id: 'gate-mixed-confirm-city',
+    city: 'MixedConfirm',
+    state: 'Arizona'
+  };
+
+  let gateErr;
+  try {
+    await processUploadBatch(
+      [
+        { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+        { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+      ],
+      { city, uploadType: 'code_violation' }
+    );
+  } catch (err) {
+    gateErr = err;
+  }
+  assert.equal(gateErr?.code, 'TYPE_COLUMN_CONFIRM_REQUIRED');
+  const formats = gateErr.details.formats;
+  assert.equal(formats.length, 2);
+
+  // Map each fingerprint to the correct Type header for that sheet
+  const confirmedFormats = formats.map((f) => {
+    const names = (f.filenames || []).join(' ');
+    if (/mixed-a/i.test(names)) {
+      return { formatFingerprint: f.formatFingerprint, confirmedTypeHeader: 'Vio Cat' };
+    }
+    return { formatFingerprint: f.formatFingerprint, confirmedTypeHeader: 'Issue Type' };
+  });
+
+  const result = await processUploadBatch(
+    [
+      { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+      { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+    ],
+    {
+      city,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedFormats
     }
   );
+  assert.equal(result.ok, true);
+  assert.ok(result.stats.kept >= 2, `expected both files kept, got ${result.stats.kept}`);
+  assert.equal(result.processingMeta.multiFormat, true);
+  // Each file meta should carry its own type header
+  const metas = result.processingMeta.files || [];
+  assert.ok(metas.length >= 2);
+  const headers = metas.map((m) => m.typeHeader).filter(Boolean);
+  assert.ok(headers.includes('Vio Cat'), `expected Vio Cat in ${headers}`);
+  assert.ok(headers.includes('Issue Type'), `expected Issue Type in ${headers}`);
 });
 
 test('GATE-06: processUploadBatch same fingerprint can confirm once / reuse path', async () => {
