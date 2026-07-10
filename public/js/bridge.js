@@ -1363,7 +1363,10 @@
       { label: 'Kept (distress)', value: stats.kept, accent: true },
       { label: 'No distress signal', value: stats.noDistress || stats.discardReasons?.no_distress_signal || 0 },
       { label: 'Discarded (other)', value: Math.max(0, (stats.discarded || 0) - (stats.noDistress || stats.discardReasons?.no_distress_signal || 0)) },
-      { label: 'Already in Analyze', value: stats.alreadyImported },
+      // IND-04 default-off: omit zero "Already in Analyze" so UI does not imply hard-drop ran
+      ...(Number(stats.alreadyImported) > 0
+        ? [{ label: 'Already in Analyze', value: stats.alreadyImported }]
+        : []),
       { label: 'Needs review', value: stats.needsReview || stats.lowConfidence },
       { label: 'Deduped', value: stats.deduplicated }
     ];

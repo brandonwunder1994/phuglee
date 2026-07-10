@@ -78,16 +78,18 @@ Within a single upload:
 
 ## Property Analyzer Cross-Reference
 
-After deduplication, each kept row is checked against the logged-in user's Property Analyzer session (~10k+ imported leads). Rows that match an existing import are removed with reason `already_imported`.
+**Off by default (v2.0 / IND-04).** After deduplication, Filter does **not** hard-drop rows that appear in the operator's Analyze session unless the engine is called with `applyAlreadyImportedFilter === true` (strict boolean; no Filter UI toggle in phase 55).
 
-**Index source (in order):**
+When opt-in is enabled, each kept row is checked against the Property Analyzer import index (~10k+ imported leads). Rows that match an existing import are removed with reason `already_imported`.
+
+**Index source (when opt-in loads the index):**
 
 1. `distressAnalyzerSession_LATEST.json` on disk (`PROPERTY_ANALYZER_PATH`) — preferred, no auth required
 2. `GET /api/import-address-index` on the Property Analyzer service (fallback)
 
-The index is cached for 5 minutes. Matching uses the same address similarity threshold as deduplication (≥ 0.92), comparing the composite key `streetAddress, city, state, zip`.
+The index is cached for 5 minutes. Matching uses the same address similarity threshold as deduplication (≥ 0.92), comparing the composite key `streetAddress, city, state, zip`. Pure helper: `lib/bridge-engine/import-filter.js` (`filterAlreadyImported`).
 
-**Stats:** `alreadyImported` counts rows removed by this filter. `processingMeta.importIndexCount` reports how many addresses were in the Analyzer index at processing time.
+**Stats (default process):** `alreadyImported` is `0` and `processingMeta.importIndexCount` is `0` because the index is not loaded. When opt-in runs: `alreadyImported` counts hard-drops; `importIndexCount` is the size of the loaded index.
 
 ## Filter Saved Lists (no Auto-Push)
 
@@ -96,9 +98,10 @@ After processing, kept rows stay on the Filter page until the user explicitly sa
 - API: `POST /api/bridge/lists` (user-scoped filesystem store under `FILTER_LISTS_ROOT`, default `PDA_DATA_ROOT/filter-lists` so Railway volumes keep lists across deploys)
 - Download: `GET /api/bridge/lists/:id/download?format=csv|xlsx`
 - Rename / delete: `PATCH` / `DELETE` on `/api/bridge/lists/:id`
-- **No automatic push to Analyze.** Import enriched skip-traced lists into Analyze manually.
+- **No automatic push to Analyze.** Process, save, Train, and list APIs never write Analyze sessions. Legacy Filter adapter `bridge-analyzer-push.js` is **deleted**; independence locked by `tests/bridge-independence.test.js`.
+- **Workflow:** Download lists → enrich / skip-trace outside Distress OS → **manual** import into Analyze.
 
-The legacy `POST /api/bridge-import-records` Analyzer endpoint may still exist for compatibility but is not called from Filter process.
+The Analyzer `POST /api/bridge-import-records` endpoint may still exist for **manual** import compatibility but is not called from Filter process/save/Train.
 
 ## Response Received Timestamp (Turnaround KPI)
 
@@ -153,5 +156,5 @@ Files are stored under `data/bridge-datasets/{state}/{city_id}/`.
 ## Extension Points
 
 - `UPLOAD_TYPES` registry in `bridge-intake-schema.js` — add new upload types without schema changes
-- Property Analyzer cross-reference runs automatically during processing (Phase 5)
+- Property Analyzer cross-reference hard-drop is **off by default**; only when `applyAlreadyImportedFilter === true` (engine opt-in)
 - `bridge_datasets[]` is append-only; new uploads create new versions without overwriting prior attachments

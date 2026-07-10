@@ -18,7 +18,7 @@
 | Discard: no_address, blank, non_property | DATA-STANDARDS | `validator.js`, `classifyDiscardReason` | `bridge-intake-schema.test.js` | ✓ |
 | Dedup within upload (≥0.92 similarity) | DATA-STANDARDS | `bridge-dedup.js` | `bridge-dedup.test.js`, `bridge-engine.test.js` | ✓ |
 | Cross-ref Property Analyzer imports | DATA-STANDARDS | `analyzer-import-index.js`, `import-filter.js` | `bridge-import-filter.test.js`, `analyzer-import-index.test.js` | ✓ |
-| Auto-push kept rows to Analyzer | DATA-STANDARDS | `bridge-analyzer-push.js` | `bridge-analyzer-push.test.js`, analyzer `bridge-import-records` | ✓ |
+| Auto-push kept rows to Analyzer | DATA-STANDARDS | **Retired** — `lib/bridge-analyzer-push.js` **deleted** (v2.0 / IND-01–03); Filter never writes Analyze | `tests/bridge-independence.test.js` (static bans + process/save negatives). Analyzer `bridge-import-records` remains for **manual** import only | retired |
 | Distressed signal tagging (5 categories) | TAGGING-RULES.md | `bridge-distress-tagger.js` | `bridge-distress-tagger.test.js` | ✓ |
 | Attach with responseReceivedAt → turnaround KPI | DATA-STANDARDS, API.md | Forge `api_portal_bridge_attach` | Forge `test_bridge_dataset.py` | ✓ |
 | Versioned append-only datasets | DATA-STANDARDS | `bridge_dataset.py` | `test_bridge_dataset.py` | ✓ |
@@ -40,7 +40,8 @@
 | Dedup / import filter | `bridge-dedup.js`, `import-filter.js` |
 | Tagging | `bridge-distress-tagger.js` |
 | Schema | `bridge-intake-schema.js` |
-| Analyzer integration | `analyzer-import-index.js`, `bridge-analyzer-push.js` |
+| Analyzer soft-read (opt-in filter) | `analyzer-import-index.js`, `import-filter.js` — hard-drop only if `applyAlreadyImportedFilter === true` |
+| Analyzer push (Filter) | **Deleted** — was `bridge-analyzer-push.js`; do not restore |
 | Export | `bridge-export.js` |
 | UI | `public/bridge.html`, `public/js/bridge.js`, `public/css/bridge.css` |
 | Multipart | `lib/multipart.js` |
@@ -101,7 +102,7 @@
 | OCR dependency (tesseract.js) slow or unavailable | Returns 503 `OCR_UNAVAILABLE`; UI shows retry message |
 | Binary PDF/DOCX corruption via multipart | latin1 round-trip preserves bytes; covered by fixture tests |
 | Forge down during attach | 400 `ATTACH_FAILED`; user can retry |
-| Analyzer API down during push | Disk fallback in `bridge-analyzer-push.js` |
+| Manual Analyze import only (Filter does not push) | Independence tests + deleted push adapter; operators import prepared lists into Analyze after external enrich |
 | Large files (>25 MB) on attach | Forge `MAX_DATASET_BYTES` rejects with clear error |
 
 ---

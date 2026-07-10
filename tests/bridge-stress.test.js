@@ -496,7 +496,36 @@ describe('Filter stress — messy municipal export scenarios', () => {
     assert.ok(result.stats.tagBreakdown[STRONG_DISTRESSED_TAG] >= 3);
   });
 
-  test('all rows already analyzed yields specific error message', async () => {
+  test('IND-04: all-rows-in-Analyze keeps by default (no onlyImported NO_USABLE_ROWS)', async () => {
+    indexModule.loadImportAddressIndex = async () => ({
+      loadedAt: Date.now(),
+      addresses: new Set([normalizeAddressKey('777 Solo Rd, Marana, Arizona')]),
+      count: 1,
+      sources: { records: 0, results: 1 }
+    });
+    delete require.cache[ENGINE_PATH];
+    const { processUpload: processFresh } = require('../lib/bridge-engine');
+
+    const csv = 'Property Address,Violation Type\n777 Solo Rd,Weeds\n';
+    try {
+      const result = await processFresh({
+        buffer: Buffer.from(csv),
+        filename: 'solo.csv',
+        city: CITY,
+        uploadType: 'code_violation',
+        username: 'admin',
+        confirmedTypeHeader: 'Violation Type'
+      });
+      assert.equal(result.stats.alreadyImported, 0);
+      assert.equal(result.processingMeta?.importIndexCount, 0);
+      assert.ok(result.stats.kept >= 1, 'default-off keeps distressed row even if in Analyze index');
+    } finally {
+      indexModule.loadImportAddressIndex = emptyImportIndex;
+      delete require.cache[ENGINE_PATH];
+    }
+  });
+
+  test('IND-04: all-rows-in-Analyze yields onlyImported error only when applyAlreadyImportedFilter === true', async () => {
     indexModule.loadImportAddressIndex = async () => ({
       loadedAt: Date.now(),
       addresses: new Set([normalizeAddressKey('777 Solo Rd, Marana, Arizona')]),
@@ -515,7 +544,8 @@ describe('Filter stress — messy municipal export scenarios', () => {
           city: CITY,
           uploadType: 'code_violation',
           username: 'admin',
-          confirmedTypeHeader: 'Violation Type'
+          confirmedTypeHeader: 'Violation Type',
+          applyAlreadyImportedFilter: true
         }),
         (err) => {
           assert.equal(err.code, 'NO_USABLE_ROWS');
