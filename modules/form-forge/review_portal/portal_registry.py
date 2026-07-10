@@ -49,6 +49,11 @@ WATER_RESPONSE_MAP = {
     "said they dont have": "not_available",
     "does not have": "not_available",
     "doesnt have": "not_available",
+    "needs clarification": "needs_clarification",
+    "needs_clarification": "needs_clarification",
+    "other source": "other_source",
+    "other_source": "other_source",
+    "contact another source": "other_source",
 }
 
 CV_RESPONSE_MAP = {
@@ -66,6 +71,11 @@ CV_RESPONSE_MAP = {
     "specific address only": "specific_address_only",
     "said they don't have": "no",
     "said they dont have": "no",
+    "needs clarification": "needs_clarification",
+    "needs_clarification": "needs_clarification",
+    "other source": "other_source",
+    "other_source": "other_source",
+    "contact another source": "other_source",
 }
 
 URL_RE = re.compile(r"https?://[^\s\]>]+", re.IGNORECASE)

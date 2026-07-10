@@ -29,6 +29,12 @@
   const stateSelect = document.getElementById('bridge-state');
   const citySelect = document.getElementById('bridge-city');
   const cityActions = document.getElementById('bridge-city-actions');
+  const cityOutcomePanel = document.getElementById('bridge-city-outcome');
+  const otherSourceWrap = document.getElementById('bridge-other-source-wrap');
+  const otherSourceNotes = document.getElementById('bridge-other-source-notes');
+  const outcomeSaveBtn = document.getElementById('bridge-outcome-save');
+  const outcomeStatusEl = document.getElementById('bridge-outcome-status');
+  const outcomeTypeSelect = document.getElementById('bridge-outcome-type');
   const typePanel = document.getElementById('bridge-type-panel');
   const uploadPanel = document.getElementById('bridge-upload-panel');
   const loadingPanel = document.getElementById('bridge-loading-panel');
@@ -947,6 +953,8 @@
       selectedFile = null;
       lastResult = null;
       setHidden(cityActions, true);
+      setHidden(cityOutcomePanel, true);
+      resetCityOutcomeUi();
       setHidden(typePanel, true);
       setHidden(uploadPanel, true);
       setHidden(resultsPanel, true);
@@ -1129,6 +1137,81 @@
     citySelect.disabled = cities.length === 0;
   }
 
+  function setOutcomeStatus(msg, kind) {
+    if (!outcomeStatusEl) return;
+    const text = String(msg || '').trim();
+    setHidden(outcomeStatusEl, !text);
+    outcomeStatusEl.textContent = text;
+    outcomeStatusEl.classList.toggle('is-success', kind === 'success');
+    outcomeStatusEl.classList.toggle('is-error', kind === 'error');
+  }
+
+  function selectedCityOutcome() {
+    const checked = document.querySelector('input[name="bridge-city-outcome"]:checked');
+    return checked ? checked.value : '';
+  }
+
+  function syncCityOutcomeUi() {
+    const status = selectedCityOutcome();
+    if (otherSourceWrap) setHidden(otherSourceWrap, status !== 'other_source');
+    if (outcomeSaveBtn) outcomeSaveBtn.disabled = !selectedCity || !status;
+  }
+
+  function resetCityOutcomeUi() {
+    document.querySelectorAll('input[name="bridge-city-outcome"]').forEach((el) => {
+      el.checked = false;
+    });
+    if (otherSourceNotes) otherSourceNotes.value = '';
+    if (outcomeTypeSelect) outcomeTypeSelect.value = 'code_violation';
+    setOutcomeStatus('', '');
+    syncCityOutcomeUi();
+  }
+
+  async function saveCityOutcome() {
+    if (!selectedCity) {
+      setOutcomeStatus('Select a city first.', 'error');
+      return;
+    }
+    const responseStatus = selectedCityOutcome();
+    if (!responseStatus) {
+      setOutcomeStatus('Choose a city reply option.', 'error');
+      return;
+    }
+    const notes = (otherSourceNotes && otherSourceNotes.value || '').trim();
+    if (responseStatus === 'other_source' && !notes) {
+      setOutcomeStatus('Enter who/where to contact for the other source.', 'error');
+      return;
+    }
+    if (outcomeSaveBtn) outcomeSaveBtn.disabled = true;
+    setOutcomeStatus('Saving to City Tracker…', '');
+    try {
+      const requestType = (outcomeTypeSelect && outcomeTypeSelect.value) || 'code_violation';
+      const data = await fetchJson('/api/bridge/city-outcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cityId: selectedCity.id,
+          response_status: responseStatus,
+          request_type: requestType,
+          notes,
+          response_raw: notes
+        })
+      });
+      const labels = {
+        needs_clarification: 'Needs clarification — respond to get list',
+        no: 'No records of this kind',
+        other_source: 'Contact another source'
+      };
+      const label = labels[responseStatus] || responseStatus;
+      setOutcomeStatus(`Saved: ${label} for ${selectedCity.city}. Filter it in City Tracker.`, 'success');
+      return data;
+    } catch (err) {
+      setOutcomeStatus((err && err.message) || 'Could not save city outcome', 'error');
+    } finally {
+      syncCityOutcomeUi();
+    }
+  }
+
   function onCityChange() {
     try {
       resetDownstream('city');
@@ -1137,12 +1220,16 @@
       if (!id) {
         selectedCity = null;
         setHidden(cityActions, true);
+        setHidden(cityOutcomePanel, true);
+        resetCityOutcomeUi();
         return;
       }
       selectedCity = cities.find((city) => String(city.id) === String(id)) || null;
       if (!selectedCity) return;
       setHidden(typePanel, false);
       setHidden(cityActions, false);
+      setHidden(cityOutcomePanel, false);
+      resetCityOutcomeUi();
       if (historyLead) {
         historyLead.textContent = `Prior Filter datasets for ${selectedCity.city}, ${selectedCity.state}.`;
       }
@@ -1931,6 +2018,12 @@
 
   stateSelect?.addEventListener('change', () => { onStateChange().catch((e) => showError(e.message)); });
   citySelect?.addEventListener('change', onCityChange);
+  document.querySelectorAll('input[name="bridge-city-outcome"]').forEach((input) => {
+    input.addEventListener('change', syncCityOutcomeUi);
+  });
+  outcomeSaveBtn?.addEventListener('click', () => {
+    saveCityOutcome().catch((e) => setOutcomeStatus((e && e.message) || 'Could not save', 'error'));
+  });
   document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
     input.addEventListener('change', onUploadTypeChange);
   });

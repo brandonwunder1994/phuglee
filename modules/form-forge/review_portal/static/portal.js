@@ -22,6 +22,9 @@ let pendingCityFromUrl = null;
 function formatStatus(status) {
   if (!status || status === "pending") return "Pending";
   if (status === "other_contact") return "City gave other contact";
+  if (status === "needs_clarification") return "Needs clarification — respond to get list";
+  if (status === "other_source") return "Contact another source";
+  if (status === "no") return "No records of this kind";
   return status.replace(/_/g, " ");
 }
 
@@ -29,6 +32,7 @@ function statusClass(status) {
   if (!status || status === "pending") return "pending";
   if (status === "yes") return "yes";
   if (status === "denied") return "denied";
+  if (status === "needs_clarification" || status === "other_source") return "other";
   return "other";
 }
 
@@ -1343,9 +1347,12 @@ function toggleOtherContactFields() {
   const status = $("#response-status")?.value || "";
   const panel = $("#other-contact-fields");
   const emailInput = $("#response-new-email");
+  const sourcePanel = $("#other-source-fields");
   const isOtherContact = status === "other_contact";
+  const isOtherSource = status === "other_source";
   if (panel) panel.hidden = !isOtherContact;
   if (emailInput) emailInput.required = isOtherContact;
+  if (sourcePanel) sourcePanel.hidden = !isOtherSource;
 }
 
 function openResponseDialog() {
@@ -1446,6 +1453,15 @@ async function saveResponse(event) {
       return;
     }
   }
+  if (responseStatus === "other_source") {
+    const sourceNotes = ($("#response-other-source-notes")?.value || "").trim();
+    if (!sourceNotes) {
+      showMsg("Enter who/where to contact for the other source.", false);
+      return;
+    }
+    fields.notes = [fields.notes, sourceNotes].filter(Boolean).join(" · ");
+    fields.response_raw = fields.response_raw || sourceNotes;
+  }
 
   const listFile = $("#response-list-file")?.files?.[0];
 
@@ -1534,6 +1550,8 @@ function updateQuickChipStates() {
     let active = false;
     if (key === "apology") active = quickApology;
     else if (key === "cv_pending") active = filterCv === "pending";
+    else if (key === "needs_clarification") active = filterCv === "needs_clarification";
+    else if (key === "other_source") active = filterCv === "other_source";
     else if (key === "pdf") active = filterPathway === "pdf_completed";
     else if (key === "online") active = filterPathway === "online";
     else if (key === "email_only") active = filterPathway === "email_only";
@@ -1570,6 +1588,14 @@ function toggleQuickFilter(key) {
     quickApology = !quickApology;
   } else if (key === "cv_pending") {
     filterCv = filterCv === "pending" ? "all" : "pending";
+    const cvSelect = $("#filter-cv");
+    if (cvSelect) cvSelect.value = filterCv;
+  } else if (key === "needs_clarification") {
+    filterCv = filterCv === "needs_clarification" ? "all" : "needs_clarification";
+    const cvSelect = $("#filter-cv");
+    if (cvSelect) cvSelect.value = filterCv;
+  } else if (key === "other_source") {
+    filterCv = filterCv === "other_source" ? "all" : "other_source";
     const cvSelect = $("#filter-cv");
     if (cvSelect) cvSelect.value = filterCv;
   } else if (key === "pdf") {

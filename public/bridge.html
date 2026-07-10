@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=7">
+  <link rel="stylesheet" href="/css/bridge.css?v=8">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -110,6 +110,48 @@
       </div>
       <div class="bridge-city-actions" id="bridge-city-actions" hidden>
         <button type="button" class="bridge-history-open-btn phuglee-btn phuglee-btn-secondary" id="bridge-history-open">Attachment history</button>
+      </div>
+      <div class="bridge-city-outcome" id="bridge-city-outcome" hidden>
+        <h3 class="bridge-city-outcome-title">City reply (no list yet)</h3>
+        <p class="bridge-panel-lead">Tag this city when they replied without a usable file. Saved to City Tracker — does not delete your Filter lists.</p>
+        <div class="bridge-outcome-options" role="radiogroup" aria-label="City reply outcome">
+          <label class="bridge-outcome-option">
+            <input type="radio" name="bridge-city-outcome" value="needs_clarification" />
+            <span>
+              <strong>Needs clarification</strong>
+              <span class="bridge-outcome-desc">City replied — respond to them to get the list</span>
+            </span>
+          </label>
+          <label class="bridge-outcome-option">
+            <input type="radio" name="bridge-city-outcome" value="no" />
+            <span>
+              <strong>No records of this kind</strong>
+              <span class="bridge-outcome-desc">City says this list type does not exist</span>
+            </span>
+          </label>
+          <label class="bridge-outcome-option">
+            <input type="radio" name="bridge-city-outcome" value="other_source" />
+            <span>
+              <strong>Contact another source</strong>
+              <span class="bridge-outcome-desc">Need a different department / person / portal</span>
+            </span>
+          </label>
+        </div>
+        <div class="bridge-other-source-wrap" id="bridge-other-source-wrap" hidden>
+          <label for="bridge-other-source-notes">Who / where to contact
+            <textarea id="bridge-other-source-notes" rows="3" placeholder="e.g. Code Enforcement · (555) 123-4567 · ask for Jane · portal.city.gov/foia"></textarea>
+          </label>
+        </div>
+        <div class="bridge-row bridge-outcome-meta">
+          <label for="bridge-outcome-type">Request type
+            <select id="bridge-outcome-type">
+              <option value="code_violation">Code violation</option>
+              <option value="water_shutoff">Water shutoff</option>
+            </select>
+          </label>
+          <button type="button" class="bridge-btn bridge-btn-primary" id="bridge-outcome-save" disabled>Save to City Tracker</button>
+        </div>
+        <p class="bridge-outcome-status" id="bridge-outcome-status" role="status" hidden></p>
       </div>
     </section>
 
@@ -374,6 +416,6 @@
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=2"></script>
-  <script src="/js/bridge.js?v=12"></script>
+  <script src="/js/bridge.js?v=13"></script>
 </body>
 </html>

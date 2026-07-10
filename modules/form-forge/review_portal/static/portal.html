@@ -155,6 +155,9 @@
                 <option value="all">All CV status</option>
                 <option value="pending">CV pending</option>
                 <option value="yes">CV received</option>
+                <option value="needs_clarification">Needs clarification</option>
+                <option value="other_source">Contact another source</option>
+                <option value="no">No records</option>
                 <option value="gave_other_info">Gave other info</option>
                 <option value="denied">Denied</option>
               </select>
@@ -164,6 +167,8 @@
               <div class="portal-filter-chips" id="portal-filter-chips">
                 <button type="button" class="portal-filter-chip" data-quick="apology">Apology</button>
                 <button type="button" class="portal-filter-chip" data-quick="cv_pending">CV Pending</button>
+                <button type="button" class="portal-filter-chip" data-quick="needs_clarification">Needs reply</button>
+                <button type="button" class="portal-filter-chip" data-quick="other_source">Other source</button>
                 <button type="button" class="portal-filter-chip" data-quick="pdf">PDF</button>
                 <button type="button" class="portal-filter-chip" data-quick="online">Online</button>
                 <button type="button" class="portal-filter-chip" data-quick="email_only">Email only</button>
@@ -362,22 +367,30 @@
       </label>
       <label>Status
         <select id="response-status" name="status" required>
-          <option value="yes">Yes / received</option>
+          <option value="yes">Yes / list received</option>
           <option value="pending">Pending</option>
+          <option value="needs_clarification">Needs clarification — respond to get list</option>
+          <option value="no">No records of this kind</option>
+          <option value="other_source">Need to contact another source</option>
           <option value="denied">Denied</option>
           <option value="gave_other_info">Gave other info</option>
-          <option value="other_contact">City gave us other contact</option>
+          <option value="other_contact">City gave us other contact (email)</option>
           <option value="approved_bad_data">Approved (bad data)</option>
           <option value="approved_parcels">Approved (parcels)</option>
           <option value="request_from_pd">Request from PD</option>
           <option value="they_charge">They charge</option>
-          <option value="no">No / don't have</option>
         </select>
       </label>
       <div class="response-other-contact" id="other-contact-fields" hidden>
         <p class="tip">Updates this city's contact email and automatically sends the FOIA PDF to the new address (dates refreshed to today).</p>
         <label>New contact email
           <input type="email" id="response-new-email" name="new_email" placeholder="person@city.gov" autocomplete="email" />
+        </label>
+      </div>
+      <div class="response-other-source" id="other-source-fields" hidden>
+        <p class="tip">Free-form: department name, phone, portal URL, person — anything you need to follow up.</p>
+        <label>Who / where to contact
+          <textarea id="response-other-source-notes" name="other_source_notes" rows="3" placeholder="e.g. Code Enforcement desk · (555) 123-4567 · ask for Jane"></textarea>
         </label>
       </div>
       <label>Last Reply Date

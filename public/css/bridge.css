@@ -367,6 +367,90 @@ body {
   margin-top: 0.85rem;
 }
 
+.bridge-city-outcome {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.14);
+}
+
+.bridge-city-outcome-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--phuglee-cream);
+}
+
+.bridge-outcome-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin: 0.75rem 0 0.85rem;
+}
+
+.bridge-outcome-option {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+}
+
+.bridge-outcome-option:has(input:checked) {
+  border-color: rgba(229, 132, 53, 0.45);
+  background: rgba(229, 132, 53, 0.08);
+}
+
+.bridge-outcome-option input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.bridge-outcome-option strong {
+  display: block;
+  color: var(--phuglee-cream);
+  font-size: 0.9rem;
+}
+
+.bridge-outcome-desc {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: rgba(232, 224, 208, 0.72);
+  line-height: 1.35;
+}
+
+.bridge-other-source-wrap {
+  margin-bottom: 0.85rem;
+}
+
+.bridge-other-source-wrap textarea {
+  width: 100%;
+  min-height: 4.5rem;
+  margin-top: 0.35rem;
+  resize: vertical;
+}
+
+.bridge-outcome-meta {
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.bridge-outcome-status {
+  margin: 0.65rem 0 0;
+  font-size: 0.82rem;
+}
+
+.bridge-outcome-status.is-success {
+  color: #8fd4a0;
+}
+
+.bridge-outcome-status.is-error {
+  color: #f0a0a0;
+}
+
 .bridge-history-open-btn {
   flex-shrink: 0;
   font-size: 0.72rem;

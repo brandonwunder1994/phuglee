@@ -757,12 +757,14 @@ REQUEST_TYPE_LABELS = {
 
 RESPONSE_STATUS_LABELS = {
     "yes": "List received",
-    "no": "Declined",
+    "no": "No records of this kind",
     "denied": "Denied",
     "wont_give": "Won't provide",
     "not_available": "Not available",
     "gave_other_info": "Gave other info",
     "other_contact": "City gave other contact",
+    "needs_clarification": "Needs clarification — respond to get list",
+    "other_source": "Contact another source",
     "approved_bad_data": "Approved (bad data)",
     "approved_parcels": "Approved (parcels)",
     "request_from_pd": "Request from PD",
