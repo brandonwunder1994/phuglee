@@ -81,6 +81,33 @@ test('EFF-01 polish: post-save Download this list flash affordance', () => {
 });
 
 // ---------------------------------------------------------------------------
+// EFF-01 keyboard (Plan 03): A/Enter approve, D deny — first undecided card only
+// ---------------------------------------------------------------------------
+
+test('EFF-01 keyboard: document keydown handler for Train approve/deny', () => {
+  // Plan 03: document-level keydown for A/Enter (approve) and D (deny)
+  assert.match(js, /addEventListener\s*\(\s*['"]keydown['"]/);
+  assert.match(js, /resultsMode\s*!==\s*['"]train['"]|resultsMode\s*===\s*['"]train['"]/);
+  // Key map: a/A/Enter → approve; d/D → deny
+  assert.match(js, /['"]a['"]|key\s*===\s*['"]a['"]|key\s*===\s*['"]A['"]/);
+  assert.match(js, /['"]d['"]|key\s*===\s*['"]d['"]|key\s*===\s*['"]D['"]/);
+  assert.match(js, /approve/);
+  assert.match(js, /deny/);
+  // Must reuse onTrainDecision so Deny≥10 confirm stays
+  assert.match(js, /onTrainDecision/);
+  // First actionable card only (not bulk loop over all groups)
+  assert.match(js, /bridge-train-group/);
+  assert.match(js, /DENY_CONFIRM_THRESHOLD/);
+  assert.match(js, /filterUndecidedTrainGroups|renderTrainGroups/);
+});
+
+test('EFF-01 keyboard: ignores typing in INPUT/TEXTAREA and modifier keys', () => {
+  // Guardrails: never fire when search/list name focused
+  assert.match(js, /INPUT|TEXTAREA|SELECT|contenteditable/);
+  assert.match(js, /ctrlKey|metaKey|altKey/);
+});
+
+// ---------------------------------------------------------------------------
 // EFF-02 anti-pattern locks (must stay GREEN through Plans 02–03)
 // Efficiency must not rubber-stamp confirm, hide Train, silent-drop, or re-couple Analyze.
 // ---------------------------------------------------------------------------

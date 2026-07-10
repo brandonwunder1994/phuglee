@@ -615,3 +615,22 @@ test('LBL-03: submitTrainDecision body uses group.violationTypeLabel (full), not
     'LBL-03: must NOT send group.shortLabel as violationTypeLabel'
   );
 });
+
+// ─── EFF keyboard guardrails (Phase 59 Plan 03) ──────────────────────────────
+
+test('Train keyboard hotkeys ignore INPUT/TEXTAREA so search stays safe', () => {
+  const src = readBridgeJs();
+  // Document-level keydown for A/D must guard against typing in form fields
+  assert.ok(
+    /addEventListener\s*\(\s*['"]keydown['"]/.test(src),
+    'bridge.js must register a document keydown listener for Train hotkeys'
+  );
+  assert.ok(
+    /INPUT|TEXTAREA/.test(src),
+    'Train keydown path must check INPUT/TEXTAREA so search/list-name focus is ignored'
+  );
+  assert.ok(
+    /resultsMode/.test(src) && /['"]train['"]/.test(src),
+    'Train keydown path must gate on resultsMode === train'
+  );
+});
