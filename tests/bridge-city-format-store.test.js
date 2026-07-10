@@ -168,3 +168,28 @@ test('GATE-01: corrupt JSON at cityFormatsPath does not throw on load', () => {
   const entry = loadCityFormat('arizona-marana', 'code_violation');
   assert.equal(entry, null);
 });
+
+test('GATE-01: two uploadTypes under same city do not clobber each other', () => {
+  saveCityFormat({
+    cityId: 'shared-city',
+    uploadType: 'code_violation',
+    fingerprint: 'cv-fp',
+    typeHeader: 'Vio Cat',
+    confirmedBy: 'admin'
+  });
+  saveCityFormat({
+    cityId: 'shared-city',
+    uploadType: 'water_shut_off',
+    fingerprint: 'wso-fp',
+    typeHeader: null,
+    confirmedBy: 'admin'
+  });
+
+  const cv = loadCityFormat('shared-city', 'code_violation');
+  const wso = loadCityFormat('shared-city', 'water_shut_off');
+  assert.ok(cv && wso, 'both uploadType entries must exist');
+  assert.equal(cv.fingerprint, 'cv-fp');
+  assert.equal(cv.typeHeader, 'Vio Cat');
+  assert.equal(wso.fingerprint, 'wso-fp');
+  assert.equal(wso.typeHeader, null);
+});
