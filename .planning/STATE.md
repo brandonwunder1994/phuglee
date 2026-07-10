@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Filter Independence & Learning
 status: phase_complete
-stopped_at: Phase 55 complete — Independence Lock verified
-last_updated: "2026-07-10T15:45:00Z"
-last_activity: 2026-07-10 — Phase 55 executed and verified
+stopped_at: Phase 56 complete — List Factory UX verified
+last_updated: "2026-07-10T16:30:00Z"
+last_activity: 2026-07-10 — Phase 56 executed and verified
 progress:
   total_phases: 6
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 17
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
+  percent: 33
 ---
 
 # State
@@ -21,38 +21,28 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → **save lists** → external enrich → **manual** Analyze import.  
-**Current focus:** Phase 56 — List Factory UX (next)
+**Current focus:** Phase 57 — Accuracy Structure Pass (next)
 
 ## Current Position
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Phase:** 55 of 60 **complete** (Independence Lock)  
-**Next:** Phase 56 List Factory UX  
+**Phase:** 56 of 60 **complete** (List Factory UX)  
+**Next:** Phase 57 Accuracy Structure Pass  
 **Status:** Phase goal verified  
-**Last activity:** 2026-07-10 — Phase 55 executed (IND-01–04)
 
-Progress: [█░░░░░░░░░] ~17% (1/6 phases)
+Progress: [██░░░░░░░░] ~33% (2/6 phases)
 
-## Phase 55 delivered
+## Shipped this milestone
 
-| Plan | Result |
-|------|--------|
-| 55-01 | `already_imported` hard-drop off by default; strict opt-in |
-| 55-02 | Deleted `bridge-analyzer-push`; independence negative suite |
-| 55-03 | Docs + UI KPI honesty; suite 471 + verify-live green |
-
-**Verification:** `.planning/phases/55-independence-lock/55-VERIFICATION.md` — **passed**
-
-## Accumulated Context
-
-- Filter never auto-pushes to Analyze; manual import only after external enrich
-- `applyAlreadyImportedFilter === true` is engine-only opt-in (no UI toggle in 55)
-- Subagent balance failure mid-execute; completed in orchestrator session
+| Phase | Result |
+|-------|--------|
+| 55 | Independence Lock — no push; already_imported off by default |
+| 56 | List Factory UX — Save → Download hero; dirty-guard; teaching pack |
 
 ## Next
 
 ```text
-/gsd:discuss-phase 56
+/gsd:plan-phase 57
 ```
 
-Or: `/gsd:plan-phase 56`
+Or: `/gsd:discuss-phase 57`

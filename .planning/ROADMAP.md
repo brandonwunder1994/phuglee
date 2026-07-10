@@ -23,7 +23,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 55 complete — next: Phase 56 List Factory UX  
+**Status:** Phase 56 complete — next: Phase 57 Accuracy Structure Pass  
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
@@ -31,7 +31,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Phases
 
 - [x] **Phase 55: Independence Lock** — Process/save/Train never write Analyze; push adapter gone; `already_imported` off by default
-- [ ] **Phase 56: List Factory UX** — Save → Download is the hero path; multi-city lists persist until operator deletes
+- [x] **Phase 56: List Factory UX** — Save → Download is the hero path; multi-city lists persist until operator deletes
 - [ ] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
 - [ ] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
 - [ ] **Phase 59: Efficiency Operator Path** — Shorter day-2 path to saved list without accuracy or Analyze re-coupling tradeoffs
@@ -66,9 +66,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 56-01-PLAN.md — LIST-03 teaching pack + LIST-01 CTA hierarchy (Save primary, Preview CSV, workflow strip)
-- [ ] 56-02-PLAN.md — Dirty-guard + soft Train-before-Save + save flash download path
-- [ ] 56-03-PLAN.md — factory-ux tests + list-store accumulate + docs light + suite gate
+- [x] 56-01-PLAN.md — LIST-03 teaching pack + LIST-01 CTA hierarchy (Save primary, Preview CSV, workflow strip)
+- [x] 56-02-PLAN.md — Dirty-guard + soft Train-before-Save + save flash download path
+- [x] 56-03-PLAN.md — factory-ux tests + list-store accumulate + docs light + suite gate
 
 ### Phase 57: Accuracy Structure Pass
 **Goal**: Residual heterogeneous-city keep/kill and Type/format failures are fixed with gold fixtures — real distress stays kept, junk is denied, water is never type-suppressed, and accuracy changes never silent-drop inventory

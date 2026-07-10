@@ -16,9 +16,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Saved lists (LIST)
 
-- [ ] **LIST-01**: After process (and optional Train), operator’s primary path is **Save list** then **Download** (one or all) — not “send to Analyze”
-- [ ] **LIST-02**: Saved multi-city lists persist until the operator deletes them (process, restart, and deploy do not wipe the list store)
-- [ ] **LIST-03**: UI workflow and copy teach Process → (Train) → Save → Download for external enrich → manual Analyze import
+- [x] **LIST-01**: After process (and optional Train), operator’s primary path is **Save list** then **Download** (one or all) — not “send to Analyze”
+- [x] **LIST-02**: Saved multi-city lists persist until the operator deletes them (process, restart, and deploy do not wipe the list store)
+- [x] **LIST-03**: UI workflow and copy teach Process → (Train) → Save → Download for external enrich → manual Analyze import
 
 ### Accuracy (ACC)
 
@@ -79,9 +79,9 @@ Deferred — not in this milestone roadmap.
 | IND-02 | Phase 55 | Complete |
 | IND-03 | Phase 55 | Complete |
 | IND-04 | Phase 55 | Complete |
-| LIST-01 | Phase 56 | Pending |
-| LIST-02 | Phase 56 | Pending |
-| LIST-03 | Phase 56 | Pending |
+| LIST-01 | Phase 56 | Complete |
+| LIST-02 | Phase 56 | Complete |
+| LIST-03 | Phase 56 | Complete |
 | ACC-01 | Phase 57 | Pending |
 | ACC-02 | Phase 57 | Pending |
 | ACC-03 | Phase 57 | Pending |
