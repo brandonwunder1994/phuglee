@@ -552,3 +552,94 @@ test('processUpload water_shut_off ignores type suppress (BRAIN-03)', async () =
     saveBrain(emptyBrain());
   }
 });
+
+test('processUpload promotes unmapped Vio Cat into type and FN labels (MAP-01/02)', async () => {
+  const csv = [
+    'Property Address,Vio Cat,Notes',
+    '100 Main St,High Grass,overgrown weeds in yard',
+    '200 Oak Ave,Fence Permit,admin'
+  ].join('\n');
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'vio-cat.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true);
+
+  // Distressed High Grass path: type from Vio Cat when unmapped
+  const grass = result.rows.find(
+    (row) => String(row.streetAddress || '').includes('100 Main')
+  );
+  assert.ok(grass, 'High Grass distressed row kept');
+  assert.ok(
+    String(grass.violationIssueType || '').includes('High Grass'),
+    `distressed type should include High Grass, got: ${grass.violationIssueType}`
+  );
+
+  // FN Fence: type from Vio Cat (MAP-01/02) — not gated on distress
+  const fenceFn = result.notDistressedRows.find(
+    (row) => String(row.streetAddress || '').includes('200 Oak')
+  );
+  assert.ok(fenceFn, 'Fence Permit should be in notDistressedRows');
+  assert.ok(
+    String(fenceFn.violationIssueType || '').includes('Fence Permit'),
+    `FN type should include Fence Permit, got: ${fenceFn.violationIssueType}`
+  );
+
+  // FN group label uses city category, not notes-only / (no type)
+  const fenceGroup = (result.reviewGroups.notDistressed || []).find(
+    (g) =>
+      String(g.violationTypeLabel || '').toLowerCase().includes('fence')
+  );
+  assert.ok(
+    fenceGroup,
+    'reviewGroups.notDistressed should label Fence / Fence Permit'
+  );
+  assert.ok(
+    !/^\s*admin\s*$/i.test(String(fenceGroup.violationTypeLabel || '')),
+    'FN label must not be notes-only admin'
+  );
+  assert.notEqual(
+    String(fenceGroup.violationTypeLabel || ''),
+    '(no type)',
+    'FN label must not be (no type) when Vio Cat existed'
+  );
+});
+
+test('processUpload does not invent type from description-only free text (MAP-03)', async () => {
+  const csv = [
+    'Property Address,Description',
+    '300 Elm St,overgrown weeds and tall grass everywhere in the front yard'
+  ].join('\n');
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'desc-only.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true);
+  const row =
+    result.rows.find((r) => String(r.streetAddress || '').includes('300 Elm')) ||
+    result.notDistressedRows.find((r) =>
+      String(r.streetAddress || '').includes('300 Elm')
+    );
+  assert.ok(row, 'description-only row should be kept or FN');
+  const type = String(row.violationIssueType || '').trim();
+  const notes = String(row.descriptionNotes || '').trim();
+  // Must not set type equal to full notes dump / free-text invention
+  if (notes) {
+    assert.notEqual(
+      type,
+      notes,
+      'promotion must not invent type from full description notes'
+    );
+  }
+  // Prefer empty type over inventing composite free-text type
+  assert.ok(
+    type === '' || !type.toLowerCase().includes('everywhere in the front yard'),
+    `type should not be free-text narrative dump, got: ${type}`
+  );
+});
