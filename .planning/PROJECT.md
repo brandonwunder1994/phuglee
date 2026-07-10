@@ -6,7 +6,7 @@ A unified local shell for **Form Forge** (FOIA/public-records workflows) and **P
 
 ## Core Value
 
-One operating system feel: collect public records → **filter non-deals (with admin learning)** → analyze distressed leads → export dial-ready lists, with seamless navigation between every tool surface.
+Collect public records → **filter non-deals with a brain that learns from admin Approve/Deny** → save clean lists for external enrichment → **manually import** into Analyze → export dial-ready lists. Filter and Analyze stay independent modules.
 
 ## Requirements
 
@@ -66,9 +66,15 @@ Full requirement text: `.planning/milestones/v1.7-REQUIREMENTS.md`
 
 Full requirement text: `.planning/milestones/v1.8-REQUIREMENTS.md`
 
-### Active (next milestone)
+### Active (v2.0 Filter Independence & Learning)
 
-_None yet — define via `/gsd:new-milestone`_
+Milestone goals (requirements REQ-IDs defined next in this workflow):
+
+- [ ] **Independence:** Remove automatic Filter → Analyze push; Filter only stages/saves lists for download and external enrichment before manual Analyze import
+- [ ] **Saved lists:** Multi-city list store + UI (save, name, download, delete) so sequential city uploads persist until the operator removes them
+- [ ] **Accuracy pass:** Full Filter structure review + implement keep/kill, Type/format, Train grouping, and brain-learning improvements so Approve/Deny volume falls over time
+- [ ] **Efficiency:** Operator time, process runtime, and cross-city reuse all improve (no single-dimension tradeoff)
+- [ ] **Learning bar:** Code-violation Approve/Deny becomes less frequent as the brain absorbs admin decisions and auto-filtering gets trustworthy
 
 ### Backlog (later)
 
@@ -81,6 +87,7 @@ _None yet — define via `/gsd:new-milestone`_
 
 | Feature | Reason |
 |---------|--------|
+| Auto-push Filter → Analyze | Product decision: external enrich/skip-trace, then manual Analyze import |
 | Analyze vision review redesign | Separate learned-brain domain |
 | Shared store with Analyzer learned-brain | Different domain (vision tiers vs text tags) |
 | Per-user / per-city brains | Global shared quality product |
@@ -129,14 +136,41 @@ _None yet — define via `/gsd:new-milestone`_
 | Water shut-off skips Type confirm gate | ✓ Good — water path unblocked |
 | Deterministic short labels (no LLM paraphrase) | ✓ Good — testable, zero new deps |
 
+## Current Milestone: v2.0 Filter Independence & Learning
+
+**Goal:** Make Filter a standalone list factory — no Analyze push — with a full accuracy/efficiency pass so admin Train work drops as the brain learns from real Approve/Deny decisions.
+
+**Target features:**
+- Decouple Filter from Analyze (remove auto-push; keep manual import path only)
+- Saved multi-city filtered lists (save / download / delete; external enrichment outside the tool)
+- Structural accuracy pass across process, Type/format, keep/kill tagging, Train grouping, brain apply
+- Efficiency: less operator grind, faster process, better reuse across heterogeneous city files
+- Success bar: Approve/Deny of code violations becomes less frequent over time because the bot already filtered correctly
+
+**In scope:** Upload/process, column map, format memory, distress tagging, Train brain, phrase rules, Filter lists/save/download, admin + customer Filter UX.  
+**Explicitly out:** Pushing lists into Analyze from Filter.
+
+**Phase numbering:** continues from **55**  
+**Approach:** Audit what matters + implement improvements in this same major milestone (not audit-only).
+
 ## Current State
 
+**Active:** v2.0 Filter Independence & Learning (defining requirements)  
 **Shipped:** v1.8 Type Column Intelligence (2026-07-10)  
 **Prior:** v1.7 Filter Accuracy & Grouping; v1.6 Filter Superpower Brain  
-**Focus:** Between milestones — ready for `/gsd:new-milestone`  
-**Phase numbering:** next milestone continues from **55**
 
 **Type column stack (v1.8):** `lib/bridge-type-column-score.js`, `lib/bridge-city-format-store.js`, processUpload confirm gate, `lib/bridge-short-label.js` + Train UI; processUpload e2e TEST-01/02/03 (v1.8).
+
+**Known product direction (pre-v2.0 decisions):** Filter stages filtered lead lists only; enrichment + skip-trace happen outside; Analyze receives data via manual import of fully prepared lists.
+
+## Key Decisions (v2.0 — provisional)
+
+| Decision | Outcome |
+|----------|---------|
+| No Filter → Analyze auto-push | — Pending implement — external workflow + manual import |
+| Multi-list staging on Filter (not single lastResult) | — Pending implement |
+| Accuracy + efficiency + learning bar in one major milestone | — Pending — all peer priorities |
+| Global brain remains single shared quality product | ✓ Carry forward from v1.6 |
 
 ---
 
@@ -151,4 +185,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 after completing v1.8 Type Column Intelligence*
+*Last updated: 2026-07-10 after starting v2.0 Filter Independence & Learning*
