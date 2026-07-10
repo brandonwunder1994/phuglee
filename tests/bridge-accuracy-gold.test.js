@@ -1,5 +1,7 @@
 /**
  * Phase 57 Accuracy Structure — gold processUpload contracts (ACC-01, ACC-02, ACC-03)
+ * Phase 60 permanent regression bar — TEST-02 (v2.0):
+ *   gold ACC fixtures remain under tests/fixtures/bridge/gold and run via npm test
  */
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
@@ -92,7 +94,24 @@ function assertNoBannedReasons(result, label) {
   }
 }
 
-test('ACC-01: gold keep-distress-mixed keeps Strong weeds/trash/blight/vehicle/maintenance', async () => {
+test('TEST-02 (v2.0): gold ACC fixtures remain under tests/fixtures/bridge/gold', () => {
+  const required = [
+    'keep-distress-mixed.csv',
+    'deny-junk-admin.csv',
+    'water-hostile-types.txt',
+    'type-trap-status-vio.csv',
+    'no-type-notes-only.csv'
+  ];
+  for (const name of required) {
+    assert.equal(
+      fs.existsSync(path.join(GOLD, name)),
+      true,
+      `gold fixture missing: ${name}`
+    );
+  }
+});
+
+test('ACC-01 / TEST-02 (v2.0): gold keep-distress-mixed keeps Strong weeds/trash/blight/vehicle/maintenance', async () => {
   const buffer = fs.readFileSync(path.join(GOLD, 'keep-distress-mixed.csv'));
   const result = await processUpload({
     buffer,
@@ -249,7 +268,7 @@ test('ACC-02: gold no-type-notes-only keeps weeds inventory (no no_type discard)
   assert.equal(BANNED_REASON.test(discardBlob(result)), false);
 });
 
-test('ACC-02: gold processes never invent banned silent-drop reasons', async () => {
+test('ACC-02 / TEST-02 (v2.0): gold processes never invent banned silent-drop reasons', async () => {
   const runs = [
     { file: 'keep-distress-mixed.csv', confirmedTypeHeader: 'Violation Type' },
     { file: 'deny-junk-admin.csv', confirmedTypeHeader: 'Violation Type' },

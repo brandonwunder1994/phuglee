@@ -174,6 +174,26 @@
 | M-02 | Missing boundary | throws | ✓ edge |
 | M-03 | Binary file round-trip | bytes preserved | ✓ edge |
 
+## N. v2.0 permanent regression bar (TEST-01..03)
+
+> Milestone lock for Filter Independence & Learning. Packaging only — product already green at phases 55–59.
+> Note: v1.7 bare `TEST-0N` and v1.8 `TEST-0N (v1.8)` titles in `tests/bridge-engine.test.js` mean different contracts (description-only / Vio Cat / scorer trap / FP change / shortLabel) — do not rename those engine tests.
+
+| ID | Case | Expected | Auto |
+|----|------|----------|------|
+| TEST-01 (v2.0) | Independence: no Analyze push on Filter write paths + process/save invent no Analyzer sessions | Static bans + process/save negatives green | ✓ `tests/bridge-independence.test.js` |
+| TEST-01 (v2.0) | `already_imported` hard-drop off by default (opt-in only) | Default process keeps Analyze-index matches; loadImportAddressIndex not called when off | ✓ independence TEST-01 (v2.0) + engine `IND-04` |
+| TEST-02 (v2.0) | Gold ACC fixtures in CI | keep/deny/water/type/silent-drop processUpload green under `npm test` | ✓ `tests/bridge-accuracy-gold.test.js` + `tests/fixtures/bridge/gold/*` |
+| TEST-03 (v2.0) | processUpload Type / format / water e2e still covered | COL/GATE/water + v1.8 Type/format + gold water green | ✓ `tests/bridge-engine.test.js` patterns + gold water |
+| TEST-03 (v2.0) | Live server after milestone work | health + homepage HTTP 200 | ✓ `scripts/verify-live.ps1` |
+
+```bash
+node --test tests/bridge-independence.test.js tests/bridge-accuracy-gold.test.js
+node --test --test-name-pattern="IND-04|GATE-|COL-|water|TEST-0" tests/bridge-engine.test.js
+npm test
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1
+```
+
 ---
 
 ## Execution order (GSD verify loop)
