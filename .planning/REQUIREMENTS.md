@@ -9,10 +9,10 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Type column scoring & resolve (COL)
 
-- [ ] **COL-01**: On process, every source column is scored for Violation Type candidacy using header aliases **and** value shapes (category-like, not date-dominated, not address-dominated, reasonable length/uniqueness); system maps **exactly one** winner into `columnMap.violationIssueType` (never blend/concatenate columns)
-- [ ] **COL-02**: When no column meets Type candidacy threshold, Type stays empty and rows are still kept for review when distressed (or for FN pool as today) — **never** silent-drop solely because “no type column”
+- [x] **COL-01**: On process, every source column is scored for Violation Type candidacy using header aliases **and** value shapes (category-like, not date-dominated, not address-dominated, reasonable length/uniqueness); system maps **exactly one** winner into `columnMap.violationIssueType` (never blend/concatenate columns)
+- [x] **COL-02**: When no column meets Type candidacy threshold, Type stays empty and rows are still kept for review when distressed (or for FN pool as today) — **never** silent-drop solely because “no type column”
 - [ ] **COL-03**: v1.7 `promoteCategoryFromRaw` runs only after scorer/confirm path and only when mapped Type cell is still empty; promote must not override a chosen Type column
-- [ ] **COL-04**: Scorer/confirm choice **forces** `columnMap.violationIssueType` (aliases are scorer features, not a parallel first-match winner that can undercut the scorer)
+- [x] **COL-04**: Scorer/confirm choice **forces** `columnMap.violationIssueType` (aliases are scorer features, not a parallel first-match winner that can undercut the scorer)
 
 ### Format memory & confirm gate (GATE)
 
@@ -63,10 +63,10 @@ Deferred — not in this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COL-01 | Phase 51 | Pending |
-| COL-02 | Phase 51 | Pending |
+| COL-01 | Phase 51 | Complete |
+| COL-02 | Phase 51 | Complete |
 | COL-03 | Phase 51 | Pending |
-| COL-04 | Phase 51 | Pending |
+| COL-04 | Phase 51 | Complete |
 | GATE-01 | Phase 52 | Pending |
 | GATE-02 | Phase 52 | Pending |
 | GATE-03 | Phase 52 | Pending |
