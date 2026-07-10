@@ -254,8 +254,8 @@
         const approveLabel = isFn ? '✅ Not Distressed' : '🏚️ Distressed';
         const denyLabel = isFn ? '🏚️ Distressed' : '✅ Not Distressed';
         return (
-          `<button type="button" class="bridge-btn bridge-btn-primary bridge-train-approve" data-action="approve" aria-label="${esc(approveLabel + ' ' + label)}">${esc(approveLabel)}</button>` +
-          `<button type="button" class="bridge-btn bridge-btn-ghost bridge-train-deny" data-action="deny" aria-label="${esc(denyLabel + ' ' + label)}">${esc(denyLabel)}</button>`
+          `<button type="button" class="phuglee-btn phuglee-btn-primary bridge-train-approve" data-action="approve" aria-label="${esc(approveLabel + ' ' + label)}">${esc(approveLabel)}</button>` +
+          `<button type="button" class="phuglee-btn phuglee-btn-secondary bridge-train-deny" data-action="deny" aria-label="${esc(denyLabel + ' ' + label)}">${esc(denyLabel)}</button>`
         );
       })() +
       `</div></article>`
@@ -515,8 +515,8 @@
     setHidden(pagerEl, false);
     pagerEl.innerHTML =
       `<span>Page ${safePage} of ${pages} · ${total} groups</span>` +
-      `<button type="button" class="bridge-btn bridge-btn-ghost" data-train-page="${sectionKey}" data-page="${safePage - 1}" ${safePage <= 1 ? 'disabled' : ''}>Prev</button>` +
-      `<button type="button" class="bridge-btn bridge-btn-ghost" data-train-page="${sectionKey}" data-page="${safePage + 1}" ${safePage >= pages ? 'disabled' : ''}>Next</button>`;
+      `<button type="button" class="phuglee-btn phuglee-btn-secondary" data-train-page="${sectionKey}" data-page="${safePage - 1}" ${safePage <= 1 ? 'disabled' : ''}>Prev</button>` +
+      `<button type="button" class="phuglee-btn phuglee-btn-secondary" data-train-page="${sectionKey}" data-page="${safePage + 1}" ${safePage >= pages ? 'disabled' : ''}>Next</button>`;
   }
 
   function pageSlice(list, page) {
@@ -675,8 +675,8 @@
       : (rule.violationTypeLabel || rule.violationTypeKey || '(unknown type)');
     const actionHtml = (actions || []).map((a) => {
       const cls = a.status === 'active'
-        ? 'bridge-btn bridge-btn-primary'
-        : 'bridge-btn bridge-btn-ghost';
+        ? 'phuglee-btn phuglee-btn-primary'
+        : 'phuglee-btn phuglee-btn-secondary';
       return (
         `<button type="button" class="${cls}" data-rule-id="${esc(id)}" data-rule-status="${esc(a.status)}">` +
         `${esc(a.label)}</button>`
@@ -1330,7 +1330,7 @@
     if (fileNameEl) fileNameEl.textContent = '';
     if (processBtn) {
       processBtn.disabled = true;
-      processBtn.textContent = 'Process upload';
+      processBtn.textContent = 'Scrub it';
     }
     setHidden(clearFileBtn, true);
     dropzone?.classList.remove('has-file', 'is-dragover');
@@ -1343,7 +1343,7 @@
       if (fileNameEl) fileNameEl.textContent = '';
       if (processBtn) {
         processBtn.disabled = true;
-        processBtn.textContent = 'Process upload';
+        processBtn.textContent = 'Scrub it';
       }
       setHidden(clearFileBtn, true);
       dropzone?.classList.remove('has-file');
@@ -1360,7 +1360,7 @@
     dropzone?.classList.add('has-file');
     if (processBtn) {
       processBtn.disabled = false;
-      processBtn.textContent = count === 1 ? 'Process upload' : `Process ${count} files`;
+      processBtn.textContent = count === 1 ? 'Scrub it' : `Scrub ${count} files`;
     }
     setHidden(clearFileBtn, false);
   }

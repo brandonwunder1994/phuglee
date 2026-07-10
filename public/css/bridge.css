@@ -881,49 +881,7 @@ body {
   gap: 0.75rem;
 }
 
-.bridge-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.75rem 1.2rem;
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-decoration: none;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-family: var(--font-body);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.bridge-btn-primary {
-  color: var(--phuglee-black);
-  background: linear-gradient(135deg, var(--phuglee-gold), var(--phuglee-orange), var(--phuglee-terracotta));
-  box-shadow: var(--shadow-cta);
-}
-
-.bridge-btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-cta), var(--shadow-glow-orange);
-}
-
-.bridge-btn-primary:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.bridge-btn-ghost {
-  color: var(--text-muted);
-  border: 1px solid rgba(174, 163, 143, 0.2);
-  background: transparent;
-}
-
-.bridge-btn-ghost:hover {
-  color: var(--phuglee-cream);
-  border-color: rgba(229, 132, 53, 0.35);
-}
+/* DESK-06: CTAs use phuglee-btn only — dead .bridge-btn* rules removed */
 
 .bridge-note {
   margin-top: 0.85rem;
@@ -2078,7 +2036,7 @@ body {
 }
 
 .bridge-train-approve {
-  /* Reuses .bridge-btn / .bridge-btn-primary; optional hook for plan 02 */
+  /* Semantic hook; visual from phuglee-btn-primary */
 }
 
 .bridge-train-deny {
@@ -2113,7 +2071,7 @@ body {
     flex-direction: column;
   }
 
-  .bridge-train-actions .bridge-btn {
+  .bridge-train-actions .phuglee-btn {
     width: 100%;
   }
 }
