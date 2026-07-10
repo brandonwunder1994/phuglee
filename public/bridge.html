@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=17">
+  <link rel="stylesheet" href="/css/bridge.css?v=18">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -56,6 +56,10 @@
       <h1 class="bridge-title">Scrub the Mess</h1>
       <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
     </header>
+
+    <div id="bridge-idle-proof" class="bridge-idle-proof" role="status" aria-live="polite" data-phuglee-reveal-child>
+      <p class="bridge-idle-proof-line" id="bridge-idle-proof-line">0 lists staged · Ready when you scrub the first city</p>
+    </div>
 
     <div class="bridge-desk">
       <div class="bridge-desk-primary">

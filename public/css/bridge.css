@@ -67,6 +67,27 @@ body {
   font-size: 1rem;
 }
 
+/* IDLE-01: live inventory proof — compact single-row strip (not equal 3-up cards) */
+.bridge-idle-proof {
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.bridge-idle-proof-line {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+  color: var(--phuglee-cream, #f5f0e8);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 /* Scrub desk — dominant work + quiet scrap (DESK-01) */
 .bridge-desk {
   display: grid;
