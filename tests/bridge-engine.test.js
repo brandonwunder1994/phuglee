@@ -481,7 +481,44 @@ test('processUpload deduplicates near-duplicate rows in upload', async () => {
   assert.equal(result.stats.deduplicated, 1);
 });
 
-test('processUpload filters rows already in Property Analyzer', async () => {
+test('IND-04: processUpload does not hard-drop already_imported by default', async () => {
+  const enginePath = require.resolve('../lib/bridge-engine');
+  const { normalizeAddressKey } = indexModule;
+  let loadCalled = false;
+
+  indexModule.loadImportAddressIndex = async () => {
+    loadCalled = true;
+    return {
+      loadedAt: Date.now(),
+      addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona, 85704')]),
+      count: 1,
+      sources: { records: 1, results: 0 }
+    };
+  };
+  delete require.cache[enginePath];
+  const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
+
+  try {
+    const buffer = fs.readFileSync(path.join(FIXTURES, 'code-violations-varied.csv'));
+    const result = await processUploadFresh({
+      buffer,
+      filename: 'violations.csv',
+      city: CITY,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
+    });
+    assert.equal(result.stats.alreadyImported, 0);
+    assert.ok(result.rows.some((row) => row.streetAddress === '123 Main St'));
+    assert.equal(result.processingMeta.importIndexCount, 0);
+    assert.equal(loadCalled, false, 'loadImportAddressIndex must not run when filter is off');
+  } finally {
+    indexModule.loadImportAddressIndex = emptyImportIndex;
+    delete require.cache[enginePath];
+  }
+});
+
+test('IND-04: processUpload hard-drops only when applyAlreadyImportedFilter === true', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
   const { normalizeAddressKey } = indexModule;
 
@@ -502,7 +539,8 @@ test('processUpload filters rows already in Property Analyzer', async () => {
       city: CITY,
       uploadType: 'code_violation',
       username: 'admin',
-      confirmedTypeHeader: 'Violation Type'
+      confirmedTypeHeader: 'Violation Type',
+      applyAlreadyImportedFilter: true
     });
     assert.equal(result.stats.alreadyImported, 1);
     assert.ok(!result.rows.some((row) => row.streetAddress === '123 Main St'));

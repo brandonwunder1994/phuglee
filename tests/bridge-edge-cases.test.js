@@ -168,7 +168,42 @@ test('discards City Hall non-property rows', () => {
   assert.match(normalized.discarded[0].reason, /non-property/i);
 });
 
-test('processUpload returns 422 details when all rows already imported', async () => {
+test('IND-04: processUpload keeps all-imported rows by default (no onlyImported NO_USABLE_ROWS)', async () => {
+  const enginePath = require.resolve('../lib/bridge-engine');
+  const indexModule = require('../lib/analyzer-import-index');
+  const { normalizeAddressKey } = indexModule;
+  const originalLoad = indexModule.loadImportAddressIndex;
+
+  const csv = 'Property Address,Violation Type\n123 Main St,Overgrown weeds\n';
+  indexModule.loadImportAddressIndex = async () => ({
+    loadedAt: Date.now(),
+    addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona')]),
+    count: 1,
+    sources: { records: 1, results: 0 }
+  });
+  delete require.cache[enginePath];
+  const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
+
+  try {
+    const result = await processUploadFresh({
+      buffer: Buffer.from(csv),
+      filename: 'only-imported.csv',
+      city: CITY,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
+    });
+    assert.equal(result.stats.alreadyImported, 0);
+    assert.equal(result.processingMeta.importIndexCount, 0);
+    assert.ok(result.stats.kept >= 1 || (result.stats.noDistress >= 1),
+      'default path must not throw onlyImported NO_USABLE_ROWS from index match alone');
+  } finally {
+    indexModule.loadImportAddressIndex = originalLoad;
+    delete require.cache[enginePath];
+  }
+});
+
+test('IND-04: processUpload returns 422 details when all rows already imported (opt-in)', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
   const indexModule = require('../lib/analyzer-import-index');
   const { normalizeAddressKey } = indexModule;
@@ -192,7 +227,8 @@ test('processUpload returns 422 details when all rows already imported', async (
         city: CITY,
         uploadType: 'code_violation',
         username: 'admin',
-        confirmedTypeHeader: 'Violation Type'
+        confirmedTypeHeader: 'Violation Type',
+        applyAlreadyImportedFilter: true
       }),
       (err) => {
         assert.equal(err.code, 'NO_USABLE_ROWS');

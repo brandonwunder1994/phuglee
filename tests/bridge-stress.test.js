@@ -334,7 +334,7 @@ describe('Filter stress — deduplication and analyze cross-reference', () => {
     ));
   });
 
-  test('filters analyze matches but keeps new addresses in same file', async () => {
+  test('IND-04: stress processUpload keeps Analyze matches by default', async () => {
     indexModule.loadImportAddressIndex = async () => ({
       loadedAt: Date.now(),
       addresses: new Set([
@@ -362,6 +362,49 @@ describe('Filter stress — deduplication and analyze cross-reference', () => {
         uploadType: 'code_violation',
         username: 'admin',
         confirmedTypeHeader: 'Violation Type'
+      });
+      assert.equal(result.stats.alreadyImported, 0);
+      assert.equal(result.processingMeta.importIndexCount, 0);
+      const addrs = keptAddresses(result);
+      assert.ok(addrs.includes('100 Elm St'), 'must keep Analyze match 100 Elm St by default');
+      assert.ok(addrs.includes('200 Oak Ave'), 'must keep Analyze match 200 Oak Ave by default');
+      assert.ok(addrs.includes('300 Pine Rd'), 'must keep new address 300 Pine Rd');
+      assert.equal(result.stats.kept, 3);
+    } finally {
+      indexModule.loadImportAddressIndex = emptyImportIndex;
+      delete require.cache[ENGINE_PATH];
+    }
+  });
+
+  test('IND-04: stress processUpload hard-drops Analyze matches only when applyAlreadyImportedFilter === true', async () => {
+    indexModule.loadImportAddressIndex = async () => ({
+      loadedAt: Date.now(),
+      addresses: new Set([
+        normalizeAddressKey('100 Elm St, Marana, Arizona, 85704'),
+        normalizeAddressKey('200 Oak Ave, Marana, Arizona, 85705')
+      ]),
+      count: 2,
+      sources: { records: 1, results: 1 }
+    });
+    delete require.cache[ENGINE_PATH];
+    const processFresh = require('../lib/bridge-engine').processUpload;
+
+    const csv = [
+      'Property Address,Violation Type,ZIP',
+      '100 Elm St,Weeds,85704',
+      '200 Oak Ave,Trash,85705',
+      '300 Pine Rd,Abandoned vehicle,85706'
+    ].join('\n');
+
+    try {
+      const result = await processFresh({
+        buffer: Buffer.from(csv),
+        filename: 'mixed.csv',
+        city: CITY,
+        uploadType: 'code_violation',
+        username: 'admin',
+        confirmedTypeHeader: 'Violation Type',
+        applyAlreadyImportedFilter: true
       });
       assert.equal(result.stats.alreadyImported, 2);
       assert.equal(result.stats.kept, 1);
