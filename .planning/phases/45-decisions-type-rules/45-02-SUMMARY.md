@@ -71,7 +71,7 @@ Each task was committed atomically:
 1. **Task 1: Write failing brain API tests (RED)** - `0e8f45f` (test)
 2. **Task 2: Implement requireAdmin + POST /brain/decisions (GREEN)** - `ee67ac4` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `da638f5` (docs: complete plan)
 
 _Note: TDD tasks use separate test → feat commits_
 
