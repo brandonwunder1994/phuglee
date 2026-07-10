@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: idle
-last_updated: "2026-07-10T03:45:00Z"
-last_activity: 2026-07-10 — completed v1.7 Filter Accuracy & Grouping
+milestone: v1.8
+milestone_name: Type Column Intelligence
+status: defining_requirements
+last_updated: "2026-07-09T12:00:00Z"
+last_activity: 2026-07-09 — Milestone v1.8 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -17,33 +17,34 @@ progress:
 
 ## Current Position
 
-**Milestone:** none (between milestones)  
-**Last shipped:** **v1.7 Filter Accuracy & Grouping** (2026-07-10)  
-**Status:** Ready for `/gsd:new-milestone`  
-**Last activity:** 2026-07-10 — archive + tag v1.7
+**Milestone:** v1.8 Type Column Intelligence  
+**Phase:** Not started (defining requirements)  
+**Plan:** —  
+**Status:** Defining requirements  
+**Last activity:** 2026-07-09 — Milestone v1.8 started
 
 ## Project Reference
 
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Planning next milestone
+**Current focus:** Smart Type column detection + confirm-on-format-change + display short labels
 
-## Shipped (v1.7)
+## Shipped (prior)
 
-| Phase | Result |
-|-------|--------|
-| 48 | Category promotion + signal shape (arrays) |
-| 49 | Stable group keys (timestamp strip) |
-| 50 | Regression lock (processUpload e2e + live) |
+| Milestone | Result |
+|-----------|--------|
+| v1.7 | Category promote, stable groups, processUpload lock |
+| v1.6 | Filter Superpower Brain (phases 42–47) |
 
-**Archives:** `.planning/milestones/v1.7-ROADMAP.md`, `v1.7-REQUIREMENTS.md`  
-**Tests:** 380 pass · **Live:** verify-live green
+## Locked decisions (v1.8)
+
+- Single best Type column (headers + value shapes) — no blend
+- Confirm Type column first time per city **or** when sheet format differs from last upload for that city
+- Same format → reuse last confirmed Type column
+- Short labels = display-only; full text for distress + export
+- No identifiable Type column → keep for review (no silent drop)
 
 ## Next
 
-```text
-/gsd:new-milestone
-```
-
-Phase directories remain in `.planning/phases/48-*` … `50-*` for history.
+Research → REQUIREMENTS.md → ROADMAP (phases from 51) → `/gsd:plan-phase 51`

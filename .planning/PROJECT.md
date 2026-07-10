@@ -56,9 +56,12 @@ Full requirement text: `.planning/milestones/v1.6-REQUIREMENTS.md`
 
 Full requirement text: `.planning/milestones/v1.7-REQUIREMENTS.md`
 
-### Active (next milestone)
+### Active (v1.8 — Type Column Intelligence)
 
-_None yet — define via `/gsd:new-milestone`_
+- [ ] **COL-***: Score headers + cell value shapes → suggest best single Violation Type column (no multi-column blend)
+- [ ] **COL-***: First-time (or format-changed) per city: admin confirms Type column before process continues; same sheet format reuses last confirmed mapping
+- [ ] **LBL-***: Display-only short labels for long type/description text in Train/groups; full raw text kept for distress match + export
+- [ ] **TEST-***: Regression lock for wrong-column maps, format reuse, short-label display
 
 ### Backlog (later)
 
@@ -107,14 +110,35 @@ _None yet — define via `/gsd:new-milestone`_
 | Split undo (client list snapshot + server rule revert) | ✓ Good — HARD-01 |
 | Volume-safe `BRIDGE_BRAIN_ROOT` mirrors filter lists | ✓ Good — durability |
 
+## Current Milestone: v1.8 Type Column Intelligence
+
+**Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress.
+
+**Target features:**
+- Score all columns by header aliases + value shapes; pick **one** best Type column (no blending)
+- Per-city format fingerprint: first upload or format change → admin confirms Type column; same format reuses last mapping
+- If no Type column can be identified → keep rows for review (no silent drop as “no category”)
+- Display-only short labels for long type/description walls of text; full raw retained for matching + export
+
+**Decisions (locked at milestone start):**
+| Decision | Choice |
+|----------|--------|
+| Column blend | Never — single winner Type column |
+| Confirm gate | First time per city **or** sheet format differs from last upload for that city |
+| Same format | Reuse last confirmed Type column for that city |
+| Short labels | Display-only; do not replace stored type used for distress/export |
+| No type column | Keep/approve path for review — no silent discard |
+
 ## Current State
 
 **Shipped:** v1.7 Filter Accuracy & Grouping (2026-07-10)  
 **Prior:** v1.6 Filter Superpower Brain (2026-07-10)  
-**Focus:** Planning next milestone  
-**Phase artifacts:** remain under `.planning/phases/42-*` … `50-*`
+**Focus:** v1.8 Type Column Intelligence — defining requirements  
+**Phase numbering:** continues from 51 (v1.7 ended at 50)
 
 **Filter accuracy stack (v1.7):** `lib/bridge-category-promote.js`, `lib/bridge-stable-text.js`, normalizer + review-groups wiring; process rows keep indicator arrays; export joins.
+
+**Gap this milestone closes:** `detectIntakeColumnMap` is alias-first / first-match; promote-when-empty only helps if Type is empty. Wrong column → wrong Train groups and manual review. No per-city format memory or display short-labels.
 
 ---
 
@@ -129,4 +153,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 after completing v1.7 Filter Accuracy*
+*Last updated: 2026-07-09 — started v1.8 Type Column Intelligence*
