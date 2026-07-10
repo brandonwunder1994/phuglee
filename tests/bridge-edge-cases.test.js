@@ -1,5 +1,9 @@
-const { test } = require('node:test');
+const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const config = require('../lib/config');
 const { parseMultipart } = require('../lib/multipart');
 const { noUsableRowsMessage } = require('../lib/bridge-engine');
 const { processUpload } = require('../lib/bridge-engine');
@@ -8,6 +12,24 @@ const { normalizeRawRows } = require('../lib/bridge-engine/normalizer');
 const { isAcceptedFile } = require('../lib/bridge-intake-schema');
 
 const CITY = { id: 'arizona-marana', city: 'Marana', state: 'Arizona' };
+const originalFormatsRoot = config.BRIDGE_CITY_FORMATS_ROOT;
+let tempFormatsRoot;
+
+before(() => {
+  tempFormatsRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bridge-city-formats-edge-'));
+  config.BRIDGE_CITY_FORMATS_ROOT = tempFormatsRoot;
+});
+
+after(() => {
+  if (originalFormatsRoot === undefined) {
+    delete config.BRIDGE_CITY_FORMATS_ROOT;
+  } else {
+    config.BRIDGE_CITY_FORMATS_ROOT = originalFormatsRoot;
+  }
+  try {
+    if (tempFormatsRoot) fs.rmSync(tempFormatsRoot, { recursive: true, force: true });
+  } catch (_) {}
+});
 
 test('isAcceptedFile rejects legacy .doc but accepts .docx', () => {
   assert.equal(isAcceptedFile('list.doc'), false);
@@ -103,7 +125,9 @@ test('parses pipe-delimited TXT violation list', async () => {
       buffer: Buffer.from(csv),
       filename: 'violations.txt',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
     });
     // Sign violation is generic — only the weeds row is kept as distress
     assert.equal(result.stats.kept, 1);
@@ -120,7 +144,9 @@ test('parses TSV file extension', async () => {
     buffer: Buffer.from(tsv),
     filename: 'violations.tsv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
   assert.equal(result.stats.kept, 1);
   assert.match(result.rows[0].distressedSignalTag, /Strong Distressed Signal/i);
@@ -164,7 +190,9 @@ test('processUpload returns 422 details when all rows already imported', async (
         buffer: Buffer.from(csv),
         filename: 'only-imported.csv',
         city: CITY,
-        uploadType: 'code_violation'
+        uploadType: 'code_violation',
+        username: 'admin',
+        confirmedTypeHeader: 'Violation Type'
       }),
       (err) => {
         assert.equal(err.code, 'NO_USABLE_ROWS');

@@ -75,6 +75,14 @@
   const historyCloseBtn = document.getElementById('bridge-history-close');
   const historyLead = document.getElementById('bridge-history-lead');
   const historyList = document.getElementById('bridge-history-list');
+  const typeConfirmDialog = document.getElementById('bridge-type-column-confirm-dialog');
+  const typeConfirmCloseBtn = document.getElementById('bridge-type-column-confirm-close');
+  const typeConfirmCancelBtn = document.getElementById('bridge-type-column-confirm-cancel');
+  const typeConfirmOkBtn = document.getElementById('bridge-type-column-confirm-ok');
+  const typeConfirmLead = document.getElementById('bridge-type-column-confirm-lead');
+  const typeConfirmSuggested = document.getElementById('bridge-type-column-suggested');
+  const typeConfirmCandidates = document.getElementById('bridge-type-column-candidates');
+  const typeConfirmSamples = document.getElementById('bridge-type-column-samples');
   const dropzone = document.getElementById('bridge-dropzone');
   const fileInput = document.getElementById('bridge-file-input');
   const fileNameEl = document.getElementById('bridge-file-name');
@@ -953,6 +961,13 @@
       err.code = data.code || null;
       err.status = res.status;
       if (data.currentVersion != null) err.currentVersion = data.currentVersion;
+      // Type column confirm gate: attach full body so client can open modal / re-POST
+      if (data.code === 'TYPE_COLUMN_CONFIRM_REQUIRED') {
+        err.details = data;
+        if (data.formatFingerprint != null) err.formatFingerprint = data.formatFingerprint;
+        if (data.candidates != null) err.candidates = data.candidates;
+        if (data.suggestedHeader !== undefined) err.suggestedHeader = data.suggestedHeader;
+      }
       throw err;
     }
     return data;
@@ -1874,6 +1889,191 @@
     setPipelineStep('results');
   }
 
+  /**
+   * Build multipart FormData for /api/bridge/process.
+   * Optional resume fields: confirmedTypeHeader + formatFingerprint (format memory gate).
+   */
+  function buildProcessFormData(confirmOpts) {
+    const form = new FormData();
+    form.append('cityId', selectedCity.id);
+    form.append('uploadType', selectedUploadType);
+    for (const file of selectedFiles) {
+      form.append('file', file, file.name);
+    }
+    if (confirmOpts && Object.prototype.hasOwnProperty.call(confirmOpts, 'confirmedTypeHeader')) {
+      const raw = confirmOpts.confirmedTypeHeader;
+      form.append(
+        'confirmedTypeHeader',
+        raw === null || raw === undefined || raw === '' ? '__none__' : String(raw)
+      );
+    }
+    if (confirmOpts && confirmOpts.formatFingerprint) {
+      form.append('formatFingerprint', String(confirmOpts.formatFingerprint));
+    }
+    return form;
+  }
+
+  /**
+   * Admin modal: ranked Type column candidates + samples.
+   * @returns {Promise<string|null|undefined>} header string | null (no type) | undefined (cancel)
+   */
+  function openTypeColumnConfirmDialog(details) {
+    return new Promise((resolve) => {
+      if (!typeConfirmDialog || !typeConfirmCandidates) {
+        resolve(undefined);
+        return;
+      }
+
+      const candidates = Array.isArray(details && details.candidates) ? details.candidates : [];
+      const suggested = details && details.suggestedHeader != null
+        ? String(details.suggestedHeader)
+        : '';
+      const cityLabel = details && details.city
+        ? [details.city.city, details.city.state].filter(Boolean).join(', ')
+        : (selectedCity ? [selectedCity.city, selectedCity.state].filter(Boolean).join(', ') : 'this city');
+
+      if (typeConfirmLead) {
+        typeConfirmLead.textContent =
+          `${cityLabel} format needs a Type column confirmation before processing. Pick the column that holds the violation or issue type.`;
+      }
+      if (typeConfirmSuggested) {
+        if (suggested) {
+          typeConfirmSuggested.hidden = false;
+          typeConfirmSuggested.textContent = `Suggested: ${suggested}`;
+        } else {
+          typeConfirmSuggested.hidden = true;
+          typeConfirmSuggested.textContent = '';
+        }
+      }
+
+      const samplesByHeader = new Map();
+      typeConfirmCandidates.innerHTML = '';
+
+      candidates.forEach((c, idx) => {
+        const header = c && c.header != null ? String(c.header) : '';
+        if (!header) return;
+        const score = c.score != null ? Number(c.score) : null;
+        const samples = Array.isArray(c.samples) ? c.samples : [];
+        samplesByHeader.set(header, samples);
+
+        const label = document.createElement('label');
+        label.className = 'bridge-type-confirm-option';
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'bridge-type-column-pick';
+        input.value = header;
+        if ((suggested && header === suggested) || (!suggested && idx === 0)) {
+          input.checked = true;
+        }
+        const body = document.createElement('div');
+        const title = document.createElement('div');
+        title.className = 'bridge-type-confirm-option-label';
+        title.textContent = header;
+        const meta = document.createElement('div');
+        meta.className = 'bridge-type-confirm-option-meta';
+        meta.textContent = Number.isFinite(score) ? `Score ${score}` : '';
+        body.appendChild(title);
+        if (meta.textContent) body.appendChild(meta);
+        label.appendChild(input);
+        label.appendChild(body);
+        typeConfirmCandidates.appendChild(label);
+      });
+
+      // "No type column" option
+      const noneLabel = document.createElement('label');
+      noneLabel.className = 'bridge-type-confirm-option bridge-type-confirm-option--none';
+      const noneInput = document.createElement('input');
+      noneInput.type = 'radio';
+      noneInput.name = 'bridge-type-column-pick';
+      noneInput.value = '__none__';
+      // Pre-select No type when scorer found nothing
+      if (!candidates.length) noneInput.checked = true;
+      const noneBody = document.createElement('div');
+      const noneTitle = document.createElement('div');
+      noneTitle.className = 'bridge-type-confirm-option-label';
+      noneTitle.textContent = 'No type column — keep rows for review';
+      const noneMeta = document.createElement('div');
+      noneMeta.className = 'bridge-type-confirm-option-meta';
+      noneMeta.textContent = 'Process without mapping a Violation/Issue Type column';
+      noneBody.appendChild(noneTitle);
+      noneBody.appendChild(noneMeta);
+      noneLabel.appendChild(noneInput);
+      noneLabel.appendChild(noneBody);
+      typeConfirmCandidates.appendChild(noneLabel);
+
+      function renderSamplesForSelection() {
+        if (!typeConfirmSamples) return;
+        const checked = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]:checked');
+        const val = checked ? checked.value : '';
+        if (!val || val === '__none__') {
+          typeConfirmSamples.innerHTML =
+            '<span class="bridge-type-confirm-samples-empty">No sample values for this choice.</span>';
+          return;
+        }
+        const samples = (samplesByHeader.get(val) || []).slice(0, 5);
+        if (!samples.length) {
+          typeConfirmSamples.innerHTML =
+            '<span class="bridge-type-confirm-samples-empty">No sample cells available for this column.</span>';
+          return;
+        }
+        const items = samples.map((s) => `<li>${esc(String(s))}</li>`).join('');
+        typeConfirmSamples.innerHTML = `<strong>Sample values</strong><ul>${items}</ul>`;
+      }
+
+      renderSamplesForSelection();
+      typeConfirmCandidates.onchange = renderSamplesForSelection;
+
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        typeConfirmCandidates.onchange = null;
+        typeConfirmOkBtn?.removeEventListener('click', onOk);
+        typeConfirmCancelBtn?.removeEventListener('click', onCancel);
+        typeConfirmCloseBtn?.removeEventListener('click', onCancel);
+        typeConfirmDialog.removeEventListener('cancel', onEsc);
+        typeConfirmDialog.removeEventListener('click', onBackdrop);
+        try {
+          if (typeConfirmDialog.open) typeConfirmDialog.close();
+        } catch (_) {}
+        resolve(value);
+      };
+
+      const onOk = () => {
+        const checked = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]:checked');
+        if (!checked) {
+          finish(undefined);
+          return;
+        }
+        if (checked.value === '__none__') {
+          finish(null);
+          return;
+        }
+        finish(checked.value);
+      };
+      const onCancel = () => finish(undefined);
+      const onEsc = (event) => {
+        event.preventDefault();
+        finish(undefined);
+      };
+      const onBackdrop = (event) => {
+        if (event.target === typeConfirmDialog) finish(undefined);
+      };
+
+      typeConfirmOkBtn?.addEventListener('click', onOk);
+      typeConfirmCancelBtn?.addEventListener('click', onCancel);
+      typeConfirmCloseBtn?.addEventListener('click', onCancel);
+      typeConfirmDialog.addEventListener('cancel', onEsc);
+      typeConfirmDialog.addEventListener('click', onBackdrop);
+
+      try {
+        typeConfirmDialog.showModal();
+      } catch (_) {
+        finish(undefined);
+      }
+    });
+  }
+
   async function processUpload() {
     if (!selectedCity || !selectedUploadType || !selectedFiles.length) return;
     const responseAt = getResponseAtValue();
@@ -1890,13 +2090,59 @@
     lastFailedAction = 'process';
 
     try {
-      const form = new FormData();
-      form.append('cityId', selectedCity.id);
-      form.append('uploadType', selectedUploadType);
-      for (const file of selectedFiles) {
-        form.append('file', file, file.name);
+      let data;
+      try {
+        data = await fetchJson('/api/bridge/process', {
+          method: 'POST',
+          body: buildProcessFormData()
+        });
+      } catch (err) {
+        if (err && err.code === 'TYPE_COLUMN_CONFIRM_REQUIRED') {
+          // Stop spinner before modal / message so non-admin never hangs
+          stopLoadingAnimation();
+          setHidden(loadingPanel, true);
+          if (processBtn) processBtn.disabled = !selectedFiles.length;
+          syncFileUi();
+
+          if (!isBridgeAdmin()) {
+            showError(
+              'An admin must confirm the Type column for this city format once. Ask an admin to process this upload.'
+            );
+            return;
+          }
+
+          const details = err.details || err;
+          const choice = await openTypeColumnConfirmDialog(details);
+          if (choice === undefined) {
+            // Cancel — leave process available, no hang
+            return;
+          }
+
+          setHidden(loadingPanel, false);
+          if (processBtn) processBtn.disabled = true;
+          startLoadingAnimation();
+
+          const resumeForm = buildProcessFormData({
+            confirmedTypeHeader: choice,
+            formatFingerprint: details.formatFingerprint || err.formatFingerprint
+          });
+          try {
+            data = await fetchJson('/api/bridge/process', { method: 'POST', body: resumeForm });
+          } catch (resumeErr) {
+            if (resumeErr && resumeErr.code === 'TYPE_COLUMN_CONFIRM_REQUIRED') {
+              showError(
+                resumeErr.message ||
+                  'Type column confirmation was not accepted. Try again or pick a different column.'
+              );
+              return;
+            }
+            throw resumeErr;
+          }
+        } else {
+          throw err;
+        }
       }
-      const data = await fetchJson('/api/bridge/process', { method: 'POST', body: form });
+
       // New process batch — reset client undo stack and train polish state
       trainUndoStack.length = 0;
       clearTrainDecidedKeys();
@@ -1910,6 +2156,8 @@
       }
       renderResults(data);
       updateTrainUndoButton();
+    } catch (err) {
+      showError((err && err.message) || 'Could not process upload.');
     } finally {
       stopLoadingAnimation();
       setHidden(loadingPanel, true);

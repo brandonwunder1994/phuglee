@@ -114,9 +114,12 @@ let indexModule;
 let listRootOriginal;
 let listRootTemp;
 let config;
+let originalFormatsRoot;
+let tempFormatsRoot;
 
 before(async () => {
   listRootTemp = fs.mkdtempSync(path.join(require('os').tmpdir(), 'bridge-lists-api-'));
+  tempFormatsRoot = fs.mkdtempSync(path.join(require('os').tmpdir(), 'bridge-city-formats-api-'));
 
   indexModule = require('../lib/analyzer-import-index');
   originalLoadIndex = indexModule.loadImportAddressIndex;
@@ -210,6 +213,8 @@ before(async () => {
   config = require('../lib/config');
   listRootOriginal = config.FILTER_LISTS_ROOT;
   config.FILTER_LISTS_ROOT = listRootTemp;
+  originalFormatsRoot = config.BRIDGE_CITY_FORMATS_ROOT;
+  config.BRIDGE_CITY_FORMATS_ROOT = tempFormatsRoot;
   bridgeApi = require('../lib/bridge-api');
 });
 
@@ -223,8 +228,18 @@ after(async () => {
   if (config && listRootOriginal !== undefined) {
     config.FILTER_LISTS_ROOT = listRootOriginal;
   }
+  if (config) {
+    if (originalFormatsRoot === undefined) {
+      delete config.BRIDGE_CITY_FORMATS_ROOT;
+    } else {
+      config.BRIDGE_CITY_FORMATS_ROOT = originalFormatsRoot;
+    }
+  }
   try {
     if (listRootTemp) fs.rmSync(listRootTemp, { recursive: true, force: true });
+  } catch (_) {}
+  try {
+    if (tempFormatsRoot) fs.rmSync(tempFormatsRoot, { recursive: true, force: true });
   } catch (_) {}
 });
 
@@ -345,12 +360,20 @@ test('POST /api/bridge/process returns 404 for unknown city', async () => {
 
 test('POST /api/bridge/process succeeds with valid CSV fixture', async () => {
   const csv = fs.readFileSync(path.join(FIXTURES, 'code-violations-varied.csv'));
+  // Phase 52: first CV format needs admin Type confirm (+ persist fingerprint)
   const { body, contentType } = buildMultipart(
-    { cityId: 'arizona-marana', uploadType: 'code_violation' },
+    {
+      cityId: 'arizona-marana',
+      uploadType: 'code_violation',
+      confirmedTypeHeader: 'Violation Type'
+    },
     { name: 'file', filename: 'violations.csv', data: csv }
   );
   const { status, json } = await callBridge('POST', '/api/bridge/process', {
-    headers: { 'Content-Type': contentType },
+    headers: {
+      'Content-Type': contentType,
+      'x-phuglee-user': 'admin'
+    },
     body
   });
   assert.equal(status, 200);
@@ -358,6 +381,28 @@ test('POST /api/bridge/process succeeds with valid CSV fixture', async () => {
   assert.ok(json.stats.kept >= 1);
   assert.ok(Array.isArray(json.rows));
   assert.equal(json.analyzerPush, undefined);
+});
+
+test('POST /api/bridge/process returns 409 TYPE_COLUMN_CONFIRM_REQUIRED without confirm', async () => {
+  // Headers differ from prior success fixture so fingerprint has no format memory match
+  const csv = Buffer.from(
+    'Site Address,Issue Type,Notes\n99 Unique Gate Rd,Weeds,tall grass\n',
+    'utf8'
+  );
+  const { body, contentType } = buildMultipart(
+    { cityId: 'arizona-marana', uploadType: 'code_violation' },
+    { name: 'file', filename: 'need-confirm.csv', data: csv }
+  );
+  const { status, json } = await callBridge('POST', '/api/bridge/process', {
+    headers: { 'Content-Type': contentType },
+    body
+  });
+  assert.equal(status, 409);
+  assert.equal(json.code, 'TYPE_COLUMN_CONFIRM_REQUIRED');
+  assert.ok(json.formatFingerprint);
+  assert.ok(Array.isArray(json.candidates));
+  assert.ok(json.candidates.length >= 1);
+  assert.ok('suggestedHeader' in json);
 });
 
 test('POST /api/bridge/attach rejects invalid JSON', async () => {

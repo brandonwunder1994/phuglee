@@ -2,9 +2,16 @@
  * Filter (Data Bridge) stress suite — messy real-world inputs, tagging matrix,
  * dedup/import edge cases, and format variants.
  */
-const { test, describe, after } = require('node:test');
+const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const XLSX = require('xlsx');
+
+const config = require('../lib/config');
+const originalFormatsRoot = config.BRIDGE_CITY_FORMATS_ROOT;
+let tempFormatsRoot;
 
 const indexModule = require('../lib/analyzer-import-index');
 const { normalizeAddressKey } = require('../lib/analyzer-import-index');
@@ -25,9 +32,23 @@ const emptyImportIndex = async () => ({
 
 let originalLoadIndex = indexModule.loadImportAddressIndex;
 
+before(() => {
+  // Isolate format memory so admin confirm in suite never writes production city-formats
+  tempFormatsRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'bridge-city-formats-stress-'));
+  config.BRIDGE_CITY_FORMATS_ROOT = tempFormatsRoot;
+});
+
 after(() => {
   indexModule.loadImportAddressIndex = originalLoadIndex;
   delete require.cache[ENGINE_PATH];
+  if (originalFormatsRoot === undefined) {
+    delete config.BRIDGE_CITY_FORMATS_ROOT;
+  } else {
+    config.BRIDGE_CITY_FORMATS_ROOT = originalFormatsRoot;
+  }
+  try {
+    if (tempFormatsRoot) fs.rmSync(tempFormatsRoot, { recursive: true, force: true });
+  } catch (_) {}
 });
 
 function freshProcessUpload() {
@@ -36,14 +57,23 @@ function freshProcessUpload() {
   return require('../lib/bridge-engine').processUpload;
 }
 
-async function runCsv(csv, uploadType = 'code_violation', filename = 'stress.csv') {
+/**
+ * Suite-compat: code_violation requires admin Type confirm (Phase 52 gate).
+ * @param {string} [confirmedTypeHeader='Violation Type'] exact sheet header or '__none__'
+ */
+async function runCsv(csv, uploadType = 'code_violation', filename = 'stress.csv', confirmedTypeHeader = 'Violation Type') {
   const processUpload = freshProcessUpload();
-  return processUpload({
+  const args = {
     buffer: Buffer.from(csv),
     filename,
     city: CITY,
     uploadType
-  });
+  };
+  if (uploadType === 'code_violation') {
+    args.username = 'admin';
+    args.confirmedTypeHeader = confirmedTypeHeader;
+  }
+  return processUpload(args);
 }
 
 function row(overrides = {}) {
@@ -136,7 +166,7 @@ describe('Filter stress — address parsing and discard rules', () => {
       'Lot 14 Block C,Trash',
       'Parcel 2201-033,Junk vehicle'
     ].join('\n');
-    const result = await runCsv(csv);
+    const result = await runCsv(csv, 'code_violation', 'stress.csv', 'Issue Type');
     assert.equal(result.stats.kept, 2);
   });
 
@@ -184,7 +214,7 @@ describe('Filter stress — address parsing and discard rules', () => {
       'Civic Address,Offense,Narrative,Notice Date,Postal',
       '55 Birch Ln,Accumulation of trash,Junk in yard,2026-05-01,85704'
     ].join('\n');
-    const result = await runCsv(csv);
+    const result = await runCsv(csv, 'code_violation', 'stress.csv', 'Offense');
     assert.equal(result.stats.kept, 1);
     assert.equal(result.rows[0].streetAddress, '55 Birch Ln');
     assert.equal(result.rows[0].violationDate, '2026-05-01');
@@ -247,7 +277,9 @@ describe('Filter stress — file format variants', () => {
       buffer,
       filename: 'city-export.xlsx',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Charge'
     });
     // Sign permit is not distress — only abandoned vehicle row is kept
     assert.equal(result.stats.kept, 1);
@@ -327,7 +359,9 @@ describe('Filter stress — deduplication and analyze cross-reference', () => {
         buffer: Buffer.from(csv),
         filename: 'mixed.csv',
         city: CITY,
-        uploadType: 'code_violation'
+        uploadType: 'code_violation',
+        username: 'admin',
+        confirmedTypeHeader: 'Violation Type'
       });
       assert.equal(result.stats.alreadyImported, 2);
       assert.equal(result.stats.kept, 1);
@@ -393,7 +427,8 @@ describe('Filter stress — messy municipal export scenarios', () => {
       '30 Prairie Ln,CE-102,Abandoned vehicle inoperable,Open',
       '40 Prairie Ln,CE-103,Parking on street overnight,Open'
     ].join('\n');
-    const result = await runCsv(csv);
+    // No identifiable Type column — confirm no-type; distress from free-text columns
+    const result = await runCsv(csv, 'code_violation', 'stress.csv', '__none__');
     assert.equal(result.stats.kept, 3);
     assert.equal(result.stats.noDistress, 1);
     assert.ok(result.rows.every((r) => /Strong/i.test(r.distressedSignalTag)));
@@ -435,7 +470,9 @@ describe('Filter stress — messy municipal export scenarios', () => {
           buffer: Buffer.from(csv),
           filename: 'solo.csv',
           city: CITY,
-          uploadType: 'code_violation'
+          uploadType: 'code_violation',
+          username: 'admin',
+          confirmedTypeHeader: 'Violation Type'
         }),
         (err) => {
           assert.equal(err.code, 'NO_USABLE_ROWS');
