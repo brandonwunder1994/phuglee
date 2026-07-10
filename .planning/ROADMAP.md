@@ -140,7 +140,7 @@ Plans:
 
 Plans:
 - [x] 45-01-PLAN.md — Pure applyDecision matrix + type rules + audit events (DEC-01–05 TDD)
-- [ ] 45-02-PLAN.md — requireAdmin + POST /api/bridge/brain/decisions (DEC-06 + persist)
+- [x] 45-02-PLAN.md — requireAdmin + POST /api/bridge/brain/decisions (DEC-06 + persist)
 - [ ] 45-03-PLAN.md — Client Train Approve/Deny wire + lastResult re-render
 
 ---

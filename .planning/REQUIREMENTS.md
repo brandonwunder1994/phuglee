@@ -34,7 +34,7 @@
 - [x] **DEC-03**: Deny on distressed writes an active global suppress_type rule for that violation type
 - [x] **DEC-04**: Approve on not-distressed writes an active global promote_type rule for that violation type
 - [x] **DEC-05**: Every decision appends an audit event (who, when, type, counts, samples)
-- [ ] **DEC-06**: Non-admin brain write APIs return 403 ADMIN_REQUIRED
+- [x] **DEC-06**: Non-admin brain write APIs return 403 ADMIN_REQUIRED
 
 ### Phrase learning depth
 
@@ -86,7 +86,7 @@
 | DEC-03 | Phase 45 | Complete |
 | DEC-04 | Phase 45 | Complete |
 | DEC-05 | Phase 45 | Complete |
-| DEC-06 | Phase 45 | Pending |
+| DEC-06 | Phase 45 | Complete |
 | PHRASE-01 | Phase 46 | Pending |
 | PHRASE-02 | Phase 46 | Pending |
 | PHRASE-03 | Phase 46 | Pending |
