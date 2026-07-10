@@ -204,6 +204,8 @@
             class="bridge-mode-tab is-active" aria-selected="true" aria-controls="bridge-kept-view">Kept list</button>
           <button type="button" role="tab" id="bridge-mode-train" data-mode="train"
             class="bridge-mode-tab" aria-selected="false" aria-controls="bridge-train-panel">Train brain</button>
+          <button type="button" role="tab" id="bridge-mode-brain" data-mode="brain"
+            class="bridge-mode-tab" aria-selected="false" aria-controls="bridge-brain-panel">Filter brain</button>
         </div>
         <p id="bridge-train-status" class="bridge-train-status" hidden role="status"></p>
         <div id="bridge-train-panel" hidden role="tabpanel" aria-labelledby="bridge-mode-train">
@@ -216,6 +218,25 @@
             <h3 id="train-fn-h">Not marked distressed</h3>
             <p class="bridge-panel-lead">Catch false negatives. Approve promotes into the kept list (phase 45).</p>
             <div id="bridge-train-not-distressed" class="bridge-train-groups"></div>
+          </section>
+        </div>
+        <div id="bridge-brain-panel" hidden role="tabpanel" aria-labelledby="bridge-mode-brain">
+          <p id="bridge-brain-status" class="bridge-train-status" hidden role="status"></p>
+          <div id="brain-metrics" class="bridge-brain-metrics" aria-live="polite"></div>
+          <section class="bridge-train-section" aria-labelledby="brain-type-h">
+            <h3 id="brain-type-h">Active type rules</h3>
+            <p class="bridge-panel-lead">Violation types currently suppressing or promoting on every process.</p>
+            <div id="brain-type-rules" class="bridge-brain-rules"></div>
+          </section>
+          <section class="bridge-train-section" aria-labelledby="brain-proposed-h">
+            <h3 id="brain-proposed-h">Proposed phrase rules</h3>
+            <p class="bridge-panel-lead">Mined from training evidence — not live until you Activate.</p>
+            <div id="brain-phrase-proposed" class="bridge-brain-rules"></div>
+          </section>
+          <section class="bridge-train-section" aria-labelledby="brain-active-phrase-h">
+            <h3 id="brain-active-phrase-h">Active phrase rules</h3>
+            <p class="bridge-panel-lead">Literal phrases matching free text on process. Disable to stop applying.</p>
+            <div id="brain-phrase-active" class="bridge-brain-rules"></div>
           </section>
         </div>
       </div>

@@ -214,10 +214,16 @@
   }
 
   function setResultsMode(mode) {
-    resultsMode = mode === 'train' ? 'train' : 'kept';
+    if (mode === 'train' || mode === 'brain') {
+      resultsMode = mode;
+    } else {
+      resultsMode = 'kept';
+    }
     const modeKept = document.getElementById('bridge-mode-kept');
     const modeTrain = document.getElementById('bridge-mode-train');
+    const modeBrain = document.getElementById('bridge-mode-brain');
     const trainPanel = document.getElementById('bridge-train-panel');
+    const brainPanel = document.getElementById('bridge-brain-panel');
 
     if (modeKept) {
       modeKept.classList.toggle('is-active', resultsMode === 'kept');
@@ -227,20 +233,190 @@
       modeTrain.classList.toggle('is-active', resultsMode === 'train');
       modeTrain.setAttribute('aria-selected', resultsMode === 'train' ? 'true' : 'false');
     }
+    if (modeBrain) {
+      modeBrain.classList.toggle('is-active', resultsMode === 'brain');
+      modeBrain.setAttribute('aria-selected', resultsMode === 'brain' ? 'true' : 'false');
+    }
 
     if (resultsMode === 'train') {
       setHidden(trainPanel, false);
+      setHidden(brainPanel, true);
       setHidden(resultsToolbar, true);
       setHidden(tableWrap, true);
       setHidden(paginationEl, true);
       // Save/attach stay visible (discretion) — do not hide
+    } else if (resultsMode === 'brain') {
+      setHidden(trainPanel, true);
+      setHidden(brainPanel, false);
+      setHidden(resultsToolbar, true);
+      setHidden(tableWrap, true);
+      setHidden(paginationEl, true);
+      loadBrainPanel().catch((e) => {
+        setBrainStatus((e && e.message) || 'Could not load Filter brain', 'error');
+      });
     } else {
       setHidden(trainPanel, true);
+      setHidden(brainPanel, true);
       const rows = lastResult?.rows || [];
       const showTable = Boolean(lastResult && !lastResult.stub && rows.length > 0);
       setHidden(resultsToolbar, !showTable);
       setHidden(tableWrap, !showTable);
       setHidden(paginationEl, !showTable);
+    }
+  }
+
+  function setBrainStatus(msg, kind) {
+    const el = document.getElementById('bridge-brain-status');
+    if (!el) return;
+    const text = msg || '';
+    setHidden(el, !text);
+    el.textContent = text;
+    el.classList.remove('is-error', 'is-success');
+    if (kind === 'error') el.classList.add('is-error');
+    if (kind === 'success') el.classList.add('is-success');
+  }
+
+  function kindLabel(kind) {
+    const k = String(kind || '');
+    if (k === 'suppress_type') return 'Suppress type';
+    if (k === 'promote_type') return 'Promote type';
+    if (k === 'suppress_phrase') return 'Suppress phrase';
+    if (k === 'promote_phrase') return 'Promote phrase';
+    return k || 'Rule';
+  }
+
+  function renderBrainRuleCard(rule, actions) {
+    const id = (rule && rule.id) || '';
+    const kind = (rule && rule.kind) || '';
+    const isPhrase = kind === 'suppress_phrase' || kind === 'promote_phrase';
+    const title = isPhrase
+      ? (rule.pattern || '(empty pattern)')
+      : (rule.violationTypeLabel || rule.violationTypeKey || '(unknown type)');
+    const actionHtml = (actions || []).map((a) => {
+      const cls = a.status === 'active'
+        ? 'bridge-btn bridge-btn-primary'
+        : 'bridge-btn bridge-btn-ghost';
+      return (
+        `<button type="button" class="${cls}" data-rule-id="${esc(id)}" data-rule-status="${esc(a.status)}">` +
+        `${esc(a.label)}</button>`
+      );
+    }).join('');
+    return (
+      `<article class="bridge-brain-rule" data-rule-id="${esc(id)}">` +
+      `<div class="bridge-brain-rule-head">` +
+      `<div class="bridge-brain-rule-title">${esc(title)}</div>` +
+      `<span class="bridge-brain-rule-kind">${esc(kindLabel(kind))}</span>` +
+      `</div>` +
+      (actionHtml ? `<div class="bridge-brain-rule-actions">${actionHtml}</div>` : '') +
+      `</article>`
+    );
+  }
+
+  function renderBrainPanel(data) {
+    const typeEl = document.getElementById('brain-type-rules');
+    const proposedEl = document.getElementById('brain-phrase-proposed');
+    const activePhraseEl = document.getElementById('brain-phrase-active');
+    const metricsEl = document.getElementById('brain-metrics');
+
+    const typeRules = Array.isArray(data && data.typeRules) ? data.typeRules : [];
+    const phraseRules = Array.isArray(data && data.phraseRules) ? data.phraseRules : [];
+    const metrics = (data && data.metrics) || {};
+
+    const activeTypes = typeRules.filter((r) => r && r.status === 'active');
+    const proposedPhrases = phraseRules.filter((r) => r && r.status === 'proposed');
+    const activePhrases = phraseRules.filter((r) => r && r.status === 'active');
+
+    if (metricsEl) {
+      const version = data && data.version != null ? data.version : '—';
+      metricsEl.innerHTML =
+        `<span class="bridge-brain-metric">v${esc(String(version))}</span>` +
+        `<span class="bridge-brain-metric">${esc(String(metrics.typeRulesActive ?? activeTypes.length))} type active</span>` +
+        `<span class="bridge-brain-metric">${esc(String(metrics.phraseRulesProposed ?? proposedPhrases.length))} proposed</span>` +
+        `<span class="bridge-brain-metric">${esc(String(metrics.phraseRulesActive ?? activePhrases.length))} phrase active</span>`;
+    }
+
+    if (typeEl) {
+      typeEl.innerHTML = activeTypes.length
+        ? activeTypes.map((r) => renderBrainRuleCard(r, [{ status: 'disabled', label: 'Disable' }])).join('')
+        : '<p class="bridge-train-muted">No active type rules yet. Deny a distressed group in Train brain to suppress a type.</p>';
+    }
+    if (proposedEl) {
+      proposedEl.innerHTML = proposedPhrases.length
+        ? proposedPhrases.map((r) => renderBrainRuleCard(r, [
+          { status: 'active', label: 'Activate' },
+          { status: 'rejected', label: 'Reject' }
+        ])).join('')
+        : '<p class="bridge-train-muted">No proposed phrases. Train on free-text samples to mine candidates.</p>';
+    }
+    if (activePhraseEl) {
+      activePhraseEl.innerHTML = activePhrases.length
+        ? activePhrases.map((r) => renderBrainRuleCard(r, [{ status: 'disabled', label: 'Disable' }])).join('')
+        : '<p class="bridge-train-muted">No active phrase rules. Activate a proposed phrase to apply it on process.</p>';
+    }
+  }
+
+  async function loadBrainPanel() {
+    if (!isBridgeAdmin()) {
+      setBrainStatus('Admin required to view Filter brain.', 'error');
+      return null;
+    }
+    setBrainStatus('Loading Filter brain…', '');
+    try {
+      const data = await fetchJson('/api/bridge/brain');
+      renderBrainPanel(data);
+      setBrainStatus('', '');
+      return data;
+    } catch (err) {
+      const msg = (err && err.message) || 'Could not load Filter brain';
+      if (/admin/i.test(msg)) {
+        setBrainStatus('Admin required to view Filter brain.', 'error');
+      } else {
+        setBrainStatus(msg, 'error');
+      }
+      throw err;
+    }
+  }
+
+  async function setRuleStatus(id, status) {
+    if (!isBridgeAdmin()) {
+      throw new Error('Admin required to change rule status');
+    }
+    if (!id || !status) {
+      throw new Error('Missing rule id or status');
+    }
+    const data = await fetchJson(`/api/bridge/brain/rules/${encodeURIComponent(id)}/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    await loadBrainPanel();
+    if (status === 'active') {
+      setBrainStatus('Rule activated. Applies on next file process.', 'success');
+    } else if (status === 'rejected') {
+      setBrainStatus('Proposed rule rejected.', 'success');
+    } else if (status === 'disabled') {
+      setBrainStatus('Rule disabled. Will not apply on next process.', 'success');
+    } else {
+      setBrainStatus('Rule status updated.', 'success');
+    }
+    return data;
+  }
+
+  async function onBrainRuleAction(btn) {
+    if (!btn || btn.disabled || !isBridgeAdmin()) return;
+    const id = btn.getAttribute('data-rule-id');
+    const status = btn.getAttribute('data-rule-status');
+    const card = btn.closest('.bridge-brain-rule');
+    if (card) card.classList.add('is-pending');
+    card?.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+    try {
+      await setRuleStatus(id, status);
+    } catch (err) {
+      setBrainStatus((err && err.message) || 'Could not update rule status', 'error');
+      if (card) {
+        card.classList.remove('is-pending');
+        card.querySelectorAll('button').forEach((b) => { b.disabled = false; });
+      }
     }
   }
 
@@ -1407,7 +1583,7 @@
     if (event.target === historyDialog) closeHistoryDialog();
   });
 
-  // Train brain mode tabs + Approve/Deny (event delegation, once)
+  // Train brain / Filter brain mode tabs + Approve/Deny + rule status (event delegation, once)
   document.querySelector('.bridge-results-mode')?.addEventListener('click', (event) => {
     const tab = event.target.closest('[data-mode]');
     if (!tab || !isBridgeAdmin()) return;
@@ -1421,6 +1597,13 @@
     const group = resolveTrainGroupFromCard(card);
     onTrainDecision(btn.dataset.action, group, card).catch((e) => {
       showError((e && e.message) || 'Could not save train decision');
+    });
+  });
+  document.getElementById('bridge-brain-panel')?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-rule-id][data-rule-status]');
+    if (!btn || btn.disabled || !isBridgeAdmin()) return;
+    onBrainRuleAction(btn).catch((e) => {
+      setBrainStatus((e && e.message) || 'Could not update rule status', 'error');
     });
   });
 
