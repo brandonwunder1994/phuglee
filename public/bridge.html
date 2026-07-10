@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=15">
+  <link rel="stylesheet" href="/css/bridge.css?v=16">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -69,8 +69,8 @@
     </nav>
 
     <section class="bridge-panel phuglee-panel" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
-      <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Select city profile</h2>
-      <p class="bridge-panel-lead">Pick the city profile you're attaching data to. Only cities already in Form Forge appear here.</p>
+      <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Pick the city</h2>
+      <p class="bridge-panel-lead">Name the city you're scrubbing. Only Form Forge cities show here.</p>
       <div class="bridge-row">
         <label for="bridge-state">State
           <select id="bridge-state" disabled>
@@ -84,7 +84,7 @@
         </label>
       </div>
       <div class="bridge-city-actions" id="bridge-city-actions" hidden>
-        <button type="button" class="bridge-history-open-btn phuglee-btn phuglee-btn-secondary" id="bridge-history-open">Attachment history</button>
+        <button type="button" class="bridge-history-open-btn phuglee-btn phuglee-btn-secondary" id="bridge-history-open">Prior attaches</button>
       </div>
       <div class="bridge-city-outcome" id="bridge-city-outcome" hidden>
         <h3 class="bridge-city-outcome-title">City reply (no list yet)</h3>
@@ -139,15 +139,15 @@
               <option value="water_shutoff">Water shutoff</option>
             </select>
           </label>
-          <button type="button" class="bridge-btn bridge-btn-primary" id="bridge-outcome-save" disabled>Save to City Tracker</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-outcome-save" disabled>Log city reply</button>
         </div>
         <p class="bridge-outcome-status" id="bridge-outcome-status" role="status" hidden></p>
       </div>
     </section>
 
     <section class="bridge-panel phuglee-panel" id="bridge-type-panel" hidden aria-labelledby="bridge-step-type" data-phuglee-reveal-child>
-      <h2 id="bridge-step-type"><span class="bridge-step-badge" aria-hidden="true">2</span> Label upload type</h2>
-      <p class="bridge-panel-lead">This label is stored with the version for filtering and history.</p>
+      <h2 id="bridge-step-type"><span class="bridge-step-badge" aria-hidden="true">2</span> What did the clerk send?</h2>
+      <p class="bridge-panel-lead">Tag the list type so history and filters stay clean.</p>
       <div class="bridge-type-grid" role="radiogroup" aria-label="Upload type">
         <label class="bridge-type-card">
           <input type="radio" name="bridge-upload-type" value="code_violation" />
@@ -169,8 +169,8 @@
     </section>
 
     <section class="bridge-panel phuglee-panel" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
-      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Upload city response file(s)</h2>
-      <p class="bridge-panel-lead">Drag and drop or browse up to <strong>5 files</strong> from the same city. Photos and scans work — shoot the printed violation or shutoff list if that's what the clerk sent.</p>
+      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Drop the clerk file</h2>
+      <p class="bridge-panel-lead">Drop or browse up to <strong>5 files</strong> from the same city. Photos OK if the clerk printed it.</p>
       <div class="bridge-format-badges" aria-hidden="true">
         <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
       </div>
@@ -195,8 +195,8 @@
         </div>
       </div>
       <div class="bridge-actions bridge-actions--upload">
-        <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Process upload</button>
-        <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Scrub it</button>
+        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
       </div>
     </section>
 
@@ -229,7 +229,7 @@
               <span class="bridge-sr-only">Filter train groups</span>
               <input type="search" id="bridge-train-search" placeholder="Search violation type…" autocomplete="off" />
             </label>
-            <button type="button" class="bridge-btn bridge-btn-ghost" id="bridge-train-undo" disabled title="Undo last training decision">↩️ Undo</button>
+            <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-train-undo" disabled title="Undo last training decision">↩️ Undo</button>
           </div>
           <section class="bridge-train-section" aria-labelledby="train-distressed-h">
             <h3 id="train-distressed-h">Marked distressed</h3>
@@ -289,7 +289,7 @@
           <input type="checkbox" id="bridge-filter-review" />
           <span>Needs review only</span>
         </label>
-        <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-export-csv">Preview CSV</button>
+        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-export-csv">Preview CSV</button>
       </div>
 
       <div class="bridge-table-wrap" id="bridge-table-wrap" hidden>
@@ -311,13 +311,13 @@
       <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download → enrich outside → manual Analyze import</p>
 
       <section class="bridge-save-panel" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
-        <h3 id="bridge-save-heading">Save filtered list</h3>
+        <h3 id="bridge-save-heading">Stage the list</h3>
         <p class="bridge-panel-lead">Store this list so you can process more cities. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
         <div class="bridge-save-row">
           <label class="bridge-save-name" for="bridge-list-name">List name
             <input type="text" id="bridge-list-name" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
           </label>
-          <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
         </div>
         <p class="bridge-save-status" id="bridge-save-status" hidden role="status"></p>
       </section>
@@ -326,7 +326,7 @@
         <h3 id="bridge-attach-heading">Optional · Attach to city profile</h3>
         <p class="bridge-panel-lead">Log this response on the Form Forge city profile for turnaround tracking. This does not send leads to Analyze.</p>
         <div class="bridge-attach-row">
-          <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-attach">Attach versioned dataset</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-attach">Attach versioned dataset</button>
         </div>
         <p class="bridge-attach-status" id="bridge-attach-status" hidden role="status"></p>
       </section>
@@ -349,9 +349,9 @@
           <p class="bridge-panel-lead">Master staging: lists stay until you delete them. Download one or all for skip-trace / enrichment, then import into Analyze manually. <span class="bridge-lists-legend" title="List type key">⚠️ Code violation · 💧 Water shut-off</span></p>
         </div>
         <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
-          <button type="button" class="bridge-btn bridge-btn-primary phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv">Download all (CSV)</button>
-          <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
-          <button type="button" class="bridge-btn bridge-btn-ghost phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv">Download all (CSV)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
         </div>
       </div>
       <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace.</div>
@@ -386,7 +386,7 @@
     <div class="bridge-history-dialog-card phuglee-panel distress-glass--float">
       <div class="bridge-history-dialog-head">
         <div>
-          <h2 id="bridge-history-heading">Attachment history</h2>
+          <h2 id="bridge-history-heading">Prior attaches</h2>
           <p class="bridge-history-dialog-lead" id="bridge-history-lead">Prior Filter datasets attached to this city profile.</p>
         </div>
         <button type="button" class="bridge-history-dialog-close" id="bridge-history-close" aria-label="Close">&times;</button>
@@ -424,6 +424,6 @@
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=5"></script>
-  <script src="/js/bridge.js?v=34"></script>
+  <script src="/js/bridge.js?v=35"></script>
 </body>
 </html>
