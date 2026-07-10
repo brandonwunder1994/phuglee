@@ -23,7 +23,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Roadmap ready — plan Phase 55  
+**Status:** Phase 55 planned — ready to execute  
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
@@ -48,7 +48,12 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
   2. Legacy Analyze-push adapter (`bridge-analyzer-push` and call sites/UI) is deleted or quarantined so re-wiring it fails automated tests
   3. Automated negative tests prove process + save paths never require Analyze push and never invent Analyze session writes
   4. Re-filtering or purging a city keeps the full kept list by default — `already_imported` Analyze-index filtering does not hard-drop rows unless an explicit future opt-in is enabled
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 55-01-PLAN.md — Default-off already_imported in processUpload (IND-04)
+- [ ] 55-02-PLAN.md — Delete push adapter + independence negative tests (IND-01/02/03)
+- [ ] 55-03-PLAN.md — Docs + light UI copy for independence messaging
 
 ### Phase 56: List Factory UX
 **Goal**: Operators treat Filter as a multi-city list factory — primary path is Save list then Download (one or all) for external enrich, with copy that teaches Process → (Train) → Save → Download → manual Analyze import
@@ -107,7 +112,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 55. Independence Lock | 0/TBD | Not started | - |
+| 55. Independence Lock | 0/3 | Planned | - |
 | 56. List Factory UX | 0/TBD | Not started | - |
 | 57. Accuracy Structure Pass | 0/TBD | Not started | - |
 | 58. Learning Loop Strength | 0/TBD | Not started | - |
