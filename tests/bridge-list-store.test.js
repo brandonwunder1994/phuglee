@@ -55,6 +55,33 @@ test('saveList creates a list and appears in summaries', () => {
   assert.ok(lists.some((row) => row.id === meta.id));
 });
 
+test('LIST-02: multi-city lists accumulate until deleted', () => {
+  const user = 'list02-multi';
+  const a = saveList({
+    name: 'City A Code',
+    rows: [{ streetAddress: '1 A St', city: 'Marana', state: 'Arizona' }],
+    city: 'Marana',
+    state: 'Arizona',
+    uploadType: 'code_violation',
+    username: user
+  });
+  const b = saveList({
+    name: 'City B Water',
+    rows: [{ streetAddress: '2 B Rd', city: 'Reno', state: 'Nevada' }],
+    city: 'Reno',
+    state: 'Nevada',
+    uploadType: 'water_shut_off',
+    username: user
+  });
+  const { lists } = listSummaries({ username: user });
+  const names = lists.map((row) => row.name);
+  assert.ok(names.includes('City A Code'), 'City A list must remain');
+  assert.ok(names.includes('City B Water'), 'City B list must remain');
+  assert.ok(lists.length >= 2, 'multi-city accumulate');
+  assert.ok(lists.some((row) => row.id === a.meta.id));
+  assert.ok(lists.some((row) => row.id === b.meta.id));
+});
+
 test('renameList updates name', () => {
   const { meta } = saveList({
     name: 'Old Name',

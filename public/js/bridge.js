@@ -786,9 +786,15 @@
       (getReviewGroups(lastResult).distressed || []).concat(getReviewGroups(lastResult).notDistressed || [])
     ).length;
     if (remaining === 0) {
-      setTrainStatus(`${verb} “${displayLabel}” · all groups reviewed for this batch`, 'success');
+      setTrainStatus(
+        `Decision saved to brain. Save list below when this city is ready.`,
+        'success'
+      );
     } else {
-      setTrainStatus(`${verb} “${displayLabel}” · ${remaining} group(s) left`, 'success');
+      setTrainStatus(
+        `Decision saved to brain · ${remaining} group(s) left. Save list below when this city is ready.`,
+        'success'
+      );
     }
     return data;
   }
@@ -1495,8 +1501,8 @@
         else listsPanel.prepend(flash);
       }
       flash.textContent = savedLabel
-        ? `Saved “${savedLabel}”. Upload the next city file when ready.`
-        : 'List saved. Upload the next city file when ready.';
+        ? `Saved “${savedLabel}”. Upload the next city when ready — or download from Saved lists for enrichment.`
+        : 'List saved. Upload the next city when ready — or download from Saved lists for enrichment.';
       flash.hidden = false;
       window.setTimeout(() => {
         if (flash) flash.hidden = true;
@@ -1509,6 +1515,21 @@
     if (!lastResult?.rows?.length) {
       setSaveStatus('Process a file with kept rows before saving.', 'error');
       return;
+    }
+    // LIST-02 soft Train-before-Save (admin only; never hard-block without cancel)
+    if (isBridgeAdmin() && resultsMode === 'train') {
+      const open = filterUndecidedTrainGroups(
+        (getReviewGroups(lastResult).distressed || []).concat(
+          getReviewGroups(lastResult).notDistressed || []
+        )
+      ).length;
+      if (open > 0) {
+        const ok = window.confirm(
+          `${open} Train group(s) are still visible. Save this list now?\n\n` +
+          `Tip: Finish Approve/Deny first so this download matches your decisions.`
+        );
+        if (!ok) return;
+      }
     }
     const name = String(listNameInput?.value || '').trim() || defaultNameFromResult(lastResult);
     if (saveListBtn) saveListBtn.disabled = true;
@@ -2085,6 +2106,15 @@
       showError('Enter when the city sent this list (date and time) before processing.');
       focusResponseDateTime();
       return;
+    }
+    // LIST-02 dirty-guard: do not silently clobber unsaved kept / Train work
+    if (lastResult && Array.isArray(lastResult.rows) && lastResult.rows.length > 0) {
+      const n = lastResult.rows.length;
+      const ok = window.confirm(
+        `You have ${n.toLocaleString()} kept row(s) that are not saved yet.\n\n` +
+        `Process a new file anyway? Unsaved work (including any Train decisions) will be lost.`
+      );
+      if (!ok) return;
     }
     showError('');
     setHidden(resultsPanel, true);

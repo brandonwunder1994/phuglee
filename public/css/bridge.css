@@ -216,6 +216,15 @@ body {
   color: var(--phuglee-stone);
 }
 
+/* LIST-03 workflow teaching strip (secondary to Save list CTA) */
+.bridge-workflow-strip {
+  margin: 0 0 16px;
+  padding: 8px 0 0;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--phuglee-stone);
+}
+
 /* Step pipeline */
 .bridge-pipeline {
   margin-bottom: 1.5rem;

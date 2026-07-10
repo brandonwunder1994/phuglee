@@ -102,7 +102,7 @@ Upload and process a city response file. Does **not** persist to city profile.
 
 Processing **does not** push to Analyze. Save filtered lists via `POST /api/bridge/lists`, then download for third-party enrichment. Analyze only receives data when you manually import an enriched list there.
 
-Addresses already present in the Analyze session are still removed from kept rows (`stats.alreadyImported`).
+Analyze-index hard-drop (`already_imported`) is **off by default** (v2.0 / IND-04). `stats.alreadyImported` is `0` unless process is called with engine flag `applyAlreadyImportedFilter === true`.
 
 **Response 400:** Invalid upload type, unsupported file, empty file, city not found.
 

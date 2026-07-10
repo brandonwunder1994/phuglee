@@ -96,10 +96,11 @@ The index is cached for 5 minutes. Matching uses the same address similarity thr
 After processing, kept rows stay on the Filter page until the user explicitly saves them.
 
 - API: `POST /api/bridge/lists` (user-scoped filesystem store under `FILTER_LISTS_ROOT`, default `PDA_DATA_ROOT/filter-lists` so Railway volumes keep lists across deploys)
-- Download: `GET /api/bridge/lists/:id/download?format=csv|xlsx`
+- Download: `GET /api/bridge/lists/:id/download?format=csv|xlsx` · download-all: `GET /api/bridge/lists/download-all?format=csv|xlsx`
 - Rename / delete: `PATCH` / `DELETE` on `/api/bridge/lists/:id`
+- **Multi-city staging:** lists **persist until the operator deletes them**. Process, restart, and deploy do **not** wipe the list store (volume-safe `FILTER_LISTS_ROOT`).
 - **No automatic push to Analyze.** Process, save, Train, and list APIs never write Analyze sessions. Legacy Filter adapter `bridge-analyzer-push.js` is **deleted**; independence locked by `tests/bridge-independence.test.js`.
-- **Workflow:** Download lists → enrich / skip-trace outside Distress OS → **manual** import into Analyze.
+- **Workflow:** Process → (Train, admin optional) → **Save list** → **Download** one or all → external enrich / skip-trace → **manual** Analyze import.
 
 The Analyzer `POST /api/bridge-import-records` endpoint may still exist for **manual** import compatibility but is not called from Filter process/save/Train.
 
