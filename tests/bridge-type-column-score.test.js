@@ -1,8 +1,7 @@
 /**
- * Wave 0 RED — COL-01 / COL-02 / COL-04 pure Type-column scorer trap matrix.
+ * COL-01 / COL-02 / COL-04 pure Type-column scorer trap matrix.
  *
- * Locks expected winners before lib/bridge-type-column-score.js exists (Plan 02).
- * Do not implement the scorer in this plan — tests must fail (MODULE_NOT_FOUND or asserts).
+ * Wave 0 RED (Plan 01) → green pure scorer (Plan 02). Process wire is Plan 03.
  */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
@@ -10,7 +9,8 @@ const assert = require('node:assert/strict');
 const {
   scoreTypeColumns,
   pickTypeColumn,
-  resolveTypeColumnHeader
+  resolveTypeColumnHeader,
+  DEFAULTS
 } = require('../lib/bridge-type-column-score');
 
 // ---------------------------------------------------------------------------
@@ -304,4 +304,24 @@ test('COL-01 optional: empty samples with classic Violation Type header still ca
     'Empty samples: classic Violation Type header must still win via header features'
   );
   assert.equal(result.source, 'scorer');
+});
+
+// ---------------------------------------------------------------------------
+// DEFAULTS + never-blend documentation (Plan 02 Task 2)
+// ---------------------------------------------------------------------------
+
+test('DEFAULTS export documents sampleSize, minScore, minMargin', () => {
+  assert.equal(DEFAULTS.sampleSize, 80);
+  assert.equal(DEFAULTS.maxSamplesPerCol, 40);
+  assert.equal(DEFAULTS.minScore, 45);
+  assert.equal(DEFAULTS.minMargin, 8);
+});
+
+test('pickTypeColumn returns null below minScore (never invents a blend)', () => {
+  const ranked = [
+    { header: 'Weak A', score: 10, reasons: [], samples: [], aliasTier: 0 },
+    { header: 'Weak B', score: 8, reasons: [], samples: [], aliasTier: 0 }
+  ];
+  const picked = pickTypeColumn(ranked);
+  assert.equal(picked, null, 'scores below DEFAULTS.minScore must not produce a winner');
 });
