@@ -22,8 +22,8 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Signal shape (SHAPE)
 
-- [ ] **SHAPE-01**: Process/review rows keep `matchedIndicators` as string arrays so Train chips can render matches
-- [ ] **SHAPE-02**: Spreadsheet/export path still joins indicators to a single cell string (export contract unchanged for Analyzer)
+- [x] **SHAPE-01**: Process/review rows keep `matchedIndicators` as string arrays so Train chips can render matches
+- [x] **SHAPE-02**: Spreadsheet/export path still joins indicators to a single cell string (export contract unchanged for Analyzer)
 
 ### Verification (TEST)
 
@@ -57,8 +57,8 @@ Deferred — not in this milestone.
 | MAP-01 | Phase 48 | Pending |
 | MAP-02 | Phase 48 | Pending |
 | MAP-03 | Phase 48 | Pending |
-| SHAPE-01 | Phase 48 | Pending |
-| SHAPE-02 | Phase 48 | Pending |
+| SHAPE-01 | Phase 48 | Complete |
+| SHAPE-02 | Phase 48 | Complete |
 | GROUP-01 | Phase 49 | Pending |
 | GROUP-02 | Phase 49 | Pending |
 | GROUP-03 | Phase 49 | Pending |

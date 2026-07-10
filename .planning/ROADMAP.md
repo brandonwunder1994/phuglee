@@ -14,7 +14,7 @@
 ## Active Work
 
 **Milestone:** v1.7 Filter Accuracy & Grouping  
-**Status:** Roadmap ready — next `/gsd:plan-phase 48`  
+**Status:** Phase 48 planned — next `/gsd:execute-phase 48`  
 **Goal:** Train/Filter grouping stacks real categories; timestamps do not create false singletons; FN rows show city categories; signal chips stay visible.
 
 **Diagnosis:** [debug/filter-singleton-no-category.md](./debug/filter-singleton-no-category.md)
@@ -43,7 +43,11 @@
   3. Promotion does not invent fake types from pure free-text noise when no category signal exists; prefers category-like headers/cells over timestamp-only notes
   4. Process/review rows keep `matchedIndicators` as string arrays so Train chips can render matches
   5. Spreadsheet/export path still joins indicators to a single cell string (export contract unchanged for Analyzer)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 48-01-PLAN.md — SHAPE: keep matchedIndicators as arrays on process rows; join only on export
+- [ ] 48-02-PLAN.md — MAP: pure category promote helper + normalizer wire for unmapped city categories
 
 ### Phase 49: Stable Group Keys
 **Goal**: Same real-world category stacks into one group; incidental timestamps no longer flood Train with false singletons
@@ -135,10 +139,10 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration, unit tes
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42–47 | v1.6 | 12/12 | Complete | 2026-07-10 |
-| 48. Category Promotion & Signal Shape | v1.7 | 0/TBD | Not started | - |
+| 48. Category Promotion & Signal Shape | 1/2 | In Progress|  | - |
 | 49. Stable Group Keys | v1.7 | 0/TBD | Not started | - |
 | 50. Regression Lock | v1.7 | 0/TBD | Not started | - |
 
 ---
 
-*Roadmap updated: 2026-07-10 — v1.7 Filter Accuracy & Grouping phases 48–50 drafted*
+*Roadmap updated: 2026-07-10 — Phase 48 plans written (SHAPE then MAP)*
