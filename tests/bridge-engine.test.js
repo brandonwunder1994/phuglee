@@ -373,7 +373,16 @@ test('processUpload parses PDF text extracts', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
   const originalPdfParse = require(pdfParsePath);
 
-  require.cache[pdfParsePath].exports = async () => ({ text, numpages: 1 });
+  // pdf-parse v2 API: class PDFParse with getText() / destroy()
+  require.cache[pdfParsePath].exports = {
+    PDFParse: class {
+      constructor() {}
+      async getText() {
+        return { text, total: 1 };
+      }
+      async destroy() {}
+    }
+  };
   delete require.cache[pdfParserPath];
   delete require.cache[enginePath];
   const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
