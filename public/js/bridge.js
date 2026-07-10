@@ -1012,6 +1012,16 @@
     const hasError = Boolean(msg);
     setHidden(errorWrap, !hasError);
     if (errorEl) errorEl.textContent = msg || '';
+    if (hasError && errorWrap) {
+      try {
+        errorWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (_) { /* ignore */ }
+    }
+    if (hasError) {
+      try {
+        console.error('[Filter] process/UI error:', msg);
+      } catch (_) { /* ignore */ }
+    }
   }
 
   function setPipelineStep(step) {
@@ -1039,7 +1049,18 @@
 
   async function fetchJson(url, options) {
     const headers = bridgeHeaders(options && options.headers);
-    const res = await fetch(url, { cache: 'no-store', ...options, headers });
+    let res;
+    try {
+      res = await fetch(url, { cache: 'no-store', ...options, headers });
+    } catch (netErr) {
+      const err = new Error(
+        (netErr && netErr.message)
+          ? `Network error: ${netErr.message}`
+          : 'Network error — could not reach the server. Check connection and try again.'
+      );
+      err.code = 'NETWORK_ERROR';
+      throw err;
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       if (data.code === 'OCR_UNAVAILABLE' || res.status === 503) {
@@ -1059,6 +1080,16 @@
         }
         const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
         throw new Error((data.error || 'No usable addresses found in this file.') + detail);
+      }
+      if (data.code === 'FORMAT_MISMATCH') {
+        const err = new Error(
+          (data.error || 'Mixed file formats in batch') +
+          ' Tip: process one file at a time when headers differ between files.'
+        );
+        err.code = 'FORMAT_MISMATCH';
+        err.status = res.status;
+        err.details = data;
+        throw err;
       }
       const err = new Error(data.error || `Request failed (${res.status})`);
       err.code = data.code || null;
@@ -2167,13 +2198,38 @@
   }
 
   /**
+   * Fallback when <dialog>.showModal is unavailable — never silent-fail process.
+   * @returns {string|null|undefined} header | null (no type) | undefined (cancel)
+   */
+  function fallbackTypeColumnConfirm(details) {
+    const suggested = details && details.suggestedHeader != null
+      ? String(details.suggestedHeader)
+      : '';
+    const cityLabel = details && details.city
+      ? [details.city.city, details.city.state].filter(Boolean).join(', ')
+      : (selectedCity ? [selectedCity.city, selectedCity.state].filter(Boolean).join(', ') : 'this city');
+    if (suggested) {
+      const ok = window.confirm(
+        `${cityLabel}: confirm Type column “${suggested}” for this format?\n\n` +
+        `OK = use “${suggested}”\nCancel = stop process (click Process again to choose)`
+      );
+      return ok ? suggested : undefined;
+    }
+    const okNone = window.confirm(
+      `${cityLabel}: no Type column was suggested.\n\n` +
+      `OK = process with no type column\nCancel = stop process`
+    );
+    return okNone ? null : undefined;
+  }
+
+  /**
    * Admin modal: ranked Type column candidates + samples.
    * @returns {Promise<string|null|undefined>} header string | null (no type) | undefined (cancel)
    */
   function openTypeColumnConfirmDialog(details) {
     return new Promise((resolve) => {
       if (!typeConfirmDialog || !typeConfirmCandidates) {
-        resolve(undefined);
+        resolve(fallbackTypeColumnConfirm(details));
         return;
       }
 
@@ -2295,7 +2351,17 @@
       const onOk = () => {
         const checked = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]:checked');
         if (!checked) {
-          finish(undefined);
+          // Prefer suggested / first candidate over silent cancel
+          if (suggested) {
+            finish(suggested);
+            return;
+          }
+          const first = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]');
+          if (first && first.value && first.value !== '__none__') {
+            finish(first.value);
+            return;
+          }
+          finish(null);
           return;
         }
         if (checked.value === '__none__') {
@@ -2320,15 +2386,41 @@
       typeConfirmDialog.addEventListener('click', onBackdrop);
 
       try {
-        typeConfirmDialog.showModal();
-      } catch (_) {
-        finish(undefined);
+        if (typeof typeConfirmDialog.showModal === 'function') {
+          typeConfirmDialog.showModal();
+        } else {
+          finish(fallbackTypeColumnConfirm(details));
+        }
+      } catch (dialogErr) {
+        console.warn('[Filter] type confirm showModal failed, using fallback', dialogErr);
+        finish(fallbackTypeColumnConfirm(details));
       }
     });
   }
 
+  let processUploadInFlight = false;
+
   async function processUpload() {
-    if (!selectedCity || !selectedUploadType || !selectedFiles.length) return;
+    if (processUploadInFlight) {
+      showError('Process is already running — wait for it to finish.');
+      return;
+    }
+    if (!selectedCity) {
+      showError('Select a city before processing.');
+      setPipelineStep('location');
+      try { citySelect?.focus(); } catch (_) { /* ignore */ }
+      return;
+    }
+    if (!selectedUploadType) {
+      showError('Select the upload type (Code Violation or Water Shut Off) before processing.');
+      setPipelineStep('type');
+      return;
+    }
+    if (!selectedFiles.length) {
+      showError('Add at least one file before processing.');
+      setPipelineStep('upload');
+      return;
+    }
     const responseAt = getResponseAtValue();
     if (!responseAt) {
       showError('Enter when the city sent this list (date and time) before processing.');
@@ -2342,7 +2434,10 @@
         `You have ${n.toLocaleString()} kept row(s) that are not saved yet.\n\n` +
         `Process a new file anyway? Unsaved work (including any Train decisions) will be lost.`
       );
-      if (!ok) return;
+      if (!ok) {
+        showError('Process cancelled — unsaved kept rows were kept on screen.');
+        return;
+      }
     }
     showError('');
     setHidden(resultsPanel, true);
@@ -2350,6 +2445,7 @@
     if (processBtn) processBtn.disabled = true;
     startLoadingAnimation();
     lastFailedAction = 'process';
+    processUploadInFlight = true;
 
     try {
       let data;
@@ -2374,11 +2470,19 @@
           }
 
           const details = err.details || err;
+          // Visible cue while modal is up (modal may be missed if dialog fails)
+          showError(
+            'Confirm the Type column in the dialog to continue processing this city format…'
+          );
           const choice = await openTypeColumnConfirmDialog(details);
           if (choice === undefined) {
-            // Cancel — leave process available, no hang
+            showError(
+              'Type column confirmation was cancelled — nothing was processed. ' +
+              'Click Process again and confirm the Type column (or choose “No type column”).'
+            );
             return;
           }
+          showError('');
 
           setHidden(loadingPanel, false);
           if (processBtn) processBtn.disabled = true;
@@ -2405,6 +2509,10 @@
         }
       }
 
+      if (!data || typeof data !== 'object') {
+        throw new Error('Process returned an empty response. Try again.');
+      }
+
       // New process batch — reset client undo stack and train polish state
       trainUndoStack.length = 0;
       clearTrainDecidedKeys();
@@ -2416,11 +2524,21 @@
       if (data && data.processingMeta && data.processingMeta.brainVersion != null) {
         brainVersion = Number(data.processingMeta.brainVersion);
       }
+      showError('');
       renderResults(data);
       updateTrainUndoButton();
+      // Ensure results are visible (not left under the fold after loader)
+      try {
+        resultsPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (_) { /* ignore */ }
     } catch (err) {
-      showError((err && err.message) || 'Could not process upload.');
+      const msg = (err && err.message) || 'Could not process upload.';
+      showError(msg);
+      try {
+        console.error('[Filter] processUpload failed', err);
+      } catch (_) { /* ignore */ }
     } finally {
+      processUploadInFlight = false;
       stopLoadingAnimation();
       setHidden(loadingPanel, true);
       if (processBtn) processBtn.disabled = !selectedFiles.length;

@@ -72,6 +72,22 @@ test('LIST-02: dirty-guard strings present on processUpload', () => {
   assert.match(head, /not saved yet/);
 });
 
+test('processUpload never silent-cancels Type column confirm', () => {
+  const i = js.indexOf('async function processUpload');
+  assert.ok(i >= 0);
+  // Include enough of processUpload for type-confirm + resume paths
+  const slice = js.slice(i, i + 9000);
+  assert.match(
+    slice,
+    /Type column confirmation was cancelled/,
+    'cancel must showError — not silent return after loader'
+  );
+  assert.match(slice, /openTypeColumnConfirmDialog/);
+  assert.match(js, /fallbackTypeColumnConfirm/, 'must have showModal fallback');
+  assert.match(js, /FORMAT_MISMATCH/, 'client must surface mixed-format batch errors');
+  assert.match(slice, /processUploadInFlight/, 'must guard double Process clicks');
+});
+
 test('LIST-02: soft Train-before-Save for admin in saveCurrentList', () => {
   assert.match(js, /Train group\(s\) are still visible\. Save this list now\?/);
   assert.match(js, /Finish Approve\/Deny first so this download matches your decisions\./);

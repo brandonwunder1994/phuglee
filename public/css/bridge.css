@@ -1545,12 +1545,15 @@ body {
   width: 100%;
   background: transparent;
   color: var(--text);
+  /* Above loading panel / chrome so Type confirm is never buried */
+  z-index: 10000;
 }
 
 .bridge-history-dialog::backdrop {
   background: rgba(13, 13, 13, 0.82);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  z-index: 9999;
 }
 
 @keyframes bridge-dialog-rise {
