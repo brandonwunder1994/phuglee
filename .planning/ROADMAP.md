@@ -159,7 +159,11 @@ Plans:
   3. Admin can open a Filter brain panel to view, activate, reject, or disable type and phrase rules
   4. After admin activates a phrase rule, a subsequent process applies it for all users
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 46-01-PLAN.md — Pure phrase miner + decisions hook; proposed never auto-live (PHRASE-01, PHRASE-02)
+- [ ] 46-02-PLAN.md — Admin brain API + Filter brain panel activate/reject/disable (PHRASE-03)
 
 ---
 
@@ -180,7 +184,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 47-01-PLAN.md � Caps, version 409, split undo, metrics, train polish, TAGGING-RULES, phase gate (HARD-01�04)
+- [ ] 47-01-PLAN.md — Caps, version 409, split undo, metrics, train polish, TAGGING-RULES, phase gate (HARD-01–04)
 
 ---
 
