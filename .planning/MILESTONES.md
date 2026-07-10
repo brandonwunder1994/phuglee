@@ -1,5 +1,19 @@
 # Project Milestones: Distress OS
 
+## v1.6 Filter Superpower Brain (Planned: 2026-07-09)
+
+**Goal:** Global admin-only Filter brain — grouped Approve/Deny trains type + phrase rules; every future upload improves for all customers.
+
+**Phases:** 42–47
+
+**Design spec:** `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md`
+
+**GSD doc:** `docs/gsd/milestones/M7-filter-superpower-brain.md`
+
+**Status:** `planned` — full audit + phase plans written; execute on user command only
+
+---
+
 ## v1.0 Shell & Integration (Shipped: 2026-07-01)
 
 **Delivered:** Unified local shell with landing, Command Hub, reverse proxy for Form Forge and Property Analyzer, Data Bridge, and health orchestration.

@@ -2,72 +2,59 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
-status: ready_to_plan
+status: planned
 last_updated: "2026-07-09"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 12
   completed_plans: 0
 ---
 
-# Project State
-
-## Project Reference
-
-See: `.planning/PROJECT.md` (updated 2026-07-09)
-
-**Core value:** Collect → Filter → Analyze with seamless navigation; Filter must kill non-deals and improve via admin training.  
-**Current focus:** Phase 42 — Brain store + runtime apply (ready to plan)
+# State
 
 ## Current Position
 
-Phase: 42 of 47 (Brain store + runtime apply) — first of 6 v1.6 phases  
+Phase: **42** ready to execute (all phases 42–47 planned + plan-checked)  
 Plan: —  
-Status: Ready to plan (`/gsd:plan-phase 42`)  
-Last activity: 2026-07-09 — GSD roadmapper wrote ROADMAP.md for v1.6 (phases 42–47)
+Status: **GSD planning complete** — real pipeline used  
+Last activity: 2026-07-09 — map-codebase → new-milestone → roadmapper → plan-phase (research+plan+check) for 42–47
 
-Progress: [░░░░░░░░░░] 0%
+## What ran (real GSD)
 
-## Performance Metrics
+| Step | Command / agent | Result |
+|------|-----------------|--------|
+| Map | `gsd-codebase-mapper` ×4 | `.planning/codebase/` 7 docs |
+| Milestone | MILESTONE-CONTEXT + REQUIREMENTS | v1.6 locked |
+| Roadmap | `gsd-roadmapper` | Phases 42–47, 24/24 reqs |
+| Research | `gsd-phase-researcher` | 42–47 RESEARCH.md |
+| Plan | `gsd-planner` | 12 PLAN.md files |
+| Check | `gsd-plan-checker` | All phases **PASSED** |
 
-**Velocity:**
-- Total plans completed: 0 (this milestone)
-- Average duration: —
-- Total execution time: —
+## Plan inventory
 
-**By Phase:**
+| Phase | Plans | Check |
+|-------|-------|-------|
+| 42 | 42-01, 42-02 | PASSED |
+| 43 | 43-01, 43-02 | PASSED |
+| 44 | 44-01, 44-02 | PASSED |
+| 45 | 45-01, 45-02, 45-03 | PASSED |
+| 46 | 46-01, 46-02 | PASSED |
+| 47 | 47-01 | PASSED |
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 42–47 | — | TBD | — |
+## Superseded
 
-*Updated after each plan completion*
+Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPERSEDED-hand-rolled-m7-plans.md`  
+**Authoritative:** `.planning/phases/4*-*/`
 
-## Accumulated Context
+## Next (user trigger only)
 
-### Decisions
+```text
+/gsd:execute-phase 42
+# then 43 → 44 → 45 → 46 → 47
+/gsd:verify-work
+/gsd:audit-milestone
+/gsd:complete-milestone
+```
 
-Locked product decisions (MILESTONE-CONTEXT D1–D10):
-- Filter/Bridge only; global brain; admin-only train
-- Group by Violation/Issue Type; Deny removes; Approve FN promotes
-- Type rules live immediately; phrase rules proposed → admin activate
-- Do not share Analyzer learned-brain store
-
-### Pending Todos
-
-None yet.
-
-### Blockers/Concerns
-
-- No Filter brain today; `filterDistressOnly` hard-drops FN rows (blocks train loop until 43)
-- Results UI omits matchedIndicators/descriptions (blocks train UX until 44)
-- Admin is header-based — requireAdmin on all brain writes (phase 45)
-- Do not couple to `modules/property-analyzer/lib/learned-brain.js`
-
-## Session Continuity
-
-Last session: 2026-07-09  
-Stopped at: Roadmap created for v1.6 (phases 42–47); awaiting plan-phase  
-Resume file: None  
-Next: `/gsd:plan-phase 42`
+Do **not** implement until user says execute.

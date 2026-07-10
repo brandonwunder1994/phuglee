@@ -19,10 +19,16 @@ Get Shit Done tracking for shell integration, navigation, and cross-app design m
 | [M4](./milestones/M4-phuglee-signature-brand.md) | Phuglee Signature Brand (v1.3) | `complete` |
 | [M5](./milestones/M5-gritty-premium-surfaces.md) | Gritty Premium Surfaces (v1.4) | `implemented` |
 | [M6](./milestones/M6-territory-theater.md) | Territory Theater (v1.5) | `implemented` |
+| [M7](./milestones/M7-filter-superpower-brain.md) | Filter Superpower Brain (v1.6) | `planned` |
 
-**Active milestone:** M6 — Territory Theater (v1.5) — phases 37–41 implemented  
-**Preview:** `http://127.0.0.1:3000/` → scroll to Live coverage
+**Active milestone:** M7 — Filter Superpower Brain (v1.6) — **GSD pipeline complete** (map → roadmap → plan-phase checked); awaiting user **execute**  
+**Authoritative plans:** `.planning/phases/42-*-47-*/` (gsd-planner + gsd-plan-checker)  
+**Preview (after execute):** `http://127.0.0.1:3000/bridge` → process file → Train brain (admin)
 
+**Requirements:** `.planning/REQUIREMENTS.md`  
+**Roadmap:** `.planning/ROADMAP.md`  
+**Codebase map:** `.planning/codebase/`  
+**Design spec (ref):** `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md`  
 **Style bible:** `.planning/v1.4-GRITTY-PREMIUM.md`  
 **Design spec (M5):** `docs/superpowers/specs/2026-07-09-gritty-premium-surfaces-design.md`  
 **Design spec (M6):** `docs/superpowers/specs/2026-07-09-territory-theater-design.md`  
@@ -40,7 +46,7 @@ Get Shit Done tracking for shell integration, navigation, and cross-app design m
 | 35 How It Works playbook | [plan](./plans/2026-07-09-phase-35-how-it-works-playbook.md) |
 | 36 Territory map + close | [plan](./plans/2026-07-09-phase-36-home-coverage-close.md) |
 
-### M6 phase plans (execute 37 → 41)
+### M6 phase plans (37 → 41 — done)
 
 | Phase | Plan |
 |-------|------|
@@ -49,6 +55,19 @@ Get Shit Done tracking for shell integration, navigation, and cross-app design m
 | 39 Live territory ticker | [plan](./plans/2026-07-09-phase-39-territory-live-ticker.md) |
 | 40 State spotlight dossier | [plan](./plans/2026-07-09-phase-40-territory-state-spotlight.md) |
 | 41 Entrance + fused close | [plan](./plans/2026-07-09-phase-41-territory-entrance-close.md) |
+
+### M7 phase plans (execute 42 → 47 — when user says execute)
+
+| Phase | Authoritative GSD plans |
+|-------|-------------------------|
+| 42 Brain store + apply | `.planning/phases/42-brain-store-runtime-apply/42-0{1,2}-PLAN.md` |
+| 43 Review groups + FN | `.planning/phases/43-review-payload-grouping/43-0{1,2}-PLAN.md` |
+| 44 Admin Train UX | `.planning/phases/44-admin-train-brain-ux/44-0{1,2}-PLAN.md` |
+| 45 Decisions + type rules | `.planning/phases/45-decisions-type-rules/45-0{1,2,3}-PLAN.md` |
+| 46 Phrase + panel | `.planning/phases/46-phrase-mining-brain-panel/46-0{1,2}-PLAN.md` |
+| 47 Hardening | `.planning/phases/47-hardening-metrics-docs/47-01-PLAN.md` |
+
+Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` are **superseded** — see `docs/gsd/plans/SUPERSEDED-hand-rolled-m7-plans.md`.
 
 ## Cross-repo coordination
 
