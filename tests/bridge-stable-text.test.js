@@ -5,6 +5,7 @@ const {
   stripIncidentalTimestamps,
   stripIncidentalNoise,
   extractLeadingTypeCodes,
+  primaryTypeCode,
   stableTypeKey,
   stableDescriptionKey
 } = require('../lib/bridge-stable-text');
@@ -142,10 +143,10 @@ test('extractLeadingTypeCodes: pure HGW and HGW with notes → [hgw]', () => {
   );
 });
 
-test('extractLeadingTypeCodes: combos sort unique (HGW/TD, HGW, TD)', () => {
+test('extractLeadingTypeCodes: combos keep first-seen order (HGW/TD, TD/HGW)', () => {
   assert.deepEqual(extractLeadingTypeCodes('HGW/TD'), ['hgw', 'td']);
   assert.deepEqual(extractLeadingTypeCodes('HGW, TD - trash'), ['hgw', 'td']);
-  assert.deepEqual(extractLeadingTypeCodes('TD/HGW'), ['hgw', 'td']);
+  assert.deepEqual(extractLeadingTypeCodes('TD/HGW'), ['td', 'hgw']);
 });
 
 test('extractLeadingTypeCodes: O/S is one code (os), not o+s', () => {
@@ -165,16 +166,26 @@ test('extractLeadingTypeCodes: free-text English without codes → null', () => 
   assert.equal(extractLeadingTypeCodes('pool permit expired'), null);
 });
 
-test('stableTypeKey: HGW note variants share key; combo distinct', () => {
+test('extractLeadingTypeCodes: long English words are not truncated codes', () => {
+  // DISCHARGE must not become "disch"; OVERGROWN must not become "overg"
+  assert.equal(extractLeadingTypeCodes('DISCHARGE OF POOL FILTER'), null);
+  assert.equal(extractLeadingTypeCodes('OVERGROWN VEGETATION IN ALLEY'), null);
+  assert.equal(extractLeadingTypeCodes('GRADING WITHOUT PERMIT'), null);
+});
+
+test('stableTypeKey: HGW note + combo variants share primary code (hgw)', () => {
+  // Primary-code stacking: HGW/TD collapses with pure HGW for Train efficiency
   const a = stableTypeKey('HGW');
   const b = stableTypeKey('HGW - OVERGROWN GRASS');
   const c = stableTypeKey('HGW\n*CALL BACK*');
   const combo = stableTypeKey('HGW/TD - front yard');
+  const combo2 = stableTypeKey('HGW, TD - move out');
   assert.equal(a, b);
   assert.equal(a, c);
   assert.equal(a, 'hgw');
-  assert.equal(combo, 'hgw+td');
-  assert.notEqual(a, combo);
+  assert.equal(combo, 'hgw');
+  assert.equal(combo2, 'hgw');
+  assert.equal(primaryTypeCode('TD/HGW - trash'), 'td');
 });
 
 test('stableTypeKey: clean English High Grass still normalizes (no false code)', () => {
@@ -186,5 +197,6 @@ test('stableTypeKey: clean English High Grass still normalizes (no false code)',
 test('stableDescriptionKey: empty-type HGW tails stack on hgw', () => {
   assert.equal(stableDescriptionKey('HGW - SIDEWALK'), 'hgw');
   assert.equal(stableDescriptionKey('HGW X2'), 'hgw');
+  assert.equal(stableDescriptionKey('HGW/TD - alley'), 'hgw');
   assert.equal(stableDescriptionKey('fence permit only'), 'fence permit only');
 });

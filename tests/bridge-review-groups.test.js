@@ -334,7 +334,8 @@ test('buildReviewGroups: Irving-like HGW note variants stack (STACK-01)', () => 
   assert.equal(groups[0].violationTypeKey, 'hgw');
 });
 
-test('buildReviewGroups: HGW combo set separate from pure HGW (STACK-02)', () => {
+test('buildReviewGroups: HGW combos stack with pure HGW on primary code (STACK-02)', () => {
+  // Primary code: first municipal code wins so Train is not flooded with combo cards
   const rows = assignRowIds([
     row({ violationIssueType: 'HGW' }),
     row({ violationIssueType: 'HGW - OVERGROWN', streetAddress: '2' }),
@@ -342,10 +343,11 @@ test('buildReviewGroups: HGW combo set separate from pure HGW (STACK-02)', () =>
     row({ violationIssueType: 'HGW, TD - move out', streetAddress: '4' })
   ]);
   const groups = buildReviewGroups(rows, 'distressed');
-  assert.equal(groups.length, 2, 'STACK-02: pure HGW vs HGW+TD');
-  const byKey = Object.fromEntries(groups.map((g) => [g.violationTypeKey, g]));
-  assert.equal(byKey.hgw.count, 2);
-  assert.equal(byKey['hgw+td'].count, 2);
+  assert.equal(groups.length, 1, 'STACK-02: HGW + HGW/TD → one primary group');
+  assert.equal(groups[0].count, 4);
+  assert.equal(groups[0].violationTypeKey, 'hgw');
+  assert.equal(groups[0].isSingleton, false);
+  // Raw combo wording still visible in samples when present as description
 });
 
 test('buildReviewGroups: O/S stacks as os not letter-split (STACK-01)', () => {
