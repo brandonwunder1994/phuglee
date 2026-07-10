@@ -77,7 +77,7 @@ Each task was committed atomically:
 2. **Task 2: Case-file dossier + collapsed scrap styles (CSS)** - `14f643e` (feat)
 3. **Task 3: Compose dossier; drawer; preserve outcome save** - `e5f02f5` (feat)
 
-**Plan metadata:** (docs commit with this SUMMARY)
+**Plan metadata:** `43ea519` (docs: complete plan)
 
 ## Files Created/Modified
 
