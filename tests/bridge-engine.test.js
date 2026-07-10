@@ -1511,6 +1511,81 @@ test('GATE-06: confirmedFormats by filename still process when fingerprint drift
   assert.ok(result.stats.kept >= 2, `expected both files kept, got ${result.stats.kept}`);
 });
 
+test('GATE-06: partial confirmedFormats + legacy header does not wildcard-confirm other formats', async () => {
+  // Client used to re-POST confirmedFormats[0] as bare confirmedTypeHeader without
+  // a fingerprint after the first dialog — that applied '*' and skipped remaining
+  // format dialogs, then failed mid-batch with TYPE_COLUMN_CONFIRM_REQUIRED.
+  const fileA = [
+    'Property Address,Status Description,Vio Cat,Open Date',
+    '100 Main St,Open,High Grass,01/15/2024'
+  ].join('\n');
+  const fileB = [
+    'Property Address,Status Description,Issue Type,Open Date',
+    '200 Oak Ave,Open,Junk vehicles,02/01/2024'
+  ].join('\n');
+  const city = {
+    id: 'gate-no-wildcard-city',
+    city: 'NoWildcard',
+    state: 'Arizona'
+  };
+
+  let gateErr;
+  try {
+    await processUploadBatch(
+      [
+        { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+        { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+      ],
+      { city, uploadType: 'code_violation' }
+    );
+  } catch (err) {
+    gateErr = err;
+  }
+  assert.equal(gateErr?.code, 'TYPE_COLUMN_CONFIRM_REQUIRED');
+  assert.equal(gateErr.details.formats.length, 2);
+  const first = gateErr.details.formats[0];
+
+  // Only first format confirmed, plus legacy confirmedTypeHeader WITHOUT fingerprint
+  // (the dangerous client shape). Remaining format must still need confirm.
+  let afterOne;
+  try {
+    await processUploadBatch(
+      [
+        { filename: 'mixed-a.csv', data: Buffer.from(fileA, 'utf8') },
+        { filename: 'mixed-b.csv', data: Buffer.from(fileB, 'utf8') }
+      ],
+      {
+        city,
+        uploadType: 'code_violation',
+        username: 'admin',
+        confirmedFormats: [
+          {
+            formatFingerprint: first.formatFingerprint,
+            confirmedTypeHeader: first.suggestedHeader || 'Vio Cat',
+            filenames: first.filenames
+          }
+        ],
+        // Legacy field without fingerprint — must NOT become '*' for all sheets
+        confirmedTypeHeader: first.suggestedHeader || 'Vio Cat'
+      }
+    );
+  } catch (err) {
+    afterOne = err;
+  }
+  assert.ok(afterOne, 'GATE-06 partial: must still gate remaining format');
+  assert.equal(afterOne.code, 'TYPE_COLUMN_CONFIRM_REQUIRED');
+  assert.ok(
+    Array.isArray(afterOne.details?.formats) && afterOne.details.formats.length >= 1,
+    'GATE-06 partial: remaining formats[] so client can open format 2 of N'
+  );
+  // The remaining format should be the one we did not confirm
+  const remainNames = afterOne.details.formats.flatMap((f) => f.filenames || []);
+  assert.ok(
+    remainNames.some((n) => /mixed-b/i.test(n)) || remainNames.some((n) => /mixed-a/i.test(n)),
+    `GATE-06 partial: expected remaining sheet names, got ${remainNames}`
+  );
+});
+
 test('GATE-06: processUploadBatch same fingerprint can confirm once / reuse path', async () => {
   const sameCsv = gateTypeConfirmCsv();
   const sameCity = {

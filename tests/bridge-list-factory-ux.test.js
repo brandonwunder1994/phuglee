@@ -89,7 +89,14 @@ test('processUpload never silent-cancels Type column confirm', () => {
   assert.match(js, /confirmedFormats/, 'client must resume multi-format confirms');
   assert.match(js, /formatsNeedingConfirm/, 'client normalizes formats[] from 409');
   assert.match(js, /filenames/, 'confirms include sheet filenames for server mapping');
+  assert.match(js, /waitTypeConfirmDialogClosed/, 'must wait for dialog close between formats');
   assert.match(slice, /processUploadInFlight/, 'must guard double Process clicks');
+  // Multi-format resume must not always echo legacy confirmedTypeHeader (wildcard risk)
+  assert.match(
+    slice,
+    /confirmedFormats\.length === 1/,
+    'legacy single-format fields only when one mapping confirmed'
+  );
 });
 
 test('LIST-02: soft Train-before-Save for admin in saveCurrentList', () => {

@@ -2237,6 +2237,30 @@
   }
 
   /**
+   * Wait until the Type confirm <dialog> is fully closed so showModal() for
+   * format N+1 does not throw (NotAllowedError / already open).
+   */
+  function waitTypeConfirmDialogClosed() {
+    return new Promise((resolve) => {
+      if (!typeConfirmDialog || !typeConfirmDialog.open) {
+        // Brief yield so the browser paints the close before next open
+        setTimeout(resolve, 40);
+        return;
+      }
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        typeConfirmDialog.removeEventListener('close', done);
+        setTimeout(resolve, 40);
+      };
+      typeConfirmDialog.addEventListener('close', done);
+      // Safety: never hang the multi-format loop
+      setTimeout(done, 400);
+    });
+  }
+
+  /**
    * Walk each distinct sheet format and collect Type column confirms.
    * Always attaches filenames so the server can map confirms even if PDF
    * fingerprints drift between pre-scan and process.
@@ -2257,6 +2281,14 @@
       });
     }
     const confirmedFormats = [];
+    // Prefer formats[] total when server reports more steps than this payload
+    // (e.g. formatCount) so the lead text stays honest across rounds.
+    const reportedTotal =
+      details && details.formatCount != null
+        ? Number(details.formatCount)
+        : steps.length;
+    const formatTotal = Math.max(steps.length, Number.isFinite(reportedTotal) ? reportedTotal : steps.length);
+
     for (let i = 0; i < steps.length; i += 1) {
       const step = steps[i];
       const names = Array.isArray(step.filenames) && step.filenames.length
@@ -2266,18 +2298,23 @@
         ...step,
         filenames: names,
         city: step.city || (details && details.city),
-        multiFormat: steps.length > 1 || (selectedFiles && selectedFiles.length > 1),
+        multiFormat:
+          formatTotal > 1 ||
+          steps.length > 1 ||
+          (selectedFiles && selectedFiles.length > 1) ||
+          Boolean(details && details.multiFormat),
         formatIndex: i + 1,
-        formatTotal: steps.length
+        formatTotal
       };
       // Allow dialog to fully close before re-opening for the next format
       if (i > 0) {
-        await new Promise((r) => setTimeout(r, 80));
+        await waitTypeConfirmDialogClosed();
       }
       const choice = await openTypeColumnConfirmDialog(stepDetails);
       if (choice === undefined) {
         return { cancelled: true };
       }
+      await waitTypeConfirmDialogClosed();
       confirmedFormats.push({
         formatFingerprint: step.formatFingerprint || null,
         confirmedTypeHeader: choice,
@@ -2598,18 +2635,26 @@
       let data = null;
       let confirmedFormats = [];
       const maxConfirmRounds = 8;
+      let lastConfirmDetails = null;
 
       // Keep confirming until process succeeds. Covers multi-format batches and
       // PDF fingerprint drift between pre-scan and process (re-ask remaining only).
       for (let round = 0; round < maxConfirmRounds; round += 1) {
-        const resumeOpts = confirmedFormats.length
-          ? {
-              confirmedFormats,
-              // Legacy single-format fields help older servers / same-fp batches
-              confirmedTypeHeader: confirmedFormats[0].confirmedTypeHeader,
-              formatFingerprint: confirmedFormats[0].formatFingerprint || undefined
-            }
-          : undefined;
+        // Always prefer confirmedFormats[]. Only send legacy single-format fields
+        // when we have exactly one mapping — multi-format + bare confirmedTypeHeader
+        // without a fingerprint used to apply that Type column to every sheet (*).
+        let resumeOpts;
+        if (confirmedFormats.length === 1) {
+          resumeOpts = {
+            confirmedFormats,
+            confirmedTypeHeader: confirmedFormats[0].confirmedTypeHeader,
+            formatFingerprint: confirmedFormats[0].formatFingerprint || undefined
+          };
+        } else if (confirmedFormats.length > 1) {
+          resumeOpts = { confirmedFormats };
+        } else {
+          resumeOpts = undefined;
+        }
 
         try {
           if (round > 0) {
@@ -2642,11 +2687,15 @@
           }
 
           const details = err.details || err;
+          lastConfirmDetails = details;
           const steps = formatsNeedingConfirm(details);
           const multi =
             steps.length > 1 ||
             details.multiFormat ||
+            details.formatCount > 1 ||
             (selectedFiles && selectedFiles.length > 1);
+          // Soft status while dialogs are open — never leave the hard 409 text
+          // on screen as if process failed mid multi-format confirm.
           showError(
             multi
               ? `Confirm the Type column for each sheet format` +
@@ -2674,9 +2723,19 @@
       }
 
       if (!data || typeof data !== 'object') {
+        const remain = lastConfirmDetails
+          ? formatsNeedingConfirm(lastConfirmDetails)
+          : [];
+        const remainNames = remain
+          .flatMap((s) => s.filenames || [])
+          .filter(Boolean)
+          .slice(0, 6);
+        const remainNote = remainNames.length
+          ? ` Still need: ${remainNames.join(', ')}${remainNames.length >= 6 ? '…' : ''}.`
+          : '';
         throw new Error(
           data == null
-            ? 'Still need Type column confirmation for one or more sheets. Click Process and confirm each format.'
+            ? `Still need Type column confirmation for one or more sheets.${remainNote} Click Process and confirm each format.`
             : 'Process returned an empty response. Try again.'
         );
       }
