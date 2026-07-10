@@ -307,7 +307,6 @@ test('invalid action returns 400', async () => {
 function seedBrainWithRules() {
   const { saveBrain, emptyBrain } = require('../lib/bridge-brain-store');
   const brain = emptyBrain();
-  brain.version = 3;
   brain.typeRules = [
     {
       id: 'tr_active_1',
@@ -344,18 +343,13 @@ function seedBrainWithRules() {
       reviewedBy: 'admin'
     }
   ];
-  brain.metrics = {
-    totalDecisions: 2,
-    typeRulesActive: 1,
-    phraseRulesActive: 1,
-    phraseRulesProposed: 1
-  };
   brain.events = Array.from({ length: 25 }, (_, i) => ({
     id: `ev_seed_${i}`,
     at: `2026-07-01T00:00:${String(i).padStart(2, '0')}.000Z`,
     by: 'admin',
     action: 'deny_group'
   }));
+  // saveBrain owns version bump + metrics recompute from disk
   return saveBrain(brain);
 }
 
@@ -368,14 +362,14 @@ test('PHRASE-03: non-admin GET /api/bridge/brain returns 403 ADMIN_REQUIRED', as
 });
 
 test('PHRASE-03: admin GET /api/bridge/brain returns version, typeRules, phraseRules, metrics', async () => {
-  seedBrainWithRules();
+  const seeded = seedBrainWithRules();
 
   const { status, json } = await callBridge('GET', '/api/bridge/brain', {
     headers: adminHeaders()
   });
 
   assert.equal(status, 200);
-  assert.equal(json.version, 3);
+  assert.equal(json.version, seeded.version);
   assert.ok(Array.isArray(json.typeRules));
   assert.ok(Array.isArray(json.phraseRules));
   assert.ok(json.metrics && typeof json.metrics === 'object');
@@ -433,7 +427,7 @@ test('PHRASE-03: admin activate proposed phrase → active and persists', async 
   assert.ok(json.rule.reviewedAt);
   assert.equal(json.rule.reviewedBy, 'admin');
   assert.ok(json.brainSummary);
-  assert.ok(json.brainSummary.version >= 3);
+  assert.ok(Number(json.brainSummary.version) >= 1);
 
   const { loadBrain } = require('../lib/bridge-brain-store');
   const brain = loadBrain();
@@ -528,4 +522,160 @@ test('PHRASE-03: invalid status body → 400 INVALID_STATUS', async () => {
 
   assert.equal(status, 400);
   assert.equal(json.code, 'INVALID_STATUS');
+});
+
+// ─── HARD-01–03: undo + metrics + version 409 ───────────────────────────────
+
+test('HARD: non-admin POST /brain/undo returns 403 ADMIN_REQUIRED', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/brain/undo', {
+    headers: {
+      'content-type': 'application/json',
+      'x-phuglee-user': 'bob'
+    },
+    body: jsonBody({})
+  });
+  assert.equal(status, 403);
+  assert.equal(json.code, 'ADMIN_REQUIRED');
+});
+
+test('HARD: non-admin GET /brain/metrics returns 403 ADMIN_REQUIRED', async () => {
+  const { status, json } = await callBridge('GET', '/api/bridge/brain/metrics', {
+    headers: { 'x-phuglee-user': 'bob' }
+  });
+  assert.equal(status, 403);
+  assert.equal(json.code, 'ADMIN_REQUIRED');
+});
+
+test('HARD: admin GET /brain/metrics returns decision and rule counts', async () => {
+  seedBrainWithRules();
+
+  const { status, json } = await callBridge('GET', '/api/bridge/brain/metrics', {
+    headers: adminHeaders()
+  });
+
+  assert.equal(status, 200);
+  assert.equal(json.totalDecisions, 25); // seeded deny_group events
+  assert.equal(json.typeRulesActive, 1);
+  assert.equal(json.phraseRulesActive, 1);
+  assert.equal(json.phraseRulesProposed, 1);
+  assert.equal(json.suppressCount, 1); // active suppress_type only (phrase suppress is proposed)
+  assert.equal(json.promoteCount, 1); // active promote_phrase
+});
+
+test('HARD: admin undo reverts last decision rules and returns brainSummary', async () => {
+  const { loadBrain, saveBrain, emptyBrain } = require('../lib/bridge-brain-store');
+  const brain = emptyBrain();
+  brain.typeRules = [
+    {
+      id: 'tr_undo_me',
+      kind: 'suppress_type',
+      violationTypeKey: 'fence permit',
+      status: 'active'
+    }
+  ];
+  brain.events = [
+    {
+      id: 'ev_to_undo',
+      at: '2026-07-01T00:00:00.000Z',
+      by: 'admin',
+      action: 'deny_group',
+      resultingRuleIds: ['tr_undo_me']
+    }
+  ];
+  const seeded = saveBrain(brain);
+
+  const { status, json } = await callBridge('POST', '/api/bridge/brain/undo', {
+    headers: adminHeaders(),
+    body: jsonBody({ brainVersion: seeded.version })
+  });
+
+  assert.equal(status, 200);
+  assert.equal(json.ok, true);
+  assert.ok(json.brainSummary);
+  assert.ok(json.brainSummary.version > seeded.version);
+
+  const after = loadBrain();
+  assert.equal(after.typeRules.find((r) => r.id === 'tr_undo_me').status, 'disabled');
+  assert.equal(after.events.find((e) => e.id === 'ev_to_undo').undone, true);
+  assert.ok(after.events.some((e) => e.action === 'undo'));
+});
+
+test('HARD: second undo with nothing left returns 400 NOTHING_TO_UNDO', async () => {
+  const { saveBrain, emptyBrain } = require('../lib/bridge-brain-store');
+  const brain = emptyBrain();
+  brain.events = [
+    {
+      id: 'ev_done',
+      by: 'admin',
+      action: 'deny_group',
+      resultingRuleIds: [],
+      undone: true
+    }
+  ];
+  saveBrain(brain);
+
+  const { status, json } = await callBridge('POST', '/api/bridge/brain/undo', {
+    headers: adminHeaders(),
+    body: jsonBody({})
+  });
+
+  assert.equal(status, 400);
+  assert.equal(json.code, 'NOTHING_TO_UNDO');
+});
+
+test('HARD: stale brainVersion on decision returns 409 VERSION_CONFLICT', async () => {
+  const { loadBrain } = require('../lib/bridge-brain-store');
+  // Ensure a brain exists so version is defined
+  await callBridge('POST', '/api/bridge/brain/decisions', {
+    headers: adminHeaders(),
+    body: jsonBody(denyDistressedBody({
+      rows: [
+        sampleRow({ rowId: 'r_keep2', violationIssueType: 'Weeds' }),
+        sampleRow({ rowId: 'r_drop2', violationIssueType: 'Fence Permit' })
+      ],
+      rowIds: ['r_drop2']
+    }))
+  });
+  const current = loadBrain();
+
+  const { status, json } = await callBridge('POST', '/api/bridge/brain/decisions', {
+    headers: adminHeaders(),
+    body: jsonBody(denyDistressedBody({
+      brainVersion: (Number(current.version) || 1) - 1,
+      rows: [
+        sampleRow({ rowId: 'r_a', violationIssueType: 'Weeds' }),
+        sampleRow({ rowId: 'r_b', violationIssueType: 'Parking' })
+      ],
+      rowIds: ['r_b'],
+      violationTypeKey: 'parking',
+      violationTypeLabel: 'Parking'
+    }))
+  });
+
+  assert.equal(status, 409);
+  assert.equal(json.code, 'VERSION_CONFLICT');
+  assert.equal(json.currentVersion, current.version);
+});
+
+test('HARD: stale brainVersion on undo returns 409 VERSION_CONFLICT', async () => {
+  const { saveBrain, emptyBrain } = require('../lib/bridge-brain-store');
+  const brain = emptyBrain();
+  brain.events = [
+    {
+      id: 'ev_stale',
+      by: 'admin',
+      action: 'deny_group',
+      resultingRuleIds: []
+    }
+  ];
+  const seeded = saveBrain(brain);
+
+  const { status, json } = await callBridge('POST', '/api/bridge/brain/undo', {
+    headers: adminHeaders(),
+    body: jsonBody({ brainVersion: seeded.version - 1 })
+  });
+
+  assert.equal(status, 409);
+  assert.equal(json.code, 'VERSION_CONFLICT');
+  assert.equal(json.currentVersion, seeded.version);
 });

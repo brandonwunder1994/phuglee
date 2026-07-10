@@ -114,6 +114,8 @@ test('emptyBrain returns schema defaults', () => {
     totalDecisions: 0,
     typeRulesActive: 0,
     phraseRulesActive: 0,
-    phraseRulesProposed: 0
+    phraseRulesProposed: 0,
+    suppressCount: 0,
+    promoteCount: 0
   });
 });
