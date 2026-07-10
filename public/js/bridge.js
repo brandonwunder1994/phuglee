@@ -1069,14 +1069,19 @@
       if (data.code === 'NO_USABLE_ROWS') {
         const stats = data.stats || {};
         const parts = [];
-        if (stats.noDistress || stats.discardReasons?.no_distress_signal) {
-          parts.push(`${stats.noDistress || stats.discardReasons.no_distress_signal} no distress signal`);
+        const reasons = stats.discardReasons || {};
+        // Prefer server message when it already includes a breakdown.
+        const serverMsg = String(data.error || '');
+        if (/Breakdown:/i.test(serverMsg)) {
+          throw new Error(serverMsg);
         }
-        if (stats.alreadyImported || stats.discardReasons?.already_imported) {
-          parts.push(`${stats.alreadyImported || stats.discardReasons.already_imported} already in Analyze`);
+        for (const [reason, count] of Object.entries(reasons)) {
+          if (Number(count) > 0) parts.push(`${count} ${reason}`);
         }
-        if (stats.deduplicated || stats.discardReasons?.duplicate) {
-          parts.push(`${stats.deduplicated || stats.discardReasons.duplicate} duplicates`);
+        if (!parts.length) {
+          if (stats.noDistress) parts.push(`${stats.noDistress} no distress signal`);
+          if (stats.alreadyImported) parts.push(`${stats.alreadyImported} already in Analyze`);
+          if (stats.deduplicated) parts.push(`${stats.deduplicated} duplicates`);
         }
         const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
         throw new Error((data.error || 'No usable addresses found in this file.') + detail);
