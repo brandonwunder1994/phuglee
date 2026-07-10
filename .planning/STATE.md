@@ -1,39 +1,73 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: Phuglee Signature Brand
-status: complete
-last_updated: "2026-07-06T34:00:00.000Z"
-last_activity: 2026-07-06 — M4 Phuglee Signature Brand milestone complete
+milestone: v1.6
+milestone_name: Filter Superpower Brain
+status: ready_to_plan
+last_updated: "2026-07-09"
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 6
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
-# State
+# Project State
 
-Milestone: **v1.3 Phuglee Signature Brand** — **complete**  
-Last activity: 2026-07-06 — Phase 31 cross-app QA + milestone closure
+## Project Reference
+
+See: `.planning/PROJECT.md` (updated 2026-07-09)
+
+**Core value:** Collect → Filter → Analyze with seamless navigation; Filter must kill non-deals and improve via admin training.  
+**Current focus:** Phase 42 — Brain store + runtime apply (ready to plan)
 
 ## Current Position
 
-Milestone M4 closed.  
-Closure doc: `docs/gsd/plans/2026-07-06-m4-milestone-closure.md`  
-Audit: `.planning/phases/31-cross-app-qa/AUDIT.md`
+Phase: 42 of 47 (Brain store + runtime apply) — first of 6 v1.6 phases  
+Plan: —  
+Status: Ready to plan (`/gsd:plan-phase 42`)  
+Last activity: 2026-07-09 — GSD roadmapper wrote ROADMAP.md for v1.6 (phases 42–47)
 
-## Phase 31 Shipped
+Progress: [░░░░░░░░░░] 0%
 
-- 14-surface brand audit — all pass (v1.3 §8–9)
-- Ember grep clean — zero `#e85d04` in public assets
-- `brand-audit.test.js` — cross-repo wiring + ember guard
-- Root tokens updated in Forge + Analyzer to `#e58435`
+## Performance Metrics
 
-## Verification at close
+**Velocity:**
+- Total plans completed: 0 (this milestone)
+- Average duration: —
+- Total execution time: —
 
-| Repo | Result |
-|------|--------|
-| distress-os `npm test` | 30/30 pass |
-| property-distress-analyzer `npm test` | 190/190 pass |
-| city-list-requests `gsd.py test` | 121/122 pass (pre-existing `texas-cedar-park`) |
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 42–47 | — | TBD | — |
+
+*Updated after each plan completion*
+
+## Accumulated Context
+
+### Decisions
+
+Locked product decisions (MILESTONE-CONTEXT D1–D10):
+- Filter/Bridge only; global brain; admin-only train
+- Group by Violation/Issue Type; Deny removes; Approve FN promotes
+- Type rules live immediately; phrase rules proposed → admin activate
+- Do not share Analyzer learned-brain store
+
+### Pending Todos
+
+None yet.
+
+### Blockers/Concerns
+
+- No Filter brain today; `filterDistressOnly` hard-drops FN rows (blocks train loop until 43)
+- Results UI omits matchedIndicators/descriptions (blocks train UX until 44)
+- Admin is header-based — requireAdmin on all brain writes (phase 45)
+- Do not couple to `modules/property-analyzer/lib/learned-brain.js`
+
+## Session Continuity
+
+Last session: 2026-07-09  
+Stopped at: Roadmap created for v1.6 (phases 42–47); awaiting plan-phase  
+Resume file: None  
+Next: `/gsd:plan-phase 42`

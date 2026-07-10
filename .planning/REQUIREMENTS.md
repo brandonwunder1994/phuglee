@@ -1,152 +1,115 @@
-# Distress OS — Requirements
+# Requirements: Distress OS — v1.6 Filter Superpower Brain
 
-> **Active milestone:** v1.3 Phuglee Signature Brand  
-> **Last updated:** 2026-07-06
+**Defined:** 2026-07-09  
+**Core Value:** Collect → Filter → Analyze with seamless navigation; Filter must kill non-deals and improve via admin training.  
+**Source:** `/gsd:new-milestone` + MILESTONE-CONTEXT.md (locked product decisions)  
+**Codebase map:** `.planning/codebase/` (via `/gsd:map-codebase`)
 
----
+## v1.6 Requirements
 
-## v1.3 Phuglee Signature Brand (active)
+### Runtime brain
 
-> **Research:** Skipped — logo SVG is ground truth  
-> **Scope:** Full site including login (`/`) — supersedes M3 login lock  
-> **Design spec:** `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`
+- [ ] **BRAIN-01**: System persists a global Filter brain file on a durable volume-safe path (same durability pattern as filter lists)
+- [ ] **BRAIN-02**: System applies active brain rules on every Filter process so future uploads improve for all users
+- [ ] **BRAIN-03**: Water shut-off uploads are never type-suppressed by the brain
 
-### Phuglee Design System (Phase 22) — validated
+### Review payload
 
-- [x] **BRAND-01**: `--phuglee-*` logo-ground-truth token system in `tokens.css`
-- [x] **BRAND-02**: Legacy Heat aliases migrate to logo orange (`--ember` → `--phuglee-orange`)
-- [x] **BRAND-03**: `phuglee-components.css` — buttons, panels, inputs, modals
-- [x] **BRAND-04**: `phuglee-logo.js` — vanilla SVG injector with `data-phuglee-logo`
-- [x] **BRAND-05**: `phuglee-pattern.svg` — deconstructed logo path tile
-- [x] **BRAND-06**: Design spec complete at `.planning/v1.3-PHUGLEE-SIGNATURE-BRAND.md`
+- [ ] **REV-01**: Admin can access full not-distressed row payloads after process (false-negative pool), not only discard previews
+- [ ] **REV-02**: System groups review rows by normalized city Violation/Issue Type (stack identical types; empty type uses description)
+- [ ] **REV-03**: Each review group exposes matched distress signals and description samples that triggered (or failed) the flag
+- [ ] **REV-04**: Each process row has a stable rowId for decision targeting
 
-### Global Chrome & Motion (Phase 23) — validated
+### Admin training UX
 
-- [x] **BRAND-07**: Shell nav retokenized — black glass, cream logo, orange active pill
-- [x] **BRAND-08**: `phuglee-motion.js` — IntersectionObserver stagger fade-up
-- [x] **BRAND-09**: `rewrite.js` injects phuglee CSS stack on proxied pages
-- [x] **BRAND-10**: Global footer brand bar with earth-tone vignette
+- [ ] **TRAIN-01**: Admin can open Train brain on Filter results with two sections: marked distressed and not marked distressed
+- [ ] **TRAIN-02**: Admin can Approve or Deny a stacked violation-type group with one action
+- [ ] **TRAIN-03**: Non-admin users never see train controls
+- [ ] **TRAIN-04**: Train UI shows matched signals and description samples on each group card
 
-### Home — Signature Rebuild (Phase 24) — validated
+### Decisions and list mutation
 
-- [x] **BRAND-11**: Landing page retokenized to logo palette (`landing.css`)
-- [x] **BRAND-12**: Hero pattern layer + logo float via `phuglee-logo.js`
-- [x] **BRAND-13**: CTA uses `.phuglee-btn-primary` with glow + shine
-- [x] **BRAND-14**: SEO meta description + OG tags on `/`
+- [ ] **DEC-01**: Admin Deny on distressed removes those rows from the current kept list
+- [ ] **DEC-02**: Admin Approve on not-distressed promotes those rows into the current kept list as distressed
+- [ ] **DEC-03**: Deny on distressed writes an active global suppress_type rule for that violation type
+- [ ] **DEC-04**: Approve on not-distressed writes an active global promote_type rule for that violation type
+- [ ] **DEC-05**: Every decision appends an audit event (who, when, type, counts, samples)
+- [ ] **DEC-06**: Non-admin brain write APIs return 403 ADMIN_REQUIRED
 
-### Auth Flows (Phase 25) — validated
+### Phrase learning depth
 
-- [x] **BRAND-15**: Auth modal phuglee panels (`auth.css`)
-- [x] **BRAND-16**: Pricing tiers → `.phuglee-panel-featured` / exclusive dashed
-- [x] **BRAND-17**: Success overlay logo-gold pulse
+- [ ] **PHRASE-01**: System mines phrase candidates from free-text / singleton decisions into proposed rules only
+- [ ] **PHRASE-02**: Proposed phrase rules never affect process until admin activates them
+- [ ] **PHRASE-03**: Admin can view, activate, reject, or disable type and phrase rules in a Filter brain panel
 
-### Shell Pages (Phase 26) — validated
+### Hardening
 
-- [x] **BRAND-18**: `/heat` editorial premium pass — pattern accent, orange CTA bar
-- [x] **BRAND-19**: `/collect` poster energy — pattern bleed, phuglee dialogs
-- [x] **BRAND-20**: `/bridge` refined tool — orange step badges, designed errors
-
-### Form Forge Signature Pass (Phase 27) — validated
-
-- [x] **BRAND-21**: `phuglee-forge.css` on all 7 pages
-- [x] **BRAND-22**: Logo palette on tables, modals, map controls
-- [x] **BRAND-23**: Mascot watermark empty states
-
-### Analyzer Signature Pass (Phase 28) — validated
-
-- [x] **BRAND-24**: `phuglee-analyzer.css` — sidebar, command bar, KPIs
-- [x] **BRAND-25**: Property cards + review overlay phuglee chrome; tier colors preserved
-- [x] **BRAND-26**: Analyzer landing hero cream-to-orange + pattern bg
-
-### States & Micro-interactions (Phase 29) — validated
-
-- [x] **BRAND-27**: Branded loading states (orange pulse bar + Anton microcopy)
-- [x] **BRAND-28**: Branded empty states (mascot watermark + orange CTA)
-- [x] **BRAND-29**: Branded error states (terracotta inset + retry ghost)
-- [x] **BRAND-30**: Micro-interactions — CTA hover, panel hover, modal rise, nav underline
-
-### A11y, Performance, SEO (Phase 30) — validated
-
-- [x] **BRAND-31**: WCAG AA contrast audit on all phuglee surfaces
-- [x] **BRAND-32**: `prefers-reduced-motion` respected globally
-- [x] **BRAND-33**: Lighthouse perf target 90+ on shell pages
-- [x] **BRAND-34**: SEO meta + OG on shell pages + Analyzer landing
-
-### Cross-App Signature QA (Phase 31) — validated
-
-- [x] **BRAND-35**: Visual audit — all 13+ pages side-by-side brand checklist
-- [x] **BRAND-36**: All test suites green (Forge lint-imports exception documented)
-- [x] **BRAND-37**: M4 ready for `/gsd:complete-milestone`
-
----
-
-## v1.2 Premium Brand Experience (validated — 2026-07-06)
-
-- [x] **PREM-01–06**: Premium design system — atmosphere + components + tokens
-- [x] **PREM-07–10**: Shell nav premium chrome + rewrite injection
-- [x] **PREM-11–13**: Command Hub (`/heat`) premium pass
-- [x] **PREM-14–16**: Collect Records (`/collect`) premium pass
-- [x] **PREM-17–19**: Data Bridge (`/bridge`) premium pass
-- [x] **PREM-20–22**: Form Forge 7-page premium pass
-- [x] **PREM-23–25**: Property Analyzer premium pass
-- [x] **PREM-26–28**: Cross-app premium QA (login locked per M3 — superseded by M4)
-
----
-
-## v1.1 Unified Heat Design (in progress — may overlap M3/M4)
-
-- [ ] **HEAT-01–05**: Canonical Heat design system extracted from Command Hub
-- [ ] **NAV-01–06**: Global navigation menu on every page
-- [ ] **FORGE-01–06**: Form Forge visual reskin to Heat palette
-- [ ] **PA-01–07**: Property Analyzer visual reskin to Heat palette
-- [ ] **QA-01–03**: Cross-app visual audit + regression tests
-
-> v1.1 Heat tokens are being superseded by v1.3 `--phuglee-*` tokens. Complete or archive v1.1 when M4 Phase 22 lands.
-
----
-
-## v1.0 Shell & Integration (validated — 2026-07-01)
-
-- [x] Landing page with heat aesthetic (`/`)
-- [x] Command Hub dashboard (`/heat`)
-- [x] Reverse proxy for Form Forge (`/forge/`) and Property Analyzer (`/analyzer/`)
-- [x] Data Bridge spreadsheet converter (`/bridge`)
-- [x] Health API with module status pills
-- [x] Auto-start child processes via `launch-distressos.bat`
-- [x] Unit tests for rewrite, bridge schema, proxy
-
----
+- [ ] **HARD-01**: Admin can undo the last training decision (list snapshot client-side + rule revert server-side)
+- [ ] **HARD-02**: Brain file enforces caps on events and rules; version conflicts return 409
+- [ ] **HARD-03**: Admin can view brain metrics (decision counts, active/proposed rule counts)
+- [ ] **HARD-04**: Tagging documentation describes base regex + brain layers; npm test and verify-live pass
 
 ## Future Requirements (deferred)
 
-- **BRAND-38**: React/Framer Motion migration (optional spike in Phase 30)
-- **BRAND-39**: Animated mascot watermark on scroll
-- **BRAND-40**: Per-market custom distressed photography
-- Embedded bridge workflow (upload without leaving Analyzer)
-- Single sign-on / session sharing between modules
+- Server-side authenticated sessions (replace spoofable X-Phuglee-User for production multi-tenant)
+- Per-city brain scopes
+- ML fine-tuning pipeline
+- Non-admin read-only brain metrics dashboard
 
-## Out of Scope (v1.3)
+## Out of Scope
 
-| Item | Reason |
-|------|--------|
-| E-commerce / cart / checkout | No shop exists |
-| Backend/API changes | Visual + motion only |
-| New product features | Separate milestones |
-| Full TypeScript migration | JSDoc only in M4 |
-
----
+| Feature | Reason |
+|---------|--------|
+| Analyze vision Keep/Change redesign | Separate product; has its own learned-brain |
+| Shared store with Analyzer learned-brain | Different domain (vision tiers vs text tags) |
+| Per-user training brains | Product is global quality for all customers |
+| Non-admin training | Quality control / sellable tool integrity |
+| Black-box auto ML without admin gate | Controllability requirement |
 
 ## Traceability
 
-| Requirement | Phase |
-|-------------|-------|
-| BRAND-01–06 | 22 |
-| BRAND-07–10 | 23 |
-| BRAND-11–14 | 24 |
-| BRAND-15–17 | 25 |
-| BRAND-18–20 | 26 |
-| BRAND-21–23 | 27 |
-| BRAND-24–26 | 28 |
-| BRAND-27–30 | 29 |
-| BRAND-31–34 | 30 |
-| BRAND-35–37 | 31 |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| BRAIN-01 | Phase 42 | Pending |
+| BRAIN-02 | Phase 42 | Pending |
+| BRAIN-03 | Phase 42 | Pending |
+| REV-01 | Phase 43 | Pending |
+| REV-02 | Phase 43 | Pending |
+| REV-03 | Phase 43 | Pending |
+| REV-04 | Phase 43 | Pending |
+| TRAIN-01 | Phase 44 | Pending |
+| TRAIN-02 | Phase 44 | Pending |
+| TRAIN-03 | Phase 44 | Pending |
+| TRAIN-04 | Phase 44 | Pending |
+| DEC-01 | Phase 45 | Pending |
+| DEC-02 | Phase 45 | Pending |
+| DEC-03 | Phase 45 | Pending |
+| DEC-04 | Phase 45 | Pending |
+| DEC-05 | Phase 45 | Pending |
+| DEC-06 | Phase 45 | Pending |
+| PHRASE-01 | Phase 46 | Pending |
+| PHRASE-02 | Phase 46 | Pending |
+| PHRASE-03 | Phase 46 | Pending |
+| HARD-01 | Phase 47 | Pending |
+| HARD-02 | Phase 47 | Pending |
+| HARD-03 | Phase 47 | Pending |
+| HARD-04 | Phase 47 | Pending |
+
+**Coverage:**
+- v1.6 requirements: 24 total
+- Mapped to phases: 24/24 ✓
+- Unmapped: 0
+
+| Phase | Requirements |
+|-------|--------------|
+| 42 Brain store + runtime apply | BRAIN-01, BRAIN-02, BRAIN-03 |
+| 43 Review payload + grouping | REV-01, REV-02, REV-03, REV-04 |
+| 44 Admin Train brain UX | TRAIN-01, TRAIN-02, TRAIN-03, TRAIN-04 |
+| 45 Decisions + type rules + list mutation | DEC-01–DEC-06 |
+| 46 Phrase mining + brain panel | PHRASE-01, PHRASE-02, PHRASE-03 |
+| 47 Hardening + metrics + docs | HARD-01, HARD-02, HARD-03, HARD-04 |
+
+---
+*Requirements defined: 2026-07-09 via GSD new-milestone*  
+*Traceability: 2026-07-09 via gsd-roadmapper*  
+*Last updated: 2026-07-09*

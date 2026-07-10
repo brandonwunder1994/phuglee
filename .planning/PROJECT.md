@@ -36,20 +36,27 @@ One operating system feel: collect public records → analyze distressed leads �
 
 - [ ] **BRAND-01–37**: Full-site signature brand rebuild — logo-ground-truth palette, design system, all pages, states, a11y
 
-### Future (post v1.3)
+### Active (v1.6 Filter Superpower Brain — M7)
+
+- [ ] **BRAIN-***, **REV-***, **TRAIN-***, **DEC-***, **PHRASE-***, **HARD-*** — see `.planning/REQUIREMENTS.md`
+- [ ] Global admin-trained Filter brain; next-upload learning for all customers
+
+### Future (post v1.6)
 
 - [ ] React/Framer Motion migration (optional)
 - [ ] Embedded bridge workflow (upload without leaving Analyzer)
 - [ ] Single sign-on / session sharing between modules
 - [ ] Per-market custom distressed photography
+- [ ] Server-side auth sessions (replace header-only admin)
 
-### Out of Scope (v1.3)
+### Out of Scope (v1.6)
 
 | Feature | Reason |
 |---------|--------|
-| E-commerce / cart / checkout | No shop exists |
-| Backend/API changes | Visual + motion only |
-| Full TypeScript migration | JSDoc in new modules only |
+| Analyze vision review redesign | Separate learned-brain domain |
+| Per-user / per-city brains | Global shared quality product |
+| Non-admin training | Quality control |
+| ML fine-tunes without admin gate | Controllability |
 
 ## Context
 
@@ -68,22 +75,24 @@ One operating system feel: collect public records → analyze distressed leads �
 
 ---
 
-## Current Milestone: v1.3 Phuglee Signature Brand
+## Current Milestone: v1.6 Filter Superpower Brain
 
-**Goal:** Completely redesign every pixel, interaction, page, and component so the entire site feels like a premium edgy artistic high-end brand — dark, immersive, tactile, cohesive. Logo SVG is ground truth.
+**Goal:** Admin-only global Filter brain — grouped Approve/Deny trains type + phrase rules so every future city upload improves for all customers.
 
 **Target features:**
-- `--phuglee-*` design token system + `phuglee-components.css`
-- Reusable `phuglee-logo.js` SVG injector + pattern tiles
-- Full-site rebuild including login (`/`)
-- Editorial shell pages, Forge 7 pages, Analyzer all surfaces
-- Branded loading/empty/error states + micro-interactions
-- WCAG AA, perf, SEO
+- Global durable brain store applied on every `processUpload`
+- Reviewable not-distressed rows + violation-type grouping
+- Admin Train brain UX (distressed + not distressed, signals + descriptions, ✓/✗)
+- List mutation (deny remove / approve promote) + type suppress/promote
+- Phrase mining → proposed rules → admin activate
+- Undo, metrics, caps, docs, production QA
 
-**Phases:** 22–31  
-**GSD doc:** `docs/gsd/milestones/M4-phuglee-signature-brand.md`
+**Phases:** Assigned by gsd-roadmapper (continue after last shipped phase numbering)  
+**Requirements:** `.planning/REQUIREMENTS.md`  
+**Codebase map:** `.planning/codebase/`  
+**Context:** `.planning/MILESTONE-CONTEXT.md`
 
-**Last updated:** 2026-07-06
+**Last updated:** 2026-07-09
 
 ## Evolution
 
