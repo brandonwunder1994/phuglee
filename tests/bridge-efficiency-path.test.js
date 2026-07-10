@@ -79,3 +79,87 @@ test('EFF-01 polish: post-save Download this list flash affordance', () => {
     'bridge.js must expose bridge-flash-download id or data-action="flash-download" for post-save download'
   );
 });
+
+// ---------------------------------------------------------------------------
+// EFF-02 anti-pattern locks (must stay GREEN through Plans 02–03)
+// Efficiency must not rubber-stamp confirm, hide Train, silent-drop, or re-couple Analyze.
+// ---------------------------------------------------------------------------
+
+test('EFF-02: no banned Analyze push CTAs in bridge HTML or JS', () => {
+  for (const banned of BANNED_CTAS) {
+    assert.equal(html.includes(banned), false, `HTML must not contain "${banned}"`);
+    assert.equal(js.includes(banned), false, `JS must not contain "${banned}"`);
+  }
+});
+
+test('EFF-02: bridge-analyzer-push.js module must not exist', () => {
+  const pushPath = path.join(ROOT, 'lib', 'bridge-analyzer-push.js');
+  assert.equal(fs.existsSync(pushPath), false, 'lib/bridge-analyzer-push.js must remain absent');
+});
+
+test('EFF-02: processUpload does not auto-save lists', () => {
+  const start = js.indexOf('async function processUpload');
+  assert.ok(start >= 0, 'async function processUpload must exist');
+  const rest = js.slice(start + 1);
+  // Next top-level async function ends the body (IIFE-indented functions still match \n  async function)
+  const next = rest.search(/\n  async function \w+/);
+  const slice = next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 6000);
+  assert.equal(
+    slice.includes('saveCurrentList('),
+    false,
+    'processUpload must not call saveCurrentList('
+  );
+  assert.equal(
+    slice.includes('/api/bridge/lists'),
+    false,
+    'processUpload must not POST /api/bridge/lists'
+  );
+});
+
+test('EFF-02: GATE-02 TYPE_COLUMN_CONFIRM_REQUIRED still present in engine', () => {
+  assert.match(engine, /TYPE_COLUMN_CONFIRM_REQUIRED/);
+});
+
+test('EFF-02: renderResults still calls renderTrainGroups for admin path', () => {
+  // Prefer exact signature so we do not land on renderResultsTable
+  let start = js.indexOf('function renderResults(data)');
+  if (start < 0) start = js.search(/function renderResults\s*\(/);
+  assert.ok(start >= 0, 'function renderResults must exist');
+  // Slice until next top-level function declaration at same indent
+  const rest = js.slice(start + 1);
+  const next = rest.search(/\n  function \w+/);
+  const slice = next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 4000);
+  assert.match(slice, /renderTrainGroups/);
+  assert.match(slice, /isBridgeAdmin/);
+});
+
+test('EFF-02: gold accuracy suite still present on disk', () => {
+  const goldPath = path.join(ROOT, 'tests', 'bridge-accuracy-gold.test.js');
+  assert.equal(fs.existsSync(goldPath), true, 'tests/bridge-accuracy-gold.test.js must exist');
+});
+
+test('EFF-02: resetImportAreaAfterSave does not auto-invoke download', () => {
+  // Flash may *create* a button that calls download on click; bare auto-invoke is banned.
+  const start = js.indexOf('function resetImportAreaAfterSave');
+  assert.ok(start >= 0, 'function resetImportAreaAfterSave must exist');
+  const rest = js.slice(start + 1);
+  const next = rest.search(/\n  (?:async )?function \w+/);
+  const slice = next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 3000);
+  // Strip string literals and comments so button onclick text does not false-positive
+  const withoutStrings = slice
+    .replace(/`(?:\\.|[^`\\])*`/g, '``')
+    .replace(/'(?:\\.|[^'\\])*'/g, "''")
+    .replace(/"(?:\\.|[^"\\])*"/g, '""')
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.equal(
+    /downloadSavedList\s*\(/.test(withoutStrings),
+    false,
+    'resetImportAreaAfterSave must not auto-call downloadSavedList('
+  );
+  assert.equal(
+    /downloadAllSavedLists\s*\(/.test(withoutStrings),
+    false,
+    'resetImportAreaAfterSave must not auto-call downloadAllSavedLists('
+  );
+});
