@@ -892,7 +892,7 @@ test('processUpload: typed clean High Grass stacks count N (TEST-03)', async () 
 // Scorer force map wired in normalizeRawRows (Plan 03).
 // ---------------------------------------------------------------------------
 
-test('COL-01/04: processUpload forces Status Description trap → columnMap Type is Vio Cat', async () => {
+test('COL-01/04 / TEST-01 (v1.8): processUpload forces Status Description trap → columnMap Type is Vio Cat', async () => {
   const csv = [
     'Property Address,Status Description,Vio Cat,Description,Open Date',
     '100 Main St,Open,High Grass,Weeds exceeding 12 inches as of 01/15/2024 10:30,01/15/2024',
@@ -1343,4 +1343,87 @@ test('GATE water skip: water_shut_off processes without TYPE_COLUMN_CONFIRM_REQU
   );
   assert.ok(result && result.ok !== false, 'water process should complete');
   assert.ok(result.stats.kept >= 1, 'water keep at least one row');
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Phase 54 / v1.8 regression lock — processUpload composition contracts
+// Do not overwrite v1.7 (TEST-01|02|03) semantics above.
+// ═══════════════════════════════════════════════════════════════════════════
+
+test('TEST-01 (v1.8): Status Description trap → 409 suggestedHeader is Vio Cat (scorer on process path)', async () => {
+  // No confirmedTypeHeader: live scorer must suggest Vio Cat over alias-first Status Description.
+  const csv = [
+    'Property Address,Status Description,Vio Cat,Description,Open Date',
+    '100 Main St,Open,High Grass,Weeds exceeding 12 inches as of 01/15/2024 10:30,01/15/2024',
+    '200 Oak Ave,Closed,Trash,Junk in yard observed 02/01/2024 09:00,02/01/2024'
+  ].join('\n');
+
+  let caught;
+  try {
+    await processUpload({
+      buffer: Buffer.from(csv, 'utf8'),
+      filename: 'v18-test01-trap.csv',
+      city: { id: 'v18-col-trap-city', city: 'TrapTown', state: 'Arizona' },
+      uploadType: 'code_violation'
+    });
+  } catch (err) {
+    caught = err;
+  }
+
+  assert.ok(caught, 'TEST-01 (v1.8): process must throw without confirm');
+  assert.equal(
+    caught.code,
+    'TYPE_COLUMN_CONFIRM_REQUIRED',
+    `TEST-01 (v1.8): expected TYPE_COLUMN_CONFIRM_REQUIRED, got ${caught.code}`
+  );
+  const details = caught.details || caught;
+  assert.equal(
+    details.suggestedHeader,
+    'Vio Cat',
+    'TEST-01 (v1.8): scorer suggestedHeader must beat Status Description on process path'
+  );
+});
+
+test('TEST-01 (v1.8): processUpload maps Type to Vio Cat; cells High Grass not Open', async () => {
+  const csv = [
+    'Property Address,Status Description,Vio Cat,Description,Open Date',
+    '100 Main St,Open,High Grass,Weeds exceeding 12 inches as of 01/15/2024 10:30,01/15/2024',
+    '200 Oak Ave,Closed,Trash,Junk in yard observed 02/01/2024 09:00,02/01/2024'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv, 'utf8'),
+    filename: 'v18-test01-map-cells.csv',
+    city: { id: 'v18-col-map-city', city: 'MapTown', state: 'Arizona' },
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Vio Cat'
+  });
+
+  assert.equal(result.ok, true, 'TEST-01 (v1.8): process must succeed with confirmed Type');
+  assert.equal(
+    result.processingMeta.columnMap.violationIssueType,
+    'Vio Cat',
+    'TEST-01 (v1.8): columnMap.violationIssueType must be Vio Cat'
+  );
+  assert.notEqual(
+    result.processingMeta.columnMap.violationIssueType,
+    'Status Description',
+    'TEST-01 (v1.8): Type map must not be Status Description'
+  );
+
+  const grass =
+    result.rows.find((row) => String(row.streetAddress || '').includes('100 Main')) ||
+    (result.notDistressedRows || []).find((row) =>
+      String(row.streetAddress || '').includes('100 Main')
+    );
+  assert.ok(grass, 'TEST-01 (v1.8): High Grass row must be kept');
+  assert.ok(
+    String(grass.violationIssueType || '').includes('High Grass'),
+    `TEST-01 (v1.8): type cell must include High Grass not Open, got: ${grass.violationIssueType}`
+  );
+  assert.ok(
+    !/^Open$/i.test(String(grass.violationIssueType || '').trim()),
+    `TEST-01 (v1.8): type must not be bare Open, got: ${grass.violationIssueType}`
+  );
 });
