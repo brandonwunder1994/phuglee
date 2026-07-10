@@ -38,6 +38,20 @@ test('splits glued PDF-style double-space rows into address lines', () => {
   assert.ok(extracted.rows.some((r) => /123 Main/i.test(r['Street Address'])));
 });
 
+test('salvages street when PDF table puts address under Description column', () => {
+  const text = [
+    'Case Number    Description                    Status',
+    'CV-1001        123 Main St high grass         Open',
+    'CV-1002        456 Oak Ave junk vehicles      Open'
+  ].join('\n');
+  const extracted = extractRowsFromText(text, { parser: 'pdf' });
+  assert.ok(extracted.rows.length >= 2);
+  assert.ok(
+    extracted.rows.every((r) => /Main|Oak/i.test(String(r['Street Address'] || ''))),
+    `expected salvaged streets, got ${JSON.stringify(extracted.rows)}`
+  );
+});
+
 test('scoreFromOcr maps confidence bands', () => {
   assert.equal(scoreFromOcr(90).confidenceLevel, 'high');
   assert.equal(scoreFromOcr(70).confidenceLevel, 'medium');
