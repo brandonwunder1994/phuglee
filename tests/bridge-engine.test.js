@@ -101,7 +101,13 @@ test('processUploadBatch real-style multiline CSVs keep one row per case', async
       { filename: '302.4_Weeds.csv', data: Buffer.from(weeds) },
       { filename: '308.1_Rubbish.csv', data: Buffer.from(rubbish) }
     ],
-    { city: { id: 'ga-johns-creek', city: 'Johns Creek', state: 'Georgia' }, uploadType: 'code_violation' }
+    {
+      city: { id: 'ga-johns-creek', city: 'Johns Creek', state: 'Georgia' },
+      uploadType: 'code_violation',
+      username: 'admin',
+      // Shared header present on both files (mixed fingerprint allowed with confirm)
+      confirmedTypeHeader: 'Code Case Description'
+    }
   );
 
   assert.equal(result.stats.totalParsed, 4, '14→28 style bug: multiline addresses doubled every row');
@@ -120,7 +126,12 @@ test('processUploadBatch merges two files and cross-file dedupes', async () => {
       { filename: 'part-a.csv', data: buffer },
       { filename: 'part-b.csv', data: buffer }
     ],
-    { city: CITY, uploadType: 'code_violation' }
+    {
+      city: CITY,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
+    }
   );
   assert.equal(result.fileCount, 2);
   assert.ok(result.sourceFile.includes('part-a.csv'));
@@ -130,7 +141,9 @@ test('processUploadBatch merges two files and cross-file dedupes', async () => {
     buffer,
     filename: 'violations.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
   assert.equal(result.stats.kept, single.stats.kept);
   assert.ok(result.processingMeta.multiFile === true);
@@ -152,7 +165,12 @@ test('processUploadBatch address-dedupes same parcel with different violation te
       { filename: 'part-a.csv', data: makeCsv('overgrown weeds') },
       { filename: 'part-b.csv', data: makeCsv('tall grass and weeds') }
     ],
-    { city: CITY, uploadType: 'code_violation' }
+    {
+      city: CITY,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
+    }
   );
   assert.equal(result.fileCount, 2);
   assert.equal(result.stats.totalParsed, 28);
@@ -185,7 +203,9 @@ test('processUpload keeps open and closed violations with usable addresses', asy
     buffer,
     filename: 'violations.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
 
   assert.equal(result.stub, false);
@@ -284,7 +304,9 @@ test('tags strong distressed signals during tabular processing', async () => {
     buffer,
     filename: 'violations.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
   const strong = result.rows.find((row) => row.streetAddress === '123 Main St');
   assert.match(strong.distressedSignalTag, /Strong Distressed Signal/i);
@@ -335,7 +357,9 @@ test('processUpload parses Excel workbooks', async () => {
     buffer,
     filename: 'violations.xlsx',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Issue Type'
   });
   assert.equal(result.stats.kept, 1);
   assert.equal(result.processingMeta.parser, 'spreadsheet');
@@ -359,7 +383,9 @@ test('processUpload parses PDF text extracts', async () => {
       buffer: Buffer.from('%PDF-1.4 fake'),
       filename: 'violations.pdf',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation/Issue Type'
     });
     assert.equal(result.stats.kept, 3);
     assert.equal(result.processingMeta.parser, 'pdf');
@@ -408,7 +434,9 @@ test('processUpload flags low-confidence OCR rows for review', async () => {
       buffer: Buffer.from('image'),
       filename: 'scan.jpg',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: '__none__'
     });
     assert.equal(result.rows[0].needsReview, true);
     assert.equal(result.rows[0].confidenceLevel, 'low');
@@ -426,7 +454,9 @@ test('processUpload fails when no usable addresses exist', async () => {
       buffer: Buffer.from(csv),
       filename: 'empty.csv',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
     }),
     (err) => err.code === 'NO_USABLE_ROWS'
   );
@@ -443,7 +473,9 @@ test('processUpload deduplicates near-duplicate rows in upload', async () => {
     buffer: Buffer.from(csv),
     filename: 'dupes.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
   assert.equal(result.stats.kept, 2);
   assert.equal(result.stats.deduplicated, 1);
@@ -468,7 +500,9 @@ test('processUpload filters rows already in Property Analyzer', async () => {
       buffer,
       filename: 'violations.csv',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
     });
     assert.equal(result.stats.alreadyImported, 1);
     assert.ok(!result.rows.some((row) => row.streetAddress === '123 Main St'));
@@ -485,7 +519,9 @@ test('processUpload with empty brain exposes brain meta and keeps baseline outco
     buffer,
     filename: 'violations.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
   assert.equal(result.stats.kept, 2);
   assert.equal(result.processingMeta.brainVersion, 1);
@@ -499,7 +535,9 @@ test('processUpload suppress_type drops otherwise-strong violation rows', async 
     buffer,
     filename: 'violations.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
   assert.equal(baseline.stats.kept, 2);
 
@@ -520,7 +558,9 @@ test('processUpload suppress_type drops otherwise-strong violation rows', async 
       buffer,
       filename: 'violations.csv',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
     });
     assert.ok(result.stats.kept < baseline.stats.kept);
     assert.ok(!result.rows.some((row) => row.streetAddress === '123 Main St'));
@@ -542,7 +582,9 @@ test('processUpload all-FN code_violation succeeds with empty kept (zero-kept po
     buffer: Buffer.from(csv),
     filename: 'all-fn.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
 
   assert.equal(result.ok, true);
@@ -565,7 +607,9 @@ test('processUpload pure no-address file still throws NO_USABLE_ROWS', async () 
       buffer: Buffer.from(csv),
       filename: 'no-address.csv',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
     }),
     (err) => err.code === 'NO_USABLE_ROWS'
   );
@@ -596,7 +640,9 @@ test('processUpload promote_type keeps generic type as Strong', async () => {
     buffer: Buffer.from(csv),
     filename: 'fence.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
   assert.equal(baseline.ok, true);
   assert.equal(baseline.rows.length, 0);
@@ -619,7 +665,9 @@ test('processUpload promote_type keeps generic type as Strong', async () => {
       buffer: Buffer.from(csv),
       filename: 'fence.csv',
       city: CITY,
-      uploadType: 'code_violation'
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
     });
     assert.equal(result.stats.kept, 1);
     assert.equal(result.rows[0].streetAddress, '555 Fence Way');
@@ -691,7 +739,9 @@ test('processUpload promotes unmapped Vio Cat into type and FN/distressed labels
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'vio-cat.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Vio Cat'
   });
 
   assert.equal(result.ok, true);
@@ -751,7 +801,9 @@ test('processUpload does not invent type from description-only free text (MAP-03
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'desc-only.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: '__none__'
   });
 
   assert.equal(result.ok, true);
@@ -790,7 +842,9 @@ test('processUpload: description-only High Grass + timestamps → 1 distressed g
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'desc-timestamps.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: '__none__'
   });
 
   assert.equal(result.ok, true);
@@ -818,7 +872,9 @@ test('processUpload: typed clean High Grass stacks count N (TEST-03)', async () 
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'typed-high-grass.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
   });
 
   assert.equal(result.ok, true);
@@ -847,7 +903,9 @@ test('COL-01/04: processUpload forces Status Description trap → columnMap Type
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'col-status-vio-cat.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Vio Cat'
   });
 
   assert.equal(result.ok, true, 'COL-01 process must succeed');
@@ -889,7 +947,9 @@ test('COL-01: processUpload forces Violation Description trap → columnMap Type
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'col-violation-desc-issue-type.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Issue Type'
   });
 
   assert.equal(result.ok, true, 'COL-01 alt process must succeed');
@@ -916,7 +976,9 @@ test('COL-02: processUpload with Address+Notes+Open Date only keeps weeds row (n
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'col-no-type-column.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: '__none__'
   });
 
   assert.equal(result.ok, true, 'COL-02: process must succeed without type column');
@@ -961,7 +1023,9 @@ test('COL-03: scorer-mapped Issue Type cells are not overridden by unmapped Cat 
     buffer: Buffer.from(csv, 'utf8'),
     filename: 'col-03-scorer-vs-promote.csv',
     city: CITY,
-    uploadType: 'code_violation'
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Issue Type'
   });
 
   assert.equal(result.ok, true, 'COL-03 process must succeed');
@@ -988,8 +1052,7 @@ test('COL-03: scorer-mapped Issue Type cells are not overridden by unmapped Cat 
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// Phase 52 Wave 0 RED — GATE-02/03/04/06 + META-01 confirm-gate contracts
-// Production gate/store land in Plans 02–03; these must fail until then.
+// Phase 52 GATE-02/03/04/06 + META-01 confirm-gate contracts (green after 52-03)
 // ═══════════════════════════════════════════════════════════════════════════
 
 /** Shared code_violation CSV with Status Description trap + Vio Cat Type column. */
