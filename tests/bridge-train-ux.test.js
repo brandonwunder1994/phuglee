@@ -604,14 +604,14 @@ test('LBL-03: submitTrainDecision body uses group.violationTypeLabel (full), not
     'LBL-03: submitTrainDecision must exist'
   );
 
-  // Decision payload must post full label from group metadata
+  // Decision payload must post full label from group metadata (liveGroup after re-resolve is OK)
   assert.ok(
-    /violationTypeLabel\s*:\s*group\.violationTypeLabel/.test(src),
-    'LBL-03: body must include violationTypeLabel: group.violationTypeLabel (FULL)'
+    /violationTypeLabel\s*:\s*(?:liveGroup|group)\.violationTypeLabel/.test(src),
+    'LBL-03: body must include violationTypeLabel: group/liveGroup.violationTypeLabel (FULL)'
   );
   // Must not post shortLabel as the decision type label
   assert.ok(
-    !/violationTypeLabel\s*:\s*group\.shortLabel/.test(src),
+    !/violationTypeLabel\s*:\s*(?:liveGroup|group)\.shortLabel/.test(src),
     'LBL-03: must NOT send group.shortLabel as violationTypeLabel'
   );
 });

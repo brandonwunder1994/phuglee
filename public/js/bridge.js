@@ -122,6 +122,9 @@
   let brainVersion = null;
   let trainSearchQuery = '';
   let trainPage = { distressed: 1, notDistressed: 1 };
+  /** Serialize train decisions so a second Deny cannot overwrite the first promote with a stale rows snapshot. */
+  let trainDecisionChain = Promise.resolve();
+  let trainDecisionInFlight = false;
 
   function trainDecisionKey(group) {
     if (window.BridgeTrain && typeof window.BridgeTrain.trainDecisionKey === 'function') {
@@ -728,9 +731,26 @@
   }
 
   /**
+   * Re-resolve a train group from the latest lastResult (not a stale click payload).
+   * After a prior promote/demote, only current reviewGroups have correct rowIds + lists.
+   */
+  function findTrainGroupById(groupId, section) {
+    if (!lastResult || groupId == null || groupId === '') return null;
+    const groups = getReviewGroups(lastResult);
+    const list =
+      section === 'not_distressed'
+        ? groups.notDistressed
+        : section === 'distressed'
+          ? groups.distressed
+          : (groups.distressed || []).concat(groups.notDistressed || []);
+    return (list || []).find((g) => String(g.groupId) === String(groupId)) || null;
+  }
+
+  /**
    * POST admin train decision; apply mutated lists + reviewGroups to lastResult.
    * Does not auto-save the list store — Save list remains a separate user action.
    * Pushes trainUndoStack snapshot before POST; pops on non-OK (incl 409).
+   * Must only be called via the trainDecisionChain (serialized).
    */
   async function submitTrainDecision({ action, section, group, card }) {
     if (!lastResult) return null;
@@ -738,35 +758,44 @@
         && !window.PhugleeSettings.isAdmin()) {
       throw new Error('Admin required to train the brain');
     }
-    if (!group || !Array.isArray(group.rowIds) || !group.rowIds.length) {
+    const resolvedSection = section || (group && group.section) || (card && card.dataset.section) || '';
+    // Always re-resolve against latest working set so sequential denies accumulate
+    const groupId = (group && group.groupId) || (card && card.dataset.groupId) || '';
+    let liveGroup = findTrainGroupById(groupId, resolvedSection) || group;
+    if (!liveGroup || !Array.isArray(liveGroup.rowIds) || !liveGroup.rowIds.length) {
       throw new Error('This group has no row ids to decide on. Re-process the file and try again.');
     }
-    const resolvedSection = section || group.section || '';
-    if (resolvedSection !== 'distressed' && resolvedSection !== 'not_distressed') {
+    const sectionForPost = liveGroup.section || resolvedSection;
+    if (sectionForPost !== 'distressed' && sectionForPost !== 'not_distressed') {
       throw new Error('Unknown train section for this group');
     }
     if (action !== 'approve' && action !== 'deny') {
       throw new Error('Invalid train action');
     }
 
-    const decidedKey = trainDecisionKey(group);
+    const decidedKey = trainDecisionKey(liveGroup);
+    if (decidedKey && trainDecidedKeys.has(decidedKey)) {
+      setTrainStatus('That group was already decided.', '');
+      return null;
+    }
     pushTrainUndoSnapshot({ decidedKey });
 
     const body = {
       action,
-      section: resolvedSection,
-      groupId: group.groupId || '',
-      rowIds: group.rowIds,
-      violationTypeKey: group.violationTypeKey || '',
-      violationTypeLabel: group.violationTypeLabel || '',
+      section: sectionForPost,
+      groupId: liveGroup.groupId || '',
+      rowIds: liveGroup.rowIds,
+      violationTypeKey: liveGroup.violationTypeKey || '',
+      violationTypeLabel: liveGroup.violationTypeLabel || '',
       city: lastResult.city || null,
       sourceFile: lastResult.sourceFile || '',
       uploadType: lastResult.uploadType || '',
+      // Latest working set — never a snapshot from before a prior decision in the queue
       rows: Array.isArray(lastResult.rows) ? lastResult.rows : [],
       notDistressedRows: Array.isArray(lastResult.notDistressedRows) ? lastResult.notDistressedRows : [],
-      matchedIndicators: Array.isArray(group.matchedIndicators) ? group.matchedIndicators : [],
-      descriptionSamples: Array.isArray(group.descriptionSamples) ? group.descriptionSamples : [],
-      sampleAddresses: Array.isArray(group.sampleAddresses) ? group.sampleAddresses : []
+      matchedIndicators: Array.isArray(liveGroup.matchedIndicators) ? liveGroup.matchedIndicators : [],
+      descriptionSamples: Array.isArray(liveGroup.descriptionSamples) ? liveGroup.descriptionSamples : [],
+      sampleAddresses: Array.isArray(liveGroup.sampleAddresses) ? liveGroup.sampleAddresses : []
     };
     if (brainVersion != null) body.brainVersion = brainVersion;
 
@@ -795,11 +824,28 @@
     if (data.reviewGroups) lastResult.reviewGroups = data.reviewGroups;
     if (data.brainSummary) rememberBrainVersion(data.brainSummary);
     if (lastResult.stats) {
-      lastResult.stats.kept = lastResult.rows.length;
+      // Prefer server statsPatch so KPI "Kept (distress)" always matches moved rows
+      if (data.statsPatch && data.statsPatch.kept != null) {
+        lastResult.stats.kept = data.statsPatch.kept;
+      } else {
+        lastResult.stats.kept = lastResult.rows.length;
+      }
       if (data.statsPatch && data.statsPatch.notDistressed != null) {
         lastResult.stats.notDistressed = data.statsPatch.notDistressed;
       } else if (Array.isArray(lastResult.notDistressedRows)) {
         lastResult.stats.notDistressed = lastResult.notDistressedRows.length;
+      }
+      // Keep "No distress signal" KPI in sync when rows move either way
+      if (Number.isFinite(Number(data.movedCount)) && data.movedCount > 0) {
+        if (action === 'deny' && sectionForPost === 'not_distressed') {
+          lastResult.stats.noDistress = Math.max(
+            0,
+            (Number(lastResult.stats.noDistress) || 0) - Number(data.movedCount)
+          );
+        } else if (action === 'deny' && sectionForPost === 'distressed') {
+          lastResult.stats.noDistress =
+            (Number(lastResult.stats.noDistress) || 0) + Number(data.movedCount);
+        }
       }
     }
 
@@ -807,7 +853,7 @@
     if (decidedKey) trainDecidedKeys.add(decidedKey);
 
     // Fade card out, then rebuild list so remaining cards push up
-    if (card) {
+    if (card && card.isConnected) {
       await animateTrainCardExit(card);
     }
 
@@ -817,19 +863,19 @@
     updateTrainUndoButton();
 
     // Chrome only — POST body above already used full group.violationTypeLabel
-    const displayLabel = group.shortLabel || group.violationTypeLabel || 'group';
-    const verb = action === 'approve' ? 'Approved' : 'Denied';
+    const displayLabel = liveGroup.shortLabel || liveGroup.violationTypeLabel || 'group';
     const remaining = filterUndecidedTrainGroups(
       (getReviewGroups(lastResult).distressed || []).concat(getReviewGroups(lastResult).notDistressed || [])
     ).length;
+    const keptNow = (lastResult.rows || []).length;
     if (remaining === 0) {
       setTrainStatus(
-        `Decision saved to brain. Save list below when this city is ready.`,
+        `Decision saved · ${keptNow.toLocaleString()} kept. Save list below when this city is ready.`,
         'success'
       );
     } else {
       setTrainStatus(
-        `Decision saved to brain · ${remaining} group(s) left. Save list below when this city is ready.`,
+        `Decision saved · ${keptNow.toLocaleString()} kept · ${remaining} group(s) left. Save list when ready.`,
         'success'
       );
     }
@@ -919,15 +965,28 @@
       }
     }
     setTrainCardBusy(card, true);
-    setTrainStatus('Saving decision…', '');
+    setTrainStatus(
+      trainDecisionInFlight ? 'Queued — applying after previous decision…' : 'Saving decision…',
+      ''
+    );
     showError('');
-    try {
-      await submitTrainDecision({
+
+    // Serialize: each decision applies on top of the previous result's rows
+    const run = () => {
+      trainDecisionInFlight = true;
+      return submitTrainDecision({
         action,
         section: (group && group.section) || (card && card.dataset.section) || '',
         group,
         card
+      }).finally(() => {
+        trainDecisionInFlight = false;
       });
+    };
+    const p = trainDecisionChain.then(run, run);
+    trainDecisionChain = p.catch(() => {});
+    try {
+      await p;
     } catch (err) {
       setTrainCardBusy(card, false);
       const msg = (err && err.message) || 'Could not save train decision';

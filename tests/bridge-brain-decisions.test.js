@@ -280,6 +280,88 @@ test('affirmation: not_distressed+approve does NOT add suppress_type or promote_
   assert.equal(result.brain.typeRules.length, 0, 'no type rules from FN approve affirmation');
 });
 
+// ─── Sequential promotes must accumulate (client race regression) ───────────
+
+test('sequential not_distressed denies accumulate kept count (no stale overwrite)', () => {
+  const brain = makeBrain();
+  const kept = Array.from({ length: 84 }, (_, i) =>
+    row({ rowId: `k${i}`, violationIssueType: 'Weeds' })
+  );
+  const fn = [
+    row({ rowId: 'fn1', violationIssueType: 'Boarded Windows', distressedSignalTag: 'Standard' }),
+    row({ rowId: 'fn2', violationIssueType: 'Junk Vehicle', distressedSignalTag: 'Standard' })
+  ];
+
+  const r1 = applyDecision(
+    {
+      action: 'deny',
+      section: 'not_distressed',
+      rowIds: ['fn1'],
+      violationTypeLabel: 'Boarded Windows',
+      violationTypeKey: violationTypeKey('Boarded Windows')
+    },
+    ctx(brain, kept, fn)
+  );
+  assert.equal(r1.rows.length, 85);
+  assert.equal(r1.movedCount, 1);
+  assert.ok(r1.rows.find((r) => r.rowId === 'fn1'));
+
+  const r2 = applyDecision(
+    {
+      action: 'deny',
+      section: 'not_distressed',
+      rowIds: ['fn2'],
+      violationTypeLabel: 'Junk Vehicle',
+      violationTypeKey: violationTypeKey('Junk Vehicle')
+    },
+    ctx(brain, r1.rows, r1.notDistressedRows)
+  );
+  assert.equal(r2.rows.length, 86, 'second promote must keep first promote');
+  assert.equal(r2.movedCount, 1);
+  assert.ok(r2.rows.find((r) => r.rowId === 'fn1'), 'first promoted row still kept');
+  assert.ok(r2.rows.find((r) => r.rowId === 'fn2'), 'second promoted row kept');
+  assert.equal(r2.notDistressedRows.length, 0);
+});
+
+test('not_distressed deny coerces string/number rowId match', () => {
+  const brain = makeBrain();
+  const kept = [row({ rowId: 'k1', violationIssueType: 'Weeds' })];
+  const fn = [row({ rowId: 42, violationIssueType: 'Boarded' })]; // number id
+  const result = applyDecision(
+    {
+      action: 'deny',
+      section: 'not_distressed',
+      rowIds: ['42'], // string id from JSON
+      violationTypeLabel: 'Boarded'
+    },
+    ctx(brain, kept, fn)
+  );
+  assert.equal(result.rows.length, 2);
+  assert.equal(result.movedCount, 1);
+  assert.ok(result.rows.find((r) => String(r.rowId) === '42'));
+});
+
+test('not_distressed deny with no matching rowIds throws ROW_IDS_NOT_FOUND (no silent no-op)', () => {
+  const brain = makeBrain();
+  const kept = [row({ rowId: 'k1' })];
+  const fn = [row({ rowId: 'fn1', violationIssueType: 'Boarded' })];
+  assert.throws(
+    () =>
+      applyDecision(
+        {
+          action: 'deny',
+          section: 'not_distressed',
+          rowIds: ['missing'],
+          violationTypeLabel: 'Boarded'
+        },
+        ctx(brain, kept, fn)
+      ),
+    (err) => err && err.code === 'ROW_IDS_NOT_FOUND'
+  );
+  // Brain must not gain a promote rule on failed move
+  assert.equal((brain.typeRules || []).filter((r) => r.status === 'active').length, 0);
+});
+
 // ─── Invalid action/section ─────────────────────────────────────────────────
 
 test('invalid action/section throws Error with code INVALID_DECISION', () => {
