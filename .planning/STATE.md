@@ -1,17 +1,17 @@
----
+﻿---
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
 status: planning
-stopped_at: Completed 51-03-PLAN.md
-last_updated: "2026-07-10T05:51:29.944Z"
-last_activity: 2026-07-09 — Completed 51-03 force Type map wire
+stopped_at: Planned Phase 52 (4 plans)
+last_updated: "2026-07-09T23:04:01.129Z"
+last_activity: 2026-07-09 — Planned Phase 52 Format Memory + Confirm Gate
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 3
+  total_plans: 7
   completed_plans: 3
-  percent: 100
+  percent: 43
 ---
 
 # State
@@ -21,17 +21,17 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 51 complete — ready for verify-work / Phase 52
+**Current focus:** Phase 52 planned — ready to execute Format Memory + Confirm Gate
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
-**Phase:** 51 of 54 (COL Scoring + Map Wire) — COMPLETE  
-**Plan:** 03 of 03 (all plans complete)  
-**Status:** Ready to plan
-**Last activity:** 2026-07-09 — Completed 51-03 force Type map wire
+**Phase:** 52 of 54 (Format Memory + Confirm Gate) — PLANNED  
+**Plan:** 0 of 4 complete  
+**Status:** Ready to execute  
+**Last activity:** 2026-07-09 — Planned Phase 52 Format Memory + Confirm Gate
 
-Progress: [██████████] 100%
+Progress: [████░░░░░░] 43%
 
 ## Performance Metrics
 
@@ -45,7 +45,7 @@ Progress: [██████████] 100%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 51 | 3/3 | 5min | 1.7min |
-| 52 | 0 | TBD | — |
+| 52 | 0/4 | TBD | — |
 | 53 | 0 | TBD | — |
 | 54 | 0 | TBD | — |
 
@@ -77,13 +77,17 @@ Phase 51 plan decisions:
 - Pure module `lib/bridge-type-column-score.js`; wire only in `normalizeRawRows`
 - Wave 0 TDD: RED tests (51-01) → pure green (51-02) → force map + suite (51-03)
 - Zero new npm packages; promote remains empty-cell-only
-- [Phase 51]: Wave 0 RED only — no scorer stub; pure suite fails MODULE_NOT_FOUND until Plan 02
-- [Phase 51]: COL-02 process guard already green under alias-first; COL-01/04 stay RED until Plan 03 force map
-- [Phase 51]: Toxic Type aliases capped unless categorical values; STREET_HINT_RE local copy
-- [Phase 51]: Near-tie: take #1 only if alias tier better; else null when margin < minMargin
-- [Phase 51]: Research weights + small-sample categorical band cleared pure traps without retune
-- [Phase 51]: Always force columnMap.violationIssueType from scorer (including null) — no alias fallback on process
-- [Phase 51]: claimedHeaders = address/city/state/zip/date so scorer never re-picks non-Type fields
+
+Phase 52 plan decisions:
+
+- 4 sequential plans: Wave 0 RED → store → engine gate/override/META → API+UI
+- HTTP 409 `TYPE_COLUMN_CONFIRM_REQUIRED`; resume re-POST multipart + `confirmedTypeHeader`
+- Skip Type confirm for `water_shut_off`
+- Non-admin confirm → 403; non-admin first upload → 409 clear message (no hang)
+- Mixed batch fingerprints → hard refuse; never silent one-map
+- Store under `BRIDGE_CITY_FORMATS_ROOT` (not brain); normalizer `typeColumnOverride`
+- `__none__` / empty confirmed field = No type column (`typeHeader: null`)
+- Zero new npm packages; no short labels (Phase 53)
 
 ### Pending Todos
 
@@ -91,11 +95,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 52: HTTP shape for confirm gate (research suggests 409); non-admin + batch mixed-fingerprint policy
+None for Phase 52 planning — discretion locks applied from research.
 
 ## Session Continuity
 
-Last session: 2026-07-10T05:48:57.484Z
-Stopped at: Completed 51-03-PLAN.md
+Last session: planned Phase 52
+Stopped at: Planned Phase 52 (4 plans)
 Resume file: None
-Next: `/gsd:verify-work 51` or `/gsd:plan-phase 52`
+Next: `/gsd:execute-phase 52`
