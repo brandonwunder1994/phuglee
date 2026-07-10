@@ -1891,8 +1891,32 @@
     const fileLabel = fileCount > 1
       ? `${fileCount} files (${data.sourceFile})`
       : data.sourceFile;
-    resultsMeta.textContent =
+    const baseMeta =
       `${rows.length.toLocaleString()} record(s) kept from ${fileLabel} · ${uploadLabel} · ${data.city.city}, ${data.city.state}${parserLabel}${indexLabel}`;
+    // Day-2 efficiency: surface format auto-reuse + optional duration (EFF-01 polish)
+    const tr = data.processingMeta && data.processingMeta.typeResolution;
+    let reuseLabel = '';
+    if (tr && tr.source === 'auto_reuse') {
+      reuseLabel = tr.header
+        ? ` · Format reused · Type: ${tr.header}`
+        : ' · Format reused · No type column';
+    }
+    const ms = data.processingMeta && data.processingMeta.durationMs;
+    const timeLabel = (Number.isFinite(ms) && ms >= 0)
+      ? ` · ${(ms / 1000).toFixed(1)}s`
+      : '';
+    let trainTip = '';
+    if (isBridgeAdmin()) {
+      const openTrain = filterUndecidedTrainGroups(
+        (getReviewGroups(data).distressed || []).concat(
+          getReviewGroups(data).notDistressed || []
+        )
+      ).length;
+      if (openTrain > 0) {
+        trainTip = ` · ${openTrain} Train group(s) ready`;
+      }
+    }
+    resultsMeta.textContent = baseMeta + reuseLabel + timeLabel + trainTip;
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');
