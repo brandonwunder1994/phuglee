@@ -20,6 +20,9 @@ modules/form-forge/.env
 # Filter page saved lists (user staging)
 data/filter-lists/
 
+# Filter global brain (runtime)
+data/bridge-brain/
+
 # Property Analyzer runtime (modules/property-analyzer)
 modules/property-analyzer/node_modules/
 modules/property-analyzer/.env
