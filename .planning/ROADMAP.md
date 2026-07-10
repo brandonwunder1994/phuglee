@@ -94,7 +94,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 43-01-PLAN.md - Pure review groups module (rowIds, type stacking, signals/samples)
+- [x] 43-01-PLAN.md - Pure review groups module (rowIds, type stacking, signals/samples)
 - [ ] 43-02-PLAN.md - processUpload FN payload + groups wire + engine contract tests
 
 ---

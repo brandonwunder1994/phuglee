@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
-status: completed
-last_updated: "2026-07-10T01:35:20.161Z"
-last_activity: 2026-07-10 — pure apply + processUpload wire; ready for phase 43
+status: in_progress
+last_updated: "2026-07-10T01:46:00.000Z"
+last_activity: 2026-07-10 — pure review-groups module (rowIds + type stacking)
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 12
-  completed_plans: 2
-  percent: 17
+  completed_plans: 3
+  percent: 25
 ---
 
 # State
 
 ## Current Position
 
-Phase: **42** (brain-store-runtime-apply) — **Complete**  
-Plan: **02** of 02 (done)  
-Status: **Phase complete** — BRAIN-01/02/03 delivered  
-Last activity: 2026-07-10 — pure apply + processUpload wire; ready for phase 43
+Phase: **43** (review-payload-grouping) — **In progress**  
+Plan: **01** of 02 (done) → next **02**  
+Status: **Plan 01 complete** — REV-02/03/04 pure module green  
+Last activity: 2026-07-10 — pure review-groups module (rowIds + type stacking)
 
-Progress: [██░░░░░░░░] 17% (2/12 plans)
+Progress: [███░░░░░░░] 25% (3/12 plans)
 
 ## What ran (real GSD)
 
@@ -36,13 +36,14 @@ Progress: [██░░░░░░░░] 17% (2/12 plans)
 | Check | `gsd-plan-checker` | All phases **PASSED** |
 | Execute | `gsd-executor` 42-01 | **COMPLETE** — brain store + tests |
 | Execute | `gsd-executor` 42-02 | **COMPLETE** — apply + processUpload wire |
+| Execute | `gsd-executor` 43-01 | **COMPLETE** — pure review groups + tests |
 
 ## Plan inventory
 
 | Phase | Plans | Check | Progress |
 |-------|-------|-------|----------|
 | 42 | 42-01, 42-02 | PASSED | 2/2 complete |
-| 43 | 43-01, 43-02 | PASSED | 0/2 |
+| 43 | 43-01, 43-02 | PASSED | 1/2 |
 | 44 | 44-01, 44-02 | PASSED | 0/2 |
 | 45 | 45-01, 45-02, 45-03 | PASSED | 0/3 |
 | 46 | 46-01, 46-02 | PASSED | 0/2 |
@@ -58,6 +59,8 @@ Progress: [██░░░░░░░░] 17% (2/12 plans)
 | 42 | Suppress always applied last so conflicts demote to Standard |
 | 42 | Apply module is pure; engine owns loadBrain once per processUpload |
 | 42 | Engine suite isolates `BRIDGE_BRAIN_ROOT` so existing tests stay empty-brain no-ops |
+| 43 | Reuse violationTypeKey from bridge-brain-store only — one normalization path for brain type rules and review groups |
+| 43 | Typed groups omit descriptionKey from groupId hash; empty-type groups always include exact trimmed description |
 
 ## Performance Metrics
 
@@ -65,14 +68,15 @@ Progress: [██░░░░░░░░] 17% (2/12 plans)
 |-------|------|----------|-------|-------|
 | 42 | 01 | 8min | 2 | 4 |
 | 42 | 02 | 15min | 3 | 4 |
+| 43 | 01 | 10min | 2 | 2 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 42-02-PLAN.md |
-| Next | Execute phase 43 (review groups) |
+| Stopped At | Completed 43-01-PLAN.md |
+| Next | Execute 43-02 (processUpload FN payload + groups wire) |
 
 ## Superseded
 
@@ -82,6 +86,7 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Start phase 43
+# Continue phase 43
 /gsd:execute-phase 43
+# or specifically plan 02
 ```
