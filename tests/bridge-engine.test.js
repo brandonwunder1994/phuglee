@@ -61,7 +61,7 @@ test('processUpload keeps open and closed violations with usable addresses', asy
   });
 
   assert.equal(result.stub, false);
-  // Fence permit is not distress → FN pool; empty City Hall row discarded (no address)
+  // Fence permit is not distress â†’ FN pool; empty City Hall row discarded (no address)
   assert.equal(result.stats.kept, 2);
   assert.ok(result.stats.noDistress >= 1);
   assert.ok(result.rows.some((row) => row.violationIssueType.includes('Overgrown')));
@@ -125,6 +125,22 @@ test('processUpload keeps open and closed violations with usable addresses', asy
     result.reviewGroups.distressed[0] || result.reviewGroups.notDistressed[0];
   assert.ok(Array.isArray(sampleGroup.matchedIndicators));
   assert.ok(Array.isArray(sampleGroup.descriptionSamples));
+
+  // SHAPE-01: real process path must union tagger arrays into groups
+  const taggedGroup = result.reviewGroups.distressed.find(
+    (g) => Array.isArray(g.matchedIndicators) && g.matchedIndicators.length > 0
+  );
+  assert.ok(taggedGroup, 'at least one distressed group has non-empty matchedIndicators from process path');
+  const taggedRow = result.rows.find(
+    (row) => Array.isArray(row.matchedIndicators) && row.matchedIndicators.length > 0
+  );
+  assert.ok(taggedRow, 'at least one kept row has non-empty matchedIndicators array');
+  assert.ok(
+    /vegetation|grass|weed|trash|accumul|overgrown/i.test(
+      (taggedRow.matchedIndicators || []).join(' ') + ' ' + (taggedRow.violationIssueType || '')
+    ),
+    'tagged row should be vegetation/trash-type with array indicators'
+  );
 
   // Cap metadata + stats continuity
   assert.equal(result.stats.noDistress, result.notDistressedRows.length);

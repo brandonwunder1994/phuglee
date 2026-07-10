@@ -115,3 +115,149 @@ test('tracks discard reason stats', () => {
 test('upload type ids are stable', () => {
   assert.deepEqual(UPLOAD_TYPE_IDS, ['code_violation', 'water_shut_off']);
 });
+
+// --- SHAPE-01 / SHAPE-02: matchedIndicators array on process; join on export ---
+
+test('buildNormalizedRow keeps matchedIndicators as array', () => {
+  const mapped = {
+    streetAddress: '123 Main St',
+    city: '',
+    state: '',
+    zip: '',
+    violationIssueType: 'High Grass',
+    violationDate: '',
+    descriptionNotes: ''
+  };
+  const indicators = [
+    'Tall/overgrown/high grass or weeds',
+    'Accumulation of trash'
+  ];
+  const row = buildNormalizedRow(mapped, {
+    city: 'Marana',
+    state: 'Arizona',
+    uploadType: 'code_violation',
+    sourceFile: 'list.csv',
+    processedAt: '2026-07-06T12:00:00.000Z',
+    distressedSignalTag: 'Strong Distressed Signal',
+    matchedIndicators: indicators,
+    confidenceLevel: 'high'
+  });
+  assert.equal(Array.isArray(row.matchedIndicators), true);
+  assert.deepEqual(row.matchedIndicators, indicators);
+  assert.notEqual(row.matchedIndicators, indicators, 'should be a copy, not same ref');
+});
+
+test('buildNormalizedRow empty matchedIndicators normalizes to []', () => {
+  const mapped = {
+    streetAddress: '1 Oak',
+    city: '',
+    state: '',
+    zip: '',
+    violationIssueType: '',
+    violationDate: '',
+    descriptionNotes: ''
+  };
+  const empty = buildNormalizedRow(mapped, {
+    city: 'Marana',
+    state: 'Arizona',
+    uploadType: 'code_violation',
+    sourceFile: 'a.csv',
+    processedAt: '2026-07-06T12:00:00.000Z',
+    distressedSignalTag: 'Standard Code Violation',
+    matchedIndicators: [],
+    confidenceLevel: 'high'
+  });
+  assert.deepEqual(empty.matchedIndicators, []);
+
+  const missing = buildNormalizedRow(mapped, {
+    city: 'Marana',
+    state: 'Arizona',
+    uploadType: 'code_violation',
+    sourceFile: 'a.csv',
+    processedAt: '2026-07-06T12:00:00.000Z',
+    distressedSignalTag: 'Standard Code Violation',
+    confidenceLevel: 'high'
+  });
+  assert.deepEqual(missing.matchedIndicators, []);
+});
+
+test('buildNormalizedRow coerces legacy string indicators to array', () => {
+  const mapped = {
+    streetAddress: '1 Oak',
+    city: '',
+    state: '',
+    zip: '',
+    violationIssueType: '',
+    violationDate: '',
+    descriptionNotes: ''
+  };
+  const row = buildNormalizedRow(mapped, {
+    city: 'Marana',
+    state: 'Arizona',
+    uploadType: 'code_violation',
+    sourceFile: 'a.csv',
+    processedAt: '2026-07-06T12:00:00.000Z',
+    distressedSignalTag: 'Standard Code Violation',
+    matchedIndicators: 'legacy string',
+    confidenceLevel: 'high'
+  });
+  assert.equal(Array.isArray(row.matchedIndicators), true);
+  assert.deepEqual(row.matchedIndicators, ['legacy string']);
+});
+
+test('toExportRow joins matchedIndicators array with semicolon space', () => {
+  const exported = toExportRow({
+    streetAddress: '1 Main',
+    city: 'X',
+    state: 'Y',
+    zip: '',
+    violationIssueType: '',
+    violationDate: '',
+    descriptionNotes: '',
+    distressedSignalTag: 'Strong Distressed Signal',
+    matchedIndicators: ['a', 'b'],
+    confidenceLevel: 'high',
+    sourceFile: 'a.csv',
+    uploadType: 'code_violation',
+    processedAt: '2026-07-06T12:00:00.000Z'
+  });
+  assert.equal(exported['Matched Indicators'], 'a; b');
+});
+
+test('toExportRow empty array indicators export as empty string', () => {
+  const exported = toExportRow({
+    streetAddress: '1 Main',
+    city: 'X',
+    state: 'Y',
+    zip: '',
+    violationIssueType: '',
+    violationDate: '',
+    descriptionNotes: '',
+    distressedSignalTag: 'Standard Code Violation',
+    matchedIndicators: [],
+    confidenceLevel: 'high',
+    sourceFile: 'a.csv',
+    uploadType: 'code_violation',
+    processedAt: '2026-07-06T12:00:00.000Z'
+  });
+  assert.equal(exported['Matched Indicators'], '');
+});
+
+test('toExportRow accepts already-joined string indicators for backward compat', () => {
+  const exported = toExportRow({
+    streetAddress: '1 Main',
+    city: 'X',
+    state: 'Y',
+    zip: '',
+    violationIssueType: '',
+    violationDate: '',
+    descriptionNotes: '',
+    distressedSignalTag: 'Standard Code Violation',
+    matchedIndicators: 'already; joined',
+    confidenceLevel: 'high',
+    sourceFile: 'a.csv',
+    uploadType: 'code_violation',
+    processedAt: '2026-07-06T12:00:00.000Z'
+  });
+  assert.equal(exported['Matched Indicators'], 'already; joined');
+});

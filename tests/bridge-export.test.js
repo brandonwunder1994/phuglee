@@ -43,3 +43,21 @@ test('parseResponseReceivedAt accepts datetime-local style values', () => {
 test('parseResponseReceivedAt rejects empty values', () => {
   assert.throws(() => parseResponseReceivedAt(''), /required/i);
 });
+
+// SHAPE-02: array indicators → single CSV cell joined with '; '
+test('rowsToCsv joins array matchedIndicators with semicolon space', () => {
+  const arrayRow = {
+    ...sampleRow,
+    matchedIndicators: [
+      'Tall/overgrown/high grass or weeds',
+      'Accumulation of trash or debris'
+    ]
+  };
+  const csv = rowsToCsv([arrayRow]);
+  assert.match(csv, /Tall\/overgrown\/high grass or weeds/);
+  assert.match(csv, /Accumulation of trash or debris/);
+  assert.ok(
+    csv.includes('Tall/overgrown/high grass or weeds; Accumulation of trash or debris'),
+    'CSV must join array indicators with "; " (not Array.toString commas alone)'
+  );
+});
