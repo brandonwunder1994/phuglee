@@ -23,7 +23,8 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 60 in progress — Plan 01 complete, Plan 02 next  
+**Status:** Phase 60 complete — permanent regression bar ship-ready (522/0 + live 200)  
+
 
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
@@ -36,7 +37,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 - [x] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
 - [x] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
 - [x] **Phase 59: Efficiency Operator Path** — Shorter day-2 path to saved list without accuracy or Analyze re-coupling tradeoffs
-- [ ] **Phase 60: Regression QA Lock** — Independence + gold + processUpload e2e + suite + verify-live green
+- [x] **Phase 60: Regression QA Lock** — Independence + gold + processUpload e2e + suite + verify-live green
 
 ## Phase Details
 
@@ -127,7 +128,7 @@ Plans:
 
 Plans:
 - [x] 60-01-PLAN.md — Permanent bar packaging: TEST-01/02 (v2.0) titles + IND-04 in independence + TEST-PLAN map
-- [ ] 60-02-PLAN.md — Ship gate: focused Type/format/water + full npm test + verify-live
+- [x] 60-02-PLAN.md — Ship gate: focused Type/format/water + full npm test + verify-live
 
 ---
 
@@ -142,7 +143,7 @@ Plans:
 | 57. Accuracy Structure Pass | 3/3 | Complete | 2026-07-10 |
 | 58. Learning Loop Strength | 3/3 | Complete | 2026-07-10 |
 | 59. Efficiency Operator Path | 3/3 | Complete | 2026-07-10 |
-| 60. Regression QA Lock | 1/2 | In Progress | - |
+| 60. Regression QA Lock | 2/2 | Complete | 2026-07-10 |
 
 ### Coverage Map
 
