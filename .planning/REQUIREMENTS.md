@@ -9,10 +9,10 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Independence (IND)
 
-- [ ] **IND-01**: Process, save, Train, and list APIs never auto-push or write leads into Analyze (no `bridge-import-records` / session write from Filter)
-- [ ] **IND-02**: Legacy Analyze-push adapter (`bridge-analyzer-push` and any call sites/UI) is deleted or quarantined so it cannot be re-wired without failing tests
-- [ ] **IND-03**: Automated negative tests prove process + save paths never require Analyze push and never invent Analyze session writes
-- [ ] **IND-04**: `already_imported` Analyze-index filtering is **off by default** (re-work / purge / re-filter keeps full lists); optional enable only via explicit opt-in if implemented later
+- [x] **IND-01**: Process, save, Train, and list APIs never auto-push or write leads into Analyze (no `bridge-import-records` / session write from Filter)
+- [x] **IND-02**: Legacy Analyze-push adapter (`bridge-analyzer-push` and any call sites/UI) is deleted or quarantined so it cannot be re-wired without failing tests
+- [x] **IND-03**: Automated negative tests prove process + save paths never require Analyze push and never invent Analyze session writes
+- [x] **IND-04**: `already_imported` Analyze-index filtering is **off by default** (re-work / purge / re-filter keeps full lists); optional enable only via explicit opt-in if implemented later
 
 ### Saved lists (LIST)
 
@@ -75,10 +75,10 @@ Deferred — not in this milestone roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| IND-01 | Phase 55 | Pending |
-| IND-02 | Phase 55 | Pending |
-| IND-03 | Phase 55 | Pending |
-| IND-04 | Phase 55 | Pending |
+| IND-01 | Phase 55 | Complete |
+| IND-02 | Phase 55 | Complete |
+| IND-03 | Phase 55 | Complete |
+| IND-04 | Phase 55 | Complete |
 | LIST-01 | Phase 56 | Pending |
 | LIST-02 | Phase 56 | Pending |
 | LIST-03 | Phase 56 | Pending |

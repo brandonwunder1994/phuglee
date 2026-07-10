@@ -23,14 +23,14 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 55 planned — ready to execute  
+**Status:** Phase 55 complete — next: Phase 56 List Factory UX  
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
 
 ## Phases
 
-- [ ] **Phase 55: Independence Lock** — Process/save/Train never write Analyze; push adapter gone; `already_imported` off by default
+- [x] **Phase 55: Independence Lock** — Process/save/Train never write Analyze; push adapter gone; `already_imported` off by default
 - [ ] **Phase 56: List Factory UX** — Save → Download is the hero path; multi-city lists persist until operator deletes
 - [ ] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
 - [ ] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
@@ -51,9 +51,9 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 **Plans**: 3 plans
 
 Plans:
-- [ ] 55-01-PLAN.md — Default-off already_imported in processUpload (IND-04)
-- [ ] 55-02-PLAN.md — Delete push adapter + independence negative tests (IND-01/02/03)
-- [ ] 55-03-PLAN.md — Docs + light UI copy for independence messaging
+- [x] 55-01-PLAN.md — Default-off already_imported in processUpload (IND-04)
+- [x] 55-02-PLAN.md — Delete push adapter + independence negative tests (IND-01/02/03)
+- [x] 55-03-PLAN.md — Docs + light UI copy for independence messaging
 
 ### Phase 56: List Factory UX
 **Goal**: Operators treat Filter as a multi-city list factory — primary path is Save list then Download (one or all) for external enrich, with copy that teaches Process → (Train) → Save → Download → manual Analyze import
