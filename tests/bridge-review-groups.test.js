@@ -232,3 +232,75 @@ test('buildReviewGroups: no private underscore fields on returned groups', () =>
     }
   }
 });
+
+// --- Phase 49: stable group keys (GROUP-01..04) ---
+
+test('buildReviewGroups: empty type + same phrase different timestamps → 1 group count N', () => {
+  // GROUP-01
+  const rows = assignRowIds([
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'High Grass and Weeds - 01/15/2024 10:30',
+      matchedIndicators: ['weeds']
+    }),
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'High Grass and Weeds - 01/16/2024 11:00',
+      streetAddress: '456 Oak'
+    }),
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'High Grass and Weeds - 01/17/2024 09:15',
+      streetAddress: '789 Pine'
+    })
+  ]);
+  const groups = buildReviewGroups(rows, 'distressed');
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].count, 3);
+  assert.equal(groups[0].isSingleton, false);
+  assert.equal(groups[0].violationTypeKey, '__unknown__');
+  // raw variants still visible in samples
+  assert.ok(groups[0].descriptionSamples.length >= 2);
+});
+
+test('buildReviewGroups: typed values with embedded timestamps stack', () => {
+  // GROUP-02
+  const rows = assignRowIds([
+    row({ violationIssueType: 'High Grass and Weeds - 01/15/2024 10:30' }),
+    row({ violationIssueType: 'High Grass and Weeds - 01/16/2024 11:00' })
+  ]);
+  const groups = buildReviewGroups(rows, 'distressed');
+  assert.equal(groups.length, 1);
+  assert.equal(groups[0].count, 2);
+  assert.equal(groups[0].isSingleton, false);
+});
+
+test('buildReviewGroups: after timestamp stack isSingleton false when count > 1', () => {
+  // GROUP-04 integration — formula remains count === 1
+  const stacked = assignRowIds([
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'High Grass and Weeds - 01/15/2024 10:30'
+    }),
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'High Grass and Weeds - 01/16/2024 11:00',
+      streetAddress: '456 Oak'
+    })
+  ]);
+  const stackedGroups = buildReviewGroups(stacked, 'distressed');
+  assert.equal(stackedGroups.length, 1);
+  assert.equal(stackedGroups[0].count, 2);
+  assert.equal(stackedGroups[0].isSingleton, false);
+
+  const singleton = assignRowIds([
+    row({
+      violationIssueType: '',
+      descriptionNotes: 'unique free-text only once - 01/15/2024 10:30'
+    })
+  ]);
+  const singletonGroups = buildReviewGroups(singleton, 'distressed');
+  assert.equal(singletonGroups.length, 1);
+  assert.equal(singletonGroups[0].count, 1);
+  assert.equal(singletonGroups[0].isSingleton, true);
+});
