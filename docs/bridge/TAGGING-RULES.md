@@ -137,3 +137,9 @@ After base regex tagging, the global Filter brain can adjust Strong vs Standard 
 - Global durable brain JSON under the Filter volume-safe path (`BRIDGE_BRAIN_ROOT` / `global-brain.json`)
 - **Not** the Property Analyzer vision learned-brain store
 - Caps: events 2000, type rules 500, phrase rules 500; concurrent writers use `brain.version` (stale → HTTP 409)
+
+### Train review grouping (v1.7 accuracy)
+
+- Unmapped category-like columns (e.g. `Vio Cat`) promote into Violation/Issue Type so FN and distressed labels show the city category.
+- Incidental dates/times in free-text descriptions or type cells are stripped for **group keys only** so same-category rows stack; Singleton is only when group count === 1.
+- Process rows keep matched signal indicators as arrays for Train chips; export still joins with `; `.
