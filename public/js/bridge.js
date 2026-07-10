@@ -1388,7 +1388,20 @@
 
   function syncCityOutcomeUi() {
     const status = selectedCityOutcome();
-    if (otherSourceWrap) setHidden(otherSourceWrap, status !== 'other_source');
+    const showNotes = status === 'other_source' || status === 'approved_bad_data';
+    if (otherSourceWrap) setHidden(otherSourceWrap, !showNotes);
+    const notesLabel = document.getElementById('bridge-outcome-notes-label');
+    if (notesLabel && otherSourceNotes) {
+      if (status === 'approved_bad_data') {
+        notesLabel.textContent = 'What was wrong (optional)';
+        otherSourceNotes.placeholder =
+          'e.g. Scanned sideways / wrong years / parcels only / not code violations / unreadable PDF';
+      } else {
+        notesLabel.textContent = 'Who / where to contact';
+        otherSourceNotes.placeholder =
+          'e.g. Code Enforcement · (555) 123-4567 · ask for Jane · portal.city.gov/foia';
+      }
+    }
     if (outcomeSaveBtn) outcomeSaveBtn.disabled = !selectedCity || !status;
   }
 
@@ -1436,7 +1449,8 @@
         needs_clarification: 'Needs clarification — respond to get list',
         no: 'No records of this kind',
         other_source: 'Contact another source',
-        they_charge: 'They charge for the list'
+        they_charge: 'They charge for the list',
+        approved_bad_data: 'Replied — info invalid to use'
       };
       const label = labels[responseStatus] || responseStatus;
       setOutcomeStatus(`Saved: ${label} for ${selectedCity.city}. Filter it in City Tracker.`, 'success');

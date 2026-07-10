@@ -143,9 +143,17 @@
               <span class="bridge-outcome-desc">City requires payment before providing records</span>
             </span>
           </label>
+          <label class="bridge-outcome-option">
+            <input type="radio" name="bridge-city-outcome" value="approved_bad_data" />
+            <span>
+              <strong>Replied — info invalid to use</strong>
+              <span class="bridge-outcome-desc">They sent something, but it is unusable (wrong format, incomplete, not the list we need)</span>
+            </span>
+          </label>
         </div>
         <div class="bridge-other-source-wrap" id="bridge-other-source-wrap" hidden>
-          <label for="bridge-other-source-notes">Who / where to contact
+          <label for="bridge-other-source-notes">
+            <span id="bridge-outcome-notes-label">Who / where to contact</span>
             <textarea id="bridge-other-source-notes" rows="3" placeholder="e.g. Code Enforcement · (555) 123-4567 · ask for Jane · portal.city.gov/foia"></textarea>
           </label>
         </div>
@@ -447,6 +455,6 @@
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=4"></script>
-  <script src="/js/bridge.js?v=29"></script>
+  <script src="/js/bridge.js?v=30"></script>
 </body>
 </html>

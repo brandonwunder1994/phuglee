@@ -25,6 +25,8 @@ function formatStatus(status) {
   if (status === "needs_clarification") return "Needs clarification — respond to get list";
   if (status === "other_source") return "Contact another source";
   if (status === "no") return "No records of this kind";
+  if (status === "they_charge") return "They charge for the list";
+  if (status === "approved_bad_data") return "Replied — info invalid to use";
   return status.replace(/_/g, " ");
 }
 

@@ -538,7 +538,7 @@ DISPLAY_STATUS_MAP = {
     "unknown": "Unknown",
     "denied": "Denied",
     "gave_other_info": "Gave Other Info",
-    "approved_bad_data": "Approved (Bad Data)",
+    "approved_bad_data": "Replied — Info Invalid to Use",
     "approved_parcels": "Approved (Parcels)",
     "request_from_pd": "Request from PD",
     "they_charge": "They Charge",
