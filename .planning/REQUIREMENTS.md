@@ -44,10 +44,10 @@
 
 ### Hardening
 
-- [ ] **HARD-01**: Admin can undo the last training decision (list snapshot client-side + rule revert server-side)
-- [ ] **HARD-02**: Brain file enforces caps on events and rules; version conflicts return 409
-- [ ] **HARD-03**: Admin can view brain metrics (decision counts, active/proposed rule counts)
-- [ ] **HARD-04**: Tagging documentation describes base regex + brain layers; npm test and verify-live pass
+- [x] **HARD-01**: Admin can undo the last training decision (list snapshot client-side + rule revert server-side)
+- [x] **HARD-02**: Brain file enforces caps on events and rules; version conflicts return 409
+- [x] **HARD-03**: Admin can view brain metrics (decision counts, active/proposed rule counts)
+- [x] **HARD-04**: Tagging documentation describes base regex + brain layers; npm test and verify-live pass
 
 ## Future Requirements (deferred)
 
@@ -90,10 +90,10 @@
 | PHRASE-01 | Phase 46 | Complete |
 | PHRASE-02 | Phase 46 | Complete |
 | PHRASE-03 | Phase 46 | Complete |
-| HARD-01 | Phase 47 | Pending |
-| HARD-02 | Phase 47 | Pending |
-| HARD-03 | Phase 47 | Pending |
-| HARD-04 | Phase 47 | Pending |
+| HARD-01 | Phase 47 | Complete |
+| HARD-02 | Phase 47 | Complete |
+| HARD-03 | Phase 47 | Complete |
+| HARD-04 | Phase 47 | Complete |
 
 **Coverage:**
 - v1.6 requirements: 24 total

@@ -41,7 +41,7 @@
 - [x] **Phase 44: Admin Train brain UX** — Two train sections, group ✓/✗, admin-only chrome
 - [x] **Phase 45: Decisions + type rules + list mutation** — Mutate current list + live type learning
 - [x] **Phase 46: Phrase mining + brain panel** — Proposed phrases + admin rule management
-- [ ] **Phase 47: Hardening + metrics + docs** — Undo, caps, metrics, docs, QA green
+- [x] **Phase 47: Hardening + metrics + docs** — Undo, caps, metrics, docs, QA green
 
 ### Phase dependency
 
@@ -184,7 +184,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 47-01-PLAN.md — Caps, version 409, split undo, metrics, train polish, TAGGING-RULES, phase gate (HARD-01–04)
+- [x] 47-01-PLAN.md — Caps, version 409, split undo, metrics, train polish, TAGGING-RULES, phase gate (HARD-01–04)
 
 ---
 
@@ -196,8 +196,8 @@ Plans:
 | 43. Review payload + grouping | v1.6 | 2/2 | Complete | 2026-07-10 |
 | 44. Admin Train brain UX | v1.6 | 2/2 | Complete | 2026-07-10 |
 | 45. Decisions + type rules + list mutation | v1.6 | 3/3 | Complete | 2026-07-10 |
-| 46. Phrase mining + brain panel | v1.6 | 0/2 | Not started | - |
-| 47. Hardening + metrics + docs | v1.6 | 0/1 | Not started | - |
+| 46. Phrase mining + brain panel | v1.6 | 2/2 | Complete | 2026-07-10 |
+| 47. Hardening + metrics + docs | v1.6 | 1/1 | Complete | 2026-07-10 |
 
 **Coverage:** 24/24 v1.6 requirements mapped ✓
 

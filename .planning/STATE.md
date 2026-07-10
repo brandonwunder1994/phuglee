@@ -3,26 +3,26 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
 status: completed
-last_updated: "2026-07-10T02:18:12.014Z"
-last_activity: 2026-07-10 — brain panel + rule status API (46-02)
+last_updated: "2026-07-10T02:55:00.000Z"
+last_activity: 2026-07-10 — hardening + metrics + docs (47-01)
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 12
-  completed_plans: 11
-  percent: 92
+  completed_plans: 12
+  percent: 100
 ---
 
 # State
 
 ## Current Position
 
-Phase: **46** (phrase-mining-brain-panel) — **Complete**  
-Plan: **02** of 02 (done)  
-Status: **46-02 complete** — brain GET/status API + Filter brain panel green  
-Last activity: 2026-07-10 — brain panel + rule status API (46-02)
+Phase: **47** (hardening-metrics-docs) — **Complete**  
+Plan: **01** of 01 (done)  
+Status: **47-01 complete** — split undo, caps, 409, metrics, docs, npm test + verify-live green  
+Last activity: 2026-07-10 — hardening + metrics + docs (47-01)
 
-Progress: [█████████░] 92% (11/12 plans)
+Progress: [██████████] 100% (12/12 plans)
 
 ## What ran (real GSD)
 
@@ -45,6 +45,7 @@ Progress: [█████████░] 92% (11/12 plans)
 | Execute | `gsd-executor` 45-03 | **COMPLETE** — client Train Approve/Deny wire |
 | Execute | `gsd-executor` 46-01 | **COMPLETE** — phrase miner + decisions hook |
 | Execute | `gsd-executor` 46-02 | **COMPLETE** — brain panel + rule status API |
+| Execute | `gsd-executor` 47-01 | **COMPLETE** — caps, 409, undo, metrics, docs |
 
 ## Plan inventory
 
@@ -55,7 +56,7 @@ Progress: [█████████░] 92% (11/12 plans)
 | 44 | 44-01, 44-02 | PASSED | 2/2 complete |
 | 45 | 45-01, 45-02, 45-03 | PASSED | 3/3 complete |
 | 46 | 46-01, 46-02 | PASSED | 2/2 complete |
-| 47 | 47-01 | PASSED | 0/1 |
+| 47 | 47-01 | PASSED | 1/1 complete |
 
 ## Decisions
 
@@ -92,6 +93,9 @@ Progress: [█████████░] 92% (11/12 plans)
 | 46 | Third results-mode tab Filter brain (not separate drawer) to match Train chrome |
 | 46 | Rejected rules cannot re-open in v1; illegal transitions return INVALID_STATUS |
 | 46 | Status change bumps version, recounts metrics, appends audit event |
+| 47 | saveBrain owns version bump from disk + caps + recomputeMetrics on every write |
+| 47 | Split undo: client trainUndoStack restores lists; server disables resultingRuleIds only |
+| 47 | Rule caps prefer active/proposed before slice; events simple slice(-2000) |
 
 ## Performance Metrics
 
@@ -108,14 +112,15 @@ Progress: [█████████░] 92% (11/12 plans)
 | 45 | 03 | 10min | 2 | 1 |
 | 46 | 01 | 12min | 2 | 3 |
 | 46 | 02 | 18min | 2 | 5 |
+| 47 | 01 | 35min | 3 | 11 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 46-02-PLAN.md |
-| Next | Execute 47-01 (metrics / undo / hardening) |
+| Stopped At | Completed 47-01-PLAN.md |
+| Next | User acceptance for M7 / milestone close (do not auto-mark implemented) |
 
 ## Superseded
 
@@ -125,6 +130,6 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Start phase 47 — metrics, undo, hardening
-/gsd:execute-phase 47
+# M7 complete after user acceptance
+# Optional: /gsd:complete-milestone or manual M7 checklist
 ```
