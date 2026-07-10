@@ -27,16 +27,20 @@ echo "[entrypoint] Filter lists root: ${FILTER_LISTS_ROOT}"
 
 SEED_SESSION="/app/scripts/seed-data/distressAnalyzerSession_LATEST.json"
 LIVE_SESSION="${PDA_DATA_ROOT}/distressAnalyzerSession_LATEST.json"
+# Only seed empty/stub volumes. NEVER overwrite a real session just because the
+# seed dump is larger (city purges intentionally shrink the live file).
+STUB_MAX_BYTES=4096
 if [ -f "${SEED_SESSION}" ]; then
-  SEED_BYTES="$(wc -c < "${SEED_SESSION}")"
   LIVE_BYTES=0
   if [ -f "${LIVE_SESSION}" ]; then
     LIVE_BYTES="$(wc -c < "${LIVE_SESSION}")"
   fi
-  # Seed when volume is empty or only has a stub session from a prior boot.
-  if [ ! -f "${LIVE_SESSION}" ] || [ "${LIVE_BYTES}" -lt "${SEED_BYTES}" ]; then
-    echo "[entrypoint] Seeding Property Analyzer session (${SEED_BYTES} bytes; live=${LIVE_BYTES})"
+  if [ ! -f "${LIVE_SESSION}" ] || [ "${LIVE_BYTES}" -lt "${STUB_MAX_BYTES}" ]; then
+    SEED_BYTES="$(wc -c < "${SEED_SESSION}")"
+    echo "[entrypoint] Seeding Property Analyzer session (seed=${SEED_BYTES} bytes; live=${LIVE_BYTES})"
     cp "${SEED_SESSION}" "${LIVE_SESSION}"
+  else
+    echo "[entrypoint] Keeping live Analyze session (${LIVE_BYTES} bytes) — not overwriting with seed"
   fi
 fi
 

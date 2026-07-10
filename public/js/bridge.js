@@ -145,7 +145,19 @@
         throw new Error(data.error || 'OCR is unavailable. Upload Excel, CSV, or a text-based PDF.');
       }
       if (data.code === 'NO_USABLE_ROWS') {
-        throw new Error(data.error || 'No usable addresses found in this file.');
+        const stats = data.stats || {};
+        const parts = [];
+        if (stats.noDistress || stats.discardReasons?.no_distress_signal) {
+          parts.push(`${stats.noDistress || stats.discardReasons.no_distress_signal} no distress signal`);
+        }
+        if (stats.alreadyImported || stats.discardReasons?.already_imported) {
+          parts.push(`${stats.alreadyImported || stats.discardReasons.already_imported} already in Analyze`);
+        }
+        if (stats.deduplicated || stats.discardReasons?.duplicate) {
+          parts.push(`${stats.deduplicated || stats.discardReasons.duplicate} duplicates`);
+        }
+        const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
+        throw new Error((data.error || 'No usable addresses found in this file.') + detail);
       }
       throw new Error(data.error || `Request failed (${res.status})`);
     }

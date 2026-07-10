@@ -25,6 +25,20 @@ function sessionResultCount(session) {
   return Array.isArray(session?.results) ? session.results.length : 0;
 }
 
+function sessionDataCount(session) {
+  const results = sessionResultCount(session);
+  const records = Array.isArray(session?.records) ? session.records.length : 0;
+  return Math.max(results, records);
+}
+
+/** Only empty/tiny stubs should be replaced — never a real session after purge. */
+function isStubSession(session, liveBytes = 0) {
+  const n = sessionDataCount(session);
+  if (n >= 50) return false;
+  if (liveBytes > 0 && liveBytes < 4096) return true;
+  return n < 50 && liveBytes < 50000;
+}
+
 function readJsonIfExists(filePath) {
   if (!fs.existsSync(filePath)) return null;
   try {
@@ -43,10 +57,8 @@ function shouldReplaceTarget(targetPath, seedResults) {
   if (!fs.existsSync(targetPath)) return true;
   try {
     const live = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
-    const liveResults = sessionResultCount(live);
     const liveBytes = fs.statSync(targetPath).size;
-    const seedBytes = 0;
-    return liveResults < Math.min(seedResults, 100) || liveBytes < seedBytes;
+    return isStubSession(live, liveBytes);
   } catch (_) {
     return true;
   }
@@ -56,10 +68,10 @@ function shouldReplaceTargetWithSeed(targetPath, seedPath, seedResults) {
   if (!fs.existsSync(targetPath)) return true;
   try {
     const live = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
-    const liveResults = sessionResultCount(live);
     const liveBytes = fs.statSync(targetPath).size;
-    const seedBytes = fs.statSync(seedPath).size;
-    return liveResults < Math.min(seedResults, 100) || liveBytes < seedBytes;
+    // IMPORTANT: never re-seed because seed file is larger than live.
+    // After city purges (Cheyenne/Midlothian re-import), live is intentionally smaller.
+    return isStubSession(live, liveBytes);
   } catch (_) {
     return true;
   }

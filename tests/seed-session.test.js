@@ -44,3 +44,33 @@ test('ensureSeededSession seeds admin and vault when global is an empty stub', (
 
   fs.rmSync(tmp, { recursive: true, force: true });
 });
+
+test('ensureSeededSession does not re-seed after intentional purge (smaller live file)', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'pda-seed-purged-'));
+  const adminPath = path.join(tmp, 'users', 'admin', SESSION_FILE);
+  fs.mkdirSync(path.dirname(adminPath), { recursive: true });
+
+  // Simulate a purged real session: still thousands of results, but smaller than full seed
+  const purged = {
+    records: Array.from({ length: 500 }, (_, i) => ({ address: `${i} Main St`, city: 'X', state: 'Y' })),
+    results: Array.from({ length: 500 }, (_, i) => ({ address: `${i} Main St`, city: 'X', state: 'Y' })),
+    savedAt: Date.now()
+  };
+  fs.writeFileSync(adminPath, JSON.stringify(purged));
+  const before = fs.readFileSync(adminPath, 'utf8');
+
+  const result = ensureSeededSession({
+    config: {
+      ROOT,
+      DATA_ROOT: tmp,
+      SESSION_LATEST_FILE: SESSION_FILE
+    }
+  });
+
+  assert.equal(result.admin.seeded, false);
+  const after = fs.readFileSync(adminPath, 'utf8');
+  assert.equal(after, before);
+  assert.equal(sessionResultCount(JSON.parse(after)), 500);
+
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
