@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=5">
+  <link rel="stylesheet" href="/css/bridge.css?v=6">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -197,6 +197,28 @@
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
       <p class="bridge-note" id="bridge-stub-note" hidden></p>
+
+      <div id="bridge-train-wrap" hidden>
+        <div class="bridge-results-mode" role="tablist" aria-label="Results mode">
+          <button type="button" role="tab" id="bridge-mode-kept" data-mode="kept"
+            class="bridge-mode-tab is-active" aria-selected="true" aria-controls="bridge-kept-view">Kept list</button>
+          <button type="button" role="tab" id="bridge-mode-train" data-mode="train"
+            class="bridge-mode-tab" aria-selected="false" aria-controls="bridge-train-panel">Train brain</button>
+        </div>
+        <p id="bridge-train-status" class="bridge-train-status" hidden role="status"></p>
+        <div id="bridge-train-panel" hidden role="tabpanel" aria-labelledby="bridge-mode-train">
+          <section class="bridge-train-section" aria-labelledby="train-distressed-h">
+            <h3 id="train-distressed-h">Marked distressed</h3>
+            <p class="bridge-panel-lead">Approve if the tagger is right. Deny removes these from the kept list (training writes in phase 45).</p>
+            <div id="bridge-train-distressed" class="bridge-train-groups"></div>
+          </section>
+          <section class="bridge-train-section" aria-labelledby="train-fn-h">
+            <h3 id="train-fn-h">Not marked distressed</h3>
+            <p class="bridge-panel-lead">Catch false negatives. Approve promotes into the kept list (phase 45).</p>
+            <div id="bridge-train-not-distressed" class="bridge-train-groups"></div>
+          </section>
+        </div>
+      </div>
 
       <div class="bridge-results-toolbar" id="bridge-results-toolbar" hidden>
         <label class="bridge-toolbar-search">
