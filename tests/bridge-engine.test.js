@@ -61,7 +61,7 @@ test('processUpload keeps open and closed violations with usable addresses', asy
   });
 
   assert.equal(result.stub, false);
-  // Fence permit is not distress → discarded; empty City Hall row discarded too
+  // Fence permit is not distress → FN pool; empty City Hall row discarded (no address)
   assert.equal(result.stats.kept, 2);
   assert.ok(result.stats.noDistress >= 1);
   assert.ok(result.rows.some((row) => row.violationIssueType.includes('Overgrown')));
@@ -70,6 +70,68 @@ test('processUpload keeps open and closed violations with usable addresses', asy
   assert.equal(result.rows.every((row) => row.state === 'Arizona'), true);
   assert.equal(result.processingMeta.parser, 'csv');
   assert.equal(result.processingMeta.columnMap.streetAddress, 'Property Address');
+
+  // REV-01: full FN pool (not thin discard previews)
+  assert.ok(Array.isArray(result.notDistressedRows));
+  assert.ok(result.notDistressedRows.length >= 1);
+  const fenceFn = result.notDistressedRows.find(
+    (row) => String(row.violationIssueType || '').toLowerCase().includes('fence')
+  );
+  assert.ok(fenceFn, 'fence permit should be in notDistressedRows');
+  assert.ok(fenceFn.streetAddress, 'FN row has streetAddress');
+  assert.ok(fenceFn.violationIssueType, 'FN row has violationIssueType');
+  assert.ok(
+    fenceFn.descriptionNotes != null || fenceFn.description != null,
+    'FN row has description field'
+  );
+  // Empty-address City Hall row is non-review discard, not FN
+  assert.ok(
+    !result.notDistressedRows.some((row) => !String(row.streetAddress || '').trim()),
+    'empty-address rows must not appear in notDistressedRows'
+  );
+  assert.ok(
+    !result.notDistressedRows.some(
+      (row) => String(row.descriptionNotes || '').toLowerCase().includes('city hall')
+    ),
+    'City Hall empty-address row excluded from FN'
+  );
+
+  // REV-02: unique rowIds on kept + FN
+  const allIds = [
+    ...result.rows.map((r) => r.rowId),
+    ...result.notDistressedRows.map((r) => r.rowId)
+  ];
+  assert.ok(allIds.every(Boolean), 'every kept and FN row has truthy rowId');
+  assert.equal(new Set(allIds).size, allIds.length, 'rowIds are unique');
+
+  // REV-03/04: review groups stacked by type
+  assert.ok(result.reviewGroups);
+  assert.ok(Array.isArray(result.reviewGroups.distressed));
+  assert.ok(Array.isArray(result.reviewGroups.notDistressed));
+  assert.ok(result.reviewGroups.distressed.length >= 1);
+  assert.ok(
+    result.reviewGroups.distressed.some((g) =>
+      /overgrown|weeds|trash|accumulation/i.test(g.violationTypeLabel || '')
+    ),
+    'distressed groups cover kept types'
+  );
+  assert.ok(
+    result.reviewGroups.notDistressed.some((g) =>
+      /fence/i.test(g.violationTypeLabel || g.violationTypeKey || '')
+    ),
+    'fence permit appears under reviewGroups.notDistressed'
+  );
+  const sampleGroup =
+    result.reviewGroups.distressed[0] || result.reviewGroups.notDistressed[0];
+  assert.ok(Array.isArray(sampleGroup.matchedIndicators));
+  assert.ok(Array.isArray(sampleGroup.descriptionSamples));
+
+  // Cap metadata + stats continuity
+  assert.equal(result.stats.noDistress, result.notDistressedRows.length);
+  assert.ok(result.brainMeta);
+  assert.equal(typeof result.brainMeta.notDistressedTruncated, 'boolean');
+  assert.equal(result.brainMeta.notDistressedTotal, result.notDistressedRows.length);
+  assert.equal(result.brainMeta.notDistressedReturned, result.notDistressedRows.length);
 });
 
 test('tags strong distressed signals during tabular processing', async () => {
@@ -325,21 +387,76 @@ test('processUpload suppress_type drops otherwise-strong violation rows', async 
   }
 });
 
+test('processUpload all-FN code_violation succeeds with empty kept (zero-kept policy)', async () => {
+  const csv = [
+    'Property Address,Violation Type,Violation Date,Description',
+    '555 Fence Way,Fence permit,2026-03-28,Expired permit',
+    '777 Permit Ln,Building permit,2026-03-29,New construction'
+  ].join('\n');
+
+  const result = await processUpload({
+    buffer: Buffer.from(csv),
+    filename: 'all-fn.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.rows.length, 0);
+  assert.ok(result.notDistressedRows.length >= 1);
+  assert.ok(result.reviewGroups.notDistressed.length >= 1);
+  assert.ok(result.stats.noDistress >= 1);
+  assert.ok(result.notDistressedRows.every((r) => r.rowId));
+});
+
+test('processUpload pure no-address file still throws NO_USABLE_ROWS', async () => {
+  const csv = [
+    'Property Address,Violation Type,Description',
+    ',Parking lot maintenance,City Hall lot',
+    ',,'
+  ].join('\n');
+
+  await assert.rejects(
+    () => processUpload({
+      buffer: Buffer.from(csv),
+      filename: 'no-address.csv',
+      city: CITY,
+      uploadType: 'code_violation'
+    }),
+    (err) => err.code === 'NO_USABLE_ROWS'
+  );
+});
+
+test('processUpload water_shut_off has empty notDistressedRows and rowIds on kept', async () => {
+  const buffer = fs.readFileSync(path.join(FIXTURES, 'water-shutoffs.txt'));
+  const result = await processUpload({
+    buffer,
+    filename: 'shutoffs.txt',
+    city: CITY,
+    uploadType: 'water_shut_off'
+  });
+  assert.ok(result.stats.kept >= 1);
+  assert.ok(Array.isArray(result.notDistressedRows));
+  assert.equal(result.notDistressedRows.length, 0);
+  assert.ok(result.rows.every((row) => row.rowId));
+});
+
 test('processUpload promote_type keeps generic type as Strong', async () => {
   const csv = [
     'Property Address,Violation Type,Violation Date,Description',
     '555 Fence Way,Fence permit,2026-03-28,Expired permit'
   ].join('\n');
 
-  await assert.rejects(
-    () => processUpload({
-      buffer: Buffer.from(csv),
-      filename: 'fence.csv',
-      city: CITY,
-      uploadType: 'code_violation'
-    }),
-    (err) => err.code === 'NO_USABLE_ROWS'
-  );
+  // Without brain: all-FN success (zero kept, FN pool has fence)
+  const baseline = await processUpload({
+    buffer: Buffer.from(csv),
+    filename: 'fence.csv',
+    city: CITY,
+    uploadType: 'code_violation'
+  });
+  assert.equal(baseline.ok, true);
+  assert.equal(baseline.rows.length, 0);
+  assert.ok(baseline.notDistressedRows.length >= 1);
 
   const brain = emptyBrain();
   brain.typeRules = [
