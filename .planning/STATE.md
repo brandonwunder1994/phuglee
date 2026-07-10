@@ -2,27 +2,27 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Filter Superpower Brain
-status: completed
-last_updated: "2026-07-10T01:42:52.042Z"
-last_activity: 2026-07-10 — processUpload FN payload + review groups wire
+status: in_progress
+last_updated: "2026-07-10T01:56:00Z"
+last_activity: 2026-07-10 — train brain shell markup + CSS + tests
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 12
-  completed_plans: 4
-  percent: 33
+  completed_plans: 5
+  percent: 42
 ---
 
 # State
 
 ## Current Position
 
-Phase: **43** (review-payload-grouping) — **Complete**  
-Plan: **02** of 02 (done)  
-Status: **Phase 43 complete** — REV-01..04 processUpload wire green  
-Last activity: 2026-07-10 — processUpload FN payload + review groups wire
+Phase: **44** (admin-train-brain-ux) — **In Progress**  
+Plan: **01** of 02 (done) → next **02**  
+Status: **44-01 complete** — train shell tests/markup/CSS green  
+Last activity: 2026-07-10 — train brain shell markup + CSS + tests
 
-Progress: [███░░░░░░░] 33% (4/12 plans)
+Progress: [████░░░░░░] 42% (5/12 plans)
 
 ## What ran (real GSD)
 
@@ -38,6 +38,7 @@ Progress: [███░░░░░░░] 33% (4/12 plans)
 | Execute | `gsd-executor` 42-02 | **COMPLETE** — apply + processUpload wire |
 | Execute | `gsd-executor` 43-01 | **COMPLETE** — pure review groups + tests |
 | Execute | `gsd-executor` 43-02 | **COMPLETE** — FN payload + groups wire |
+| Execute | `gsd-executor` 44-01 | **COMPLETE** — train shell tests + markup + CSS |
 
 ## Plan inventory
 
@@ -45,7 +46,7 @@ Progress: [███░░░░░░░] 33% (4/12 plans)
 |-------|-------|-------|----------|
 | 42 | 42-01, 42-02 | PASSED | 2/2 complete |
 | 43 | 43-01, 43-02 | PASSED | 2/2 complete |
-| 44 | 44-01, 44-02 | PASSED | 0/2 |
+| 44 | 44-01, 44-02 | PASSED | 1/2 |
 | 45 | 45-01, 45-02, 45-03 | PASSED | 0/3 |
 | 46 | 46-01, 46-02 | PASSED | 0/2 |
 | 47 | 47-01 | PASSED | 0/1 |
@@ -65,6 +66,8 @@ Progress: [███░░░░░░░] 33% (4/12 plans)
 | 43 | Success discarded is non-review only; full FN rows live solely in notDistressedRows |
 | 43 | Zero-kept success only for uploadType === code_violation when FN pool non-empty |
 | 43 | brainMeta carries notDistressedTruncated/Total/Returned; processingMeta brain fields preserved from 42 |
+| 44 | Omit `#bridge-kept-view` wrapper; JS toggles existing toolbar/table/pagination |
+| 44 | Train wrap fail-closed with `hidden` in static HTML; mode tabs use gold/orange active state |
 
 ## Performance Metrics
 
@@ -74,14 +77,15 @@ Progress: [███░░░░░░░] 33% (4/12 plans)
 | 42 | 02 | 15min | 3 | 4 |
 | 43 | 01 | 10min | 2 | 2 |
 | 43 | 02 | 12min | 2 | 2 |
+| 44 | 01 | 12min | 3 | 3 |
 
 ## Session
 
 | Field | Value |
 |-------|-------|
 | Last session | 2026-07-10 |
-| Stopped At | Completed 43-02-PLAN.md |
-| Next | Execute phase 44 (Admin Train brain UX) |
+| Stopped At | Completed 44-01-PLAN.md |
+| Next | Execute 44-02 (admin gate + reviewGroups render) |
 
 ## Superseded
 
@@ -91,6 +95,7 @@ Hand-rolled `docs/gsd/plans/2026-07-09-phase-4*.md` — see `docs/gsd/plans/SUPE
 ## Next
 
 ```text
-# Start phase 44
+# Continue phase 44
 /gsd:execute-phase 44
+# or specifically plan 02
 ```

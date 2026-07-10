@@ -22,10 +22,10 @@
 
 ### Admin training UX
 
-- [ ] **TRAIN-01**: Admin can open Train brain on Filter results with two sections: marked distressed and not marked distressed
+- [x] **TRAIN-01**: Admin can open Train brain on Filter results with two sections: marked distressed and not marked distressed
 - [ ] **TRAIN-02**: Admin can Approve or Deny a stacked violation-type group with one action
-- [ ] **TRAIN-03**: Non-admin users never see train controls
-- [ ] **TRAIN-04**: Train UI shows matched signals and description samples on each group card
+- [x] **TRAIN-03**: Non-admin users never see train controls
+- [x] **TRAIN-04**: Train UI shows matched signals and description samples on each group card
 
 ### Decisions and list mutation
 
@@ -77,10 +77,10 @@
 | REV-02 | Phase 43 | Complete |
 | REV-03 | Phase 43 | Complete |
 | REV-04 | Phase 43 | Complete |
-| TRAIN-01 | Phase 44 | Pending |
+| TRAIN-01 | Phase 44 | Complete |
 | TRAIN-02 | Phase 44 | Pending |
-| TRAIN-03 | Phase 44 | Pending |
-| TRAIN-04 | Phase 44 | Pending |
+| TRAIN-03 | Phase 44 | Complete |
+| TRAIN-04 | Phase 44 | Complete |
 | DEC-01 | Phase 45 | Pending |
 | DEC-02 | Phase 45 | Pending |
 | DEC-03 | Phase 45 | Pending |
