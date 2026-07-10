@@ -17,13 +17,13 @@
 **Milestone:** v1.8 Type Column Intelligence  
 **Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress/export.
 
-**Status:** Phase 51 in progress — Plan 02 complete (pure scorer green; next: force map)
+**Status:** Phase 51 complete — force Type map wired; ready for verify-work / Phase 52
 
 ---
 
 ## Phases
 
-- [ ] **Phase 51: COL Scoring + Map Wire** — Score all columns; force single Type winner into columnMap
+- [x] **Phase 51: COL Scoring + Map Wire** — Score all columns; force single Type winner into columnMap
 - [ ] **Phase 52: Format Memory + Confirm Gate** — Per-city fingerprint, admin confirm, reuse, process meta
 - [ ] **Phase 53: Display-Only Short Labels** — Short Train titles; full raw for match/export/decisions
 - [ ] **Phase 54: Regression Lock** — processUpload e2e locks + npm test + verify-live green
@@ -39,12 +39,12 @@
   2. When no column meets Type candidacy, Type stays empty and distressed rows remain available for review (no silent drop solely for “no type column”)
   3. v1.7 `promoteCategoryFromRaw` still fills empty Type cells only — it never overrides a scorer-chosen Type column
   4. Scorer choice is the forced map winner; alias table is a scoring feature only, not a parallel first-match path that can undercut the scorer
-**Plans**: 3 plans
+**Plans**: 3/3 plans complete
 
 Plans:
 - [x] 51-01-PLAN.md - Wave 0 RED tests (pure trap matrix + process wire contracts)
 - [x] 51-02-PLAN.md - Pure lib/bridge-type-column-score.js until unit green
-- [ ] 51-03-PLAN.md - Force Type in normalizeRawRows + full suite green
+- [x] 51-03-PLAN.md - Force Type in normalizeRawRows + full suite green
 
 ### Phase 52: Format Memory + Confirm Gate
 **Goal**: First-time or format-changed city uploads pause for admin Type-column confirmation; same fingerprint reuses last confirmed mapping with no modal
@@ -158,7 +158,7 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 51. COL Scoring + Map Wire | 2/3 | In Progress|  | - |
+| 51. COL Scoring + Map Wire | 3/3 | Complete   | 2026-07-10 | - |
 | 52. Format Memory + Confirm Gate | v1.8 | 0/? | Not started | - |
 | 53. Display-Only Short Labels | v1.8 | 0/? | Not started | - |
 | 54. Regression Lock | v1.8 | 0/? | Not started | - |

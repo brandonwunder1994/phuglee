@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
-status: executing
-stopped_at: Completed 51-02-PLAN.md
-last_updated: "2026-07-10T05:46:08.741Z"
-last_activity: 2026-07-09 — Completed 51-02 pure type-column scorer
+status: phase_complete
+stopped_at: Completed 51-03-PLAN.md
+last_updated: "2026-07-10T05:49:00.451Z"
+last_activity: 2026-07-09 — Completed 51-03 force Type map wire
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
-  percent: 67
+  completed_plans: 3
+  percent: 100
 ---
 
 # State
@@ -21,30 +21,30 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 51 — COL Scoring + Map Wire (Plan 02 complete; next Plan 03)
+**Current focus:** Phase 51 complete — ready for verify-work / Phase 52
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
-**Phase:** 51 of 54 (COL Scoring + Map Wire)  
-**Plan:** 03 of 03 (next to execute)  
-**Status:** Ready to execute  
-**Last activity:** 2026-07-09 — Completed 51-02 pure type-column scorer
+**Phase:** 51 of 54 (COL Scoring + Map Wire) — COMPLETE  
+**Plan:** 03 of 03 (all plans complete)  
+**Status:** Phase complete  
+**Last activity:** 2026-07-09 — Completed 51-03 force Type map wire
 
-Progress: [███████░░░] 67%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v1.8): 2
-- Average duration: 1.5min
-- Total execution time: 3min
+- Total plans completed (v1.8): 3
+- Average duration: 1.7min
+- Total execution time: 5min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 51 | 2/3 | 3min | 1.5min |
+| 51 | 3/3 | 5min | 1.7min |
 | 52 | 0 | TBD | — |
 | 53 | 0 | TBD | — |
 | 54 | 0 | TBD | — |
@@ -55,6 +55,7 @@ Progress: [███████░░░] 67%
 |-------|------|----------|-------|-------|
 | 51-col-scoring-map-wire | 01 | 1min | 2 | 2 |
 | 51-col-scoring-map-wire | 02 | 2min | 2 | 2 |
+| 51-col-scoring-map-wire | 03 | 2min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Phase 51 plan decisions:
 - [Phase 51]: Toxic Type aliases capped unless categorical values; STREET_HINT_RE local copy
 - [Phase 51]: Near-tie: take #1 only if alias tier better; else null when margin < minMargin
 - [Phase 51]: Research weights + small-sample categorical band cleared pure traps without retune
+- [Phase 51]: Always force columnMap.violationIssueType from scorer (including null) — no alias fallback on process
+- [Phase 51]: claimedHeaders = address/city/state/zip/date so scorer never re-picks non-Type fields
 
 ### Pending Todos
 
@@ -88,12 +91,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 51: pure scorer green; process force map still pending Plan 03 (engine COL-01/04 RED expected)
 - Phase 52: HTTP shape for confirm gate (research suggests 409); non-admin + batch mixed-fingerprint policy
 
 ## Session Continuity
 
-Last session: 2026-07-10T05:46:08.733Z
-Stopped at: Completed 51-02-PLAN.md
+Last session: 2026-07-10T05:48:57.484Z
+Stopped at: Completed 51-03-PLAN.md
 Resume file: None
-Next: `/gsd:execute-phase 51`
+Next: `/gsd:verify-work 51` or `/gsd:plan-phase 52`
