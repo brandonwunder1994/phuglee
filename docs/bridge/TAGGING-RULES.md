@@ -104,3 +104,36 @@ Matches other clear exterior neglect not covered above.
 | "Fence in deteriorated condition" | Strong Distressed Signal | Exterior nuisance or maintenance failure indicating neglect |
 | "Fence permit expired" | Standard Code Violation | (none) |
 | Any water shut off record | Water Shut Off – High Value Distress Signal | (none) |
+
+---
+
+## Filter Superpower Brain (global, admin-trained)
+
+After base regex tagging, the global Filter brain can adjust Strong vs Standard outcomes for **code_violation** uploads. Base `INDICATOR_CATEGORIES` above remain authoritative for the keyword layer.
+
+### Runtime order for `code_violation`
+
+1. **Base regex** — `INDICATOR_CATEGORIES` in this document (via `lib/bridge-distress-tagger.js`)
+2. **Active promote type** — normalized Violation/Issue Type key → force Strong Distressed Signal
+3. **Active phrase rules** — literal patterns on search text (promote or suppress phrase)
+4. **Active suppress type** — final veto on type key → demote to Standard (not kept)
+5. **Keep filter** — only Strong Distressed Signal rows stay on the kept list; Standard rows go to the not-distressed review pool
+
+### Water shut-off
+
+- **Exempt from type suppress** — always high-value pass-through; type suppress rules never demote water rows
+- **Phrase rules N/A in v1** — phrase mining and phrase apply are not used for water shut-off training
+
+### Training
+
+- **Admin-only** on `/bridge` → **Train brain** (Approve / Deny groups)
+- **Type rules** go live immediately on the next process (and list mutation for the current batch)
+- **Phrase rules** are **proposed** from training evidence, then **activated** (or rejected) in the **Filter brain** panel
+- Non-admins only receive improved automatic tagging; they cannot train or edit rules
+- **Undo** is split: client restores the kept/not-distressed list snapshot; server reverts rules from the last training event
+
+### Persistence
+
+- Global durable brain JSON under the Filter volume-safe path (`BRIDGE_BRAIN_ROOT` / `global-brain.json`)
+- **Not** the Property Analyzer vision learned-brain store
+- Caps: events 2000, type rules 500, phrase rules 500; concurrent writers use `brain.version` (stale → HTTP 409)

@@ -295,3 +295,15 @@ test('applyDecision then undoLastDecision reverts the created suppress rule', ()
   assert.equal(brain.typeRules.find((r) => r.id === ruleId).status, 'disabled');
   assert.equal(result.event.undone, true);
 });
+
+// ─── HARD-04: docs document Superpower Brain layers ─────────────────────────
+
+test('TAGGING-RULES.md documents Filter Superpower Brain promote/suppress layers', () => {
+  const docPath = path.join(__dirname, '..', 'docs', 'bridge', 'TAGGING-RULES.md');
+  const text = fs.readFileSync(docPath, 'utf8');
+  assert.match(text, /Superpower Brain/);
+  assert.match(text, /promote type/i);
+  assert.match(text, /suppress type/i);
+  assert.match(text, /base regex/i);
+  assert.match(text, /Water shut-off/i);
+});

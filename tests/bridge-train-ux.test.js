@@ -311,19 +311,23 @@ test('bridge.js source wires renderResults to train wrap and admin gate', () => 
   assert.ok(src.includes('renderTrainGroups') || src.includes('renderTrainGroupCard'), 'train render path');
 });
 
-test('bridge.js source has phase 45 decision stub seam (no fake success API)', () => {
+test('bridge.js source wires train decisions + undo stack (no fake success API)', () => {
   const src = readBridgeJs();
   assert.ok(
-    /phase 45/i.test(src) || /PHASE45/.test(src),
-    'must mention phase 45 / PHASE45 in decision stub'
+    src.includes('/api/bridge/brain/decisions'),
+    'must POST real train decisions API'
+  );
+  assert.ok(
+    src.includes('trainUndoStack') && src.includes('/api/bridge/brain/undo'),
+    'must have trainUndoStack + server undo path'
   );
   assert.ok(
     src.includes('data-action') || src.includes("data-action"),
     'must wire data-action for approve/deny'
   );
   assert.ok(
-    src.includes('onTrainDecision') || src.includes('Approve queued'),
-    'must have onTrainDecision stub or approve queue copy'
+    src.includes('onTrainDecision') || src.includes('submitTrainDecision'),
+    'must have onTrainDecision / submitTrainDecision'
   );
 });
 
