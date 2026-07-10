@@ -123,6 +123,9 @@
 | ACC-01 | Gold keep/deny/water processUpload e2e | Strong kept / FN deny / water no type-suppress | ✓ `bridge-accuracy-gold.test.js` |
 | ACC-02 | No-Type + banned silent-drop reasons | Inventory kept/FN; no no_type* | ✓ gold |
 | ACC-03 | Type winner + COL/GATE/LBL/GROUP keep-green | Single Type; engine patterns | ✓ gold + engine |
+| LRN-01 | Paired learning metrics (trend + gold P/R) | GET brain/metrics.learning | ✓ `bridge-learning-metrics` + brain-api |
+| LRN-02 | Anti-game: coverage / no silent-drop win | pure unit + no groupsHidden | ✓ learning-metrics |
+| LRN-03 | Type live; phrases proposed-only | apply + phrase miner | ✓ existing + phase 58 |
 
 ## J. Analyzer push
 

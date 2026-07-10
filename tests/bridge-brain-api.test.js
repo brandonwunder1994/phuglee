@@ -563,6 +563,37 @@ test('HARD: admin GET /brain/metrics returns decision and rule counts', async ()
   assert.equal(json.promoteCount, 1); // active promote_phrase
 });
 
+test('LRN-01: admin GET /brain/metrics includes learning.decisionTrend and gold', async () => {
+  seedBrainWithRules();
+  const { status, json } = await callBridge('GET', '/api/bridge/brain/metrics', {
+    headers: adminHeaders()
+  });
+  assert.equal(status, 200);
+  assert.ok(json.learning, 'learning nest required');
+  assert.ok(json.learning.decisionTrend);
+  assert.ok(['down', 'up', 'flat'].includes(json.learning.decisionTrend.direction));
+  assert.equal(typeof json.learning.decisionTrend.recentCount, 'number');
+  assert.equal(typeof json.learning.decisionTrend.previousCount, 'number');
+  assert.ok(json.learning.gold);
+  assert.equal(typeof json.learning.gold.degraded, 'boolean');
+  if (json.learning.gold.source !== 'unavailable') {
+    assert.equal(typeof json.learning.gold.precision, 'number');
+    assert.equal(typeof json.learning.gold.recall, 'number');
+  }
+  assert.equal(typeof json.totalDecisions, 'number');
+});
+
+test('LRN-01: admin GET /brain exposes metrics.learning with decisionTrend', async () => {
+  seedBrainWithRules();
+  const { status, json } = await callBridge('GET', '/api/bridge/brain', {
+    headers: adminHeaders()
+  });
+  assert.equal(status, 200);
+  assert.ok(json.metrics && json.metrics.learning);
+  assert.ok(json.metrics.learning.decisionTrend);
+  assert.ok(['down', 'up', 'flat'].includes(json.metrics.learning.decisionTrend.direction));
+});
+
 test('HARD: admin undo reverts last decision rules and returns brainSummary', async () => {
   const { loadBrain, saveBrain, emptyBrain } = require('../lib/bridge-brain-store');
   const brain = emptyBrain();

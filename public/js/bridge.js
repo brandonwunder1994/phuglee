@@ -570,6 +570,31 @@
       const totalDecisions = metrics.totalDecisions ?? '—';
       const suppressCount = metrics.suppressCount;
       const promoteCount = metrics.promoteCount;
+      // LRN-01 paired learning health (server nest + client process apply coverage)
+      const learning = metrics.learning || data.learning || {};
+      const decisionTrend = learning.decisionTrend || {};
+      const gold = learning.gold || {};
+      const appliedIds =
+        (lastResult && lastResult.processingMeta && lastResult.processingMeta.brainAppliedRuleIds) ||
+        [];
+      const coverageNote = appliedIds.length
+        ? `${appliedIds.length} rules applied last process`
+        : (learning.applyCoverage && learning.applyCoverage.note) || 'process for apply coverage';
+      const trendLabel = decisionTrend.direction
+        ? `trend ${decisionTrend.direction} (${decisionTrend.recentCount ?? '—'}/${decisionTrend.previousCount ?? '—'})`
+        : '';
+      const goldLabel =
+        gold.precision != null && gold.recall != null
+          ? `gold P ${Number(gold.precision).toFixed(2)} R ${Number(gold.recall).toFixed(2)}${gold.degraded ? ' ⚠' : ''}`
+          : gold.source === 'unavailable'
+            ? 'gold n/a'
+            : '';
+      const pairedLabel =
+        learning.pairedOk === true
+          ? 'paired ok'
+          : learning.pairedOk === false
+            ? 'paired needs coverage'
+            : '';
       metricsEl.innerHTML =
         `<span class="bridge-brain-metric">v${esc(String(version))}</span>` +
         `<span class="bridge-brain-metric">${esc(String(totalDecisions))} decisions</span>` +
@@ -581,6 +606,18 @@
           : '') +
         (promoteCount != null
           ? `<span class="bridge-brain-metric">${esc(String(promoteCount))} promote</span>`
+          : '') +
+        (trendLabel
+          ? `<span class="bridge-brain-metric bridge-brain-metric--learning" data-learning="decisionTrend">${esc(trendLabel)}</span>`
+          : '') +
+        (goldLabel
+          ? `<span class="bridge-brain-metric bridge-brain-metric--learning" data-learning="gold">${esc(goldLabel)}</span>`
+          : '') +
+        (coverageNote
+          ? `<span class="bridge-brain-metric bridge-brain-metric--learning" data-learning="brainAppliedRuleIds">${esc(coverageNote)}</span>`
+          : '') +
+        (pairedLabel
+          ? `<span class="bridge-brain-metric bridge-brain-metric--learning" data-learning="pairedOk">${esc(pairedLabel)}</span>`
           : '');
     }
     if (data && data.version != null) rememberBrainVersion(data.version);
