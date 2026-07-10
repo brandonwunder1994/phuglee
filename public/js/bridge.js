@@ -291,9 +291,34 @@
     };
   }
 
+  /**
+   * Fast undo entry: store only the decided key + moved rows (not full list clone).
+   * Full deepClone of multi‑thousand-row lists was a major Train-click lag source.
+   */
+  function pushTrainUndoPatch(patch) {
+    if (!patch || !lastResult) return;
+    trainUndoStack.push({
+      kind: 'patch',
+      decidedKey: patch.decidedKey || null,
+      action: patch.action || '',
+      section: patch.section || '',
+      rowIds: Array.isArray(patch.rowIds) ? patch.rowIds.slice() : [],
+      movedRows: Array.isArray(patch.movedRows) ? patch.movedRows : null,
+      stats: patch.stats ? { ...patch.stats } : null
+    });
+    while (trainUndoStack.length > UNDO_LIMIT) trainUndoStack.shift();
+    updateTrainUndoButton();
+  }
+
   function pushTrainUndoSnapshot(extra = {}) {
+    // Prefer patch when caller provides one (Train speed path)
+    if (extra && extra.kind === 'patch') {
+      pushTrainUndoPatch(extra);
+      return;
+    }
     const snap = snapshotTrainState();
     if (!snap) return;
+    snap.kind = 'full';
     snap.decidedKey = extra.decidedKey || null;
     trainUndoStack.push(snap);
     while (trainUndoStack.length > UNDO_LIMIT) trainUndoStack.shift();
@@ -308,6 +333,34 @@
 
   function applyTrainSnapshot(snap) {
     if (!lastResult || !snap) return;
+    if (snap.kind === 'patch') {
+      const idSet = new Set(
+        (snap.rowIds || []).map((id) => (id == null ? '' : String(id))).filter(Boolean)
+      );
+      if (snap.action === 'deny' && snap.section === 'distressed' && snap.movedRows) {
+        // Undo demote: remove from FN, restore to kept
+        lastResult.notDistressedRows = (lastResult.notDistressedRows || []).filter(
+          (r) => r && !idSet.has(String(r.rowId))
+        );
+        lastResult.rows = (lastResult.rows || []).concat(snap.movedRows);
+      } else if (snap.action === 'deny' && snap.section === 'not_distressed' && snap.movedRows) {
+        // Undo promote: remove from kept, restore to FN (original tags on movedRows)
+        lastResult.rows = (lastResult.rows || []).filter(
+          (r) => r && !idSet.has(String(r.rowId))
+        );
+        lastResult.notDistressedRows = (lastResult.notDistressedRows || []).concat(
+          snap.movedRows
+        );
+      }
+      // approve paths: no row moves to reverse
+      if (snap.stats && lastResult.stats) {
+        lastResult.stats = { ...lastResult.stats, ...snap.stats };
+      } else if (lastResult.stats) {
+        lastResult.stats.kept = (lastResult.rows || []).length;
+        lastResult.stats.notDistressed = (lastResult.notDistressedRows || []).length;
+      }
+      return;
+    }
     lastResult.rows = Array.isArray(snap.rows) ? snap.rows : lastResult.rows;
     lastResult.notDistressedRows = Array.isArray(snap.notDistressedRows)
       ? snap.notDistressedRows
@@ -319,6 +372,88 @@
       lastResult.stats.kept = (lastResult.rows || []).length;
       lastResult.stats.notDistressed = (lastResult.notDistressedRows || []).length;
     }
+  }
+
+  /**
+   * Apply Train Approve/Deny to in-memory lastResult immediately (before network).
+   * Mirrors server promote/demote tags. Returns originals for patch undo.
+   * @returns {{ movedRows: object[], movedCount: number }}
+   */
+  function applyTrainDecisionLocally(action, section, group) {
+    const rowIds = Array.isArray(group && group.rowIds) ? group.rowIds : [];
+    const idSet = new Set(
+      rowIds.map((id) => (id == null ? '' : String(id))).filter(Boolean)
+    );
+    let undoRows = [];
+    let movedCount = 0;
+    if (action === 'deny' && section === 'distressed') {
+      const kept = Array.isArray(lastResult.rows) ? lastResult.rows : [];
+      const nextKept = [];
+      const demoted = [];
+      for (const r of kept) {
+        if (r && idSet.has(String(r.rowId))) {
+          undoRows.push(r);
+          demoted.push({
+            ...r,
+            distressedSignalTag: 'Standard',
+            brainDecision: 'demoted'
+          });
+        } else if (r) nextKept.push(r);
+      }
+      movedCount = demoted.length;
+      lastResult.rows = nextKept;
+      lastResult.notDistressedRows = (lastResult.notDistressedRows || []).concat(demoted);
+    } else if (action === 'deny' && section === 'not_distressed') {
+      const fn = Array.isArray(lastResult.notDistressedRows)
+        ? lastResult.notDistressedRows
+        : [];
+      const nextFn = [];
+      const promoted = [];
+      for (const r of fn) {
+        if (r && idSet.has(String(r.rowId))) {
+          undoRows.push(r);
+          promoted.push({
+            ...r,
+            distressedSignalTag: 'Strong Distressed Signal',
+            confidenceLevel: r.confidenceLevel || 'high',
+            brainDecision: 'promoted'
+          });
+        } else if (r) nextFn.push(r);
+      }
+      movedCount = promoted.length;
+      lastResult.notDistressedRows = nextFn;
+      lastResult.rows = (lastResult.rows || []).concat(promoted);
+    }
+    if (lastResult.stats) {
+      lastResult.stats.kept = (lastResult.rows || []).length;
+      lastResult.stats.notDistressed = (lastResult.notDistressedRows || []).length;
+      if (action === 'deny' && section === 'not_distressed' && movedCount) {
+        lastResult.stats.noDistress = Math.max(
+          0,
+          (Number(lastResult.stats.noDistress) || 0) - movedCount
+        );
+      } else if (action === 'deny' && section === 'distressed' && movedCount) {
+        lastResult.stats.noDistress =
+          (Number(lastResult.stats.noDistress) || 0) + movedCount;
+      }
+    }
+    return { movedRows: undoRows, movedCount };
+  }
+
+  function refreshTrainUiAfterDecision() {
+    if (!lastResult) return;
+    if (typeof renderKpis === 'function' && lastResult.stats) {
+      renderKpis(lastResult.stats);
+    }
+    // Light path: only Train cards + KPIs — avoid full renderResults (table rebuild)
+    if (resultsMode === 'train' || resultsMode === 'brain') {
+      renderTrainGroups(getReviewGroups(lastResult), lastResult);
+      if (resultsMode === 'train') setResultsMode('train');
+    } else {
+      renderResults(lastResult);
+      setResultsMode(resultsMode || 'kept');
+    }
+    updateTrainUndoButton();
   }
 
   function updateTrainUndoButton() {
@@ -751,21 +886,20 @@
   }
 
   /**
-   * POST admin train decision; apply mutated lists + reviewGroups to lastResult.
-   * Does not auto-save the list store — Save list remains a separate user action.
-   * Pushes trainUndoStack snapshot before POST; pops on non-OK (incl 409).
-   * Must only be called via the trainDecisionChain (serialized).
+   * Synchronous Train commit: local list moves + UI. Returns persist meta or null.
+   * Network is separate so the next click is not blocked by brain POST latency.
    */
-  async function submitTrainDecision({ action, section, group, card }) {
-    if (!lastResult) return null;
+  function commitTrainDecisionLocally({ action, section, group, card }) {
+    if (!lastResult) {
+      throw new Error('Process a file before training the brain.');
+    }
     if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function'
         && !window.PhugleeSettings.isAdmin()) {
       throw new Error('Admin required to train the brain');
     }
     const resolvedSection = section || (group && group.section) || (card && card.dataset.section) || '';
-    // Always re-resolve against latest working set so sequential denies accumulate
     const groupId = (group && group.groupId) || (card && card.dataset.groupId) || '';
-    let liveGroup = findTrainGroupById(groupId, resolvedSection) || group;
+    const liveGroup = findTrainGroupById(groupId, resolvedSection) || group;
     if (!liveGroup || !Array.isArray(liveGroup.rowIds) || !liveGroup.rowIds.length) {
       throw new Error('This group has no row ids to decide on. Re-process the file and try again.');
     }
@@ -782,94 +916,35 @@
       setTrainStatus('That group was already decided.', '');
       return null;
     }
-    pushTrainUndoSnapshot({ decidedKey });
 
-    const body = {
+    const statsBefore = lastResult.stats
+      ? {
+          kept: lastResult.stats.kept,
+          notDistressed: lastResult.stats.notDistressed,
+          noDistress: lastResult.stats.noDistress
+        }
+      : null;
+    const local = applyTrainDecisionLocally(action, sectionForPost, liveGroup);
+    if (decidedKey) trainDecidedKeys.add(decidedKey);
+    pushTrainUndoSnapshot({
+      kind: 'patch',
+      decidedKey,
       action,
       section: sectionForPost,
-      groupId: liveGroup.groupId || '',
-      rowIds: liveGroup.rowIds,
-      violationTypeKey: liveGroup.violationTypeKey || '',
-      violationTypeLabel: liveGroup.violationTypeLabel || '',
-      city: lastResult.city || null,
-      sourceFile: lastResult.sourceFile || '',
-      uploadType: lastResult.uploadType || '',
-      // Latest working set — never a snapshot from before a prior decision in the queue
-      rows: Array.isArray(lastResult.rows) ? lastResult.rows : [],
-      notDistressedRows: Array.isArray(lastResult.notDistressedRows) ? lastResult.notDistressedRows : [],
-      matchedIndicators: Array.isArray(liveGroup.matchedIndicators) ? liveGroup.matchedIndicators : [],
-      descriptionSamples: Array.isArray(liveGroup.descriptionSamples) ? liveGroup.descriptionSamples : [],
-      sampleAddresses: Array.isArray(liveGroup.sampleAddresses) ? liveGroup.sampleAddresses : []
-    };
-    if (brainVersion != null) body.brainVersion = brainVersion;
+      rowIds: liveGroup.rowIds.slice(),
+      movedRows: local.movedRows,
+      stats: statsBefore
+    });
 
-    let data;
-    try {
-      data = await fetchJson('/api/bridge/brain/decisions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-    } catch (err) {
-      // Decision did not apply — drop snapshot
-      popTrainUndoSnapshot();
-      if (err && err.code === 'VERSION_CONFLICT') {
-        setTrainStatus('Brain was updated elsewhere — refresh train state', 'error');
-        if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
-        await loadBrainPanel().catch(() => {});
-      }
-      throw err;
-    }
-
-    lastResult.rows = Array.isArray(data.rows) ? data.rows : lastResult.rows;
-    lastResult.notDistressedRows = Array.isArray(data.notDistressedRows)
-      ? data.notDistressedRows
-      : lastResult.notDistressedRows;
-    if (data.reviewGroups) lastResult.reviewGroups = data.reviewGroups;
-    if (data.brainSummary) rememberBrainVersion(data.brainSummary);
-    if (lastResult.stats) {
-      // Prefer server statsPatch so KPI "Kept (distress)" always matches moved rows
-      if (data.statsPatch && data.statsPatch.kept != null) {
-        lastResult.stats.kept = data.statsPatch.kept;
-      } else {
-        lastResult.stats.kept = lastResult.rows.length;
-      }
-      if (data.statsPatch && data.statsPatch.notDistressed != null) {
-        lastResult.stats.notDistressed = data.statsPatch.notDistressed;
-      } else if (Array.isArray(lastResult.notDistressedRows)) {
-        lastResult.stats.notDistressed = lastResult.notDistressedRows.length;
-      }
-      // Keep "No distress signal" KPI in sync when rows move either way
-      if (Number.isFinite(Number(data.movedCount)) && data.movedCount > 0) {
-        if (action === 'deny' && sectionForPost === 'not_distressed') {
-          lastResult.stats.noDistress = Math.max(
-            0,
-            (Number(lastResult.stats.noDistress) || 0) - Number(data.movedCount)
-          );
-        } else if (action === 'deny' && sectionForPost === 'distressed') {
-          lastResult.stats.noDistress =
-            (Number(lastResult.stats.noDistress) || 0) + Number(data.movedCount);
-        }
-      }
-    }
-
-    // Leave the train queue so Approve and Deny both clear the card
-    if (decidedKey) trainDecidedKeys.add(decidedKey);
-
-    // Fade card out, then rebuild list so remaining cards push up
     if (card && card.isConnected) {
-      await animateTrainCardExit(card);
+      void animateTrainCardExit(card);
     }
+    refreshTrainUiAfterDecision();
 
-    const modeBefore = resultsMode;
-    renderResults(lastResult);
-    if (modeBefore === 'train') setResultsMode('train');
-    updateTrainUndoButton();
-
-    // Chrome only — POST body above already used full group.violationTypeLabel
-    const displayLabel = liveGroup.shortLabel || liveGroup.violationTypeLabel || 'group';
     const remaining = filterUndecidedTrainGroups(
-      (getReviewGroups(lastResult).distressed || []).concat(getReviewGroups(lastResult).notDistressed || [])
+      (getReviewGroups(lastResult).distressed || []).concat(
+        getReviewGroups(lastResult).notDistressed || []
+      )
     ).length;
     const keptNow = (lastResult.rows || []).length;
     if (remaining === 0) {
@@ -883,7 +958,84 @@
         'success'
       );
     }
+
+    return {
+      decidedKey,
+      body: {
+        clientApplied: true,
+        action,
+        section: sectionForPost,
+        groupId: liveGroup.groupId || '',
+        rowIds: liveGroup.rowIds,
+        violationTypeKey: liveGroup.violationTypeKey || '',
+        violationTypeLabel: liveGroup.violationTypeLabel || '',
+        city: lastResult.city || null,
+        sourceFile: lastResult.sourceFile || '',
+        uploadType: lastResult.uploadType || '',
+        matchedIndicators: Array.isArray(liveGroup.matchedIndicators)
+          ? liveGroup.matchedIndicators
+          : [],
+        descriptionSamples: Array.isArray(liveGroup.descriptionSamples)
+          ? liveGroup.descriptionSamples
+          : [],
+        sampleAddresses: Array.isArray(liveGroup.sampleAddresses)
+          ? liveGroup.sampleAddresses
+          : []
+      }
+    };
+  }
+
+  /**
+   * Persist brain rules only (slim POST). Serialized via trainDecisionChain for brainVersion.
+   */
+  async function persistTrainBrainDecision(meta) {
+    if (!meta || !meta.body) return null;
+    const body = { ...meta.body };
+    if (brainVersion != null) body.brainVersion = brainVersion;
+
+    let data;
+    try {
+      data = await fetchJson('/api/bridge/brain/decisions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } catch (err) {
+      const snap = popTrainUndoSnapshot();
+      if (meta.decidedKey) trainDecidedKeys.delete(meta.decidedKey);
+      applyTrainSnapshot(snap);
+      refreshTrainUiAfterDecision();
+      if (err && err.code === 'VERSION_CONFLICT') {
+        setTrainStatus('Brain was updated elsewhere — refresh train state', 'error');
+        if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
+        await loadBrainPanel().catch(() => {});
+      }
+      throw err;
+    }
+
+    if (data && data.brainSummary) rememberBrainVersion(data.brainSummary);
+    if (data && !data.clientApplied) {
+      if (Array.isArray(data.rows)) lastResult.rows = data.rows;
+      if (Array.isArray(data.notDistressedRows)) {
+        lastResult.notDistressedRows = data.notDistressedRows;
+      }
+      if (data.reviewGroups) lastResult.reviewGroups = data.reviewGroups;
+      if (lastResult.stats && data.statsPatch) {
+        if (data.statsPatch.kept != null) lastResult.stats.kept = data.statsPatch.kept;
+        if (data.statsPatch.notDistressed != null) {
+          lastResult.stats.notDistressed = data.statsPatch.notDistressed;
+        }
+      }
+      refreshTrainUiAfterDecision();
+    }
     return data;
+  }
+
+  /** @deprecated path name kept for tests that grep submitTrainDecision */
+  async function submitTrainDecision(args) {
+    const meta = commitTrainDecisionLocally(args);
+    if (!meta) return null;
+    return persistTrainBrainDecision(meta);
   }
 
   async function onTrainUndo() {
@@ -913,9 +1065,13 @@
       applyTrainSnapshot(snap);
       if (snap && snap.decidedKey) trainDecidedKeys.delete(snap.decidedKey);
       const modeBefore = resultsMode;
-      renderResults(lastResult);
-      if (modeBefore === 'train' || modeBefore === 'brain') setResultsMode(modeBefore);
-      else setResultsMode('train');
+      if (modeBefore === 'train' || modeBefore === 'brain') {
+        refreshTrainUiAfterDecision();
+        setResultsMode(modeBefore);
+      } else {
+        renderResults(lastResult);
+        setResultsMode('train');
+      }
       if (modeBefore === 'brain') {
         await loadBrainPanel().catch(() => {});
       }
@@ -932,7 +1088,7 @@
         if (snap) {
           applyTrainSnapshot(snap);
           if (snap.decidedKey) trainDecidedKeys.delete(snap.decidedKey);
-          renderResults(lastResult);
+          refreshTrainUiAfterDecision();
           setResultsMode('train');
         }
         setTrainStatus('Nothing left to undo on the server.', 'error');
@@ -969,35 +1125,38 @@
         if (!ok) return;
       }
     }
-    setTrainCardBusy(card, true);
-    setTrainStatus(
-      trainDecisionInFlight ? 'Queued — applying after previous decision…' : 'Saving decision…',
-      ''
-    );
     showError('');
-
-    // Serialize: each decision applies on top of the previous result's rows
-    const run = () => {
-      trainDecisionInFlight = true;
-      return submitTrainDecision({
+    let meta;
+    try {
+      // Instant: list move + card exit + Train re-render (no network wait)
+      meta = commitTrainDecisionLocally({
         action,
         section: (group && group.section) || (card && card.dataset.section) || '',
         group,
         card
-      }).finally(() => {
+      });
+    } catch (err) {
+      const msg = (err && err.message) || 'Could not apply train decision';
+      setTrainStatus(msg, 'error');
+      showError(msg);
+      return;
+    }
+    if (!meta) return;
+
+    // Background: persist brain (serialized for version); UI already advanced
+    const run = () => {
+      trainDecisionInFlight = true;
+      return persistTrainBrainDecision(meta).finally(() => {
         trainDecisionInFlight = false;
       });
     };
     const p = trainDecisionChain.then(run, run);
     trainDecisionChain = p.catch(() => {});
-    try {
-      await p;
-    } catch (err) {
-      setTrainCardBusy(card, false);
+    p.catch((err) => {
       const msg = (err && err.message) || 'Could not save train decision';
       setTrainStatus(msg, 'error');
       showError(msg);
-    }
+    });
   }
 
   function resolveTrainGroupFromCard(card) {

@@ -259,6 +259,37 @@ test('affirmation: distressed+approve does NOT add promote_type; disables suppre
   assert.equal(suppress.status, 'disabled');
 });
 
+test('clientApplied deny skips list mutation and reviewGroups rebuild', () => {
+  const key = violationTypeKey('HGW');
+  const brain = makeBrain();
+  const rows = [
+    row({ rowId: 'r1', violationIssueType: 'HGW' }),
+    row({ rowId: 'r2', violationIssueType: 'HGW' })
+  ];
+  const result = applyDecision(
+    {
+      action: 'deny',
+      section: 'distressed',
+      rowIds: ['r1', 'r2'],
+      violationTypeKey: key,
+      violationTypeLabel: 'HGW',
+      clientApplied: true
+    },
+    ctx(brain, rows, [])
+  );
+  // Server does not re-slice lists when client already applied
+  assert.equal(result.rows, null);
+  assert.equal(result.notDistressedRows, null);
+  assert.equal(result.reviewGroups, null);
+  assert.equal(result.clientApplied, true);
+  assert.equal(result.movedCount, 2);
+  const suppress = result.brain.typeRules.find(
+    (r) => r.kind === 'suppress_type' && r.violationTypeKey === key
+  );
+  assert.ok(suppress, 'suppress rule still trained');
+  assert.equal(suppress.status, 'active');
+});
+
 test('affirmation: not_distressed+approve does NOT add suppress_type or promote_type', () => {
   const key = violationTypeKey('Fence Permit');
   const brain = makeBrain();
