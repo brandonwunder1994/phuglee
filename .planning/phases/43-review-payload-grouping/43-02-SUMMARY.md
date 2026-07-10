@@ -74,7 +74,7 @@ Each task was committed atomically:
 1. **Task 1: Extend engine tests for review payload contract (RED)** - `e1f9354` (test)
 2. **Task 2: Wire processUpload FN payload + groups + zero-kept policy (GREEN)** - `90d86b7` (feat)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `f005273` (docs: complete plan)
 
 _Note: TDD tasks use test → feat commits; no refactor needed._
 
