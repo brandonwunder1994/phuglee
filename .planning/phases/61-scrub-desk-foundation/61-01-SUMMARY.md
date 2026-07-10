@@ -75,7 +75,7 @@ Each task was committed atomically:
 1. **Task 1: Atmosphere + kill proof rail + desk wrap + short hero** - `78e44f0` (feat)
 2. **Task 2: Desk grid + solid cream left hero + dead proof CSS + slim pipeline** - `41f3a66` (feat)
 
-**Plan metadata:** see final docs commit
+**Plan metadata:** `c31d99f` (docs: complete plan)
 
 ## Files Created/Modified
 
