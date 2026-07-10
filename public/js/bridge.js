@@ -1505,7 +1505,7 @@
     }
   }
 
-  function resetImportAreaAfterSave(savedLabel) {
+  function resetImportAreaAfterSave(savedLabel, savedListId) {
     // Keep city + lead type so the next city file is one drop away; clear file + results.
     lastResult = null;
     selectedFiles = [];
@@ -1529,7 +1529,7 @@
     if (listsPanel) {
       let flash = document.getElementById('bridge-lists-flash');
       if (!flash) {
-        flash = document.createElement('p');
+        flash = document.createElement('div');
         flash.id = 'bridge-lists-flash';
         flash.className = 'bridge-lists-flash';
         flash.setAttribute('role', 'status');
@@ -1537,13 +1537,31 @@
         if (lead) lead.insertAdjacentElement('afterend', flash);
         else listsPanel.prepend(flash);
       }
-      flash.textContent = savedLabel
+      // DOM build (not raw HTML) so list names stay escaped via text nodes
+      flash.textContent = '';
+      const teaching = document.createElement('span');
+      teaching.className = 'bridge-lists-flash-text';
+      teaching.textContent = savedLabel
         ? `Saved “${savedLabel}”. Upload the next city when ready — or download from Saved lists for enrichment.`
         : 'List saved. Upload the next city when ready — or download from Saved lists for enrichment.';
+      flash.appendChild(teaching);
+      // One-click CSV for the just-saved list only — never auto-download.
+      // Wire via data-action; click handled outside this function (EFF-02).
+      if (savedListId) {
+        const dlBtn = document.createElement('button');
+        dlBtn.type = 'button';
+        dlBtn.id = 'bridge-flash-download-csv';
+        dlBtn.className = 'bridge-flash-download bridge-list-action';
+        dlBtn.dataset.action = 'flash-download';
+        dlBtn.dataset.listId = String(savedListId);
+        dlBtn.dataset.format = 'csv';
+        dlBtn.textContent = 'Download this list (CSV)';
+        flash.appendChild(dlBtn);
+      }
       flash.hidden = false;
       window.setTimeout(() => {
         if (flash) flash.hidden = true;
-      }, 6000);
+      }, 8000);
       listsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
@@ -1589,8 +1607,9 @@
         })
       });
       const savedName = data.list?.name || name;
+      const savedId = data.list?.id || '';
       await loadSavedLists();
-      resetImportAreaAfterSave(savedName);
+      resetImportAreaAfterSave(savedName, savedId);
     } catch (err) {
       setSaveStatus(err.message || 'Could not save list.', 'error');
     } finally {
@@ -2382,9 +2401,19 @@
   clearAllListsBtn?.addEventListener('click', () => {
     clearAllSavedLists().catch((e) => showError(e.message));
   });
+  // Post-save flash: one-click CSV for the list just saved (explicit click only)
+  document.getElementById('bridge-lists-panel')?.addEventListener('click', (event) => {
+    const flashBtn = event.target.closest('#bridge-flash-download-csv, [data-action="flash-download"]');
+    if (!flashBtn) return;
+    const listId = flashBtn.dataset.listId;
+    if (!listId) return;
+    event.preventDefault();
+    downloadSavedList(listId, flashBtn.dataset.format || 'csv').catch((e) => showError(e.message));
+  });
   listsBody?.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-action]');
     if (!btn || btn.tagName === 'INPUT') return;
+    if (btn.dataset.action === 'flash-download') return; // handled on lists-panel
     const row = btn.closest('tr[data-list-id]');
     const listId = row?.dataset.listId;
     if (!listId) return;

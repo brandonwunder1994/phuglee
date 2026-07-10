@@ -2,8 +2,8 @@
  * Phase 59 Efficiency Operator Path locks (EFF-01, EFF-02)
  * Static + source contracts — no browser automation.
  *
- * Wave 0 (Plan 01): as-built pillars GREEN; polish contracts intentionally RED until Plan 02.
- * No production code in this plan.
+ * Plan 01 Wave 0: as-built GREEN + polish RED.
+ * Plan 02: polish GREEN (Format reused meta + post-save Download this list flash).
  */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
