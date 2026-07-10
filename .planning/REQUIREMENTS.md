@@ -1,0 +1,106 @@
+# Requirements: Distress OS — v2.0 Filter Independence & Learning
+
+**Defined:** 2026-07-10  
+**Core Value:** Collect → filter non-deals with a brain that learns from admin Approve/Deny → save clean lists for external enrichment → **manual** Analyze import. Filter and Analyze stay independent.
+
+## v2.0 Requirements
+
+Requirements for this milestone only. Each maps to roadmap phases.
+
+### Independence (IND)
+
+- [ ] **IND-01**: Process, save, Train, and list APIs never auto-push or write leads into Analyze (no `bridge-import-records` / session write from Filter)
+- [ ] **IND-02**: Legacy Analyze-push adapter (`bridge-analyzer-push` and any call sites/UI) is deleted or quarantined so it cannot be re-wired without failing tests
+- [ ] **IND-03**: Automated negative tests prove process + save paths never require Analyze push and never invent Analyze session writes
+- [ ] **IND-04**: `already_imported` Analyze-index filtering is **off by default** (re-work / purge / re-filter keeps full lists); optional enable only via explicit opt-in if implemented later
+
+### Saved lists (LIST)
+
+- [ ] **LIST-01**: After process (and optional Train), operator’s primary path is **Save list** then **Download** (one or all) — not “send to Analyze”
+- [ ] **LIST-02**: Saved multi-city lists persist until the operator deletes them (process, restart, and deploy do not wipe the list store)
+- [ ] **LIST-03**: UI workflow and copy teach Process → (Train) → Save → Download for external enrich → manual Analyze import
+
+### Accuracy (ACC)
+
+- [ ] **ACC-01**: Gold city fixtures lock residual keep/kill failures (real distress kept; junk denied; water never type-suppressed) — implement fixes, not audit-only
+- [ ] **ACC-02**: Accuracy changes never silent-drop leads solely for “no Type,” unresolved map, or cleaner kept counts — rows stay for review / FN pool / explicit reasons
+- [ ] **ACC-03**: v1.7–v1.8 locks preserved: single Type winner (no blend), empty-only category promote, stable group keys, display-only short labels, format confirm on first/changed fingerprint
+
+### Learning (LRN)
+
+- [ ] **LRN-01**: Admin can see paired learning metrics: Approve/Deny (or decisions-per-comparable-process) trend **and** gold-set precision/recall not degrading
+- [ ] **LRN-02**: Metrics cannot be satisfied by hiding Train groups, auto-activating phrases, or silent-dropping rows — learning success requires real rule apply coverage
+- [ ] **LRN-03**: Type suppress/promote still apply on process from admin decisions; phrases remain proposed-only until admin activate (no unsupervised live ML)
+
+### Efficiency (EFF)
+
+- [ ] **EFF-01**: Operator path to a saved list is shorter for day-2 / known formats: format auto-reuse, stacked Train where applicable, bulk download — without trading away accuracy
+- [ ] **EFF-02**: No single-dimension “efficiency” that increases silent drops, skips Train when needed, or re-couples Filter to Analyze
+
+### Regression (TEST)
+
+- [ ] **TEST-01**: Independence regression suite locks no-push + `already_imported` default-off behavior
+- [ ] **TEST-02**: Gold accuracy fixtures from ACC run in CI (`npm test`) and stay green
+- [ ] **TEST-03**: `scripts/verify-live.ps1` green after milestone work; processUpload e2e still covers Type/format/water paths
+
+## Future Requirements
+
+Deferred — not in this milestone roadmap.
+
+- Richer independence UI messaging pack beyond LIST-03 minimum
+- Explicit freeze/version of download column contract for enrich vendors (beyond current export)
+- Soft-flag `already_imported` in UI without drop (if opt-in dedupe returns)
+- Full admin learning health dashboard (time-series, per-type effectiveness charts)
+- Phrase mining quality pass beyond proposed-only gate
+- Explicit large-file runtime budget phase (only if a real city is slow)
+- List tags/folders, load-saved-list-back-into-Train
+- Server-side multi-tenant sessions for admin
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Auto-push / “Send to Analyze” from Filter | External enrich → manual Analyze import |
+| Skip-trace or enrichment inside Filter | Wrong product boundary |
+| Silent drop leads for cleaner lists | Hides inventory; destroys trust |
+| Multi-column Type blend | Brain poison; v1.8 anti-pattern |
+| Non-admin Train / per-user brains | Global quality control |
+| Auto-activate phrases / ML without admin gate | Controllability |
+| Auto-save every process to lists | Clutters staging; loses Train-before-Save |
+| Auto-delete lists after download | Destroys operator work |
+| Shared store with Analyzer learned-brain | Different domain |
+| Analyze vision review redesign | Separate product surface |
+
+## Traceability
+
+Filled by roadmapper.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| IND-01 | — | Pending |
+| IND-02 | — | Pending |
+| IND-03 | — | Pending |
+| IND-04 | — | Pending |
+| LIST-01 | — | Pending |
+| LIST-02 | — | Pending |
+| LIST-03 | — | Pending |
+| ACC-01 | — | Pending |
+| ACC-02 | — | Pending |
+| ACC-03 | — | Pending |
+| LRN-01 | — | Pending |
+| LRN-02 | — | Pending |
+| LRN-03 | — | Pending |
+| EFF-01 | — | Pending |
+| EFF-02 | — | Pending |
+| TEST-01 | — | Pending |
+| TEST-02 | — | Pending |
+| TEST-03 | — | Pending |
+
+**Coverage:**
+- v2.0 requirements: 18 total
+- Mapped to phases: 0 (roadmap next)
+- Unmapped: 18
+
+---
+*Requirements defined: 2026-07-10*  
+*Last updated: 2026-07-10 after `/gsd:new-milestone` scoping*
