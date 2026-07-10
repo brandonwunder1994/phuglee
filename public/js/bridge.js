@@ -244,16 +244,107 @@
     }
   }
 
-  function onTrainDecision(action, group, card) {
-    // PHASE45: POST /api/bridge/brain/decisions with phugleeSessionHeaders
-    // Stub only — no fetch, no list mutation, no fake success write.
-    const type = (group && group.violationTypeLabel) || 'group';
-    if (action === 'approve') {
-      setTrainStatus(`Approve queued for "${type}" · training API ships in phase 45`, '');
-    } else {
-      setTrainStatus(`Deny queued for "${type}" · training API ships in phase 45`, '');
+  function setTrainCardBusy(card, busy) {
+    if (!card) return;
+    card.classList.toggle('is-pending', Boolean(busy));
+    card.querySelectorAll('button[data-action="approve"], button[data-action="deny"]').forEach((btn) => {
+      btn.disabled = Boolean(busy);
+    });
+  }
+
+  /**
+   * POST admin train decision; apply mutated lists + reviewGroups to lastResult.
+   * Does not auto-save the list store — Save list remains a separate user action.
+   */
+  async function submitTrainDecision({ action, section, group }) {
+    if (!lastResult) return null;
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function'
+        && !window.PhugleeSettings.isAdmin()) {
+      throw new Error('Admin required to train the brain');
     }
-    if (card) card.classList.add('is-pending');
+    if (!group || !Array.isArray(group.rowIds) || !group.rowIds.length) {
+      throw new Error('This group has no row ids to decide on. Re-process the file and try again.');
+    }
+    const resolvedSection = section || group.section || '';
+    if (resolvedSection !== 'distressed' && resolvedSection !== 'not_distressed') {
+      throw new Error('Unknown train section for this group');
+    }
+    if (action !== 'approve' && action !== 'deny') {
+      throw new Error('Invalid train action');
+    }
+
+    const body = {
+      action,
+      section: resolvedSection,
+      groupId: group.groupId || '',
+      rowIds: group.rowIds,
+      violationTypeKey: group.violationTypeKey || '',
+      violationTypeLabel: group.violationTypeLabel || '',
+      city: lastResult.city || null,
+      sourceFile: lastResult.sourceFile || '',
+      uploadType: lastResult.uploadType || '',
+      rows: Array.isArray(lastResult.rows) ? lastResult.rows : [],
+      notDistressedRows: Array.isArray(lastResult.notDistressedRows) ? lastResult.notDistressedRows : [],
+      matchedIndicators: Array.isArray(group.matchedIndicators) ? group.matchedIndicators : [],
+      descriptionSamples: Array.isArray(group.descriptionSamples) ? group.descriptionSamples : [],
+      sampleAddresses: Array.isArray(group.sampleAddresses) ? group.sampleAddresses : []
+    };
+
+    const data = await fetchJson('/api/bridge/brain/decisions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    lastResult.rows = Array.isArray(data.rows) ? data.rows : lastResult.rows;
+    lastResult.notDistressedRows = Array.isArray(data.notDistressedRows)
+      ? data.notDistressedRows
+      : lastResult.notDistressedRows;
+    if (data.reviewGroups) lastResult.reviewGroups = data.reviewGroups;
+    if (lastResult.stats) {
+      lastResult.stats.kept = lastResult.rows.length;
+      if (data.statsPatch && data.statsPatch.notDistressed != null) {
+        lastResult.stats.notDistressed = data.statsPatch.notDistressed;
+      } else if (Array.isArray(lastResult.notDistressedRows)) {
+        lastResult.stats.notDistressed = lastResult.notDistressedRows.length;
+      }
+    }
+
+    // Preserve train mode across re-render
+    const modeBefore = resultsMode;
+    renderResults(lastResult);
+    if (modeBefore === 'train') setResultsMode('train');
+
+    const label = group.violationTypeLabel || 'group';
+    const verb = action === 'approve' ? 'Approved' : 'Denied';
+    setTrainStatus(`${verb} “${label}” · brain updated`, 'success');
+    return data;
+  }
+
+  async function onTrainDecision(action, group, card) {
+    if (!lastResult) {
+      setTrainStatus('Process a file before training the brain.', 'error');
+      return;
+    }
+    if (!group) {
+      setTrainStatus('Could not resolve this group. Re-process and try again.', 'error');
+      return;
+    }
+    setTrainCardBusy(card, true);
+    setTrainStatus('Saving decision…', '');
+    showError('');
+    try {
+      await submitTrainDecision({
+        action,
+        section: (group && group.section) || (card && card.dataset.section) || '',
+        group
+      });
+    } catch (err) {
+      setTrainCardBusy(card, false);
+      const msg = (err && err.message) || 'Could not save train decision';
+      setTrainStatus(msg, 'error');
+      showError(msg);
+    }
   }
 
   function resolveTrainGroupFromCard(card) {
@@ -1324,11 +1415,13 @@
   });
   document.getElementById('bridge-train-panel')?.addEventListener('click', (event) => {
     const btn = event.target.closest('[data-action="approve"], [data-action="deny"]');
-    if (!btn || !isBridgeAdmin()) return;
+    if (!btn || btn.disabled || !isBridgeAdmin()) return;
     const card = btn.closest('.bridge-train-group');
     if (!card) return;
     const group = resolveTrainGroupFromCard(card);
-    onTrainDecision(btn.dataset.action, group, card);
+    onTrainDecision(btn.dataset.action, group, card).catch((e) => {
+      showError((e && e.message) || 'Could not save train decision');
+    });
   });
 
   // Test seam for pure helpers (mirrors bridge-train.js when present)
