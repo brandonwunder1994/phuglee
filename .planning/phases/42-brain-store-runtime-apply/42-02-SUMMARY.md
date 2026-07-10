@@ -77,7 +77,7 @@ Each task was committed atomically:
 2. **Task 2: Implement pure bridge-brain-apply (GREEN)** - `9b070ba` (feat)
 3. **Task 3: Wire processUpload + engine integration test** - `b29836c` (feat)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `849a0d6` (docs: complete plan)
 
 _Note: TDD tasks used RED → GREEN (no refactor commit needed)._
 
