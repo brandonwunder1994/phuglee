@@ -79,7 +79,7 @@ Each task was committed atomically:
 2. **Task 2: Keep arrays on process rows; join only at export (GREEN)** - `7870bae` (feat)
 3. **Task 3: Full suite gate for SHAPE** - (verification only; no code changes)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `d81a3f2` (docs: complete plan)
 
 _Note: TDD tasks use test → feat commits_
 
