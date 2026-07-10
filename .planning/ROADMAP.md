@@ -172,7 +172,7 @@ Landing, Command Hub, reverse proxy, Data Bridge, health orchestration.
 |-------|-----------|----------------|--------|-----------|
 | 51. COL Scoring + Map Wire | 3/3 | Complete    | 2026-07-10 | - |
 | 52. Format Memory + Confirm Gate | 4/4 | Complete    | 2026-07-10 | - |
-| 53. Display-Only Short Labels | 4/4 | Complete   | 2026-07-10 | - |
+| 53. Display-Only Short Labels | 4/4 | Complete    | 2026-07-10 | - |
 | 54. Regression Lock | v1.8 | 0/? | Not started | - |
 | 48–50. Filter Accuracy & Grouping | v1.7 | 4/4 | Complete | 2026-07-10 |
 | 42–47. Filter Superpower Brain | v1.6 | 12/12 | Complete | 2026-07-10 |
