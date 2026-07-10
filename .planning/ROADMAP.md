@@ -41,7 +41,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 
 ## Phases
 
-- [ ] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
+- [x] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
 - [ ] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
 - [ ] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
 - [ ] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
@@ -63,9 +63,9 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   4. Teaching chrome is slim for veterans (no triple stack of tutorial rail + pipeline essay + long H1 lead); step orthography remains usable
   5. Hero is **left-aligned solid cream Anton** “Scrub the Mess” with a short ops lead — not centered gradient marketing H1
   6. Buttons use unified `phuglee-btn` vocabulary and ops slang throughout (no dual `bridge-btn` + `phuglee-btn` systems as the default)
-**Plans**: 1/2 plans complete · plan-check **PASS** · status: In Progress
+**Plans**: 2/2 plans complete · plan-check **PASS** · status: Complete
 - [x] 61-01-PLAN.md — Atmosphere + kill proof rail + asymmetric desk shell (DESK-01–05)
-- [ ] 61-02-PLAN.md — Ops voice + `phuglee-btn` unify + suite/live gate (DESK-06)
+- [x] 61-02-PLAN.md — Ops voice + `phuglee-btn` unify + suite/live gate (DESK-06)
 
 ### Phase 62: City Dossier
 **Goal**: City selection opens an ops case file; “city said no list” is a secondary scrap — happy path is file scrub, not a radio wall

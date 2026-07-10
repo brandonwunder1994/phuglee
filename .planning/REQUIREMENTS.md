@@ -17,7 +17,7 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 - [x] **DESK-03**: Atmosphere matches product-step peers: Collect-grade intensity (`premium-bg--strong` and/or heat field language), not subtle admin-tool wash only
 - [x] **DESK-04**: Teaching chrome is slim for veterans — no triple stack of tutorial rail + full pipeline essay + long H1 lead on every visit; progress orthography remains usable
 - [x] **DESK-05**: Hero treatment matches Command/Collect: **left-aligned solid cream Anton** “Scrub the Mess,” short ops lead; no centered gradient marketing H1
-- [ ] **DESK-06**: Button systems and labels are unified — prefer `phuglee-btn` vocabulary; ops slang throughout (not “Select city profile” / mixed `bridge-btn` + `phuglee-btn` dual systems)
+- [x] **DESK-06**: Button systems and labels are unified — prefer `phuglee-btn` vocabulary; ops slang throughout (not “Select city profile” / mixed `bridge-btn` + `phuglee-btn` dual systems)
 
 ### City dossier & exception path (CITY)
 
@@ -112,7 +112,7 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | DESK-03 | 61 | Complete |
 | DESK-04 | 61 | Complete |
 | DESK-05 | 61 | Complete |
-| DESK-06 | 61 | Pending |
+| DESK-06 | 61 | Complete |
 | CITY-01 | 62 | Pending |
 | CITY-02 | 62 | Pending |
 | IDLE-01 | 63 | Pending |
