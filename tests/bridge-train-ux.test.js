@@ -1,15 +1,31 @@
 /**
- * Filter Train brain UX — shell structure (TRAIN-01/03/04).
- * Static HTML/CSS contract for admin train wrap; no browser automation.
+ * Filter Train brain UX — shell structure + admin gate / card helpers (TRAIN-01–04).
+ * Static HTML/CSS contract + pure BridgeTrain helpers via vm; no browser automation.
  */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..');
 const BRIDGE_HTML = path.join(ROOT, 'public', 'bridge.html');
 const BRIDGE_CSS = path.join(ROOT, 'public', 'css', 'bridge.css');
+const BRIDGE_JS = path.join(ROOT, 'public', 'js', 'bridge.js');
+const BRIDGE_TRAIN_JS = path.join(ROOT, 'public', 'js', 'bridge-train.js');
+
+const SAMPLE_GROUP = {
+  groupId: 'g1',
+  section: 'distressed',
+  violationTypeLabel: 'Vacant Structure',
+  violationTypeKey: 'vacant structure',
+  count: 3,
+  rowIds: ['r1', 'r2', 'r3'],
+  sampleAddresses: ['1 Main St'],
+  matchedIndicators: ['vacant', 'boarded'],
+  descriptionSamples: ['Boarded vacant home <script>'],
+  isSingleton: false
+};
 
 function readHtml() {
   return fs.readFileSync(BRIDGE_HTML, 'utf8');
@@ -19,12 +35,83 @@ function readCss() {
   return fs.readFileSync(BRIDGE_CSS, 'utf8');
 }
 
+function readBridgeJs() {
+  return fs.readFileSync(BRIDGE_JS, 'utf8');
+}
+
 /** Extract the opening tag that declares an id (best-effort for static HTML). */
 function openingTagForId(html, id) {
   const re = new RegExp(`<([a-zA-Z][\\w-]*)\\b[^>]*\\bid=["']${id}["'][^>]*>`, 'i');
   const m = html.match(re);
   return m ? m[0] : null;
 }
+
+/**
+ * Load pure train helpers for unit tests.
+ * Prefers public/js/bridge-train.js; falls back to BridgeTrain marker block in bridge.js.
+ */
+function loadBridgeTrain(opts = {}) {
+  const store = new Map();
+  if (opts.sessionUser !== undefined && opts.sessionUser !== null) {
+    store.set('phuglee_session', String(opts.sessionUser));
+  }
+
+  const sessionStorage = {
+    getItem(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    setItem(key, value) {
+      store.set(key, String(value));
+    },
+    removeItem(key) {
+      store.delete(key);
+    }
+  };
+
+  const windowObj = {
+    PhugleeSession: {
+      getSessionUser() {
+        return store.get('phuglee_session') || '';
+      }
+    }
+  };
+
+  if (opts.useSettings) {
+    windowObj.PhugleeSettings = {
+      isAdmin() {
+        return opts.settingsAdmin === true;
+      }
+    };
+  }
+
+  const sandbox = {
+    window: windowObj,
+    sessionStorage,
+    console
+  };
+
+  let src;
+  if (fs.existsSync(BRIDGE_TRAIN_JS)) {
+    src = fs.readFileSync(BRIDGE_TRAIN_JS, 'utf8');
+  } else {
+    const full = readBridgeJs();
+    const startMarker = '// --- BridgeTrain pure helpers ---';
+    const endMarker = '// --- end BridgeTrain pure helpers ---';
+    const start = full.indexOf(startMarker);
+    const end = full.indexOf(endMarker);
+    assert.ok(start !== -1, 'bridge.js must contain BridgeTrain pure helpers marker (or ship bridge-train.js)');
+    assert.ok(end !== -1, 'bridge.js must close BridgeTrain pure helpers marker');
+    const escMatch = full.match(/function esc\(text\) \{[\s\S]*?\n  \}/);
+    assert.ok(escMatch, 'bridge.js must define esc() for card HTML');
+    src = `${escMatch[0]}\n${full.slice(start, end + endMarker.length)}`;
+  }
+
+  vm.runInNewContext(src, sandbox);
+  assert.ok(sandbox.window.BridgeTrain, 'must export window.BridgeTrain');
+  return sandbox.window.BridgeTrain;
+}
+
+// ─── Shell structure (plan 01) ───────────────────────────────────────────────
 
 test('bridge train wrap exists and is hidden by default', () => {
   const html = readHtml();
@@ -92,7 +179,6 @@ test('bridge train CSS defines group card vocabulary', () => {
   for (const sel of required) {
     assert.ok(css.includes(sel), `CSS must define ${sel}`);
   }
-  // Approve hook: either dedicated class or actions row is enough per plan
   assert.ok(
     css.includes('.bridge-train-approve') || css.includes('.bridge-train-actions'),
     'CSS must define .bridge-train-approve or .bridge-train-actions'
@@ -101,7 +187,6 @@ test('bridge train CSS defines group card vocabulary', () => {
 
 test('bridge train CSS reuses existing design tokens (no new palette)', () => {
   const css = readCss();
-  // Train block should exist and reuse bridge/phuglee tokens or rgba glass patterns
   const trainSliceStart = css.indexOf('.bridge-results-mode');
   assert.ok(trainSliceStart !== -1, 'train mode styles present');
   const trainSlice = css.slice(trainSliceStart);
@@ -123,4 +208,145 @@ test('bridge.html cache-busts bridge.css', () => {
   assert.ok(m, 'extract cache-bust version');
   const ver = Number(m[1]);
   assert.ok(ver >= 6, `bridge.css cache bust should be >= 6 after train shell (got ${ver})`);
+});
+
+// ─── Pure helpers (plan 02) ──────────────────────────────────────────────────
+
+test('isBridgeAdmin true only for exact session user admin', () => {
+  assert.equal(loadBridgeTrain({ sessionUser: 'admin' }).isBridgeAdmin(), true);
+  assert.equal(loadBridgeTrain({ sessionUser: 'user1' }).isBridgeAdmin(), false);
+  assert.equal(loadBridgeTrain({ sessionUser: '' }).isBridgeAdmin(), false);
+  assert.equal(loadBridgeTrain({ sessionUser: 'Admin' }).isBridgeAdmin(), false);
+  assert.equal(loadBridgeTrain({ sessionUser: 'admin@phuglee.com' }).isBridgeAdmin(), false);
+});
+
+test('getReviewGroups returns empty arrays when data or reviewGroups missing', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  assert.deepEqual(api.getReviewGroups(undefined), { distressed: [], notDistressed: [] });
+  assert.deepEqual(api.getReviewGroups(null), { distressed: [], notDistressed: [] });
+  assert.deepEqual(api.getReviewGroups({}), { distressed: [], notDistressed: [] });
+  assert.deepEqual(api.getReviewGroups({ reviewGroups: null }), { distressed: [], notDistressed: [] });
+  assert.deepEqual(api.getReviewGroups({ reviewGroups: {} }), { distressed: [], notDistressed: [] });
+});
+
+test('getReviewGroups maps distressed and notDistressed arrays when present', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  const groups = api.getReviewGroups({
+    reviewGroups: {
+      distressed: [{ groupId: 'a' }],
+      notDistressed: [{ groupId: 'b' }, { groupId: 'c' }]
+    }
+  });
+  assert.equal(groups.distressed.length, 1);
+  assert.equal(groups.notDistressed.length, 2);
+  assert.equal(groups.distressed[0].groupId, 'a');
+});
+
+test('renderTrainGroupCard includes label, count, signals, samples, and Approve/Deny', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  const html = api.renderTrainGroupCard(SAMPLE_GROUP);
+  assert.ok(html.includes('Vacant Structure'), 'violationTypeLabel');
+  assert.ok(html.includes('×3') || html.includes('×' + '3'), 'count badge');
+  assert.ok(html.includes('vacant'), 'matchedIndicators chip');
+  assert.ok(html.includes('boarded'), 'matchedIndicators chip');
+  assert.ok(html.includes('Boarded vacant home'), 'descriptionSamples');
+  assert.ok(html.includes('data-group-id="g1"') || html.includes("data-group-id=\"g1\""), 'data-group-id');
+  assert.ok(html.includes('data-section="distressed"'), 'data-section');
+  assert.ok(html.includes('data-action="approve"'), 'approve action');
+  assert.ok(html.includes('data-action="deny"'), 'deny action');
+  assert.ok(html.includes('✓ Approve'), 'Approve label');
+  assert.ok(html.includes('✗ Deny'), 'Deny label');
+});
+
+test('renderTrainGroupCard escapes HTML in labels and samples (XSS)', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  const html = api.renderTrainGroupCard(SAMPLE_GROUP);
+  assert.ok(!html.includes('<script>'), 'raw script tag must not appear');
+  assert.ok(html.includes('&lt;script&gt;') || html.includes('&lt;script'), 'script must be escaped');
+
+  const xssGroup = {
+    ...SAMPLE_GROUP,
+    violationTypeLabel: 'Type <img src=x onerror=alert(1)>',
+    descriptionSamples: ['Boarded vacant home <img src=x onerror=alert(1)>'],
+    matchedIndicators: ['<b>bad</b>']
+  };
+  const xssHtml = api.renderTrainGroupCard(xssGroup);
+  assert.ok(!xssHtml.includes('<img src=x'), 'raw img must not appear');
+  assert.ok(xssHtml.includes('&lt;img') || xssHtml.includes('&lt;b&gt;'), 'HTML must be escaped via esc()');
+});
+
+// ─── Source contracts (plan 02) ──────────────────────────────────────────────
+
+test('bridge.js source uses getSessionUser for train admin (not getUsername)', () => {
+  const src = readBridgeJs();
+  assert.ok(src.includes('isBridgeAdmin'), 'must define isBridgeAdmin');
+  assert.ok(src.includes('getSessionUser'), 'must use getSessionUser');
+  // Train admin path must not rely on nonexistent getUsername
+  const trainSlice = src.includes('function isBridgeAdmin')
+    ? src.slice(src.indexOf('function isBridgeAdmin'), src.indexOf('function isBridgeAdmin') + 800)
+    : src;
+  assert.ok(!/getUsername/.test(trainSlice), 'isBridgeAdmin must not call getUsername');
+});
+
+test('bridge.js source wires renderResults to train wrap and admin gate', () => {
+  const src = readBridgeJs();
+  assert.ok(src.includes('bridge-train-wrap'), 'renderResults path references bridge-train-wrap');
+  assert.ok(src.includes('isBridgeAdmin'), 'admin gate present');
+  assert.ok(src.includes('renderTrainGroups') || src.includes('renderTrainGroupCard'), 'train render path');
+});
+
+test('bridge.js source has phase 45 decision stub seam (no fake success API)', () => {
+  const src = readBridgeJs();
+  assert.ok(
+    /phase 45/i.test(src) || /PHASE45/.test(src),
+    'must mention phase 45 / PHASE45 in decision stub'
+  );
+  assert.ok(
+    src.includes('data-action') || src.includes("data-action"),
+    'must wire data-action for approve/deny'
+  );
+  assert.ok(
+    src.includes('onTrainDecision') || src.includes('Approve queued'),
+    'must have onTrainDecision stub or approve queue copy'
+  );
+});
+
+test('bridge.js source clears train containers or hides wrap for non-admin', () => {
+  const src = readBridgeJs();
+  assert.ok(
+    src.includes('bridge-train-distressed') && src.includes('bridge-train-not-distressed'),
+    'must reference train containers'
+  );
+  // Non-admin path: hide wrap and/or clear innerHTML
+  assert.ok(
+    /innerHTML\s*=\s*['"]{2}/.test(src) || /setHidden\([^,]+,\s*true\)/.test(src),
+    'non-admin path should clear containers or hide wrap'
+  );
+});
+
+test('bridge.js render path includes matchedIndicators and descriptionSamples', () => {
+  const bridgeSrc = readBridgeJs();
+  const trainSrc = fs.existsSync(BRIDGE_TRAIN_JS)
+    ? fs.readFileSync(BRIDGE_TRAIN_JS, 'utf8')
+    : '';
+  const combined = bridgeSrc + '\n' + trainSrc;
+  assert.ok(combined.includes('matchedIndicators'), 'signals from matchedIndicators');
+  assert.ok(combined.includes('descriptionSamples'), 'samples from descriptionSamples');
+  assert.ok(
+    combined.includes('data-action="approve"') || combined.includes("data-action=\"approve\""),
+    'approve data-action in card HTML'
+  );
+  assert.ok(
+    combined.includes('data-action="deny"') || combined.includes("data-action=\"deny\""),
+    'deny data-action in card HTML'
+  );
+});
+
+test('bridge.html cache-busts bridge.js at v>=10 after train logic', () => {
+  const html = readHtml();
+  assert.ok(/bridge\.js\?v=\d+/.test(html), 'bridge.js must have ?v= cache bust');
+  const m = html.match(/bridge\.js\?v=(\d+)/);
+  assert.ok(m, 'extract bridge.js version');
+  const ver = Number(m[1]);
+  assert.ok(ver >= 10, `bridge.js cache bust should be >= 10 after train UX (got ${ver})`);
 });
