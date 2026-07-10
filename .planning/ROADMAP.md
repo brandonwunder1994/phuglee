@@ -91,7 +91,11 @@ Plans:
   3. Each review group exposes matched distress signals and description samples that triggered or failed the flag
   4. Every process row carries a stable `rowId` usable for later decision targeting
 
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 43-01-PLAN.md - Pure review groups module (rowIds, type stacking, signals/samples)
+- [ ] 43-02-PLAN.md - processUpload FN payload + groups wire + engine contract tests
 
 ---
 
@@ -173,7 +177,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 42. Brain store + runtime apply | v1.6 | 0/2 | Not started | - |
-| 43. Review payload + grouping | v1.6 | 0/TBD | Not started | - |
+| 43. Review payload + grouping | v1.6 | 0/2 | Not started | - |
 | 44. Admin Train brain UX | v1.6 | 0/TBD | Not started | - |
 | 45. Decisions + type rules + list mutation | v1.6 | 0/TBD | Not started | - |
 | 46. Phrase mining + brain panel | v1.6 | 0/TBD | Not started | - |
