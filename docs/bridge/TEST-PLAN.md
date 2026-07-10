@@ -120,6 +120,9 @@
 | I-06 | Fence permit (admin) | Standard Code Violation | ✓ |
 | I-07 | Water shut off any text | Water Shut Off tag | ✓ |
 | I-08 | Multiple categories in one row | multiple indicators | ✓ |
+| ACC-01 | Gold keep/deny/water processUpload e2e | Strong kept / FN deny / water no type-suppress | ✓ `bridge-accuracy-gold.test.js` |
+| ACC-02 | No-Type + banned silent-drop reasons | Inventory kept/FN; no no_type* | ✓ gold |
+| ACC-03 | Type winner + COL/GATE/LBL/GROUP keep-green | Single Type; engine patterns | ✓ gold + engine |
 
 ## J. Analyzer push
 

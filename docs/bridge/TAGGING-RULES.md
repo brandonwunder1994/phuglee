@@ -152,3 +152,7 @@ After base regex tagging, the global Filter brain can adjust Strong vs Standard 
 - Unmapped category-like columns (e.g. `Vio Cat`) promote into Violation/Issue Type so FN and distressed labels show the city category.
 - Incidental dates/times in free-text descriptions or type cells are stripped for **group keys only** so same-category rows stack; Singleton is only when group count === 1.
 - Process rows keep matched signal indicators as arrays for Train chips; export still joins with `; `.
+
+### Gold fixtures (Phase 57 ACC)
+
+Durable synthetic keep/deny/water/no-Type fixtures live under `tests/fixtures/bridge/gold/`. Automated contracts: `tests/bridge-accuracy-gold.test.js` (ACC-01 keep/kill + water never type-suppressed; ACC-02 no silent-drop; ACC-03 Type-winner smoke). Do not weaken gold asserts to force green.
