@@ -16,9 +16,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Category mapping (MAP)
 
-- [ ] **MAP-01**: When a source category/issue-type column is present but unmapped (or only in raw cells), process path promotes a real category into `violationIssueType` for Train labels
-- [ ] **MAP-02**: Not-distressed (false-negative) groups show the real city category when the spreadsheet had one, not only notes or `(no type)`
-- [ ] **MAP-03**: Promotion must not invent fake types from pure free-text noise when no category signal exists; prefer category-like headers/cells over timestamp-only notes
+- [x] **MAP-01**: When a source category/issue-type column is present but unmapped (or only in raw cells), process path promotes a real category into `violationIssueType` for Train labels
+- [x] **MAP-02**: Not-distressed (false-negative) groups show the real city category when the spreadsheet had one, not only notes or `(no type)`
+- [x] **MAP-03**: Promotion must not invent fake types from pure free-text noise when no category signal exists; prefer category-like headers/cells over timestamp-only notes
 
 ### Signal shape (SHAPE)
 
@@ -54,9 +54,9 @@ Deferred — not in this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MAP-01 | Phase 48 | Pending |
-| MAP-02 | Phase 48 | Pending |
-| MAP-03 | Phase 48 | Pending |
+| MAP-01 | Phase 48 | Complete |
+| MAP-02 | Phase 48 | Complete |
+| MAP-03 | Phase 48 | Complete |
 | SHAPE-01 | Phase 48 | Complete |
 | SHAPE-02 | Phase 48 | Complete |
 | GROUP-01 | Phase 49 | Pending |
