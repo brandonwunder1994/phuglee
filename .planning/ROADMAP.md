@@ -23,7 +23,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 57 complete — next: Phase 58 Learning Loop Strength  
+**Status:** Phase 58 complete — next: Phase 59 Efficiency Operator Path  
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
@@ -33,7 +33,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 - [x] **Phase 55: Independence Lock** — Process/save/Train never write Analyze; push adapter gone; `already_imported` off by default
 - [x] **Phase 56: List Factory UX** — Save → Download is the hero path; multi-city lists persist until operator deletes
 - [x] **Phase 57: Accuracy Structure Pass** — Gold fixtures lock keep/kill + Type/format; no silent drops; v1.7–v1.8 locks preserved
-- [ ] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
+- [x] **Phase 58: Learning Loop Strength** — Paired learning metrics; real rule coverage; phrases stay proposed-only
 - [ ] **Phase 59: Efficiency Operator Path** — Shorter day-2 path to saved list without accuracy or Analyze re-coupling tradeoffs
 - [ ] **Phase 60: Regression QA Lock** — Independence + gold + processUpload e2e + suite + verify-live green
 
@@ -96,9 +96,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 58-01-PLAN.md — Pure learning metrics module (trend + gold P/R + apply coverage + anti-game pure)
-- [ ] 58-02-PLAN.md — Wire GET brain/metrics + brain GET with learning nest
-- [ ] 58-03-PLAN.md — Brain panel chips + LRN-02/03 locks + suite/live gate
+- [x] 58-01-PLAN.md — Pure learning metrics module (trend + gold P/R + apply coverage + anti-game pure)
+- [x] 58-02-PLAN.md — Wire GET brain/metrics + brain GET with learning nest
+- [x] 58-03-PLAN.md — Brain panel chips + LRN-02/03 locks + suite/live gate
 
 ### Phase 59: Efficiency Operator Path
 **Goal**: Day-2 / known-format operators reach a saved downloadable list faster via format reuse, stacked Train, and bulk download — without trading accuracy or re-coupling Filter to Analyze

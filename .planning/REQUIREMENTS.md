@@ -28,9 +28,9 @@ Requirements for this milestone only. Each maps to roadmap phases.
 
 ### Learning (LRN)
 
-- [ ] **LRN-01**: Admin can see paired learning metrics: Approve/Deny (or decisions-per-comparable-process) trend **and** gold-set precision/recall not degrading
-- [ ] **LRN-02**: Metrics cannot be satisfied by hiding Train groups, auto-activating phrases, or silent-dropping rows — learning success requires real rule apply coverage
-- [ ] **LRN-03**: Type suppress/promote still apply on process from admin decisions; phrases remain proposed-only until admin activate (no unsupervised live ML)
+- [x] **LRN-01**: Admin can see paired learning metrics: Approve/Deny (or decisions-per-comparable-process) trend **and** gold-set precision/recall not degrading
+- [x] **LRN-02**: Metrics cannot be satisfied by hiding Train groups, auto-activating phrases, or silent-dropping rows — learning success requires real rule apply coverage
+- [x] **LRN-03**: Type suppress/promote still apply on process from admin decisions; phrases remain proposed-only until admin activate (no unsupervised live ML)
 
 ### Efficiency (EFF)
 
@@ -85,9 +85,9 @@ Deferred — not in this milestone roadmap.
 | ACC-01 | Phase 57 | Complete |
 | ACC-02 | Phase 57 | Complete |
 | ACC-03 | Phase 57 | Complete |
-| LRN-01 | Phase 58 | Pending |
-| LRN-02 | Phase 58 | Pending |
-| LRN-03 | Phase 58 | Pending |
+| LRN-01 | Phase 58 | Complete |
+| LRN-02 | Phase 58 | Complete |
+| LRN-03 | Phase 58 | Complete |
 | EFF-01 | Phase 59 | Pending |
 | EFF-02 | Phase 59 | Pending |
 | TEST-01 | Phase 60 | Pending |
