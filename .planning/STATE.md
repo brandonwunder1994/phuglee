@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2 of 2 in phase
-status: verifying
-stopped_at: Completed 61-02-PLAN.md
-last_updated: "2026-07-10T23:35:52.134Z"
+current_plan: 3 of 3 in phase
+status: ready_for_verification
+stopped_at: Completed 61-03-PLAN.md
+last_updated: "2026-07-10T23:43:38.034Z"
 last_activity: 2026-07-10
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 19
-  completed_plans: 2
-  percent: 11
+  total_plans: 20
+  completed_plans: 3
+  percent: 15
 ---
 
 # State
@@ -22,24 +22,24 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 61 complete; next 62 City Dossier
+**Current focus:** v2.1 Filter Scrub Theater — Phase 61 gap closed (DESK-06); re-verify then 62 City Dossier
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
-**Phase:** 61 — Scrub Desk Foundation (Complete — ready for verification)  
-**Current Plan:** 2 of 2 in phase  
-**Total Plans in Phase:** 2  
+**Phase:** 61 — Scrub Desk Foundation (Complete — ready for re-verification)  
+**Current Plan:** 3 of 3 in phase  
+**Total Plans in Phase:** 3  
 **Status:** Phase complete — ready for verification  
-**Last activity:** 2026-07-10 — feat DESK-06 phuglee-btn + ops slang
+**Last activity:** 2026-07-10 — gap-close DESK-06 live BridgeTrain phuglee-btn
 
-Progress: [█░░░░░░░░░] 11% (2/19 plans executed)
+Progress: [██░░░░░░░░] 15% (3/20 plans executed)
 
 ## Phase map (v2.1)
 
 | Phase | Name | Plans | Plan-check |
 |-------|------|-------|------------|
-| 61 | Scrub Desk Foundation | 2 (2 done) | PASS |
+| 61 | Scrub Desk Foundation | 3 (3 done) | PASS |
 | 62 | City Dossier | 2 | PASS |
 | 63 | Idle Proof & Process Climax | 2 | PASS |
 | 64 | Live Scrub Feed | 2 | PASS |
@@ -71,6 +71,8 @@ Progress: [█░░░░░░░░░] 11% (2/19 plans executed)
 - [61] Scrap is quiet link-to-lists only — idle metrics deferred to phase 63
 - [61] Deleted dead .bridge-btn CSS rather than aliases — zero CTA markup left
 - [61] Process voice: Scrub it / Scrub N files; ghost maps to phuglee-btn-secondary
+- [61] Ghost deny maps to phuglee-btn-secondary (match 61-02 fallback), not a new ghost alias
+- [61] DESK-06 live path: BridgeTrain.renderTrainGroupCard must use phuglee-btn (bridge.js is fallback only)
 
 ## Performance Metrics
 
@@ -78,16 +80,17 @@ Progress: [█░░░░░░░░░] 11% (2/19 plans executed)
 |-------|------|----------|-------|-------|
 | 61 | 01 | 12min | 2 | 2 |
 | 61 | 02 | 15min | 3 | 3 |
+| 61 | 03 | 8min | 2 | 3 |
 
 ## Next command
 
 ```text
-/gsd:execute-phase 62
+/gsd:verify-work 61
 ```
 
-(Or verify phase 61, then City Dossier)
+(Or `/gsd:execute-phase 62` after re-verify)
 
 ## Session
 
-**Last session:** 2026-07-10T23:35:52.124Z
-**Stopped at:** Completed 61-02-PLAN.md
+**Last session:** 2026-07-10T23:43:38.023Z
+**Stopped at:** Completed 61-03-PLAN.md

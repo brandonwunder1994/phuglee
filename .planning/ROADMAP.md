@@ -63,10 +63,10 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   4. Teaching chrome is slim for veterans (no triple stack of tutorial rail + pipeline essay + long H1 lead); step orthography remains usable
   5. Hero is **left-aligned solid cream Anton** “Scrub the Mess” with a short ops lead — not centered gradient marketing H1
   6. Buttons use unified `phuglee-btn` vocabulary and ops slang throughout (no dual `bridge-btn` + `phuglee-btn` systems as the default)
-**Plans**: 3 plans · gap closure for DESK-06 · status: gaps_found
+**Plans**: 3/3 plans complete · gap closure DESK-06 · status: ready for re-verification
 - [x] 61-01-PLAN.md — Atmosphere + kill proof rail + asymmetric desk shell (DESK-01–05)
 - [x] 61-02-PLAN.md — Ops voice + `phuglee-btn` unify + suite/live gate (DESK-06)
-- [ ] 61-03-PLAN.md — Gap: live BridgeTrain approve/deny to phuglee-btn (DESK-06)
+- [x] 61-03-PLAN.md — Gap: live BridgeTrain approve/deny to phuglee-btn (DESK-06)
 
 ### Phase 62: City Dossier
 **Goal**: City selection opens an ops case file; “city said no list” is a secondary scrap — happy path is file scrub, not a radio wall
