@@ -23,7 +23,7 @@ v2.0 makes Filter a **standalone list factory**: process city files → admin Tr
 ## Active Work
 
 **Milestone:** v2.0 Filter Independence & Learning  
-**Status:** Phase 58 complete — next: Phase 59 Efficiency Operator Path  
+**Status:** Phase 59 in progress — Plan 01 complete; next Plan 02 polish  
 **Phase numbering:** 55–60 (continues from v1.8 phase 54)
 
 ---
@@ -110,7 +110,7 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 59-01-PLAN.md — Wave 0 EFF-01/02 path tests (as-built green + polish RED)
+- [x] 59-01-PLAN.md — Wave 0 EFF-01/02 path tests (as-built green + polish RED)
 - [ ] 59-02-PLAN.md — Format reuse meta + post-save Download this list (CSV)
 - [ ] 59-03-PLAN.md — Train A/D keyboard + suite/live EFF-02 gate
 
@@ -132,11 +132,11 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 55. Independence Lock | 0/3 | Planned | - |
-| 56. List Factory UX | 0/3 | Planned | - |
-| 57. Accuracy Structure Pass | 0/3 | Planned | - |
-| 58. Learning Loop Strength | 0/3 | Planned | - |
-| 59. Efficiency Operator Path | 0/3 | Planned | - |
+| 55. Independence Lock | 3/3 | Complete | 2026-07-10 |
+| 56. List Factory UX | 3/3 | Complete | 2026-07-10 |
+| 57. Accuracy Structure Pass | 3/3 | Complete | 2026-07-10 |
+| 58. Learning Loop Strength | 3/3 | Complete | 2026-07-10 |
+| 59. Efficiency Operator Path | 1/3 | In Progress | - |
 | 60. Regression QA Lock | 0/TBD | Not started | - |
 
 ### Coverage Map
