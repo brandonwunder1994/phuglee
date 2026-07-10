@@ -1,10 +1,11 @@
 ---
 phase: 55
 slug: independence-lock
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-07-10
+reviewed_at: 2026-07-10
 ---
 
 # Phase 55 — UI Design Contract
@@ -32,19 +33,21 @@ created: 2026-07-10
 
 ## Spacing Scale
 
-Declared values (must be multiples of 4) — **inherit live Filter / Phuglee tokens; do not invent new scale:**
+Declared values (must be exactly one of 4, 8, 16, 24, 32, 48, 64):
 
 | Token | Value | Usage |
-|-------|-------|-------|
-| xs | 4px (`--space-xs` / 0.25rem) | Icon gaps, inline padding |
-| sm | 8px (`--space-sm` / 0.5rem) | Compact element spacing, KPI inner gaps |
-| md | 16px (`--space-md` / 1rem) | Default element spacing, stub-note padding |
-| lg | 24px (`--space-lg` / 1.5rem) | Section / panel padding |
-| xl | 32px+ (`--space-xl` ~2.5rem) | Layout gaps between panels |
-| 2xl | 48px+ (`--space-2xl` ~4rem) | Major section breaks (unchanged) |
-| 3xl | 64px | Page-level only if already present — **do not add** this phase |
+|-------|-------|--------|
+| xs | 4px | Icon gaps, inline padding |
+| sm | 8px | Compact / KPI inner gaps |
+| md | 16px | Default / stub-note padding |
+| lg | 24px | Section / panel padding |
+| xl | 32px | Layout gaps (if any copy layout touches spacing) |
+| 2xl | 48px | Major section breaks (unchanged chrome only) |
+| 3xl | 64px | Page-level only if already present — do not add |
 
-Exceptions: none for Phase 55. Any copy-only edit reuses existing `.bridge-*` / `.phuglee-*` spacing; no new layout grids.
+### Exceptions
+
+Existing `--space-xl: 2.5rem` (40px) and `--space-2xl: 4rem` (64px) in `tokens.css` stay as inherited Filter chrome. Phase 55 does not change layout tokens or invent spacing — copy-only edits reuse existing classes. (Note: live `--space-2xl` maps to the declared **3xl** 64px step; live `--space-xl` at 40px is chrome inheritance only and is not a Phase 55 design value.)
 
 ---
 
@@ -76,6 +79,19 @@ Exceptions: none for Phase 55. Any copy-only edit reuses existing `.bridge-*` / 
 Accent reserved for: **Save list** primary button, pipeline active step chrome, **Kept (distress)** KPI accent — never for “Analyze” affordances, never for decorative independence banners.
 
 **No new tokens.** No Analyze-branded colors. No new gradient systems.
+
+---
+
+## Focal Point (Visual Hierarchy)
+
+Post-process results surface:
+
+| Priority | Anchor | Role |
+|----------|--------|------|
+| **Primary** | `#bridge-save-list` (“Save list”) | Primary visual and action anchor — orange accent CTA; user should land here after process |
+| **Secondary** | `#bridge-stub-note` (stub note) | Reassurance only (“nothing was sent to Analyze”); must not compete with Save for visual weight |
+
+Do not add banners, hero panels, or competing CTAs that pull focus from Save list. Independence copy stays secondary to the Save action.
 
 ---
 
@@ -138,8 +154,8 @@ Phase 55 does **not** add components. Touch inventory is copy/behavior on existi
 
 | Surface | Selector / location | Phase 55 action |
 |---------|---------------------|-----------------|
-| Save CTA | `#bridge-save-list` / “Save list” | Keep; primary CTA; no Analyze sibling |
-| Results stub note | `#bridge-stub-note` | Tighten independence copy; hide Analyze-hidden text when count 0 |
+| Save CTA | `#bridge-save-list` / “Save list” | Keep; **primary focal point / CTA**; no Analyze sibling |
+| Results stub note | `#bridge-stub-note` | Tighten independence copy; hide Analyze-hidden text when count 0; **secondary reassurance only** |
 | Results meta | `#bridge-results-meta` (or equivalent `resultsMeta`) | No Analyze index suffix when index skipped / 0 |
 | KPI grid | `renderKpis` in `public/js/bridge.js` | Omit zero **Already in Analyze** card (or never imply removal) |
 | Error path | `fetchJson` `NO_USABLE_ROWS` | Do not lead with Analyze-removed when counts are 0 |
