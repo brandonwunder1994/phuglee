@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.8
 milestone_name: Type Column Intelligence
 status: executing
-stopped_at: Completed 52-01-PLAN.md
-last_updated: "2026-07-10T06:08:12.246Z"
-last_activity: 2026-07-10 — Completed 52-01 Wave 0 RED tests
+stopped_at: Completed 52-02-PLAN.md
+last_updated: "2026-07-10T06:12:00.000Z"
+last_activity: 2026-07-10 — Completed 52-02 city-format store green
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
-  percent: 57
+  completed_plans: 5
+  percent: 71
 ---
 
 # State
@@ -21,31 +21,31 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → filter non-deals (with admin learning) → analyze → export.  
-**Current focus:** Phase 52 Plan 01 complete (Wave 0 RED) — next Plan 02 store
+**Current focus:** Phase 52 Plan 02 complete (store green) — next Plan 03 engine gate
 
 ## Current Position
 
 **Milestone:** v1.8 Type Column Intelligence  
 **Phase:** 52 of 54 (Format Memory + Confirm Gate) — IN PROGRESS  
-**Plan:** 1 of 4 complete  
-**Status:** Ready to execute Plan 02  
-**Last activity:** 2026-07-10 — Completed 52-01 Wave 0 RED tests
+**Plan:** 2 of 4 complete  
+**Status:** Ready to execute Plan 03  
+**Last activity:** 2026-07-10 — Completed 52-02 city-format store green
 
-Progress: [██████░░░░] 57%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v1.8): 4
-- Average duration: 1.8min
-- Total execution time: 7min
+- Total plans completed (v1.8): 5
+- Average duration: 2.0min
+- Total execution time: 10min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 51 | 3/3 | 5min | 1.7min |
-| 52 | 1/4 | 2min | 2min |
+| 52 | 2/4 | 5min | 2.5min |
 | 53 | 0 | TBD | — |
 | 54 | 0 | TBD | — |
 
@@ -57,6 +57,7 @@ Progress: [██████░░░░] 57%
 | 51-col-scoring-map-wire | 02 | 2min | 2 | 2 |
 | 51-col-scoring-map-wire | 03 | 2min | 2 | 2 |
 | 52-format-memory-confirm-gate | 01 | 2min | 2 | 2 |
+| 52-format-memory-confirm-gate | 02 | 3min | 2 | 4 |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Phase 52 plan decisions:
 - Zero new npm packages; no short labels (Phase 53)
 - Wave 0 RED only: no production store/gate; engine GATE tests avoid requiring missing store so COL/MAP stay runnable
 - GATE-03 reuse seeded via admin confirmedTypeHeader then reprocess; fingerprint contracts order-independent headers not full-file hash
+- Format memory fully separate from global-brain under BRIDGE_CITY_FORMATS_ROOT; single city-formats.json index
+- Fingerprint = sorted normalizeHeader join U+0001 + sha1; typeHeader null is confirmed no-type
 
 ### Pending Todos
 
@@ -98,11 +101,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None for Phase 52 — Wave 0 RED contracts locked; Plan 02 implements store.
+None for Phase 52 — store green; Plan 03 wires processUpload gate + override.
 
 ## Session Continuity
 
-Last session: 2026-07-10T06:08:12.239Z
-Stopped at: Completed 52-01-PLAN.md
+Last session: 2026-07-10T06:12:00.000Z
+Stopped at: Completed 52-02-PLAN.md
 Resume file: None
-Next: Execute 52-02-PLAN.md (city-format store green)
+Next: Execute 52-03-PLAN.md (processUpload gate + normalizer override + META)
