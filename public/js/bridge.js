@@ -96,6 +96,15 @@
   let lastFailedAction = 'loadStates';
   let loadingTimer = null;
 
+  // Split undo: client restores list/review snapshot; server reverts rules
+  const trainUndoStack = [];
+  const UNDO_LIMIT = 10;
+  const TRAIN_PAGE_SIZE = 40;
+  const DENY_CONFIRM_THRESHOLD = 10;
+  let brainVersion = null;
+  let trainSearchQuery = '';
+  let trainPage = { distressed: 1, notDistressed: 1 };
+
   function esc(text) {
     return String(text || '')
       .replace(/&/g, '&amp;')
@@ -180,25 +189,165 @@
     if (kind === 'success') el.classList.add('is-success');
   }
 
+  function deepClone(value) {
+    if (value == null) return value;
+    try {
+      if (typeof structuredClone === 'function') return structuredClone(value);
+    } catch (_) {}
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  function snapshotTrainState() {
+    if (!lastResult) return null;
+    return {
+      rows: deepClone(lastResult.rows || []),
+      notDistressedRows: deepClone(lastResult.notDistressedRows || []),
+      reviewGroups: deepClone(lastResult.reviewGroups || null),
+      stats: deepClone(lastResult.stats || null)
+    };
+  }
+
+  function pushTrainUndoSnapshot() {
+    const snap = snapshotTrainState();
+    if (!snap) return;
+    trainUndoStack.push(snap);
+    while (trainUndoStack.length > UNDO_LIMIT) trainUndoStack.shift();
+    updateTrainUndoButton();
+  }
+
+  function popTrainUndoSnapshot() {
+    const snap = trainUndoStack.pop();
+    updateTrainUndoButton();
+    return snap || null;
+  }
+
+  function applyTrainSnapshot(snap) {
+    if (!lastResult || !snap) return;
+    lastResult.rows = Array.isArray(snap.rows) ? snap.rows : lastResult.rows;
+    lastResult.notDistressedRows = Array.isArray(snap.notDistressedRows)
+      ? snap.notDistressedRows
+      : lastResult.notDistressedRows;
+    if (snap.reviewGroups) lastResult.reviewGroups = snap.reviewGroups;
+    if (snap.stats && lastResult.stats) {
+      lastResult.stats = { ...lastResult.stats, ...snap.stats };
+    } else if (lastResult.stats) {
+      lastResult.stats.kept = (lastResult.rows || []).length;
+      lastResult.stats.notDistressed = (lastResult.notDistressedRows || []).length;
+    }
+  }
+
+  function updateTrainUndoButton() {
+    const btn = document.getElementById('bridge-train-undo');
+    if (!btn) return;
+    const canUndo = trainUndoStack.length > 0 && isBridgeAdmin();
+    btn.disabled = !canUndo;
+    btn.setAttribute('aria-disabled', canUndo ? 'false' : 'true');
+    btn.title = canUndo
+      ? `Undo last training decision (${trainUndoStack.length} on stack)`
+      : 'Nothing to undo';
+  }
+
+  function rememberBrainVersion(summaryOrVersion) {
+    if (summaryOrVersion == null) return;
+    if (typeof summaryOrVersion === 'number' && Number.isFinite(summaryOrVersion)) {
+      brainVersion = summaryOrVersion;
+      return;
+    }
+    if (typeof summaryOrVersion === 'object') {
+      if (summaryOrVersion.version != null) {
+        brainVersion = Number(summaryOrVersion.version);
+      } else if (summaryOrVersion.brainSummary && summaryOrVersion.brainSummary.version != null) {
+        brainVersion = Number(summaryOrVersion.brainSummary.version);
+      }
+    }
+  }
+
+  function sortGroupsByCountDesc(list) {
+    return (list || []).slice().sort((a, b) => {
+      const ca = Number(a && a.count) || 0;
+      const cb = Number(b && b.count) || 0;
+      if (cb !== ca) return cb - ca;
+      const la = String((a && a.violationTypeLabel) || '');
+      const lb = String((b && b.violationTypeLabel) || '');
+      return la.localeCompare(lb);
+    });
+  }
+
+  function filterGroupsBySearch(list, query) {
+    const q = String(query || '').trim().toLowerCase();
+    if (!q) return list || [];
+    return (list || []).filter((g) => {
+      const label = String((g && g.violationTypeLabel) || '').toLowerCase();
+      const key = String((g && g.violationTypeKey) || '').toLowerCase();
+      return label.includes(q) || key.includes(q);
+    });
+  }
+
+  function renderTrainPager(pagerEl, total, page, sectionKey) {
+    if (!pagerEl) return;
+    const pages = Math.max(1, Math.ceil(total / TRAIN_PAGE_SIZE));
+    if (total <= TRAIN_PAGE_SIZE) {
+      pagerEl.innerHTML = '';
+      setHidden(pagerEl, true);
+      return;
+    }
+    const safePage = Math.min(Math.max(1, page), pages);
+    setHidden(pagerEl, false);
+    pagerEl.innerHTML =
+      `<span>Page ${safePage} of ${pages} · ${total} groups</span>` +
+      `<button type="button" class="bridge-btn bridge-btn-ghost" data-train-page="${sectionKey}" data-page="${safePage - 1}" ${safePage <= 1 ? 'disabled' : ''}>Prev</button>` +
+      `<button type="button" class="bridge-btn bridge-btn-ghost" data-train-page="${sectionKey}" data-page="${safePage + 1}" ${safePage >= pages ? 'disabled' : ''}>Next</button>`;
+  }
+
+  function pageSlice(list, page) {
+    const p = Math.max(1, Number(page) || 1);
+    const start = (p - 1) * TRAIN_PAGE_SIZE;
+    return (list || []).slice(start, start + TRAIN_PAGE_SIZE);
+  }
+
   function renderTrainGroups(groups, data) {
     const distressedEl = document.getElementById('bridge-train-distressed');
     const notEl = document.getElementById('bridge-train-not-distressed');
-    const distressed = (groups && groups.distressed) || [];
-    const notDistressed = (groups && groups.notDistressed) || [];
+    const distressedPager = document.getElementById('bridge-train-distressed-pager');
+    const notPager = document.getElementById('bridge-train-not-distressed-pager');
 
-    function fill(el, list) {
+    const distressedAll = sortGroupsByCountDesc(
+      filterGroupsBySearch((groups && groups.distressed) || [], trainSearchQuery)
+    );
+    const notAll = sortGroupsByCountDesc(
+      filterGroupsBySearch((groups && groups.notDistressed) || [], trainSearchQuery)
+    );
+
+    // Clamp pages when filter shrinks the list
+    const dPages = Math.max(1, Math.ceil(distressedAll.length / TRAIN_PAGE_SIZE) || 1);
+    const nPages = Math.max(1, Math.ceil(notAll.length / TRAIN_PAGE_SIZE) || 1);
+    if (trainPage.distressed > dPages) trainPage.distressed = dPages;
+    if (trainPage.notDistressed > nPages) trainPage.notDistressed = nPages;
+
+    const distressedPage = pageSlice(distressedAll, trainPage.distressed);
+    const notPage = pageSlice(notAll, trainPage.notDistressed);
+
+    function fill(el, list, emptyMsg) {
       if (!el) return;
       if (!list.length) {
-        el.innerHTML = '<p class="bridge-train-muted">No groups in this section.</p>';
+        el.innerHTML = `<p class="bridge-train-muted">${esc(emptyMsg)}</p>`;
         return;
       }
       el.innerHTML = list.map(renderTrainGroupCard).join('');
     }
 
-    fill(distressedEl, distressed);
-    fill(notEl, notDistressed);
+    const emptySearch = trainSearchQuery.trim()
+      ? 'No groups match this search.'
+      : 'No groups in this section.';
+    fill(distressedEl, distressedPage, emptySearch);
+    fill(notEl, notPage, emptySearch);
+    renderTrainPager(distressedPager, distressedAll.length, trainPage.distressed, 'distressed');
+    renderTrainPager(notPager, notAll.length, trainPage.notDistressed, 'notDistressed');
+    updateTrainUndoButton();
 
-    if (!distressed.length && !notDistressed.length) {
+    const rawD = (groups && groups.distressed) || [];
+    const rawN = (groups && groups.notDistressed) || [];
+    if (!rawD.length && !rawN.length) {
       const missingShape = !data || !data.reviewGroups;
       if (missingShape) {
         setTrainStatus('Train brain needs a process response with review groups (phase 43).', '');
@@ -208,8 +357,14 @@
           ''
         );
       }
+    } else if (!distressedAll.length && !notAll.length && trainSearchQuery.trim()) {
+      setTrainStatus('No train groups match your search.', '');
     } else {
-      setTrainStatus('', '');
+      // Keep error/success messages; clear only empty-state hints
+      const el = document.getElementById('bridge-train-status');
+      if (el && !el.classList.contains('is-error') && !el.classList.contains('is-success')) {
+        setTrainStatus('', '');
+      }
     }
   }
 
@@ -328,12 +483,23 @@
 
     if (metricsEl) {
       const version = data && data.version != null ? data.version : '—';
+      const totalDecisions = metrics.totalDecisions ?? '—';
+      const suppressCount = metrics.suppressCount;
+      const promoteCount = metrics.promoteCount;
       metricsEl.innerHTML =
         `<span class="bridge-brain-metric">v${esc(String(version))}</span>` +
+        `<span class="bridge-brain-metric">${esc(String(totalDecisions))} decisions</span>` +
         `<span class="bridge-brain-metric">${esc(String(metrics.typeRulesActive ?? activeTypes.length))} type active</span>` +
         `<span class="bridge-brain-metric">${esc(String(metrics.phraseRulesProposed ?? proposedPhrases.length))} proposed</span>` +
-        `<span class="bridge-brain-metric">${esc(String(metrics.phraseRulesActive ?? activePhrases.length))} phrase active</span>`;
+        `<span class="bridge-brain-metric">${esc(String(metrics.phraseRulesActive ?? activePhrases.length))} phrase active</span>` +
+        (suppressCount != null
+          ? `<span class="bridge-brain-metric">${esc(String(suppressCount))} suppress</span>`
+          : '') +
+        (promoteCount != null
+          ? `<span class="bridge-brain-metric">${esc(String(promoteCount))} promote</span>`
+          : '');
     }
+    if (data && data.version != null) rememberBrainVersion(data.version);
 
     if (typeEl) {
       typeEl.innerHTML = activeTypes.length
@@ -384,22 +550,34 @@
     if (!id || !status) {
       throw new Error('Missing rule id or status');
     }
-    const data = await fetchJson(`/api/bridge/brain/rules/${encodeURIComponent(id)}/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status })
-    });
-    await loadBrainPanel();
-    if (status === 'active') {
-      setBrainStatus('Rule activated. Applies on next file process.', 'success');
-    } else if (status === 'rejected') {
-      setBrainStatus('Proposed rule rejected.', 'success');
-    } else if (status === 'disabled') {
-      setBrainStatus('Rule disabled. Will not apply on next process.', 'success');
-    } else {
-      setBrainStatus('Rule status updated.', 'success');
+    const payload = { status };
+    if (brainVersion != null) payload.brainVersion = brainVersion;
+    try {
+      const data = await fetchJson(`/api/bridge/brain/rules/${encodeURIComponent(id)}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (data && data.brainSummary) rememberBrainVersion(data.brainSummary);
+      await loadBrainPanel();
+      if (status === 'active') {
+        setBrainStatus('Rule activated. Applies on next file process.', 'success');
+      } else if (status === 'rejected') {
+        setBrainStatus('Proposed rule rejected.', 'success');
+      } else if (status === 'disabled') {
+        setBrainStatus('Rule disabled. Will not apply on next process.', 'success');
+      } else {
+        setBrainStatus('Rule status updated.', 'success');
+      }
+      return data;
+    } catch (err) {
+      if (err && err.code === 'VERSION_CONFLICT') {
+        setBrainStatus('Brain was updated elsewhere — refresh train state', 'error');
+        if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
+        await loadBrainPanel().catch(() => {});
+      }
+      throw err;
     }
-    return data;
   }
 
   async function onBrainRuleAction(btn) {
@@ -431,6 +609,7 @@
   /**
    * POST admin train decision; apply mutated lists + reviewGroups to lastResult.
    * Does not auto-save the list store — Save list remains a separate user action.
+   * Pushes trainUndoStack snapshot before POST; pops on non-OK (incl 409).
    */
   async function submitTrainDecision({ action, section, group }) {
     if (!lastResult) return null;
@@ -449,6 +628,8 @@
       throw new Error('Invalid train action');
     }
 
+    pushTrainUndoSnapshot();
+
     const body = {
       action,
       section: resolvedSection,
@@ -465,18 +646,32 @@
       descriptionSamples: Array.isArray(group.descriptionSamples) ? group.descriptionSamples : [],
       sampleAddresses: Array.isArray(group.sampleAddresses) ? group.sampleAddresses : []
     };
+    if (brainVersion != null) body.brainVersion = brainVersion;
 
-    const data = await fetchJson('/api/bridge/brain/decisions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+    let data;
+    try {
+      data = await fetchJson('/api/bridge/brain/decisions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    } catch (err) {
+      // Decision did not apply — drop snapshot
+      popTrainUndoSnapshot();
+      if (err && err.code === 'VERSION_CONFLICT') {
+        setTrainStatus('Brain was updated elsewhere — refresh train state', 'error');
+        if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
+        await loadBrainPanel().catch(() => {});
+      }
+      throw err;
+    }
 
     lastResult.rows = Array.isArray(data.rows) ? data.rows : lastResult.rows;
     lastResult.notDistressedRows = Array.isArray(data.notDistressedRows)
       ? data.notDistressedRows
       : lastResult.notDistressedRows;
     if (data.reviewGroups) lastResult.reviewGroups = data.reviewGroups;
+    if (data.brainSummary) rememberBrainVersion(data.brainSummary);
     if (lastResult.stats) {
       lastResult.stats.kept = lastResult.rows.length;
       if (data.statsPatch && data.statsPatch.notDistressed != null) {
@@ -490,11 +685,68 @@
     const modeBefore = resultsMode;
     renderResults(lastResult);
     if (modeBefore === 'train') setResultsMode('train');
+    updateTrainUndoButton();
 
     const label = group.violationTypeLabel || 'group';
     const verb = action === 'approve' ? 'Approved' : 'Denied';
     setTrainStatus(`${verb} “${label}” · brain updated`, 'success');
     return data;
+  }
+
+  async function onTrainUndo() {
+    if (!trainUndoStack.length) {
+      setTrainStatus('Nothing to undo.', '');
+      updateTrainUndoButton();
+      return;
+    }
+    if (!isBridgeAdmin()) {
+      setTrainStatus('Admin required to undo training.', 'error');
+      return;
+    }
+    const undoBtn = document.getElementById('bridge-train-undo');
+    if (undoBtn) undoBtn.disabled = true;
+    setTrainStatus('Undoing last decision…', '');
+    showError('');
+    try {
+      const body = {};
+      if (brainVersion != null) body.brainVersion = brainVersion;
+      const data = await fetchJson('/api/bridge/brain/undo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (data && data.brainSummary) rememberBrainVersion(data.brainSummary);
+      const snap = popTrainUndoSnapshot();
+      applyTrainSnapshot(snap);
+      const modeBefore = resultsMode;
+      renderResults(lastResult);
+      if (modeBefore === 'train' || modeBefore === 'brain') setResultsMode(modeBefore);
+      else setResultsMode('train');
+      if (modeBefore === 'brain') {
+        await loadBrainPanel().catch(() => {});
+      }
+      setTrainStatus('Undid last training decision · list restored', 'success');
+      updateTrainUndoButton();
+    } catch (err) {
+      if (err && err.code === 'VERSION_CONFLICT') {
+        setTrainStatus('Brain was updated elsewhere — refresh train state', 'error');
+        if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
+        await loadBrainPanel().catch(() => {});
+      } else if (err && err.code === 'NOTHING_TO_UNDO') {
+        // Server has nothing; still pop client stack if present
+        const snap = popTrainUndoSnapshot();
+        if (snap) {
+          applyTrainSnapshot(snap);
+          renderResults(lastResult);
+          setResultsMode('train');
+        }
+        setTrainStatus('Nothing left to undo on the server.', 'error');
+      } else {
+        setTrainStatus((err && err.message) || 'Could not undo', 'error');
+        showError((err && err.message) || 'Could not undo');
+      }
+      updateTrainUndoButton();
+    }
   }
 
   async function onTrainDecision(action, group, card) {
@@ -505,6 +757,16 @@
     if (!group) {
       setTrainStatus('Could not resolve this group. Re-process and try again.', 'error');
       return;
+    }
+    if (action === 'deny') {
+      const count = Number(group.count) || (Array.isArray(group.rowIds) ? group.rowIds.length : 0);
+      if (count >= DENY_CONFIRM_THRESHOLD) {
+        const label = group.violationTypeLabel || 'this group';
+        const ok = window.confirm(
+          `Deny ${count} records for “${label}”? They will leave the kept list and a suppress rule will be trained.`
+        );
+        if (!ok) return;
+      }
     }
     setTrainCardBusy(card, true);
     setTrainStatus('Saving decision…', '');
@@ -591,7 +853,11 @@
         const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
         throw new Error((data.error || 'No usable addresses found in this file.') + detail);
       }
-      throw new Error(data.error || `Request failed (${res.status})`);
+      const err = new Error(data.error || `Request failed (${res.status})`);
+      err.code = data.code || null;
+      err.status = res.status;
+      if (data.currentVersion != null) err.currentVersion = data.currentVersion;
+      throw err;
     }
     return data;
   }
@@ -1374,7 +1640,18 @@
       form.append('uploadType', selectedUploadType);
       form.append('file', selectedFile, selectedFile.name);
       const data = await fetchJson('/api/bridge/process', { method: 'POST', body: form });
+      // New process batch — reset client undo stack and train polish state
+      trainUndoStack.length = 0;
+      trainSearchQuery = '';
+      trainPage = { distressed: 1, notDistressed: 1 };
+      const searchInput = document.getElementById('bridge-train-search');
+      if (searchInput) searchInput.value = '';
+      brainVersion = null;
+      if (data && data.processingMeta && data.processingMeta.brainVersion != null) {
+        brainVersion = Number(data.processingMeta.brainVersion);
+      }
       renderResults(data);
+      updateTrainUndoButton();
     } finally {
       stopLoadingAnimation();
       setHidden(loadingPanel, true);
@@ -1590,6 +1867,16 @@
     setResultsMode(tab.dataset.mode);
   });
   document.getElementById('bridge-train-panel')?.addEventListener('click', (event) => {
+    const pageBtn = event.target.closest('[data-train-page]');
+    if (pageBtn && !pageBtn.disabled) {
+      const key = pageBtn.getAttribute('data-train-page');
+      const page = Number(pageBtn.getAttribute('data-page')) || 1;
+      if (key === 'distressed' || key === 'notDistressed') {
+        trainPage[key] = Math.max(1, page);
+        if (lastResult) renderTrainGroups(getReviewGroups(lastResult), lastResult);
+      }
+      return;
+    }
     const btn = event.target.closest('[data-action="approve"], [data-action="deny"]');
     if (!btn || btn.disabled || !isBridgeAdmin()) return;
     const card = btn.closest('.bridge-train-group');
@@ -1597,6 +1884,17 @@
     const group = resolveTrainGroupFromCard(card);
     onTrainDecision(btn.dataset.action, group, card).catch((e) => {
       showError((e && e.message) || 'Could not save train decision');
+    });
+  });
+  document.getElementById('bridge-train-search')?.addEventListener('input', (event) => {
+    trainSearchQuery = event.target.value || '';
+    trainPage.distressed = 1;
+    trainPage.notDistressed = 1;
+    if (lastResult) renderTrainGroups(getReviewGroups(lastResult), lastResult);
+  });
+  document.getElementById('bridge-train-undo')?.addEventListener('click', () => {
+    onTrainUndo().catch((e) => {
+      showError((e && e.message) || 'Could not undo');
     });
   });
   document.getElementById('bridge-brain-panel')?.addEventListener('click', (event) => {

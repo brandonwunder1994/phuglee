@@ -1565,6 +1565,49 @@ body {
   border-radius: var(--radius-md);
 }
 
+.bridge-train-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.75rem;
+  margin: 0 0 0.85rem;
+}
+
+.bridge-train-toolbar .bridge-toolbar-search {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+}
+
+.bridge-train-toolbar #bridge-train-search {
+  width: 100%;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--phuglee-cream);
+  font-size: 0.9rem;
+}
+
+.bridge-train-toolbar #bridge-train-undo:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bridge-train-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.75rem;
+  margin: 0.55rem 0 0.25rem;
+  font-size: 0.8rem;
+  color: var(--phuglee-stone);
+}
+
+.bridge-train-pager button {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.8rem;
+}
+
 /* ── Filter brain panel (admin rule lists) ────────────────────── */
 
 .bridge-brain-metrics {

@@ -209,15 +209,24 @@
         </div>
         <p id="bridge-train-status" class="bridge-train-status" hidden role="status"></p>
         <div id="bridge-train-panel" hidden role="tabpanel" aria-labelledby="bridge-mode-train">
+          <div class="bridge-train-toolbar" id="bridge-train-toolbar">
+            <label class="bridge-toolbar-search">
+              <span class="bridge-sr-only">Filter train groups</span>
+              <input type="search" id="bridge-train-search" placeholder="Search violation type…" autocomplete="off" />
+            </label>
+            <button type="button" class="bridge-btn bridge-btn-ghost" id="bridge-train-undo" disabled title="Undo last training decision">↩ Undo</button>
+          </div>
           <section class="bridge-train-section" aria-labelledby="train-distressed-h">
             <h3 id="train-distressed-h">Marked distressed</h3>
-            <p class="bridge-panel-lead">Approve if the tagger is right. Deny removes these from the kept list (training writes in phase 45).</p>
+            <p class="bridge-panel-lead">Approve if the tagger is right. Deny removes these from the kept list and trains a suppress rule.</p>
             <div id="bridge-train-distressed" class="bridge-train-groups"></div>
+            <div id="bridge-train-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
           <section class="bridge-train-section" aria-labelledby="train-fn-h">
             <h3 id="train-fn-h">Not marked distressed</h3>
-            <p class="bridge-panel-lead">Catch false negatives. Approve promotes into the kept list (phase 45).</p>
+            <p class="bridge-panel-lead">Catch false negatives. Approve promotes into the kept list and trains a promote rule.</p>
             <div id="bridge-train-not-distressed" class="bridge-train-groups"></div>
+            <div id="bridge-train-not-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
         </div>
         <div id="bridge-brain-panel" hidden role="tabpanel" aria-labelledby="bridge-mode-brain">
