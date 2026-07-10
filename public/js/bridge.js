@@ -29,6 +29,13 @@
   const stateSelect = document.getElementById('bridge-state');
   const citySelect = document.getElementById('bridge-city');
   const cityActions = document.getElementById('bridge-city-actions');
+  const cityDossier = document.getElementById('bridge-city-dossier');
+  const dossierEmptyEl = document.getElementById('bridge-dossier-empty');
+  const dossierLastScrubBody = document.getElementById('bridge-dossier-last-scrub-body');
+  const dossierAttachesBody = document.getElementById('bridge-dossier-attaches-body');
+  const dossierListsBody = document.getElementById('bridge-dossier-lists-body');
+  const outcomeDrawer = document.getElementById('bridge-outcome-drawer');
+  const outcomeDrawerToggle = document.getElementById('bridge-outcome-drawer-toggle');
   const cityOutcomePanel = document.getElementById('bridge-city-outcome');
   const otherSourceWrap = document.getElementById('bridge-other-source-wrap');
   const otherSourceNotes = document.getElementById('bridge-other-source-notes');
@@ -108,6 +115,8 @@
   };
   let lastFailedAction = 'loadStates';
   let loadingTimer = null;
+  /** Last history payload for the selected city (dossier composition) */
+  let dossierHistoryCache = [];
 
   // Split undo: client restores list/review snapshot; server reverts rules
   const trainUndoStack = [];
@@ -1286,7 +1295,7 @@
       selectedFiles = [];
       lastResult = null;
       setHidden(cityActions, true);
-      setHidden(cityOutcomePanel, true);
+      hideCityDossierUi();
       resetCityOutcomeUi();
       setHidden(typePanel, true);
       setHidden(uploadPanel, true);
@@ -1515,6 +1524,132 @@
     return checked ? checked.value : '';
   }
 
+  function setOutcomeDrawerOpen(open) {
+    const isOpen = !!open;
+    if (cityOutcomePanel) setHidden(cityOutcomePanel, !isOpen);
+    if (outcomeDrawer) outcomeDrawer.classList.toggle('is-open', isOpen);
+    if (outcomeDrawerToggle) {
+      outcomeDrawerToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+  }
+
+  function hideCityDossierUi() {
+    dossierHistoryCache = [];
+    setHidden(cityDossier, true);
+    setHidden(outcomeDrawer, true);
+    setOutcomeDrawerOpen(false);
+    if (cityOutcomePanel) setHidden(cityOutcomePanel, true);
+    if (dossierEmptyEl) setHidden(dossierEmptyEl, true);
+    if (dossierLastScrubBody) dossierLastScrubBody.textContent = '—';
+    if (dossierAttachesBody) dossierAttachesBody.textContent = '—';
+    if (dossierListsBody) dossierListsBody.textContent = '—';
+  }
+
+  /**
+   * Client-only dossier model from existing history + lists APIs.
+   * No GET /api/bridge/dossier.
+   */
+  function buildDossierModel(city, history, lists) {
+    const attaches = Array.isArray(history) ? history : [];
+    const lastScrub = attaches.length
+      ? [...attaches].sort((a, b) =>
+          String(b.attached_at || '').localeCompare(String(a.attached_at || ''))
+        )[0]
+      : null;
+    const cityId = city && city.id;
+    const stagedLists = (lists || []).filter(
+      (l) => String(l.cityId || '') === String(cityId)
+    );
+    const listStatus = {
+      ready: stagedLists.filter((l) => (l.status || 'ready') === 'ready').length,
+      downloaded: stagedLists.filter((l) => l.status === 'downloaded').length,
+      recordCount: stagedLists.reduce((n, l) => n + (Number(l.recordCount) || 0), 0)
+    };
+    return { city, attaches, lastScrub, stagedLists, listStatus };
+  }
+
+  function renderCityDossier(model) {
+    if (!cityDossier) return;
+    if (!model || !model.city) {
+      setHidden(cityDossier, true);
+      return;
+    }
+    setHidden(cityDossier, false);
+
+    const attaches = model.attaches || [];
+    const staged = model.stagedLists || [];
+    const listStatus = model.listStatus || { ready: 0, downloaded: 0, recordCount: 0 };
+    const isEmpty = attaches.length === 0 && staged.length === 0;
+
+    if (dossierEmptyEl) {
+      setHidden(dossierEmptyEl, !isEmpty);
+    }
+
+    if (dossierLastScrubBody) {
+      if (model.lastScrub) {
+        const s = model.lastScrub;
+        const typeLabel = s.upload_type_label || s.upload_type || 'Attach';
+        const kept = Number(s.kept_count || 0).toLocaleString();
+        const when = s.attached_at ? formatDisplayDate(s.attached_at) : '—';
+        const file = s.original_filename || 'dataset';
+        dossierLastScrubBody.textContent = `${typeLabel} · ${kept} kept · ${when} · ${file}`;
+      } else {
+        dossierLastScrubBody.textContent = isEmpty ? '—' : 'No scrubs yet';
+      }
+    }
+
+    if (dossierAttachesBody) {
+      const n = attaches.length;
+      dossierAttachesBody.textContent =
+        n === 0 ? 'None yet' : `${n} attach${n === 1 ? '' : 'es'} on file`;
+    }
+
+    if (dossierListsBody) {
+      const n = staged.length;
+      if (n === 0) {
+        dossierListsBody.textContent = 'No lists staged for this city';
+      } else {
+        dossierListsBody.textContent =
+          `${n} list${n === 1 ? '' : 's'} · ${listStatus.ready} ready · ` +
+          `${listStatus.downloaded} downloaded · ${Number(listStatus.recordCount || 0).toLocaleString()} records`;
+      }
+    }
+  }
+
+  function refreshDossierListsFacet() {
+    if (!selectedCity || !cityDossier || cityDossier.hidden) return;
+    renderCityDossier(buildDossierModel(selectedCity, dossierHistoryCache, savedLists));
+  }
+
+  /**
+   * Eager history for dossier on city select — does not block type panel.
+   * Race-guarded: ignore stale responses if city changed mid-flight.
+   */
+  async function loadCityDossierHistory(cityId) {
+    if (!cityId) return;
+    if (dossierLastScrubBody) dossierLastScrubBody.textContent = 'Loading…';
+    if (dossierAttachesBody) dossierAttachesBody.textContent = 'Loading…';
+    try {
+      const data = await fetchJson(`/api/bridge/history/${encodeURIComponent(cityId)}`);
+      if (String(selectedCity?.id) !== String(cityId)) return;
+      const history = Array.isArray(data.history) ? data.history : [];
+      dossierHistoryCache = history;
+      renderCityDossier(buildDossierModel(selectedCity, history, savedLists));
+      if (historyDialog && historyDialog.open) {
+        renderHistory(history);
+      }
+    } catch (err) {
+      if (String(selectedCity?.id) !== String(cityId)) return;
+      // Soft error: keep type panel; show lists facet from in-memory savedLists
+      dossierHistoryCache = [];
+      if (dossierLastScrubBody) {
+        dossierLastScrubBody.textContent = (err && err.message) || 'Could not load history';
+      }
+      if (dossierAttachesBody) dossierAttachesBody.textContent = '—';
+      renderCityDossier(buildDossierModel(selectedCity, [], savedLists));
+    }
+  }
+
   function syncCityOutcomeUi() {
     const status = selectedCityOutcome();
     const showNotes = status === 'other_source' || status === 'approved_bad_data';
@@ -1599,20 +1734,32 @@
       if (!id) {
         selectedCity = null;
         setHidden(cityActions, true);
-        setHidden(cityOutcomePanel, true);
+        hideCityDossierUi();
         resetCityOutcomeUi();
         return;
       }
       selectedCity = cities.find((city) => String(city.id) === String(id)) || null;
       if (!selectedCity) return;
+
+      // Happy path: type panel immediately — history must not block type reveal
       setHidden(typePanel, false);
       setHidden(cityActions, false);
-      setHidden(cityOutcomePanel, false);
+      setPipelineStep('type');
+
+      // CITY-01: dossier with lists now; history loads async
+      dossierHistoryCache = [];
+      setHidden(cityDossier, false);
+      renderCityDossier(buildDossierModel(selectedCity, [], savedLists));
+      loadCityDossierHistory(selectedCity.id);
+
+      // CITY-02: outcome scrap closed by default (no five-radio wall)
+      setHidden(outcomeDrawer, false);
+      setOutcomeDrawerOpen(false);
       resetCityOutcomeUi();
+
       if (historyLead) {
         historyLead.textContent = `Prior Filter datasets for ${selectedCity.city}, ${selectedCity.state}.`;
       }
-      setPipelineStep('type');
     } catch (err) {
       showError(err.message || 'Could not update city selection.');
     }
@@ -1737,6 +1884,7 @@
         listsTotalEl.textContent = '';
         setHidden(listsTotalEl, true);
       }
+      refreshDossierListsFacet();
       return;
     }
     setHidden(listsEmpty, true);
@@ -1777,6 +1925,8 @@
         ` across ${listCount.toLocaleString()} list${listCount === 1 ? '' : 's'}`;
       setHidden(listsTotalEl, false);
     }
+    // CITY-01: refresh dossier staged-lists facet when inventory changes
+    refreshDossierListsFacet();
   }
 
   async function loadSavedLists() {
@@ -1821,7 +1971,7 @@
       citySelect.value = '';
     }
     setHidden(cityActions, true);
-    setHidden(cityOutcomePanel, true);
+    hideCityDossierUi();
     setHidden(typePanel, true);
     setHidden(uploadPanel, true);
 
@@ -2221,7 +2371,13 @@
     historyList.innerHTML = '<p class="bridge-history-empty">Loading history…</p>';
     try {
       const data = await fetchJson(`/api/bridge/history/${encodeURIComponent(cityId)}`);
-      renderHistory(data.history || []);
+      const history = data.history || [];
+      renderHistory(history);
+      // Keep dossier in sync after attach / dialog load when city still selected
+      if (selectedCity && String(selectedCity.id) === String(cityId)) {
+        dossierHistoryCache = history;
+        renderCityDossier(buildDossierModel(selectedCity, history, savedLists));
+      }
     } catch (err) {
       historyList.innerHTML = `<p class="bridge-history-empty">${esc(err.message || 'Could not load history')}</p>`;
     }
@@ -3141,6 +3297,10 @@
 
   stateSelect?.addEventListener('change', () => { onStateChange().catch((e) => showError(e.message)); });
   citySelect?.addEventListener('change', onCityChange);
+  outcomeDrawerToggle?.addEventListener('click', () => {
+    const open = outcomeDrawerToggle.getAttribute('aria-expanded') !== 'true';
+    setOutcomeDrawerOpen(open);
+  });
   document.querySelectorAll('input[name="bridge-city-outcome"]').forEach((input) => {
     input.addEventListener('change', syncCityOutcomeUi);
   });
