@@ -56,12 +56,19 @@ Full requirement text: `.planning/milestones/v1.6-REQUIREMENTS.md`
 
 Full requirement text: `.planning/milestones/v1.7-REQUIREMENTS.md`
 
-### Active (v1.8 — Type Column Intelligence)
+### Validated (v1.8 — shipped 2026-07-10)
 
-- [ ] **COL-***: Score headers + cell value shapes → suggest best single Violation Type column (no multi-column blend)
-- [ ] **COL-***: First-time (or format-changed) per city: admin confirms Type column before process continues; same sheet format reuses last confirmed mapping
-- [ ] **LBL-***: Display-only short labels for long type/description text in Train/groups; full raw text kept for distress match + export
-- [ ] **TEST-***: Regression lock for wrong-column maps, format reuse, short-label display
+- [x] **COL-01–04**: Score headers + value shapes; force single Type column; no silent drop; promote empty-only
+- [x] **GATE-01–06**: Per-city format fingerprint, admin confirm, reuse, batch mixed hard-fail, admin-only persist
+- [x] **META-01**: `processingMeta.typeResolution` source enum
+- [x] **LBL-01–03**: Display-only short Train labels; full type for match/export/decisions; no DOM scrape
+- [x] **TEST-01–03 (v1.8)**: processUpload e2e locks + suite + verify-live
+
+Full requirement text: `.planning/milestones/v1.8-REQUIREMENTS.md`
+
+### Active (next milestone)
+
+_None yet — define via `/gsd:new-milestone`_
 
 ### Backlog (later)
 
@@ -92,12 +99,13 @@ Full requirement text: `.planning/milestones/v1.7-REQUIREMENTS.md`
 - Form Forge: `C:\Users\brand\Projects\city-list-requests` (Python Flask, port 8787)
 - Property Analyzer: `C:\Users\brand\Projects\property-distress-analyzer` (Node, port 3456)
 
-**Tests:** `npm test` (distress-os **345** after v1.6), `scripts/verify-live.ps1`, Form Forge / Analyzer suites separately
+**Tests:** `npm test` (distress-os **460** after v1.8), `scripts/verify-live.ps1`, Form Forge / Analyzer suites separately
 
-**Known soft debt (accepted at v1.6 ship):**
+**Known soft debt (accepted):**
 - Dedicated `GET /api/bridge/brain/metrics` unused by UI (metrics via `GET /brain`)
 - Decision POST ships full row arrays (15MB cap)
 - Header-based admin is acceptable for single-tenant local; multi-tenant needs server sessions
+- Formal `/gsd:audit-milestone` for v1.8 not run (phase VERIFICATION.md all passed)
 
 ## Key Decisions (v1.6)
 
@@ -110,35 +118,25 @@ Full requirement text: `.planning/milestones/v1.7-REQUIREMENTS.md`
 | Split undo (client list snapshot + server rule revert) | ✓ Good — HARD-01 |
 | Volume-safe `BRIDGE_BRAIN_ROOT` mirrors filter lists | ✓ Good — durability |
 
-## Current Milestone: v1.8 Type Column Intelligence
+## Key Decisions (v1.8)
 
-**Goal:** Every city upload maps the true Violation Type column (with confirm-when-format-is-new) and Train shows short categorize-at-a-glance labels without losing full text for distress.
-
-**Target features:**
-- Score all columns by header aliases + value shapes; pick **one** best Type column (no blending)
-- Per-city format fingerprint: first upload or format change → admin confirms Type column; same format reuses last mapping
-- If no Type column can be identified → keep rows for review (no silent drop as “no category”)
-- Display-only short labels for long type/description walls of text; full raw retained for matching + export
-
-**Decisions (locked at milestone start):**
-| Decision | Choice |
-|----------|--------|
-| Column blend | Never — single winner Type column |
-| Confirm gate | First time per city **or** sheet format differs from last upload for that city |
-| Same format | Reuse last confirmed Type column for that city |
-| Short labels | Display-only; do not replace stored type used for distress/export |
-| No type column | Keep/approve path for review — no silent discard |
+| Decision | Outcome |
+|----------|---------|
+| Score headers + value shapes; force single Type (never blend) | ✓ Good — COL-01/04 traps green |
+| Format memory separate from brain (`BRIDGE_CITY_FORMATS_ROOT`) | ✓ Good — no brain file bloat |
+| Confirm first time / format change; same FP auto_reuse | ✓ Good — GATE-02/03 |
+| Short labels display-only; never stored type / group keys | ✓ Good — LBL-02/03; scrape kill |
+| Water shut-off skips Type confirm gate | ✓ Good — water path unblocked |
+| Deterministic short labels (no LLM paraphrase) | ✓ Good — testable, zero new deps |
 
 ## Current State
 
-**Shipped:** v1.7 Filter Accuracy & Grouping (2026-07-10)  
-**Prior:** v1.6 Filter Superpower Brain (2026-07-10)  
-**Focus:** v1.8 Type Column Intelligence — defining requirements  
-**Phase numbering:** continues from 51 (v1.7 ended at 50)
+**Shipped:** v1.8 Type Column Intelligence (2026-07-10)  
+**Prior:** v1.7 Filter Accuracy & Grouping; v1.6 Filter Superpower Brain  
+**Focus:** Between milestones — ready for `/gsd:new-milestone`  
+**Phase numbering:** next milestone continues from **55**
 
-**Filter accuracy stack (v1.7):** `lib/bridge-category-promote.js`, `lib/bridge-stable-text.js`, normalizer + review-groups wiring; process rows keep indicator arrays; export joins.
-
-**Gap this milestone closes:** `detectIntakeColumnMap` is alias-first / first-match; promote-when-empty only helps if Type is empty. Wrong column → wrong Train groups and manual review. No per-city format memory or display short-labels.
+**Type column stack (v1.8):** `lib/bridge-type-column-score.js`, `lib/bridge-city-format-store.js`, processUpload confirm gate, `lib/bridge-short-label.js` + Train UI; processUpload e2e TEST-01/02/03 (v1.8).
 
 ---
 
@@ -153,4 +151,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-09 — started v1.8 Type Column Intelligence*
+*Last updated: 2026-07-10 after completing v1.8 Type Column Intelligence*

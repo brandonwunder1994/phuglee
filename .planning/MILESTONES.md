@@ -1,5 +1,26 @@
 # Project Milestones: Distress OS
 
+## v1.8 Type Column Intelligence (Shipped: 2026-07-10)
+
+**Delivered:** Smart Violation Type column detection (headers + value shapes), per-city format memory with admin confirm gate, display-only short Train labels, and processUpload regression locks — so city exports no longer poison Train/brain with wrong columns or unreadable walls of text.
+
+**Phases completed:** 51–54 (4 phases, 13 plans)
+
+**Archive:** `.planning/milestones/v1.8-ROADMAP.md`, `v1.8-REQUIREMENTS.md`
+
+**Key accomplishments:**
+- Pure `bridge-type-column-score` ranks every column; process **forces** single Type into `columnMap` (alias-first traps lose)
+- Per-city format fingerprint + `BRIDGE_CITY_FORMATS_ROOT`; first/changed format → admin confirm; same format → auto_reuse
+- Confirm UI: ranked candidates, samples, No type column; non-admin clear 409 (no hang); mixed batch hard-fail
+- Display-only `shortLabel` on Train (max 56); full type for distress/export/brain; DOM title scrape killed
+- **460** tests + `scripts/verify-live.ps1` green; TEST-01/02/03 (v1.8) processUpload e2e locks
+
+**Git range:** `62c5c21` → `9f0ea87` (~57 commits, +13.4k / −110 across ~70 files)
+
+**Note:** Formal `/gsd:audit-milestone` not run; all four phase VERIFICATION.md reports **passed**; suite + live gate green.
+
+---
+
 ## v1.7 Filter Accuracy & Grouping (Shipped: 2026-07-10)
 
 **Delivered:** Train/Filter grouping accuracy — real city categories on labels, timestamp-stable stacks (no false singletons), process-path signal chips as arrays, processUpload regression lock.
