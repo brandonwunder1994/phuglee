@@ -63,7 +63,12 @@ Plans:
   1. After process (and optional Train), the primary CTAs are **Save list** and **Download** (one or all) — not “send to Analyze”
   2. Operator can save multiple city lists and they remain after process, restart, and deploy until the operator deletes them
   3. UI workflow and copy clearly teach Process → (Train) → Save → Download for external enrich → manual Analyze import
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 56-01-PLAN.md — LIST-03 teaching pack + LIST-01 CTA hierarchy (Save primary, Preview CSV, workflow strip)
+- [ ] 56-02-PLAN.md — Dirty-guard + soft Train-before-Save + save flash download path
+- [ ] 56-03-PLAN.md — factory-ux tests + list-store accumulate + docs light + suite gate
 
 ### Phase 57: Accuracy Structure Pass
 **Goal**: Residual heterogeneous-city keep/kill and Type/format failures are fixed with gold fixtures — real distress stays kept, junk is denied, water is never type-suppressed, and accuracy changes never silent-drop inventory
@@ -113,7 +118,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 55. Independence Lock | 0/3 | Planned | - |
-| 56. List Factory UX | 0/TBD | Not started | - |
+| 56. List Factory UX | 0/3 | Planned | - |
 | 57. Accuracy Structure Pass | 0/TBD | Not started | - |
 | 58. Learning Loop Strength | 0/TBD | Not started | - |
 | 59. Efficiency Operator Path | 0/TBD | Not started | - |

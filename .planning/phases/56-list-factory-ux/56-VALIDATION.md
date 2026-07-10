@@ -1,8 +1,8 @@
 ---
 phase: 56
 slug: list-factory-ux
-status: draft
-nyquist_compliant: false
+status: planned
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-07-10
 ---
@@ -73,4 +73,4 @@ created: 2026-07-10
 - [ ] Feedback latency < 90s
 - [ ] `nyquist_compliant: true` after plans align
 
-**Approval:** pending
+**Approval:** plans aligned — Wave 0 test file created in 56-03; all tasks have automated verify
