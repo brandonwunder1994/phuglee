@@ -79,7 +79,7 @@ Each task was committed atomically:
 2. **Task 2: JS-generated buttons → phuglee-btn + Scrub it process labels** - `5fa6be7` (feat)
 3. **Task 3: Phase gate — npm test + verify-live** - (no code commit; gates only)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `2ba1721` (docs: complete plan)
 
 ## Files Created/Modified
 
