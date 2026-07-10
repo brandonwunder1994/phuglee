@@ -72,7 +72,7 @@ Each task was committed atomically:
 1. **Task 1: Implement submitTrainDecision and wire Approve/Deny** - `63eb163` (feat)
 2. **Task 2: Live smoke + regression gate** - verification only (no code delta)
 
-**Plan metadata:** docs commit (SUMMARY + STATE + ROADMAP)
+**Plan metadata:** `c808078` (docs: complete plan)
 
 _Note: Task 2 is a verify gate; suite + health already green under Task 1 commit._
 
