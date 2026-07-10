@@ -1852,6 +1852,32 @@
     }
   }
 
+  /** IDLE-01: derive desk-rest proof metrics from savedLists summaries (no extra fetch). */
+  function computeIdleProof(lists) {
+    const rows = Array.isArray(lists) ? lists : [];
+    const listCount = rows.length;
+    const recordTotal = rows.reduce((s, r) => s + (Number(r.recordCount) || 0), 0);
+    const lastSaveAt = rows[0]?.createdAt || null; // API sorts createdAt desc
+    return { listCount, recordTotal, lastSaveAt };
+  }
+
+  /** IDLE-01: render live inventory strip under hero from computeIdleProof(savedLists). */
+  function renderIdleProof() {
+    const lineEl = document.getElementById('bridge-idle-proof-line');
+    if (!lineEl) return;
+    const { listCount, recordTotal, lastSaveAt } = computeIdleProof(savedLists);
+    if (listCount === 0) {
+      lineEl.textContent = '0 lists staged · Ready when you scrub the first city';
+      return;
+    }
+    const listsLabel = listCount === 1 ? 'list' : 'lists';
+    const recordsLabel = recordTotal === 1 ? 'record' : 'records';
+    lineEl.textContent =
+      `${listCount.toLocaleString()} ${listsLabel} staged · ` +
+      `${recordTotal.toLocaleString()} ${recordsLabel} ready · ` +
+      `Last save ${formatListWhen(lastSaveAt)}`;
+  }
+
   /** Saved-list kind chip: hazard for code violation, water for shut-off. */
   function listUploadTypeBadge(uploadType) {
     const t = String(uploadType || '').trim().toLowerCase();
@@ -1885,6 +1911,7 @@
         setHidden(listsTotalEl, true);
       }
       refreshDossierListsFacet();
+      renderIdleProof(); // IDLE-01: honest zeros on empty inventory
       return;
     }
     setHidden(listsEmpty, true);
@@ -1927,6 +1954,7 @@
     }
     // CITY-01: refresh dossier staged-lists facet when inventory changes
     refreshDossierListsFacet();
+    renderIdleProof(); // IDLE-01: live lists staged · records ready · last save
   }
 
   async function loadSavedLists() {
