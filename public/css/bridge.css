@@ -372,48 +372,7 @@ body {
   margin-bottom: 1rem;
 }
 
-.bridge-dropzone {
-  position: relative;
-  border: 1px dashed rgba(238, 183, 70, 0.28) !important;
-  border-radius: var(--card-radius, 16px);
-  background:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
-    rgba(0, 0, 0, 0.28) !important;
-  box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.28),
-    0 16px 40px rgba(0, 0, 0, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  transition:
-    border-color 0.25s ease,
-    box-shadow 0.25s ease,
-    background 0.25s ease,
-    transform 0.25s var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1));
-}
-
-.bridge-dropzone:hover {
-  border-color: rgba(229, 132, 53, 0.42) !important;
-  transform: translateY(-2px);
-  box-shadow:
-    0 8px 24px rgba(0, 0, 0, 0.32),
-    0 24px 56px rgba(0, 0, 0, 0.4),
-    0 0 32px rgba(229, 132, 53, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.bridge-dropzone.is-dragover,
-.bridge-dropzone:focus-visible {
-  border-color: var(--phuglee-orange) !important;
-  border-style: solid !important;
-  box-shadow:
-    0 8px 28px rgba(0, 0, 0, 0.35),
-    0 0 48px rgba(229, 132, 53, 0.28) !important;
-  background:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
-    rgba(229, 132, 53, 0.1) !important;
-  transform: translateY(-2px);
-}
+/* Dropzone state matrix lives with upload layout (~FORMS-04) — single definition */
 
 /* Allow shared phuglee-panel glass lift on Filter cards */
 .bridge-panel.phuglee-panel {
@@ -996,38 +955,103 @@ body {
   border-radius: 4px;
 }
 
+/* ── Dropzone state matrix (FORMS-04) — idle / dragover / has-file / error ── */
 .bridge-dropzone {
   position: relative;
   margin-bottom: 1rem;
-  padding: 2px;
-  border-radius: var(--radius-md);
-  background: linear-gradient(135deg, rgba(229, 132, 53, 0.25), rgba(174, 163, 143, 0.12));
+  padding: 0;
+  border: 1px dashed rgba(238, 183, 70, 0.28);
+  border-radius: var(--card-radius, var(--radius-md, 16px));
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.05) 0%, transparent 42%),
+    var(--glass-fill, rgba(0, 0, 0, 0.28));
+  box-shadow:
+    var(--glass-shadow, 0 4px 16px rgba(0, 0, 0, 0.28)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(var(--glass-blur, 20px)) saturate(var(--glass-saturate, 150%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(var(--glass-saturate, 150%));
   cursor: pointer;
-  transition: box-shadow 0.25s ease;
+  transition:
+    border-color 0.22s ease,
+    border-style 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease,
+    transform 0.22s var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1));
 }
 
+.bridge-dropzone:hover {
+  border-color: color-mix(in srgb, var(--phuglee-orange) 42%, transparent);
+  box-shadow:
+    var(--glass-shadow-float, 0 8px 24px rgba(0, 0, 0, 0.32)),
+    0 0 28px color-mix(in srgb, var(--phuglee-orange) 12%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Dragover: solid orange emphasis + warm fill lift */
+.bridge-dropzone.is-dragover {
+  border-style: solid;
+  border-color: var(--phuglee-orange);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
+    color-mix(in srgb, var(--phuglee-orange) 12%, rgba(0, 0, 0, 0.32));
+  box-shadow:
+    var(--glass-shadow-float, 0 8px 28px rgba(0, 0, 0, 0.35)),
+    0 0 48px color-mix(in srgb, var(--phuglee-orange) 28%, transparent);
+  transform: translateY(-2px);
+}
+
+/* Has-file: confirmed energy — solid calm border, soft gold wash (≠ idle dashed) */
+.bridge-dropzone.has-file {
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--phuglee-gold, var(--phuglee-orange)) 55%, rgba(174, 163, 143, 0.35));
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--phuglee-gold, #e5a435) 10%, transparent) 0%, transparent 45%),
+    var(--glass-fill-elevated, rgba(0, 0, 0, 0.34));
+  box-shadow:
+    var(--glass-shadow, 0 6px 20px rgba(0, 0, 0, 0.3)),
+    0 0 0 1px color-mix(in srgb, var(--phuglee-gold, var(--phuglee-orange)) 22%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Error: danger border/tint — CSS-ready for class toggle (no JS this phase) */
+.bridge-dropzone.is-error {
+  border-style: solid;
+  border-color: var(--phuglee-danger, #f87171);
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--phuglee-danger, #f87171) 8%, transparent) 0%, transparent 40%),
+    var(--status-danger-bg, rgba(248, 113, 113, 0.12));
+  box-shadow:
+    var(--glass-shadow, 0 4px 16px rgba(0, 0, 0, 0.28)),
+    0 0 0 1px color-mix(in srgb, var(--phuglee-danger, #f87171) 28%, transparent);
+}
+
+/* Focus ring distinct from dragover fill (a11y) */
 .bridge-dropzone:focus-visible {
-  outline: 2px solid var(--phuglee-orange);
+  outline: 2px solid var(--phuglee-focus-ring, var(--phuglee-orange));
   outline-offset: 3px;
 }
 
-.bridge-dropzone.is-dragover,
-.bridge-dropzone.has-file {
-  box-shadow: 0 0 0 1px rgba(229, 132, 53, 0.4), 0 12px 32px rgba(229, 132, 53, 0.12);
+/* Dragover wins over has-file when both present during re-drop */
+.bridge-dropzone.is-dragover.has-file {
+  border-style: solid;
+  border-color: var(--phuglee-orange);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
+    color-mix(in srgb, var(--phuglee-orange) 12%, rgba(0, 0, 0, 0.32));
 }
 
 .bridge-dropzone-inner {
   padding: 2.25rem 1.5rem;
   text-align: center;
-  background: rgba(0, 0, 0, 0.42);
-  border: 1px dashed rgba(174, 163, 143, 0.28);
-  border-radius: calc(var(--radius-md) - 2px);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  background: transparent;
+  border: none;
+  border-radius: inherit;
+  transition: background 0.2s ease;
 }
 
 .bridge-dropzone.is-dragover .bridge-dropzone-inner {
-  border-color: var(--phuglee-orange);
-  background: rgba(229, 132, 53, 0.06);
+  background: color-mix(in srgb, var(--phuglee-orange) 4%, transparent);
 }
 
 .bridge-drop-title {
@@ -1061,6 +1085,12 @@ body {
   color: var(--phuglee-gold);
 }
 
+.bridge-browse-link:focus-visible {
+  outline: 2px solid var(--phuglee-focus-ring, var(--phuglee-orange));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 .bridge-drop-file {
   margin: 0.75rem 0 0;
   font-size: 0.85rem;
@@ -1071,6 +1101,23 @@ body {
   max-width: 28rem;
   margin-left: auto;
   margin-right: auto;
+}
+
+.bridge-dropzone.has-file .bridge-drop-file {
+  color: var(--phuglee-cream);
+}
+
+.bridge-dropzone.is-error .bridge-drop-title {
+  color: var(--status-danger-fg, var(--phuglee-danger));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bridge-dropzone,
+  .bridge-dropzone:hover,
+  .bridge-dropzone.is-dragover {
+    transition: none;
+    transform: none;
+  }
 }
 
 .bridge-actions--upload {
