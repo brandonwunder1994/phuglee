@@ -17,13 +17,13 @@
 - ✅ **v2.0 Filter Independence & Learning** — Phases 55–60 (shipped 2026-07-10) — [archive](./milestones/v2.0-ROADMAP.md)
 - ✅ **v2.1 Filter Scrub Theater** — Phases 61–68 (shipped 2026-07-11) — [archive](./milestones/v2.1-ROADMAP.md)
 - ✅ **v2.2 Filter Desk Cinema** — Phases 69–74 (shipped 2026-07-10) — [doc](./v2.2-FILTER-DESK-CINEMA.md)
-- 🚧 **v3.0 Filter Visual Makeover** — Phases 75–81 (in progress)
+- ✅ **v3.0 Filter Visual Makeover** — Phases 75–81 (shipped 2026-07-11) — ship bar 755 pass / 0 fail + verify-live
 
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 81 plan 1/2 complete (catalog + packaging); next 81-02 ship gate  
-**Next:** Execute 81-02 (suite ≥679 + verify-live + fill checklist)
+**Status:** Complete — Phase 81 ship gate green (755/0, verify-live, 390/1440 layout, freeze + catalog/parity)  
+**Next:** `/gsd:verify-work 81` then milestone archive
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -41,7 +41,7 @@
 - [x] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
 - [x] **Phase 79: Desk Core Restyle** — Restyle high-frequency chrome (hero, pipeline, scrub, tables, elevation)
 - [x] **Phase 80: Theater, Gates & Motion** — Full surface paint including kill/Train/victory; reduced-motion twins
-- [ ] **Phase 81: Visual QA Lock & Catalog** — 390/1440 QA, suite + verify-live, parity matrix + component catalog
+- [x] **Phase 81: Visual QA Lock & Catalog** — 390/1440 QA, suite + verify-live, parity matrix + component catalog
 
 ## Phase Details
 
@@ -159,7 +159,7 @@ Plans:
 
 Plans:
 - [x] 81-01-PLAN.md — Component catalog, parity matrix, 390/1440 checklist template, TEST-PLAN §Q
-- [ ] 81-02-PLAN.md — Suite ≥679 + verify-live + fill checklist / freeze / parity Pass
+- [x] 81-02-PLAN.md — Suite ≥679 + verify-live + fill checklist / freeze / parity Pass
 
 ## Progress
 
@@ -169,9 +169,9 @@ Plans:
 | 76. Tokens & Layer Audit | v3.0 | 2/2 | Complete | 2026-07-11 |
 | 77. Shared Components Expansion | v3.0 | 2/2 | Complete | 2026-07-11 |
 | 78. Cascade, Hooks & State CSS | v3.0 | 2/2 | Complete | 2026-07-11 |
-| 79. Desk Core Restyle | v3.0 | 1/2 | In Progress | - |
-| 80. Theater, Gates & Motion | v3.0 | 0/TBD | Not started | - |
-| 81. Visual QA Lock & Catalog | v3.0 | 1/2 | In Progress | - |
+| 79. Desk Core Restyle | v3.0 | 2/2 | Complete | 2026-07-11 |
+| 80. Theater, Gates & Motion | v3.0 | 2/2 | Complete | 2026-07-11 |
+| 81. Visual QA Lock & Catalog | v3.0 | 2/2 | Complete | 2026-07-11 |
 | 69–74 | v2.2 | 6/6 | Complete | 2026-07-10 |
 | 61–68 | v2.1 | 20/20 | Complete | 2026-07-11 |
 

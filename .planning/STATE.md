@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
-status: executing
-stopped_at: Completed 81-01-PLAN.md
-last_updated: "2026-07-11T20:39:20.464Z"
-last_activity: 2026-07-11 — Completed 81-01 catalog + parity + QA packaging
+status: complete
+stopped_at: Completed 81-02-PLAN.md
+last_updated: "2026-07-11T20:58:00.000Z"
+last_activity: 2026-07-11 — Completed 81-02 ship gate (755/0 + verify-live)
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 14
-  completed_plans: 13
-  percent: 93
+  completed_plans: 14
+  percent: 100
 ---
 
 # State
@@ -21,30 +21,30 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 81 (visual QA lock & catalog)
+**Current focus:** v3.0 Filter Visual Makeover — **COMPLETE** (phases 75–81)
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 81 of 81 (Visual QA Lock & Catalog)  
+**Phase:** 81 of 81 (Visual QA Lock & Catalog) — **COMPLETE**  
 **Plan:** 2 of 2  
-**Status:** Ready to execute  
-**Last activity:** 2026-07-11 — Completed 81-01 catalog + parity + QA checklist packaging  
+**Status:** Phase complete — ship gate green  
+**Last activity:** 2026-07-11 — Completed 81-02 ship gate (755 pass / 0 fail + verify-live + layout)
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13 (this milestone)
-- Average duration: 10min
-- Total execution time: 138min
+- Total plans completed: 14 (this milestone)
+- Average duration: 11min
+- Total execution time: 156min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 13 done | 14 | 10min |
+| 75–81 | 14 done | 14 | 11min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
@@ -58,6 +58,7 @@ Progress: [█████████░] 93%
 | Phase 80 P01 | 12min | 2 tasks | 2 files |
 | Phase 80 P02 | 14min | 2 tasks | 2 files |
 | Phase 81 P01 | 12min | 2 tasks | 4 files |
+| Phase 81 P02 | 18min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,9 @@ Progress: [█████████░] 93%
 - [Phase 80]: Train is-exiting under reduce: instant opacity/max-height so JS timers remove cards
 - [Phase 81]: Catalog from real CSS inventory only; dual-class chips documented as shipped
 - [Phase 81]: TEST-PLAN Visual Makeover bar is section Q (P remains DESK-05)
+- [Phase 81]: Harness dual-class fix only — no product HTML/CSS/JS for green suite
+- [Phase 81]: Layout evidence via JS-disabled Playwright scrollWidth (auth-safe) like Phase 68
+- [Phase 81]: Pass count 755 greater-or-equal 679 is the ship bar; higher count from 75-80 locks is OK
 
 ### Pending Todos
 None yet.
@@ -112,7 +116,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:39:20.455Z
-Stopped at: Completed 81-01-PLAN.md
+Last session: 2026-07-11T20:58:00.000Z
+Stopped at: Completed 81-02-PLAN.md
 Resume file: None
-Next: Phase 81 — Visual QA Lock & Catalog
+Next: `/gsd:verify-work 81` then v3.0 milestone archive / close
