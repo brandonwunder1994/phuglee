@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/bridge.css?v=45">
-  <link rel="stylesheet" href="/css/phuglee-components.css?v=glass3">
+  <link rel="stylesheet" href="/css/phuglee-components.css?v=glass4">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -219,14 +219,14 @@
     <section class="bridge-panel phuglee-panel bridge-panel--meta" id="bridge-type-panel" hidden aria-labelledby="bridge-step-type" data-phuglee-reveal-child>
       <h2 id="bridge-step-type" class="bridge-meta-heading"><span class="bridge-step-badge" aria-hidden="true">2</span> List type</h2>
       <!-- Phase 71: ops chips (same radio name/values) -->
-      <div class="bridge-type-chips" role="radiogroup" aria-label="Upload type">
-        <label class="bridge-type-chip">
+      <div class="bridge-type-chips phuglee-chip-group" role="radiogroup" aria-label="Upload type">
+        <label class="bridge-type-chip phuglee-chip">
           <input type="radio" name="bridge-upload-type" value="code_violation" checked />
-          <span class="bridge-type-chip-face">Code violation</span>
+          <span class="bridge-type-chip-face phuglee-chip-face">Code violation</span>
         </label>
-        <label class="bridge-type-chip">
+        <label class="bridge-type-chip phuglee-chip">
           <input type="radio" name="bridge-upload-type" value="water_shut_off" />
-          <span class="bridge-type-chip-face">Water shut-off</span>
+          <span class="bridge-type-chip-face phuglee-chip-face">Water shut-off</span>
         </label>
       </div>
     </section>
@@ -511,8 +511,8 @@
 
     <p class="bridge-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
 
-    <div class="bridge-error-wrap" id="bridge-error-wrap" hidden role="alert">
-      <p class="bridge-error" id="bridge-error"></p>
+    <div class="bridge-error-wrap phuglee-error-wrap" id="bridge-error-wrap" hidden role="alert">
+      <p class="bridge-error phuglee-error" id="bridge-error"></p>
       <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-retry" id="bridge-retry">Try again</button>
     </div>
   </main>

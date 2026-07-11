@@ -493,6 +493,124 @@
   box-shadow: var(--glass-shadow-float);
 }
 
+/* Desk-safe: no hover thrash for all-day ops sections */
+.phuglee-panel--static,
+.phuglee-panel.phuglee-panel--static {
+  transform: none;
+}
+
+.phuglee-panel--static:hover,
+.phuglee-panel.phuglee-panel--static:hover {
+  transform: none;
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Dense ops padding — same glass DNA, tighter chrome */
+.phuglee-panel--dense,
+.phuglee-panel.phuglee-panel--dense {
+  padding: var(--desk-pad-y, 0.85rem) var(--desk-pad-x, 1rem);
+}
+
+/* ── Chips — radio face selection (FORMS-02 / FORMS-03) ── */
+.phuglee-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.phuglee-chip {
+  position: relative;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Visually hidden radio — preserve semantics; do not restyle as checkbox */
+.phuglee-chip input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.phuglee-chip-face {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h, 2.5rem);
+  padding: var(--chip-pad-y, 0.4rem) var(--chip-pad-x, 0.75rem);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--phuglee-taupe-mid);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.06) 0%, transparent 45%),
+    var(--chip-bg, rgba(0, 0, 0, 0.28));
+  border: 1px solid var(--chip-border, rgba(174, 163, 143, 0.16));
+  border-radius: var(--radius-pill, 999px);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Hover — warmer, not full selected energy */
+.phuglee-chip:hover .phuglee-chip-face {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.4);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 14px rgba(229, 132, 53, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Selected — auth-tab gold→orange→terracotta energy */
+.phuglee-chip input:checked + .phuglee-chip-face {
+  color: var(--phuglee-black);
+  background: linear-gradient(
+    135deg,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-orange) 55%,
+    var(--phuglee-terracotta) 100%
+  );
+  border-color: rgba(238, 183, 70, 0.35);
+  box-shadow: 0 2px 12px rgba(229, 132, 53, 0.28);
+  transform: none;
+}
+
+.phuglee-chip input:focus-visible + .phuglee-chip-face {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.24),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-chip input:checked:focus-visible + .phuglee-chip-face {
+  box-shadow:
+    0 2px 12px rgba(229, 132, 53, 0.28),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phuglee-chip-face {
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease !important;
+  }
+
+  .phuglee-chip:hover .phuglee-chip-face {
+    transform: none !important;
+  }
+}
+
 /* ── Inputs ── */
 .phuglee-input,
 .phuglee-textarea,
@@ -598,6 +716,16 @@
   overflow: hidden;
 }
 
+.phuglee-empty-state--compact {
+  padding: 1.25rem 1rem;
+}
+
+.phuglee-empty-state--compact::before {
+  width: min(120px, 36vw);
+  height: min(120px, 36vw);
+  opacity: 0.06;
+}
+
 .phuglee-empty-state::before {
   content: '';
   position: absolute;
@@ -629,6 +757,12 @@
   margin-bottom: 0.65rem;
 }
 
+.phuglee-empty-state--compact h2,
+.phuglee-empty-state--compact .phuglee-empty-title {
+  font-size: clamp(1.1rem, 3vw, 1.35rem);
+  margin-bottom: 0.4rem;
+}
+
 .phuglee-empty-state p,
 .phuglee-empty-state .phuglee-empty-lead {
   color: var(--phuglee-stone);
@@ -638,25 +772,72 @@
   margin: 0 auto 1.25rem;
 }
 
+.phuglee-empty-state--compact p,
+.phuglee-empty-state--compact .phuglee-empty-lead {
+  font-size: 0.88rem;
+  margin-bottom: 0.85rem;
+}
+
 .phuglee-empty {
   text-align: center;
   padding: 2.5rem 1.5rem;
   color: var(--phuglee-stone);
 }
 
-.phuglee-error-wrap {
+/* Status wraps — semantic tokens only (STATES-03) */
+.phuglee-error-wrap,
+.phuglee-success-wrap,
+.phuglee-status {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.75rem;
   padding: 1rem 1.15rem;
-  background: rgba(172, 107, 50, 0.1);
-  border: 1px solid rgba(172, 107, 50, 0.35);
   border-radius: var(--radius-md);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.phuglee-error-wrap[hidden] {
+.phuglee-error-wrap {
+  background: var(--status-danger-bg, rgba(248, 113, 113, 0.12));
+  border: 1px solid color-mix(in srgb, var(--phuglee-danger) 35%, transparent);
+}
+
+.phuglee-success-wrap {
+  background: var(--status-success-bg, rgba(61, 214, 140, 0.12));
+  border: 1px solid color-mix(in srgb, var(--phuglee-success) 35%, transparent);
+}
+
+.phuglee-status {
+  gap: 0.35rem;
+  padding: 0.7rem 0.95rem;
+  font-size: var(--text-body-sm);
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--chip-border, rgba(174, 163, 143, 0.16));
+  color: var(--phuglee-taupe-mid);
+}
+
+.phuglee-status--error {
+  color: var(--phuglee-danger);
+  background: var(--status-danger-bg, rgba(248, 113, 113, 0.12));
+  border-color: color-mix(in srgb, var(--phuglee-danger) 35%, transparent);
+}
+
+.phuglee-status--success {
+  color: var(--phuglee-success);
+  background: var(--status-success-bg, rgba(61, 214, 140, 0.12));
+  border-color: color-mix(in srgb, var(--phuglee-success) 35%, transparent);
+}
+
+.phuglee-status--warn {
+  color: var(--phuglee-warn);
+  background: rgba(238, 183, 70, 0.12);
+  border-color: color-mix(in srgb, var(--phuglee-warn) 35%, transparent);
+}
+
+.phuglee-error-wrap[hidden],
+.phuglee-success-wrap[hidden],
+.phuglee-status[hidden] {
   display: none;
 }
 
@@ -665,6 +846,13 @@
   font-size: var(--text-body-sm);
   line-height: 1.5;
   color: var(--phuglee-danger);
+}
+
+.phuglee-success {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  line-height: 1.5;
+  color: var(--phuglee-success);
 }
 
 .phuglee-error-retry {
