@@ -72,7 +72,7 @@ Each task was committed atomically:
 1. **Task 1: Write DESK-05 contract freeze checklist** - `c146431` (docs)
 2. **Task 2: Greppable DESK-05 freeze test + TEST-PLAN pointer** - `d7759a5` (test)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `4db0a81` + `9736545` (docs: complete plan + ROADMAP)
 
 ## Files Created/Modified
 
