@@ -36,8 +36,8 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 
 ### Kill-rate scrub report (KILL)
 
-- [ ] **KILL-01**: After process, results open with a **kill-rate scrub report**: display-scale RAW → KILLED → KEPT hierarchy, kill-reason breakdown, and optional sample kept dossiers — not only equal KPI tiles
-- [ ] **KILL-02**: Process meta already computed (duration, format reuse, discard story) surfaces as **proof chips/HUD**, not a single buried meta sentence
+- [x] **KILL-01**: After process, results open with a **kill-rate scrub report**: display-scale RAW → KILLED → KEPT hierarchy, kill-reason breakdown, and optional sample kept dossiers — not only equal KPI tiles
+- [x] **KILL-02**: Process meta already computed (duration, format reuse, discard story) surfaces as **proof chips/HUD**, not a single buried meta sentence
 - [ ] **KILL-03**: Primary post-scrub CTA for operators remains **Save list / Stage** (Analyze boundary preserved); Preview CSV stays secondary
 
 ### Superpower Train theater (THTR)
@@ -119,8 +119,8 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | IDLE-02 | 63 | Complete |
 | FEED-01 | 64 | Complete |
 | FEED-02 | 64 | Complete |
-| KILL-01 | 65 | Pending |
-| KILL-02 | 65 | Pending |
+| KILL-01 | 65 | Complete |
+| KILL-02 | 65 | Complete |
 | KILL-03 | 65 | Pending |
 | THTR-01 | 66 | Pending |
 | THTR-02 | 66 | Pending |

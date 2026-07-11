@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: Completed 65-01-PLAN.md
-last_updated: "2026-07-11T00:17:30.000Z"
-last_activity: 2026-07-11 — 65-01 Wave 0 KILL contracts suite shipped
+stopped_at: Completed 65-02-PLAN.md
+last_updated: "2026-07-11T00:17:31.011Z"
+last_activity: 2026-07-11
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 20
-  completed_plans: 10
-  percent: 50
+  completed_plans: 11
+  percent: 55
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 65 Kill-Rate Scrub Report (plan 01 complete)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 65 Kill-Rate Scrub Report (plan 02 complete)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 65 — Kill-Rate Scrub Report  
-**Current Plan:** 2 of 3  
+**Current Plan:** 3 of 3  
 **Total Plans in Phase:** 3  
-**Status:** In progress  
-**Last activity:** 2026-07-11 — 65-01 Wave 0 KILL contracts suite shipped
+**Status:** Ready to execute  
+**Last activity:** 2026-07-11 — 65-02 kill-rate HUD shipped
 
-Progress: [█████░░░░░] 50% (10/20 plans executed)
+Progress: [██████░░░░] 55% (11/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -43,7 +43,7 @@ Progress: [█████░░░░░] 50% (10/20 plans executed)
 | 62 | City Dossier | 2 (2 done) | PASS |
 | 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
-| 65 | Kill-Rate Scrub Report | 3 (1 done) | PASS |
+| 65 | Kill-Rate Scrub Report | 3 (2 done) | PASS |
 | 66 | Superpower Train Theater | 3 | PASS |
 | 67 | Multi-City Shift & Staging | 3 | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
@@ -87,6 +87,10 @@ Progress: [█████░░░░░] 50% (10/20 plans executed)
 - [65] Wave 0 only — no production edits; RED hierarchy/proof prove Plan 02 gate is real
 - [65] Stage language already green from existing Stage the list heading — keep asserting
 - [65] discardReasons already referenced in renderKpis — keep as green lock so Plan 02 cannot drop it
+- [65] RAW−KEPT invariant for killed; fallback only when totalParsed missing
+- [65] Helper buildKillReasons so Wave 0 scan finds discardReasons
+- [65] Stub note hidden on normal process — kill report owns proof
+- [65] KEPT gold/orange survivor heat; no SaaS green success island
 
 ## Performance Metrics
 
@@ -102,6 +106,7 @@ Progress: [█████░░░░░] 50% (10/20 plans executed)
 | 64 | 01 | 2min | 2 | 2 |
 | 64 | 02 | 2min | 3 | 4 |
 | 65 | 01 | 4min | 1 | 1 |
+| 65 | 02 | 2min | 2 | 3 |
 
 ## Next command
 
@@ -109,9 +114,9 @@ Progress: [█████░░░░░] 50% (10/20 plans executed)
 /gsd:execute-phase 65
 ```
 
-(Continue Phase 65 — next plan 65-02 kill-rate HUD)
+(Continue Phase 65 — next plan 65-03 Stage CTA / suite + verify-live)
 
 ## Session
 
-**Last session:** 2026-07-11T00:17:30.000Z
-**Stopped at:** Completed 65-01-PLAN.md
+**Last session:** 2026-07-11T00:17:31.001Z
+**Stopped at:** Completed 65-02-PLAN.md
