@@ -72,6 +72,11 @@
   const downloadAllCsvBtn = document.getElementById('bridge-download-all-csv');
   const downloadAllXlsxBtn = document.getElementById('bridge-download-all-xlsx');
   const clearAllListsBtn = document.getElementById('bridge-clear-all-lists');
+  const deleteSelectedListsBtn = document.getElementById('bridge-delete-selected-lists');
+  /** Inventory type filter: '' | 'violation' | 'water' */
+  let inventoryTypeFilter = '';
+  /** Selected list ids for bulk delete (visible rows only) */
+  const inventorySelectedIds = new Set();
   const attachPanel = document.getElementById('bridge-attach-panel');
   const responseDateInput = document.getElementById('bridge-response-date');
   const attachBtn = document.getElementById('bridge-attach');
@@ -2232,7 +2237,7 @@
     }
   }
 
-  /** IDLE-01 + Phase 70: derive mission-board metrics from savedLists (no extra fetch). */
+  /** Inventory metrics from savedLists (victory strip / summary — no Shift board UI). */
   function computeIdleProof(lists) {
     const rows = Array.isArray(lists) ? lists : [];
     const listCount = rows.length;
@@ -2246,38 +2251,9 @@
     return { listCount, recordTotal, lastSaveAt, cityCount: cityKeys.size };
   }
 
-  /** IDLE-01 + Phase 70: mission board under hero from computeIdleProof(savedLists). */
+  /** Shift board removed — no-op kept so older call sites stay harmless. */
   function renderIdleProof() {
-    const lineEl = document.getElementById('bridge-idle-proof-line');
-    const facets = document.getElementById('bridge-mission-facets');
-    const listsEl = document.getElementById('bridge-mission-lists');
-    const recordsEl = document.getElementById('bridge-mission-records');
-    const citiesEl = document.getElementById('bridge-mission-cities');
-    const lastEl = document.getElementById('bridge-mission-last');
-    if (!lineEl) return;
-    const { listCount, recordTotal, lastSaveAt, cityCount } = computeIdleProof(savedLists);
-    if (listCount === 0) {
-      lineEl.textContent = '0 lists staged · Drop a clerk file when ready';
-      if (facets) setHidden(facets, true);
-      if (listsEl) listsEl.textContent = '0';
-      if (recordsEl) recordsEl.textContent = '0';
-      if (citiesEl) citiesEl.textContent = '0';
-      if (lastEl) lastEl.textContent = '—';
-      return;
-    }
-    const listsLabel = listCount === 1 ? 'list' : 'lists';
-    const recordsLabel = recordTotal === 1 ? 'record' : 'records';
-    const citiesLabel = cityCount === 1 ? 'city' : 'cities';
-    lineEl.textContent =
-      `${listCount.toLocaleString()} ${listsLabel} staged · ` +
-      `${recordTotal.toLocaleString()} ${recordsLabel} ready · ` +
-      `${cityCount.toLocaleString()} ${citiesLabel} in inventory · ` +
-      `Last save ${formatListWhen(lastSaveAt)}`;
-    if (listsEl) listsEl.textContent = listCount.toLocaleString();
-    if (recordsEl) recordsEl.textContent = recordTotal.toLocaleString();
-    if (citiesEl) citiesEl.textContent = cityCount.toLocaleString();
-    if (lastEl) lastEl.textContent = formatListWhen(lastSaveAt);
-    if (facets) setHidden(facets, false);
+    /* intentionally empty: Shift board UI deleted */
   }
 
   /** Phase 73: hide war-room victory strip. */
@@ -2511,9 +2487,69 @@
     setHidden(root, false);
   }
 
+  function listKindKey(uploadType) {
+    return listUploadTypeBadge(uploadType).kind === 'water' ? 'water' : 'violation';
+  }
+
+  /** Lists matching inventory type filter (or all when filter empty). */
+  function getVisibleSavedLists() {
+    const rows = Array.isArray(savedLists) ? savedLists : [];
+    if (!inventoryTypeFilter) return rows.slice();
+    return rows.filter((list) => listKindKey(list.uploadType) === inventoryTypeFilter);
+  }
+
+  function setInventoryTypeFilter(next) {
+    const v = next === 'water' || next === 'violation' ? next : '';
+    // Toggle off if clicking the active filter again
+    inventoryTypeFilter = inventoryTypeFilter === v ? '' : v;
+    inventorySelectedIds.clear();
+    renderSavedLists();
+  }
+
+  function syncInventoryToolbarLabels() {
+    const visible = getVisibleSavedLists();
+    const filtered = Boolean(inventoryTypeFilter);
+    const n = visible.length;
+    if (downloadAllCsvBtn) {
+      downloadAllCsvBtn.textContent = filtered
+        ? `Download filtered (CSV)`
+        : 'Download all (CSV)';
+      downloadAllCsvBtn.disabled = n === 0;
+    }
+    if (downloadAllXlsxBtn) {
+      downloadAllXlsxBtn.textContent = filtered
+        ? `Download filtered (XLSX)`
+        : 'Download all (XLSX)';
+      downloadAllXlsxBtn.disabled = n === 0;
+    }
+    if (clearAllListsBtn) {
+      clearAllListsBtn.textContent = filtered
+        ? `Delete filtered (${n})`
+        : 'Clear all lists';
+      clearAllListsBtn.disabled = n === 0 && !filtered ? !savedLists.length : n === 0;
+    }
+    if (deleteSelectedListsBtn) {
+      const sel = inventorySelectedIds.size;
+      setHidden(deleteSelectedListsBtn, sel === 0);
+      deleteSelectedListsBtn.textContent =
+        sel > 0 ? `Delete selected (${sel})` : 'Delete selected';
+    }
+    const selectAll = document.getElementById('bridge-lists-select-all');
+    if (selectAll) {
+      const visibleIds = visible.map((l) => l.id).filter(Boolean);
+      const allSelected =
+        visibleIds.length > 0 &&
+        visibleIds.every((id) => inventorySelectedIds.has(String(id)));
+      selectAll.checked = allSelected;
+      selectAll.indeterminate =
+        !allSelected &&
+        visibleIds.some((id) => inventorySelectedIds.has(String(id)));
+    }
+  }
+
   /**
-   * SHIFT-02: staging inventory HUD above the lists table.
-   * Metrics derive only from client savedLists summaries (no decorative numbers).
+   * SHIFT-02: staging inventory HUD — clickable CV / Water filters.
+   * Metrics from full inventory; filter chips toggle list table.
    */
   function renderInventoryHud(lists) {
     const hud = document.getElementById('bridge-inventory-hud');
@@ -2552,6 +2588,9 @@
     const citiesTouched = cityKeys.size;
     const listsLabel = listsStaged === 1 ? 'list' : 'lists';
     const recordsLabel = recordsStaged === 1 ? 'record' : 'records';
+    const cvActive = inventoryTypeFilter === 'violation' ? ' is-active' : '';
+    const waterActive = inventoryTypeFilter === 'water' ? ' is-active' : '';
+    const allActive = !inventoryTypeFilter ? ' is-active' : '';
 
     hud.innerHTML =
       `<div class="bridge-inventory-hud-tiles">` +
@@ -2572,13 +2611,16 @@
       `<span class="bridge-inventory-tile-label">Downloaded</span>` +
       `</span>` +
       `</div>` +
-      `<div class="bridge-inventory-hud-heat">` +
-      `<span class="bridge-inventory-heat-chip bridge-list-type--violation" title="Code violation lists">` +
+      `<div class="bridge-inventory-hud-heat" role="group" aria-label="Filter by list type">` +
+      `<button type="button" class="bridge-inventory-heat-chip bridge-inventory-filter-chip${allActive}" data-inventory-filter="" title="Show all lists">` +
+      `All` +
+      `</button>` +
+      `<button type="button" class="bridge-inventory-heat-chip bridge-list-type--violation bridge-inventory-filter-chip${cvActive}" data-inventory-filter="violation" title="Show code violation lists only">` +
       `<span aria-hidden="true">⚠️</span> ${cvCount.toLocaleString()} CV` +
-      `</span>` +
-      `<span class="bridge-inventory-heat-chip bridge-list-type--water" title="Water shut-off lists">` +
+      `</button>` +
+      `<button type="button" class="bridge-inventory-heat-chip bridge-list-type--water bridge-inventory-filter-chip${waterActive}" data-inventory-filter="water" title="Show water shut-off lists only">` +
       `<span aria-hidden="true">💧</span> ${waterCount.toLocaleString()} Water` +
-      `</span>` +
+      `</button>` +
       `<span class="bridge-inventory-heat-chip bridge-inventory-heat-chip--cities">` +
       `Cities: ${citiesTouched.toLocaleString()}` +
       `</span>` +
@@ -2589,7 +2631,15 @@
   function renderSavedLists() {
     const listsTotalEl = document.getElementById('bridge-lists-total');
     if (!listsBody) return;
+    // Drop selection for lists that no longer exist
+    const allIds = new Set((savedLists || []).map((l) => String(l.id)));
+    for (const id of [...inventorySelectedIds]) {
+      if (!allIds.has(String(id))) inventorySelectedIds.delete(id);
+    }
+
     if (!savedLists.length) {
+      inventoryTypeFilter = '';
+      inventorySelectedIds.clear();
       setHidden(listsEmpty, false);
       setHidden(listsWrap, true);
       setHidden(listsToolbar, true);
@@ -2598,24 +2648,44 @@
         listsTotalEl.textContent = '';
         setHidden(listsTotalEl, true);
       }
-      renderInventoryHud(savedLists); // SHIFT-02: hide HUD when empty
+      renderInventoryHud(savedLists);
       refreshDossierListsFacet();
-      renderIdleProof(); // IDLE-01: honest zeros on empty inventory
+      renderIdleProof();
+      updateListsDetailsSummary(savedLists);
+      syncInventoryToolbarLabels();
       return;
     }
-    setHidden(listsEmpty, true);
-    setHidden(listsWrap, false);
+
+    const visible = getVisibleSavedLists();
+    if (listsEmpty) {
+      if (visible.length === 0 && inventoryTypeFilter) {
+        listsEmpty.textContent =
+          inventoryTypeFilter === 'water'
+            ? 'No water shut-off lists in inventory. Click Water again or All to clear the filter.'
+            : 'No code violation lists in inventory. Click CV again or All to clear the filter.';
+      } else {
+        listsEmpty.textContent =
+          'No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace. Lists stay until you delete them.';
+      }
+    }
+    setHidden(listsEmpty, visible.length > 0);
+    setHidden(listsWrap, visible.length === 0);
     setHidden(listsToolbar, false);
-    listsBody.innerHTML = savedLists.map((list) => {
+    listsBody.innerHTML = visible.map((list) => {
       const cityLabel = [list.city, list.state].filter(Boolean).join(', ') || '—';
       const kind = listUploadTypeBadge(list.uploadType);
+      const id = String(list.id || '');
+      const checked = inventorySelectedIds.has(id) ? ' checked' : '';
       return (
-        `<tr data-list-id="${esc(list.id)}" data-upload-type="${esc(list.uploadType || kind.kind)}">` +
+        `<tr data-list-id="${esc(list.id)}" data-upload-type="${esc(list.uploadType || kind.kind)}" data-list-kind="${esc(kind.kind)}">` +
+        `<td class="bridge-list-check-col">` +
+        `<input type="checkbox" class="bridge-list-select" data-action="select" data-list-id="${esc(id)}" aria-label="Select list"${checked} />` +
+        `</td>` +
         `<td class="bridge-list-type-cell">` +
-        `<span class="bridge-list-type bridge-list-type--${esc(kind.kind)}" title="${esc(kind.title)}" aria-label="${esc(kind.title)}">` +
+        `<button type="button" class="bridge-list-type bridge-list-type--${esc(kind.kind)} bridge-list-type-filter-btn" data-inventory-filter="${esc(kind.kind)}" title="Filter to ${esc(kind.title)}">` +
         `<span class="bridge-list-type-emoji" aria-hidden="true">${kind.emoji}</span>` +
         `<span class="bridge-list-type-text">${esc(kind.label)}</span>` +
-        `</span></td>` +
+        `</button></td>` +
         `<td><input type="text" class="bridge-list-name-input" data-action="rename" value="${esc(list.name)}" maxlength="120" aria-label="List name" /></td>` +
         `<td>${esc(formatListWhen(list.createdAt))}</td>` +
         `<td>${Number(list.recordCount || 0).toLocaleString()}</td>` +
@@ -2629,22 +2699,56 @@
         `</tr>`
       );
     }).join('');
-    // Combined record count across all staged lists
-    const totalRecords = savedLists.reduce(
+
+    const totalRecords = visible.reduce(
       (sum, row) => sum + (Number(row.recordCount) || 0),
       0
     );
-    const listCount = savedLists.length;
+    const listCount = visible.length;
+    const allCount = savedLists.length;
     if (listsTotalEl) {
+      const filterNote = inventoryTypeFilter
+        ? ` · filtered ${inventoryTypeFilter === 'water' ? 'Water' : 'CV'} (${listCount} of ${allCount})`
+        : '';
       listsTotalEl.textContent =
         `Total: ${totalRecords.toLocaleString()} record${totalRecords === 1 ? '' : 's'}` +
-        ` across ${listCount.toLocaleString()} list${listCount === 1 ? '' : 's'}`;
+        ` across ${listCount.toLocaleString()} list${listCount === 1 ? '' : 's'}` +
+        filterNote;
       setHidden(listsTotalEl, false);
     }
-    renderInventoryHud(savedLists); // SHIFT-02: counts + type heat above table
-    // CITY-01: refresh dossier staged-lists facet when inventory changes
+    renderInventoryHud(savedLists);
     refreshDossierListsFacet();
-    renderIdleProof(); // IDLE-01: live lists staged · records ready · last save
+    renderIdleProof();
+    updateListsDetailsSummary(savedLists);
+    syncInventoryToolbarLabels();
+  }
+
+  /** Collapsed inventory summary label (list count) — body stays closed until user expands. */
+  function updateListsDetailsSummary(lists) {
+    const countEl = document.getElementById('bridge-lists-details-count');
+    const hintEl = document.getElementById('bridge-lists-details-hint');
+    if (!countEl) return;
+    const n = Array.isArray(lists) ? lists.length : 0;
+    const totalRecords = Array.isArray(lists)
+      ? lists.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0)
+      : 0;
+    countEl.textContent =
+      n === 0
+        ? '0 lists'
+        : `${n.toLocaleString()} list${n === 1 ? '' : 's'}` +
+          (totalRecords
+            ? ` · ${totalRecords.toLocaleString()} rec`
+            : '');
+    if (hintEl) {
+      hintEl.textContent =
+        n === 0 ? 'Expand when you have lists' : 'Expand to download or manage';
+    }
+  }
+
+  /** Open staging inventory drawer (scrap link / hash). */
+  function openListsDetails() {
+    const details = document.getElementById('bridge-lists-details');
+    if (details) details.open = true;
   }
 
   async function loadSavedLists() {
@@ -2660,11 +2764,27 @@
   }
 
   /**
-   * After Save list: full fresh-filter reset so the next city cannot inherit
-   * the previous session's city, type, file, response time, results, or Train state.
-   * Saved lists + optional flash download stay; never auto-downloads.
+   * After Stage list: full fresh-filter reset so the next city cannot inherit
+   * prior city/type/file/results/Train state. Phase 73: war-room victory strip
+   * stays visible (not only a fading flash). Never auto-downloads.
    */
-  function resetImportAreaAfterSave(savedLabel, savedListId) {
+  function resetImportAreaAfterSave(savedLabel, savedListId, victoryMeta) {
+    const keptFromResult = Array.isArray(lastResult?.rows) ? lastResult.rows.length : 0;
+    const cityName =
+      (victoryMeta && victoryMeta.cityName) ||
+      lastResult?.city?.city ||
+      selectedCity?.city ||
+      '';
+    const state =
+      (victoryMeta && victoryMeta.state) ||
+      lastResult?.city?.state ||
+      selectedCity?.state ||
+      '';
+    const keptCount =
+      (victoryMeta && victoryMeta.keptCount != null)
+        ? victoryMeta.keptCount
+        : keptFromResult;
+
     // --- Working set & train session ---
     lastResult = null;
     selectedCity = null;
@@ -2686,7 +2806,6 @@
     document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
       input.checked = false;
     });
-    // Clear city pick; keep state + city dropdown options so next TX city is one click
     if (citySelect && !citySelect.disabled) {
       citySelect.value = '';
     }
@@ -2727,7 +2846,6 @@
     if (trainN) trainN.innerHTML = '';
     setTrainStatus('', '');
     updateTrainUndoButton();
-    // Mode tabs back to default kept (results panel is hidden)
     const modeKept = document.getElementById('bridge-mode-kept');
     const modeTrain = document.getElementById('bridge-mode-train');
     const modeBrain = document.getElementById('bridge-mode-brain');
@@ -2747,7 +2865,7 @@
     setPipelineStep('location');
     showError('');
 
-    // Soft status on save panel is cleared; toast on Saved lists (download is click-only)
+    // Secondary flash on staging inventory
     const listsPanel = document.getElementById('bridge-lists-panel');
     if (listsPanel) {
       let flash = document.getElementById('bridge-lists-flash');
@@ -2760,7 +2878,6 @@
         if (lead) lead.insertAdjacentElement('afterend', flash);
         else listsPanel.prepend(flash);
       }
-      // DOM build (not raw HTML) so list names stay escaped via text nodes
       flash.textContent = '';
       const teaching = document.createElement('span');
       teaching.className = 'bridge-lists-flash-text';
@@ -2768,8 +2885,6 @@
         ? `Staged “${savedLabel}”. Filter reset — pick the next city, or download from Saved lists for enrichment.`
         : 'List staged. Filter reset — pick the next city, or download from Saved lists for enrichment.';
       flash.appendChild(teaching);
-      // One-click CSV for the just-saved list only — never auto-download.
-      // Wire via data-action; click handled outside this function (EFF-02).
       if (savedListId) {
         const dlBtn = document.createElement('button');
         dlBtn.type = 'button';
@@ -2785,9 +2900,17 @@
       window.setTimeout(() => {
         if (flash) flash.hidden = true;
       }, 10000);
-      listsPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-    // Focus location step so the next city is obvious
+
+    // Phase 73: hero victory (stays until next scrub / Scrub next city)
+    showVictoryStrip({
+      label: savedLabel,
+      listId: savedListId,
+      keptCount,
+      cityName,
+      state
+    });
+
     try {
       citySelect?.focus();
     } catch (_) { /* ignore */ }
@@ -2835,28 +2958,28 @@
       });
       const savedName = data.list?.name || name;
       const savedId = data.list?.id || '';
-      // SHIFT-01: capture city/type/records BEFORE reset clears lastResult
+      // SHIFT-01 + Phase 73: capture city/type/records BEFORE reset clears lastResult
+      const city =
+        data.list?.city ||
+        lastResult?.city?.city ||
+        selectedCity?.city ||
+        '';
+      const state =
+        data.list?.state ||
+        lastResult?.city?.state ||
+        selectedCity?.state ||
+        '';
+      const uploadType =
+        data.list?.uploadType ||
+        lastResult?.uploadType ||
+        selectedUploadType ||
+        '';
+      const recordCount =
+        Number(data.list?.recordCount) ||
+        (Array.isArray(lastResult?.rows) ? lastResult.rows.length : 0) ||
+        Number(lastResult?.stats?.kept) ||
+        0;
       if (savedId) {
-        const city =
-          data.list?.city ||
-          lastResult?.city?.city ||
-          selectedCity?.city ||
-          '';
-        const state =
-          data.list?.state ||
-          lastResult?.city?.state ||
-          selectedCity?.state ||
-          '';
-        const uploadType =
-          data.list?.uploadType ||
-          lastResult?.uploadType ||
-          selectedUploadType ||
-          '';
-        const recordCount =
-          Number(data.list?.recordCount) ||
-          (Array.isArray(lastResult?.rows) ? lastResult.rows.length : 0) ||
-          Number(lastResult?.stats?.kept) ||
-          0;
         pushShiftQueueEntry({
           listId: savedId,
           name: savedName,
@@ -2869,7 +2992,11 @@
         renderShiftQueue();
       }
       await loadSavedLists();
-      resetImportAreaAfterSave(savedName, savedId);
+      resetImportAreaAfterSave(savedName, savedId, {
+        cityName: city,
+        state,
+        keptCount: recordCount
+      });
     } catch (err) {
       setSaveStatus(err.message || 'Could not save list.', 'error');
     } finally {
@@ -2878,13 +3005,24 @@
   }
 
   async function downloadAllSavedLists(format) {
-    if (!savedLists.length) {
-      showError('No saved lists to download yet.');
+    const visible = getVisibleSavedLists();
+    if (!visible.length) {
+      showError(
+        inventoryTypeFilter
+          ? 'No lists match the current filter.'
+          : 'No saved lists to download yet.'
+      );
       return;
     }
     const fmt = format === 'xlsx' ? 'xlsx' : 'csv';
+    const ids = visible.map((l) => l.id).filter(Boolean);
+    // When filtered (or always pass ids of visible) so bulk download matches the table
+    const qs = new URLSearchParams({ format: fmt });
+    if (inventoryTypeFilter || ids.length < savedLists.length) {
+      qs.set('ids', ids.join(','));
+    }
     try {
-      const res = await fetch(`/api/bridge/lists/download-all?format=${fmt}`, {
+      const res = await fetch(`/api/bridge/lists/download-all?${qs.toString()}`, {
         cache: 'no-store',
         headers: bridgeHeaders()
       });
@@ -2904,11 +3042,34 @@
       URL.revokeObjectURL(objectUrl);
       await loadSavedLists();
     } catch (err) {
-      showError(err.message || 'Could not download all lists.');
+      showError(err.message || 'Could not download lists.');
     }
   }
 
   async function clearAllSavedLists() {
+    // Filtered view → delete only visible (filtered) lists; else clear entire inventory
+    if (inventoryTypeFilter) {
+      const visible = getVisibleSavedLists();
+      if (!visible.length) return;
+      const count = visible.length;
+      const total = visible.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0);
+      const label = inventoryTypeFilter === 'water' ? 'water shut-off' : 'code violation';
+      if (!window.confirm(
+        `Delete ${count} filtered ${label} list(s) (${total.toLocaleString()} records)?\n\nThis cannot be undone.`
+      )) return;
+      try {
+        await fetchJson('/api/bridge/lists/delete-many', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: visible.map((l) => l.id) })
+        });
+        inventorySelectedIds.clear();
+        await loadSavedLists();
+      } catch (err) {
+        showError(err.message || 'Could not delete filtered lists.');
+      }
+      return;
+    }
     if (!savedLists.length) return;
     const count = savedLists.length;
     const total = savedLists.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0);
@@ -2917,6 +3078,7 @@
     )) return;
     try {
       await fetchJson('/api/bridge/lists', { method: 'DELETE' });
+      inventorySelectedIds.clear();
       await loadSavedLists();
       const flash = document.getElementById('bridge-lists-flash');
       if (flash) {
@@ -2926,6 +3088,27 @@
       }
     } catch (err) {
       showError(err.message || 'Could not clear saved lists.');
+    }
+  }
+
+  async function deleteSelectedSavedLists() {
+    const ids = [...inventorySelectedIds];
+    if (!ids.length) return;
+    const rows = savedLists.filter((l) => ids.includes(String(l.id)));
+    const total = rows.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0);
+    if (!window.confirm(
+      `Delete ${ids.length} selected list(s) (${total.toLocaleString()} records)?\n\nThis cannot be undone.`
+    )) return;
+    try {
+      await fetchJson('/api/bridge/lists/delete-many', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids })
+      });
+      inventorySelectedIds.clear();
+      await loadSavedLists();
+    } catch (err) {
+      showError(err.message || 'Could not delete selected lists.');
     }
   }
 
@@ -3179,6 +3362,7 @@
   function renderResults(data) {
     lastResult = data;
     tableState.page = 1;
+    hideVictoryStrip();
     const stats = data.stats || {};
     const rows = data.rows || [];
     const uploadLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
@@ -3211,6 +3395,14 @@
     setHidden(paginationEl, !showTable);
     setHidden(savePanel, !showTable);
     setHidden(attachPanel, !showTable);
+    // Phase 72: kept table summary label
+    const detailsSummary = document.getElementById('bridge-results-details-summary');
+    if (detailsSummary) {
+      const n = rows.length;
+      detailsSummary.textContent = showTable
+        ? `Kept table · ${n.toLocaleString()} row${n === 1 ? '' : 's'}`
+        : 'Kept table';
+    }
 
     if (showTable) {
       populateTagFilter(rows);
@@ -3989,13 +4181,39 @@
   clearAllListsBtn?.addEventListener('click', () => {
     clearAllSavedLists().catch((e) => showError(e.message));
   });
-  // Post-save flash + SHIFT-01 session strip clear (explicit click only)
+  deleteSelectedListsBtn?.addEventListener('click', () => {
+    deleteSelectedSavedLists().catch((e) => showError(e.message));
+  });
+  document.getElementById('bridge-lists-select-all')?.addEventListener('change', (event) => {
+    const on = Boolean(event.target.checked);
+    for (const list of getVisibleSavedLists()) {
+      const id = String(list.id || '');
+      if (!id) continue;
+      if (on) inventorySelectedIds.add(id);
+      else inventorySelectedIds.delete(id);
+    }
+    renderSavedLists();
+  });
+  // Desk scrap / hash → expand collapsed inventory
+  document.querySelector('a[href="#bridge-lists-panel"]')?.addEventListener('click', () => {
+    openListsDetails();
+  });
+  if (typeof location !== 'undefined' && location.hash === '#bridge-lists-panel') {
+    openListsDetails();
+  }
+
+  // Inventory type filters + post-save flash
   document.getElementById('bridge-lists-panel')?.addEventListener('click', (event) => {
-    // SHIFT-01: session-only clear — never DELETE /api/bridge/lists
-    const clearShift = event.target.closest('#bridge-shift-queue-clear');
-    if (clearShift) {
+    const filterBtn = event.target.closest('[data-inventory-filter]');
+    if (filterBtn) {
       event.preventDefault();
-      clearShiftQueue();
+      const raw = filterBtn.getAttribute('data-inventory-filter');
+      if (raw === 'violation' || raw === 'water') setInventoryTypeFilter(raw);
+      else {
+        inventoryTypeFilter = '';
+        inventorySelectedIds.clear();
+        renderSavedLists();
+      }
       return;
     }
     const flashBtn = event.target.closest('#bridge-flash-download-csv, [data-action="flash-download"]');
@@ -4005,10 +4223,26 @@
     event.preventDefault();
     downloadSavedList(listId, flashBtn.dataset.format || 'csv').catch((e) => showError(e.message));
   });
+  // Phase 73: war-room victory strip actions
+  document.getElementById('bridge-victory-download')?.addEventListener('click', (event) => {
+    const btn = event.currentTarget;
+    const listId = btn?.dataset?.listId;
+    if (!listId) return;
+    event.preventDefault();
+    downloadSavedList(listId, btn.dataset.format || 'csv').catch((e) => showError(e.message));
+  });
+  document.getElementById('bridge-victory-next')?.addEventListener('click', () => {
+    hideVictoryStrip();
+    try {
+      citySelect?.focus();
+      citySelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (_) { /* ignore */ }
+  });
   listsBody?.addEventListener('click', (event) => {
+    if (event.target.closest('[data-inventory-filter]')) return; // handled on panel
     const btn = event.target.closest('[data-action]');
     if (!btn || btn.tagName === 'INPUT') return;
-    if (btn.dataset.action === 'flash-download') return; // handled on lists-panel
+    if (btn.dataset.action === 'flash-download' || btn.dataset.action === 'select') return;
     const row = btn.closest('tr[data-list-id]');
     const listId = row?.dataset.listId;
     if (!listId) return;
@@ -4019,6 +4253,16 @@
     }
   });
   listsBody?.addEventListener('change', (event) => {
+    const selectBox = event.target.closest('input.bridge-list-select[data-action="select"]');
+    if (selectBox) {
+      const id = selectBox.dataset.listId || selectBox.closest('tr[data-list-id]')?.dataset.listId;
+      if (id) {
+        if (selectBox.checked) inventorySelectedIds.add(String(id));
+        else inventorySelectedIds.delete(String(id));
+        syncInventoryToolbarLabels();
+      }
+      return;
+    }
     const input = event.target.closest('input[data-action="rename"]');
     if (!input) return;
     const row = input.closest('tr[data-list-id]');

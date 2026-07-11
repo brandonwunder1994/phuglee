@@ -62,3 +62,18 @@ Before you claim work is done, that the site is “live”, or that the user sho
 ### Preview after UI edits
 
 After CSS/HTML/JS changes: hard-refresh note for user (`Ctrl+Shift+R`), and confirm health 200 before saying “live”.
+
+## Filter uploads: lopsided / scanned / redacted violation sheets
+
+When a city packet is **not** a normal upright Excel/CSV/text PDF (sideways scan, image-only PDF, black-box redactions, Crystal Reports printout):
+
+1. **Always** convert → clean filterable `.xlsx` first (PDF → OCR upright → structured columns → spreadsheet path). Never leave the operator on raw OCR lines or title-banner “headers”.
+2. **Auto-rotate** via `lib/bridge-engine/parsers/pdf-ocr.js` before OCR text is trusted.
+3. **Rebuild columns** with a report-family extractor when anchors match:
+   - GENF / Enforcement Cases Detail → `pdf-enforcement-detail.js` (Record ID, Location, Violation Type, …)
+   - CEU / CODE CASES OPENED → `pdf-code-cases-status.js`
+   - Application Name / Street # grids → `pdf-code-compliance.js`
+   - E-Gov PIR → `pdf-egov.js`
+4. **Redactions:** keep only rows with a usable Location/address; do not invent missing Record IDs.
+5. Full rules: `docs/bridge/DATA-STANDARDS.md` § “Lopsided / Scanned / Redacted Sheets”.
+6. When a new city scan fails column rebuild, add a fixture under `tests/fixtures/bridge/` + a focused extractor/test — do not special-case only in chat.

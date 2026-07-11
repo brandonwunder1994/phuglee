@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=28">
+  <link rel="stylesheet" href="/css/bridge.css?v=31">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -56,30 +56,6 @@
       <h1 class="bridge-title">Scrub the Mess</h1>
       <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
     </header>
-
-    <!-- Phase 70: idle mission board (from savedLists — no new API) -->
-    <div id="bridge-idle-proof" class="bridge-idle-proof bridge-mission-board" role="status" aria-live="polite" data-phuglee-reveal-child>
-      <p class="bridge-mission-board-kicker">Shift board</p>
-      <p class="bridge-idle-proof-line" id="bridge-idle-proof-line">0 lists staged · Ready when you scrub the first city</p>
-      <div class="bridge-mission-facets" id="bridge-mission-facets" hidden>
-        <div class="bridge-mission-facet">
-          <span class="bridge-mission-facet-value" id="bridge-mission-lists">0</span>
-          <span class="bridge-mission-facet-label">Staged</span>
-        </div>
-        <div class="bridge-mission-facet">
-          <span class="bridge-mission-facet-value" id="bridge-mission-records">0</span>
-          <span class="bridge-mission-facet-label">Records</span>
-        </div>
-        <div class="bridge-mission-facet">
-          <span class="bridge-mission-facet-value" id="bridge-mission-cities">0</span>
-          <span class="bridge-mission-facet-label">Cities</span>
-        </div>
-        <div class="bridge-mission-facet bridge-mission-facet--wide">
-          <span class="bridge-mission-facet-value bridge-mission-facet-value--sm" id="bridge-mission-last">—</span>
-          <span class="bridge-mission-facet-label">Last save</span>
-        </div>
-      </div>
-    </div>
 
     <!-- Phase 73: war-room victory (shown after Stage list) -->
     <div id="bridge-victory-strip" class="bridge-victory-strip" hidden role="status" aria-live="polite">
@@ -293,18 +269,18 @@
 
       <section class="bridge-save-panel bridge-save-panel--climax" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
         <h3 id="bridge-save-heading">Stage this scrub</h3>
-        <p class="bridge-panel-lead">Lock the kept list into this shift. Download later for enrichment. Nothing is sent to Analyze.</p>
+        <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
         <div class="bridge-save-row">
           <label class="bridge-save-name" for="bridge-list-name">List name
             <input type="text" id="bridge-list-name" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
           </label>
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Stage list</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
         </div>
         <p class="bridge-save-status" id="bridge-save-status" hidden role="status"></p>
       </section>
       </div><!-- /bridge-mission-surface -->
 
-      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">After stage: download → enrich outside → manual Analyze import</p>
+      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download → enrich outside → manual Analyze import</p>
 
       <div id="bridge-train-wrap" hidden>
         <div id="bridge-train-mission" class="bridge-train-mission" hidden>
@@ -442,27 +418,38 @@
       </aside>
     </div>
 
-    <section class="bridge-panel phuglee-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
+    <section class="bridge-panel phuglee-panel bridge-lists-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
+      <!-- Collapsed by default — open only when you need the full table / downloads -->
+      <details class="bridge-lists-details" id="bridge-lists-details">
+        <summary class="bridge-lists-details-summary" id="bridge-lists-details-summary">
+          <span class="bridge-lists-details-summary-main">
+            <span class="bridge-lists-details-kicker">Inventory</span>
+            <span class="bridge-lists-details-title" id="bridge-lists-heading">Staging inventory</span>
+            <span class="bridge-lists-details-count" id="bridge-lists-details-count">0 lists</span>
+          </span>
+          <span class="bridge-lists-details-hint" id="bridge-lists-details-hint">Expand to download or manage</span>
+        </summary>
+        <div class="bridge-lists-details-body">
       <div class="bridge-lists-header">
-        <div>
-          <h2 id="bridge-lists-heading"><span class="bridge-step-badge" aria-hidden="true">·</span> Staging inventory</h2>
-          <p class="bridge-panel-lead">War-room staging: lists stay until you delete them. Download one or all for skip-trace / enrichment, then import into Analyze manually. <span class="bridge-lists-legend" title="List type key">⚠️ Code violation · 💧 Water shut-off</span></p>
-        </div>
         <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
           <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv">Download all (CSV)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-delete-selected-lists" hidden>Delete selected</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
         </div>
       </div>
-      <div id="bridge-shift-queue" class="bridge-shift-queue" hidden
-           role="region" aria-label="This shift staged cities"></div>
       <div id="bridge-inventory-hud" class="bridge-inventory-hud" hidden
            role="region" aria-label="Staging inventory summary"></div>
-      <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace.</div>
+      <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace. Lists stay until you delete them.</div>
       <div id="bridge-lists-wrap" class="bridge-lists-wrap" hidden>
         <table class="bridge-lists-table" id="bridge-lists-table">
           <thead>
             <tr>
+              <th scope="col" class="bridge-list-check-col">
+                <label class="bridge-list-check-all">
+                  <input type="checkbox" id="bridge-lists-select-all" aria-label="Select all visible lists" />
+                </label>
+              </th>
               <th scope="col">Type</th>
               <th scope="col">List name</th>
               <th scope="col">Uploaded</th>
@@ -476,6 +463,8 @@
         </table>
         <p class="bridge-lists-total" id="bridge-lists-total" hidden role="status" aria-live="polite"></p>
       </div>
+        </div>
+      </details>
     </section>
 
     <p class="bridge-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
@@ -529,6 +518,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=48"></script>
+  <script src="/js/bridge.js?v=51"></script>
 </body>
 </html>

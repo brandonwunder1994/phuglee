@@ -67,6 +67,51 @@ An address is usable when:
 
 Low-confidence rows are **kept** when the address is usable, but flagged for user review in the results table.
 
+## Lopsided / Scanned / Redacted Sheets (PDF → Excel)
+
+City open-records packets often arrive as **image PDFs** (or photos) that are **not upright tables** — sideways scans, black-box redactions, Crystal Reports printouts, multi-page section headers. These must still become a **clean filterable `.xlsx`** before Type confirm / Train.
+
+### Detection
+
+Treat a file as this class when any of the following hold:
+
+1. Embedded text is empty or page-marker-only (`needsPdfOcr`)
+2. OCR orientation correction applies (`rotatedBy` 90 / 180 / 270)
+3. Text matches a known report family after upright OCR (GENF record IDs, CEU case grids, Application Name / Street #, E-Gov PIR, etc.)
+4. Generic line split produces title-banner “headers” with no usable street column
+
+### Pipeline (mandatory order)
+
+1. **Screenshot + auto-rotate** (`pdf-ocr.js` / `uprightImage`) — OSD first, multi-angle score fallback
+2. **Structured family rebuild** → AOA with real headers → in-memory `.xlsx` → existing spreadsheet column path
+3. **Never** ship raw OCR lines as the spreadsheet when a structured extractor can recover ≥2 address rows
+
+| Report family | Anchor signals | Output columns (minimum) | Module |
+|---------------|----------------|--------------------------|--------|
+| Enforcement Cases Detail (Gainesville-style) | `GENF##-####`, “Record ID / Location”, section headers TRASH / TALL GRASS | Record ID, Location, Description, Violation Type, Status, dates | `pdf-enforcement-detail.js` |
+| Code Cases by Status (Lawrenceville-style) | `CEU####-####`, Case Type, Main Address | Case #, Case Type, Main Address, status, dates | `pdf-code-cases-status.js` |
+| Code Compliance grid (Pharr-style) | Application Name, Street # / Dir / Street Name | Application Name, Property Address, Opened Date | `pdf-code-compliance.js` |
+| E-Gov PIR | Action Form Name, Date Submitted | Action Form Name, Issue Street Number/Name | `pdf-egov.js` |
+
+### Redactions
+
+Black bars often delete Record ID, owner, or complainant cells while leaving Location readable (or the reverse).
+
+- **Keep** a row only when a **usable street address** survives
+- **Skip** rows with no recoverable location (count as `redactedSkipped` / effectively `no_address`)
+- Do **not** invent File# / Record ID for fully redacted identities
+- Partial OCR of status (“Closed - Violation Correc”) must normalize to full status labels when possible
+
+### Orientation rules
+
+- Sideways pages are normal for this class — rotation is required, not optional
+- Learn rotation from page 1 and reuse on later pages; re-detect if OCR score collapses
+- Cover letters / exemption pages in the same PDF may still OCR as garbage — ignore pages with no case anchors
+
+### Operator expectation
+
+After upload, Filter should present real columns (Location / Record ID / Violation Type), not title text like “Enforcement Cases Detail By Violation…”. Type-column scoring should be able to offer **Violation Type** (or Case Type / Application Name / Action Form Name) from the rebuilt sheet.
+
 ## Deduplication
 
 Within a single upload:

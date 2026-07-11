@@ -254,14 +254,13 @@ function clearShiftQueueHelperSlice() {
   return null;
 }
 
-test('SHIFT-01: sticky queue mount bridge-shift-queue present', () => {
-  const inHtml = /id=["']bridge-shift-queue["']/.test(html);
-  const inJs = /bridge-shift-queue/.test(js);
-  assert.ok(
-    inHtml || inJs,
-    'HTML or JS must expose bridge-shift-queue mount / render path'
+test('SHIFT-01: sticky queue mount removed from staging inventory HTML', () => {
+  // User request: no shift strip in inventory — session helpers may remain in JS
+  assert.equal(
+    /id=["']bridge-shift-queue["']/.test(html),
+    false,
+    'HTML must not mount bridge-shift-queue in inventory'
   );
-  assert.match(html, /id=["']bridge-shift-queue["']/, 'HTML must have id="bridge-shift-queue"');
 });
 
 test('SHIFT-01: session queue markers (shiftQueue / bridge_shift_queue)', () => {
@@ -336,12 +335,9 @@ test('SHIFT-01: session-only clear must not DELETE durable lists in same body', 
   );
 });
 
-test('SHIFT-01: CSS styles sticky shift queue strip', () => {
-  const body =
-    cssRuleBody(css, '.bridge-shift-queue') ||
-    cssRuleBody(css, '#bridge-shift-queue');
-  assert.ok(
-    body != null,
-    '.bridge-shift-queue or #bridge-shift-queue rule must exist in bridge.css'
-  );
+test('SHIFT-01: inventory type filter + bulk delete present', () => {
+  assert.match(js, /data-inventory-filter|inventoryTypeFilter|getVisibleSavedLists/);
+  assert.match(html, /id=["']bridge-delete-selected-lists["']/);
+  assert.match(html, /id=["']bridge-lists-select-all["']/);
+  assert.match(js, /delete-many|deleteSelectedSavedLists/);
 });

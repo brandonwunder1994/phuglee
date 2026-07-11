@@ -19,33 +19,17 @@ const BANNED_CTAS = [
   'Push to Analyzer'
 ];
 
-// ── IDLE-01: idle proof strip ──────────────────────────────────────────────
+// ── IDLE-01: Shift board removed — helpers may remain for victory metrics ──
 
-test('IDLE-01: idle proof mount present', () => {
-  assert.match(html, /id="bridge-idle-proof"/);
+test('IDLE-01: Shift board UI removed from Filter page', () => {
+  assert.equal(html.includes('Shift board'), false, 'Shift board kicker must be gone');
+  assert.equal(html.includes('bridge-mission-board'), false, 'mission board class must be gone');
+  assert.equal(html.includes('id="bridge-idle-proof"'), false, 'idle proof mount removed');
 });
 
-test('IDLE-01: computeIdleProof + renderIdleProof wired', () => {
+test('IDLE-01: computeIdleProof retained for inventory metrics (no UI board)', () => {
   assert.match(js, /function computeIdleProof\s*\(/);
   assert.match(js, /function renderIdleProof\s*\(/);
-  assert.match(js, /lists staged/);
-  assert.match(js, /Last save/);
-
-  const start = js.indexOf('function renderSavedLists');
-  assert.ok(start >= 0, 'renderSavedLists must exist');
-  const rest = js.slice(start + 1);
-  const next = rest.search(/\n  (?:async )?function \w+/);
-  const body = next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 4000);
-  assert.match(body, /renderIdleProof\s*\(/, 'renderSavedLists must call renderIdleProof');
-});
-
-test('IDLE-01: honest empty copy', () => {
-  const hasEmpty =
-    js.includes('0 lists staged') || html.includes('0 lists staged');
-  assert.ok(hasEmpty, 'empty inventory copy must include "0 lists staged"');
-});
-
-test('IDLE-01: no idle-stats endpoint', () => {
   assert.equal(
     js.includes('/api/bridge/idle-stats'),
     false,

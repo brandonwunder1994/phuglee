@@ -137,11 +137,11 @@ test('LIST-01: resetImportAreaAfterSave fully resets filter session for next cit
 });
 
 test('LIST-03: teaching pack corpus in HTML', () => {
-  assert.match(html, /download from Saved lists for external enrichment/);
-  assert.match(html, /lists stay until you delete/);
+  // Inventory subtext removed; empty-state + workflow still teach path
+  assert.match(html, /lists stay until you delete/i);
   assert.match(html, /Process → \(Train\) → Save list → Download/);
   assert.match(html, /skip-trace|external enrichment/i);
-  assert.match(html, /import into Analyze manually|Import into Analyze only after skip-trace/i);
+  assert.match(html, /Import into Analyze only after skip-trace|import into Analyze manually/i);
 });
 
 test('LIST-03: independence process stub still present in JS', () => {
