@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
 status: executing
-stopped_at: Completed 78-01-PLAN.md
-last_updated: "2026-07-11T20:28:00.000Z"
-last_activity: 2026-07-11 — Completed 78-01 cascade/form hooks
+stopped_at: Completed 78-02-PLAN.md
+last_updated: "2026-07-11T20:31:30.000Z"
+last_activity: 2026-07-11 — Completed 78-02 dropzone/dialogs/loading
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 14
-  completed_plans: 7
-  percent: 50
+  completed_plans: 8
+  percent: 57
 ---
 
 # State
@@ -21,30 +21,30 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 78 (cascade/hooks)
+**Current focus:** v3.0 Filter Visual Makeover — Phase 79 (desk core restyle)
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 78 of 81 (Cascade, Hooks & State CSS) — in progress  
-**Plan:** 2 of 2 (next)  
-**Status:** In Progress  
-**Last activity:** 2026-07-11 — Completed 78-01 cascade/form hooks  
+**Phase:** 79 of 81 (Desk Core Restyle) — next  
+**Plan:** 1 of 2  
+**Status:** Ready to plan/execute  
+**Last activity:** 2026-07-11 — Completed 78-02 dropzone/dialogs/loading  
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 57%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (this milestone)
+- Total plans completed: 8 (this milestone)
 - Average duration: 10min
-- Total execution time: 72min
+- Total execution time: 84min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 7 done | 14 | 10min |
+| 75–81 | 8 done | 14 | 10min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
@@ -52,6 +52,7 @@ Progress: [█████░░░░░] 50%
 | Phase 77 P01 | 8min | 2 tasks | 1 files |
 | Phase 77 P02 | 2min | 2 tasks | 2 files |
 | Phase 78 P01 | 12min | 3 tasks | 3 files |
+| Phase 78 P02 | 12min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ Progress: [█████░░░░░] 50%
 - [Phase 78]: Cascade order fixed to components then bridge then a11y so page densify wins without inverted load
 - [Phase 78]: Form paint in phuglee-components; bridge keeps layout densify only; :disabled native mute
 - [Phase 78]: Train wrap never display:flex|block|grid !important — hidden remains sole gate
+- [Phase 78]: Consolidated dual dropzone CSS into one idle/dragover/has-file/is-error tokenized matrix
+- [Phase 78]: Native dialogs dual-class phuglee-modal-panel; backdrop matches modal DNA; no div modal kit
+- [Phase 78]: Scrub feed default fully visible; reduced-motion opacity 1; no animationend-gated population
 
 ### Pending Todos
 None yet.
@@ -91,7 +95,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:28:00.000Z
-Stopped at: Completed 78-01-PLAN.md
+Last session: 2026-07-11T20:31:30.000Z
+Stopped at: Completed 78-02-PLAN.md
 Resume file: None
-Next: Phase 78-02 — dropzone/dialogs/loading hooks
+Next: Phase 79 — Desk Core Restyle

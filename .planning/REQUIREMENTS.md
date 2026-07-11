@@ -25,12 +25,12 @@
 - [x] **FORMS-01**: Operator uses text inputs, selects, textareas, and search fields that share the system form language (city search, save name, Train search, filters)
 - [x] **FORMS-02**: Operator selects list type via system chip components (code / water) with radio semantics preserved
 - [x] **FORMS-03**: Operator sees selected type chips with auth-tab energy (gold/orange gradient face) while unselected chips stay calm
-- [ ] **FORMS-04**: Operator uses the file dropzone with clear idle / dragover / has-file / error visual states (multi-file + accept list unchanged)
+- [x] **FORMS-04**: Operator uses the file dropzone with clear idle / dragover / has-file / error visual states (multi-file + accept list unchanged)
 
 ### CARDS
 
 - [x] **CARDS-01**: Operator sees all desk sections as glass panels from the shared card/panel system (auth-modal energy, desk density)
-- [ ] **CARDS-02**: Operator opens history and type-column confirm dialogs that match system modal glass/grain treatment (confirm logic frozen)
+- [x] **CARDS-02**: Operator opens history and type-column confirm dialogs that match system modal glass/grain treatment (confirm logic frozen)
 - [ ] **CARDS-03**: Operator can scan elevation hierarchy — primary scrub stage elevated, scrap/secondary quieter, victory featured
 
 ### DESK
@@ -44,7 +44,7 @@
 ### STATES
 
 - [x] **STATES-01**: Operator sees empty states using shared system empty patterns (no ad-hoc blank boxes)
-- [ ] **STATES-02**: Operator sees loading / scrub-in-progress feedback using shared loading patterns; scrub feed remains legible and populates without relying on animation end
+- [x] **STATES-02**: Operator sees loading / scrub-in-progress feedback using shared loading patterns; scrub feed remains legible and populates without relying on animation end
 - [x] **STATES-03**: Operator sees error and success status lines using shared patterns + semantic tokens
 - [ ] **STATES-04**: Operator with `prefers-reduced-motion: reduce` gets reduced/disabled motion twins for every new animation (feed, shimmer, reveal, flash)
 
@@ -94,9 +94,9 @@
 | FORMS-01 | Phase 78 | Complete |
 | FORMS-02 | Phase 77 | Complete |
 | FORMS-03 | Phase 77 | Complete |
-| FORMS-04 | Phase 78 | Pending |
+| FORMS-04 | Phase 78 | Complete |
 | CARDS-01 | Phase 77 | Complete |
-| CARDS-02 | Phase 78 | Pending |
+| CARDS-02 | Phase 78 | Complete |
 | CARDS-03 | Phase 79 | Pending |
 | DESK-01 | Phase 80 | Pending |
 | DESK-02 | Phase 80 | Pending |
@@ -104,7 +104,7 @@
 | DESK-04 | Phase 80 | Pending |
 | DESK-05 | Phase 75 | Complete |
 | STATES-01 | Phase 77 | Complete |
-| STATES-02 | Phase 78 | Pending |
+| STATES-02 | Phase 78 | Complete |
 | STATES-03 | Phase 77 | Complete |
 | STATES-04 | Phase 80 | Pending |
 | SYS-01 | Phase 81 | Pending |

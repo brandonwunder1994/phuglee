@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 78 in progress (1/2); next 78-02  
-**Next:** Execute Phase 78-02 (dropzone/dialogs/loading hooks)
+**Status:** In progress — Phase 78 complete (2/2); next Phase 79  
+**Next:** Execute Phase 79 (Desk Core Restyle)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -38,7 +38,7 @@
 - [x] **Phase 75: Contract Freeze & Surface Inventory** — Lock ID/`data-*` contracts and inventory every Filter surface for restyle targets
 - [x] **Phase 76: Tokens & Layer Audit** — Align Filter with home/login tokens; map z-index and ban hex islands
 - [x] **Phase 77: Shared Components Expansion** — Grow `phuglee-*` buttons, chips, panels, empty/error patterns to home grade
-- [ ] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
+- [x] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
 - [ ] **Phase 79: Desk Core Restyle** — Restyle high-frequency chrome (hero, pipeline, scrub, tables, elevation)
 - [ ] **Phase 80: Theater, Gates & Motion** — Full surface paint including kill/Train/victory; reduced-motion twins
 - [ ] **Phase 81: Visual QA Lock & Catalog** — 390/1440 QA, suite + verify-live, parity matrix + component catalog
@@ -106,11 +106,11 @@ Plans:
   4. Operator sees loading / scrub-in-progress feedback via shared loading patterns; scrub feed remains legible and populates without relying on `animationend`
   5. CSS load order is components → bridge → a11y; dual-class hooks applied without renaming IDs; no `display` hacks that fail-open Train for non-admins
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; never force `display:flex !important` on Train wrap  
-**Plans:** 2 plans (1/2 complete)
+**Plans:** 2 plans (2/2 complete)
 
 Plans:
 - [x] 78-01-PLAN.md -- Cascade order + dual-class form hooks + Train fail-closed state CSS (FORMS-01)
-- [ ] 78-02-PLAN.md -- Dropzone / dialogs / loading dual-class hooks (FORMS-04, CARDS-02, STATES-02)
+- [x] 78-02-PLAN.md -- Dropzone / dialogs / loading dual-class hooks (FORMS-04, CARDS-02, STATES-02)
 
 ### Phase 79: Desk Core Restyle
 **Goal**: High-frequency operator chrome (hero, pipeline, scrub stage, dossier, import, tables) matches Phuglee density and elevation  
