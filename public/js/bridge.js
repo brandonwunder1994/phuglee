@@ -4487,6 +4487,90 @@
     renderTrainGroupCard
   };
 
+  // ── Paste Text to Excel (utility — no scrub / no categories) ──
+  const pasteTextarea = document.getElementById('bridge-paste-text');
+  const pasteConvertBtn = document.getElementById('bridge-paste-convert');
+  const pasteClearBtn = document.getElementById('bridge-paste-clear');
+  const pasteStatusEl = document.getElementById('bridge-paste-status');
+
+  function setPasteStatus(message, kind) {
+    if (!pasteStatusEl) return;
+    if (!message) {
+      pasteStatusEl.hidden = true;
+      pasteStatusEl.textContent = '';
+      pasteStatusEl.classList.remove('is-success', 'is-error', 'is-busy');
+      return;
+    }
+    pasteStatusEl.hidden = false;
+    pasteStatusEl.textContent = message;
+    pasteStatusEl.classList.remove('is-success', 'is-error', 'is-busy');
+    if (kind) pasteStatusEl.classList.add(`is-${kind}`);
+  }
+
+  function syncPasteControls() {
+    const hasText = Boolean(pasteTextarea && pasteTextarea.value.trim());
+    if (pasteConvertBtn) pasteConvertBtn.disabled = !hasText;
+    if (pasteClearBtn) pasteClearBtn.hidden = !hasText;
+  }
+
+  async function convertPasteToExcel() {
+    const text = pasteTextarea ? pasteTextarea.value : '';
+    if (!String(text).trim()) {
+      setPasteStatus('Paste tabular text first.', 'error');
+      return;
+    }
+    if (pasteConvertBtn) pasteConvertBtn.disabled = true;
+    setPasteStatus('Converting…', 'busy');
+    try {
+      const res = await fetch('/api/bridge/paste-to-excel', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: bridgeHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ text })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Convert failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="?([^"]+)"?/i);
+      const filename = match?.[1] || `pasted-table-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const rows = res.headers.get('X-Paste-Rows') || '?';
+      const cols = res.headers.get('X-Paste-Cols') || '?';
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+      setPasteStatus(`Downloaded ${filename} · ${rows} data row(s) × ${cols} column(s)`, 'success');
+    } catch (err) {
+      setPasteStatus(err.message || 'Could not convert paste to Excel.', 'error');
+    } finally {
+      syncPasteControls();
+    }
+  }
+
+  pasteTextarea?.addEventListener('input', () => {
+    syncPasteControls();
+    if (pasteStatusEl && !pasteStatusEl.classList.contains('is-busy')) {
+      // Clear stale success/error once user edits again
+      if (pasteStatusEl.classList.contains('is-success') || pasteStatusEl.classList.contains('is-error')) {
+        setPasteStatus('');
+      }
+    }
+  });
+  pasteConvertBtn?.addEventListener('click', () => {
+    convertPasteToExcel().catch((e) => setPasteStatus(e.message || 'Convert failed.', 'error'));
+  });
+  pasteClearBtn?.addEventListener('click', () => {
+    if (pasteTextarea) pasteTextarea.value = '';
+    setPasteStatus('');
+    syncPasteControls();
+    pasteTextarea?.focus();
+  });
+  syncPasteControls();
 
   // SHIFT-01: restore this sitting's sticky queue before inventory load
   loadShiftQueueFromSession();

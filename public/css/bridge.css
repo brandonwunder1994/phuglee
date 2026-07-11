@@ -3451,3 +3451,80 @@ button.bridge-inventory-filter-chip.is-active {
     width: 100%;
   }
 }
+
+/* ── Paste Text to Excel (utility, no scrub) ── */
+.bridge-paste-panel {
+  margin-top: 1.25rem;
+}
+
+.bridge-paste-label {
+  display: block;
+  margin: 0.75rem 0 0;
+}
+
+.bridge-paste-label-text {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(232, 224, 208, 0.72);
+}
+
+.bridge-paste-textarea {
+  display: block;
+  width: 100%;
+  min-height: 14rem;
+  margin: 0;
+  padding: 0.85rem 1rem;
+  box-sizing: border-box;
+  resize: vertical;
+  border: 1px solid rgba(232, 224, 208, 0.18);
+  border-radius: 10px;
+  background: rgba(12, 10, 8, 0.55);
+  color: var(--phuglee-cream, #e8e0d0);
+  font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  white-space: pre;
+  overflow: auto;
+}
+
+.bridge-paste-textarea::placeholder {
+  color: rgba(232, 224, 208, 0.38);
+  white-space: pre-wrap;
+}
+
+.bridge-paste-textarea:focus {
+  outline: none;
+  border-color: rgba(232, 160, 96, 0.55);
+  box-shadow: 0 0 0 2px rgba(232, 160, 96, 0.15);
+}
+
+.bridge-paste-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+  margin-top: 0.9rem;
+}
+
+.bridge-paste-status {
+  margin: 0;
+  flex: 1 1 12rem;
+  font-size: 0.82rem;
+  color: rgba(232, 224, 208, 0.78);
+}
+
+.bridge-paste-status.is-success {
+  color: #8fd4a0;
+}
+
+.bridge-paste-status.is-error {
+  color: #f0a0a0;
+}
+
+.bridge-paste-status.is-busy {
+  color: rgba(232, 224, 208, 0.65);
+}

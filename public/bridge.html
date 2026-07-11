@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=35">
+  <link rel="stylesheet" href="/css/bridge.css?v=36">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -405,6 +405,27 @@
       </div>
     </div>
 
+    <!-- Utility: paste any tabular text → downloadable .xlsx (no scrub / no categories) -->
+    <section class="bridge-panel phuglee-panel bridge-paste-panel" id="bridge-paste-panel" aria-labelledby="bridge-paste-heading" data-phuglee-reveal-child>
+      <h2 id="bridge-paste-heading">Paste Text to Excel</h2>
+      <p class="bridge-panel-lead">Paste tabular text from sheets, reports, or tables. Converts to a clean .xlsx with AutoFilter — no scrub, no categories.</p>
+      <label class="bridge-paste-label" for="bridge-paste-text">
+        <span class="bridge-paste-label-text">Tabular text</span>
+        <textarea
+          id="bridge-paste-text"
+          class="bridge-paste-textarea"
+          rows="12"
+          spellcheck="false"
+          placeholder="Paste tab- or comma-separated rows here…&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
+        ></textarea>
+      </label>
+      <div class="bridge-paste-actions">
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Convert to Excel</button>
+        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
+        <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
+      </div>
+    </section>
+
     <section class="bridge-panel phuglee-panel bridge-lists-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
       <!-- Collapsed by default — open only when you need the full table / downloads -->
       <details class="bridge-lists-details" id="bridge-lists-details">
@@ -505,6 +526,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=53"></script>
+  <script src="/js/bridge.js?v=54"></script>
 </body>
 </html>
