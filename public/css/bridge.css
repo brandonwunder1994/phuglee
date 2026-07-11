@@ -1935,31 +1935,39 @@ body {
   padding-bottom: 0.35rem;
 }
 
+/* Phase 79-02 DESK-03 — dark-glass ops tables (kept + inventory language) */
 .bridge-table-wrap {
   overflow-x: auto;
-  border: 1px solid rgba(174, 163, 143, 0.14);
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--glass-border-chrome, rgba(174, 163, 143, 0.16));
   border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+    var(--glass-bg, rgba(16, 14, 12, 0.42));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .bridge-results-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
 .bridge-results-table th {
   position: sticky;
   top: 0;
-  padding: 0.6rem 0.75rem;
+  z-index: 2;
+  padding: 0.45rem 0.6rem;
   text-align: left;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--phuglee-stone);
-  background: rgba(12, 10, 8, 0.95);
-  border-bottom: 1px solid rgba(174, 163, 143, 0.18);
+  /* Near-opaque dark header — body rows must not show through on scroll */
+  background: var(--glass-bg-solid, rgba(16, 14, 12, 0.92));
+  border-bottom: 1px solid var(--glass-border-chrome, rgba(174, 163, 143, 0.16));
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
@@ -1976,14 +1984,27 @@ body {
 }
 
 .bridge-results-table td {
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid rgba(174, 163, 143, 0.08);
+  padding: var(--row-pad-y, 0.45rem) 0.6rem;
+  border-bottom: 1px solid var(--row-border, rgba(174, 163, 143, 0.12));
   color: var(--phuglee-cream);
   vertical-align: top;
+  line-height: 1.35;
+}
+
+/* Dense mono cues for address / date columns (no DOM change) */
+.bridge-results-table td:first-child,
+.bridge-results-table td:last-child {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.01em;
+}
+
+.bridge-results-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .bridge-results-table tbody tr:hover td {
-  background: rgba(229, 132, 53, 0.04);
+  background: var(--row-hover-bg, rgba(229, 132, 53, 0.08));
 }
 
 .bridge-pagination {
@@ -2637,15 +2658,24 @@ button.bridge-inventory-filter-chip.is-active {
   line-height: 1.5;
 }
 
+/* Phase 79-02 DESK-03 — inventory lists table (parity with kept dark-glass) */
 .bridge-lists-wrap {
   margin-top: 0.85rem;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--glass-border-chrome, rgba(174, 163, 143, 0.16));
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
+    var(--glass-bg, rgba(16, 14, 12, 0.42));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .bridge-lists-table {
   width: 100%;
+  min-width: 860px;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: 0.8rem;
 }
 
 .bridge-lists-total {
@@ -2662,19 +2692,35 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-lists-table th,
 .bridge-lists-table td {
-  padding: 0.7rem 0.55rem;
+  padding: var(--row-pad-y, 0.45rem) 0.55rem;
   text-align: left;
-  border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+  border-bottom: 1px solid var(--row-border, rgba(174, 163, 143, 0.12));
   vertical-align: middle;
+  color: var(--phuglee-cream);
+  line-height: 1.35;
 }
 
 .bridge-lists-table th {
-  font-size: 0.68rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--phuglee-stone);
   white-space: nowrap;
+  /* Near-opaque dark header matching kept table language */
+  background: var(--glass-bg-solid, rgba(16, 14, 12, 0.92));
+  border-bottom: 1px solid var(--glass-border-chrome, rgba(174, 163, 143, 0.16));
+}
+
+.bridge-lists-table tbody tr:nth-child(even) td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.bridge-lists-table tbody tr:hover td {
+  background: var(--row-hover-bg, rgba(229, 132, 53, 0.08));
 }
 
 .bridge-list-name-input {
