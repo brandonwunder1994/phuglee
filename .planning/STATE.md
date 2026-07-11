@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: idle
-stopped_at: v2.2 Filter Desk Cinema shipped 2026-07-10
-last_updated: "2026-07-11T01:42:00.000Z"
-last_activity: 2026-07-10 — v2.2 phases 69–74 executed; Filter desk cinema live
+milestone: v3.0
+milestone_name: Filter Visual Makeover
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-07-11T12:00:00.000Z"
+last_activity: 2026-07-11 — Milestone v3.0 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -21,32 +21,38 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** Idle — v2.2 shipped
+**Current focus:** v3.0 Filter Visual Makeover — look only, functions locked
 
 ## Current Position
 
-**Milestone:** none (v2.2 shipped)  
-**Phase:** —  
-**Status:** Ready for next product discussion  
+**Milestone:** v3.0 Filter Visual Makeover  
+**Phase:** Not started (defining requirements)  
+**Plan:** —  
+**Status:** Defining requirements  
+**Last activity:** 2026-07-11 — Milestone v3.0 started  
 
-**Last shipped:** v2.2 Filter Desk Cinema (phases 69–74)  
-- One scrub desk (type+upload co-open after city)  
-- Idle mission board  
-- Type chips  
-- Mission surface + collapsible kept table  
-- War-room victory strip after Save list  
+## Accumulated Context
+
+### Prior shipped (locked behavior)
+- v2.2 Filter Desk Cinema (69–74) — one scrub desk, mission board, type chips, victory strip
+- v2.1 Filter Scrub Theater (61–68) — desk shell, dossier, feed, kill report, Train theater, shift queue
+- v2.0 Independence & Learning; v1.8 Type column; v1.7 accuracy; v1.6 Superpower Brain
+
+### v3.0 constraints
+- Visual north star: login modal + home page (glass, grain, Phuglee tokens, Anton/Outfit)
+- Every Filter control redesigned; shared design system for later site-wide
+- CSS/markup only — no process/API/brain/keep-kill behavior changes
+- Other pages full reskin = later milestones
 
 ## Archives
 
 | Milestone | Path |
 |-----------|------|
-| v2.2 | `.planning/v2.2-FILTER-DESK-CINEMA.md`, plan in `docs/superpowers/plans/2026-07-10-filter-desk-cinema.md` |
+| v2.2 | `.planning/v2.2-FILTER-DESK-CINEMA.md` |
 | v2.1 | `.planning/milestones/v2.1-ROADMAP.md` |
 
 ## Next command
 
 ```text
-/gsd:new-milestone
+Continue /gsd:new-milestone → research gate → requirements → roadmap
 ```
-
-Or hard-refresh `/bridge` (`Ctrl+Shift+R`) and walk a scrub.

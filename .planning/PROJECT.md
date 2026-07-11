@@ -91,9 +91,16 @@ Full requirement text: `.planning/milestones/v2.0-REQUIREMENTS.md`
 Full requirement text: `.planning/milestones/v2.1-REQUIREMENTS.md`  
 Design bible: `.planning/v2.1-FILTER-SCRUB-THEATER.md`
 
-## Current Milestone
+## Current Milestone: v3.0 Filter Visual Makeover
 
-**None active** — v2.1 Filter Scrub Theater shipped 2026-07-11. Define next with `/gsd:new-milestone`.
+**Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
+
+**Target features:**
+- Home/login visual parity (glass, grain, surfaces, type hierarchy, CTA energy) as the source of truth
+- Shared Filter design system: tokens + components (buttons, inputs, selects, cards/panels, chips, tables, empty/loading/error)
+- Complete Filter component pass on every visual surface of `/bridge`
+- Gritty premium evolved (refined Phuglee DNA, not a new random aesthetic)
+- Function freeze: CSS/markup only — process, brain, keep/kill, APIs, and workflows unchanged
 
 ### Backlog (later)
 
@@ -160,11 +167,11 @@ Design bible: `.planning/v2.1-FILTER-SCRUB-THEATER.md`
 
 ## Current State
 
-**Active:** none (awaiting next milestone)  
-**Shipped:** v2.1 Filter Scrub Theater (2026-07-11)  
+**Active:** v3.0 Filter Visual Makeover  
+**Shipped:** v2.2 Filter Desk Cinema; v2.1 Filter Scrub Theater (2026-07-11)  
 **Prior:** v2.0 Independence & Learning; v1.8 Type Column; v1.7 Accuracy; v1.6 Superpower Brain  
 
-**Known product direction:** Filter stages filtered lead lists only; enrichment + skip-trace happen outside; Analyze receives data via manual import of fully prepared lists. Analyze independence and keep/kill engine remain locked.
+**Known product direction:** Filter stages filtered lead lists only; enrichment + skip-trace happen outside; Analyze receives data via manual import of fully prepared lists. Analyze independence and keep/kill engine remain locked. v3.0 is surface-only; other pages reskin after Filter system lands.
 
 ## Key Decisions (v2.0 — shipped)
 
@@ -197,5 +204,14 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
+## Key Decisions (v3.0 — in progress)
+
+| Decision | Rationale |
+|----------|-----------|
+| Match login/home as visual north star | User: front page just redid and is “badass” — Filter must catch up |
+| Shared system + full Filter application this milestone | Enables whole-site rollout later without another ad-hoc patch layer |
+| CSS/markup only | Full makeover without risking keep/kill, brain, or process regressions |
+| Site-wide other pages out of this milestone | Filter is showcase; system is the bridge to later pages |
+
 ---
-*Last updated: 2026-07-11 after v2.1 Filter Scrub Theater*
+*Last updated: 2026-07-11 — Milestone v3.0 Filter Visual Makeover started*
