@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2
-status: executing
-stopped_at: Completed 63-01-PLAN.md
-last_updated: "2026-07-10T23:56:41.840Z"
-last_activity: 2026-07-10 — 63-01 idle proof strip from savedLists shipped
+current_plan: 2 of 2
+status: verifying
+stopped_at: Completed 63-02-PLAN.md
+last_updated: "2026-07-11T00:01:44.117Z"
+last_activity: 2026-07-11
 progress:
   total_phases: 8
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 20
-  completed_plans: 6
+  completed_plans: 7
   percent: 30
 ---
 
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 63 Idle Proof & Process Climax (plan 01 done; next 63-02)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 63 complete (IDLE-01/02); next Phase 64 Live Scrub Feed
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 63 — Idle Proof & Process Climax  
-**Current Plan:** 2 of 2  
+**Current Plan:** 2 of 2 (complete)  
 **Total Plans in Phase:** 2  
-**Status:** In progress  
-**Last activity:** 2026-07-10 — 63-01 idle proof strip from savedLists shipped
+**Status:** Phase complete — ready for verification
+**Last activity:** 2026-07-11 — 63-02 process climax + IDLE locks shipped
 
-Progress: [███░░░░░░░] 30% (6/20 plans executed)
+Progress: [████░░░░░░] 35% (7/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -41,7 +41,7 @@ Progress: [███░░░░░░░] 30% (6/20 plans executed)
 |-------|------|-------|------------|
 | 61 | Scrub Desk Foundation | 3 (3 done) | PASS |
 | 62 | City Dossier | 2 (2 done) | PASS |
-| 63 | Idle Proof & Process Climax | 2 (1 done) | PASS |
+| 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
 | 64 | Live Scrub Feed | 2 | PASS |
 | 65 | Kill-Rate Scrub Report | 3 | PASS |
 | 66 | Superpower Train Theater | 3 | PASS |
@@ -78,6 +78,8 @@ Progress: [███░░░░░░░] 30% (6/20 plans executed)
 - [62] Client-compose dossier from history+lists APIs; loadCityDossierHistory named helper with race guard; no GET /api/bridge/dossier
 - [63] Idle strip always-on under hero from savedLists; Last save = lists[0].createdAt via formatListWhen
 - [63] Empty renderSavedLists path must call renderIdleProof so strip never goes stale
+- [63] Response date demoted to meta under dropzone; Process remains Scrub it fire CTA
+- [63] Date click-time gate preserved; buildProcessFormData omits responseAt; no silent-default
 
 ## Performance Metrics
 
@@ -89,16 +91,17 @@ Progress: [███░░░░░░░] 30% (6/20 plans executed)
 | 62 | 01 | 2min | 2 | 2 |
 | 62 | 02 | 12min | 3 | 3 |
 | 63 | 01 | 2min | 2 | 3 |
+| 63 | 02 | 8min | 2 | 3 |
 
 ## Next command
 
 ```text
-/gsd:execute-phase 63
+/gsd:execute-phase 64
 ```
 
-(Or continue with plan 63-02 Process climax)
+(Or verify phase 63, then plan/execute 64 Live Scrub Feed)
 
 ## Session
 
-**Last session:** 2026-07-10T23:56:41.829Z
-**Stopped at:** Completed 63-01-PLAN.md
+**Last session:** 2026-07-11T00:01:44.109Z
+**Stopped at:** Completed 63-02-PLAN.md
