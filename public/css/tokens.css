@@ -78,6 +78,7 @@
   --text-display-xl: clamp(3.5rem, 12vw, 7rem);
   --text-display-lg: clamp(2.25rem, 7vw, 3.5rem);
   --text-display-md: clamp(1.5rem, 4vw, 2.25rem);
+  --text-display-sm: clamp(1.25rem, 3vw, 1.65rem);
   --text-body-lg: 1.125rem;
   --text-body: 1rem;
   --text-body-sm: 0.875rem;
@@ -223,6 +224,37 @@
   --z-settings: 1100;
   --z-auth: 1300;
   --z-command-palette: 2000;
+
+  /* Desk density (Filter ops chrome; shared for later pages)
+     Desk panels use existing --glass-* ; density via --desk-pad-* not a second glass system */
+  --desk-gap: 0.65rem;
+  --desk-pad-y: 0.85rem;
+  --desk-pad-x: 1rem;
+  --control-h: 2.5rem;
+  --control-h-sm: 2rem;
+
+  /* Chip / pill surfaces */
+  --chip-pad-y: 0.4rem;
+  --chip-pad-x: 0.75rem;
+  --chip-radius: var(--radius-sm);
+  --chip-bg: rgba(0, 0, 0, 0.28);
+  --chip-border: rgba(174, 163, 143, 0.16);
+  --chip-bg-selected: linear-gradient(135deg, var(--phuglee-gold) 0%, var(--phuglee-orange) 55%, var(--phuglee-terracotta) 100%);
+  --chip-fg-selected: var(--phuglee-black);
+
+  /* Dense table / feed rows */
+  --row-pad-y: 0.55rem;
+  --row-border: rgba(174, 163, 143, 0.12);
+  --row-hover-bg: rgba(229, 132, 53, 0.08);
+
+  /* Status surfaces — always map to canonical semantics (TOKENS-04)
+     Foreground colors alias --phuglee-success|warn|danger only.
+     Backgrounds use rgba derived from those brand hexes (no second palette). */
+  --status-success-fg: var(--phuglee-success);
+  --status-warn-fg: var(--phuglee-warn);
+  --status-danger-fg: var(--phuglee-danger);
+  --status-success-bg: rgba(61, 214, 140, 0.12);   /* #3dd68c @ 12% */
+  --status-danger-bg: rgba(248, 113, 113, 0.12);    /* #f87171 @ 12% */
 }
 
 /* Light theme — first-class, not washed-out dark */
@@ -293,6 +325,12 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
   --shadow-glow-orange: 0 0 32px rgba(229, 132, 53, 0.2);
   --shadow-glow-gold: 0 0 28px rgba(238, 183, 70, 0.14);
+
+  /* Desk surface overrides (chip/row only — status fg stays brand-bright) */
+  --chip-bg: rgba(26, 22, 18, 0.06);
+  --chip-border: rgba(26, 22, 18, 0.12);
+  --row-border: rgba(26, 22, 18, 0.1);
+  --row-hover-bg: rgba(229, 132, 53, 0.1);
 }
 
 [data-theme="light"] .premium-bg-photo,
