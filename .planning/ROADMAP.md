@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 80 complete (2/2 plans); next Phase 81  
-**Next:** Execute Phase 81 (Visual QA Lock & Catalog)
+**Status:** In progress — Phase 81 plan 1/2 complete (catalog + packaging); next 81-02 ship gate  
+**Next:** Execute 81-02 (suite ≥679 + verify-live + fill checklist)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -158,7 +158,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 81-01-PLAN.md — Component catalog, parity matrix, 390/1440 checklist template, TEST-PLAN §P
+- [x] 81-01-PLAN.md — Component catalog, parity matrix, 390/1440 checklist template, TEST-PLAN §Q
 - [ ] 81-02-PLAN.md — Suite ≥679 + verify-live + fill checklist / freeze / parity Pass
 
 ## Progress
@@ -171,7 +171,7 @@ Plans:
 | 78. Cascade, Hooks & State CSS | v3.0 | 2/2 | Complete | 2026-07-11 |
 | 79. Desk Core Restyle | v3.0 | 1/2 | In Progress | - |
 | 80. Theater, Gates & Motion | v3.0 | 0/TBD | Not started | - |
-| 81. Visual QA Lock & Catalog | v3.0 | 0/2 | Planned | - |
+| 81. Visual QA Lock & Catalog | v3.0 | 1/2 | In Progress | - |
 | 69–74 | v2.2 | 6/6 | Complete | 2026-07-10 |
 | 61–68 | v2.1 | 20/20 | Complete | 2026-07-11 |
 

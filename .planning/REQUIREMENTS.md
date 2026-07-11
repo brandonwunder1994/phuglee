@@ -50,15 +50,15 @@
 
 ### SYSTEM (differentiators / rollout)
 
-- [ ] **SYS-01**: Maintainer has a short component catalog note (tokens + class names + do/don’t) so Collect/Hub can adopt later without a second ad-hoc redesign
-- [ ] **SYS-02**: Maintainer has a screenshot parity matrix checklist pairing login/home vs Filter components (button, input, panel, modal, chip)
+- [x] **SYS-01**: Maintainer has a short component catalog note (tokens + class names + do/don’t) so Collect/Hub can adopt later without a second ad-hoc redesign
+- [x] **SYS-02**: Maintainer has a screenshot parity matrix checklist pairing login/home vs Filter components (button, input, panel, modal, chip)
 
 ### QA
 
-- [ ] **QA-01**: Operator on 390px and 1440px widths can complete the primary scrub path without broken layout (visual QA lock)
+- [x] **QA-01**: Operator on 390px and 1440px widths can complete the primary scrub path without broken layout (visual QA lock)
 - [ ] **QA-02**: Full automated suite remains green at or above the pre-milestone bar (679+ tests; no intentional behavior regressions)
 - [ ] **QA-03**: `scripts/verify-live.ps1` exits 0 (health + homepage HTTP 200) after Filter visual changes
-- [ ] **QA-04**: Behavior freeze holds — no process/API/brain/keep-kill/list workflow changes; no Analyze re-coupling chrome
+- [x] **QA-04**: Behavior freeze holds — no process/API/brain/keep-kill/list workflow changes; no Analyze re-coupling chrome
 
 ## Future Requirements
 
@@ -107,12 +107,12 @@
 | STATES-02 | Phase 78 | Complete |
 | STATES-03 | Phase 77 | Complete |
 | STATES-04 | Phase 80 | Complete |
-| SYS-01 | Phase 81 | Pending |
-| SYS-02 | Phase 81 | Pending |
-| QA-01 | Phase 81 | Pending |
+| SYS-01 | Phase 81 | Complete |
+| SYS-02 | Phase 81 | Complete |
+| QA-01 | Phase 81 | Complete |
 | QA-02 | Phase 81 | Pending |
 | QA-03 | Phase 81 | Pending |
-| QA-04 | Phase 81 | Pending |
+| QA-04 | Phase 81 | Complete |
 
 **Coverage:** 29/29 v1 requirements mapped ✓
 
