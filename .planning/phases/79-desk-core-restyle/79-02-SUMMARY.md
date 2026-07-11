@@ -75,7 +75,7 @@ Each task was committed atomically:
 2. **Task 1 GREEN: Kept + inventory dark-glass table CSS** - `8575d1a` (feat)
 3. **Task 2: Cache-bust bridge.css?v=49** - `0e6cf60` (feat)
 
-**Plan metadata:** _(pending final docs commit)_
+**Plan metadata:** `1102564` (docs: complete plan)
 
 ## Files Created/Modified
 
