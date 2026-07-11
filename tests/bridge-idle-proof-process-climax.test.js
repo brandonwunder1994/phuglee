@@ -64,13 +64,21 @@ test('IDLE-02: received date chips (today + last 7 days)', () => {
   assert.match(js, /function setResponseDateYmd\s*\(/);
   assert.match(js, /Today/);
   assert.match(js, /offset <= 7|offset < 8/);
+  // Paste + file-drop both get chips; nothing auto-selected
+  assert.match(html, /id="bridge-paste-date-chips"/);
+  assert.match(js, /No auto-selected day|setResponseDateYmd\(''\)|setResponseDateYmd\(""\)/);
+  assert.equal(
+    /Default:\s*Today selected/i.test(js),
+    false,
+    'must not auto-select Today on chip build'
+  );
 });
 
 test('IDLE-02: process date gate preserved', () => {
   assert.match(js, /function getResponseAtValue\s*\(/);
   assert.match(
     js,
-    /Enter the date the city sent this list before processing\./
+    /Pick a Received date|Enter the date the city sent this list before processing/
   );
 
   const i = js.indexOf('async function processUpload');

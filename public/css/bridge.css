@@ -3584,6 +3584,10 @@ button.bridge-inventory-filter-chip.is-active {
   order: 0;
 }
 
+.bridge-paste-date-row {
+  margin-top: 0.85rem;
+}
+
 .bridge-paste-label {
   display: block;
   margin: 0.75rem 0 0;
