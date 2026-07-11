@@ -1949,24 +1949,162 @@
     });
   }
 
-  function renderKpis(stats) {
-    const cards = [
-      { label: 'Kept (distress)', value: stats.kept, accent: true },
-      { label: 'No distress signal', value: stats.noDistress || stats.discardReasons?.no_distress_signal || 0 },
-      { label: 'Discarded (other)', value: Math.max(0, (stats.discarded || 0) - (stats.noDistress || stats.discardReasons?.no_distress_signal || 0)) },
-      // IND-04 default-off: omit zero "Already in Analyze" so UI does not imply hard-drop ran
-      ...(Number(stats.alreadyImported) > 0
-        ? [{ label: 'Already in Analyze', value: stats.alreadyImported }]
-        : []),
-      { label: 'Needs review', value: stats.needsReview || stats.lowConfidence },
-      { label: 'Deduped', value: stats.deduplicated }
+  /** Operator-facing short labels for kill-reason chips (engine keys + human strings). */
+  const KILL_REASON_LABELS = {
+    no_address: 'No address',
+    'No usable street address': 'No address',
+    blank_row: 'Blank row',
+    'Blank or empty row': 'Blank row',
+    non_property: 'Non-property',
+    'Clearly non-property record': 'Non-property',
+    duplicate: 'Deduped',
+    'Near-duplicate within upload': 'Deduped',
+    already_imported: 'Already in Analyze',
+    'Already imported in Analyze': 'Already in Analyze',
+    no_distress_signal: 'No distress signal',
+    'No distressed signal (generic code violation)': 'No distress signal',
+    parse_error: 'Parse error',
+    'Could not parse row': 'Parse error'
+  };
+
+  function killReasonLabel(key) {
+    if (KILL_REASON_LABELS[key]) return KILL_REASON_LABELS[key];
+    const s = String(key || '');
+    if (/no usable street address/i.test(s)) return 'No address';
+    if (/blank or empty/i.test(s)) return 'Blank row';
+    if (/non-property/i.test(s)) return 'Non-property';
+    if (/near-duplicate|dedup/i.test(s)) return 'Deduped';
+    if (/already imported/i.test(s)) return 'Already in Analyze';
+    if (/no distressed signal|no_distress/i.test(s)) return 'No distress signal';
+    if (/could not parse|parse error/i.test(s)) return 'Parse error';
+    return s || 'Other';
+  }
+
+  function buildKillReasons(s) {
+    const counts = new Map();
+    const reasons = s.discardReasons || {};
+    Object.entries(reasons).forEach(([key, n]) => {
+      const count = Number(n) || 0;
+      if (count <= 0) return;
+      const label = killReasonLabel(key);
+      counts.set(label, (counts.get(label) || 0) + count);
+    });
+    // Merge non-zero counters without double-label spam
+    const counterPairs = [
+      [Number(s.noDistress) || 0, 'No distress signal'],
+      [Number(s.deduplicated) || 0, 'Deduped'],
+      [Number(s.alreadyImported) || 0, 'Already in Analyze']
     ];
-    kpiGrid.innerHTML = cards.map((card) => (
-      `<div class="bridge-kpi${card.accent ? ' bridge-kpi--accent' : ''}">` +
-      `<span class="bridge-kpi-value">${Number(card.value || 0).toLocaleString()}</span>` +
-      `<span class="bridge-kpi-label">${esc(card.label)}</span>` +
-      '</div>'
-    )).join('');
+    counterPairs.forEach(([count, label]) => {
+      if (count <= 0) return;
+      if (!counts.has(label)) counts.set(label, count);
+    });
+    return [...counts.entries()]
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, n]) => (
+        `<span class="bridge-kill-reason">${n.toLocaleString()} ${esc(label)}</span>`
+      ))
+      .join('');
+  }
+
+  function buildProofChips(s, meta) {
+    const chips = [];
+    const ms = meta.durationMs;
+    if (Number.isFinite(ms) && ms >= 0) {
+      chips.push(`<span class="bridge-proof-chip">Scrubbed in ${(ms / 1000).toFixed(1)}s</span>`);
+    }
+    const tr = meta.typeResolution;
+    if (tr && tr.source === 'auto_reuse') {
+      const typeBit = tr.header
+        ? ` · Type: ${esc(tr.header)}`
+        : ' · No type column';
+      chips.push(`<span class="bridge-proof-chip">Format reused${typeBit}</span>`);
+    }
+    if (meta.parser) {
+      chips.push(`<span class="bridge-proof-chip">${esc(String(meta.parser))}</span>`);
+    }
+    const idx = Number(meta.importIndexCount);
+    if (Number.isFinite(idx) && idx > 0) {
+      chips.push(`<span class="bridge-proof-chip">${idx.toLocaleString()} in Analyze index</span>`);
+    }
+    const needsReview = Number(s.needsReview) || Number(s.lowConfidence) || 0;
+    if (needsReview > 0) {
+      chips.push(`<span class="bridge-proof-chip">Needs review · ${needsReview.toLocaleString()}</span>`);
+    }
+    // Independence proof (LIST-03 / IND) — chip + stub clean path keep "nothing was sent to Analyze"
+    chips.push('<span class="bridge-proof-chip">Nothing sent to Analyze</span>');
+    return chips.join('');
+  }
+
+  function buildKeptSamples(rows) {
+    if (!rows || !rows.length) return '';
+    const sorted = rows.slice().sort((a, b) => {
+      const aStrong = /strong/i.test(String(a.distressedSignalTag || '')) ? 0 : 1;
+      const bStrong = /strong/i.test(String(b.distressedSignalTag || '')) ? 0 : 1;
+      return aStrong - bStrong;
+    });
+    const samples = sorted.slice(0, 3);
+    const cards = samples.map((row) => {
+      const tag = row.distressedSignalTag || '';
+      const tagHtml = tag
+        ? `<span class="bridge-tag bridge-tag--${tagClass(tag)}">${esc(tag)}</span>`
+        : '';
+      return (
+        `<article class="bridge-kept-sample">` +
+        `<strong class="bridge-kept-sample-addr">${esc(row.streetAddress || '—')}</strong>` +
+        `<span class="bridge-kept-sample-type">${esc(row.violationIssueType || '')}</span>` +
+        tagHtml +
+        `</article>`
+      );
+    }).join('');
+    return `<div class="bridge-kept-samples" aria-label="Sample kept records">${cards}</div>`;
+  }
+
+  function renderKpis(stats) {
+    if (!kpiGrid) return;
+    const s = stats || {};
+    const data = lastResult || {};
+    const meta = data.processingMeta || {};
+    const rows = data.rows || [];
+
+    const kept = Number(s.kept);
+    const keptN = Number.isFinite(kept) ? kept : rows.length;
+    let raw = Number(s.totalParsed);
+    if (!Number.isFinite(raw) || raw < 0) {
+      const fallbackKilled =
+        (Number(s.discarded) || 0) +
+        (Number(s.deduplicated) || 0) +
+        (Number(s.alreadyImported) || 0);
+      raw = keptN + Math.max(0, fallbackKilled);
+    }
+    const killed = Math.max(0, raw - keptN);
+
+    const reasonHtml = buildKillReasons(s);
+    const proofHtml = buildProofChips(s, meta);
+    const samplesHtml = buildKeptSamples(rows);
+
+    kpiGrid.classList.add('bridge-kill-report');
+    kpiGrid.innerHTML =
+      `<div class="bridge-kill-flow" role="group" aria-label="Kill-rate scrub report">` +
+      `<div class="bridge-kill-stat bridge-kill-stat--raw">` +
+      `<span class="bridge-kill-stat-value">${raw.toLocaleString()}</span>` +
+      `<span class="bridge-kill-stat-label">RAW</span>` +
+      `</div>` +
+      `<span class="bridge-kill-arrow" aria-hidden="true">→</span>` +
+      `<div class="bridge-kill-stat bridge-kill-stat--killed">` +
+      `<span class="bridge-kill-stat-value">${killed.toLocaleString()}</span>` +
+      `<span class="bridge-kill-stat-label">KILLED</span>` +
+      `</div>` +
+      `<span class="bridge-kill-arrow" aria-hidden="true">→</span>` +
+      `<div class="bridge-kill-stat bridge-kill-stat--kept">` +
+      `<span class="bridge-kill-stat-value">${keptN.toLocaleString()}</span>` +
+      `<span class="bridge-kill-stat-label">KEPT</span>` +
+      `</div>` +
+      `</div>` +
+      (reasonHtml ? `<div class="bridge-kill-reasons">${reasonHtml}</div>` : '') +
+      (proofHtml ? `<div class="bridge-proof-chips">${proofHtml}</div>` : '') +
+      samplesHtml;
   }
 
   function setSaveStatus(message, tone) {
@@ -2601,28 +2739,13 @@
     const stats = data.stats || {};
     const rows = data.rows || [];
     const uploadLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
-    const parserLabel = data.processingMeta?.parser ? ` · ${data.processingMeta.parser} parser` : '';
-    const indexCount = data.processingMeta?.importIndexCount;
-    const indexLabel = Number.isFinite(indexCount) && indexCount > 0
-      ? ` · ${indexCount.toLocaleString()} address(es) in Analyze`
-      : '';
     const fileCount = Number(data.fileCount) || (Array.isArray(data.sourceFiles) ? data.sourceFiles.length : 1) || 1;
     const fileLabel = fileCount > 1
       ? `${fileCount} files (${data.sourceFile})`
       : data.sourceFile;
-    const baseMeta =
-      `${rows.length.toLocaleString()} record(s) kept from ${fileLabel} · ${uploadLabel} · ${data.city.city}, ${data.city.state}${parserLabel}${indexLabel}`;
-    // Day-2 efficiency: surface format auto-reuse + optional duration (EFF-01 polish)
-    const tr = data.processingMeta && data.processingMeta.typeResolution;
-    let reuseLabel = '';
-    if (tr && tr.source === 'auto_reuse') {
-      reuseLabel = tr.header
-        ? ` · Format reused · Type: ${tr.header}`
-        : ' · Format reused · No type column';
-    }
-    const ms = data.processingMeta && data.processingMeta.durationMs;
-    const timeLabel = (Number.isFinite(ms) && ms >= 0)
-      ? ` · ${(ms / 1000).toFixed(1)}s`
+    // Slim ops context only — duration / Format reused / parser live on proof chips (renderKpis)
+    const cityBit = data.city
+      ? `${data.city.city}, ${data.city.state}`
       : '';
     let trainTip = '';
     if (isBridgeAdmin()) {
@@ -2635,7 +2758,7 @@
         trainTip = ` · ${openTrain} Train group(s) ready`;
       }
     }
-    resultsMeta.textContent = baseMeta + reuseLabel + timeLabel + trainTip;
+    resultsMeta.textContent = [uploadLabel, cityBit, fileLabel].filter(Boolean).join(' · ') + trainTip;
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');
@@ -2655,23 +2778,15 @@
     }
 
     if (stubNote) {
-      setHidden(stubNote, !data.stub);
-      if (!data.stub) {
-        const reviewNote = data.stats.needsReview
-          ? ` ${data.stats.needsReview} row(s) flagged for review (low-confidence extraction).`
-          : '';
-        const importedNote = data.stats.alreadyImported
-          ? ` ${data.stats.alreadyImported} already in Analyze (hidden from this list).`
-          : '';
-        const noDistress = data.stats.noDistress || data.stats.discardReasons?.no_distress_signal || 0;
-        const distressNote = noDistress
-          ? ` ${noDistress} generic code violation(s) dropped (no distress signal).`
-          : '';
-        stubNote.textContent = data.stats.discarded
-          ? `${data.stats.discarded} row(s) discarded.${distressNote}${importedNote}${reviewNote}`
-          : `Processing complete.${distressNote}${importedNote}${reviewNote} Save the list below — nothing was sent to Analyze.`;
-        setHidden(stubNote, !data.stats.discarded && !data.stats.alreadyImported
-          && !data.stats.needsReview && !noDistress);
+      // Kill report owns discard/review/independence proof chips — hide stub for normal process.
+      // Keep stub path for data.stub and rare edge prose; independence phrase stays in source.
+      if (data.stub) {
+        setHidden(stubNote, false);
+        stubNote.textContent =
+          'Stub / edge process path. Save the list below — nothing was sent to Analyze.';
+      } else {
+        setHidden(stubNote, true);
+        stubNote.textContent = '';
       }
     }
 
