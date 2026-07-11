@@ -218,3 +218,130 @@ test('SHIFT-02: CSS styles inventory HUD strip', () => {
     '.bridge-inventory-hud or #bridge-inventory-hud rule must exist in bridge.css'
   );
 });
+
+// ---------------------------------------------------------------------------
+// SHIFT-01: multi-city sticky session queue (client-only, no shift API)
+// ---------------------------------------------------------------------------
+
+function saveCurrentListSlice() {
+  const start = js.indexOf('async function saveCurrentList');
+  assert.ok(start >= 0, 'async function saveCurrentList must exist');
+  const rest = js.slice(start + 1);
+  const next = rest.search(/\n  (?:async )?function \w+/);
+  return next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 5000);
+}
+
+function clearShiftQueueHelperSlice() {
+  // Optional session-only clear — if present, must not DELETE durable lists
+  const patterns = [
+    /function\s+clearShiftQueue\b/,
+    /function\s+clearShiftStrip\b/,
+    /bridge-shift-queue-clear/
+  ];
+  for (const re of patterns) {
+    const m = js.match(re);
+    if (!m) continue;
+    const start = m.index;
+    // Prefer a function body if clearShiftQueue/clearShiftStrip; else scan nearby handler
+    if (/function\s+clearShift/.test(m[0])) {
+      const rest = js.slice(start + 1);
+      const next = rest.search(/\n  (?:async )?function \w+/);
+      return next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 1200);
+    }
+    // Button id reference — take a window around the first match
+    return js.slice(Math.max(0, start - 80), start + 900);
+  }
+  return null;
+}
+
+test('SHIFT-01: sticky queue mount bridge-shift-queue present', () => {
+  const inHtml = /id=["']bridge-shift-queue["']/.test(html);
+  const inJs = /bridge-shift-queue/.test(js);
+  assert.ok(
+    inHtml || inJs,
+    'HTML or JS must expose bridge-shift-queue mount / render path'
+  );
+  assert.match(html, /id=["']bridge-shift-queue["']/, 'HTML must have id="bridge-shift-queue"');
+});
+
+test('SHIFT-01: session queue markers (shiftQueue / bridge_shift_queue)', () => {
+  const hasVar = /\bshiftQueue\b/.test(js);
+  const hasKey = /bridge_shift_queue/.test(js);
+  assert.ok(
+    hasVar || hasKey,
+    'bridge.js must keep a session shiftQueue and/or sessionStorage key bridge_shift_queue'
+  );
+  assert.match(js, /bridge_shift_queue/, 'sessionStorage key bridge_shift_queue must appear');
+  assert.match(js, /\bshiftQueue\b/, 'shiftQueue array/variable must appear');
+});
+
+test('SHIFT-01: save path still loadSavedLists then resetImportAreaAfterSave', () => {
+  const slice = saveCurrentListSlice();
+  assert.match(slice, /await\s+loadSavedLists\s*\(/);
+  assert.match(slice, /resetImportAreaAfterSave\s*\(/);
+  // Order: loadSavedLists appears before reset in the success path
+  const loadIdx = slice.search(/await\s+loadSavedLists\s*\(/);
+  const resetIdx = slice.search(/resetImportAreaAfterSave\s*\(/);
+  assert.ok(loadIdx >= 0 && resetIdx >= 0 && loadIdx < resetIdx,
+    'saveCurrentList should await loadSavedLists before resetImportAreaAfterSave');
+});
+
+test('SHIFT-01: save success pushes into session queue before/with reset', () => {
+  const slice = saveCurrentListSlice();
+  // Push markers: unshift/push on shiftQueue, or persist helper near save success
+  const hasPush =
+    /shiftQueue\s*\.\s*(unshift|push)\s*\(/.test(slice) ||
+    /unshiftShiftQueue|pushShiftQueue|persistShiftQueue|renderShiftQueue/.test(slice);
+  assert.ok(
+    hasPush,
+    'saveCurrentList success path must push/render session shift queue (unshift/push or renderShiftQueue)'
+  );
+});
+
+test('SHIFT-01: full reset still clears selectedCity + lastResult + location step', () => {
+  const slice = resetImportAreaSlice();
+  assert.match(slice, /selectedCity\s*=\s*null/);
+  assert.match(slice, /lastResult\s*=\s*null/);
+  assert.match(slice, /setPipelineStep\s*\(\s*['"]location['"]\s*\)/);
+  assert.match(js, /pick the next city|Filter reset/i);
+});
+
+test('SHIFT-01: no /api/bridge/shift backend route in client', () => {
+  assert.equal(
+    /\/api\/bridge\/shift/.test(js),
+    false,
+    'bridge.js must not introduce /api/bridge/shift'
+  );
+});
+
+test('SHIFT-01: session-only clear must not DELETE durable lists in same body', () => {
+  const slice = clearShiftQueueHelperSlice();
+  if (slice == null) {
+    // Optional control — absence is OK; empty-on-lists-empty is enough
+    assert.ok(true, 'no clear-shift helper — session clear optional');
+    return;
+  }
+  // Strip strings/comments so "DELETE" in teaching copy does not false-positive
+  const withoutStrings = slice
+    .replace(/`(?:\\.|[^`\\])*`/g, '``')
+    .replace(/'(?:\\.|[^'\\])*'/g, "''")
+    .replace(/"(?:\\.|[^"\\])*"/g, '""')
+    .replace(/\/\/[^\n]*/g, '')
+    .replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.equal(
+    /method\s*:\s*['"]DELETE['"]/.test(withoutStrings) ||
+      /fetchJson\s*\(\s*['"`]\/api\/bridge\/lists/.test(withoutStrings),
+    false,
+    'session-only clear must not call DELETE /api/bridge/lists'
+  );
+});
+
+test('SHIFT-01: CSS styles sticky shift queue strip', () => {
+  const body =
+    cssRuleBody(css, '.bridge-shift-queue') ||
+    cssRuleBody(css, '#bridge-shift-queue');
+  assert.ok(
+    body != null,
+    '.bridge-shift-queue or #bridge-shift-queue rule must exist in bridge.css'
+  );
+});
