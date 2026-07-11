@@ -46,7 +46,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 - [x] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
 - [x] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
 - [x] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
-- [ ] **Phase 66: Superpower Train Theater** — Admin Train climax when open groups; brain secondary; non-admin gate
+- [x] **Phase 66: Superpower Train Theater** — Admin Train climax when open groups; brain secondary; non-admin gate
 - [ ] **Phase 67: Multi-City Shift & Staging** — Sticky shift queue; inventory HUD; brand-heat success
 - [ ] **Phase 68: Regression QA Lock** — v1.6–v2.0 locks + suite + verify-live + mobile/a11y motion
 
@@ -122,10 +122,10 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   1. Admin with open train groups after process sees **Train theater** (mission header with open-group count; Distressed / Not Distressed with live kept-count feedback) — not equal peer tabs with Kept / Brain by default
   2. Filter brain panel is **secondary** (rules armory), not a third equal-weight peer competing with the scrub win
   3. Non-admin never sees train/brain chrome (v1.6 TRAIN-03 / admin gate preserved)
-**Plans**: 2/3 plans complete · plan-check **PASS** · status: In Progress
+**Plans**: 3/3 plans complete · plan-check **PASS** · status: Complete
 - [x] 66-01-PLAN.md — Open-count helper + process→train theater pivot + mission header (THTR-01)
 - [x] 66-02-PLAN.md — Live kept HUD + theater chrome / demoted Kept (THTR-01)
-- [ ] 66-03-PLAN.md — Rules armory demotion + admin gate + suite/live (THTR-02, THTR-03)
+- [x] 66-03-PLAN.md — Rules armory demotion + admin gate + suite/live (THTR-02, THTR-03)
 
 ### Phase 67: Multi-City Shift & Staging
 **Goal**: Operators run a multi-city shift with sticky inventory, brand-heat success, and one-click next city without re-teaching chrome

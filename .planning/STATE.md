@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 3
-status: executing
-stopped_at: Completed 66-02-PLAN.md
-last_updated: "2026-07-11T00:27:58.496Z"
+current_plan: 3 of 3
+status: verifying
+stopped_at: Completed 66-03-PLAN.md
+last_updated: "2026-07-11T00:30:58.349Z"
 last_activity: 2026-07-11
 progress:
   total_phases: 8
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 20
-  completed_plans: 14
-  percent: 70
+  completed_plans: 15
+  percent: 75
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 66 Superpower Train Theater (plan 02 done; next 66-03)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 66 complete (ready for verify-work); next Phase 67
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 66 — Superpower Train Theater  
-**Current Plan:** 3 of 3  
+**Current Plan:** 3 of 3 (complete)  
 **Total Plans in Phase:** 3  
-**Status:** Executing  
-**Last activity:** 2026-07-10 — 66-02 live kept HUD + theater chrome (THTR-01)
+**Status:** Phase complete — ready for verification  
+**Last activity:** 2026-07-10 — 66-03 Rules armory + admin gate (THTR-02/03)
 
-Progress: [███████░░░] 70% (14/20 plans executed)
+Progress: [████████░░] 75% (15/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -44,7 +44,7 @@ Progress: [███████░░░] 70% (14/20 plans executed)
 | 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
 | 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
-| 66 | Superpower Train Theater | 3 (2 done) | PASS |
+| 66 | Superpower Train Theater | 3 (3 done) | PASS |
 | 67 | Multi-City Shift & Staging | 3 | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
 
@@ -99,6 +99,9 @@ Progress: [███████░░░] 70% (14/20 plans executed)
 - [66] Mission header inside bridge-train-wrap only; presentation-only no decision API changes
 - [66] Mission re-sync in refreshTrainUiAfterDecision so undo/conflict inherit without API rewrite
 - [66] Theater chrome when admin wrap visible and (train mode OR open > 0); Kept demoted CSS-only
+- [66] Train tab stays Train brain; brain MUST be Rules armory (THTR-02)
+- [66] Armory demotion CSS-only under theater; never display:none on tab
+- [66] THTR-03 locked as-built fail-closed (wrap hidden, isBridgeAdmin gates) — no JS rewrite
 
 ## Performance Metrics
 
@@ -118,16 +121,17 @@ Progress: [███████░░░] 70% (14/20 plans executed)
 | 65 | 03 | 2min | 2 | 3 |
 | 66 | 01 | 8min | 3 | 5 |
 | 66 | 02 | 12min | 2 | 4 |
+| 66 | 03 | 8min | 2 | 3 |
 
 ## Next command
 
 ```text
-/gsd:execute-phase 66
+/gsd:verify-work 66
 ```
 
-(Or execute plan 66-03 — brain demotion + admin gate + suite/live)
+(Then `/gsd:execute-phase 67` — Multi-City Shift & Staging)
 
 ## Session
 
-**Last session:** 2026-07-11T00:27:58.486Z
-**Stopped at:** Completed 66-02-PLAN.md
+**Last session:** 2026-07-11T00:30:58.338Z
+**Stopped at:** Completed 66-03-PLAN.md
