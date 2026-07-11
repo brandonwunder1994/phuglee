@@ -49,7 +49,7 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 ### Multi-city shift desk & staging (SHIFT)
 
 - [ ] **SHIFT-01**: Operators can run a **multi-city shift**: sticky queue/inventory of staged cities/lists; after save, next city is one-click without re-teaching chrome / full wizard restart feel
-- [ ] **SHIFT-02**: Saved lists read as **staging inventory** (counts, type heat, ready/download language) while preserving rename / download / delete / download-all APIs
+- [x] **SHIFT-02**: Saved lists read as **staging inventory** (counts, type heat, ready/download language) while preserving rename / download / delete / download-all APIs
 - [x] **SHIFT-03**: Post-save success uses **brand heat** (ember/gold), not green SaaS flash; optional “Download this list” path remains
 
 ### Regression & quality (QA)
@@ -126,7 +126,7 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | THTR-02 | 66 | Complete |
 | THTR-03 | 66 | Complete |
 | SHIFT-01 | 67 | Pending |
-| SHIFT-02 | 67 | Pending |
+| SHIFT-02 | 67 | Complete |
 | SHIFT-03 | 67 | Complete |
 | QA-01 | 68 | Pending |
 | QA-02 | 68 | Pending |

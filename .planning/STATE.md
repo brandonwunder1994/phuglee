@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2
-status: in_progress
-stopped_at: Completed 67-01-PLAN.md
-last_updated: "2026-07-11T00:41:00Z"
-last_activity: 2026-07-11 — 67-01 brand-heat post-save flash (SHIFT-03)
+current_plan: 3
+status: executing
+stopped_at: Completed 67-02-PLAN.md
+last_updated: "2026-07-11T00:37:26.045Z"
+last_activity: 2026-07-11
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 20
-  completed_plans: 16
-  percent: 80
+  completed_plans: 17
+  percent: 85
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 67 Multi-City Shift & Staging (plan 01 done)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 67 Multi-City Shift & Staging (plans 01–02 done)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 67 — Multi-City Shift & Staging  
-**Current Plan:** 2 of 3
+**Current Plan:** 3 of 3
 **Total Plans in Phase:** 3  
 **Status:** In progress
-**Last activity:** 2026-07-11 — 67-01 brand-heat post-save flash (SHIFT-03)
+**Last activity:** 2026-07-11 — 67-02 staging inventory HUD (SHIFT-02)
 
-Progress: [████████░░] 80% (16/20 plans executed)
+Progress: [█████████░] 85% (17/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -45,7 +45,7 @@ Progress: [████████░░] 80% (16/20 plans executed)
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
 | 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
 | 66 | Superpower Train Theater | 3 (3 done) | PASS |
-| 67 | Multi-City Shift & Staging | 3 (1 done) | PASS |
+| 67 | Multi-City Shift & Staging | 3 (2 done) | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
 
 ## GSD artifacts
@@ -104,6 +104,8 @@ Progress: [████████░░] 80% (16/20 plans executed)
 - [66] THTR-03 locked as-built fail-closed (wrap hidden, isBridgeAdmin gates) — no JS rewrite
 - [67] Flash heat: orange rgba bg + gold border/text; downloaded chip muted taupe/cream so Ready stays ember
 - [67] Shift flash copy: Staged/List staged; keep pick-the-next-city + download from Saved lists anchors
+- [67] HUD metrics only from savedLists summaries — no decorative numbers or second store
+- [67] Empty inventory hides HUD; Ready ember heat, Downloaded muted taupe; keep lists-total a11y strip
 
 ## Performance Metrics
 
@@ -125,6 +127,7 @@ Progress: [████████░░] 80% (16/20 plans executed)
 | 66 | 02 | 12min | 2 | 4 |
 | 66 | 03 | 8min | 2 | 3 |
 | 67 | 01 | 8min | 2 | 4 |
+| 67 | 02 | 8min | 2 | 4 |
 
 ## Next command
 
@@ -132,9 +135,9 @@ Progress: [████████░░] 80% (16/20 plans executed)
 /gsd:execute-phase 67
 ```
 
-(Continue Phase 67 — plans 02–03 remaining)
+(Continue Phase 67 — plan 03 remaining)
 
 ## Session
 
-**Last session:** 2026-07-11T00:41:00Z
-**Stopped at:** Completed 67-01-PLAN.md
+**Last session:** 2026-07-11T00:37:26.036Z
+**Stopped at:** Completed 67-02-PLAN.md

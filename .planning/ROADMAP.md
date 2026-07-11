@@ -137,7 +137,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   3. Post-save success uses **brand heat** (ember/gold), not green SaaS flash; optional “Download this list” path remains
 **Plans**: 3 plans · plan-check **PASS**
 - [x] 67-01-PLAN.md — Brand-heat post-save flash (SHIFT-03)
-- [ ] 67-02-PLAN.md — Staging inventory HUD over lists table (SHIFT-02)
+- [x] 67-02-PLAN.md — Staging inventory HUD over lists table (SHIFT-02)
 - [ ] 67-03-PLAN.md — Sticky client shift queue + next-city posture (SHIFT-01)
 
 ### Phase 68: Regression QA Lock
@@ -166,7 +166,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | 64. Live Scrub Feed | 2/2 | Complete | PASS | 2026-07-11 |
 | 65. Kill-Rate Scrub Report | 3/3 | Complete | PASS | 2026-07-11 |
 | 66. Superpower Train Theater | 3/3 | Complete | PASS | — |
-| 67. Multi-City Shift & Staging | 1/3 | In Progress | PASS | — |
+| 67. Multi-City Shift & Staging | 2/3 | In Progress | PASS | — |
 | 68. Regression QA Lock | 0/2 | Ready to execute | PASS | — |
 
 ### Coverage Map
