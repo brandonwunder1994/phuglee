@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 3 of 3
-status: verifying
+current_plan: Not started
+status: planning
 stopped_at: Completed 67-03-PLAN.md
-last_updated: "2026-07-11T00:42:06.549Z"
-last_activity: 2026-07-11
+last_updated: "2026-07-11T00:44:25.645Z"
+last_activity: 2026-07-11 — 67-03 sticky shift queue (SHIFT-01)
 progress:
   total_phases: 8
   completed_phases: 7
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 67 — Multi-City Shift & Staging  
-**Current Plan:** 3 of 3 (all plans done)
+**Current Plan:** Not started
 **Total Plans in Phase:** 3  
-**Status:** Phase complete — ready for verification
+**Status:** Ready to plan
 **Last activity:** 2026-07-11 — 67-03 sticky shift queue (SHIFT-01)
 
 Progress: [█████████░] 90% (18/20 plans executed)
