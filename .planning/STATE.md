@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2 of 2
-status: verifying
+current_plan: Not started
+status: planning
 stopped_at: Completed 63-02-PLAN.md
-last_updated: "2026-07-11T00:01:44.117Z"
-last_activity: 2026-07-11
+last_updated: "2026-07-11T00:04:26.898Z"
+last_activity: 2026-07-11 — 63-02 process climax + IDLE locks shipped
 progress:
   total_phases: 8
   completed_phases: 3
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 63 — Idle Proof & Process Climax  
-**Current Plan:** 2 of 2 (complete)  
+**Current Plan:** Not started
 **Total Plans in Phase:** 2  
-**Status:** Phase complete — ready for verification
+**Status:** Ready to plan
 **Last activity:** 2026-07-11 — 63-02 process climax + IDLE locks shipped
 
 Progress: [████░░░░░░] 35% (7/20 plans executed)
