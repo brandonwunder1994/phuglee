@@ -71,7 +71,7 @@ Each task was committed atomically:
 
 _Note: Both tasks edit the same contiguous button block in one CSS file; shipped as a single atomic feat commit._
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `9fd7d2f` (docs: complete plan)
 
 ## Files Created/Modified
 

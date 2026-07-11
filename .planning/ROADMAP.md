@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 76 complete (2/2); next Phase 77  
-**Next:** Execute 77-01 (shared button system + capped primary CTA)
+**Status:** In progress — Phase 77 Plan 01 complete (1/2); next 77-02  
+**Next:** Execute 77-02 (chips, panels, empty/error/success)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -92,7 +92,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 77-01-PLAN.md -- Button system + capped primary CTA shimmer (BUTTONS-01..03)
+- [x] 77-01-PLAN.md -- Button system + capped primary CTA shimmer (BUTTONS-01..03)
 - [ ] 77-02-PLAN.md -- Chips (auth-tab energy), panels, empty/error/success (FORMS-02/03, CARDS-01, STATES-01/03)
 
 ### Phase 78: Cascade, Hooks & State CSS
@@ -162,8 +162,8 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 75. Contract Freeze & Surface Inventory | v3.0 | 2/2 | Complete | 2026-07-11 |
-| 76. Tokens & Layer Audit | v3.0 | 1/2 | In Progress | - |
-| 77. Shared Components Expansion | v3.0 | 0/2 | Planned | - |
+| 76. Tokens & Layer Audit | v3.0 | 2/2 | Complete | 2026-07-11 |
+| 77. Shared Components Expansion | v3.0 | 1/2 | In Progress | - |
 | 78. Cascade, Hooks & State CSS | v3.0 | 0/TBD | Not started | - |
 | 79. Desk Core Restyle | v3.0 | 0/2 | Planned | - |
 | 80. Theater, Gates & Motion | v3.0 | 0/TBD | Not started | - |
