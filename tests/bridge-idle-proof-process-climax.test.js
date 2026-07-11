@@ -64,8 +64,9 @@ test('IDLE-02: received date chips (today + last 7 days)', () => {
   assert.match(js, /function setResponseDateYmd\s*\(/);
   assert.match(js, /Today/);
   assert.match(js, /offset <= 7|offset < 8/);
-  // Paste + file-drop both get chips; nothing auto-selected
-  assert.match(html, /id="bridge-paste-date-chips"/);
+  // Single shared Received chips in combined import section; nothing auto-selected
+  assert.match(html, /id="bridge-date-chips"/);
+  assert.match(html, /bridge-import-or|OR/);
   assert.match(js, /No auto-selected day|setResponseDateYmd\(''\)|setResponseDateYmd\(""\)/);
   assert.equal(
     /Default:\s*Today selected/i.test(js),
