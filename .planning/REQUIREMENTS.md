@@ -16,9 +16,9 @@
 
 ### BUTTONS
 
-- [ ] **BUTTONS-01**: Operator can use primary / secondary / ghost / danger system buttons for every actionable control on `/bridge`
-- [ ] **BUTTONS-02**: Operator sees consistent hover, focus, active, and disabled states on all system buttons
-- [ ] **BUTTONS-03**: Operator sees contained primary CTA energy (subtle shimmer/gem) matching home, capped so all-day desk use does not fatigue
+- [x] **BUTTONS-01**: Operator can use primary / secondary / ghost / danger system buttons for every actionable control on `/bridge`
+- [x] **BUTTONS-02**: Operator sees consistent hover, focus, active, and disabled states on all system buttons
+- [x] **BUTTONS-03**: Operator sees contained primary CTA energy (subtle shimmer/gem) matching home, capped so all-day desk use does not fatigue
 
 ### FORMS
 
@@ -88,9 +88,9 @@
 | TOKENS-02 | Phase 76 | Complete |
 | TOKENS-03 | Phase 76 | Complete |
 | TOKENS-04 | Phase 76 | Complete |
-| BUTTONS-01 | Phase 77 | Pending |
-| BUTTONS-02 | Phase 77 | Pending |
-| BUTTONS-03 | Phase 77 | Pending |
+| BUTTONS-01 | Phase 77 | Complete |
+| BUTTONS-02 | Phase 77 | Complete |
+| BUTTONS-03 | Phase 77 | Complete |
 | FORMS-01 | Phase 78 | Pending |
 | FORMS-02 | Phase 77 | Pending |
 | FORMS-03 | Phase 77 | Pending |

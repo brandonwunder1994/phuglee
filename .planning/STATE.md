@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
-status: ready
-stopped_at: Completed 76-02-PLAN.md
-last_updated: "2026-07-11T20:18:00.000Z"
-last_activity: 2026-07-11 — Completed 76-02 bridge token wire + glass3 cache bust
+status: In Progress
+stopped_at: Completed 77-01-PLAN.md
+last_updated: "2026-07-11T20:17:00.000Z"
+last_activity: 2026-07-11 — Completed 77-01 shared buttons + desk-capped shimmer
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 14
-  completed_plans: 4
-  percent: 29
+  completed_plans: 5
+  percent: 36
 ---
 
 # State
@@ -21,34 +21,35 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 77 Shared Components next
+**Current focus:** v3.0 Filter Visual Makeover — Phase 77 Plan 02 next
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 77 of 81 (Shared Components Expansion) — Phase 76 complete  
-**Plan:** 1 of 2 (next)  
-**Status:** Ready for Phase 77  
-**Last activity:** 2026-07-11 — Completed 76-02 bridge token wire + glass3 cache bust  
+**Phase:** 77 of 81 (Shared Components Expansion) — Plan 01 complete  
+**Plan:** 2 of 2 (next)  
+**Status:** In Progress  
+**Last activity:** 2026-07-11 — Completed 77-01 shared buttons + desk-capped shimmer  
 
-Progress: [███░░░░░░░] 29%
+Progress: [████░░░░░░] 36%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (this milestone)
-- Average duration: 12.5min
-- Total execution time: 50min
+- Total plans completed: 5 (this milestone)
+- Average duration: 11.6min
+- Total execution time: 58min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 4 done | 14 | 12.5min |
+| 75–81 | 5 done | 14 | 11.6min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
 | Phase 76 P02 | 12min | 2 tasks | 7 files |
+| Phase 77 P01 | 8min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,9 @@ Progress: [███░░░░░░░] 29%
 - [Phase 76]: Dialog backdrop z-index 9999 dropped — native top-layer dialogs stack without ad-hoc island
 - [Phase 76]: City typeahead keeps opaque solids via glass-bg-solid/bg-elevated (readable menu)
 - [Phase 76]: Shared CSS trio cache tag glass3 site-wide; bridge.css page bump to v=45
+- [Phase 77]: Primary hover capped at translateY(-2px) scale(1.01) for all-day desk
+- [Phase 77]: Danger button tints via --phuglee-danger; secondary hover uses --glass-border-hover
+- [Phase 77]: Explicit .phuglee-btn:focus-visible uses --phuglee-focus-ring; .phuglee-btn-sm for desk density
 
 ### Pending Todos
 None yet.
@@ -79,7 +83,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:18:00.000Z
-Stopped at: Completed 76-02-PLAN.md
+Last session: 2026-07-11T20:10:25.145Z
+Stopped at: Completed 77-01-PLAN.md
 Resume file: None
 Next: Phase 77 Plan 01 — shared components expansion
