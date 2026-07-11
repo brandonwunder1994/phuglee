@@ -205,6 +205,24 @@
   --card-radius: 14px;
   --card-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --card-duration: 0.28s;
+
+  /* Z-index scale (Filter + shell)
+     Order: bg → main → sticky HUD → typeahead → dialog → toast
+     Shell chrome (nav 1000, settings 1100, auth 1300, palette 2000) sits in sticky→dialog band.
+     Page-local stacking (typeahead) uses lower band; global overlays use dialog/toast.
+     Consumers must use var(--z-*) — no new ad-hoc 9999/12000 islands. */
+  --z-bg: 0;
+  --z-main: 1;
+  --z-sticky: 1000;      /* shell-nav, sticky HUD band */
+  --z-typeahead: 40;     /* in-panel menus above panel children (bridge city search) */
+  --z-typeahead-menu: 50;
+  --z-dialog: 10000;     /* native dialogs / history / type confirm */
+  --z-toast: 12000;      /* scanned toast and ephemeral full-screen confirms */
+  /* Shell overlay aliases (declare only — wire consumers in later phases) */
+  --z-shell-nav: var(--z-sticky);
+  --z-settings: 1100;
+  --z-auth: 1300;
+  --z-command-palette: 2000;
 }
 
 /* Light theme — first-class, not washed-out dark */
