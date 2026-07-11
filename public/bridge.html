@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=desk70">
-  <link rel="stylesheet" href="/css/bridge.css?v=71">
+  <link rel="stylesheet" href="/css/bridge.css?v=72">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -461,15 +461,14 @@
     </div>
 
     <section class="bridge-panel phuglee-panel bridge-lists-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
-      <!-- Collapsed by default — open only when you need the full table / downloads -->
+      <!-- Collapsed by default — city + record totals show on summary before expand -->
       <details class="bridge-lists-details" id="bridge-lists-details">
         <summary class="bridge-lists-details-summary" id="bridge-lists-details-summary">
           <span class="bridge-lists-details-summary-main">
-            <span class="bridge-lists-details-kicker">Inventory</span>
-            <span class="bridge-lists-details-title" id="bridge-lists-heading">Staging inventory</span>
-            <span class="bridge-lists-details-count" id="bridge-lists-details-count">0 lists</span>
+            <span class="bridge-lists-details-title" id="bridge-lists-heading">SCAN HISTORY</span>
+            <span class="bridge-lists-details-count" id="bridge-lists-details-count">0 cities · 0 rec</span>
           </span>
-          <span class="bridge-lists-details-hint" id="bridge-lists-details-hint">Expand to download or manage</span>
+          <span class="bridge-lists-details-hint" id="bridge-lists-details-hint">No scans staged yet</span>
         </summary>
         <div class="bridge-lists-details-body">
       <div class="bridge-lists-header">
@@ -481,8 +480,8 @@
         </div>
       </div>
       <div id="bridge-inventory-hud" class="bridge-inventory-hud" hidden
-           role="region" aria-label="Staging inventory summary"></div>
-      <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace. Lists stay until you delete them.</div>
+           role="region" aria-label="Scan history summary"></div>
+      <div id="bridge-lists-empty" class="bridge-lists-empty">No scans staged yet. Scrub a city list, then Save list to add it here. Download for enrichment when ready.</div>
       <div id="bridge-lists-wrap" class="bridge-lists-wrap" hidden>
         <table class="bridge-lists-table" id="bridge-lists-table">
           <thead>
@@ -508,8 +507,6 @@
         </div>
       </details>
     </section>
-
-    <p class="bridge-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
 
     <div class="bridge-error-wrap phuglee-error-wrap" id="bridge-error-wrap" hidden role="alert">
       <p class="bridge-error phuglee-error" id="bridge-error"></p>
@@ -560,6 +557,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=71"></script>
+  <script src="/js/bridge.js?v=72"></script>
 </body>
 </html>

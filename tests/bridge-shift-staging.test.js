@@ -168,8 +168,8 @@ test('SHIFT-02: HTML has bridge-inventory-hud mount', () => {
   assert.match(html, /id=["']bridge-inventory-hud["']/);
 });
 
-test('SHIFT-02: lists heading uses Staging inventory voice', () => {
-  assert.match(html, /Staging inventory/);
+test('SHIFT-02: lists heading uses SCAN HISTORY voice', () => {
+  assert.match(html, /SCAN HISTORY/);
 });
 
 test('SHIFT-02: bridge.js fills inventory HUD from savedLists', () => {

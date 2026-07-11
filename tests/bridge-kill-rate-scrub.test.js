@@ -87,11 +87,18 @@ test('KILL-01: discardReasons drives kill-reason breakdown', () => {
   assert.ok(start >= 0, 'function renderKpis must exist');
   // Include renderKpis body plus nearby kill-report helpers it may call
   const slice = js.slice(start, start + 4500);
-  const helperNames = ['renderKillReport', 'buildKillReasons', 'buildKillReport', 'renderKillReasons'];
+  const helperNames = [
+    'renderKillReport',
+    'buildKillReasons',
+    'buildKillReport',
+    'renderKillReasons',
+    'buildScrubBreakdown',
+    'buildBreakdownTable'
+  ];
   let helperSlice = '';
   for (const name of helperNames) {
     const hi = js.indexOf(`function ${name}`);
-    if (hi >= 0) helperSlice += js.slice(hi, hi + 2500);
+    if (hi >= 0) helperSlice += js.slice(hi, hi + 3500);
   }
   const combined = slice + '\n' + helperSlice;
   assert.match(
@@ -113,15 +120,15 @@ test('KILL-01: CSS kill-flow hierarchy classes', () => {
 // KILL-02 proof chips (expect FAIL until Plan 02)
 // ---------------------------------------------------------------------------
 
-test('KILL-02: proof chip / duration surface', () => {
+test('KILL-02: scrub breakdown table replaces proof chips', () => {
   assert.match(
     js,
-    /bridge-proof-chip|proof-chips|Scrubbed in|s scrub/i,
-    'js must surface proof chips or scrub duration language near results'
+    /bridge-scrub-breakdown|buildBreakdownTable|What happened to this upload/i,
+    'js must surface upload scrub breakdown after scan'
   );
 });
 
-test('KILL-02: format reuse still chip-capable', () => {
+test('KILL-02: format reuse still available in engine meta language', () => {
   assert.match(js, /Format reused/);
 });
 

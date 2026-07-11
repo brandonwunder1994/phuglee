@@ -2875,8 +2875,6 @@
 
     const reasonHtml = buildKillReasons(s);
     const breakdownHtml = buildBreakdownTable(s, raw, keptN, killed);
-    const proofHtml = buildProofChips(s, meta);
-    const samplesHtml = buildKeptSamples(rows);
 
     kpiGrid.classList.add('bridge-kill-report');
     kpiGrid.innerHTML =
@@ -2897,9 +2895,7 @@
       `</div>` +
       `</div>` +
       breakdownHtml +
-      (reasonHtml ? `<div class="bridge-kill-reasons" aria-label="Kill reason chips">${reasonHtml}</div>` : '') +
-      (proofHtml ? `<div class="bridge-proof-chips">${proofHtml}</div>` : '') +
-      samplesHtml;
+      (reasonHtml ? `<div class="bridge-kill-reasons" aria-label="Kill reason chips">${reasonHtml}</div>` : '');
   }
 
   function setSaveStatus(message, tone) {
@@ -3421,7 +3417,7 @@
             : 'No code violation lists in inventory. Click CV again or All to clear the filter.';
       } else {
         listsEmpty.textContent =
-          'No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace. Lists stay until you delete them.';
+          'No scans staged yet. Scrub a city list, then Save list to add it here. Download for enrichment when ready.';
       }
     }
     setHidden(listsEmpty, visible.length > 0);
@@ -3479,25 +3475,50 @@
     syncInventoryToolbarLabels();
   }
 
-  /** Collapsed inventory summary label (list count) — body stays closed until user expands. */
+  /**
+   * Collapsed SCAN HISTORY summary — cities + record totals visible before expand.
+   * Hint line lists top cities with rec counts so operators can scan without opening.
+   */
   function updateListsDetailsSummary(lists) {
     const countEl = document.getElementById('bridge-lists-details-count');
     const hintEl = document.getElementById('bridge-lists-details-hint');
     if (!countEl) return;
-    const n = Array.isArray(lists) ? lists.length : 0;
-    const totalRecords = Array.isArray(lists)
-      ? lists.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0)
-      : 0;
+    const rows = Array.isArray(lists) ? lists : [];
+    if (!rows.length) {
+      countEl.textContent = '0 cities · 0 rec';
+      if (hintEl) hintEl.textContent = 'No scans staged yet';
+      return;
+    }
+
+    const byCity = new Map();
+    let totalRecords = 0;
+    for (const list of rows) {
+      const city = String(list.city || '').trim();
+      const state = String(list.state || '').trim();
+      const key = [city, state].filter(Boolean).join(', ') || 'Unknown';
+      const rec = Number(list.recordCount) || 0;
+      totalRecords += rec;
+      const cur = byCity.get(key) || { label: key, records: 0, lists: 0 };
+      cur.records += rec;
+      cur.lists += 1;
+      byCity.set(key, cur);
+    }
+
+    const cities = [...byCity.values()].sort((a, b) => b.records - a.records);
+    const cityCount = cities.length;
     countEl.textContent =
-      n === 0
-        ? '0 lists'
-        : `${n.toLocaleString()} list${n === 1 ? '' : 's'}` +
-          (totalRecords
-            ? ` · ${totalRecords.toLocaleString()} rec`
-            : '');
+      `${cityCount.toLocaleString()} cit${cityCount === 1 ? 'y' : 'ies'}` +
+      ` · ${totalRecords.toLocaleString()} rec`;
+
     if (hintEl) {
+      const maxShow = 4;
+      const shown = cities.slice(0, maxShow).map((c) => {
+        const short = c.label.length > 22 ? c.label.slice(0, 20) + '…' : c.label;
+        return `${short} ${c.records.toLocaleString()}`;
+      });
+      const more = cities.length - shown.length;
       hintEl.textContent =
-        n === 0 ? 'Expand when you have lists' : 'Expand to download or manage';
+        shown.join(' · ') + (more > 0 ? ` · +${more} more` : '');
     }
   }
 
