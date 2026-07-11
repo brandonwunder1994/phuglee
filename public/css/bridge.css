@@ -3148,7 +3148,8 @@ button.bridge-inventory-filter-chip.is-active {
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
-/* Rise via shared .phuglee-modal-panel (phuglee-modal-rise); no duplicate keyframes */
+/* Rise via shared .phuglee-modal-panel (phuglee-modal-rise); no duplicate keyframes.
+   STATES-04: reduce twin below kills rise under prefers-reduced-motion. */
 .bridge-history-dialog-card.phuglee-panel {
   padding: 1.4rem 1.55rem 1.55rem;
   border: 1px solid var(--glass-border-strong);
@@ -3157,6 +3158,17 @@ button.bridge-inventory-filter-chip.is-active {
   box-shadow:
     var(--glass-shadow-float, 0 16px 48px rgba(0, 0, 0, 0.45)),
     0 0 40px color-mix(in srgb, var(--phuglee-orange) 10%, transparent);
+}
+
+/* Dialog rise twin — kill phuglee-modal-rise on Filter dialog cards (STATES-04 gap fill) */
+@media (prefers-reduced-motion: reduce) {
+  .bridge-history-dialog-card,
+  .bridge-history-dialog-card.phuglee-modal-panel,
+  .bridge-history-dialog-card.phuglee-panel {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 .bridge-history-dialog-head {
@@ -3919,6 +3931,55 @@ button.bridge-inventory-filter-chip.is-active {
 
   .bridge-train-actions .phuglee-btn {
     width: 100%;
+  }
+}
+
+/* ── Theater motion reduce twins (STATES-04) ───────────────────────────
+   Consolidated kill-switch for Train exit + dialog rise + mode tab polish.
+   Existing twins remain in place for feed enter, kill report, lists chevron,
+   scanned toast, date chips (near their clusters). !important = kill-switch only.
+   FEED-02: feed content never depends on animationend — reduce sets opacity:1.
+   Do not set outline:none here (phuglee-a11y focus rings stay). */
+@media (prefers-reduced-motion: reduce) {
+  /* Train card exit / pending — instant opacity hide; JS timers still remove DOM */
+  .bridge-train-group,
+  .bridge-train-group.is-pending,
+  .bridge-train-group.is-exiting {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .bridge-train-group.is-exiting {
+    opacity: 0 !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Mode tab color/bg transitions — no motion thrash */
+  .bridge-mode-tab,
+  .bridge-mode-tab:hover,
+  .bridge-results-mode--theater .bridge-mode-tab {
+    transition: color 0.01s linear, background 0.01s linear, border-color 0.01s linear !important;
+  }
+
+  /* Dialog rise (bridge-dialog-rise / phuglee-modal-rise dual-class path) */
+  .bridge-history-dialog-card,
+  .bridge-history-dialog-card.phuglee-modal-panel {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* Reinforce feed enter twin near theater cluster (FEED-02) */
+  .bridge-scrub-feed-item,
+  .bridge-scrub-feed-item.is-enter {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1;
+    transform: none;
   }
 }
 
