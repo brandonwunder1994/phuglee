@@ -149,6 +149,8 @@
   /** Serialize train decisions so a second Deny cannot overwrite the first promote with a stale rows snapshot. */
   let trainDecisionChain = Promise.resolve();
   let trainDecisionInFlight = false;
+  /** Guard: only one auto-save after Train queue drains per batch */
+  let autoSaveAfterTrainQueued = false;
 
   function trainDecisionKey(group) {
     if (window.BridgeTrain && typeof window.BridgeTrain.trainDecisionKey === 'function') {
@@ -1042,18 +1044,19 @@
     updateTrainMissionHeader(remaining, keptNow);
     if (remaining === 0) {
       setTrainStatus(
-        `Decision saved · ${keptNow.toLocaleString()} kept. Save list below when this city is ready.`,
+        `All Train groups done · ${keptNow.toLocaleString()} kept · auto-saving list…`,
         'success'
       );
     } else {
       setTrainStatus(
-        `Decision saved · ${keptNow.toLocaleString()} kept · ${remaining} group(s) left. Save list when ready.`,
+        `Decision saved · ${keptNow.toLocaleString()} kept · ${remaining} group(s) left.`,
         'success'
       );
     }
 
     return {
       decidedKey,
+      remaining,
       body: {
         clientApplied: true,
         action,
@@ -1076,6 +1079,46 @@
           : []
       }
     };
+  }
+
+  /**
+   * When every distressed / not-distressed Train card has been decided for this
+   * batch, stage the kept list automatically so the operator does not click
+   * Save list. Runs after brain POST chain so rules land first; only fires when
+   * at least one decision was made this batch (never on process with 0 groups).
+   */
+  function queueAutoSaveAfterTrainComplete() {
+    if (autoSaveAfterTrainQueued) return;
+    if (!lastResult || !Array.isArray(lastResult.rows) || !lastResult.rows.length) return;
+    if (countOpenTrainGroups(lastResult, trainDecidedKeys) !== 0) return;
+    if (!trainDecidedKeys.size) return;
+
+    autoSaveAfterTrainQueued = true;
+    setSaveStatus('All Train groups complete · auto-saving list…', '');
+    setTrainStatus('All Train groups complete · auto-saving list…', 'success');
+
+    const run = async () => {
+      try {
+        // Re-check after brain chain — undo or empty kept list aborts
+        if (!lastResult || !Array.isArray(lastResult.rows) || !lastResult.rows.length) {
+          return;
+        }
+        if (countOpenTrainGroups(lastResult, trainDecidedKeys) !== 0) {
+          return;
+        }
+        await saveCurrentList({ auto: true });
+      } catch (err) {
+        const msg = (err && err.message) || 'Auto-save failed — click Save list.';
+        setSaveStatus(msg, 'error');
+        setTrainStatus(msg, 'error');
+        showError(msg);
+      } finally {
+        autoSaveAfterTrainQueued = false;
+      }
+    };
+
+    const p = trainDecisionChain.then(run, run);
+    trainDecisionChain = p.catch(() => {});
   }
 
   /**
@@ -1250,6 +1293,11 @@
       setTrainStatus(msg, 'error');
       showError(msg);
     });
+
+    // Last open group decided → auto-stage the list after brain chain settles
+    if (meta.remaining === 0) {
+      queueAutoSaveAfterTrainComplete();
+    }
   }
 
   function resolveTrainGroupFromCard(card) {
@@ -3251,13 +3299,20 @@
     } catch (_) { /* ignore */ }
   }
 
-  async function saveCurrentList() {
+  /**
+   * Stage kept rows as a saved list.
+   * @param {{ auto?: boolean }} [opts] auto=true skips Train soft-confirm (queue empty)
+   *   and uses auto-save status copy — used when the last Train card is decided.
+   */
+  async function saveCurrentList(opts) {
+    const auto = !!(opts && opts.auto);
     if (!lastResult?.rows?.length) {
       setSaveStatus('Process a file with kept rows before saving.', 'error');
       return;
     }
-    // LIST-02 soft Train-before-Save (admin only; never hard-block without cancel)
-    if (isBridgeAdmin() && resultsMode === 'train') {
+    // LIST-02 soft Train-before-Save (admin only; never hard-block without cancel).
+    // Auto-save after Train complete skips confirm — queue is already empty.
+    if (!auto && isBridgeAdmin() && resultsMode === 'train') {
       const open = filterUndecidedTrainGroups(
         (getReviewGroups(lastResult).distressed || []).concat(
           getReviewGroups(lastResult).notDistressed || []
@@ -3273,7 +3328,7 @@
     }
     const name = String(listNameInput?.value || '').trim() || defaultNameFromResult(lastResult);
     if (saveListBtn) saveListBtn.disabled = true;
-    setSaveStatus('Saving list…', '');
+    setSaveStatus(auto ? 'Auto-saving list…' : 'Saving list…', '');
     lastFailedAction = 'saveList';
     try {
       const data = await fetchJson('/api/bridge/lists', {
@@ -3332,8 +3387,18 @@
         state,
         keptCount: recordCount
       });
+      if (auto) {
+        setTrainStatus(
+          `List auto-saved · ${recordCount.toLocaleString()} kept · pick the next city`,
+          'success'
+        );
+      }
     } catch (err) {
-      setSaveStatus(err.message || 'Could not save list.', 'error');
+      setSaveStatus(
+        err.message || (auto ? 'Auto-save failed — click Save list.' : 'Could not save list.'),
+        'error'
+      );
+      if (auto) throw err;
     } finally {
       if (saveListBtn) saveListBtn.disabled = false;
     }
@@ -4353,6 +4418,7 @@
       // New process batch — reset client undo stack and train polish state
       trainUndoStack.length = 0;
       clearTrainDecidedKeys();
+      autoSaveAfterTrainQueued = false;
       trainSearchQuery = '';
       trainPage = { distressed: 1, notDistressed: 1 };
       const searchInput = document.getElementById('bridge-train-search');

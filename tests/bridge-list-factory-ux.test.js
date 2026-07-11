@@ -109,6 +109,22 @@ test('LIST-02: soft Train-before-Save for admin in saveCurrentList', () => {
   assert.match(head, /window\.confirm/);
 });
 
+test('LIST-02: auto-save list when all Train groups decided', () => {
+  assert.match(js, /function queueAutoSaveAfterTrainComplete/);
+  assert.match(js, /queueAutoSaveAfterTrainComplete\s*\(/);
+  assert.match(js, /saveCurrentList\(\s*\{\s*auto:\s*true\s*\}\s*\)/);
+  // Only after last remaining group (meta.remaining === 0), not on process
+  const onTrain = js.indexOf('async function onTrainDecision');
+  assert.ok(onTrain >= 0);
+  const slice = js.slice(onTrain, onTrain + 3500);
+  assert.match(slice, /meta\.remaining\s*===\s*0/);
+  assert.match(slice, /queueAutoSaveAfterTrainComplete/);
+  // Soft confirm skipped for auto path
+  const saveStart = js.indexOf('async function saveCurrentList');
+  const saveHead = js.slice(saveStart, saveStart + 1200);
+  assert.match(saveHead, /!auto\s*&&\s*isBridgeAdmin|!auto && isBridgeAdmin/);
+});
+
 test('LIST-01: save flash teaches download from Saved lists', () => {
   assert.match(js, /download from Saved lists for enrichment/);
 });
@@ -146,6 +162,7 @@ test('LIST-03: teaching pack corpus in HTML', () => {
 
 test('LIST-03: independence process stub still present in JS', () => {
   assert.match(js, /nothing was sent to Analyze/);
-  // Train success still steers operator to Save list (kept count optional)
-  assert.match(js, /Decision saved.*Save list/i);
+  // Train complete auto-saves the staged list (no manual Save list click)
+  assert.match(js, /All Train groups (done|complete).*auto-sav/i);
+  assert.match(js, /queueAutoSaveAfterTrainComplete/);
 });
