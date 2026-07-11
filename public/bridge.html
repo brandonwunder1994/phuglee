@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee — Filter</title>
-  <meta name="description" content="Scrub messy city files into clean distressed lead lists — normalize, tag signals, save multiple lists, and download for enrichment.">
-  <meta property="og:title" content="Phuglee — Filter">
+  <title>Phuglee â€” Filter</title>
+  <meta name="description" content="Scrub messy city files into clean distressed lead lists â€” normalize, tag signals, save multiple lists, and download for enrichment.">
+  <meta property="og:title" content="Phuglee â€” Filter">
   <meta property="og:description" content="Drop in spreadsheets, PDFs, or photos. Filter tags distress signals and stages clean lists for download.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Phuglee — Filter">
+  <meta name="twitter:title" content="Phuglee â€” Filter">
   <meta name="twitter:description" content="Scrub city chaos into clean distressed leads.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass5">
-  <link rel="stylesheet" href="/css/bridge.css?v=51">
+  <link rel="stylesheet" href="/css/bridge.css?v=52">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -52,7 +52,7 @@
 
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
     <header class="bridge-hero" data-phuglee-reveal-child>
-      <p class="bridge-step-label">Step 02 · Filter</p>
+      <p class="bridge-step-label">Step 02 Â· Filter</p>
       <h1 class="bridge-title">Scrub the Mess</h1>
       <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
     </header>
@@ -92,7 +92,7 @@
             type="search"
             id="bridge-city-search"
             class="bridge-city-search phuglee-input"
-            placeholder="Start typing a city… e.g. Marana"
+            placeholder="Start typing a cityâ€¦ e.g. Marana"
             autocomplete="off"
             spellcheck="false"
             aria-autocomplete="list"
@@ -111,7 +111,7 @@
       <div class="bridge-row">
         <label for="bridge-state">State
           <select id="bridge-state" class="phuglee-select" disabled>
-            <option value="">Loading states…</option>
+            <option value="">Loading statesâ€¦</option>
           </select>
         </label>
         <label for="bridge-city">City
@@ -154,17 +154,17 @@
           aria-expanded="false"
           aria-controls="bridge-city-outcome"
         >
-          City replied — no usable list
+          City replied â€” no usable list
         </button>
         <div class="bridge-city-outcome" id="bridge-city-outcome" hidden>
           <h3 class="bridge-city-outcome-title">City reply (no list yet)</h3>
-          <p class="bridge-panel-lead">Tag this city when they replied without a usable file. Saved to City Tracker — does not delete your Filter lists.</p>
+          <p class="bridge-panel-lead">Tag this city when they replied without a usable file. Saved to City Tracker â€” does not delete your Filter lists.</p>
           <div class="bridge-outcome-options" role="radiogroup" aria-label="City reply outcome">
             <label class="bridge-outcome-option">
               <input type="radio" name="bridge-city-outcome" value="needs_clarification" />
               <span>
                 <strong>Needs clarification</strong>
-                <span class="bridge-outcome-desc">City replied — respond to them to get the list</span>
+                <span class="bridge-outcome-desc">City replied â€” respond to them to get the list</span>
               </span>
             </label>
             <label class="bridge-outcome-option">
@@ -191,7 +191,7 @@
             <label class="bridge-outcome-option">
               <input type="radio" name="bridge-city-outcome" value="approved_bad_data" />
               <span>
-                <strong>Replied — info invalid to use</strong>
+                <strong>Replied â€” info invalid to use</strong>
                 <span class="bridge-outcome-desc">They sent something, but it is unusable (wrong format, incomplete, not the list we need)</span>
               </span>
             </label>
@@ -199,7 +199,7 @@
           <div class="bridge-other-source-wrap" id="bridge-other-source-wrap" hidden>
             <label for="bridge-other-source-notes">
               <span id="bridge-outcome-notes-label">Who / where to contact</span>
-              <textarea id="bridge-other-source-notes" class="phuglee-textarea" rows="3" placeholder="e.g. Code Enforcement · (555) 123-4567 · ask for Jane · portal.city.gov/foia"></textarea>
+              <textarea id="bridge-other-source-notes" class="phuglee-textarea" rows="3" placeholder="e.g. Code Enforcement Â· (555) 123-4567 Â· ask for Jane Â· portal.city.gov/foia"></textarea>
             </label>
           </div>
           <div class="bridge-row bridge-outcome-meta">
@@ -231,7 +231,7 @@
       </div>
     </section>
 
-    <!-- Step 3: paste OR drop — same scrub path -->
+    <!-- Step 3: paste OR drop â€” same scrub path -->
     <section
       class="bridge-panel phuglee-panel bridge-panel--stage bridge-import-panel bridge-elev--primary"
       id="bridge-upload-panel"
@@ -241,7 +241,7 @@
     >
       <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Add the list</h2>
 
-      <!-- Shared received date first — pick day before paste or drop -->
+      <!-- Shared received date first â€” pick day before paste or drop -->
       <div class="bridge-response-row bridge-response-row--meta bridge-import-received">
         <fieldset class="bridge-datetime-picker bridge-date-chips-wrap" id="bridge-response-datetime">
           <legend class="bridge-datetime-label">Received</legend>
@@ -261,7 +261,7 @@
               class="bridge-paste-textarea phuglee-textarea"
               rows="10"
               spellcheck="false"
-              placeholder="Paste tab- or comma-separated rows here…&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
+              placeholder="Paste tab- or comma-separated rows hereâ€¦&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
             ></textarea>
           </label>
           <div class="bridge-paste-actions">
@@ -287,7 +287,7 @@
             <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" multiple hidden />
             <div class="bridge-dropzone-inner" id="bridge-dropzone-inner">
               <p class="bridge-drop-title">Drop files here</p>
-              <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button> · up to 5</p>
+              <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button> Â· up to 5</p>
               <p class="bridge-drop-file" id="bridge-file-name" hidden></p>
             </div>
           </div>
@@ -303,7 +303,7 @@
     <section class="bridge-panel phuglee-panel" id="bridge-loading-panel" hidden aria-live="polite" aria-busy="true">
       <div class="bridge-loading phuglee-loading-state">
         <div class="phuglee-loading-bar" aria-hidden="true"></div>
-        <p class="phuglee-loading-copy" id="bridge-loading-copy">Detecting format…</p>
+        <p class="phuglee-loading-copy" id="bridge-loading-copy">Detecting formatâ€¦</p>
         <p class="bridge-scrub-feed-summary" id="bridge-scrub-feed-summary" hidden></p>
         <ol class="bridge-scrub-feed" id="bridge-scrub-feed" hidden aria-label="Scrub activity"></ol>
       </div>
@@ -311,7 +311,7 @@
 
     <section class="bridge-panel phuglee-panel bridge-panel--mission" id="bridge-results-panel" hidden aria-labelledby="bridge-step-results" data-phuglee-reveal-child>
       <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Scrub report</h2>
-      <!-- Phase 72: mission surface — kill report + stage CTA first -->
+      <!-- Phase 72: mission surface â€” kill report + stage CTA first -->
       <div class="bridge-mission-surface" id="bridge-mission-surface">
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
@@ -322,7 +322,7 @@
         <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
         <div class="bridge-save-row">
           <label class="bridge-save-name" for="bridge-list-name">List name
-            <input type="text" id="bridge-list-name" class="phuglee-input" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
+            <input type="text" id="bridge-list-name" class="phuglee-input" maxlength="120" placeholder="e.g. Marana Â· Code Violation Â· Jul 9" autocomplete="off" />
           </label>
           <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
         </div>
@@ -330,14 +330,14 @@
       </section>
       </div><!-- /bridge-mission-surface -->
 
-      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download → enrich outside → manual Analyze import</p>
+      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process â†’ (Train) â†’ Save list â†’ Download â†’ enrich outside â†’ manual Analyze import</p>
 
       <div id="bridge-train-wrap" hidden>
         <div id="bridge-train-mission" class="bridge-train-mission" hidden>
           <p class="bridge-train-mission-kicker">Train mission</p>
           <p class="bridge-train-mission-stats" role="status">
             <span id="bridge-train-open-count">0 open groups</span>
-            <span class="bridge-train-mission-sep" aria-hidden="true">·</span>
+            <span class="bridge-train-mission-sep" aria-hidden="true">Â·</span>
             <span id="bridge-train-kept-count">0 kept</span>
           </p>
         </div>
@@ -354,19 +354,19 @@
           <div class="bridge-train-toolbar" id="bridge-train-toolbar">
             <label class="bridge-toolbar-search">
               <span class="bridge-sr-only">Filter train groups</span>
-              <input type="search" id="bridge-train-search" class="phuglee-input" placeholder="Search violation type…" autocomplete="off" />
+              <input type="search" id="bridge-train-search" class="phuglee-input" placeholder="Search violation typeâ€¦" autocomplete="off" />
             </label>
-            <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-train-undo" disabled title="Undo last training decision">↩️ Undo</button>
+            <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-train-undo" disabled title="Undo last training decision">â†©ï¸ Undo</button>
           </div>
           <section class="bridge-train-section" aria-labelledby="train-distressed-h">
             <h3 id="train-distressed-h">Marked distressed</h3>
-            <p class="bridge-panel-lead">🏚️ Distressed = keep on the distressed list. ✅ Not Distressed = move off the list and suppress this type next time.</p>
+            <p class="bridge-panel-lead">ðŸšï¸ Distressed = keep on the distressed list. âœ… Not Distressed = move off the list and suppress this type next time.</p>
             <div id="bridge-train-distressed" class="bridge-train-groups"></div>
             <div id="bridge-train-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
           <section class="bridge-train-section" aria-labelledby="train-fn-h">
             <h3 id="train-fn-h">Not marked distressed</h3>
-            <p class="bridge-panel-lead">✅ Not Distressed = leave off the list. 🏚️ Distressed = move to distressed and promote this type next time.</p>
+            <p class="bridge-panel-lead">âœ… Not Distressed = leave off the list. ðŸšï¸ Distressed = move to distressed and promote this type next time.</p>
             <div id="bridge-train-not-distressed" class="bridge-train-groups"></div>
             <div id="bridge-train-not-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
@@ -381,7 +381,7 @@
           </section>
           <section class="bridge-train-section" aria-labelledby="brain-proposed-h">
             <h3 id="brain-proposed-h">Proposed phrase rules</h3>
-            <p class="bridge-panel-lead">Mined from training evidence — not live until you Activate.</p>
+            <p class="bridge-panel-lead">Mined from training evidence â€” not live until you Activate.</p>
             <div id="brain-phrase-proposed" class="bridge-brain-rules"></div>
           </section>
           <section class="bridge-train-section" aria-labelledby="brain-active-phrase-h">
@@ -399,7 +399,7 @@
       <div class="bridge-results-toolbar" id="bridge-results-toolbar" hidden>
         <label class="bridge-toolbar-search">
           <span class="bridge-sr-only">Filter records</span>
-          <input type="search" id="bridge-filter-search" class="phuglee-input" placeholder="Filter by address, issue, category, or tag…" autocomplete="off" />
+          <input type="search" id="bridge-filter-search" class="phuglee-input" placeholder="Filter by address, issue, category, or tagâ€¦" autocomplete="off" />
         </label>
         <label class="bridge-toolbar-field">
           <span>Category</span>
@@ -449,7 +449,7 @@
       </details>
 
       <section class="bridge-attach-panel bridge-attach-panel--scrap" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
-        <h3 id="bridge-attach-heading">Optional · Attach to city profile</h3>
+        <h3 id="bridge-attach-heading">Optional Â· Attach to city profile</h3>
         <p class="bridge-panel-lead">Log this response on the Form Forge city profile for turnaround tracking. This does not send leads to Analyze.</p>
         <div class="bridge-attach-row">
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-attach">Attach versioned dataset</button>
@@ -461,7 +461,7 @@
     </div>
 
     <section class="bridge-panel phuglee-panel bridge-lists-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
-      <!-- Collapsed by default — open only when you need the full table / downloads -->
+      <!-- Collapsed by default â€” open only when you need the full table / downloads -->
       <details class="bridge-lists-details" id="bridge-lists-details">
         <summary class="bridge-lists-details-summary" id="bridge-lists-details-summary">
           <span class="bridge-lists-details-summary-main">
@@ -509,7 +509,7 @@
       </details>
     </section>
 
-    <p class="bridge-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
+    <p class="bridge-trust" data-phuglee-reveal-child>Public records only Â· Your data stays on your machine</p>
 
     <div class="bridge-error-wrap phuglee-error-wrap" id="bridge-error-wrap" hidden role="alert">
       <p class="bridge-error phuglee-error" id="bridge-error"></p>

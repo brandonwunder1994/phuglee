@@ -4218,3 +4218,404 @@ button.bridge-inventory-filter-chip.is-active {
 .bridge-paste-status.is-busy {
   color: rgba(232, 224, 208, 0.65);
 }
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISIBLE MAKEOVER — login/home energy (must read as NEW at first glance)
+   CSS only. No ID / data-action / behavior changes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Atmosphere: orange vignette + brighter photo so page is not flat black */
+body.bridge-page.has-premium-bg {
+  background: #050403;
+}
+
+body.bridge-page.has-premium-bg .premium-bg--strong {
+  --premium-photo-opacity: 0.52;
+  --premium-grain-opacity: 0.2;
+  --premium-wear-opacity: 0.26;
+}
+
+body.bridge-page.has-premium-bg .premium-bg::after {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 20%, rgba(229, 132, 53, 0.14) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.45) 12%, rgba(0, 0, 0, 0.25) 28%, transparent 48%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.55) 14%, transparent 36%),
+    radial-gradient(ellipse 140% 120% at 50% 40%, transparent 0%, transparent 28%, rgba(0, 0, 0, 0.45) 70%, rgba(0, 0, 0, 0.82) 100%);
+}
+
+body.bridge-page.has-premium-bg .heat-glow {
+  opacity: 0.75;
+}
+
+/* Hero: billboard-scale cream Anton + gold underline heat */
+body.bridge-page .bridge-main {
+  max-width: 1080px;
+  padding-top: 1.75rem;
+}
+
+body.bridge-page .bridge-hero {
+  margin-bottom: 1.65rem;
+  padding: 0.35rem 0 1.15rem;
+  border-bottom: 1px solid rgba(229, 132, 53, 0.22);
+  position: relative;
+}
+
+body.bridge-page .bridge-hero::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: min(12rem, 40%);
+  height: 2px;
+  background: linear-gradient(90deg, var(--phuglee-gold), var(--phuglee-orange), transparent);
+  box-shadow: 0 0 18px rgba(229, 132, 53, 0.55);
+}
+
+body.bridge-page .bridge-step-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  color: var(--phuglee-gold);
+  text-shadow: 0 0 20px rgba(238, 183, 70, 0.35);
+}
+
+body.bridge-page .bridge-hero h1,
+body.bridge-page .bridge-title {
+  font-size: clamp(2.75rem, 10vw, 4.5rem);
+  letter-spacing: 0.03em;
+  line-height: 0.98;
+  color: var(--phuglee-cream);
+  text-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.45),
+    0 0 40px rgba(229, 132, 53, 0.18);
+  margin-bottom: 0.85rem;
+}
+
+body.bridge-page .bridge-lead {
+  font-size: 1.05rem;
+  color: rgba(245, 242, 228, 0.78);
+  max-width: 38rem;
+}
+
+/* Mission board: gold HUD strip */
+body.bridge-page .bridge-idle-proof.bridge-mission-board {
+  border: 1px solid rgba(238, 183, 70, 0.38);
+  background:
+    linear-gradient(125deg, rgba(229, 132, 53, 0.16) 0%, transparent 50%),
+    rgba(0, 0, 0, 0.42);
+  box-shadow:
+    0 0 0 1px rgba(238, 183, 70, 0.08),
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 248, 235, 0.08);
+}
+
+body.bridge-page .bridge-mission-facet {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(238, 183, 70, 0.28);
+}
+
+body.bridge-page .bridge-mission-facet-value {
+  font-size: 1.55rem;
+  color: var(--phuglee-gold);
+  text-shadow: 0 0 16px rgba(238, 183, 70, 0.35);
+}
+
+/* Pipeline: active step = auth-tab gold pill */
+body.bridge-page .bridge-pipeline-step {
+  border-radius: 999px;
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--phuglee-stone);
+}
+
+body.bridge-page .bridge-pipeline-step.is-active {
+  color: var(--phuglee-black);
+  border-color: rgba(238, 183, 70, 0.45);
+  background: linear-gradient(
+    135deg,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-orange) 55%,
+    var(--phuglee-terracotta) 100%
+  );
+  box-shadow: 0 2px 14px rgba(229, 132, 53, 0.4);
+  font-weight: 700;
+}
+
+body.bridge-page .bridge-pipeline-step.is-active span {
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--phuglee-cream);
+}
+
+/* Scrub stage shell: auth-modal glass card */
+body.bridge-page #bridge-scrub-stage.bridge-scrub-stage,
+body.bridge-page .bridge-elev--primary.bridge-scrub-stage {
+  padding: 1rem 1rem 1.15rem;
+  border-radius: 16px;
+  border: 1px solid rgba(238, 183, 70, 0.32);
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(229, 132, 53, 0.16), transparent 55%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.07) 0%, transparent 40%),
+    rgba(10, 9, 8, 0.72);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 24px 64px rgba(0, 0, 0, 0.55),
+    0 0 80px rgba(229, 132, 53, 0.12),
+    inset 0 1px 0 rgba(255, 248, 235, 0.12);
+  backdrop-filter: blur(28px) saturate(165%);
+  -webkit-backdrop-filter: blur(28px) saturate(165%);
+}
+
+/* Desk panels: thicker glass, gold edge, no flat dark boxes */
+body.bridge-page .bridge-panel.phuglee-panel {
+  border-radius: 14px;
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.07) 0%, transparent 42%),
+    rgba(12, 10, 8, 0.55);
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+body.bridge-page .bridge-panel--desk.phuglee-panel,
+body.bridge-page .bridge-panel--stage.phuglee-panel,
+body.bridge-page .bridge-elev--primary.phuglee-panel {
+  border-color: rgba(238, 183, 70, 0.28);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.09) 0%, transparent 45%),
+    rgba(14, 12, 10, 0.62);
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.48),
+    0 0 0 1px rgba(238, 183, 70, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+body.bridge-page .bridge-panel.phuglee-panel:hover {
+  border-color: rgba(229, 132, 53, 0.45);
+  box-shadow:
+    0 18px 48px rgba(0, 0, 0, 0.5),
+    0 0 32px rgba(229, 132, 53, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+body.bridge-page .bridge-panel h2 {
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 2.5vw, 1.45rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+body.bridge-page .bridge-step-badge {
+  background: linear-gradient(135deg, var(--phuglee-gold), var(--phuglee-orange));
+  color: var(--phuglee-black);
+  box-shadow: 0 0 12px rgba(229, 132, 53, 0.45);
+}
+
+/* Type chips: SELECTED = full auth-tab gold face (unmissable) */
+body.bridge-page .bridge-type-chip-face,
+body.bridge-page .phuglee-chip-face {
+  min-height: 2.85rem;
+  padding: 0.55rem 1.25rem;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 10px;
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  background: rgba(0, 0, 0, 0.42);
+  color: var(--phuglee-stone);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.bridge-page .bridge-type-chip:hover .bridge-type-chip-face,
+body.bridge-page .phuglee-chip:hover .phuglee-chip-face {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.5);
+  background: rgba(229, 132, 53, 0.1);
+}
+
+body.bridge-page .bridge-type-chip input:checked + .bridge-type-chip-face,
+body.bridge-page .phuglee-chip input:checked + .phuglee-chip-face,
+body.bridge-page .phuglee-chip--selected .phuglee-chip-face {
+  color: var(--phuglee-black) !important;
+  border-color: rgba(238, 183, 70, 0.5) !important;
+  background: linear-gradient(
+    135deg,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-orange) 55%,
+    var(--phuglee-terracotta) 100%
+  ) !important;
+  box-shadow:
+    0 4px 18px rgba(229, 132, 53, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+  text-shadow: none;
+}
+
+/* Dropzone: thick gold dashed frame + bigger hit area */
+body.bridge-page .bridge-dropzone {
+  border-width: 2px;
+  border-style: dashed;
+  border-color: rgba(238, 183, 70, 0.55);
+  min-height: 11rem;
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, rgba(229, 132, 53, 0.1), transparent 65%),
+    rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    inset 0 0 40px rgba(229, 132, 53, 0.04);
+}
+
+body.bridge-page .bridge-dropzone:hover {
+  border-color: var(--phuglee-orange);
+  border-style: solid;
+  box-shadow:
+    0 0 0 1px rgba(229, 132, 53, 0.25),
+    0 20px 48px rgba(0, 0, 0, 0.45),
+    0 0 48px rgba(229, 132, 53, 0.22);
+}
+
+body.bridge-page .bridge-dropzone.is-dragover {
+  border-width: 2px;
+  box-shadow:
+    0 0 0 2px var(--phuglee-orange),
+    0 0 64px rgba(229, 132, 53, 0.4);
+}
+
+body.bridge-page .bridge-dropzone-inner {
+  padding: 2.75rem 1.5rem;
+}
+
+body.bridge-page .bridge-drop-title {
+  font-size: 1.45rem;
+  letter-spacing: 0.06em;
+  color: var(--phuglee-cream);
+  text-shadow: 0 0 24px rgba(229, 132, 53, 0.25);
+}
+
+body.bridge-page .bridge-drop-hint {
+  font-size: 0.95rem;
+  color: rgba(245, 242, 228, 0.72);
+}
+
+/* Inputs: dark glass + gold focus (auth field energy) */
+body.bridge-page .phuglee-input,
+body.bridge-page .phuglee-select,
+body.bridge-page .phuglee-textarea,
+body.bridge-page input.bridge-city-search,
+body.bridge-page #bridge-list-name,
+body.bridge-page select.bridge-select,
+body.bridge-page .bridge-field input,
+body.bridge-page .bridge-field select,
+body.bridge-page .bridge-field textarea {
+  min-height: 2.85rem;
+  border-radius: 10px;
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--phuglee-cream);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+body.bridge-page .phuglee-input:focus,
+body.bridge-page .phuglee-select:focus,
+body.bridge-page .phuglee-textarea:focus,
+body.bridge-page input.bridge-city-search:focus,
+body.bridge-page #bridge-list-name:focus,
+body.bridge-page select.bridge-select:focus {
+  outline: none;
+  border-color: var(--phuglee-orange);
+  box-shadow:
+    0 0 0 3px rgba(229, 132, 53, 0.28),
+    0 0 24px rgba(229, 132, 53, 0.18);
+}
+
+/* Primary CTAs: larger + hotter gem */
+body.bridge-page .phuglee-btn-primary,
+body.bridge-page #bridge-process,
+body.bridge-page #bridge-save-list,
+body.bridge-page #bridge-paste-convert {
+  min-height: 3rem;
+  padding: 0.85rem 1.75rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 10px;
+  border: 1px solid rgba(238, 183, 70, 0.4);
+  box-shadow:
+    0 4px 18px rgba(229, 132, 53, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+body.bridge-page .phuglee-btn-primary:hover:not(:disabled),
+body.bridge-page #bridge-process:hover:not(:disabled),
+body.bridge-page #bridge-save-list:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 8px 28px rgba(229, 132, 53, 0.5),
+    0 0 32px rgba(238, 183, 70, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+body.bridge-page .phuglee-btn-secondary {
+  min-height: 2.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(174, 163, 143, 0.35);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--phuglee-cream);
+}
+
+/* Format badges: gold chips */
+body.bridge-page .bridge-format-badges span {
+  border-color: rgba(238, 183, 70, 0.35);
+  color: var(--phuglee-gold);
+  background: rgba(229, 132, 53, 0.1);
+}
+
+/* Kill KPI + mission: hotter hierarchy */
+body.bridge-page .bridge-mission-surface {
+  border: 1px solid rgba(238, 183, 70, 0.3);
+  border-radius: 16px;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(229, 132, 53, 0.14), transparent 55%),
+    rgba(0, 0, 0, 0.4);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+}
+
+/* Tables: clearer glass header bar */
+body.bridge-page .bridge-results-table thead th,
+body.bridge-page .bridge-lists-table thead th {
+  background: rgba(0, 0, 0, 0.72);
+  color: var(--phuglee-gold);
+  border-bottom: 1px solid rgba(238, 183, 70, 0.28);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.68rem;
+}
+
+/* Victory strip: unmissable gold frame */
+body.bridge-page .bridge-victory-strip {
+  border: 1px solid rgba(238, 183, 70, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(229, 132, 53, 0.12),
+    0 20px 56px rgba(0, 0, 0, 0.5),
+    0 0 64px rgba(229, 132, 53, 0.2);
+}
+
+body.bridge-page .bridge-victory-title {
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  color: var(--phuglee-gold);
+  text-shadow: 0 0 28px rgba(238, 183, 70, 0.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.bridge-page .bridge-panel.phuglee-panel:hover,
+  body.bridge-page .phuglee-btn-primary:hover:not(:disabled),
+  body.bridge-page #bridge-process:hover:not(:disabled),
+  body.bridge-page #bridge-save-list:hover:not(:disabled),
+  body.bridge-page .bridge-dropzone:hover {
+    transform: none;
+  }
+}
+
