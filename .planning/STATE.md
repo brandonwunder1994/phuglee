@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: Not started
-status: planning
-stopped_at: Completed 65-03-PLAN.md
-last_updated: "2026-07-11T00:22:10.877Z"
-last_activity: 2026-07-11 — 65-03 Stage CTA elevated + suite/live green
+current_plan: 2
+status: executing
+stopped_at: Completed 66-01-PLAN.md
+last_updated: "2026-07-11T00:30:00.000Z"
+last_activity: 2026-07-10 — 66-01 Train theater pivot + mission header (THTR-01)
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 20
-  completed_plans: 12
-  percent: 60
+  completed_plans: 13
+  percent: 65
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 65 complete (ready for verification); next Phase 66 Train Theater
+**Current focus:** v2.1 Filter Scrub Theater — Phase 66 Superpower Train Theater (plan 01 done; next 66-02)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
-**Phase:** 65 — Kill-Rate Scrub Report  
-**Current Plan:** Not started
+**Phase:** 66 — Superpower Train Theater  
+**Current Plan:** 2 of 3  
 **Total Plans in Phase:** 3  
-**Status:** Ready to plan
-**Last activity:** 2026-07-11 — 65-03 Stage CTA elevated + suite/live green
+**Status:** Executing  
+**Last activity:** 2026-07-10 — 66-01 Train theater pivot + mission header (THTR-01)
 
-Progress: [██████░░░░] 60% (12/20 plans executed)
+Progress: [███████░░░] 65% (13/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -44,7 +44,7 @@ Progress: [██████░░░░] 60% (12/20 plans executed)
 | 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
 | 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
-| 66 | Superpower Train Theater | 3 | PASS |
+| 66 | Superpower Train Theater | 3 (1 done) | PASS |
 | 67 | Multi-City Shift & Staging | 3 | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
 
@@ -94,6 +94,9 @@ Progress: [██████░░░░] 60% (12/20 plans executed)
 - [65] Option A: save panel + workflow strip before train wrap (no ID duplication)
 - [65] Stage language on heading/lead only; Save list button label locked
 - [65] Preserve LIST-03 phrase download from Saved lists for external enrichment
+- [66] forceTrainTheater one-shot after process only; mid-session preserves resultsMode
+- [66] countOpenTrainGroups is single source of truth for undecided open count (never search-filtered)
+- [66] Mission header inside bridge-train-wrap only; presentation-only no decision API changes
 
 ## Performance Metrics
 
@@ -111,16 +114,17 @@ Progress: [██████░░░░] 60% (12/20 plans executed)
 | 65 | 01 | 4min | 1 | 1 |
 | 65 | 02 | 2min | 2 | 3 |
 | 65 | 03 | 2min | 2 | 3 |
+| 66 | 01 | 8min | 3 | 5 |
 
 ## Next command
 
 ```text
-/gsd:verify-phase 65
+/gsd:execute-phase 66
 ```
 
-(Phase 65 plans complete — run verification, then `/gsd:execute-phase 66`)
+(Or execute plan 66-02 directly — live kept HUD + theater chrome)
 
 ## Session
 
-**Last session:** 2026-07-11T00:20:10.393Z
-**Stopped at:** Completed 65-03-PLAN.md
+**Last session:** 2026-07-11T00:24:29.683Z
+**Stopped at:** Completed 66-01-PLAN.md

@@ -42,7 +42,7 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 
 ### Superpower Train theater (THTR)
 
-- [ ] **THTR-01**: When admin has open train groups after process, UI **pivots into Train theater** (mission header with open-group count; Distressed / Not Distressed decisions with live kept-count feedback) — not peer equal tabs with Kept / Brain by default
+- [x] **THTR-01**: When admin has open train groups after process, UI **pivots into Train theater** (mission header with open-group count; Distressed / Not Distressed decisions with live kept-count feedback) — not peer equal tabs with Kept / Brain by default
 - [ ] **THTR-02**: Filter brain panel is **secondary** (rules armory), not a third equal-weight peer tab competing with the scrub win
 - [ ] **THTR-03**: Non-admin never sees train/brain chrome (v1.6 TRAIN-03 / admin gate preserved)
 
@@ -122,7 +122,7 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | KILL-01 | 65 | Complete |
 | KILL-02 | 65 | Complete |
 | KILL-03 | 65 | Complete |
-| THTR-01 | 66 | Pending |
+| THTR-01 | 66 | Complete |
 | THTR-02 | 66 | Pending |
 | THTR-03 | 66 | Pending |
 | SHIFT-01 | 67 | Pending |
