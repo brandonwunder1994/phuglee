@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
-status: executing
-stopped_at: Completed 76-01-PLAN.md
-last_updated: "2026-07-11T20:12:00.000Z"
-last_activity: 2026-07-11 — Completed 76-01 tokens layer (z-scale + desk density)
+status: ready
+stopped_at: Completed 76-02-PLAN.md
+last_updated: "2026-07-11T20:18:00.000Z"
+last_activity: 2026-07-11 — Completed 76-02 bridge token wire + glass3 cache bust
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 14
-  completed_plans: 3
-  percent: 21
+  completed_plans: 4
+  percent: 29
 ---
 
 # State
@@ -21,33 +21,34 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 76 Tokens & Layer Audit (plan 02 next)
+**Current focus:** v3.0 Filter Visual Makeover — Phase 77 Shared Components next
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 76 of 81 (Tokens & Layer Audit)  
-**Plan:** 2 of 2 (plan 01 complete)  
-**Status:** Executing Phase 76 — ready for 76-02  
-**Last activity:** 2026-07-11 — Completed 76-01 tokens layer (z-scale + desk density)  
+**Phase:** 77 of 81 (Shared Components Expansion) — Phase 76 complete  
+**Plan:** 1 of 2 (next)  
+**Status:** Ready for Phase 77  
+**Last activity:** 2026-07-11 — Completed 76-02 bridge token wire + glass3 cache bust  
 
-Progress: [██░░░░░░░░] 21%
+Progress: [███░░░░░░░] 29%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3 (this milestone)
-- Average duration: 13min
-- Total execution time: 38min
+- Total plans completed: 4 (this milestone)
+- Average duration: 12.5min
+- Total execution time: 50min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 3 done | 14 | 13min |
+| 75–81 | 4 done | 14 | 12.5min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
+| Phase 76 P02 | 12min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,9 @@ Progress: [██░░░░░░░░] 21%
 - [Phase 76]: Z typeahead stays page-local (40/50) below sticky shell band — matches as-built bridge city search stacking
 - [Phase 76]: Status backgrounds use rgba from known success/danger hex; fg aliases --phuglee-success|warn|danger only
 - [Phase 76]: Light theme overrides only chip/row surfaces; status fg stays brand-bright
+- [Phase 76]: Dialog backdrop z-index 9999 dropped — native top-layer dialogs stack without ad-hoc island
+- [Phase 76]: City typeahead keeps opaque solids via glass-bg-solid/bg-elevated (readable menu)
+- [Phase 76]: Shared CSS trio cache tag glass3 site-wide; bridge.css page bump to v=45
 
 ### Pending Todos
 None yet.
@@ -75,7 +79,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:12:00.000Z
-Stopped at: Completed 76-01-PLAN.md
+Last session: 2026-07-11T20:18:00.000Z
+Stopped at: Completed 76-02-PLAN.md
 Resume file: None
-Next: Phase 76 Plan 02 — adopt tokens in bridge.css / hex island purge
+Next: Phase 77 Plan 01 — shared components expansion

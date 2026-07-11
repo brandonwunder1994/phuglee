@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 76 plan 01 complete (1/2); next 76-02  
-**Next:** Execute 76-02 (wire bridge.css to tokens)
+**Status:** In progress — Phase 76 complete (2/2); next Phase 77  
+**Next:** Execute 77-01 (shared button system + capped primary CTA)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -36,7 +36,7 @@
 ## Phases
 
 - [x] **Phase 75: Contract Freeze & Surface Inventory** — Lock ID/`data-*` contracts and inventory every Filter surface for restyle targets
-- [ ] **Phase 76: Tokens & Layer Audit** — Align Filter with home/login tokens; map z-index and ban hex islands
+- [x] **Phase 76: Tokens & Layer Audit** — Align Filter with home/login tokens; map z-index and ban hex islands
 - [ ] **Phase 77: Shared Components Expansion** — Grow `phuglee-*` buttons, chips, panels, empty/error patterns to home grade
 - [ ] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
 - [ ] **Phase 79: Desk Core Restyle** — Restyle high-frequency chrome (hero, pipeline, scrub, tables, elevation)
@@ -72,11 +72,11 @@ Plans:
   4. Operator sees success / warn / danger only via canonical semantic status tokens
   5. Maintainer has a documented z-index scale (bg → main → sticky HUD → typeahead → dialog → toast) with no competing ad-hoc stacks
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; extend `tokens.css` only when a gap is proven  
-**Plans:** 2 plans
+**Plans:** 2 plans (2/2 complete)
 
 Plans:
 - [x] 76-01-PLAN.md — Extend tokens.css: z-index scale + desk density/chip/row/status tokens
-- [ ] 76-02-PLAN.md — Wire bridge.css to tokens (hex islands, z-index, type); cache-bust ?v=
+- [x] 76-02-PLAN.md — Wire bridge.css to tokens (hex islands, z-index, type); cache-bust ?v=
 
 ### Phase 77: Shared Components Expansion
 **Goal**: Filter consumes a home-grade shared control system instead of inventing one-off CTAs and panels  
