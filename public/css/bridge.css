@@ -3449,11 +3449,28 @@ button.bridge-inventory-filter-chip.is-active {
   color: var(--phuglee-cream);
 }
 
-/* Theater chrome: Train climax, Kept demoted escape hatch (Option A) */
+/* Theater chrome: Train climax, Kept demoted escape hatch (DESK-04 / Option A)
+   Admin visibility remains JS session + [hidden] — never display:!important on wrap. */
 .bridge-train-wrap.is-theater .bridge-train-mission,
 #bridge-train-wrap.is-theater .bridge-train-mission {
-  border-color: rgba(229, 132, 53, 0.28);
-  box-shadow: inset 0 0 0 1px rgba(229, 132, 53, 0.08);
+  border-color: color-mix(in srgb, var(--phuglee-orange) 42%, transparent);
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--phuglee-orange) 10%, transparent) 0%,
+      transparent 55%
+    ),
+    var(--glass-fill-elevated, rgba(0, 0, 0, 0.34));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--phuglee-orange) 14%, transparent),
+    0 0 28px color-mix(in srgb, var(--phuglee-orange) 12%, transparent),
+    var(--glass-shadow-float, 0 8px 24px rgba(0, 0, 0, 0.32));
+}
+
+.bridge-train-wrap.is-theater .bridge-train-mission-kicker,
+#bridge-train-wrap.is-theater .bridge-train-mission-kicker {
+  color: var(--phuglee-orange);
+  letter-spacing: 0.1em;
 }
 
 .bridge-results-mode {
@@ -3467,24 +3484,35 @@ button.bridge-inventory-filter-chip.is-active {
   border-radius: var(--radius-md);
 }
 
+/* Theater rail: denser glass tray — Train primary energy, peers demoted */
+.bridge-results-mode--theater {
+  background: var(--glass-fill-elevated, rgba(0, 0, 0, 0.38));
+  border-color: color-mix(in srgb, var(--phuglee-orange) 22%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--phuglee-cream) 6%, transparent);
+}
+
 /* When theater active: Train tab stronger; Kept quieter (ids/roles stable) */
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="train"] {
   color: var(--phuglee-cream);
-  border-color: rgba(229, 132, 53, 0.35);
-  background: rgba(229, 132, 53, 0.1);
+  border-color: color-mix(in srgb, var(--phuglee-orange) 40%, transparent);
+  background: color-mix(in srgb, var(--phuglee-orange) 12%, transparent);
+  font-weight: 700;
 }
 
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="train"].is-active,
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="train"][aria-selected="true"] {
   color: var(--phuglee-black);
-  background: linear-gradient(135deg, var(--phuglee-gold), var(--phuglee-orange));
+  /* Align to home/auth-tab gold→orange energy, desk density */
+  background: linear-gradient(135deg, var(--phuglee-gold) 0%, var(--phuglee-orange) 100%);
   border-color: transparent;
-  box-shadow: 0 2px 12px rgba(229, 132, 53, 0.38);
+  box-shadow:
+    0 2px 14px color-mix(in srgb, var(--phuglee-orange) 42%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--phuglee-cream) 28%, transparent);
 }
 
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="kept"] {
   color: var(--phuglee-stone);
-  opacity: 0.72;
+  opacity: 0.62;
   font-weight: 600;
   background: transparent;
   border-color: transparent;
@@ -3492,17 +3520,17 @@ button.bridge-inventory-filter-chip.is-active {
 }
 
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="kept"]:hover {
-  opacity: 0.92;
+  opacity: 0.88;
   color: var(--phuglee-taupe-mid);
-  border-color: rgba(174, 163, 143, 0.18);
+  border-color: color-mix(in srgb, var(--phuglee-stone) 22%, transparent);
 }
 
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="kept"].is-active,
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="kept"][aria-selected="true"] {
-  opacity: 0.88;
+  opacity: 0.82;
   color: var(--phuglee-cream);
-  background: rgba(174, 163, 143, 0.12);
-  border-color: rgba(174, 163, 143, 0.22);
+  background: color-mix(in srgb, var(--phuglee-stone) 12%, transparent);
+  border-color: color-mix(in srgb, var(--phuglee-stone) 22%, transparent);
   box-shadow: none;
 }
 
@@ -3518,8 +3546,8 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-results-mode--theater .bridge-mode-tab--armory,
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"] {
-  opacity: 0.55;
-  font-size: 0.82em;
+  opacity: 0.48;
+  font-size: 0.78em;
   font-weight: 500;
   color: var(--phuglee-stone);
   background: transparent;
@@ -3530,20 +3558,21 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-results-mode--theater .bridge-mode-tab--armory:hover,
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"]:hover {
-  opacity: 0.78;
+  opacity: 0.72;
   color: var(--phuglee-taupe-mid);
-  border-color: rgba(174, 163, 143, 0.12);
+  border-color: color-mix(in srgb, var(--phuglee-stone) 14%, transparent);
 }
 
 .bridge-results-mode--theater .bridge-mode-tab--armory.is-active,
 .bridge-results-mode--theater .bridge-mode-tab--armory[aria-selected="true"],
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"].is-active,
 .bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"][aria-selected="true"] {
-  opacity: 0.82;
-  color: var(--phuglee-cream);
-  background: rgba(174, 163, 143, 0.08);
-  border-color: rgba(174, 163, 143, 0.16);
+  opacity: 0.78;
+  color: var(--phuglee-taupe-mid);
+  background: color-mix(in srgb, var(--phuglee-stone) 8%, transparent);
+  border-color: color-mix(in srgb, var(--phuglee-stone) 14%, transparent);
   box-shadow: none;
+  font-weight: 600;
 }
 
 .bridge-train-toolbar {
@@ -3617,8 +3646,9 @@ button.bridge-inventory-filter-chip.is-active {
 .bridge-brain-rule {
   padding: 0.75rem 0.9rem;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(174, 163, 143, 0.16);
-  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--glass-border-chrome, rgba(174, 163, 143, 0.16));
+  background: var(--glass-fill, rgba(0, 0, 0, 0.28));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--phuglee-cream) 4%, transparent);
 }
 
 .bridge-brain-rule.is-pending {
@@ -3735,22 +3765,27 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-train-group {
   padding: 0.85rem;
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(174, 163, 143, 0.14);
+  /* Glass card language — desk density, not marketing panel */
+  background: var(--glass-fill-elevated, rgba(0, 0, 0, 0.34));
+  border: 1px solid var(--glass-border-chrome, rgba(174, 163, 143, 0.16));
   border-radius: var(--radius-sm);
   margin-bottom: 0;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--phuglee-cream) 5%, transparent),
+    0 4px 16px rgba(0, 0, 0, 0.22);
   transition:
     opacity 0.28s ease,
     transform 0.28s ease,
     max-height 0.32s ease,
     padding 0.28s ease,
     margin 0.28s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .bridge-train-group.is-pending {
   opacity: 0.55;
-  border-color: rgba(229, 132, 53, 0.25);
+  border-color: color-mix(in srgb, var(--phuglee-orange) 32%, transparent);
 }
 
 .bridge-train-group.is-exiting {
@@ -3762,6 +3797,7 @@ button.bridge-inventory-filter-chip.is-active {
   margin-top: 0;
   margin-bottom: 0;
   border-color: transparent;
+  box-shadow: none;
   pointer-events: none;
 }
 
@@ -3848,16 +3884,17 @@ button.bridge-inventory-filter-chip.is-active {
   /* Semantic hook; visual from phuglee-btn-primary */
 }
 
+/* Deny uses --phuglee-danger tokens — no #e8a0a0 / raw pink hex islands */
 .bridge-train-deny {
   color: var(--status-danger-fg, var(--phuglee-danger));
-  border-color: rgba(220, 120, 120, 0.4);
-  background: rgba(220, 120, 120, 0.08);
+  border-color: color-mix(in srgb, var(--phuglee-danger) 40%, transparent);
+  background: color-mix(in srgb, var(--phuglee-danger) 8%, transparent);
 }
 
 .bridge-train-deny:hover {
   color: var(--status-danger-fg, var(--phuglee-danger));
-  border-color: rgba(220, 120, 120, 0.55);
-  background: rgba(220, 120, 120, 0.14);
+  border-color: color-mix(in srgb, var(--phuglee-danger) 55%, transparent);
+  background: color-mix(in srgb, var(--phuglee-danger) 14%, transparent);
 }
 
 .bridge-train-muted {
