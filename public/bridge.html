@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=38">
+  <link rel="stylesheet" href="/css/bridge.css?v=39">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -236,8 +236,29 @@
       </div>
     </section>
 
+    <!-- Primary path: paste tabular text → convert → scrub (above file drop) -->
+    <section class="bridge-panel phuglee-panel bridge-paste-panel" id="bridge-paste-panel" aria-labelledby="bridge-paste-heading" data-phuglee-reveal-child>
+      <h2 id="bridge-paste-heading"><span class="bridge-step-badge" aria-hidden="true">3</span> Paste Text to Excel</h2>
+      <p class="bridge-panel-lead">Paste tabular text from sheets, reports, or tables. Converts to a clean .xlsx, drops it into the file area, and scrubs in one pass. Pick a city first.</p>
+      <label class="bridge-paste-label" for="bridge-paste-text">
+        <span class="bridge-paste-label-text">Tabular text</span>
+        <textarea
+          id="bridge-paste-text"
+          class="bridge-paste-textarea"
+          rows="12"
+          spellcheck="false"
+          placeholder="Paste tab- or comma-separated rows here…&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
+        ></textarea>
+      </label>
+      <div class="bridge-paste-actions">
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Convert to Excel</button>
+        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
+        <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
+      </div>
+    </section>
+
     <section class="bridge-panel phuglee-panel bridge-panel--stage" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
-      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Drop the clerk file</h2>
+      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">4</span> Or drop the clerk file</h2>
       <p class="bridge-panel-lead">Up to <strong>5 files</strong> from this city. Photos OK if the clerk printed it.</p>
       <div class="bridge-format-badges" aria-hidden="true">
         <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
@@ -278,7 +299,7 @@
     </section>
 
     <section class="bridge-panel phuglee-panel bridge-panel--mission" id="bridge-results-panel" hidden aria-labelledby="bridge-step-results" data-phuglee-reveal-child>
-      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Scrub report</h2>
+      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">5</span> Scrub report</h2>
       <!-- Phase 72: mission surface — kill report + stage CTA first -->
       <div class="bridge-mission-surface" id="bridge-mission-surface">
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
@@ -428,27 +449,6 @@
       </div>
     </div>
 
-    <!-- Utility: paste tabular text → .xlsx → dropzone → scrub (one pass) -->
-    <section class="bridge-panel phuglee-panel bridge-paste-panel" id="bridge-paste-panel" aria-labelledby="bridge-paste-heading" data-phuglee-reveal-child>
-      <h2 id="bridge-paste-heading">Paste Text to Excel</h2>
-      <p class="bridge-panel-lead">Paste tabular text from sheets, reports, or tables. Converts to a clean .xlsx, drops it into the file area, and scrubs in one pass. Pick a city first.</p>
-      <label class="bridge-paste-label" for="bridge-paste-text">
-        <span class="bridge-paste-label-text">Tabular text</span>
-        <textarea
-          id="bridge-paste-text"
-          class="bridge-paste-textarea"
-          rows="12"
-          spellcheck="false"
-          placeholder="Paste tab- or comma-separated rows here…&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
-        ></textarea>
-      </label>
-      <div class="bridge-paste-actions">
-        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Convert to Excel</button>
-        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
-        <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
-      </div>
-    </section>
-
     <section class="bridge-panel phuglee-panel bridge-lists-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
       <!-- Collapsed by default — open only when you need the full table / downloads -->
       <details class="bridge-lists-details" id="bridge-lists-details">
@@ -549,6 +549,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=57"></script>
+  <script src="/js/bridge.js?v=58"></script>
 </body>
 </html>

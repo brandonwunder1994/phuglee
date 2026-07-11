@@ -3573,9 +3573,15 @@ button.bridge-inventory-filter-chip.is-active {
   color: rgba(245, 239, 228, 0.7);
 }
 
-/* ── Paste Text to Excel (convert → import → scrub) ── */
+/* ── Paste Text to Excel (primary path, above file drop) ── */
 .bridge-paste-panel {
-  margin-top: 1.25rem;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.bridge-scrub-stage .bridge-paste-panel {
+  /* Sit in the desk stack with type + file drop */
+  order: 0;
 }
 
 .bridge-paste-label {

@@ -300,20 +300,24 @@ test('FEED-01: bridge-scrub-feed.js script loads before bridge.js', () => {
   assert.ok(feedScript < bridgeScript, 'scrub feed helper before bridge.js');
 });
 
-test('FEED-01: bridge.js wires BridgeScrubFeed play before renderResults on process success', () => {
+test('FEED-01: processUpload skips scrub feed theater and renders results immediately', () => {
   const js = fs.readFileSync(BRIDGE_JS, 'utf8');
-  assert.ok(/BridgeScrubFeed|buildScrubFeedEvents/.test(js), 'calls BridgeScrubFeed / buildScrubFeedEvents');
-  assert.ok(/playScrubFeedFromProcess/.test(js), 'playScrubFeedFromProcess helper');
-
+  // Helper may still exist for reduced-motion / unused path; success path must not await feed play
   const procIdx = js.indexOf('async function processUpload');
   assert.ok(procIdx !== -1, 'processUpload present');
-  // Success path chunk: feed play must precede renderResults(data)
-  const chunk = js.slice(procIdx, procIdx + 12000);
-  const feed = chunk.search(/playScrubFeedFromProcess|buildScrubFeedEvents|BridgeScrubFeed/);
+  const chunk = js.slice(procIdx, procIdx + 14000);
   const render = chunk.indexOf('renderResults(data)');
-  assert.ok(feed !== -1, 'feed wiring inside processUpload');
   assert.ok(render !== -1, 'renderResults(data) inside processUpload');
-  assert.ok(feed < render, 'staged feed before renderResults(data)');
+  // No staged feed play on the success path (operator wants results, not address scan)
+  assert.equal(
+    /await\s+playScrubFeedFromProcess\s*\(/.test(chunk),
+    false,
+    'processUpload must not await playScrubFeedFromProcess'
+  );
+  assert.ok(
+    /Skip address-by-address scrub theater|go straight to results/i.test(chunk),
+    'documents results-first path'
+  );
 });
 
 test('FEED-02: bridge.js gates staged play via prefers-reduced-motion: reduce', () => {

@@ -4428,10 +4428,9 @@
         brainVersion = Number(data.processingMeta.brainVersion);
       }
       showError('');
-      // Freeze slogan ticker; stage truthful feed before results (D4 client-staged)
+      // Skip address-by-address scrub theater — go straight to results
       stopLoadingAnimation();
-      if (loadingCopy) loadingCopy.textContent = 'Scrubbing results…';
-      await playScrubFeedFromProcess(data);
+      clearScrubFeedUi();
       // THTR-01: land admin in Train theater after process when open groups exist
       forceTrainTheater = true;
       renderResults(data);
