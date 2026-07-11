@@ -89,7 +89,11 @@ Plans:
   4. Operator can select list type via system chip components (code / water) with radio semantics preserved; selected chips show auth-tab gold/orange energy, unselected stay calm
   5. Operator sees shared glass panel/card language and shared empty + error/success status patterns available for desk use
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; expand `phuglee-components.css` — no parallel theme sheet; kill-report theater stays out of shared  
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 77-01-PLAN.md -- Button system + capped primary CTA shimmer (BUTTONS-01..03)
+- [ ] 77-02-PLAN.md -- Chips (auth-tab energy), panels, empty/error/success (FORMS-02/03, CARDS-01, STATES-01/03)
 
 ### Phase 78: Cascade, Hooks & State CSS
 **Goal**: Correct cascade + dual-class hooks so system components win on Filter, and state CSS honors real `hidden`/`disabled` semantics  
@@ -159,7 +163,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 75. Contract Freeze & Surface Inventory | v3.0 | 0/2 | Planned | - |
 | 76. Tokens & Layer Audit | v3.0 | 0/2 | Planned | - |
-| 77. Shared Components Expansion | v3.0 | 0/TBD | Not started | - |
+| 77. Shared Components Expansion | v3.0 | 0/2 | Planned | - |
 | 78. Cascade, Hooks & State CSS | v3.0 | 0/TBD | Not started | - |
 | 79. Desk Core Restyle | v3.0 | 0/2 | Planned | - |
 | 80. Theater, Gates & Motion | v3.0 | 0/TBD | Not started | - |
