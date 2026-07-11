@@ -186,18 +186,41 @@
     if (!mission) return;
     if (!isBridgeAdmin()) {
       setHidden(mission, true);
+      updateTrainTheaterChrome(0);
       return;
     }
     const open = Math.max(0, Number(openCount) || 0);
     const kept = Math.max(0, Number(keptCount) || 0);
     if (openEl) {
       openEl.textContent = open === 1 ? '1 open group' : `${open} open groups`;
+      openEl.classList.toggle('is-open', open > 0);
     }
     if (keptEl) {
       keptEl.textContent = `${kept.toLocaleString()} kept`;
     }
     // Show whenever admin train wrap is in play (mission is inside wrap)
     setHidden(mission, false);
+    updateTrainTheaterChrome(open);
+  }
+
+  /**
+   * Theater chrome: is-theater on wrap + bridge-results-mode--theater on tab rail.
+   * Active when admin wrap visible AND (train mode OR open groups remain).
+   */
+  function updateTrainTheaterChrome(openCount) {
+    const wrap = document.getElementById('bridge-train-wrap');
+    if (!wrap) return;
+    const modeRail = wrap.querySelector('.bridge-results-mode');
+    const open = Math.max(0, Number(openCount) || 0);
+    const wrapVisible = !wrap.hidden;
+    const theaterOn =
+      isBridgeAdmin() &&
+      wrapVisible &&
+      (resultsMode === 'train' || open > 0);
+    wrap.classList.toggle('is-theater', theaterOn);
+    if (modeRail) {
+      modeRail.classList.toggle('bridge-results-mode--theater', theaterOn);
+    }
   }
 
   function animateTrainCardExit(card) {
@@ -669,6 +692,13 @@
     if (modeBrain) {
       modeBrain.classList.toggle('is-active', resultsMode === 'brain');
       modeBrain.setAttribute('aria-selected', resultsMode === 'brain' ? 'true' : 'false');
+    }
+
+    // Theater tab weight: recompute from current open groups whenever mode changes
+    if (lastResult) {
+      updateTrainTheaterChrome(countOpenTrainGroups(lastResult, trainDecidedKeys));
+    } else {
+      updateTrainTheaterChrome(0);
     }
 
     if (resultsMode === 'train') {

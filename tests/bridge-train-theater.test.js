@@ -307,3 +307,56 @@ test('THTR-01 live HUD: undo path refreshes mission counts after restore', () =>
     'onTrainUndo must call refreshTrainUiAfterDecision after restore'
   );
 });
+
+// ─── 66-02 theater chrome: CSS + is-theater class hierarchy ──────────────────
+
+test('THTR-01 theater chrome: mission CSS + theater demotion selectors', () => {
+  const cssPath = path.join(ROOT, 'public', 'css', 'bridge.css');
+  const css = fs.readFileSync(cssPath, 'utf8');
+
+  assert.ok(
+    /\.bridge-train-mission\b/.test(css),
+    'bridge.css must style .bridge-train-mission'
+  );
+  assert.ok(
+    /\.bridge-train-mission-kicker\b/.test(css),
+    'bridge.css must style .bridge-train-mission-kicker'
+  );
+  assert.ok(
+    /\.bridge-results-mode--theater\b/.test(css) || /\.is-theater\b/.test(css),
+    'bridge.css must define theater chrome (.bridge-results-mode--theater or .is-theater)'
+  );
+  assert.ok(
+    /bridge-results-mode--theater[\s\S]{0,400}data-mode=["']train["']/.test(css) ||
+      /bridge-results-mode--theater[\s\S]{0,400}\[data-mode=["']train["']\]/.test(css),
+    'theater CSS must emphasize Train tab'
+  );
+  assert.ok(
+    /bridge-results-mode--theater[\s\S]{0,600}data-mode=["']kept["']/.test(css) ||
+      /bridge-results-mode--theater[\s\S]{0,600}\[data-mode=["']kept["']\]/.test(css),
+    'theater CSS must demote Kept tab (escape hatch remains)'
+  );
+});
+
+test('THTR-01 theater chrome: bridge.js toggles is-theater / bridge-results-mode--theater', () => {
+  const js = readBridgeJs();
+  assert.ok(
+    /updateTrainTheaterChrome\s*\(/.test(js) || /is-theater/.test(js),
+    'bridge.js must toggle theater chrome (updateTrainTheaterChrome or is-theater)'
+  );
+  assert.ok(
+    /classList\.toggle\(\s*['"]is-theater['"]/.test(js) ||
+      /classList\.add\(\s*['"]is-theater['"]/.test(js),
+    'must toggle is-theater on train wrap'
+  );
+  assert.ok(
+    /bridge-results-mode--theater/.test(js),
+    'must toggle bridge-results-mode--theater on mode rail'
+  );
+  // Decision path status still locked after chrome work
+  assert.ok(
+    /Decision saved · \$\{keptNow\.toLocaleString\(\)\} kept/.test(js) ||
+      /Decision saved · .* kept/.test(js),
+    'Decision saved · kept strings must remain after theater chrome'
+  );
+});
