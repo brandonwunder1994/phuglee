@@ -2891,6 +2891,7 @@ button.bridge-inventory-filter-chip.is-active {
   color: var(--status-success-fg, var(--phuglee-success));
 }
 
+/* ── Native dialogs — system modal glass/grain (CARDS-02) ── */
 .bridge-history-dialog {
   border: none;
   padding: 0;
@@ -2899,34 +2900,22 @@ button.bridge-inventory-filter-chip.is-active {
   width: 100%;
   background: transparent;
   color: var(--text);
-  /* Above loading panel / chrome so Type confirm is never buried — tokens scale */
-  z-index: var(--z-dialog);
+  /* Above shell chrome so Type confirm is never buried — tokens scale */
+  z-index: var(--z-dialog, 10000);
 }
 
 .bridge-history-dialog::backdrop {
-  /* Native <dialog> top-layer handles stacking; no ad-hoc 9999 needed */
-  background: rgba(13, 13, 13, 0.82);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* Match .phuglee-modal-backdrop DNA; native top-layer stacks without ad-hoc islands */
+  background: rgba(13, 13, 13, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-@keyframes bridge-dialog-rise {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.bridge-history-dialog-card {
-  animation: bridge-dialog-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
+/* Rise via shared .phuglee-modal-panel (phuglee-modal-rise); no duplicate keyframes */
 .bridge-history-dialog-card.phuglee-panel {
   padding: 1.35rem 1.5rem 1.5rem;
+  /* Elevated float glass densify on dual-class card */
+  box-shadow: var(--glass-shadow-float, 0 16px 48px rgba(0, 0, 0, 0.45));
 }
 
 .bridge-history-dialog-head {
@@ -2958,9 +2947,9 @@ button.bridge-inventory-filter-chip.is-active {
   flex-shrink: 0;
   width: 2rem;
   height: 2rem;
-  border: 1px solid rgba(174, 163, 143, 0.2);
+  border: 1px solid var(--glass-border, rgba(174, 163, 143, 0.2));
   border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--glass-fill, rgba(0, 0, 0, 0.25));
   color: var(--phuglee-stone);
   font-size: 1.35rem;
   line-height: 1;
@@ -2970,8 +2959,13 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-history-dialog-close:hover {
   color: var(--phuglee-cream);
-  border-color: rgba(229, 132, 53, 0.35);
-  background: rgba(229, 132, 53, 0.08);
+  border-color: color-mix(in srgb, var(--phuglee-orange) 35%, transparent);
+  background: color-mix(in srgb, var(--phuglee-orange) 8%, transparent);
+}
+
+.bridge-history-dialog-close:focus-visible {
+  outline: 2px solid var(--phuglee-focus-ring, var(--phuglee-orange));
+  outline-offset: 2px;
 }
 
 .bridge-history-list {
@@ -3071,21 +3065,26 @@ button.bridge-inventory-filter-chip.is-active {
   gap: 0.55rem 0.75rem;
   align-items: start;
   padding: 0.7rem 0.85rem;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(174, 163, 143, 0.14);
+  background: var(--glass-fill, rgba(0, 0, 0, 0.28));
+  border: 1px solid var(--glass-border, rgba(174, 163, 143, 0.14));
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .bridge-type-confirm-option:hover {
-  border-color: rgba(229, 132, 53, 0.28);
-  background: rgba(229, 132, 53, 0.05);
+  border-color: color-mix(in srgb, var(--phuglee-orange) 28%, transparent);
+  background: color-mix(in srgb, var(--phuglee-orange) 5%, transparent);
 }
 
 .bridge-type-confirm-option:has(input:checked) {
-  border-color: rgba(229, 132, 53, 0.45);
-  background: rgba(229, 132, 53, 0.1);
+  border-color: color-mix(in srgb, var(--phuglee-orange) 45%, transparent);
+  background: color-mix(in srgb, var(--phuglee-orange) 10%, transparent);
+}
+
+.bridge-type-confirm-option:focus-within {
+  outline: 2px solid var(--phuglee-focus-ring, var(--phuglee-orange));
+  outline-offset: 1px;
 }
 
 .bridge-type-confirm-option input {
