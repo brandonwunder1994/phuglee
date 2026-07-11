@@ -31,7 +31,7 @@
 
 - [x] **CARDS-01**: Operator sees all desk sections as glass panels from the shared card/panel system (auth-modal energy, desk density)
 - [x] **CARDS-02**: Operator opens history and type-column confirm dialogs that match system modal glass/grain treatment (confirm logic frozen)
-- [ ] **CARDS-03**: Operator can scan elevation hierarchy — primary scrub stage elevated, scrap/secondary quieter, victory featured
+- [x] **CARDS-03**: Operator can scan elevation hierarchy — primary scrub stage elevated, scrap/secondary quieter, victory featured
 
 ### DESK
 
@@ -97,7 +97,7 @@
 | FORMS-04 | Phase 78 | Complete |
 | CARDS-01 | Phase 77 | Complete |
 | CARDS-02 | Phase 78 | Complete |
-| CARDS-03 | Phase 79 | Pending |
+| CARDS-03 | Phase 79 | Complete |
 | DESK-01 | Phase 80 | Pending |
 | DESK-02 | Phase 80 | Pending |
 | DESK-03 | Phase 79 | Pending |
