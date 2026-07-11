@@ -43,11 +43,16 @@ function saveCityOutcomeBody() {
 // CITY-01 — dossier shell + eager history (RED until Plan 02)
 // ---------------------------------------------------------------------------
 
-test('CITY-01: bridge.html has #bridge-city-dossier ops case-file shell', () => {
+test('CITY-01: bridge.html has #bridge-city-dossier last-scan shell', () => {
   assert.match(
     html,
     /id=["']bridge-city-dossier["']/,
-    'city step must host id="bridge-city-dossier" case-file shell'
+    'city step must host id="bridge-city-dossier"'
+  );
+  assert.match(
+    html,
+    /When Did We Scan Last\?/,
+    'dossier title must be When Did We Scan Last?'
   );
 });
 
@@ -63,6 +68,12 @@ test('CITY-01: dossier surfaces last-scrub + staged-lists facet hooks', () => {
   // Prior attaches facet is optional third hook (bridge-dossier-attaches)
   assert.ok(hasLastScrub, 'HTML must expose bridge-dossier-last-scrub id or class hook');
   assert.ok(hasLists, 'HTML must expose bridge-dossier-lists id or class hook');
+});
+
+test('CITY-01: last scan is one latest row per list type', () => {
+  assert.match(js, /lastByType/);
+  assert.match(js, /function scanTypeKey/);
+  assert.match(js, /bridge-last-scan-row/);
 });
 
 test('CITY-01: bridge.js builds/renders dossier and filters lists by cityId', () => {

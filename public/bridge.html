@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=40">
+  <link rel="stylesheet" href="/css/bridge.css?v=41">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -85,7 +85,6 @@
     <div class="bridge-scrub-stage" id="bridge-scrub-stage">
     <section class="bridge-panel phuglee-panel bridge-panel--desk" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
       <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Scrub desk</h2>
-      <p class="bridge-panel-lead">Pick the city. Tag the list type. Drop the clerk file. One desk — not four chapters.</p>
       <div class="bridge-city-search-block">
         <label class="bridge-city-search-label" for="bridge-city-search">
           <span class="bridge-city-search-label-text">Quick city search</span>
@@ -125,27 +124,28 @@
         <button type="button" class="bridge-history-open-btn phuglee-btn phuglee-btn-secondary" id="bridge-history-open">Full history</button>
       </div>
 
-      <!-- CITY-01: ops case-file dossier (composed client-side from history + lists) -->
+      <!-- Last scan per list type (code + water each show latest only) -->
       <div class="bridge-city-dossier" id="bridge-city-dossier" hidden>
         <div class="bridge-city-dossier-chrome">
-          <span class="bridge-city-dossier-stamp">Case file</span>
+          <span class="bridge-city-dossier-stamp" id="bridge-last-scan-heading">When Did We Scan Last?</span>
         </div>
         <p class="bridge-dossier-empty" id="bridge-dossier-empty" hidden>
-          No attaches yet for this city. Drop a file or log a tracker reply.
+          No scans yet for this city.
         </p>
-        <div class="bridge-dossier-facets">
-          <div class="bridge-dossier-section bridge-dossier-last-scrub" id="bridge-dossier-last-scrub">
-            <span class="bridge-dossier-label">Last scrub</span>
-            <div class="bridge-dossier-body" id="bridge-dossier-last-scrub-body">—</div>
-          </div>
-          <div class="bridge-dossier-section bridge-dossier-attaches" id="bridge-dossier-attaches">
-            <span class="bridge-dossier-label">Prior attaches</span>
-            <div class="bridge-dossier-body" id="bridge-dossier-attaches-body">—</div>
-          </div>
-          <div class="bridge-dossier-section bridge-dossier-lists" id="bridge-dossier-lists">
-            <span class="bridge-dossier-label">Staged lists</span>
-            <div class="bridge-dossier-body" id="bridge-dossier-lists-body">—</div>
-          </div>
+        <div
+          class="bridge-dossier-facets bridge-last-scan-list"
+          id="bridge-dossier-last-scrub"
+          aria-live="polite"
+        >
+          <!-- Filled by renderCityDossier: one row per type with last scan date/time -->
+        </div>
+        <!-- Hooks kept for dossier refresh / tests (content lives in last-scrub list) -->
+        <div id="bridge-dossier-last-scrub-body" class="bridge-dossier-sr-only" hidden aria-hidden="true"></div>
+        <div id="bridge-dossier-attaches" class="bridge-dossier-sr-only" hidden aria-hidden="true">
+          <div id="bridge-dossier-attaches-body"></div>
+        </div>
+        <div id="bridge-dossier-lists" class="bridge-dossier-sr-only" hidden aria-hidden="true">
+          <div id="bridge-dossier-lists-body"></div>
         </div>
       </div>
 
@@ -222,7 +222,6 @@
 
     <section class="bridge-panel phuglee-panel bridge-panel--meta" id="bridge-type-panel" hidden aria-labelledby="bridge-step-type" data-phuglee-reveal-child>
       <h2 id="bridge-step-type" class="bridge-meta-heading"><span class="bridge-step-badge" aria-hidden="true">2</span> List type</h2>
-      <p class="bridge-panel-lead bridge-panel-lead--tight">Label for history. Not a product pitch.</p>
       <!-- Phase 71: ops chips (same radio name/values) -->
       <div class="bridge-type-chips" role="radiogroup" aria-label="Upload type">
         <label class="bridge-type-chip">
@@ -239,9 +238,8 @@
     <!-- Primary path: paste tabular text → convert → scrub (above file drop) -->
     <section class="bridge-panel phuglee-panel bridge-paste-panel" id="bridge-paste-panel" aria-labelledby="bridge-paste-heading" data-phuglee-reveal-child>
       <h2 id="bridge-paste-heading"><span class="bridge-step-badge" aria-hidden="true">3</span> Paste Text to Excel</h2>
-      <p class="bridge-panel-lead">Paste tabular text from sheets, reports, or tables. Converts to a clean .xlsx, drops it into the file area, and scrubs in one pass. Pick a city first.</p>
       <label class="bridge-paste-label" for="bridge-paste-text">
-        <span class="bridge-paste-label-text">Tabular text</span>
+        <span class="visually-hidden">Paste tabular text</span>
         <textarea
           id="bridge-paste-text"
           class="bridge-paste-textarea"
@@ -256,7 +254,6 @@
           <legend class="bridge-datetime-label">Received</legend>
           <div class="bridge-date-chips" id="bridge-paste-date-chips" role="group" aria-label="Paste list received date"></div>
         </fieldset>
-        <p class="bridge-response-hint" title="Feeds Form Forge turnaround KPIs">Pick when the city sent this list · Today + last 7 days</p>
       </div>
       <div class="bridge-paste-actions">
         <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Convert to Excel</button>
@@ -557,6 +554,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=59"></script>
+  <script src="/js/bridge.js?v=60"></script>
 </body>
 </html>

@@ -2016,32 +2016,102 @@
     setOutcomeDrawerOpen(false);
     if (cityOutcomePanel) setHidden(cityOutcomePanel, true);
     if (dossierEmptyEl) setHidden(dossierEmptyEl, true);
+    const lastScanList = document.getElementById('bridge-dossier-last-scrub');
+    if (lastScanList) lastScanList.innerHTML = '';
     if (dossierLastScrubBody) dossierLastScrubBody.textContent = '—';
     if (dossierAttachesBody) dossierAttachesBody.textContent = '—';
     if (dossierListsBody) dossierListsBody.textContent = '—';
   }
 
+  /** Normalize upload type → 'violation' | 'water' (one latest row per kind). */
+  function scanTypeKey(raw) {
+    const t = String(raw || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+    if (!t) return 'violation';
+    if (t.includes('water')) return 'water';
+    return 'violation';
+  }
+
+  function scanTypeLabel(key) {
+    return key === 'water' ? 'Water shut-off' : 'Code violation';
+  }
+
   /**
-   * Client-only dossier model from existing history + lists APIs.
-   * No GET /api/bridge/dossier.
+   * Latest scan timestamp for a history attach or staged list.
+   * Prefers attach time / list createdAt.
+   */
+  function scanWhenIso(entry) {
+    if (!entry || typeof entry !== 'object') return '';
+    return (
+      entry.attached_at ||
+      entry.createdAt ||
+      entry.updatedAt ||
+      entry.processedAt ||
+      entry.response_received_at ||
+      ''
+    );
+  }
+
+  /**
+   * Client-only model: history attaches + staged lists for this city.
+   * lastByType = one latest scan per list type (code + water).
    */
   function buildDossierModel(city, history, lists) {
     const attaches = Array.isArray(history) ? history : [];
-    const lastScrub = attaches.length
-      ? [...attaches].sort((a, b) =>
-          String(b.attached_at || '').localeCompare(String(a.attached_at || ''))
-        )[0]
-      : null;
     const cityId = city && city.id;
     const stagedLists = (lists || []).filter(
       (l) => String(l.cityId || '') === String(cityId)
     );
+
+    // Merge attaches + staged lists into scan events, keep latest per type
+    const byType = new Map();
+    const consider = (entry, source) => {
+      if (!entry) return;
+      const when = scanWhenIso(entry);
+      if (!when) return;
+      const typeRaw =
+        entry.upload_type ||
+        entry.uploadType ||
+        entry.upload_type_label ||
+        '';
+      const key = scanTypeKey(typeRaw);
+      const prev = byType.get(key);
+      if (!prev || String(when).localeCompare(String(prev.when)) > 0) {
+        byType.set(key, {
+          key,
+          label: scanTypeLabel(key),
+          when,
+          source,
+          kept:
+            entry.kept_count != null
+              ? Number(entry.kept_count)
+              : entry.recordCount != null
+                ? Number(entry.recordCount)
+                : null,
+          file: entry.original_filename || entry.sourceFile || entry.name || ''
+        });
+      }
+    };
+    attaches.forEach((a) => consider(a, 'attach'));
+    stagedLists.forEach((l) => consider(l, 'list'));
+
+    // Stable order: Code violation first, then water
+    const order = ['violation', 'water'];
+    const lastByType = order.map((k) => byType.get(k)).filter(Boolean);
+    // Any unexpected types append after
+    for (const [k, v] of byType) {
+      if (!order.includes(k)) lastByType.push(v);
+    }
+
+    const lastScrub = lastByType.length
+      ? [...lastByType].sort((a, b) => String(b.when).localeCompare(String(a.when)))[0]
+      : null;
+
     const listStatus = {
       ready: stagedLists.filter((l) => (l.status || 'ready') === 'ready').length,
       downloaded: stagedLists.filter((l) => l.status === 'downloaded').length,
       recordCount: stagedLists.reduce((n, l) => n + (Number(l.recordCount) || 0), 0)
     };
-    return { city, attaches, lastScrub, stagedLists, listStatus };
+    return { city, attaches, lastScrub, lastByType, stagedLists, listStatus };
   }
 
   function renderCityDossier(model) {
@@ -2052,27 +2122,57 @@
     }
     setHidden(cityDossier, false);
 
-    const attaches = model.attaches || [];
-    const staged = model.stagedLists || [];
-    const listStatus = model.listStatus || { ready: 0, downloaded: 0, recordCount: 0 };
-    const isEmpty = attaches.length === 0 && staged.length === 0;
+    const lastByType = model.lastByType || [];
+    const isEmpty = lastByType.length === 0;
 
     if (dossierEmptyEl) {
       setHidden(dossierEmptyEl, !isEmpty);
     }
 
+    const lastScanList = document.getElementById('bridge-dossier-last-scrub');
+    if (lastScanList) {
+      if (isEmpty) {
+        lastScanList.innerHTML = '';
+      } else {
+        lastScanList.innerHTML = lastByType
+          .map((scan) => {
+            const when = scan.when ? formatDisplayDate(scan.when) : '—';
+            const kept =
+              scan.kept != null && Number.isFinite(scan.kept)
+                ? `${Number(scan.kept).toLocaleString()} kept`
+                : '';
+            const kindClass =
+              scan.key === 'water'
+                ? 'bridge-last-scan-row--water'
+                : 'bridge-last-scan-row--violation';
+            return (
+              `<div class="bridge-last-scan-row ${kindClass}">` +
+              `<span class="bridge-last-scan-type">${esc(scan.label)}</span>` +
+              `<span class="bridge-last-scan-when">${esc(when)}</span>` +
+              (kept
+                ? `<span class="bridge-last-scan-meta">${esc(kept)}</span>`
+                : '') +
+              `</div>`
+            );
+          })
+          .join('');
+      }
+    }
+
+    // Keep hidden hooks in sync for any legacy/test readers
     if (dossierLastScrubBody) {
       if (model.lastScrub) {
         const s = model.lastScrub;
-        const typeLabel = s.upload_type_label || s.upload_type || 'Attach';
-        const kept = Number(s.kept_count || 0).toLocaleString();
-        const when = s.attached_at ? formatDisplayDate(s.attached_at) : '—';
-        const file = s.original_filename || 'dataset';
-        dossierLastScrubBody.textContent = `${typeLabel} · ${kept} kept · ${when} · ${file}`;
+        dossierLastScrubBody.textContent =
+          `${s.label} · ${s.when ? formatDisplayDate(s.when) : '—'}`;
       } else {
-        dossierLastScrubBody.textContent = isEmpty ? '—' : 'No scrubs yet';
+        dossierLastScrubBody.textContent = isEmpty ? '—' : 'No scans yet';
       }
     }
+
+    const attaches = model.attaches || [];
+    const staged = model.stagedLists || [];
+    const listStatus = model.listStatus || { ready: 0, downloaded: 0, recordCount: 0 };
 
     if (dossierAttachesBody) {
       const n = attaches.length;
@@ -2103,6 +2203,11 @@
    */
   async function loadCityDossierHistory(cityId) {
     if (!cityId) return;
+    const lastScanList = document.getElementById('bridge-dossier-last-scrub');
+    if (lastScanList) {
+      lastScanList.innerHTML =
+        '<div class="bridge-last-scan-row bridge-last-scan-row--loading">Loading last scan…</div>';
+    }
     if (dossierLastScrubBody) dossierLastScrubBody.textContent = 'Loading…';
     if (dossierAttachesBody) dossierAttachesBody.textContent = 'Loading…';
     try {
@@ -2116,7 +2221,7 @@
       }
     } catch (err) {
       if (String(selectedCity?.id) !== String(cityId)) return;
-      // Soft error: keep type panel; show lists facet from in-memory savedLists
+      // Soft error: keep type panel; still show staged lists as last-scan source
       dossierHistoryCache = [];
       if (dossierLastScrubBody) {
         dossierLastScrubBody.textContent = (err && err.message) || 'Could not load history';
