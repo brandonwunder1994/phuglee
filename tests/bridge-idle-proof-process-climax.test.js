@@ -85,7 +85,7 @@ test('IDLE-02: process date gate preserved', () => {
   assert.ok(i >= 0, 'processUpload must exist');
   const head = js.slice(i, i + 2500);
   assert.match(head, /getResponseAtValue\s*\(/);
-  assert.match(head, /Enter the date the city sent this list before processing\./);
+  assert.match(head, /Pick a Received date \(Today or last 7 days\) before processing/);
 });
 
 test('IDLE-02: process FormData omits response date', () => {
