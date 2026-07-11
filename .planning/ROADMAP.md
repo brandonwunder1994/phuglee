@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** Roadmap ready — start Phase 75  
-**Next:** `/gsd:plan-phase 75`
+**Status:** In progress — Phase 75 (1/2 plans)  
+**Next:** Execute `75-02-PLAN.md`
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -55,10 +55,10 @@
   3. A state matrix documents JS-toggled states (`hidden`, `disabled`, `is-theater`, `has-file`, etc.) that CSS may style but must not invent
   4. Operator workflows still boot with all locked contracts intact (no renames, no `data-action` churn)
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual  
-**Plans:** 2 plans
+**Plans:** 2 plans (1/2 complete)
 
 Plans:
-- [ ] 75-01-PLAN.md — DESK-05 contract freeze checklist + greppable freeze test
+- [x] 75-01-PLAN.md — DESK-05 contract freeze checklist + greppable freeze test
 - [ ] 75-02-PLAN.md — Surface inventory + JS state matrix for restyle phases
 
 ### Phase 76: Tokens & Layer Audit
