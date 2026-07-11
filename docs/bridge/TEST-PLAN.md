@@ -243,6 +243,35 @@ npm test
 
 ---
 
+## Q. v3.0 Filter Visual Makeover ship bar (QA-01..04, SYS-01..02)
+
+> Milestone lock for Filter Visual Makeover. Packaging + ship gates after phases 75–80 surface paint.  
+> CSS/markup-only makeover; function freeze. New packaging titles use `QA-0N (v3.0)` / `SYS-0N (v3.0)`.  
+> Do not rename v1.7 / v1.8 / v2.0 / v2.1 / DESK-05 bars. (§P remains DESK-05 contract freeze.)
+
+| ID | Case | Expected | Auto |
+|----|------|----------|------|
+| QA-01 (v3.0) | 390 + 1440 primary scrub path layout | No broken layout / page-level overflow | ✓ phase `81-QA-CHECKLIST.md` |
+| QA-02 (v3.0) | Full automated suite permanent bar | ≥679 pass / 0 fail (record exact) | ✓ `npm test` |
+| QA-03 (v3.0) | Live server after visual changes | health + homepage HTTP 200 | ✓ `scripts/verify-live.ps1` |
+| QA-03 (v3.0) | Filter route reachable | `/bridge` HTTP 200 | ✓ explicit Invoke-WebRequest (Option A) |
+| QA-04 (v3.0) | Behavior freeze | No process/API/brain/keep-kill/list workflow change; no Analyze re-coupling | ✓ independence + gold still green + freeze checklist |
+| SYS-01 (v3.0) | Component catalog note | tokens + classes + do/don't | ✓ `docs/phuglee/COMPONENT-CATALOG.md` |
+| SYS-02 (v3.0) | Screenshot parity matrix | login/home vs Filter pairs | ✓ `docs/phuglee/FILTER-PARITY-MATRIX.md` |
+
+```bash
+npm test
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1
+# QA-03 /bridge explicit (Option A)
+# Invoke-WebRequest http://127.0.0.1:3000/bridge → 200
+```
+
+Human layout gate: `.planning/phases/81-visual-qa-lock-catalog/81-QA-CHECKLIST.md`  
+Catalog: `docs/phuglee/COMPONENT-CATALOG.md`  
+Parity: `docs/phuglee/FILTER-PARITY-MATRIX.md`
+
+---
+
 ## Execution order (GSD verify loop)
 
 1. `npm test` — distress-os (all bridge + regression)
