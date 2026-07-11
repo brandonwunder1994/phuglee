@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
-status: defining_requirements
+status: roadmap_ready
 stopped_at: null
-last_updated: "2026-07-11T12:00:00.000Z"
-last_activity: 2026-07-11 — Milestone v3.0 started
+last_updated: "2026-07-11T18:00:00.000Z"
+last_activity: 2026-07-11 — Roadmap created (phases 75–81)
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,38 +21,50 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — look only, functions locked
+**Current focus:** v3.0 Filter Visual Makeover — Phase 75 ready to plan
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** Not started (defining requirements)  
+**Phase:** 75 of 81 (Contract Freeze & Surface Inventory)  
 **Plan:** —  
-**Status:** Defining requirements  
-**Last activity:** 2026-07-11 — Milestone v3.0 started  
+**Status:** Ready to plan  
+**Last activity:** 2026-07-11 — Roadmap created (phases 75–81)  
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0 (this milestone)
+- Average duration: —
+- Total execution time: —
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| 75–81 | — | TBD | — |
 
 ## Accumulated Context
 
-### Prior shipped (locked behavior)
-- v2.2 Filter Desk Cinema (69–74) — one scrub desk, mission board, type chips, victory strip
-- v2.1 Filter Scrub Theater (61–68) — desk shell, dossier, feed, kill report, Train theater, shift queue
-- v2.0 Independence & Learning; v1.8 Type column; v1.7 accuracy; v1.6 Superpower Brain
+### Decisions
+- v3.0 is CSS/markup only; login/home is visual north star
+- Shared system + full Filter application this milestone; other pages later
+- Continuous phase numbering from v2.2 (last was 74 → start 75)
+- Design-system sequence: contracts → tokens → components → cascade/hooks → core desk → theater → QA
 
-### v3.0 constraints
-- Visual north star: login modal + home page (glass, grain, Phuglee tokens, Anton/Outfit)
-- Every Filter control redesigned; shared design system for later site-wide
-- CSS/markup only — no process/API/brain/keep-kill behavior changes
-- Other pages full reskin = later milestones
+### Pending Todos
+None yet.
 
-## Archives
+### Blockers/Concerns
+- Cascade load order today is inverted (bridge before components) — fix in Phase 78
+- ~70+ JS `getElementById` boots — never rename `bridge-*` IDs or `data-action` values
+- Admin Train must stay fail-closed; CSS is never the sole gate
 
-| Milestone | Path |
-|-----------|------|
-| v2.2 | `.planning/v2.2-FILTER-DESK-CINEMA.md` |
-| v2.1 | `.planning/milestones/v2.1-ROADMAP.md` |
+## Session Continuity
 
-## Next command
-
-```text
-Continue /gsd:new-milestone → research gate → requirements → roadmap
-```
+Last session: 2026-07-11  
+Stopped at: Roadmap written for v3.0 (phases 75–81)  
+Resume file: None  
+Next: `/gsd:plan-phase 75`

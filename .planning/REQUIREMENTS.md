@@ -84,14 +84,38 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOKENS-01–04 | TBD | Pending roadmap |
-| BUTTONS-01–03 | TBD | Pending roadmap |
-| FORMS-01–04 | TBD | Pending roadmap |
-| CARDS-01–03 | TBD | Pending roadmap |
-| DESK-01–05 | TBD | Pending roadmap |
-| STATES-01–04 | TBD | Pending roadmap |
-| SYS-01–02 | TBD | Pending roadmap |
-| QA-01–04 | TBD | Pending roadmap |
+| TOKENS-01 | Phase 76 | Pending |
+| TOKENS-02 | Phase 76 | Pending |
+| TOKENS-03 | Phase 76 | Pending |
+| TOKENS-04 | Phase 76 | Pending |
+| BUTTONS-01 | Phase 77 | Pending |
+| BUTTONS-02 | Phase 77 | Pending |
+| BUTTONS-03 | Phase 77 | Pending |
+| FORMS-01 | Phase 78 | Pending |
+| FORMS-02 | Phase 77 | Pending |
+| FORMS-03 | Phase 77 | Pending |
+| FORMS-04 | Phase 78 | Pending |
+| CARDS-01 | Phase 77 | Pending |
+| CARDS-02 | Phase 78 | Pending |
+| CARDS-03 | Phase 79 | Pending |
+| DESK-01 | Phase 80 | Pending |
+| DESK-02 | Phase 80 | Pending |
+| DESK-03 | Phase 79 | Pending |
+| DESK-04 | Phase 80 | Pending |
+| DESK-05 | Phase 75 | Pending |
+| STATES-01 | Phase 77 | Pending |
+| STATES-02 | Phase 78 | Pending |
+| STATES-03 | Phase 77 | Pending |
+| STATES-04 | Phase 80 | Pending |
+| SYS-01 | Phase 81 | Pending |
+| SYS-02 | Phase 81 | Pending |
+| QA-01 | Phase 81 | Pending |
+| QA-02 | Phase 81 | Pending |
+| QA-03 | Phase 81 | Pending |
+| QA-04 | Phase 81 | Pending |
+
+**Coverage:** 29/29 v1 requirements mapped ✓
 
 ---
-*Requirements defined 2026-07-11 for milestone v3.0 Filter Visual Makeover*
+*Requirements defined 2026-07-11 for milestone v3.0 Filter Visual Makeover*  
+*Traceability updated 2026-07-11 — roadmap phases 75–81*
