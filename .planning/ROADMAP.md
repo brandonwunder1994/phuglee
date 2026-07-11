@@ -45,7 +45,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 - [x] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
 - [x] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
 - [x] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
-- [ ] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
+- [x] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
 - [ ] **Phase 66: Superpower Train Theater** — Admin Train climax when open groups; brain secondary; non-admin gate
 - [ ] **Phase 67: Multi-City Shift & Staging** — Sticky shift queue; inventory HUD; brand-heat success
 - [ ] **Phase 68: Regression QA Lock** — v1.6–v2.0 locks + suite + verify-live + mobile/a11y motion
@@ -109,10 +109,10 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   1. After process, results open with a **kill-rate scrub report**: display-scale RAW → KILLED → KEPT hierarchy, kill-reason breakdown, optional sample kept dossiers — not only equal KPI tiles
   2. Process meta already computed (duration, format reuse, discard story) surfaces as **proof chips/HUD**, not a single buried meta sentence
   3. Primary post-scrub CTA remains **Save list / Stage**; Preview CSV stays secondary; Analyze boundary language preserved
-**Plans**: 2/3 plans complete · plan-check **PASS** · status: In Progress
+**Plans**: 3/3 plans complete · plan-check **PASS** · status: Complete
 - [x] 65-01-PLAN.md — Wave 0 TDD: kill-rate contracts (KILL-01–03)
 - [x] 65-02-PLAN.md — Kill-rate HUD: reforge `renderKpis` RAW→KILLED→KEPT + proof chips
-- [ ] 65-03-PLAN.md — Elevate Save/Stage; Preview secondary; suite + verify-live
+- [x] 65-03-PLAN.md — Elevate Save/Stage; Preview secondary; suite + verify-live
 
 ### Phase 66: Superpower Train Theater
 **Goal**: When admin has open train groups after process, UI pivots into Train theater; Filter brain is armory, not a peer tab; non-admins never see train/brain chrome
@@ -164,7 +164,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | 62. City Dossier | 2/2 | Complete | PASS | 2026-07-10 |
 | 63. Idle Proof & Process Climax | 2/2 | Complete | PASS | 2026-07-10 |
 | 64. Live Scrub Feed | 2/2 | Complete | PASS | 2026-07-11 |
-| 65. Kill-Rate Scrub Report | 2/3 | In Progress | PASS | — |
+| 65. Kill-Rate Scrub Report | 3/3 | Complete | PASS | 2026-07-11 |
 | 66. Superpower Train Theater | 0/3 | Ready to execute | PASS | — |
 | 67. Multi-City Shift & Staging | 0/3 | Ready to execute | PASS | — |
 | 68. Regression QA Lock | 0/2 | Ready to execute | PASS | — |

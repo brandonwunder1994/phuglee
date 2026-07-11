@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 3
-status: executing
-stopped_at: Completed 65-02-PLAN.md
-last_updated: "2026-07-11T00:17:31.011Z"
+current_plan: 3 of 3
+status: verifying
+stopped_at: Completed 65-03-PLAN.md
+last_updated: "2026-07-11T00:20:10.402Z"
 last_activity: 2026-07-11
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 20
-  completed_plans: 11
-  percent: 55
+  completed_plans: 12
+  percent: 60
 ---
 
 # State
@@ -22,7 +22,7 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 65 Kill-Rate Scrub Report (plan 02 complete)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 65 complete (ready for verification); next Phase 66 Train Theater
 
 ## Current Position
 
@@ -30,10 +30,10 @@ See: `.planning/PROJECT.md`
 **Phase:** 65 — Kill-Rate Scrub Report  
 **Current Plan:** 3 of 3  
 **Total Plans in Phase:** 3  
-**Status:** Ready to execute  
-**Last activity:** 2026-07-11 — 65-02 kill-rate HUD shipped
+**Status:** Phase complete — ready for verification
+**Last activity:** 2026-07-11 — 65-03 Stage CTA elevated + suite/live green
 
-Progress: [██████░░░░] 55% (11/20 plans executed)
+Progress: [██████░░░░] 60% (12/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -43,7 +43,7 @@ Progress: [██████░░░░] 55% (11/20 plans executed)
 | 62 | City Dossier | 2 (2 done) | PASS |
 | 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
-| 65 | Kill-Rate Scrub Report | 3 (2 done) | PASS |
+| 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
 | 66 | Superpower Train Theater | 3 | PASS |
 | 67 | Multi-City Shift & Staging | 3 | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
@@ -91,6 +91,9 @@ Progress: [██████░░░░] 55% (11/20 plans executed)
 - [65] Helper buildKillReasons so Wave 0 scan finds discardReasons
 - [65] Stub note hidden on normal process — kill report owns proof
 - [65] KEPT gold/orange survivor heat; no SaaS green success island
+- [65] Option A: save panel + workflow strip before train wrap (no ID duplication)
+- [65] Stage language on heading/lead only; Save list button label locked
+- [65] Preserve LIST-03 phrase download from Saved lists for external enrichment
 
 ## Performance Metrics
 
@@ -107,16 +110,17 @@ Progress: [██████░░░░] 55% (11/20 plans executed)
 | 64 | 02 | 2min | 3 | 4 |
 | 65 | 01 | 4min | 1 | 1 |
 | 65 | 02 | 2min | 2 | 3 |
+| 65 | 03 | 2min | 2 | 3 |
 
 ## Next command
 
 ```text
-/gsd:execute-phase 65
+/gsd:verify-phase 65
 ```
 
-(Continue Phase 65 — next plan 65-03 Stage CTA / suite + verify-live)
+(Phase 65 plans complete — run verification, then `/gsd:execute-phase 66`)
 
 ## Session
 
-**Last session:** 2026-07-11T00:17:31.001Z
-**Stopped at:** Completed 65-02-PLAN.md
+**Last session:** 2026-07-11T00:20:10.393Z
+**Stopped at:** Completed 65-03-PLAN.md
