@@ -236,3 +236,74 @@ test('THTR-01 hygiene: no banned Analyze push CTAs in theater files', () => {
     assert.equal(trainJs.includes(banned), false, `bridge-train.js must not contain "${banned}"`);
   }
 });
+
+// ─── 66-02 THTR-01: live mission HUD on decision path ────────────────────────
+
+test('THTR-01 live HUD: commitTrainDecisionLocally wires mission + status + KPI', () => {
+  const js = readBridgeJs();
+
+  const commitIdx = js.indexOf('function commitTrainDecisionLocally');
+  assert.ok(commitIdx !== -1, 'commitTrainDecisionLocally must exist');
+  // Through end of function (persistTrainBrainDecision follows)
+  const commitEnd = js.indexOf('async function persistTrainBrainDecision', commitIdx);
+  const commitRegion = js.slice(commitIdx, commitEnd !== -1 ? commitEnd : commitIdx + 6000);
+
+  assert.ok(
+    /updateTrainMissionHeader\s*\(/.test(commitRegion),
+    'commitTrainDecisionLocally must call updateTrainMissionHeader(remaining, keptNow)'
+  );
+  assert.ok(
+    /Decision saved · \$\{keptNow\.toLocaleString\(\)\} kept/.test(commitRegion) ||
+      /Decision saved · .* kept/.test(commitRegion),
+    'status templates must preserve Decision saved · {kept} copy'
+  );
+  assert.ok(
+    /refreshTrainUiAfterDecision\s*\(/.test(commitRegion),
+    'decision path must call refreshTrainUiAfterDecision (KPI + light re-render)'
+  );
+
+  // refreshTrainUiAfterDecision still refreshes KPIs and mission (not wiped)
+  const refreshIdx = js.indexOf('function refreshTrainUiAfterDecision');
+  assert.ok(refreshIdx !== -1, 'refreshTrainUiAfterDecision must exist');
+  const refreshRegion = js.slice(refreshIdx, refreshIdx + 900);
+  assert.ok(
+    /renderKpis\s*\(/.test(refreshRegion),
+    'refreshTrainUiAfterDecision must call renderKpis'
+  );
+  assert.ok(
+    /updateTrainMissionHeader\s*\(/.test(refreshRegion),
+    'refreshTrainUiAfterDecision must re-sync mission open/kept (decision + undo light path)'
+  );
+
+  // Decision POST body still uses clientApplied — no invented kept-count API fields
+  assert.ok(
+    /clientApplied\s*:\s*true/.test(commitRegion),
+    'persist meta body must still include clientApplied: true'
+  );
+  assert.ok(
+    !/body\s*:\s*\{[^}]*keptCount\s*:/.test(commitRegion) &&
+      !/body\s*:\s*\{[^}]*openCount\s*:/.test(commitRegion),
+    'decision body must not invent keptCount/openCount API keys'
+  );
+});
+
+test('THTR-01 live HUD: undo path refreshes mission counts after restore', () => {
+  const js = readBridgeJs();
+  const undoIdx = js.indexOf('async function onTrainUndo');
+  assert.ok(undoIdx !== -1, 'onTrainUndo must exist');
+  const undoRegion = js.slice(undoIdx, undoIdx + 2800);
+
+  // After snapshot restore, mission must update — either direct call or via refresh helper
+  const restoresThenRefreshes =
+    /applyTrainSnapshot[\s\S]{0,400}refreshTrainUiAfterDecision\s*\(/.test(undoRegion) ||
+    /applyTrainSnapshot[\s\S]{0,400}updateTrainMissionHeader\s*\(/.test(undoRegion);
+  assert.ok(
+    restoresThenRefreshes,
+    'undo success must apply snapshot then refresh UI / mission counts'
+  );
+  // refreshTrainUiAfterDecision (called on undo) owns mission re-sync — locked above
+  assert.ok(
+    /refreshTrainUiAfterDecision\s*\(/.test(undoRegion),
+    'onTrainUndo must call refreshTrainUiAfterDecision after restore'
+  );
+});

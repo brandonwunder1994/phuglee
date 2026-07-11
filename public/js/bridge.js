@@ -501,6 +501,10 @@
       renderResults(lastResult);
       setResultsMode(resultsMode || 'kept');
     }
+    // Keep mission HUD open/kept in sync on decision, undo, and conflict rollback
+    const remaining = countOpenTrainGroups(lastResult, trainDecidedKeys);
+    const keptNow = (lastResult.rows || []).length;
+    updateTrainMissionHeader(remaining, keptNow);
     updateTrainUndoButton();
   }
 
