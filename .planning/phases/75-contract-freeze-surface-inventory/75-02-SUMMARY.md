@@ -74,7 +74,7 @@ Each task was committed atomically:
 1. **Task 1: Write surface inventory mapped to design-system layers** - `ee397a3` (docs)
 2. **Task 2: Write JS state matrix + cross-link freeze doc** - `07ba0df` (docs)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `4916070` (docs: complete plan + STATE/ROADMAP)
 
 ## Files Created/Modified
 
