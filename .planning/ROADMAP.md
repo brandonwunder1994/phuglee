@@ -61,7 +61,6 @@ Plans:
 - [ ] 75-01-PLAN.md — DESK-05 contract freeze checklist + greppable freeze test
 - [ ] 75-02-PLAN.md — Surface inventory + JS state matrix for restyle phases
 
-
 ### Phase 76: Tokens & Layer Audit
 **Goal**: Filter reads the same Phuglee token DNA as login/home — color, glass, type, status — before any mass paint  
 **Depends on**: Phase 75  
@@ -120,10 +119,6 @@ Plans:
 Plans:
 - [ ] 79-01-PLAN.md - Elevation hierarchy + hero/pipeline/scrub/dossier/import shells (CARDS-03)
 - [ ] 79-02-PLAN.md - Kept + inventory dark-glass tables sticky/zebra/hover/390 scroll (DESK-03)
-
- -  [ ] 79 - 01 - PLAN.md  -  Elevation hierarchy + hero/pipeline/scrub/dossier/import shells (CARDS - 03)
- -  [ ] 79 - 02 - PLAN.md  -  Kept + inventory dark - glass tables sticky/zebra/hover/390 scroll (DESK - 03)
-
 
 ### Phase 80: Theater, Gates & Motion
 **Goal**: Full Filter surface paint including cinema climax, Train gates, and reduced-motion-safe motion — no orphan pre-system chrome  
