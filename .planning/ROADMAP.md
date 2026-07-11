@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 75 (1/2 plans)  
-**Next:** Execute `75-02-PLAN.md`
+**Status:** In progress — Phase 75 complete (2/2 plans); next Phase 76  
+**Next:** Execute Phase 76 (Tokens & Layer Audit)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -35,7 +35,7 @@
 
 ## Phases
 
-- [ ] **Phase 75: Contract Freeze & Surface Inventory** — Lock ID/`data-*` contracts and inventory every Filter surface for restyle targets
+- [x] **Phase 75: Contract Freeze & Surface Inventory** — Lock ID/`data-*` contracts and inventory every Filter surface for restyle targets
 - [ ] **Phase 76: Tokens & Layer Audit** — Align Filter with home/login tokens; map z-index and ban hex islands
 - [ ] **Phase 77: Shared Components Expansion** — Grow `phuglee-*` buttons, chips, panels, empty/error patterns to home grade
 - [ ] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
@@ -55,11 +55,11 @@
   3. A state matrix documents JS-toggled states (`hidden`, `disabled`, `is-theater`, `has-file`, etc.) that CSS may style but must not invent
   4. Operator workflows still boot with all locked contracts intact (no renames, no `data-action` churn)
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual  
-**Plans:** 2 plans (1/2 complete)
+**Plans:** 2 plans (2/2 complete)
 
 Plans:
 - [x] 75-01-PLAN.md — DESK-05 contract freeze checklist + greppable freeze test
-- [ ] 75-02-PLAN.md — Surface inventory + JS state matrix for restyle phases
+- [x] 75-02-PLAN.md — Surface inventory + JS state matrix for restyle phases
 
 ### Phase 76: Tokens & Layer Audit
 **Goal**: Filter reads the same Phuglee token DNA as login/home — color, glass, type, status — before any mass paint  
@@ -161,7 +161,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 75. Contract Freeze & Surface Inventory | v3.0 | 0/2 | Planned | - |
+| 75. Contract Freeze & Surface Inventory | v3.0 | 2/2 | Complete | 2026-07-11 |
 | 76. Tokens & Layer Audit | v3.0 | 0/2 | Planned | - |
 | 77. Shared Components Expansion | v3.0 | 0/2 | Planned | - |
 | 78. Cascade, Hooks & State CSS | v3.0 | 0/TBD | Not started | - |
