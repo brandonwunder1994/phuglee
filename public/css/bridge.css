@@ -2501,58 +2501,96 @@ button.bridge-inventory-filter-chip.is-active {
   margin-bottom: 1.25rem;
 }
 
-/* IDLE-02: demoted tight meta under dropzone (not a peer fieldset essay) */
+/* IDLE-02: received date chips under dropzone (today + last 7 days) */
 .bridge-response-row--meta {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.65rem 1rem;
-  margin: 0.5rem 0 0.65rem;
-  padding: 0.45rem 0.65rem;
-  background: rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(174, 163, 143, 0.12);
-  border-radius: var(--radius-sm);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+  margin: 0.65rem 0 0.75rem;
+  padding: 0.65rem 0.75rem 0.7rem;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.05) 0%, transparent 45%),
+    rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  border-radius: 12px;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .bridge-response-row--meta .bridge-datetime-picker {
   margin: 0;
   padding: 0;
   border: none;
-}
-
-.bridge-response-row--meta .bridge-datetime-fields {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.bridge-response-row--meta .bridge-datetime-date {
-  flex: 0 1 auto;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.45rem;
-  min-width: 0;
+  width: 100%;
 }
 
 .bridge-response-row--meta .bridge-datetime-label {
   font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--phuglee-taupe);
-  white-space: nowrap;
+  color: var(--phuglee-gold, #eeb746);
+  margin-bottom: 0.45rem;
+  padding: 0;
 }
 
-.bridge-response-row--meta .bridge-datetime-picker input[type="date"] {
-  padding: 0.4rem 0.5rem;
-  font-size: 0.82rem;
-  color: var(--phuglee-cream);
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(174, 163, 143, 0.2);
-  border-radius: var(--radius-sm);
-  min-width: 9.5rem;
+.bridge-date-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.bridge-date-chip {
+  appearance: none;
+  font: inherit;
+  cursor: pointer;
+  min-height: 2.35rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-taupe-mid, #c4b8a4);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.07) 0%, transparent 48%),
+    rgba(12, 10, 8, 0.42);
+  border: 1px solid rgba(174, 163, 143, 0.26);
+  border-radius: 999px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px) saturate(145%);
+  -webkit-backdrop-filter: blur(12px) saturate(145%);
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.bridge-date-chip:hover {
+  color: var(--phuglee-cream, #f5f0e8);
+  border-color: rgba(229, 132, 53, 0.45);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 14px rgba(229, 132, 53, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.bridge-date-chip.is-selected,
+.bridge-date-chip[aria-pressed="true"] {
+  color: var(--phuglee-cream, #f5f0e8);
+  border-color: rgba(238, 183, 70, 0.6);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.12) 0%, transparent 48%),
+    rgba(229, 132, 53, 0.2);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.32),
+    0 0 22px rgba(229, 132, 53, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
 .bridge-response-row--meta .bridge-response-hint {
@@ -2562,6 +2600,14 @@ button.bridge-inventory-filter-chip.is-active {
   line-height: 1.35;
   color: var(--phuglee-taupe);
   opacity: 0.9;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bridge-date-chip,
+  .bridge-date-chip:hover {
+    transform: none;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
 }
 
 .bridge-datetime-picker {

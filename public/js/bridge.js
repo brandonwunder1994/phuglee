@@ -1529,7 +1529,69 @@
   }
 
   function clearResponseDateTime() {
-    if (responseDateInput) responseDateInput.value = '';
+    // Keep a ready default so next scrub stays one-click (Today)
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    setResponseDateYmd(formatLocalYmd(today));
+  }
+
+  /** Local YYYY-MM-DD for a Date. */
+  function formatLocalYmd(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  /**
+   * Today + previous 7 days (8 chips) as one-click received dates.
+   * Hidden #bridge-response-date still holds YYYY-MM-DD for process.
+   */
+  function buildResponseDateChips() {
+    const host = document.getElementById('bridge-date-chips');
+    if (!host) return;
+    const today = new Date();
+    today.setHours(12, 0, 0, 0);
+    const chips = [];
+    for (let offset = 0; offset <= 7; offset += 1) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - offset);
+      const ymd = formatLocalYmd(d);
+      let label;
+      if (offset === 0) label = 'Today';
+      else if (offset === 1) label = 'Yesterday';
+      else {
+        label = d.toLocaleDateString(undefined, {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+      chips.push(
+        `<button type="button" class="bridge-date-chip" data-date="${esc(ymd)}" aria-pressed="false">` +
+        `${esc(label)}` +
+        `</button>`
+      );
+    }
+    host.innerHTML = chips.join('');
+    // Default: Today selected
+    setResponseDateYmd(formatLocalYmd(today));
+  }
+
+  function syncDateChipSelection(ymd) {
+    const host = document.getElementById('bridge-date-chips');
+    if (!host) return;
+    host.querySelectorAll('.bridge-date-chip').forEach((btn) => {
+      const on = ymd && btn.getAttribute('data-date') === ymd;
+      btn.classList.toggle('is-selected', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  function setResponseDateYmd(ymd) {
+    const date = String(ymd || '').trim();
+    if (responseDateInput) responseDateInput.value = date;
+    syncDateChipSelection(date);
   }
 
   /**
@@ -1546,7 +1608,8 @@
 
   function focusResponseDateTime() {
     try {
-      responseDateInput?.focus();
+      const selected = document.querySelector('#bridge-date-chips .bridge-date-chip.is-selected');
+      (selected || document.querySelector('#bridge-date-chips .bridge-date-chip'))?.focus();
     } catch (_) { /* ignore */ }
   }
 
@@ -4428,6 +4491,14 @@
   // SHIFT-01: restore this sitting's sticky queue before inventory load
   loadShiftQueueFromSession();
   renderShiftQueue();
+
+  buildResponseDateChips();
+  document.getElementById('bridge-date-chips')?.addEventListener('click', (event) => {
+    const chip = event.target.closest('.bridge-date-chip[data-date]');
+    if (!chip) return;
+    event.preventDefault();
+    setResponseDateYmd(chip.getAttribute('data-date') || '');
+  });
 
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));
   loadSavedLists().catch(() => {});

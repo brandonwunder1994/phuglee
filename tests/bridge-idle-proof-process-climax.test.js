@@ -43,6 +43,7 @@ test('IDLE-02: stable upload climax ids', () => {
   assert.match(html, /id="bridge-dropzone"/);
   assert.match(html, /id="bridge-response-date"/);
   assert.match(html, /id="bridge-process"/);
+  assert.match(html, /id="bridge-date-chips"/);
 
   // Dropzone stage before response date (climax hierarchy)
   const start = html.indexOf('id="bridge-upload-panel"');
@@ -55,7 +56,14 @@ test('IDLE-02: stable upload climax ids', () => {
     d < r || panel.includes('bridge-response-row--meta'),
     'dropzone before date, or date demoted to meta row'
   );
-  assert.match(panel, /required/, 'response date still required');
+  assert.match(panel, /required|bridge-date-chips/, 'response date chips or required field present');
+});
+
+test('IDLE-02: received date chips (today + last 7 days)', () => {
+  assert.match(js, /function buildResponseDateChips\s*\(/);
+  assert.match(js, /function setResponseDateYmd\s*\(/);
+  assert.match(js, /Today/);
+  assert.match(js, /offset <= 7|offset < 8/);
 });
 
 test('IDLE-02: process date gate preserved', () => {
