@@ -218,7 +218,7 @@ body {
   font-size: 0.62rem;
 }
 
-/* Featured — victory strip (visibility still sole [hidden] gate) */
+/* Featured — victory strip (war-room end state; stronger than mission) */
 .bridge-victory-strip,
 .bridge-elev--featured.bridge-victory-strip {
   display: flex;
@@ -228,11 +228,26 @@ body {
   gap: 1rem;
   width: 100%;
   margin: 0 0 1.15rem;
-  padding: 1rem 1.15rem 1.1rem;
-  border-radius: var(--radius-md, 10px);
+  padding: 1.1rem 1.25rem 1.2rem;
+  border-radius: var(--card-radius, 14px);
   border: 1px solid var(--glass-border-strong);
   background: var(--glass-fill-elevated);
-  box-shadow: var(--glass-shadow-featured);
+  box-shadow:
+    var(--glass-shadow-featured),
+    0 0 48px color-mix(in srgb, var(--phuglee-orange) 14%, transparent);
+  backdrop-filter: blur(var(--glass-blur, 36px)) saturate(var(--glass-saturate, 170%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 36px)) saturate(var(--glass-saturate, 170%));
+  position: relative;
+}
+
+.bridge-victory-strip::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  border-radius: var(--card-radius, 14px) var(--card-radius, 14px) 0 0;
+  background: var(--glass-edge-shine);
+  pointer-events: none;
 }
 
 .bridge-victory-kicker {
@@ -241,24 +256,25 @@ body {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--phuglee-gold, #eeb746);
+  color: var(--phuglee-gold);
 }
 
 .bridge-victory-title {
   margin: 0 0 0.35rem;
   font-family: var(--font-display);
-  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  font-size: clamp(1.45rem, 3.2vw, 2rem);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--phuglee-cream, #f5f0e8);
+  color: var(--phuglee-cream);
   line-height: 1.1;
+  text-shadow: 0 0 28px color-mix(in srgb, var(--phuglee-gold) 22%, transparent);
 }
 
 .bridge-victory-meta {
   margin: 0 0 0.4rem;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--phuglee-taupe-mid, #c4b8a4);
+  color: var(--phuglee-taupe-mid);
   line-height: 1.4;
 }
 
@@ -268,7 +284,7 @@ body {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(238, 183, 70, 0.85);
+  color: color-mix(in srgb, var(--phuglee-gold) 88%, transparent);
 }
 
 .bridge-victory-actions {
@@ -278,26 +294,60 @@ body {
   align-items: center;
 }
 
-/* Phase 72: post-scrub mission surface */
+/* Phase 80: post-scrub mission surface — home-grade war-room HUD */
 .bridge-mission-surface {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--desk-gap, 0.65rem);
   margin-bottom: 0.85rem;
-  padding: 0.85rem 0.95rem 1rem;
+  padding: var(--desk-pad-y, 0.85rem) var(--desk-pad-x, 1rem) 1rem;
   border-radius: var(--radius-md, 10px);
-  border: 1px solid rgba(238, 183, 70, 0.22);
-  background:
-    linear-gradient(160deg, rgba(229, 132, 53, 0.07), transparent 60%),
-    rgba(0, 0, 0, 0.2);
+  border: 1px solid color-mix(in srgb, var(--phuglee-gold) 28%, transparent);
+  background: var(--glass-fill-elevated);
+  box-shadow:
+    var(--glass-shadow),
+    0 0 32px color-mix(in srgb, var(--phuglee-orange) 10%, transparent);
+  backdrop-filter: blur(calc(var(--glass-blur, 36px) * 0.55)) saturate(var(--glass-saturate, 170%));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 36px) * 0.55)) saturate(var(--glass-saturate, 170%));
+  position: relative;
 }
 
+.bridge-mission-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--phuglee-orange) 45%, transparent) 40%,
+    color-mix(in srgb, var(--phuglee-gold) 55%, transparent) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+/* Save climax — primary heat above scrap attach / collapsible kept */
 .bridge-save-panel--climax {
   margin-top: 0.25rem;
-  padding: 0.85rem 0.9rem;
-  border: 1px solid rgba(229, 132, 53, 0.35);
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--glass-border-strong);
   border-radius: var(--radius-sm, 8px);
-  background: rgba(229, 132, 53, 0.08);
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--phuglee-orange) 14%, transparent) 0%, transparent 55%),
+    color-mix(in srgb, var(--phuglee-orange) 10%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--phuglee-orange) 18%, transparent),
+    0 0 28px color-mix(in srgb, var(--phuglee-orange) 16%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.bridge-save-panel--climax #bridge-save-heading {
+  font-family: var(--font-display);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
 }
 
 /* Scrap / secondary quieter — results table shell */
@@ -305,8 +355,9 @@ body {
   margin: 0.75rem 0 1rem;
   border: 1px solid var(--glass-border-chrome);
   border-radius: var(--radius-sm, 8px);
-  background: color-mix(in srgb, var(--glass-bg) 55%, transparent);
+  background: color-mix(in srgb, var(--glass-bg) 48%, transparent);
   box-shadow: none;
+  opacity: 0.92;
 }
 
 .bridge-results-details-summary {
@@ -341,14 +392,16 @@ body {
   padding: 0 0.85rem 0.85rem;
 }
 
-/* Scrap / secondary quieter — attach demoted under climax */
+/* Scrap / secondary quieter — attach demoted under climax (weaker than save heat) */
 .bridge-attach-panel--scrap,
 .bridge-elev--scrap.bridge-attach-panel--scrap {
   margin-top: 0.5rem;
-  opacity: 0.88;
+  opacity: 0.82;
   border-top: 1px dashed var(--glass-border-chrome);
+  border-color: var(--glass-border-chrome);
   padding-top: 0.85rem;
   box-shadow: none;
+  background: transparent;
 }
 
 .bridge-workflow-strip {
@@ -1394,21 +1447,23 @@ body {
   margin-bottom: 1rem;
 }
 
-/* Kill-rate scrub report — asymmetric mission HUD (not equal 3-up tiles) */
+/* Kill-rate scrub report — asymmetric mission HUD (not equal 3-up tiles)
+   Hierarchy: RAW quieter taupe → KILLED hot danger → KEPT largest gold Anton */
 #bridge-kpi-grid.bridge-kill-report,
 .bridge-kill-report {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.75rem;
+  gap: 0.8rem;
   margin-bottom: 1.1rem;
+  width: 100%;
 }
 
 .bridge-kill-flow {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.55rem 0.75rem;
+  gap: 0.55rem 0.85rem;
   width: 100%;
 }
 
@@ -1417,7 +1472,7 @@ body {
   flex-direction: column;
   align-items: flex-start;
   min-width: 0;
-  gap: 0.15rem;
+  gap: 0.18rem;
 }
 
 .bridge-kill-stat-value {
@@ -1435,36 +1490,47 @@ body {
   color: var(--phuglee-stone);
 }
 
+/* RAW — quieter taupe / smaller */
 .bridge-kill-stat--raw .bridge-kill-stat-value {
-  font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+  font-size: clamp(1.05rem, 2.2vw, 1.4rem);
   color: var(--phuglee-taupe);
   text-shadow: none;
+  opacity: 0.92;
 }
 
+.bridge-kill-stat--raw .bridge-kill-stat-label {
+  color: color-mix(in srgb, var(--phuglee-stone) 88%, transparent);
+}
+
+/* KILLED — hot danger-adjacent via semantic tokens */
 .bridge-kill-stat--killed .bridge-kill-stat-value {
-  font-size: clamp(1.45rem, 3vw, 1.95rem);
-  color: #e87a4a;
-  text-shadow: 0 0 18px rgba(200, 70, 40, 0.28);
+  font-size: clamp(1.5rem, 3.1vw, 2.05rem);
+  color: color-mix(in srgb, var(--phuglee-danger) 55%, var(--phuglee-orange));
+  text-shadow: 0 0 20px color-mix(in srgb, var(--phuglee-danger) 32%, transparent);
 }
 
 .bridge-kill-stat--killed .bridge-kill-stat-label {
-  color: rgba(232, 122, 74, 0.85);
+  color: color-mix(in srgb, var(--phuglee-danger) 72%, var(--phuglee-orange));
 }
 
+/* KEPT — largest cream/gold Anton display with ember glow */
 .bridge-kill-stat--kept .bridge-kill-stat-value {
-  font-size: clamp(1.75rem, 3.6vw, 2.4rem);
+  font-size: clamp(1.9rem, 4vw, 2.65rem);
   color: var(--phuglee-gold);
-  text-shadow: 0 0 20px rgba(238, 183, 70, 0.28);
+  text-shadow:
+    0 0 22px color-mix(in srgb, var(--phuglee-gold) 38%, transparent),
+    0 0 40px color-mix(in srgb, var(--phuglee-orange) 18%, transparent);
 }
 
 .bridge-kill-stat--kept .bridge-kill-stat-label {
-  color: rgba(238, 183, 70, 0.9);
+  color: color-mix(in srgb, var(--phuglee-gold) 92%, transparent);
+  font-size: 0.62rem;
 }
 
 .bridge-kill-arrow {
   font-family: var(--font-display);
   font-size: clamp(1.1rem, 2.2vw, 1.45rem);
-  color: rgba(238, 183, 70, 0.45);
+  color: color-mix(in srgb, var(--phuglee-gold) 42%, transparent);
   line-height: 1;
   user-select: none;
 }
@@ -1483,9 +1549,9 @@ body {
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #ffd8a8;
-  background: rgba(200, 70, 40, 0.12);
-  border: 1px solid rgba(232, 122, 74, 0.32);
+  color: color-mix(in srgb, var(--phuglee-cream) 78%, var(--phuglee-orange));
+  background: color-mix(in srgb, var(--phuglee-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phuglee-danger) 38%, var(--phuglee-orange));
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -1506,8 +1572,8 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--phuglee-taupe);
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(174, 163, 143, 0.18);
+  background: color-mix(in srgb, var(--phuglee-black) 55%, transparent);
+  border: 1px solid var(--glass-border-chrome);
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -1529,9 +1595,10 @@ body {
   max-width: 100%;
   flex: 1 1 10rem;
   padding: 0.55rem 0.65rem;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(238, 183, 70, 0.18);
+  background: color-mix(in srgb, var(--phuglee-black) 48%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phuglee-gold) 22%, transparent);
   border-radius: var(--radius-sm);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .bridge-kept-sample-addr {
@@ -1555,7 +1622,7 @@ body {
   }
 
   .bridge-kill-stat--kept .bridge-kill-stat-value {
-    font-size: clamp(1.55rem, 8vw, 2rem);
+    font-size: clamp(1.65rem, 9vw, 2.15rem);
   }
 
   .bridge-kept-sample {
