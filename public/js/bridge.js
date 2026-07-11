@@ -2264,6 +2264,81 @@
     };
   }
 
+  /**
+   * SHIFT-02: staging inventory HUD above the lists table.
+   * Metrics derive only from client savedLists summaries (no decorative numbers).
+   */
+  function renderInventoryHud(lists) {
+    const hud = document.getElementById('bridge-inventory-hud');
+    if (!hud) return;
+    const rows = Array.isArray(lists) ? lists : [];
+    if (!rows.length) {
+      hud.innerHTML = '';
+      setHidden(hud, true);
+      return;
+    }
+
+    const listsStaged = rows.length;
+    const recordsStaged = rows.reduce(
+      (sum, row) => sum + (Number(row.recordCount) || 0),
+      0
+    );
+    let readyCount = 0;
+    let downloadedCount = 0;
+    let cvCount = 0;
+    let waterCount = 0;
+    const cityKeys = new Set();
+
+    rows.forEach((row) => {
+      if (row.status === 'downloaded') downloadedCount += 1;
+      else readyCount += 1;
+      const kind = listUploadTypeBadge(row.uploadType);
+      if (kind.kind === 'water') waterCount += 1;
+      else cvCount += 1;
+      const cityKey =
+        row.cityId != null && String(row.cityId).trim() !== ''
+          ? `id:${String(row.cityId).trim()}`
+          : `geo:${String(row.city || '').trim().toLowerCase()}|${String(row.state || '').trim().toLowerCase()}`;
+      if (cityKey !== 'geo:|' && cityKey !== 'id:') cityKeys.add(cityKey);
+    });
+
+    const citiesTouched = cityKeys.size;
+    const listsLabel = listsStaged === 1 ? 'list' : 'lists';
+    const recordsLabel = recordsStaged === 1 ? 'record' : 'records';
+
+    hud.innerHTML =
+      `<div class="bridge-inventory-hud-tiles">` +
+      `<span class="bridge-inventory-tile bridge-inventory-tile--count">` +
+      `<span class="bridge-inventory-tile-value">${listsStaged.toLocaleString()}</span>` +
+      `<span class="bridge-inventory-tile-label">${listsLabel}</span>` +
+      `</span>` +
+      `<span class="bridge-inventory-tile bridge-inventory-tile--count">` +
+      `<span class="bridge-inventory-tile-value">${recordsStaged.toLocaleString()}</span>` +
+      `<span class="bridge-inventory-tile-label">${recordsLabel}</span>` +
+      `</span>` +
+      `<span class="bridge-inventory-tile bridge-inventory-tile--ready">` +
+      `<span class="bridge-inventory-tile-value">${readyCount.toLocaleString()}</span>` +
+      `<span class="bridge-inventory-tile-label">Ready</span>` +
+      `</span>` +
+      `<span class="bridge-inventory-tile bridge-inventory-tile--downloaded">` +
+      `<span class="bridge-inventory-tile-value">${downloadedCount.toLocaleString()}</span>` +
+      `<span class="bridge-inventory-tile-label">Downloaded</span>` +
+      `</span>` +
+      `</div>` +
+      `<div class="bridge-inventory-hud-heat">` +
+      `<span class="bridge-inventory-heat-chip bridge-list-type--violation" title="Code violation lists">` +
+      `<span aria-hidden="true">⚠️</span> ${cvCount.toLocaleString()} CV` +
+      `</span>` +
+      `<span class="bridge-inventory-heat-chip bridge-list-type--water" title="Water shut-off lists">` +
+      `<span aria-hidden="true">💧</span> ${waterCount.toLocaleString()} Water` +
+      `</span>` +
+      `<span class="bridge-inventory-heat-chip bridge-inventory-heat-chip--cities">` +
+      `Cities: ${citiesTouched.toLocaleString()}` +
+      `</span>` +
+      `</div>`;
+    setHidden(hud, false);
+  }
+
   function renderSavedLists() {
     const listsTotalEl = document.getElementById('bridge-lists-total');
     if (!listsBody) return;
@@ -2276,6 +2351,7 @@
         listsTotalEl.textContent = '';
         setHidden(listsTotalEl, true);
       }
+      renderInventoryHud(savedLists); // SHIFT-02: hide HUD when empty
       refreshDossierListsFacet();
       renderIdleProof(); // IDLE-01: honest zeros on empty inventory
       return;
@@ -2318,6 +2394,7 @@
         ` across ${listCount.toLocaleString()} list${listCount === 1 ? '' : 's'}`;
       setHidden(listsTotalEl, false);
     }
+    renderInventoryHud(savedLists); // SHIFT-02: counts + type heat above table
     // CITY-01: refresh dossier staged-lists facet when inventory changes
     refreshDossierListsFacet();
     renderIdleProof(); // IDLE-01: live lists staged · records ready · last save

@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=25">
+  <link rel="stylesheet" href="/css/bridge.css?v=26">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -399,8 +399,8 @@
     <section class="bridge-panel phuglee-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
       <div class="bridge-lists-header">
         <div>
-          <h2 id="bridge-lists-heading"><span class="bridge-step-badge" aria-hidden="true">·</span> Saved lists</h2>
-          <p class="bridge-panel-lead">Master staging: lists stay until you delete them. Download one or all for skip-trace / enrichment, then import into Analyze manually. <span class="bridge-lists-legend" title="List type key">⚠️ Code violation · 💧 Water shut-off</span></p>
+          <h2 id="bridge-lists-heading"><span class="bridge-step-badge" aria-hidden="true">·</span> Staging inventory</h2>
+          <p class="bridge-panel-lead">War-room staging: lists stay until you delete them. Download one or all for skip-trace / enrichment, then import into Analyze manually. <span class="bridge-lists-legend" title="List type key">⚠️ Code violation · 💧 Water shut-off</span></p>
         </div>
         <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
           <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv">Download all (CSV)</button>
@@ -408,6 +408,8 @@
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
         </div>
       </div>
+      <div id="bridge-inventory-hud" class="bridge-inventory-hud" hidden
+           role="region" aria-label="Staging inventory summary"></div>
       <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace.</div>
       <div id="bridge-lists-wrap" class="bridge-lists-wrap" hidden>
         <table class="bridge-lists-table" id="bridge-lists-table">
@@ -479,6 +481,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=45"></script>
+  <script src="/js/bridge.js?v=46"></script>
 </body>
 </html>

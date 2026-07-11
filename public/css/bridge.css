@@ -1723,6 +1723,108 @@ body {
   color: var(--phuglee-gold, #eeb746);
 }
 
+/* SHIFT-02: staging inventory HUD — counts first, table second */
+.bridge-inventory-hud {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(174, 163, 143, 0.16);
+}
+
+.bridge-inventory-hud-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.bridge-inventory-tile {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.1rem;
+  min-width: 4.5rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(174, 163, 143, 0.14);
+}
+
+.bridge-inventory-tile-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: var(--phuglee-cream, #f0e6d0);
+  font-variant-numeric: tabular-nums;
+}
+
+.bridge-inventory-tile-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone, #aea38f);
+}
+
+.bridge-inventory-tile--ready {
+  background: rgba(229, 132, 53, 0.12);
+  border-color: rgba(229, 132, 53, 0.35);
+}
+
+.bridge-inventory-tile--ready .bridge-inventory-tile-value {
+  color: var(--phuglee-orange, #e58435);
+}
+
+.bridge-inventory-tile--ready .bridge-inventory-tile-label {
+  color: var(--phuglee-gold, #eeb746);
+}
+
+.bridge-inventory-tile--downloaded {
+  background: rgba(174, 163, 143, 0.1);
+  border-color: rgba(174, 163, 143, 0.28);
+}
+
+.bridge-inventory-tile--downloaded .bridge-inventory-tile-value {
+  color: var(--phuglee-cream, #f0e6d0);
+}
+
+.bridge-inventory-tile--downloaded .bridge-inventory-tile-label {
+  color: var(--phuglee-taupe-mid, #9a9080);
+}
+
+.bridge-inventory-hud-heat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+  align-items: center;
+}
+
+.bridge-inventory-heat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.bridge-inventory-heat-chip--cities {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(174, 163, 143, 0.22);
+  color: var(--phuglee-cream, #f0e6d0);
+  font-weight: 600;
+}
+
 .bridge-lists-empty {
   margin-top: 0.75rem;
   padding: 1rem 1.1rem;
