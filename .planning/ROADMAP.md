@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 77 Plan 01 complete (1/2); next 77-02  
-**Next:** Execute 77-02 (chips, panels, empty/error/success)
+**Status:** In progress — Phase 77 complete (2/2); next Phase 78  
+**Next:** Execute Phase 78 (cascade, hooks & state CSS)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -37,7 +37,7 @@
 
 - [x] **Phase 75: Contract Freeze & Surface Inventory** — Lock ID/`data-*` contracts and inventory every Filter surface for restyle targets
 - [x] **Phase 76: Tokens & Layer Audit** — Align Filter with home/login tokens; map z-index and ban hex islands
-- [ ] **Phase 77: Shared Components Expansion** — Grow `phuglee-*` buttons, chips, panels, empty/error patterns to home grade
+- [x] **Phase 77: Shared Components Expansion** — Grow `phuglee-*` buttons, chips, panels, empty/error patterns to home grade
 - [ ] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
 - [ ] **Phase 79: Desk Core Restyle** — Restyle high-frequency chrome (hero, pipeline, scrub, tables, elevation)
 - [ ] **Phase 80: Theater, Gates & Motion** — Full surface paint including kill/Train/victory; reduced-motion twins
@@ -89,11 +89,11 @@ Plans:
   4. Operator can select list type via system chip components (code / water) with radio semantics preserved; selected chips show auth-tab gold/orange energy, unselected stay calm
   5. Operator sees shared glass panel/card language and shared empty + error/success status patterns available for desk use
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; expand `phuglee-components.css` — no parallel theme sheet; kill-report theater stays out of shared  
-**Plans:** 2 plans
+**Plans:** 2 plans (2/2 complete)
 
 Plans:
 - [x] 77-01-PLAN.md -- Button system + capped primary CTA shimmer (BUTTONS-01..03)
-- [ ] 77-02-PLAN.md -- Chips (auth-tab energy), panels, empty/error/success (FORMS-02/03, CARDS-01, STATES-01/03)
+- [x] 77-02-PLAN.md -- Chips (auth-tab energy), panels, empty/error/success (FORMS-02/03, CARDS-01, STATES-01/03)
 
 ### Phase 78: Cascade, Hooks & State CSS
 **Goal**: Correct cascade + dual-class hooks so system components win on Filter, and state CSS honors real `hidden`/`disabled` semantics  

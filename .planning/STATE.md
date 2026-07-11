@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
 status: In Progress
-stopped_at: Completed 77-01-PLAN.md
-last_updated: "2026-07-11T20:17:00.000Z"
-last_activity: 2026-07-11 — Completed 77-01 shared buttons + desk-capped shimmer
+stopped_at: Completed 77-02-PLAN.md
+last_updated: "2026-07-11T20:13:51.652Z"
+last_activity: 2026-07-11 — Completed 77-02 chips/panels/status patterns
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 14
-  completed_plans: 5
-  percent: 36
+  completed_plans: 6
+  percent: 43
 ---
 
 # State
@@ -21,35 +21,36 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 77 Plan 02 next
+**Current focus:** v3.0 Filter Visual Makeover — Phase 78 next (cascade/hooks)
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 77 of 81 (Shared Components Expansion) — Plan 01 complete  
-**Plan:** 2 of 2 (next)  
+**Phase:** 78 of 81 (Cascade, Hooks & State CSS) — next  
+**Plan:** 1 of TBD (next)  
 **Status:** In Progress  
-**Last activity:** 2026-07-11 — Completed 77-01 shared buttons + desk-capped shimmer  
+**Last activity:** 2026-07-11 — Completed 77-02 chips/panels/status patterns  
 
-Progress: [████░░░░░░] 36%
+Progress: [████░░░░░░] 43%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5 (this milestone)
-- Average duration: 11.6min
-- Total execution time: 58min
+- Total plans completed: 6 (this milestone)
+- Average duration: 10min
+- Total execution time: 60min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 5 done | 14 | 11.6min |
+| 75–81 | 6 done | 14 | 10min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
 | Phase 76 P02 | 12min | 2 tasks | 7 files |
 | Phase 77 P01 | 8min | 2 tasks | 1 files |
+| Phase 77 P02 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Progress: [████░░░░░░] 36%
 - [Phase 77]: Primary hover capped at translateY(-2px) scale(1.01) for all-day desk
 - [Phase 77]: Danger button tints via --phuglee-danger; secondary hover uses --glass-border-hover
 - [Phase 77]: Explicit .phuglee-btn:focus-visible uses --phuglee-focus-ring; .phuglee-btn-sm for desk density
+- [Phase 77]: Dual-class bridge-type-chip + phuglee-chip; selected face mirrors auth-tab gradient values
+- [Phase 77]: Panel --static kills hover lift; --dense uses desk-pad tokens
+- [Phase 77]: Status patterns use --phuglee-success|danger|warn only; no kill theater in shared CSS
 
 ### Pending Todos
 None yet.
@@ -83,7 +87,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:10:25.145Z
-Stopped at: Completed 77-01-PLAN.md
+Last session: 2026-07-11T20:13:51.639Z
+Stopped at: Completed 77-02-PLAN.md
 Resume file: None
-Next: Phase 77 Plan 01 — shared components expansion
+Next: Phase 78 — cascade, hooks & state CSS
