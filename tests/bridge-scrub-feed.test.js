@@ -155,7 +155,9 @@ test('FEED-01: caps events at SCRUB_FEED_CAP and reports remainder from stats', 
 test('FEED-01: never invents addresses when pools are empty', () => {
   const api = loadBridgeScrubFeed();
   const empty = api.buildScrubFeedEvents(null);
-  assert.deepEqual(empty.events, []);
+  // Length checks (not deepEqual) — vm sandbox arrays are cross-realm
+  assert.ok(Array.isArray(empty.events));
+  assert.equal(empty.events.length, 0);
   assert.equal(empty.summary.kept, 0);
   assert.equal(empty.summary.noDistress, 0);
   assert.equal(empty.summary.discarded, 0);
