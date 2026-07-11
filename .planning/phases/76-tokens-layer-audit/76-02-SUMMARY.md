@@ -74,7 +74,7 @@ Each task was committed atomically:
 1. **Task 1: Replace desk-chrome hex islands + wire z-index + type token hygiene** - `d7d6d4d` (feat)
 2. **Task 2: Cache-bust ?v= for tokens trio + bridge.css** - `5adc3a7` (chore)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `946a68c` (docs: complete plan)
 
 ## Files Created/Modified
 - `public/css/bridge.css` — status tokens, z-scale, city search token solids, type hygiene
