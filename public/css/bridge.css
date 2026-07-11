@@ -3452,11 +3452,18 @@ button.bridge-inventory-filter-chip.is-active {
   }
 }
 
-/* ── Quick city typeahead (above state / city selects) ── */
+/* ── Quick city typeahead (above state / city selects) ──
+   Desk panel must allow overflow + high stack so the menu isn't clipped
+   or covered by the state/city row (phuglee-panel uses overflow:hidden). */
+.bridge-panel--desk.phuglee-panel {
+  overflow: visible;
+}
+
 .bridge-city-search-block {
   position: relative;
   margin: 0 0 0.85rem;
-  z-index: 5;
+  /* Beat .phuglee-panel > * { z-index: 1 } so results sit above state/city row */
+  z-index: 40 !important;
 }
 
 .bridge-city-search-label {
@@ -3471,7 +3478,7 @@ button.bridge-inventory-filter-chip.is-active {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(232, 224, 208, 0.72);
+  color: rgba(232, 224, 208, 0.85);
 }
 
 .bridge-city-search {
@@ -3480,22 +3487,22 @@ button.bridge-inventory-filter-chip.is-active {
   box-sizing: border-box;
   margin: 0;
   padding: 0.7rem 0.9rem;
-  border: 1px solid rgba(232, 224, 208, 0.2);
+  border: 1px solid rgba(232, 200, 140, 0.35);
   border-radius: 10px;
-  background: rgba(12, 10, 8, 0.55);
-  color: var(--phuglee-cream, #e8e0d0);
+  background: #14110e;
+  color: #f5efe4;
   font-size: 0.95rem;
   line-height: 1.35;
 }
 
 .bridge-city-search::placeholder {
-  color: rgba(232, 224, 208, 0.4);
+  color: rgba(245, 239, 228, 0.45);
 }
 
 .bridge-city-search:focus {
   outline: none;
-  border-color: rgba(232, 160, 96, 0.55);
-  box-shadow: 0 0 0 2px rgba(232, 160, 96, 0.15);
+  border-color: rgba(232, 160, 96, 0.75);
+  box-shadow: 0 0 0 2px rgba(232, 160, 96, 0.22);
 }
 
 .bridge-city-search-results {
@@ -3503,16 +3510,20 @@ button.bridge-inventory-filter-chip.is-active {
   left: 0;
   right: 0;
   top: calc(100% + 4px);
-  z-index: 20;
+  z-index: 50;
   margin: 0;
-  padding: 0.35rem 0;
+  padding: 0.4rem 0;
   list-style: none;
   max-height: 16rem;
   overflow-y: auto;
-  border: 1px solid rgba(232, 224, 208, 0.18);
+  border: 1px solid rgba(232, 180, 110, 0.45);
   border-radius: 10px;
-  background: rgba(18, 14, 12, 0.97);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  /* Solid opaque menu — glass behind made options unreadable */
+  background: #1c1712;
+  color: #f5efe4;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 16px 40px rgba(0, 0, 0, 0.65);
 }
 
 .bridge-city-search-option {
@@ -3520,19 +3531,28 @@ button.bridge-inventory-filter-chip.is-active {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.55rem 0.9rem;
+  padding: 0.65rem 1rem;
   cursor: pointer;
-  color: var(--phuglee-cream, #e8e0d0);
-  font-size: 0.92rem;
+  color: #f5efe4;
+  font-size: 0.95rem;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .bridge-city-search-option:hover,
 .bridge-city-search-option.is-active {
-  background: rgba(232, 160, 96, 0.14);
+  background: #2a2118;
+  color: #fff8ee;
+}
+
+.bridge-city-search-option:hover .bridge-city-search-state,
+.bridge-city-search-option.is-active .bridge-city-search-state {
+  color: #e8b070;
 }
 
 .bridge-city-search-name {
-  font-weight: 600;
+  font-weight: 700;
+  color: #faf6ef;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3541,15 +3561,16 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-city-search-state {
   flex-shrink: 0;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   letter-spacing: 0.02em;
-  color: rgba(232, 224, 208, 0.55);
+  color: #d4a574;
 }
 
 .bridge-city-search-empty {
-  padding: 0.65rem 0.9rem;
-  font-size: 0.85rem;
-  color: rgba(232, 224, 208, 0.55);
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
+  color: rgba(245, 239, 228, 0.7);
 }
 
 /* ── Paste Text to Excel (convert → import → scrub) ── */

@@ -1696,13 +1696,27 @@
       return;
     }
     showError('');
+    // Ensure the state option exists before changing
+    const stateOpt = Array.from(stateSelect.options || []).find(
+      (o) => String(o.value) === stateCode
+    );
+    if (!stateOpt) {
+      showError(`State “${stateCode}” is not in the profile list yet. Try State/City dropdowns.`);
+      return;
+    }
     if (stateSelect.value !== stateCode) {
       stateSelect.value = stateCode;
       await onStateChange();
     } else if (!cities.length || !cities.some((c) => String(c.id) === String(city.id))) {
       await onStateChange();
     }
-    citySelect.value = String(city.id);
+    const idStr = String(city.id);
+    const hasOpt = Array.from(citySelect.options || []).some((o) => String(o.value) === idStr);
+    if (!hasOpt) {
+      showError(`Could not load “${city.city}” under ${stateCode}. Try the City dropdown.`);
+      return;
+    }
+    citySelect.value = idStr;
     onCityChange();
     applyDefaultUploadType();
   }
@@ -1728,7 +1742,14 @@
     return scored.slice(0, 12).map((s) => s.row);
   }
 
+  /** Prevent blur-from-closing the menu while a pick is in progress */
+  let citySearchPickLock = false;
+  let citySearchBlurTimer = null;
+  /** Last rendered matches for Enter-to-select / click resolution */
+  let citySearchMatches = [];
+
   function hideCitySearchResults() {
+    if (citySearchPickLock) return;
     const list = document.getElementById('bridge-city-search-results');
     const input = document.getElementById('bridge-city-search');
     if (list) {
@@ -1736,18 +1757,20 @@
       list.hidden = true;
     }
     if (input) input.setAttribute('aria-expanded', 'false');
+    citySearchMatches = [];
   }
 
   function renderCitySearchResults(matches) {
     const list = document.getElementById('bridge-city-search-results');
     const input = document.getElementById('bridge-city-search');
     if (!list) return;
+    citySearchMatches = Array.isArray(matches) ? matches.slice() : [];
     list.innerHTML = '';
     if (!matches.length) {
       if (input && String(input.value || '').trim()) {
         const empty = document.createElement('li');
         empty.className = 'bridge-city-search-empty';
-        empty.setAttribute('role', 'option');
+        empty.setAttribute('role', 'presentation');
         empty.textContent = citySearchIndex.length
           ? 'No matching cities'
           : 'City index still loading…';
@@ -1764,6 +1787,7 @@
       li.className = 'bridge-city-search-option';
       li.setAttribute('role', 'option');
       li.setAttribute('data-city-id', String(city.id));
+      li.setAttribute('data-city-index', String(idx));
       li.id = `bridge-city-search-opt-${idx}`;
       li.tabIndex = -1;
       const nameSpan = document.createElement('span');
@@ -1774,32 +1798,75 @@
       stateSpan.textContent = city.state || '';
       li.appendChild(nameSpan);
       li.appendChild(stateSpan);
-      li.addEventListener('mousedown', (event) => {
-        // mousedown before blur so click is not lost
-        event.preventDefault();
-        pickCitySearchResult(city);
-      });
       list.appendChild(li);
     });
     list.hidden = false;
     if (input) input.setAttribute('aria-expanded', 'true');
   }
 
+  function cityFromSearchOptionEl(el) {
+    if (!el) return null;
+    const opt = el.closest ? el.closest('.bridge-city-search-option') : null;
+    if (!opt) return null;
+    const idx = Number(opt.getAttribute('data-city-index'));
+    if (Number.isFinite(idx) && citySearchMatches[idx]) return citySearchMatches[idx];
+    const id = opt.getAttribute('data-city-id');
+    return citySearchIndex.find((c) => String(c.id) === String(id)) || null;
+  }
+
   function pickCitySearchResult(city) {
+    if (!city || city.id == null) return;
+    // Guard re-entry from pointerdown + mousedown + click on same option
+    if (citySearchPickLock) return;
+    citySearchPickLock = true;
+    if (citySearchBlurTimer) {
+      window.clearTimeout(citySearchBlurTimer);
+      citySearchBlurTimer = null;
+    }
     const input = document.getElementById('bridge-city-search');
     if (input) {
       input.value = city.state ? `${city.city}, ${city.state}` : String(city.city || '');
     }
-    hideCitySearchResults();
-    selectCityProfile(city).catch((err) => {
-      showError((err && err.message) || 'Could not select city.');
-    });
+    // Force-close menu immediately
+    const list = document.getElementById('bridge-city-search-results');
+    if (list) {
+      list.innerHTML = '';
+      list.hidden = true;
+    }
+    if (input) input.setAttribute('aria-expanded', 'false');
+    citySearchMatches = [];
+
+    selectCityProfile(city)
+      .catch((err) => {
+        showError((err && err.message) || 'Could not select city.');
+      })
+      .finally(() => {
+        // Brief hold so trailing click after pointerdown doesn't re-open/pick
+        window.setTimeout(() => {
+          citySearchPickLock = false;
+        }, 120);
+      });
   }
 
   function wireCitySearch() {
     const input = document.getElementById('bridge-city-search');
+    const list = document.getElementById('bridge-city-search-results');
     if (!input) return;
     let activeIndex = -1;
+
+    // Event delegation on the list — pointerdown + click survive blur races
+    if (list) {
+      const onPick = (event) => {
+        const city = cityFromSearchOptionEl(event.target);
+        if (!city) return;
+        event.preventDefault();
+        event.stopPropagation();
+        pickCitySearchResult(city);
+      };
+      list.addEventListener('pointerdown', onPick);
+      list.addEventListener('mousedown', onPick);
+      list.addEventListener('click', onPick);
+    }
 
     input.addEventListener('input', () => {
       activeIndex = -1;
@@ -1812,11 +1879,15 @@
       }
     });
     input.addEventListener('blur', () => {
-      // Delay so option mousedown can fire first
-      window.setTimeout(() => hideCitySearchResults(), 150);
+      if (citySearchPickLock) return;
+      if (citySearchBlurTimer) window.clearTimeout(citySearchBlurTimer);
+      // Longer delay so pointer/click on options can complete
+      citySearchBlurTimer = window.setTimeout(() => {
+        citySearchBlurTimer = null;
+        if (!citySearchPickLock) hideCitySearchResults();
+      }, 280);
     });
     input.addEventListener('keydown', (event) => {
-      const list = document.getElementById('bridge-city-search-results');
       const options = list
         ? Array.from(list.querySelectorAll('.bridge-city-search-option'))
         : [];
@@ -1824,21 +1895,30 @@
         hideCitySearchResults();
         return;
       }
-      if (!options.length) return;
       if (event.key === 'ArrowDown') {
+        if (!options.length) return;
         event.preventDefault();
         activeIndex = Math.min(activeIndex + 1, options.length - 1);
         options.forEach((el, i) => el.classList.toggle('is-active', i === activeIndex));
         options[activeIndex]?.scrollIntoView({ block: 'nearest' });
-      } else if (event.key === 'ArrowUp') {
+        return;
+      }
+      if (event.key === 'ArrowUp') {
+        if (!options.length) return;
         event.preventDefault();
         activeIndex = Math.max(activeIndex - 1, 0);
         options.forEach((el, i) => el.classList.toggle('is-active', i === activeIndex));
         options[activeIndex]?.scrollIntoView({ block: 'nearest' });
-      } else if (event.key === 'Enter' && activeIndex >= 0) {
+        return;
+      }
+      if (event.key === 'Enter') {
+        // Enter picks highlighted row, else top match (typed full name)
+        const pickIdx = activeIndex >= 0 ? activeIndex : (options.length ? 0 : -1);
+        if (pickIdx < 0) return;
         event.preventDefault();
-        const id = options[activeIndex].getAttribute('data-city-id');
-        const city = citySearchIndex.find((c) => String(c.id) === String(id));
+        const city =
+          citySearchMatches[pickIdx] ||
+          cityFromSearchOptionEl(options[pickIdx]);
         if (city) pickCitySearchResult(city);
       }
     });
