@@ -16,11 +16,26 @@
 - ✅ **v1.8 Type Column Intelligence** — Phases 51–54 (shipped 2026-07-10) — [archive](./milestones/v1.8-ROADMAP.md)
 - ✅ **v2.0 Filter Independence & Learning** — Phases 55–60 (shipped 2026-07-10) — [archive](./milestones/v2.0-ROADMAP.md)
 - ✅ **v2.1 Filter Scrub Theater** — Phases 61–68 (shipped 2026-07-11) — [archive](./milestones/v2.1-ROADMAP.md)
+- ✅ **v2.2 Filter Desk Cinema** — Phases 69–74 (shipped 2026-07-10) — [doc](./v2.2-FILTER-DESK-CINEMA.md)
 
 ## Active Work
 
-**Status:** v2.1 shipped — planning next milestone when ready  
+**Status:** v2.2 shipped — ready for next product goal  
 **Next:** `/gsd:new-milestone` (or discuss next product goal)
+
+<details>
+<summary>✅ v2.2 Filter Desk Cinema (Phases 69–74) — SHIPPED 2026-07-10</summary>
+
+- [x] Phase 69: One Scrub Desk — collapse wizard into city+type+dropzone stage
+- [x] Phase 70: Idle Mission Board — live staged/records/cities HUD
+- [x] Phase 71: Type chips — kill peer essay cards
+- [x] Phase 72: Post-scrub mission surface — kill report + Save elevated; table collapsible
+- [x] Phase 73: War-room victory end — download + scrub next strip after save
+- [x] Phase 74: Regression lock — `tests/bridge-desk-cinema.test.js`
+
+Plan: [docs/superpowers/plans/2026-07-10-filter-desk-cinema.md](../docs/superpowers/plans/2026-07-10-filter-desk-cinema.md)
+
+</details>
 
 <details>
 <summary>✅ v2.1 Filter Scrub Theater (Phases 61–68) — SHIPPED 2026-07-11</summary>
@@ -43,4 +58,5 @@ Requirements: [v2.1-REQUIREMENTS.md](./milestones/v2.1-REQUIREMENTS.md)
 
 | Phase | Milestone | Plans | Status | Completed |
 |-------|-----------|-------|--------|-----------|
+| 69–74 | v2.2 | 6/6 | Complete | 2026-07-10 |
 | 61–68 | v2.1 | 20/20 | Complete | 2026-07-11 |

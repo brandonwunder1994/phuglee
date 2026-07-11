@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=31">
+  <link rel="stylesheet" href="/css/bridge.css?v=33">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -60,13 +60,12 @@
     <!-- Phase 73: war-room victory (shown after Stage list) -->
     <div id="bridge-victory-strip" class="bridge-victory-strip" hidden role="status" aria-live="polite">
       <div class="bridge-victory-main">
-        <p class="bridge-victory-kicker">Shift advanced</p>
-        <p class="bridge-victory-title" id="bridge-victory-title">List staged</p>
+        <p class="bridge-victory-title" id="bridge-victory-title">DELETE THE JUNK</p>
         <p class="bridge-victory-meta" id="bridge-victory-meta"></p>
-        <p class="bridge-victory-boundary">Staged for enrichment · Analyze stays manual</p>
+        <p class="bridge-victory-boundary">TAKE OUT ANY LEADS THAT ARE A WASTE OF TIME</p>
       </div>
       <div class="bridge-victory-actions">
-        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-victory-download" hidden data-action="flash-download" data-format="csv">Download for enrichment</button>
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-victory-download" hidden data-action="flash-download" data-format="csv">Filter Data</button>
         <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-victory-next">Scrub next city</button>
       </div>
     </div>
@@ -408,14 +407,6 @@
       </section>
     </section>
       </div>
-      <aside class="bridge-desk-side" aria-label="Staging scrap">
-        <a href="#bridge-lists-panel" class="bridge-desk-scrap phuglee-panel">
-          <span class="bridge-desk-scrap-label">Already staged?</span>
-          <span class="bridge-desk-scrap-title">Saved lists</span>
-          <span class="bridge-desk-scrap-desc">Jump to staging inventory below.</span>
-          <span class="bridge-desk-scrap-cta">Open lists →</span>
-        </a>
-      </aside>
     </div>
 
     <section class="bridge-panel phuglee-panel bridge-lists-panel" id="bridge-lists-panel" aria-labelledby="bridge-lists-heading" data-phuglee-reveal-child>
@@ -518,6 +509,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=51"></script>
+  <script src="/js/bridge.js?v=52"></script>
 </body>
 </html>

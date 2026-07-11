@@ -2281,7 +2281,7 @@
     const place = [cityName, state].filter(Boolean).join(', ');
     const { listCount, recordTotal, cityCount } = computeIdleProof(savedLists);
     if (titleEl) {
-      titleEl.textContent = label ? `Staged · ${label}` : 'List staged';
+      titleEl.textContent = 'DELETE THE JUNK';
     }
     if (metaEl) {
       metaEl.textContent =
@@ -4194,10 +4194,7 @@
     }
     renderSavedLists();
   });
-  // Desk scrap / hash → expand collapsed inventory
-  document.querySelector('a[href="#bridge-lists-panel"]')?.addEventListener('click', () => {
-    openListsDetails();
-  });
+  // Hash deep-link still expands inventory if present
   if (typeof location !== 'undefined' && location.hash === '#bridge-lists-panel') {
     openListsDetails();
   }
