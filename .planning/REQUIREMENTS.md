@@ -35,8 +35,8 @@
 
 ### DESK
 
-- [ ] **DESK-01**: Operator sees a full visual pass on every `/bridge` surface (hero, pipeline, scrub stage, dossier, outcome drawer, import, loading/feed, mission/kill report, save, train/armory, kept table, lists, shift HUD, victory strip, dialogs) with no orphan pre-system chrome
-- [ ] **DESK-02**: Operator still experiences kill report + mission board as climax-first (RAW → KILLED → KEPT order and Save elevation preserved; visual only)
+- [x] **DESK-01**: Operator sees a full visual pass on every `/bridge` surface (hero, pipeline, scrub stage, dossier, outcome drawer, import, loading/feed, mission/kill report, save, train/armory, kept table, lists, shift HUD, victory strip, dialogs) with no orphan pre-system chrome
+- [x] **DESK-02**: Operator still experiences kill report + mission board as climax-first (RAW → KILLED → KEPT order and Save elevation preserved; visual only)
 - [x] **DESK-03**: Operator can read kept + inventory tables on dark glass (sticky header, hover/zebra, usable horizontal scroll at 390 width)
 - [ ] **DESK-04**: Operator (admin) experiences Train theater + Rules armory as distinct visual modes; non-admin Train remains fail-closed/hidden
 - [x] **DESK-05**: Operator never loses locked workflow contracts — all `bridge-*` IDs, `data-action` / `data-mode` / `data-format` values, and cinema structure order remain intact
@@ -98,8 +98,8 @@
 | CARDS-01 | Phase 77 | Complete |
 | CARDS-02 | Phase 78 | Complete |
 | CARDS-03 | Phase 79 | Complete |
-| DESK-01 | Phase 80 | Pending |
-| DESK-02 | Phase 80 | Pending |
+| DESK-01 | Phase 80 | Complete |
+| DESK-02 | Phase 80 | Complete |
 | DESK-03 | Phase 79 | Complete |
 | DESK-04 | Phase 80 | Pending |
 | DESK-05 | Phase 75 | Complete |

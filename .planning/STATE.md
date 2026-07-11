@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
 status: executing
-stopped_at: Completed 79-02-PLAN.md
-last_updated: "2026-07-11T20:35:00.000Z"
-last_activity: 2026-07-11 — Completed 79-02 dark-glass desk tables (DESK-03); Phase 79 complete
+stopped_at: Completed 80-01-PLAN.md
+last_updated: "2026-07-11T20:42:00.000Z"
+last_activity: 2026-07-11 — Completed 80-01 theater climax paint (DESK-01/02)
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 14
-  completed_plans: 10
-  percent: 71
+  completed_plans: 11
+  percent: 79
 ---
 
 # State
@@ -27,24 +27,24 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v3.0 Filter Visual Makeover  
 **Phase:** 80 of 81 (Theater, Gates & Motion)  
-**Plan:** 1 of 2  
-**Status:** Ready to plan/execute  
-**Last activity:** 2026-07-11 — Completed 79-02 dark-glass desk tables (DESK-03); Phase 79 complete  
+**Plan:** 2 of 2  
+**Status:** Ready to execute  
+**Last activity:** 2026-07-11 — Completed 80-01 theater climax paint (DESK-01/02)  
 
-Progress: [███████░░░] 71%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10 (this milestone)
+- Total plans completed: 11 (this milestone)
 - Average duration: 10min
-- Total execution time: 100min
+- Total execution time: 112min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 10 done | 14 | 10min |
+| 75–81 | 11 done | 14 | 10min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
@@ -55,6 +55,7 @@ Progress: [███████░░░] 71%
 | Phase 78 P02 | 12min | 3 tasks | 2 files |
 | Phase 79 P01 | 8min | 2 tasks | 3 files |
 | Phase 79 P02 | 8min | 2 tasks | 3 files |
+| Phase 80 P01 | 12min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,9 @@ Progress: [███████░░░] 71%
 - [Phase 79]: Desk panel densify 1rem/1.1rem — ops density not auth-modal roominess
 - [Phase 79]: Filter-only dark-glass table rules in bridge.css (no phuglee-table dual-class)
 - [Phase 79]: Ops table density via row tokens + sticky glass-bg-solid headers; min-width 680/860 for 390 scroll
+- [Phase 80]: KILLED uses color-mix of --phuglee-danger + --phuglee-orange (not hex island)
+- [Phase 80]: Feed status colors use --phuglee-success|warn|danger tokens
+- [Phase 80]: CSS/markup only for 80-01 — IDs and cinema copy frozen
 
 ### Pending Todos
 None yet.
@@ -101,7 +105,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:35:00.000Z
-Stopped at: Completed 79-02-PLAN.md
+Last session: 2026-07-11T20:33:01.500Z
+Stopped at: Completed 80-01-PLAN.md
 Resume file: None
 Next: Phase 80 — Theater, Gates & Motion
