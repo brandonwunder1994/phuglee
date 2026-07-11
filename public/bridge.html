@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=43">
+  <link rel="stylesheet" href="/css/bridge.css?v=44">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -241,6 +241,15 @@
     >
       <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Add the list</h2>
 
+      <!-- Shared received date first — pick day before paste or drop -->
+      <div class="bridge-response-row bridge-response-row--meta bridge-import-received">
+        <fieldset class="bridge-datetime-picker bridge-date-chips-wrap" id="bridge-response-datetime">
+          <legend class="bridge-datetime-label">Received</legend>
+          <input type="hidden" id="bridge-response-date" value="" required />
+          <div class="bridge-date-chips" id="bridge-date-chips" role="group" aria-label="Response received date"></div>
+        </fieldset>
+      </div>
+
       <div class="bridge-import-paths">
         <!-- Path A: paste tabular text -->
         <div class="bridge-import-path bridge-import-path--paste" id="bridge-paste-panel">
@@ -287,15 +296,6 @@
             <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
           </div>
         </div>
-      </div>
-
-      <!-- Shared received date for either path — nothing pre-selected -->
-      <div class="bridge-response-row bridge-response-row--meta bridge-import-received">
-        <fieldset class="bridge-datetime-picker bridge-date-chips-wrap" id="bridge-response-datetime">
-          <legend class="bridge-datetime-label">Received</legend>
-          <input type="hidden" id="bridge-response-date" value="" required aria-describedby="bridge-response-hint" />
-          <div class="bridge-date-chips" id="bridge-date-chips" role="group" aria-label="Response received date"></div>
-        </fieldset>
       </div>
     </section>
     </div><!-- /bridge-scrub-stage -->
