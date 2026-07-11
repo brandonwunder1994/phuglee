@@ -1586,21 +1586,11 @@ body {
   color: var(--phuglee-stone);
 }
 
-.bridge-row select {
+/* Desk density only — paint comes from .phuglee-select (FORMS-01) */
+.bridge-row select.phuglee-select {
   padding: 0.65rem 0.75rem;
   font-size: 0.95rem;
-  font-family: var(--font-body);
-  color: var(--text);
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(174, 163, 143, 0.2);
   border-radius: var(--radius-sm);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.bridge-row select:focus {
-  outline: none;
-  border-color: var(--phuglee-orange);
-  box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.15);
 }
 
 .bridge-hint {
@@ -1754,15 +1744,13 @@ body {
   flex: 1 1 220px;
 }
 
-.bridge-toolbar-search input,
-.bridge-toolbar-field select {
+/* Toolbar layout densify — paint from .phuglee-input / .phuglee-select */
+.bridge-toolbar-search .phuglee-input,
+.bridge-toolbar-field .phuglee-select {
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.5rem 0.65rem;
   font-size: 0.85rem;
-  color: var(--phuglee-cream);
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(174, 163, 143, 0.2);
   border-radius: var(--radius-sm);
 }
 
@@ -3284,13 +3272,11 @@ button.bridge-inventory-filter-chip.is-active {
   min-width: 10rem;
 }
 
-.bridge-train-toolbar #bridge-train-search {
+/* Train search densify — paint from .phuglee-input */
+.bridge-train-toolbar #bridge-train-search.phuglee-input {
   width: 100%;
   padding: 0.45rem 0.7rem;
   border-radius: var(--radius-sm);
-  border: 1px solid rgba(174, 163, 143, 0.22);
-  background: rgba(0, 0, 0, 0.28);
-  color: var(--phuglee-cream);
   font-size: 0.9rem;
 }
 
@@ -3641,29 +3627,22 @@ button.bridge-inventory-filter-chip.is-active {
   color: rgba(232, 224, 208, 0.85);
 }
 
+/* Layout only — dual-class with .phuglee-input for system paint (FORMS-01) */
 .bridge-city-search {
   display: block;
   width: 100%;
   box-sizing: border-box;
   margin: 0;
+}
+
+/* Desk density densify on dual-classed city search */
+.bridge-city-search.phuglee-input {
   padding: 0.7rem 0.9rem;
-  border: 1px solid var(--glass-border-strong, var(--border-hot));
   border-radius: 10px;
-  /* Opaque solid — readable over glass desk (TOKENS-01) */
-  background: var(--glass-bg-solid, var(--phuglee-black-mid));
-  color: var(--phuglee-cream);
   font-size: 0.95rem;
   line-height: 1.35;
-}
-
-.bridge-city-search::placeholder {
-  color: rgba(245, 242, 228, 0.45);
-}
-
-.bridge-city-search:focus {
-  outline: none;
-  border-color: var(--glass-border-hover, var(--border-hot));
-  box-shadow: 0 0 0 2px rgba(229, 132, 53, 0.22);
+  /* Opaque solid — readable over glass desk (TOKENS-01) */
+  background: var(--glass-bg-solid, var(--phuglee-black-mid));
 }
 
 .bridge-city-search-results {
@@ -3801,34 +3780,28 @@ button.bridge-inventory-filter-chip.is-active {
   color: rgba(232, 224, 208, 0.72);
 }
 
+/* Paste domain layout — mono + min-height; paint from .phuglee-textarea */
 .bridge-paste-textarea {
   display: block;
   width: 100%;
   min-height: 14rem;
   margin: 0;
-  padding: 0.85rem 1rem;
   box-sizing: border-box;
   resize: vertical;
-  border: 1px solid rgba(232, 224, 208, 0.18);
-  border-radius: 10px;
-  background: rgba(12, 10, 8, 0.55);
-  color: var(--phuglee-cream, #e8e0d0);
-  font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
-  font-size: 0.82rem;
-  line-height: 1.45;
   white-space: pre;
   overflow: auto;
 }
 
-.bridge-paste-textarea::placeholder {
-  color: rgba(232, 224, 208, 0.38);
-  white-space: pre-wrap;
+.bridge-paste-textarea.phuglee-textarea {
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  font-family: var(--font-mono, "JetBrains Mono", ui-monospace, monospace);
+  font-size: 0.82rem;
+  line-height: 1.45;
 }
 
-.bridge-paste-textarea:focus {
-  outline: none;
-  border-color: rgba(232, 160, 96, 0.55);
-  box-shadow: 0 0 0 2px rgba(232, 160, 96, 0.15);
+.bridge-paste-textarea::placeholder {
+  white-space: pre-wrap;
 }
 
 .bridge-paste-actions {

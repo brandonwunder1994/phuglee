@@ -639,6 +639,27 @@
   color: var(--phuglee-stone);
 }
 
+.phuglee-input:disabled,
+.phuglee-input[disabled],
+.phuglee-select:disabled,
+.phuglee-select[disabled],
+.phuglee-textarea:disabled,
+.phuglee-textarea[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.phuglee-input:disabled:focus,
+.phuglee-input[disabled]:focus,
+.phuglee-select:disabled:focus,
+.phuglee-select[disabled]:focus,
+.phuglee-textarea:disabled:focus,
+.phuglee-textarea[disabled]:focus {
+  border-color: var(--phuglee-stone-warm);
+  box-shadow: none;
+}
+
 /* ── Modals ── */
 .phuglee-modal-backdrop {
   position: fixed;
