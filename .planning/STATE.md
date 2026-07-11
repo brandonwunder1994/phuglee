@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 3 of 3
-status: verifying
+current_plan: Not started
+status: planning
 stopped_at: Completed 65-03-PLAN.md
-last_updated: "2026-07-11T00:20:10.402Z"
-last_activity: 2026-07-11
+last_updated: "2026-07-11T00:22:10.877Z"
+last_activity: 2026-07-11 — 65-03 Stage CTA elevated + suite/live green
 progress:
   total_phases: 8
   completed_phases: 5
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 65 — Kill-Rate Scrub Report  
-**Current Plan:** 3 of 3  
+**Current Plan:** Not started
 **Total Plans in Phase:** 3  
-**Status:** Phase complete — ready for verification
+**Status:** Ready to plan
 **Last activity:** 2026-07-11 — 65-03 Stage CTA elevated + suite/live green
 
 Progress: [██████░░░░] 60% (12/20 plans executed)
