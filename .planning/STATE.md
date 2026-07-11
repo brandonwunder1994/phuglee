@@ -12,7 +12,7 @@ progress:
   completed_phases: 3
   total_plans: 20
   completed_plans: 7
-  percent: 30
+  percent: 35
 ---
 
 # State
