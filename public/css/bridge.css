@@ -1723,6 +1723,102 @@ body {
   color: var(--phuglee-gold, #eeb746);
 }
 
+/* SHIFT-01: sticky session shift queue — this sitting only (not durable inventory) */
+.bridge-shift-queue {
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.75rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  border-radius: var(--radius-md);
+  background: rgba(229, 132, 53, 0.06);
+  border: 1px solid rgba(238, 183, 70, 0.28);
+}
+
+.bridge-shift-queue-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bridge-shift-queue-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--phuglee-gold, #eeb746);
+}
+
+.bridge-shift-queue-clear {
+  appearance: none;
+  background: transparent;
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  border-radius: 999px;
+  color: var(--phuglee-stone, #aea38f);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.bridge-shift-queue-clear:hover {
+  border-color: rgba(238, 183, 70, 0.45);
+  color: var(--phuglee-cream, #f0e6d0);
+}
+
+.bridge-shift-queue-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: stretch;
+}
+
+.bridge-shift-queue-chip {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 6.5rem;
+  max-width: 14rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(229, 132, 53, 0.32);
+}
+
+.bridge-shift-queue-chip-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.bridge-shift-queue-chip-emoji {
+  flex-shrink: 0;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.bridge-shift-queue-chip-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--phuglee-cream, #f0e6d0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bridge-shift-queue-chip-meta {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-taupe-mid, #9a9080);
+  white-space: nowrap;
+}
+
 /* SHIFT-02: staging inventory HUD — counts first, table second */
 .bridge-inventory-hud {
   margin-top: 0.75rem;

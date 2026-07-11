@@ -110,6 +110,10 @@
   /** After processUpload: force Train theater once when open groups exist (THTR-01). */
   let forceTrainTheater = false;
   let savedLists = [];
+  /** SHIFT-01: this sitting's staged cities (session memory + sessionStorage; not durable inventory) */
+  let shiftQueue = [];
+  const SHIFT_QUEUE_KEY = 'bridge_shift_queue';
+  const SHIFT_QUEUE_CAP = 40;
   let tableState = {
     sortKey: 'streetAddress',
     sortDir: 'asc',
@@ -2265,6 +2269,169 @@
   }
 
   /**
+   * SHIFT-01: load session shift queue from sessionStorage (corrupt data ignored).
+   */
+  function loadShiftQueueFromSession() {
+    try {
+      const raw = sessionStorage.getItem(SHIFT_QUEUE_KEY);
+      if (!raw) {
+        shiftQueue = [];
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        shiftQueue = [];
+        return;
+      }
+      shiftQueue = parsed
+        .filter((row) => row && typeof row === 'object' && row.listId != null && String(row.listId).trim() !== '')
+        .map((row) => ({
+          listId: String(row.listId),
+          name: String(row.name || ''),
+          city: String(row.city || ''),
+          state: String(row.state || ''),
+          uploadType: String(row.uploadType || ''),
+          recordCount: Number(row.recordCount) || 0,
+          savedAt: Number(row.savedAt) || Date.now()
+        }))
+        .slice(0, SHIFT_QUEUE_CAP);
+    } catch (_) {
+      shiftQueue = [];
+    }
+  }
+
+  function persistShiftQueue() {
+    try {
+      if (!shiftQueue.length) {
+        sessionStorage.removeItem(SHIFT_QUEUE_KEY);
+      } else {
+        sessionStorage.setItem(SHIFT_QUEUE_KEY, JSON.stringify(shiftQueue));
+      }
+    } catch (_) { /* private mode / quota — memory alone is OK */ }
+  }
+
+  /**
+   * SHIFT-01: session-only clear of sticky shift strip.
+   * NEVER deletes durable saved lists (no DELETE /api/bridge/lists).
+   */
+  function clearShiftQueue() {
+    shiftQueue = [];
+    persistShiftQueue();
+    renderShiftQueue();
+  }
+
+  function pushShiftQueueEntry(entry) {
+    if (!entry || entry.listId == null || String(entry.listId).trim() === '') return;
+    const listId = String(entry.listId);
+    shiftQueue = shiftQueue.filter((row) => String(row.listId) !== listId);
+    shiftQueue.unshift({
+      listId,
+      name: String(entry.name || ''),
+      city: String(entry.city || ''),
+      state: String(entry.state || ''),
+      uploadType: String(entry.uploadType || ''),
+      recordCount: Number(entry.recordCount) || 0,
+      savedAt: Number(entry.savedAt) || Date.now()
+    });
+    if (shiftQueue.length > SHIFT_QUEUE_CAP) {
+      shiftQueue = shiftQueue.slice(0, SHIFT_QUEUE_CAP);
+    }
+    persistShiftQueue();
+  }
+
+  function removeShiftQueueByListId(listId) {
+    const id = String(listId || '');
+    if (!id) return;
+    const before = shiftQueue.length;
+    shiftQueue = shiftQueue.filter((row) => String(row.listId) !== id);
+    if (shiftQueue.length !== before) {
+      persistShiftQueue();
+      renderShiftQueue();
+    }
+  }
+
+  /** Drop queue chips whose listId is no longer in durable inventory; clear all when lists empty. */
+  function pruneShiftQueueAgainstLists(lists) {
+    const rows = Array.isArray(lists) ? lists : [];
+    if (!rows.length) {
+      if (shiftQueue.length) {
+        shiftQueue = [];
+        persistShiftQueue();
+      }
+      renderShiftQueue();
+      return;
+    }
+    const ids = new Set(rows.map((row) => String(row.id)));
+    const next = shiftQueue.filter((row) => ids.has(String(row.listId)));
+    if (next.length !== shiftQueue.length) {
+      shiftQueue = next;
+      persistShiftQueue();
+    }
+    renderShiftQueue();
+  }
+
+  /**
+   * SHIFT-01: sticky top strip — this sitting's staged cities/lists (newest first).
+   * DOM built via textContent/createElement — no raw name injection.
+   */
+  function renderShiftQueue() {
+    const root = document.getElementById('bridge-shift-queue');
+    if (!root) return;
+    if (!shiftQueue.length) {
+      root.textContent = '';
+      setHidden(root, true);
+      return;
+    }
+
+    root.textContent = '';
+    const head = document.createElement('div');
+    head.className = 'bridge-shift-queue-head';
+    const title = document.createElement('span');
+    title.className = 'bridge-shift-queue-title';
+    title.textContent = 'This shift';
+    head.appendChild(title);
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.id = 'bridge-shift-queue-clear';
+    clearBtn.className = 'bridge-shift-queue-clear';
+    clearBtn.textContent = 'Clear shift strip';
+    clearBtn.title = 'Clear this sitting’s strip only — does not delete saved lists';
+    clearBtn.setAttribute('aria-label', 'Clear shift strip (session only, does not delete saved lists)');
+    head.appendChild(clearBtn);
+    root.appendChild(head);
+
+    const chips = document.createElement('div');
+    chips.className = 'bridge-shift-queue-chips';
+    shiftQueue.forEach((entry) => {
+      const chip = document.createElement('span');
+      chip.className = 'bridge-shift-queue-chip';
+      chip.dataset.listId = String(entry.listId);
+      const kind = listUploadTypeBadge(entry.uploadType);
+      const cityLabel = [entry.city, entry.state].filter(Boolean).join(', ') || entry.name || 'Staged list';
+      const main = document.createElement('span');
+      main.className = 'bridge-shift-queue-chip-main';
+      const emoji = document.createElement('span');
+      emoji.className = 'bridge-shift-queue-chip-emoji';
+      emoji.setAttribute('aria-hidden', 'true');
+      emoji.textContent = kind.emoji || '·';
+      const label = document.createElement('span');
+      label.className = 'bridge-shift-queue-chip-label';
+      label.textContent = cityLabel;
+      main.appendChild(emoji);
+      main.appendChild(label);
+      chip.appendChild(main);
+      const meta = document.createElement('span');
+      meta.className = 'bridge-shift-queue-chip-meta';
+      const n = Number(entry.recordCount) || 0;
+      meta.textContent = `${n.toLocaleString()} rec · just staged`;
+      chip.appendChild(meta);
+      chips.appendChild(chip);
+    });
+    root.appendChild(chips);
+    setHidden(root, false);
+  }
+
+  /**
    * SHIFT-02: staging inventory HUD above the lists table.
    * Metrics derive only from client savedLists summaries (no decorative numbers).
    */
@@ -2405,6 +2572,8 @@
       const data = await fetchJson('/api/bridge/lists');
       savedLists = Array.isArray(data.lists) ? data.lists : [];
       renderSavedLists();
+      // SHIFT-01: drop orphan queue chips; empty inventory clears session strip
+      pruneShiftQueueAgainstLists(savedLists);
     } catch (err) {
       console.warn('[Filter] Could not load saved lists:', err.message);
     }
@@ -2585,6 +2754,39 @@
       });
       const savedName = data.list?.name || name;
       const savedId = data.list?.id || '';
+      // SHIFT-01: capture city/type/records BEFORE reset clears lastResult
+      if (savedId) {
+        const city =
+          data.list?.city ||
+          lastResult?.city?.city ||
+          selectedCity?.city ||
+          '';
+        const state =
+          data.list?.state ||
+          lastResult?.city?.state ||
+          selectedCity?.state ||
+          '';
+        const uploadType =
+          data.list?.uploadType ||
+          lastResult?.uploadType ||
+          selectedUploadType ||
+          '';
+        const recordCount =
+          Number(data.list?.recordCount) ||
+          (Array.isArray(lastResult?.rows) ? lastResult.rows.length : 0) ||
+          Number(lastResult?.stats?.kept) ||
+          0;
+        pushShiftQueueEntry({
+          listId: savedId,
+          name: savedName,
+          city,
+          state,
+          uploadType,
+          recordCount,
+          savedAt: Date.now()
+        });
+        renderShiftQueue();
+      }
       await loadSavedLists();
       resetImportAreaAfterSave(savedName, savedId);
     } catch (err) {
@@ -2671,6 +2873,8 @@
     if (!window.confirm(`Delete “${label}”? This cannot be undone.`)) return;
     try {
       await fetchJson(`/api/bridge/lists/${encodeURIComponent(listId)}`, { method: 'DELETE' });
+      // SHIFT-01: drop matching session chip; other chips stay
+      removeShiftQueueByListId(listId);
       await loadSavedLists();
     } catch (err) {
       showError(err.message || 'Could not delete list.');
@@ -3686,8 +3890,15 @@
   clearAllListsBtn?.addEventListener('click', () => {
     clearAllSavedLists().catch((e) => showError(e.message));
   });
-  // Post-save flash: one-click CSV for the list just saved (explicit click only)
+  // Post-save flash + SHIFT-01 session strip clear (explicit click only)
   document.getElementById('bridge-lists-panel')?.addEventListener('click', (event) => {
+    // SHIFT-01: session-only clear — never DELETE /api/bridge/lists
+    const clearShift = event.target.closest('#bridge-shift-queue-clear');
+    if (clearShift) {
+      event.preventDefault();
+      clearShiftQueue();
+      return;
+    }
     const flashBtn = event.target.closest('#bridge-flash-download-csv, [data-action="flash-download"]');
     if (!flashBtn) return;
     const listId = flashBtn.dataset.listId;
@@ -3873,6 +4084,10 @@
     renderTrainGroupCard
   };
 
+
+  // SHIFT-01: restore this sitting's sticky queue before inventory load
+  loadShiftQueueFromSession();
+  renderShiftQueue();
 
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));
   loadSavedLists().catch(() => {});

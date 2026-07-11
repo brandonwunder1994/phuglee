@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=26">
+  <link rel="stylesheet" href="/css/bridge.css?v=27">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -408,6 +408,8 @@
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
         </div>
       </div>
+      <div id="bridge-shift-queue" class="bridge-shift-queue" hidden
+           role="region" aria-label="This shift staged cities"></div>
       <div id="bridge-inventory-hud" class="bridge-inventory-hud" hidden
            role="region" aria-label="Staging inventory summary"></div>
       <div id="bridge-lists-empty" class="bridge-lists-empty">No saved lists yet. Process a city file, Train if needed (admin), click Save list, then Download one or all for external enrichment. Import into Analyze only after skip-trace.</div>
@@ -481,6 +483,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=46"></script>
+  <script src="/js/bridge.js?v=47"></script>
 </body>
 </html>
