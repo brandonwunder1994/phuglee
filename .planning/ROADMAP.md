@@ -135,7 +135,7 @@ Plans:
   3. Operator (admin) experiences Train theater + Rules armory as distinct visual modes; non-admin Train remains fail-closed/hidden
   4. Operator with `prefers-reduced-motion: reduce` gets reduced/disabled motion twins for every new animation (feed, shimmer, reveal, flash); feed still completes
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; admin fail-closed is never CSS-only; cinema copy locks intact  
-**Plans**: TBD
+**Plans**: 2 plans
 
 ### Phase 81: Visual QA Lock & Catalog
 **Goal**: Makeover is shippable — layout QA, permanent bars, behavior freeze, and reusable system docs for later pages  
