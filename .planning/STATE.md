@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
 status: executing
-stopped_at: Completed 80-01-PLAN.md
-last_updated: "2026-07-11T20:42:00.000Z"
-last_activity: 2026-07-11 — Completed 80-01 theater climax paint (DESK-01/02)
+stopped_at: Completed 80-02-PLAN.md
+last_updated: "2026-07-11T20:48:00.000Z"
+last_activity: 2026-07-11 — Completed 80-02 Train theater modes + reduced-motion (DESK-04/STATES-04)
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 14
-  completed_plans: 11
-  percent: 79
+  completed_plans: 12
+  percent: 86
 ---
 
 # State
@@ -21,24 +21,24 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 80 (theater gates & motion)
+**Current focus:** v3.0 Filter Visual Makeover — Phase 81 (visual QA lock & catalog)
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 80 of 81 (Theater, Gates & Motion)  
-**Plan:** 2 of 2  
+**Phase:** 81 of 81 (Visual QA Lock & Catalog)  
+**Plan:** 1 of 2  
 **Status:** Ready to execute  
-**Last activity:** 2026-07-11 — Completed 80-01 theater climax paint (DESK-01/02)  
+**Last activity:** 2026-07-11 — Completed 80-02 Train theater modes + reduced-motion (DESK-04/STATES-04)  
 
-Progress: [████████░░] 79%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11 (this milestone)
+- Total plans completed: 12 (this milestone)
 - Average duration: 10min
-- Total execution time: 112min
+- Total execution time: 126min
 
 **By Phase:**
 
@@ -56,6 +56,7 @@ Progress: [████████░░] 79%
 | Phase 79 P01 | 8min | 2 tasks | 3 files |
 | Phase 79 P02 | 8min | 2 tasks | 3 files |
 | Phase 80 P01 | 12min | 2 tasks | 2 files |
+| Phase 80 P02 | 14min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,9 @@ Progress: [████████░░] 79%
 - [Phase 80]: KILLED uses color-mix of --phuglee-danger + --phuglee-orange (not hex island)
 - [Phase 80]: Feed status colors use --phuglee-success|warn|danger tokens
 - [Phase 80]: CSS/markup only for 80-01 — IDs and cinema copy frozen
+- [Phase 80]: Mission HUD heat under is-theater uses glass-fill-elevated + orange glow tokens
+- [Phase 80]: Dialog rise reduce twin targets .bridge-history-dialog-card (phuglee-modal-rise dual-class)
+- [Phase 80]: Train is-exiting under reduce: instant opacity/max-height so JS timers remove cards
 
 ### Pending Todos
 None yet.
@@ -105,7 +109,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:33:01.500Z
-Stopped at: Completed 80-01-PLAN.md
+Last session: 2026-07-11T20:48:00.000Z
+Stopped at: Completed 80-02-PLAN.md
 Resume file: None
-Next: Phase 80 — Theater, Gates & Motion
+Next: Phase 81 — Visual QA Lock & Catalog

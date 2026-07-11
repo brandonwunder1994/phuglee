@@ -38,7 +38,7 @@
 - [x] **DESK-01**: Operator sees a full visual pass on every `/bridge` surface (hero, pipeline, scrub stage, dossier, outcome drawer, import, loading/feed, mission/kill report, save, train/armory, kept table, lists, shift HUD, victory strip, dialogs) with no orphan pre-system chrome
 - [x] **DESK-02**: Operator still experiences kill report + mission board as climax-first (RAW → KILLED → KEPT order and Save elevation preserved; visual only)
 - [x] **DESK-03**: Operator can read kept + inventory tables on dark glass (sticky header, hover/zebra, usable horizontal scroll at 390 width)
-- [ ] **DESK-04**: Operator (admin) experiences Train theater + Rules armory as distinct visual modes; non-admin Train remains fail-closed/hidden
+- [x] **DESK-04**: Operator (admin) experiences Train theater + Rules armory as distinct visual modes; non-admin Train remains fail-closed/hidden
 - [x] **DESK-05**: Operator never loses locked workflow contracts — all `bridge-*` IDs, `data-action` / `data-mode` / `data-format` values, and cinema structure order remain intact
 
 ### STATES
@@ -46,7 +46,7 @@
 - [x] **STATES-01**: Operator sees empty states using shared system empty patterns (no ad-hoc blank boxes)
 - [x] **STATES-02**: Operator sees loading / scrub-in-progress feedback using shared loading patterns; scrub feed remains legible and populates without relying on animation end
 - [x] **STATES-03**: Operator sees error and success status lines using shared patterns + semantic tokens
-- [ ] **STATES-04**: Operator with `prefers-reduced-motion: reduce` gets reduced/disabled motion twins for every new animation (feed, shimmer, reveal, flash)
+- [x] **STATES-04**: Operator with `prefers-reduced-motion: reduce` gets reduced/disabled motion twins for every new animation (feed, shimmer, reveal, flash)
 
 ### SYSTEM (differentiators / rollout)
 
@@ -101,12 +101,12 @@
 | DESK-01 | Phase 80 | Complete |
 | DESK-02 | Phase 80 | Complete |
 | DESK-03 | Phase 79 | Complete |
-| DESK-04 | Phase 80 | Pending |
+| DESK-04 | Phase 80 | Complete |
 | DESK-05 | Phase 75 | Complete |
 | STATES-01 | Phase 77 | Complete |
 | STATES-02 | Phase 78 | Complete |
 | STATES-03 | Phase 77 | Complete |
-| STATES-04 | Phase 80 | Pending |
+| STATES-04 | Phase 80 | Complete |
 | SYS-01 | Phase 81 | Pending |
 | SYS-02 | Phase 81 | Pending |
 | QA-01 | Phase 81 | Pending |

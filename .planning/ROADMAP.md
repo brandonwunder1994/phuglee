@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 80 (1/2 plans); 80-01 complete  
-**Next:** Execute 80-02 (Train theater/armory modes + reduced-motion twins)
+**Status:** In progress — Phase 80 complete (2/2 plans); next Phase 81  
+**Next:** Execute Phase 81 (Visual QA Lock & Catalog)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -40,7 +40,7 @@
 - [x] **Phase 77: Shared Components Expansion** — Grow `phuglee-*` buttons, chips, panels, empty/error patterns to home grade
 - [x] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
 - [x] **Phase 79: Desk Core Restyle** — Restyle high-frequency chrome (hero, pipeline, scrub, tables, elevation)
-- [ ] **Phase 80: Theater, Gates & Motion** — Full surface paint including kill/Train/victory; reduced-motion twins
+- [x] **Phase 80: Theater, Gates & Motion** — Full surface paint including kill/Train/victory; reduced-motion twins
 - [ ] **Phase 81: Visual QA Lock & Catalog** — 390/1440 QA, suite + verify-live, parity matrix + component catalog
 
 ## Phase Details
@@ -142,7 +142,7 @@ Plans:
 
 Plans:
 - [x] 80-01-PLAN.md — Kill climax + mission/victory/lists/feed/dialog surface paint (DESK-01, DESK-02)
-- [ ] 80-02-PLAN.md — Train theater/armory modes + reduced-motion twins (DESK-04, STATES-04)
+- [x] 80-02-PLAN.md — Train theater/armory modes + reduced-motion twins (DESK-04, STATES-04)
 
 ### Phase 81: Visual QA Lock & Catalog
 **Goal**: Makeover is shippable — layout QA, permanent bars, behavior freeze, and reusable system docs for later pages  
