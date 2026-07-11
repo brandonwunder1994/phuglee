@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=21">
+  <link rel="stylesheet" href="/css/bridge.css?v=22">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -259,6 +259,20 @@
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
       <p class="bridge-note" id="bridge-stub-note" hidden></p>
 
+      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download → enrich outside → manual Analyze import</p>
+
+      <section class="bridge-save-panel" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
+        <h3 id="bridge-save-heading">Stage this scrub</h3>
+        <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
+        <div class="bridge-save-row">
+          <label class="bridge-save-name" for="bridge-list-name">List name
+            <input type="text" id="bridge-list-name" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
+          </label>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
+        </div>
+        <p class="bridge-save-status" id="bridge-save-status" hidden role="status"></p>
+      </section>
+
       <div id="bridge-train-wrap" hidden>
         <div class="bridge-results-mode" role="tablist" aria-label="Results mode">
           <button type="button" role="tab" id="bridge-mode-kept" data-mode="kept"
@@ -353,20 +367,6 @@
         </table>
       </div>
       <div class="bridge-pagination" id="bridge-pagination" hidden></div>
-
-      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download → enrich outside → manual Analyze import</p>
-
-      <section class="bridge-save-panel" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
-        <h3 id="bridge-save-heading">Stage the list</h3>
-        <p class="bridge-panel-lead">Store this list so you can process more cities. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
-        <div class="bridge-save-row">
-          <label class="bridge-save-name" for="bridge-list-name">List name
-            <input type="text" id="bridge-list-name" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
-          </label>
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
-        </div>
-        <p class="bridge-save-status" id="bridge-save-status" hidden role="status"></p>
-      </section>
 
       <section class="bridge-attach-panel" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
         <h3 id="bridge-attach-heading">Optional · Attach to city profile</h3>
@@ -471,6 +471,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=6"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=40"></script>
+  <script src="/js/bridge.js?v=41"></script>
 </body>
 </html>
