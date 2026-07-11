@@ -132,6 +132,10 @@ Plans:
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; admin fail-closed is never CSS-only; cinema copy locks intact  
 **Plans**: 2 plans
 
+Plans:
+- [ ] 80-01-PLAN.md — Kill climax + mission/victory/lists/feed/dialog surface paint (DESK-01, DESK-02)
+- [ ] 80-02-PLAN.md — Train theater/armory modes + reduced-motion twins (DESK-04, STATES-04)
+
 ### Phase 81: Visual QA Lock & Catalog
 **Goal**: Makeover is shippable — layout QA, permanent bars, behavior freeze, and reusable system docs for later pages  
 **Depends on**: Phase 80  
