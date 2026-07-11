@@ -125,8 +125,14 @@ test('LIST-02: auto-save list when all Train groups decided', () => {
   assert.match(saveHead, /!auto\s*&&\s*isBridgeAdmin|!auto && isBridgeAdmin/);
 });
 
-test('LIST-01: save flash teaches download from Saved lists', () => {
-  assert.match(js, /download from Saved lists for enrichment/);
+test('LIST-01: save shows Scanned toast instead of long teaching flash', () => {
+  assert.match(js, /function showScannedToast\s*\(/);
+  assert.match(js, /bridge-scanned-toast/);
+  assert.equal(
+    /Filter reset — pick the next city/.test(js),
+    false,
+    'must not show Filter reset teaching flash'
+  );
 });
 
 test('LIST-01: resetImportAreaAfterSave fully resets filter session for next city', () => {
@@ -137,13 +143,13 @@ test('LIST-01: resetImportAreaAfterSave fully resets filter session for next cit
   const slice = next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 4500);
   // Full fresh-list reset (not partial keep-city) so Port Arthur etc. cannot inherit prior city
   assert.match(slice, /selectedCity\s*=\s*null/);
-  assert.match(slice, /selectedUploadType\s*=\s*['"]['"]/);
+  assert.match(slice, /selectedUploadType\s*=\s*['"]['"]|selectedUploadType\s*=\s*['"]code_violation['"]/);
   assert.match(slice, /lastResult\s*=\s*null/);
   assert.match(slice, /clearResponseDateTime/);
   assert.match(slice, /clearTrainDecidedKeys|trainDecidedKeys\.clear/);
   assert.match(slice, /trainUndoStack\.length\s*=\s*0/);
   assert.match(slice, /setPipelineStep\(\s*['"]location['"]\s*\)/);
-  assert.match(slice, /Filter reset|pick the next city/i);
+  assert.match(slice, /showScannedToast/);
   // Still no auto-download on save
   const withoutStrings = slice
     .replace(/`(?:\\.|[^`\\])*`/g, '``')

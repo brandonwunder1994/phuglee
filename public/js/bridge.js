@@ -3411,7 +3411,7 @@
     setPipelineStep('location');
     showError('');
 
-    // Brief professional toast — replaces long “Staged … Filter reset” flash
+    // Brief professional toast after list is staged
     showScannedToast();
 
     // Phase 73: hero victory (stays until next scrub / Scrub next city)

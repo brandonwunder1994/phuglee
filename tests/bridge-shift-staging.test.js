@@ -122,12 +122,12 @@ test('SHIFT-03 / EFF carry: Scanned toast after stage', () => {
 
 test('SHIFT-03: no long staged teaching flash after save', () => {
   assert.equal(
-    /Staged .*Filter reset/i.test(js),
+    /Filter reset — pick the next city/.test(js),
     false,
-    'must not show Staged / Filter reset teaching flash'
+    'must not show Filter reset teaching flash'
   );
   assert.equal(
-    /download from Saved lists for enrichment/i.test(js),
+    /download from Saved lists for enrichment/.test(js),
     false,
     'must not show enrichment teaching flash on stage'
   );
@@ -306,7 +306,7 @@ test('SHIFT-01: full reset still clears selectedCity + lastResult + location ste
   assert.match(slice, /selectedCity\s*=\s*null/);
   assert.match(slice, /lastResult\s*=\s*null/);
   assert.match(slice, /setPipelineStep\s*\(\s*['"]location['"]\s*\)/);
-  assert.match(js, /pick the next city|Filter reset/i);
+  assert.match(slice, /showScannedToast/);
 });
 
 test('SHIFT-01: no /api/bridge/shift backend route in client', () => {

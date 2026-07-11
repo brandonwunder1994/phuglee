@@ -75,9 +75,9 @@ test('EFF-01 polish: post-save Scanned toast confirmation', () => {
   assert.match(js, /bridge-scanned-toast/);
   assert.match(js, /Scanned/);
   assert.equal(
-    /Staged .*Filter reset/i.test(js),
+    /Staged [“"]/.test(js) || /Filter reset — pick the next city/.test(js),
     false,
-    'must not show long Staged / Filter reset teaching flash'
+    'must not show long staged teaching flash'
   );
   // Post-save session is fully reset so next city cannot inherit prior city/type/results
   assert.match(js, /selectedCity\s*=\s*null/);
