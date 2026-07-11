@@ -76,7 +76,7 @@ Each task was committed atomically:
 1. **Task 1: Focused permanent bar + theater contracts still green** — no code commit (gates-only; all packs exit 0 with zero file delta)
 2. **Task 2: Full npm test + verify-live + /bridge 200 + QA-03 checklist evidence** - `d52a776` (docs)
 
-**Plan metadata:** see final docs commit on this plan
+**Plan metadata:** `94bddfa` (docs: complete plan)
 
 _Note: Prefer empty product `files_modified` when gates already green — followed._
 
