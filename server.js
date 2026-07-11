@@ -68,9 +68,10 @@ function serveStatic(urlPath, req, res) {
 
   const ext = path.extname(file).toLowerCase();
   const size = stat.size;
+  const reqUrl = (req && req.url) || urlPath || '';
   const baseHeaders = {
     'Content-Type': MIME[ext] || 'application/octet-stream',
-    'Cache-Control': cacheControlForExt(ext),
+    'Cache-Control': cacheControlForExt(ext, reqUrl),
     'Accept-Ranges': 'bytes'
   };
 

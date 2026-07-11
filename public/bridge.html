@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass5">
-  <link rel="stylesheet" href="/css/bridge.css?v=53">
+  <link rel="stylesheet" href="/css/bridge.css?v=60">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -52,10 +52,19 @@
 
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
     <header class="bridge-hero" data-phuglee-reveal-child>
-      <p class="bridge-step-label">Step 02 Â· Filter</p>
+      <p class="bridge-step-label">Step 02 A · Filter</p>
       <h1 class="bridge-title">Scrub the Mess</h1>
       <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
     </header>
+
+    <!-- Always-on mission bar (visual command chrome; victory strip still owns post-stage CTAs) -->
+    <div class="bridge-ops-banner" role="region" aria-label="Filter mission">
+      <div class="bridge-ops-banner-copy">
+        <p class="bridge-ops-banner-title">DELETE THE JUNK</p>
+        <p class="bridge-ops-banner-sub">TAKE OUT ANY LEADS THAT ARE A WASTE OF TIME</p>
+      </div>
+      <p class="bridge-ops-banner-hint">City → Type → Upload → Scrub. Enrich outside. Analyze stays separate.</p>
+    </div>
 
     <!-- Phase 73: war-room victory (shown after Stage list) -->
     <div id="bridge-victory-strip" class="bridge-victory-strip bridge-elev--featured" hidden role="status" aria-live="polite">
