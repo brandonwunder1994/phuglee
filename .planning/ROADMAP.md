@@ -47,7 +47,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 - [x] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
 - [x] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
 - [x] **Phase 66: Superpower Train Theater** — Admin Train climax when open groups; brain secondary; non-admin gate
-- [ ] **Phase 67: Multi-City Shift & Staging** — Sticky shift queue; inventory HUD; brand-heat success
+- [x] **Phase 67: Multi-City Shift & Staging** — Sticky shift queue; inventory HUD; brand-heat success
 - [ ] **Phase 68: Regression QA Lock** — v1.6–v2.0 locks + suite + verify-live + mobile/a11y motion
 
 ## Phase Details
@@ -135,10 +135,10 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   1. Operator can run a **multi-city shift**: sticky queue/inventory of staged cities/lists; after save, next city is one-click without full wizard restart / re-teaching chrome
   2. Saved lists read as **staging inventory** (counts, type heat, ready/download language) while rename / download / delete / download-all APIs still work
   3. Post-save success uses **brand heat** (ember/gold), not green SaaS flash; optional “Download this list” path remains
-**Plans**: 3 plans · plan-check **PASS**
+**Plans**: 3/3 plans complete · plan-check **PASS** · status: Complete
 - [x] 67-01-PLAN.md — Brand-heat post-save flash (SHIFT-03)
 - [x] 67-02-PLAN.md — Staging inventory HUD over lists table (SHIFT-02)
-- [ ] 67-03-PLAN.md — Sticky client shift queue + next-city posture (SHIFT-01)
+- [x] 67-03-PLAN.md — Sticky client shift queue + next-city posture (SHIFT-01)
 
 ### Phase 68: Regression QA Lock
 **Goal**: Milestone bar is permanent — independence/accuracy/brain/processUpload locks green, live server healthy, mobile + reduced-motion paths verified for theater

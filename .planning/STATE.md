@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 3
-status: executing
-stopped_at: Completed 67-02-PLAN.md
-last_updated: "2026-07-11T00:37:26.045Z"
+current_plan: 3 of 3
+status: verifying
+stopped_at: Completed 67-03-PLAN.md
+last_updated: "2026-07-11T00:42:06.549Z"
 last_activity: 2026-07-11
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 20
-  completed_plans: 17
-  percent: 85
+  completed_plans: 18
+  percent: 90
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 67 Multi-City Shift & Staging (plans 01–02 done)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 67 complete; Phase 68 Regression QA Lock next
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 67 — Multi-City Shift & Staging  
-**Current Plan:** 3 of 3
+**Current Plan:** 3 of 3 (all plans done)
 **Total Plans in Phase:** 3  
-**Status:** In progress
-**Last activity:** 2026-07-11 — 67-02 staging inventory HUD (SHIFT-02)
+**Status:** Phase complete — ready for verification
+**Last activity:** 2026-07-11 — 67-03 sticky shift queue (SHIFT-01)
 
-Progress: [█████████░] 85% (17/20 plans executed)
+Progress: [█████████░] 90% (18/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -45,7 +45,7 @@ Progress: [█████████░] 85% (17/20 plans executed)
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
 | 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
 | 66 | Superpower Train Theater | 3 (3 done) | PASS |
-| 67 | Multi-City Shift & Staging | 3 (2 done) | PASS |
+| 67 | Multi-City Shift & Staging | 3 (3 done) | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
 
 ## GSD artifacts
@@ -106,6 +106,8 @@ Progress: [█████████░] 85% (17/20 plans executed)
 - [67] Shift flash copy: Staged/List staged; keep pick-the-next-city + download from Saved lists anchors
 - [67] HUD metrics only from savedLists summaries — no decorative numbers or second store
 - [67] Empty inventory hides HUD; Ready ember heat, Downloaded muted taupe; keep lists-total a11y strip
+- [67] Hybrid shiftQueue + sessionStorage bridge_shift_queue (no shift API); durable inventory stays savedLists
+- [67] Clear shift strip is session-only; never DELETE /api/bridge/lists; prune orphans on loadSavedLists
 
 ## Performance Metrics
 
@@ -128,16 +130,17 @@ Progress: [█████████░] 85% (17/20 plans executed)
 | 66 | 03 | 8min | 2 | 3 |
 | 67 | 01 | 8min | 2 | 4 |
 | 67 | 02 | 8min | 2 | 4 |
+| 67 | 03 | 12min | 3 | 4 |
 
 ## Next command
 
 ```text
-/gsd:execute-phase 67
+/gsd:complete-phase 67
 ```
 
-(Continue Phase 67 — plan 03 remaining)
+(Or `/gsd:execute-phase 68` after phase verification)
 
 ## Session
 
-**Last session:** 2026-07-11T00:37:26.036Z
-**Stopped at:** Completed 67-02-PLAN.md
+**Last session:** 2026-07-11T00:42:06.539Z
+**Stopped at:** Completed 67-03-PLAN.md
