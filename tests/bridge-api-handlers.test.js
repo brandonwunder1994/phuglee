@@ -157,7 +157,18 @@ before(async () => {
           kept_count: 10,
           csv_path: 'data/bridge-datasets/Arizona/arizona-marana/old.csv',
           xlsx_path: ''
-        }]
+        }],
+        requests: {
+          code_violation: {
+            response_status: 'yes',
+            response_at: '2026-07-01'
+          },
+          water_shutoff: {
+            response_status: 'they_charge',
+            response_at: '2026-07-08',
+            response_raw: 'FOIA fee $45'
+          }
+        }
       }));
       return;
     }
@@ -495,6 +506,17 @@ test('GET /api/bridge/history returns datasets with download URLs', async () => 
   assert.equal(json.cityId, 'arizona-marana');
   assert.equal(json.history.length, 1);
   assert.match(json.history[0].csv_download_url, /^\/forge\/api\/file\//);
+});
+
+test('GET /api/bridge/history returns no-usable-list outcomes for dossier', async () => {
+  const { status, json } = await callBridge('GET', '/api/bridge/history/arizona-marana');
+  assert.equal(status, 200);
+  assert.ok(Array.isArray(json.outcomes), 'outcomes array required for last-scan dossier');
+  // code_violation is yes → not a no-list outcome; water they_charge → included
+  assert.equal(json.outcomes.length, 1);
+  assert.equal(json.outcomes[0].request_type, 'water_shutoff');
+  assert.equal(json.outcomes[0].response_status, 'they_charge');
+  assert.equal(json.outcomes[0].response_at, '2026-07-08');
 });
 
 test('GET /api/bridge/history returns 404 for unknown city', async () => {

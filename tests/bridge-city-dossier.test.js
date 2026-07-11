@@ -76,6 +76,18 @@ test('CITY-01: last scan is one latest row per list type', () => {
   assert.match(js, /bridge-last-scan-row/);
 });
 
+test('CITY-01: no-usable-list outcomes show as Did not scan + reason in last-scan list', () => {
+  assert.match(js, /dossierOutcomesCache/);
+  assert.match(js, /kind:\s*['"]outcome['"]/);
+  assert.match(js, /Did not scan/);
+  assert.match(js, /OUTCOME_STATUS_LABELS|outcomeStatusLabel/);
+  assert.match(js, /bridge-last-scan-row--outcome/);
+  assert.match(css, /bridge-last-scan-row--outcome/);
+  // History payload must feed outcomes into model
+  assert.match(js, /data\.outcomes/);
+  assert.match(js, /buildDossierModel\([^)]*outcomes/);
+});
+
 test('CITY-01: bridge.js builds/renders dossier and filters lists by cityId', () => {
   const hasBuilder =
     /function\s+buildDossierModel\b/.test(js) ||

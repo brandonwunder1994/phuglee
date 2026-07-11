@@ -135,6 +135,8 @@
   let feedPlayTimer = null;
   /** Last history payload for the selected city (dossier composition) */
   let dossierHistoryCache = [];
+  /** No-usable-list outcomes from City Tracker (did not scan + reason) */
+  let dossierOutcomesCache = [];
 
   // Split undo: client restores list/review snapshot; server reverts rules
   const trainUndoStack = [];
@@ -2007,6 +2009,7 @@
 
   function hideCityDossierUi() {
     dossierHistoryCache = [];
+    dossierOutcomesCache = [];
     setHidden(cityDossier, true);
     setHidden(outcomeDrawer, true);
     setOutcomeDrawerOpen(false);
@@ -2031,6 +2034,29 @@
     return key === 'water' ? 'Water shut-off' : 'Code violation';
   }
 
+  /** Human labels for City Tracker / Filter no-list outcomes. */
+  const OUTCOME_STATUS_LABELS = {
+    needs_clarification: 'Needs clarification — respond to get list',
+    no: 'No records of this kind',
+    other_source: 'Contact another source',
+    they_charge: 'They charge for the list',
+    approved_bad_data: 'Replied — info invalid to use',
+    wont_give: "Won't provide",
+    not_available: 'Not available',
+    denied: 'Denied',
+    gave_other_info: 'Gave other info',
+    specific_address_only: 'Specific address only',
+    approved_parcels: 'Approved (parcels only)',
+    request_from_pd: 'Request from PD'
+  };
+
+  function outcomeStatusLabel(status) {
+    const key = String(status || '').trim();
+    if (!key) return '';
+    if (OUTCOME_STATUS_LABELS[key]) return OUTCOME_STATUS_LABELS[key];
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   /**
    * Latest scan timestamp for a history attach or staged list.
    * Prefers attach time / list createdAt.
@@ -2048,15 +2074,18 @@
   }
 
   /**
-   * Client-only model: history attaches + staged lists for this city.
+   * Client-only model: history attaches + staged lists + no-list outcomes.
    * lastByType = one latest scan per list type (code + water).
+   * For types without a scan, show a “Did not scan” row when Tracker has a
+   * no-usable-list outcome (same visual slot as last scan).
    */
-  function buildDossierModel(city, history, lists) {
+  function buildDossierModel(city, history, lists, outcomes) {
     const attaches = Array.isArray(history) ? history : [];
     const cityId = city && city.id;
     const stagedLists = (lists || []).filter(
       (l) => String(l.cityId || '') === String(cityId)
     );
+    const outcomeList = Array.isArray(outcomes) ? outcomes : [];
 
     // Merge attaches + staged lists into scan events, keep latest per type
     const byType = new Map();
@@ -2073,6 +2102,7 @@
       const prev = byType.get(key);
       if (!prev || String(when).localeCompare(String(prev.when)) > 0) {
         byType.set(key, {
+          kind: 'scan',
           key,
           label: scanTypeLabel(key),
           when,
@@ -2083,12 +2113,35 @@
               : entry.recordCount != null
                 ? Number(entry.recordCount)
                 : null,
-          file: entry.original_filename || entry.sourceFile || entry.name || ''
+          file: entry.original_filename || entry.sourceFile || entry.name || '',
+          reason: ''
         });
       }
     };
     attaches.forEach((a) => consider(a, 'attach'));
     stagedLists.forEach((l) => consider(l, 'list'));
+
+    // No-usable-list outcomes fill types that were never scanned
+    for (const o of outcomeList) {
+      if (!o || typeof o !== 'object') continue;
+      const key = scanTypeKey(o.request_type || o.requestType || '');
+      if (byType.has(key)) continue; // real scan wins for that type
+      const status = String(o.response_status || o.responseStatus || '').trim();
+      if (!status) continue;
+      const notes = String(o.notes || o.response_raw || o.responseRaw || '').trim();
+      byType.set(key, {
+        kind: 'outcome',
+        key,
+        label: scanTypeLabel(key),
+        when: o.response_at || o.responseAt || '',
+        source: 'outcome',
+        kept: null,
+        file: '',
+        reason: outcomeStatusLabel(status),
+        status,
+        notes
+      });
+    }
 
     // Stable order: Code violation first, then water
     const order = ['violation', 'water'];
@@ -2098,8 +2151,10 @@
       if (!order.includes(k)) lastByType.push(v);
     }
 
-    const lastScrub = lastByType.length
-      ? [...lastByType].sort((a, b) => String(b.when).localeCompare(String(a.when)))[0]
+    const lastScrub = lastByType.filter((r) => r.kind === 'scan').length
+      ? [...lastByType]
+          .filter((r) => r.kind === 'scan')
+          .sort((a, b) => String(b.when).localeCompare(String(a.when)))[0]
       : null;
 
     const listStatus = {
@@ -2107,7 +2162,7 @@
       downloaded: stagedLists.filter((l) => l.status === 'downloaded').length,
       recordCount: stagedLists.reduce((n, l) => n + (Number(l.recordCount) || 0), 0)
     };
-    return { city, attaches, lastScrub, lastByType, stagedLists, listStatus };
+    return { city, attaches, lastScrub, lastByType, stagedLists, listStatus, outcomes: outcomeList };
   }
 
   function renderCityDossier(model) {
@@ -2123,6 +2178,9 @@
 
     if (dossierEmptyEl) {
       setHidden(dossierEmptyEl, !isEmpty);
+      if (isEmpty) {
+        dossierEmptyEl.textContent = 'No scans yet for this city.';
+      }
     }
 
     const lastScanList = document.getElementById('bridge-dossier-last-scrub');
@@ -2131,19 +2189,40 @@
         lastScanList.innerHTML = '';
       } else {
         lastScanList.innerHTML = lastByType
-          .map((scan) => {
-            const when = scan.when ? formatDisplayDate(scan.when) : '—';
+          .map((row) => {
+            if (row.kind === 'outcome') {
+              const whenBit = row.when
+                ? ` · ${formatDisplayDate(row.when)}`
+                : '';
+              const reason = row.reason || 'No usable list';
+              const notes =
+                row.notes && row.notes !== reason
+                  ? ` — ${row.notes}`
+                  : '';
+              const kindClass =
+                row.key === 'water'
+                  ? 'bridge-last-scan-row--water bridge-last-scan-row--outcome'
+                  : 'bridge-last-scan-row--violation bridge-last-scan-row--outcome';
+              return (
+                `<div class="bridge-last-scan-row ${kindClass}">` +
+                `<span class="bridge-last-scan-type">${esc(row.label)}</span>` +
+                `<span class="bridge-last-scan-when">Did not scan${esc(whenBit)}</span>` +
+                `<span class="bridge-last-scan-meta">${esc(reason)}${esc(notes)}</span>` +
+                `</div>`
+              );
+            }
+            const when = row.when ? formatDisplayDate(row.when) : '—';
             const kept =
-              scan.kept != null && Number.isFinite(scan.kept)
-                ? `${Number(scan.kept).toLocaleString()} kept`
+              row.kept != null && Number.isFinite(row.kept)
+                ? `${Number(row.kept).toLocaleString()} kept`
                 : '';
             const kindClass =
-              scan.key === 'water'
+              row.key === 'water'
                 ? 'bridge-last-scan-row--water'
                 : 'bridge-last-scan-row--violation';
             return (
               `<div class="bridge-last-scan-row ${kindClass}">` +
-              `<span class="bridge-last-scan-type">${esc(scan.label)}</span>` +
+              `<span class="bridge-last-scan-type">${esc(row.label)}</span>` +
               `<span class="bridge-last-scan-when">${esc(when)}</span>` +
               (kept
                 ? `<span class="bridge-last-scan-meta">${esc(kept)}</span>`
@@ -2161,6 +2240,10 @@
         const s = model.lastScrub;
         dossierLastScrubBody.textContent =
           `${s.label} · ${s.when ? formatDisplayDate(s.when) : '—'}`;
+      } else if (lastByType.some((r) => r.kind === 'outcome')) {
+        const o = lastByType.find((r) => r.kind === 'outcome');
+        dossierLastScrubBody.textContent =
+          `${o.label} · Did not scan · ${o.reason || 'No usable list'}`;
       } else {
         dossierLastScrubBody.textContent = isEmpty ? '—' : 'No scans yet';
       }
@@ -2190,7 +2273,9 @@
 
   function refreshDossierListsFacet() {
     if (!selectedCity || !cityDossier || cityDossier.hidden) return;
-    renderCityDossier(buildDossierModel(selectedCity, dossierHistoryCache, savedLists));
+    renderCityDossier(
+      buildDossierModel(selectedCity, dossierHistoryCache, savedLists, dossierOutcomesCache)
+    );
   }
 
   /**
@@ -2210,8 +2295,12 @@
       const data = await fetchJson(`/api/bridge/history/${encodeURIComponent(cityId)}`);
       if (String(selectedCity?.id) !== String(cityId)) return;
       const history = Array.isArray(data.history) ? data.history : [];
+      const outcomes = Array.isArray(data.outcomes) ? data.outcomes : [];
       dossierHistoryCache = history;
-      renderCityDossier(buildDossierModel(selectedCity, history, savedLists));
+      dossierOutcomesCache = outcomes;
+      renderCityDossier(
+        buildDossierModel(selectedCity, history, savedLists, outcomes)
+      );
       if (historyDialog && historyDialog.open) {
         renderHistory(history);
       }
@@ -2219,11 +2308,12 @@
       if (String(selectedCity?.id) !== String(cityId)) return;
       // Soft error: keep type panel; still show staged lists as last-scan source
       dossierHistoryCache = [];
+      dossierOutcomesCache = [];
       if (dossierLastScrubBody) {
         dossierLastScrubBody.textContent = (err && err.message) || 'Could not load history';
       }
       if (dossierAttachesBody) dossierAttachesBody.textContent = '—';
-      renderCityDossier(buildDossierModel(selectedCity, [], savedLists));
+      renderCityDossier(buildDossierModel(selectedCity, [], savedLists, []));
     }
   }
 
@@ -2286,15 +2376,34 @@
           response_raw: notes
         })
       });
-      const labels = {
-        needs_clarification: 'Needs clarification — respond to get list',
-        no: 'No records of this kind',
-        other_source: 'Contact another source',
-        they_charge: 'They charge for the list',
-        approved_bad_data: 'Replied — info invalid to use'
-      };
-      const label = labels[responseStatus] || responseStatus;
+      const label = outcomeStatusLabel(responseStatus) || responseStatus;
       setOutcomeStatus(`Saved: ${label} for ${selectedCity.city}. Filter it in City Tracker.`, 'success');
+      // Surface immediately in When Did We Scan Last? (did not scan + reason)
+      const responseAt =
+        (data && data.event && (data.event.response_at || data.event.responseAt)) ||
+        new Date().toISOString().slice(0, 10);
+      const nextOutcome = {
+        request_type: requestType,
+        response_status: responseStatus,
+        response_at: responseAt,
+        response_raw: notes,
+        notes
+      };
+      const rest = (dossierOutcomesCache || []).filter(
+        (o) =>
+          scanTypeKey(o.request_type || o.requestType || '') !==
+          scanTypeKey(requestType)
+      );
+      dossierOutcomesCache = [...rest, nextOutcome];
+      renderCityDossier(
+        buildDossierModel(
+          selectedCity,
+          dossierHistoryCache,
+          savedLists,
+          dossierOutcomesCache
+        )
+      );
+      setOutcomeDrawerOpen(false);
       return data;
     } catch (err) {
       setOutcomeStatus((err && err.message) || 'Could not save city outcome', 'error');
@@ -2328,8 +2437,9 @@
 
       // CITY-01: dossier with lists now; history loads async
       dossierHistoryCache = [];
+      dossierOutcomesCache = [];
       setHidden(cityDossier, false);
-      renderCityDossier(buildDossierModel(selectedCity, [], savedLists));
+      renderCityDossier(buildDossierModel(selectedCity, [], savedLists, []));
       loadCityDossierHistory(selectedCity.id);
 
       // CITY-02: outcome scrap closed by default (no five-radio wall)
@@ -3853,11 +3963,15 @@
     try {
       const data = await fetchJson(`/api/bridge/history/${encodeURIComponent(cityId)}`);
       const history = data.history || [];
+      const outcomes = Array.isArray(data.outcomes) ? data.outcomes : [];
       renderHistory(history);
       // Keep dossier in sync after attach / dialog load when city still selected
       if (selectedCity && String(selectedCity.id) === String(cityId)) {
         dossierHistoryCache = history;
-        renderCityDossier(buildDossierModel(selectedCity, history, savedLists));
+        dossierOutcomesCache = outcomes;
+        renderCityDossier(
+          buildDossierModel(selectedCity, history, savedLists, outcomes)
+        );
       }
     } catch (err) {
       historyList.innerHTML = `<p class="bridge-history-empty">${esc(err.message || 'Could not load history')}</p>`;
