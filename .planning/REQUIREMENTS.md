@@ -9,10 +9,10 @@
 
 ### TOKENS
 
-- [ ] **TOKENS-01**: Operator sees Filter surfaces using the same Phuglee color/glass/shadow/type tokens as login and home (no one-off hex islands in desk chrome)
-- [ ] **TOKENS-02**: Operator reads hierarchy via Anton display / Outfit body / mono data using the shared type scale on Filter headings, labels, and dense cells
-- [ ] **TOKENS-03**: Operator experiences glass + grain atmosphere on Filter panels that matches login/home DNA (desk density allowed; same brand family)
-- [ ] **TOKENS-04**: Operator sees success / warn / danger status colors only via canonical semantic tokens (no random greens/reds)
+- [x] **TOKENS-01**: Operator sees Filter surfaces using the same Phuglee color/glass/shadow/type tokens as login and home (no one-off hex islands in desk chrome)
+- [x] **TOKENS-02**: Operator reads hierarchy via Anton display / Outfit body / mono data using the shared type scale on Filter headings, labels, and dense cells
+- [x] **TOKENS-03**: Operator experiences glass + grain atmosphere on Filter panels that matches login/home DNA (desk density allowed; same brand family)
+- [x] **TOKENS-04**: Operator sees success / warn / danger status colors only via canonical semantic tokens (no random greens/reds)
 
 ### BUTTONS
 
@@ -84,10 +84,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOKENS-01 | Phase 76 | Pending |
-| TOKENS-02 | Phase 76 | Pending |
-| TOKENS-03 | Phase 76 | Pending |
-| TOKENS-04 | Phase 76 | Pending |
+| TOKENS-01 | Phase 76 | Complete |
+| TOKENS-02 | Phase 76 | Complete |
+| TOKENS-03 | Phase 76 | Complete |
+| TOKENS-04 | Phase 76 | Complete |
 | BUTTONS-01 | Phase 77 | Pending |
 | BUTTONS-02 | Phase 77 | Pending |
 | BUTTONS-03 | Phase 77 | Pending |
