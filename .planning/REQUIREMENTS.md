@@ -31,8 +31,8 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 
 ### Live scrub feed (FEED)
 
-- [ ] **FEED-01**: While process runs, operator sees a **live scrub activity feed** (addresses and/or types with kept / no-distress / discarded / already-in-Analyze status language) — not only rotating copy + passive bar
-- [ ] **FEED-02**: Feed respects `prefers-reduced-motion` (static summary / crossfade allowed; no mandatory motion for comprehension)
+- [x] **FEED-01**: While process runs, operator sees a **live scrub activity feed** (addresses and/or types with kept / no-distress / discarded / already-in-Analyze status language) — not only rotating copy + passive bar
+- [x] **FEED-02**: Feed respects `prefers-reduced-motion` (static summary / crossfade allowed; no mandatory motion for comprehension)
 
 ### Kill-rate scrub report (KILL)
 
@@ -117,8 +117,8 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | CITY-02 | 62 | Complete |
 | IDLE-01 | 63 | Complete |
 | IDLE-02 | 63 | Complete |
-| FEED-01 | 64 | Pending |
-| FEED-02 | 64 | Pending |
+| FEED-01 | 64 | Complete |
+| FEED-02 | 64 | Complete |
 | KILL-01 | 65 | Pending |
 | KILL-02 | 65 | Pending |
 | KILL-03 | 65 | Pending |

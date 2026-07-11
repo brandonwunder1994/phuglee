@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: Not started
-status: planning
-stopped_at: Completed 63-02-PLAN.md
-last_updated: "2026-07-11T00:04:26.898Z"
-last_activity: 2026-07-11 — 63-02 process climax + IDLE locks shipped
+current_plan: 2
+status: executing
+stopped_at: Completed 64-01-PLAN.md
+last_updated: "2026-07-11T00:07:30.000Z"
+last_activity: 2026-07-11 — 64-01 pure BridgeScrubFeed + Wave 0 tests shipped
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 20
-  completed_plans: 7
-  percent: 35
+  completed_plans: 8
+  percent: 40
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 63 complete (IDLE-01/02); next Phase 64 Live Scrub Feed
+**Current focus:** v2.1 Filter Scrub Theater — Phase 64 Live Scrub Feed (64-01 done; next 64-02 DOM mount)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
-**Phase:** 63 — Idle Proof & Process Climax  
-**Current Plan:** Not started
+**Phase:** 64 — Live Scrub Feed  
+**Current Plan:** 2 of 2  
 **Total Plans in Phase:** 2  
-**Status:** Ready to plan
-**Last activity:** 2026-07-11 — 63-02 process climax + IDLE locks shipped
+**Status:** In progress  
+**Last activity:** 2026-07-11 — 64-01 pure BridgeScrubFeed + Wave 0 tests shipped
 
-Progress: [████░░░░░░] 35% (7/20 plans executed)
+Progress: [████░░░░░░] 40% (8/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -42,7 +42,7 @@ Progress: [████░░░░░░] 35% (7/20 plans executed)
 | 61 | Scrub Desk Foundation | 3 (3 done) | PASS |
 | 62 | City Dossier | 2 (2 done) | PASS |
 | 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
-| 64 | Live Scrub Feed | 2 | PASS |
+| 64 | Live Scrub Feed | 2 (1 done) | PASS |
 | 65 | Kill-Rate Scrub Report | 3 | PASS |
 | 66 | Superpower Train Theater | 3 | PASS |
 | 67 | Multi-City Shift & Staging | 3 | PASS |
@@ -80,6 +80,8 @@ Progress: [████░░░░░░] 35% (7/20 plans executed)
 - [63] Empty renderSavedLists path must call renderIdleProof so strip never goes stale
 - [63] Response date demoted to meta under dropzone; Process remains Scrub it fire CTA
 - [63] Date click-time gate preserved; buildProcessFormData omits responseAt; no silent-default
+- [64] SCRUB_FEED_CAP=32 PLAY_MS=2000 TICK_MS=60; pure BridgeScrubFeed helper (no DOM this plan)
+- [64] already-imported via key already_imported OR /already imported/i; remainder from stats not pool length
 
 ## Performance Metrics
 
@@ -92,6 +94,7 @@ Progress: [████░░░░░░] 35% (7/20 plans executed)
 | 62 | 02 | 12min | 3 | 3 |
 | 63 | 01 | 2min | 2 | 3 |
 | 63 | 02 | 8min | 2 | 3 |
+| 64 | 01 | 2min | 2 | 2 |
 
 ## Next command
 
@@ -99,9 +102,9 @@ Progress: [████░░░░░░] 35% (7/20 plans executed)
 /gsd:execute-phase 64
 ```
 
-(Or verify phase 63, then plan/execute 64 Live Scrub Feed)
+(Continue with 64-02 — DOM/CSS feed theater + processUpload staged play)
 
 ## Session
 
-**Last session:** 2026-07-11T00:01:44.109Z
-**Stopped at:** Completed 63-02-PLAN.md
+**Last session:** 2026-07-11T00:06:53.377Z
+**Stopped at:** Completed 64-01-PLAN.md
