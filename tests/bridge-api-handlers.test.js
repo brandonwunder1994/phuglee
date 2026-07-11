@@ -292,6 +292,18 @@ test('GET /api/bridge/cities rejects unknown state', async () => {
   assert.equal(json.code, 'UNKNOWN_STATE');
 });
 
+test('GET /api/bridge/cities?all=1 returns full city index for typeahead', async () => {
+  const { status, json } = await callBridge('GET', '/api/bridge/cities?all=1');
+  assert.equal(status, 200);
+  assert.ok(Array.isArray(json.cities));
+  assert.ok(json.cities.length >= 2);
+  assert.ok(json.cities.every((c) => c.id != null && c.city && c.state));
+  // Sorted by city name
+  const names = json.cities.map((c) => c.city);
+  const sorted = [...names].sort((a, b) => a.localeCompare(b));
+  assert.deepEqual(names, sorted);
+});
+
 test('POST /api/bridge/process rejects non-multipart', async () => {
   const { status, json } = await callBridge('POST', '/api/bridge/process', {
     headers: { 'Content-Type': 'application/json' },

@@ -107,8 +107,11 @@
 
   let states = [];
   let cities = [];
+  /** Flat index for quick city typeahead: { id, city, state }[] */
+  let citySearchIndex = [];
   let selectedCity = null;
-  let selectedUploadType = '';
+  /** Default: code violation (most Filter work is DOE / code cases) */
+  let selectedUploadType = 'code_violation';
   const MAX_UPLOAD_FILES = 5;
   /** @type {File[]} */
   let selectedFiles = [];
@@ -1372,7 +1375,7 @@
   function resetDownstream(from) {
     if (from === 'state') {
       selectedCity = null;
-      selectedUploadType = '';
+      selectedUploadType = 'code_violation';
       selectedFiles = [];
       lastResult = null;
       setHidden(cityActions, true);
@@ -1382,10 +1385,10 @@
       setHidden(uploadPanel, true);
       setHidden(resultsPanel, true);
       clearFileUi();
+      applyDefaultUploadType();
       setPipelineStep('location');
     }
     if (from === 'city') {
-      selectedUploadType = '';
       selectedFiles = [];
       lastResult = null;
       // Phase 69: desk stays open once a city is chosen — type + upload co-visible
@@ -1393,10 +1396,9 @@
       setHidden(uploadPanel, !selectedCity);
       setHidden(resultsPanel, true);
       clearFileUi();
-      document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
-        input.checked = false;
-      });
-      setPipelineStep(selectedCity ? 'type' : 'location');
+      // Keep Code violation selected by default (operator default for DOE lists)
+      applyDefaultUploadType();
+      setPipelineStep(selectedCity ? 'upload' : 'location');
       setHidden(cityActions, !selectedCity);
     }
     if (from === 'type') {
@@ -1613,6 +1615,21 @@
     } catch (_) { /* ignore */ }
   }
 
+  /**
+   * Prefer Code violation as the default list type so operators skip a click
+   * on the common DOE / code-case path. Does not wipe staged files.
+   */
+  function applyDefaultUploadType() {
+    const radio = document.querySelector('input[name="bridge-upload-type"][value="code_violation"]');
+    if (radio) radio.checked = true;
+    selectedUploadType = 'code_violation';
+    if (selectedCity) {
+      setHidden(typePanel, false);
+      setHidden(uploadPanel, false);
+      setPipelineStep(selectedFiles.length ? 'upload' : 'type');
+    }
+  }
+
   async function loadStates() {
     lastFailedAction = 'loadStates';
     const data = await fetchJson('/api/bridge/states');
@@ -1627,6 +1644,18 @@
     stateSelect.disabled = false;
     citySelect.innerHTML = '<option value="">Select a state first</option>';
     citySelect.disabled = true;
+    // Fire-and-forget city index for typeahead (does not block state dropdown)
+    loadCitySearchIndex().catch(() => { /* non-fatal */ });
+  }
+
+  async function loadCitySearchIndex() {
+    try {
+      const data = await fetchJson('/api/bridge/cities?all=1');
+      citySearchIndex = Array.isArray(data.cities) ? data.cities : [];
+    } catch (err) {
+      console.warn('[Filter] City search index failed:', err && err.message);
+      citySearchIndex = [];
+    }
   }
 
   async function onStateChange() {
@@ -1654,6 +1683,165 @@
       citySelect.appendChild(opt);
     });
     citySelect.disabled = cities.length === 0;
+  }
+
+  /**
+   * Programmatically select a city from typeahead (sets state → cities → city).
+   */
+  async function selectCityProfile(city) {
+    if (!city || city.id == null) return;
+    const stateCode = String(city.state || '').trim();
+    if (!stateCode) {
+      showError('That city profile has no state.');
+      return;
+    }
+    showError('');
+    if (stateSelect.value !== stateCode) {
+      stateSelect.value = stateCode;
+      await onStateChange();
+    } else if (!cities.length || !cities.some((c) => String(c.id) === String(city.id))) {
+      await onStateChange();
+    }
+    citySelect.value = String(city.id);
+    onCityChange();
+    applyDefaultUploadType();
+  }
+
+  function filterCitySearchMatches(query) {
+    const q = String(query || '').trim().toLowerCase();
+    if (!q) return [];
+    const scored = [];
+    for (const row of citySearchIndex) {
+      const name = String(row.city || '');
+      const state = String(row.state || '');
+      const hay = `${name} ${state}`.toLowerCase();
+      if (!hay.includes(q)) continue;
+      // Prefer prefix matches on city name
+      let score = 0;
+      const nameLower = name.toLowerCase();
+      if (nameLower.startsWith(q)) score = 0;
+      else if (nameLower.includes(q)) score = 1;
+      else score = 2;
+      scored.push({ row, score, name });
+    }
+    scored.sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
+    return scored.slice(0, 12).map((s) => s.row);
+  }
+
+  function hideCitySearchResults() {
+    const list = document.getElementById('bridge-city-search-results');
+    const input = document.getElementById('bridge-city-search');
+    if (list) {
+      list.innerHTML = '';
+      list.hidden = true;
+    }
+    if (input) input.setAttribute('aria-expanded', 'false');
+  }
+
+  function renderCitySearchResults(matches) {
+    const list = document.getElementById('bridge-city-search-results');
+    const input = document.getElementById('bridge-city-search');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!matches.length) {
+      if (input && String(input.value || '').trim()) {
+        const empty = document.createElement('li');
+        empty.className = 'bridge-city-search-empty';
+        empty.setAttribute('role', 'option');
+        empty.textContent = citySearchIndex.length
+          ? 'No matching cities'
+          : 'City index still loading…';
+        list.appendChild(empty);
+        list.hidden = false;
+        if (input) input.setAttribute('aria-expanded', 'true');
+      } else {
+        hideCitySearchResults();
+      }
+      return;
+    }
+    matches.forEach((city, idx) => {
+      const li = document.createElement('li');
+      li.className = 'bridge-city-search-option';
+      li.setAttribute('role', 'option');
+      li.setAttribute('data-city-id', String(city.id));
+      li.id = `bridge-city-search-opt-${idx}`;
+      li.tabIndex = -1;
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'bridge-city-search-name';
+      nameSpan.textContent = city.city || '—';
+      const stateSpan = document.createElement('span');
+      stateSpan.className = 'bridge-city-search-state';
+      stateSpan.textContent = city.state || '';
+      li.appendChild(nameSpan);
+      li.appendChild(stateSpan);
+      li.addEventListener('mousedown', (event) => {
+        // mousedown before blur so click is not lost
+        event.preventDefault();
+        pickCitySearchResult(city);
+      });
+      list.appendChild(li);
+    });
+    list.hidden = false;
+    if (input) input.setAttribute('aria-expanded', 'true');
+  }
+
+  function pickCitySearchResult(city) {
+    const input = document.getElementById('bridge-city-search');
+    if (input) {
+      input.value = city.state ? `${city.city}, ${city.state}` : String(city.city || '');
+    }
+    hideCitySearchResults();
+    selectCityProfile(city).catch((err) => {
+      showError((err && err.message) || 'Could not select city.');
+    });
+  }
+
+  function wireCitySearch() {
+    const input = document.getElementById('bridge-city-search');
+    if (!input) return;
+    let activeIndex = -1;
+
+    input.addEventListener('input', () => {
+      activeIndex = -1;
+      const matches = filterCitySearchMatches(input.value);
+      renderCitySearchResults(matches);
+    });
+    input.addEventListener('focus', () => {
+      if (String(input.value || '').trim()) {
+        renderCitySearchResults(filterCitySearchMatches(input.value));
+      }
+    });
+    input.addEventListener('blur', () => {
+      // Delay so option mousedown can fire first
+      window.setTimeout(() => hideCitySearchResults(), 150);
+    });
+    input.addEventListener('keydown', (event) => {
+      const list = document.getElementById('bridge-city-search-results');
+      const options = list
+        ? Array.from(list.querySelectorAll('.bridge-city-search-option'))
+        : [];
+      if (event.key === 'Escape') {
+        hideCitySearchResults();
+        return;
+      }
+      if (!options.length) return;
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        activeIndex = Math.min(activeIndex + 1, options.length - 1);
+        options.forEach((el, i) => el.classList.toggle('is-active', i === activeIndex));
+        options[activeIndex]?.scrollIntoView({ block: 'nearest' });
+      } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        activeIndex = Math.max(activeIndex - 1, 0);
+        options.forEach((el, i) => el.classList.toggle('is-active', i === activeIndex));
+        options[activeIndex]?.scrollIntoView({ block: 'nearest' });
+      } else if (event.key === 'Enter' && activeIndex >= 0) {
+        event.preventDefault();
+        const id = options[activeIndex].getAttribute('data-city-id');
+        const city = citySearchIndex.find((c) => String(c.id) === String(id));
+        if (city) pickCitySearchResult(city);
+      }
+    });
   }
 
   function setOutcomeStatus(msg, kind) {
@@ -1891,7 +2079,8 @@
       setHidden(typePanel, false);
       setHidden(uploadPanel, false);
       setHidden(cityActions, false);
-      setPipelineStep('type');
+      applyDefaultUploadType();
+      setPipelineStep('upload');
       hideVictoryStrip();
 
       // CITY-01: dossier with lists now; history loads async
@@ -2866,12 +3055,15 @@
     clearFileUi();
     clearResponseDateTime();
     resetCityOutcomeUi();
-    document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
-      input.checked = false;
-    });
+    // Restore Code violation default for the next city (not cleared blank)
+    applyDefaultUploadType();
+    selectedUploadType = 'code_violation';
     if (citySelect && !citySelect.disabled) {
       citySelect.value = '';
     }
+    const citySearchInput = document.getElementById('bridge-city-search');
+    if (citySearchInput) citySearchInput.value = '';
+    hideCitySearchResults();
     setHidden(cityActions, true);
     hideCityDossierUi();
     setHidden(typePanel, true);
@@ -4487,7 +4679,7 @@
     renderTrainGroupCard
   };
 
-  // ── Paste Text to Excel (utility — no scrub / no categories) ──
+  // ── Paste Text to Excel → import into dropzone → scrub (one pass) ──
   const pasteTextarea = document.getElementById('bridge-paste-text');
   const pasteConvertBtn = document.getElementById('bridge-paste-convert');
   const pasteClearBtn = document.getElementById('bridge-paste-clear');
@@ -4513,6 +4705,15 @@
     if (pasteClearBtn) pasteClearBtn.hidden = !hasText;
   }
 
+  function clearPasteField() {
+    if (pasteTextarea) pasteTextarea.value = '';
+    syncPasteControls();
+  }
+
+  /**
+   * Convert pasted tabular text → .xlsx, stage it in the file area, clear the
+   * paste box, ensure Code violation + response date, then run processUpload.
+   */
   async function convertPasteToExcel() {
     const text = pasteTextarea ? pasteTextarea.value : '';
     if (!String(text).trim()) {
@@ -4538,13 +4739,52 @@
       const filename = match?.[1] || `pasted-table-${new Date().toISOString().slice(0, 10)}.xlsx`;
       const rows = res.headers.get('X-Paste-Rows') || '?';
       const cols = res.headers.get('X-Paste-Cols') || '?';
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(objectUrl);
-      setPasteStatus(`Downloaded ${filename} · ${rows} data row(s) × ${cols} column(s)`, 'success');
+
+      // Clear paste box as soon as convert succeeds (before scrub)
+      clearPasteField();
+
+      // Stage converted workbook in the dropzone file area (replace prior picks)
+      const xlsxType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const file = new File([blob], filename, { type: xlsxType });
+      selectedFiles = [];
+      addSelectedFiles([file]);
+
+      // Ensure Code violation + a received date so process can start
+      applyDefaultUploadType();
+      if (!getResponseAtValue()) {
+        setResponseDateYmd(formatLocalYmd(new Date()));
+      }
+
+      // Still offer a download of the clean workbook
+      try {
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(objectUrl);
+      } catch (_) { /* download is best-effort */ }
+
+      if (!selectedCity) {
+        setPasteStatus(
+          `Converted ${filename} · ${rows}×${cols} — select a city, then click Scrub it.`,
+          'success'
+        );
+        try {
+          document.getElementById('bridge-city-search')?.focus();
+        } catch (_) { /* ignore */ }
+        return;
+      }
+
+      setPasteStatus(
+        `Converted ${filename} · ${rows}×${cols} — scrubbing…`,
+        'busy'
+      );
+      await processUpload();
+      setPasteStatus(
+        `Converted & scrubbed ${filename} · ${rows} data row(s) × ${cols} column(s)`,
+        'success'
+      );
     } catch (err) {
       setPasteStatus(err.message || 'Could not convert paste to Excel.', 'error');
     } finally {
@@ -4565,12 +4805,15 @@
     convertPasteToExcel().catch((e) => setPasteStatus(e.message || 'Convert failed.', 'error'));
   });
   pasteClearBtn?.addEventListener('click', () => {
-    if (pasteTextarea) pasteTextarea.value = '';
+    clearPasteField();
     setPasteStatus('');
-    syncPasteControls();
     pasteTextarea?.focus();
   });
   syncPasteControls();
+
+  // Code violation pre-selected in HTML; keep JS state in sync
+  applyDefaultUploadType();
+  wireCitySearch();
 
   // SHIFT-01: restore this sitting's sticky queue before inventory load
   loadShiftQueueFromSession();

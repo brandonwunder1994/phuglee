@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=36">
+  <link rel="stylesheet" href="/css/bridge.css?v=37">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -86,6 +86,29 @@
     <section class="bridge-panel phuglee-panel bridge-panel--desk" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
       <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Scrub desk</h2>
       <p class="bridge-panel-lead">Pick the city. Tag the list type. Drop the clerk file. One desk — not four chapters.</p>
+      <div class="bridge-city-search-block">
+        <label class="bridge-city-search-label" for="bridge-city-search">
+          <span class="bridge-city-search-label-text">Quick city search</span>
+          <input
+            type="search"
+            id="bridge-city-search"
+            class="bridge-city-search"
+            placeholder="Start typing a city… e.g. Marana"
+            autocomplete="off"
+            spellcheck="false"
+            aria-autocomplete="list"
+            aria-controls="bridge-city-search-results"
+            aria-expanded="false"
+          />
+        </label>
+        <ul
+          id="bridge-city-search-results"
+          class="bridge-city-search-results"
+          role="listbox"
+          aria-label="Matching cities"
+          hidden
+        ></ul>
+      </div>
       <div class="bridge-row">
         <label for="bridge-state">State
           <select id="bridge-state" disabled>
@@ -203,7 +226,7 @@
       <!-- Phase 71: ops chips (same radio name/values) -->
       <div class="bridge-type-chips" role="radiogroup" aria-label="Upload type">
         <label class="bridge-type-chip">
-          <input type="radio" name="bridge-upload-type" value="code_violation" />
+          <input type="radio" name="bridge-upload-type" value="code_violation" checked />
           <span class="bridge-type-chip-face">Code violation</span>
         </label>
         <label class="bridge-type-chip">
@@ -405,10 +428,10 @@
       </div>
     </div>
 
-    <!-- Utility: paste any tabular text → downloadable .xlsx (no scrub / no categories) -->
+    <!-- Utility: paste tabular text → .xlsx → dropzone → scrub (one pass) -->
     <section class="bridge-panel phuglee-panel bridge-paste-panel" id="bridge-paste-panel" aria-labelledby="bridge-paste-heading" data-phuglee-reveal-child>
       <h2 id="bridge-paste-heading">Paste Text to Excel</h2>
-      <p class="bridge-panel-lead">Paste tabular text from sheets, reports, or tables. Converts to a clean .xlsx with AutoFilter — no scrub, no categories.</p>
+      <p class="bridge-panel-lead">Paste tabular text from sheets, reports, or tables. Converts to a clean .xlsx, drops it into the file area, and scrubs in one pass. Pick a city first.</p>
       <label class="bridge-paste-label" for="bridge-paste-text">
         <span class="bridge-paste-label-text">Tabular text</span>
         <textarea
@@ -526,6 +549,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=54"></script>
+  <script src="/js/bridge.js?v=55"></script>
 </body>
 </html>
