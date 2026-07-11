@@ -115,6 +115,8 @@
   };
   let lastFailedAction = 'loadStates';
   let loadingTimer = null;
+  /** Scrub feed staged-play interval (FEED-01 client theater; not SSE) */
+  let feedPlayTimer = null;
   /** Last history payload for the selected city (dossier composition) */
   let dossierHistoryCache = [];
 
@@ -1777,6 +1779,8 @@
 
   function startLoadingAnimation() {
     let index = 0;
+    // HTTP wait: slogans only — feed stays empty/hidden (no fake addresses)
+    clearScrubFeedUi();
     loadingCopy.textContent = LOADING_STEPS[0];
     loadingTimer = window.setInterval(() => {
       index = (index + 1) % LOADING_STEPS.length;
@@ -1784,9 +1788,165 @@
     }, 900);
   }
 
+  function clearScrubFeedPlay() {
+    if (feedPlayTimer) {
+      window.clearInterval(feedPlayTimer);
+      feedPlayTimer = null;
+    }
+  }
+
+  function clearScrubFeedUi() {
+    clearScrubFeedPlay();
+    const feedEl = document.getElementById('bridge-scrub-feed');
+    const summaryEl = document.getElementById('bridge-scrub-feed-summary');
+    if (feedEl) {
+      feedEl.innerHTML = '';
+      feedEl.hidden = true;
+    }
+    if (summaryEl) {
+      summaryEl.textContent = '';
+      summaryEl.hidden = true;
+    }
+  }
+
   function stopLoadingAnimation() {
     if (loadingTimer) window.clearInterval(loadingTimer);
     loadingTimer = null;
+    // Always clear feed interval with slogan timer (confirm/error/finally safety)
+    clearScrubFeedPlay();
+  }
+
+  /**
+   * Append scrub feed rows (escaped). Status class: is-kept | is-no-distress | …
+   */
+  function paintFeedEvents(feedEl, events, opts) {
+    if (!feedEl || !Array.isArray(events)) return;
+    const animated = !!(opts && opts.animated);
+    for (let i = 0; i < events.length; i++) {
+      const ev = events[i] || {};
+      const status = String(ev.status || 'discarded');
+      const li = document.createElement('li');
+      li.className =
+        'bridge-scrub-feed-item is-' + status + (animated ? ' is-enter' : '');
+      const typeHtml = ev.type
+        ? `<span class="bridge-scrub-feed-type">${esc(ev.type)}</span>`
+        : '';
+      li.innerHTML =
+        `<span class="bridge-scrub-feed-addr">${esc(ev.address)}</span>` +
+        `<span class="bridge-scrub-feed-meta">` +
+        typeHtml +
+        `<span class="bridge-scrub-feed-status">${esc(ev.label || status)}</span>` +
+        `</span>`;
+      feedEl.appendChild(li);
+    }
+  }
+
+  function paintRemainders(feedEl, remainderByStatus) {
+    if (!feedEl || !remainderByStatus) return;
+    const parts = [];
+    const order = [
+      ['kept', 'kept'],
+      ['no-distress', 'no distress'],
+      ['discarded', 'discarded'],
+      ['already-in-Analyze', 'already in Analyze']
+    ];
+    for (let i = 0; i < order.length; i++) {
+      const key = order[i][0];
+      const label = order[i][1];
+      const n = Number(remainderByStatus[key]) || 0;
+      if (n > 0) parts.push(`+${n.toLocaleString()} more ${label}`);
+    }
+    if (!parts.length) return;
+    const li = document.createElement('li');
+    li.className = 'bridge-scrub-feed-remainder';
+    li.textContent = parts.join(' · ');
+    feedEl.appendChild(li);
+  }
+
+  /**
+   * Stagger row reveals until events done or maxMs wall clock.
+   * Always clears feedPlayTimer on resolve.
+   */
+  function stageFeedEvents(feedEl, events, opts) {
+    opts = opts || {};
+    const tickMs = Math.max(16, Number(opts.tickMs) || 60);
+    const maxMs = Math.max(0, Number(opts.maxMs) || 2000);
+    const list = Array.isArray(events) ? events : [];
+    const remainderByStatus = opts.remainderByStatus;
+
+    return new Promise((resolve) => {
+      clearScrubFeedPlay();
+      if (!feedEl || !list.length) {
+        paintRemainders(feedEl, remainderByStatus);
+        resolve();
+        return;
+      }
+
+      let idx = 0;
+      const started = Date.now();
+
+      const finish = () => {
+        clearScrubFeedPlay();
+        // Flush any remaining rows instantly so cap is always shown
+        if (idx < list.length) {
+          paintFeedEvents(feedEl, list.slice(idx), { animated: false });
+          idx = list.length;
+        }
+        paintRemainders(feedEl, remainderByStatus);
+        resolve();
+      };
+
+      // First row immediately so feed is not blank for a full tick
+      paintFeedEvents(feedEl, [list[idx]], { animated: true });
+      idx += 1;
+      if (idx >= list.length) {
+        finish();
+        return;
+      }
+
+      feedPlayTimer = window.setInterval(() => {
+        if (Date.now() - started >= maxMs) {
+          finish();
+          return;
+        }
+        paintFeedEvents(feedEl, [list[idx]], { animated: true });
+        idx += 1;
+        if (idx >= list.length) finish();
+      }, tickMs);
+    });
+  }
+
+  /**
+   * FEED-01/02: stage real process outcomes after /api/bridge/process returns.
+   * Client-staged only — no EventSource / SSE / fake addresses.
+   */
+  async function playScrubFeedFromProcess(data) {
+    const feedEl = document.getElementById('bridge-scrub-feed');
+    const summaryEl = document.getElementById('bridge-scrub-feed-summary');
+    const api = window.BridgeScrubFeed;
+    if (!api || !feedEl || !summaryEl) return;
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const built = api.buildScrubFeedEvents(data, { cap: api.SCRUB_FEED_CAP || 32 });
+    const play = api.getScrubFeedPlayOptions({ reducedMotion: reduced });
+
+    feedEl.innerHTML = '';
+    summaryEl.textContent = api.formatScrubFeedSummary(built.summary);
+    summaryEl.hidden = false;
+    feedEl.hidden = false;
+
+    if (play.stagger === false || play.maxMs === 0) {
+      // FEED-02: paint summary + samples at once — no multi-second delay
+      paintFeedEvents(feedEl, built.events, { animated: false });
+      paintRemainders(feedEl, built.remainderByStatus);
+      return;
+    }
+
+    await stageFeedEvents(feedEl, built.events, {
+      tickMs: play.tickMs,
+      maxMs: play.maxMs,
+      remainderByStatus: built.remainderByStatus
+    });
   }
 
   function renderKpis(stats) {
@@ -3028,6 +3188,7 @@
 
           // Stop spinner before modal so non-admin never hangs
           stopLoadingAnimation();
+          clearScrubFeedUi();
           setHidden(loadingPanel, true);
           if (processBtn) processBtn.disabled = !selectedFiles.length;
           syncFileUi();
@@ -3105,6 +3266,10 @@
         brainVersion = Number(data.processingMeta.brainVersion);
       }
       showError('');
+      // Freeze slogan ticker; stage truthful feed before results (D4 client-staged)
+      stopLoadingAnimation();
+      if (loadingCopy) loadingCopy.textContent = 'Scrubbing results…';
+      await playScrubFeedFromProcess(data);
       renderResults(data);
       updateTrainUndoButton();
       // Ensure results are visible (not left under the fold after loader)
@@ -3112,6 +3277,7 @@
         resultsPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (_) { /* ignore */ }
     } catch (err) {
+      clearScrubFeedUi();
       const msg = (err && err.message) || 'Could not process upload.';
       showError(msg);
       try {
@@ -3120,6 +3286,7 @@
     } finally {
       processUploadInFlight = false;
       stopLoadingAnimation();
+      clearScrubFeedUi();
       setHidden(loadingPanel, true);
       if (processBtn) processBtn.disabled = !selectedFiles.length;
       syncFileUi();
