@@ -60,7 +60,7 @@
     0 4px 18px rgba(0, 0, 0, 0.65);
 }
 
-/* ── Buttons ── */
+/* ── Buttons — raised glass / gem CTAs ── */
 .phuglee-btn {
   display: inline-flex;
   align-items: center;
@@ -72,8 +72,9 @@
   text-transform: uppercase;
   text-decoration: none;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
+  isolation: isolate;
   transition:
     transform var(--card-duration) var(--card-ease),
     box-shadow var(--card-duration) ease,
@@ -83,6 +84,15 @@
     filter var(--card-duration) ease;
 }
 
+.phuglee-btn:disabled,
+.phuglee-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none;
+}
+
 .phuglee-btn-primary {
   position: relative;
   overflow: hidden;
@@ -90,13 +100,14 @@
   color: var(--phuglee-black);
   font-weight: 400;
   background: linear-gradient(
-    135deg,
-    var(--phuglee-gold) 0%,
-    var(--phuglee-orange) 48%,
+    145deg,
+    #f0c45a 0%,
+    var(--phuglee-gold) 22%,
+    var(--phuglee-orange) 55%,
     var(--phuglee-terracotta) 100%
   );
   box-shadow: var(--shadow-cta);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .phuglee-btn-primary::before {
@@ -126,67 +137,116 @@
   transition: transform 0.55s var(--card-ease);
 }
 
-.phuglee-btn-primary:hover {
-  transform: translateY(-2px) scale(1.015);
-  box-shadow: var(--shadow-cta), var(--shadow-glow-orange);
-  filter: brightness(1.04);
+.phuglee-btn-primary:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-cta-hover, var(--shadow-cta)), var(--shadow-glow-orange);
+  filter: brightness(1.05);
 }
 
-.phuglee-btn-primary:hover::after {
+.phuglee-btn-primary:hover:not(:disabled)::after {
   transform: translateX(120%);
 }
 
-.phuglee-btn-primary:active {
-  transform: translateY(0) scale(0.99);
+.phuglee-btn-primary:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.99);
   filter: brightness(0.98);
 }
 
 .phuglee-btn-secondary {
+  position: relative;
+  overflow: hidden;
   padding: 0.88rem 1.55rem;
   color: var(--phuglee-cream);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(238, 183, 70, 0.22);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 8px 24px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.1) 0%, transparent 42%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.08) 0%, transparent 50%),
+    rgba(18, 16, 14, 0.45);
+  border: 1px solid rgba(238, 183, 70, 0.28);
+  box-shadow: var(--shadow-btn-glass, var(--glass-shadow));
+  backdrop-filter: blur(18px) saturate(155%);
+  -webkit-backdrop-filter: blur(18px) saturate(155%);
 }
 
-.phuglee-btn-secondary:hover {
-  border-color: rgba(229, 132, 53, 0.55);
+.phuglee-btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.phuglee-btn-secondary:hover:not(:disabled) {
+  border-color: rgba(229, 132, 53, 0.58);
   color: var(--phuglee-gold);
-  background: rgba(229, 132, 53, 0.08);
-  transform: translateY(-1px);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.12) 0%, transparent 42%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.14) 0%, transparent 50%),
+    rgba(28, 22, 16, 0.55);
+  transform: translateY(-2px);
   box-shadow:
-    0 0 24px rgba(229, 132, 53, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    0 0 28px rgba(229, 132, 53, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.phuglee-btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .phuglee-btn-ghost {
   padding: 0.5rem 0.75rem;
   color: var(--phuglee-cream);
   background: transparent;
+  box-shadow: none;
 }
 
-.phuglee-btn-ghost:hover {
+.phuglee-btn-ghost:hover:not(:disabled) {
   color: var(--phuglee-orange);
 }
 
 .phuglee-btn-danger {
+  position: relative;
+  overflow: hidden;
   padding: 0.85rem 1.5rem;
-  color: var(--phuglee-danger);
-  background: rgba(248, 113, 113, 0.08);
-  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #ffc9c9;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
+    rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.28),
+    0 0 20px rgba(248, 113, 113, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
-/* ── Panels — premium glassmorphism ── */
+.phuglee-btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(248, 113, 113, 0.55);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.35),
+    0 0 28px rgba(248, 113, 113, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* ── Panels — premium raised glass ── */
 .phuglee-panel {
   position: relative;
   isolation: isolate;
   background: var(--glass-fill);
   border: 1px solid var(--glass-border);
-  border-radius: var(--card-radius, 14px);
+  border-radius: var(--card-radius, 16px);
   padding: var(--card-pad-y, 1.5rem) var(--card-pad-x, 1.65rem);
   box-shadow: var(--glass-shadow);
   overflow: hidden;
@@ -207,15 +267,16 @@
   pointer-events: none;
   border-radius: inherit;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(229, 132, 53, 0.1), transparent 55%),
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(229, 132, 53, 0.14), transparent 55%),
+    radial-gradient(ellipse 70% 40% at 100% 100%, rgba(0, 0, 0, 0.2), transparent 50%),
     repeating-linear-gradient(
       -3deg,
       transparent,
       transparent 3px,
-      rgba(255, 255, 255, 0.01) 3px,
-      rgba(255, 255, 255, 0.01) 4px
+      rgba(255, 255, 255, 0.012) 3px,
+      rgba(255, 255, 255, 0.012) 4px
     );
-  opacity: 0.9;
+  opacity: 0.95;
   z-index: 0;
 }
 
@@ -224,12 +285,12 @@
   content: '';
   position: absolute;
   top: 0;
-  left: 8%;
-  right: 8%;
+  left: 6%;
+  right: 6%;
   height: 1px;
   background: var(--glass-edge-shine);
-  opacity: 0.95;
-  box-shadow: 0 0 18px rgba(229, 132, 53, 0.25);
+  opacity: 1;
+  box-shadow: 0 0 22px rgba(229, 132, 53, 0.32);
   pointer-events: none;
   z-index: 2;
 }
@@ -239,10 +300,11 @@
   z-index: 1;
 }
 
-/* Structural panels: glow only — no slide */
+/* Structural panels: lift slightly on hover for premium depth */
 .phuglee-panel:hover {
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-float);
+  transform: translateY(-2px);
 }
 
 /* Interactive / clickable cards */
@@ -256,6 +318,28 @@
   transform: translateY(-3px) scale(1.008);
   border-color: var(--glass-border-hover);
   box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phuglee-btn,
+  .phuglee-btn-primary,
+  .phuglee-btn-secondary,
+  .phuglee-btn-danger,
+  .phuglee-panel,
+  .phuglee-panel.is-interactive,
+  .phuglee-panel--interactive {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease !important;
+  }
+
+  .phuglee-btn:hover:not(:disabled),
+  .phuglee-btn-primary:hover:not(:disabled),
+  .phuglee-btn-secondary:hover:not(:disabled),
+  .phuglee-btn-danger:hover:not(:disabled),
+  .phuglee-panel:hover,
+  .phuglee-panel.is-interactive:hover,
+  .phuglee-panel--interactive:hover {
+    transform: none !important;
+  }
 }
 
 .phuglee-panel.is-interactive:active,
