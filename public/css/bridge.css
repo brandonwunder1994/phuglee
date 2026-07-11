@@ -761,7 +761,23 @@ body {
 }
 
 .bridge-actions--upload {
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+/* Process is the one fire CTA — min 44px touch target */
+.bridge-actions--upload #bridge-process {
+  min-height: 44px;
+  min-width: 8.5rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.bridge-actions--upload #bridge-clear-file {
+  min-height: 44px;
 }
 
 .bridge-loading {
@@ -1526,8 +1542,72 @@ body {
   }
 }
 
+/* Response date — peer form block (legacy / attach contexts) */
 .bridge-response-row {
   margin-bottom: 1.25rem;
+}
+
+/* IDLE-02: demoted tight meta under dropzone (not a peer fieldset essay) */
+.bridge-response-row--meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  margin: 0.5rem 0 0.65rem;
+  padding: 0.45rem 0.65rem;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(174, 163, 143, 0.12);
+  border-radius: var(--radius-sm);
+}
+
+.bridge-response-row--meta .bridge-datetime-picker {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.bridge-response-row--meta .bridge-datetime-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.bridge-response-row--meta .bridge-datetime-date {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.bridge-response-row--meta .bridge-datetime-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe);
+  white-space: nowrap;
+}
+
+.bridge-response-row--meta .bridge-datetime-picker input[type="date"] {
+  padding: 0.4rem 0.5rem;
+  font-size: 0.82rem;
+  color: var(--phuglee-cream);
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: var(--radius-sm);
+  min-width: 9.5rem;
+}
+
+.bridge-response-row--meta .bridge-response-hint {
+  margin: 0;
+  max-width: none;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--phuglee-taupe);
+  opacity: 0.9;
 }
 
 .bridge-datetime-picker {
