@@ -74,7 +74,7 @@ Each task was committed atomically:
 1. **Task 1: Upload Process climax hierarchy** - `1914556` (feat)
 2. **Task 2: Static IDLE-01/02 regression locks** - `de7fb6c` (test)
 
-**Plan metadata:** (docs commit after this summary)
+**Plan metadata:** `ae15366` (docs: complete plan)
 
 ## Files Created/Modified
 - `public/bridge.html` — climax DOM order; `--meta` response row; css v=19 / js v=38

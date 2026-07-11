@@ -43,7 +43,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 
 - [ ] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
 - [x] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
-- [ ] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
+- [x] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
 - [ ] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
 - [ ] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
 - [ ] **Phase 66: Superpower Train Theater** — Admin Train climax when open groups; brain secondary; non-admin gate
@@ -86,9 +86,9 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 **Success Criteria** (what must be TRUE):
   1. At idle (before process), operator sees **live proof metrics** from existing list/API data (e.g. lists staged, total records ready, last save) — not only post-process KPIs
   2. Upload step presents **Process** as the visual climax (dropzone stage + one fire CTA); response date is tight meta, not a peer form block
-**Plans**: 2 plans · plan-check **PASS**
+**Plans**: 2/2 plans complete · plan-check **PASS** · status: complete
 - [x] 63-01-PLAN.md — Live idle proof strip from `savedLists` (IDLE-01)
-- [ ] 63-02-PLAN.md — Process climax + demoted date meta + static locks (IDLE-02)
+- [x] 63-02-PLAN.md — Process climax + demoted date meta + static locks (IDLE-02)
 
 ### Phase 64: Live Scrub Feed
 **Goal**: While process runs, the operator watches real scrub activity — kept / no-distress / discarded — not only a passive bar and rotating slogans
@@ -162,7 +162,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 |-------|-------|--------|------------|-----------|
 | 61. Scrub Desk Foundation | 3/3 | Complete (re-verify) | PASS | 2026-07-10 |
 | 62. City Dossier | 2/2 | Complete | PASS | 2026-07-10 |
-| 63. Idle Proof & Process Climax | 0/2 | Ready to execute | PASS | — |
+| 63. Idle Proof & Process Climax | 2/2 | Complete | PASS | 2026-07-10 |
 | 64. Live Scrub Feed | 0/2 | Ready to execute | PASS | — |
 | 65. Kill-Rate Scrub Report | 0/3 | Ready to execute | PASS | — |
 | 66. Superpower Train Theater | 0/3 | Ready to execute | PASS | — |
