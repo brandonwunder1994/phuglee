@@ -2672,32 +2672,133 @@
     return s || 'Other';
   }
 
-  function buildKillReasons(s) {
-    const counts = new Map();
+  /**
+   * Full post-scrub breakout — every major bucket with a count.
+   * Prefer structured stats fields; fold discardReasons without double-counting.
+   */
+  function buildScrubBreakdown(s) {
     const reasons = s.discardReasons || {};
+    const reasonCount = (keys) => {
+      let n = 0;
+      for (const k of keys) {
+        n += Number(reasons[k]) || 0;
+        // Human label keys sometimes land in discardReasons from older payloads
+        n += Number(reasons[killReasonLabel(k)]) || 0;
+      }
+      return n;
+    };
+
+    const keptN = Number(s.kept);
+    const kept = Number.isFinite(keptN) ? keptN : 0;
+    const noDistress = Math.max(
+      Number(s.noDistress) || 0,
+      reasonCount(['no_distress_signal', 'No distressed signal (generic code violation)'])
+    );
+    const deduped = Math.max(
+      Number(s.deduplicated) || 0,
+      reasonCount(['duplicate', 'Near-duplicate within upload'])
+    );
+    const already = Math.max(
+      Number(s.alreadyImported) || 0,
+      reasonCount(['already_imported', 'Already imported in Analyze'])
+    );
+    const noAddress = reasonCount(['no_address', 'No usable street address']);
+    const blank = reasonCount(['blank_row', 'Blank or empty row']);
+    const nonProperty = reasonCount(['non_property', 'Clearly non-property record']);
+    const parseErr = reasonCount(['parse_error', 'Could not parse row']);
+
+    // Other = remaining discardReasons not covered above
+    const accountedLabels = new Set([
+      'No distress signal',
+      'Deduped',
+      'Already in Analyze',
+      'No address',
+      'Blank row',
+      'Non-property',
+      'Parse error'
+    ]);
+    let other = 0;
     Object.entries(reasons).forEach(([key, n]) => {
       const count = Number(n) || 0;
       if (count <= 0) return;
       const label = killReasonLabel(key);
-      counts.set(label, (counts.get(label) || 0) + count);
+      if (!accountedLabels.has(label)) other += count;
     });
-    // Merge non-zero counters without double-label spam
-    const counterPairs = [
-      [Number(s.noDistress) || 0, 'No distress signal'],
-      [Number(s.deduplicated) || 0, 'Deduped'],
-      [Number(s.alreadyImported) || 0, 'Already in Analyze']
+
+    return [
+      { key: 'kept', label: 'Kept (distress signal)', count: kept, tone: 'kept' },
+      { key: 'no_distress', label: 'No distress signal', count: noDistress, tone: 'kill' },
+      { key: 'deduped', label: 'Duplicates in this list', count: deduped, tone: 'kill' },
+      { key: 'already', label: 'Already in Analyze', count: already, tone: 'kill' },
+      { key: 'no_address', label: 'No usable address', count: noAddress, tone: 'kill' },
+      { key: 'blank', label: 'Blank / empty row', count: blank, tone: 'kill' },
+      { key: 'non_property', label: 'Non-property', count: nonProperty, tone: 'kill' },
+      { key: 'parse', label: 'Parse error', count: parseErr, tone: 'kill' },
+      { key: 'other', label: 'Other killed', count: other, tone: 'kill' }
     ];
-    counterPairs.forEach(([count, label]) => {
-      if (count <= 0) return;
-      if (!counts.has(label)) counts.set(label, count);
-    });
-    return [...counts.entries()]
-      .filter(([, n]) => n > 0)
-      .sort((a, b) => b[1] - a[1])
-      .map(([label, n]) => (
-        `<span class="bridge-kill-reason">${n.toLocaleString()} ${esc(label)}</span>`
+  }
+
+  function buildKillReasons(s) {
+    // Prefer full breakdown table; keep chips as compact summary of non-zero kills only
+    return buildScrubBreakdown(s)
+      .filter((row) => row.key !== 'kept' && row.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .map((row) => (
+        `<span class="bridge-kill-reason">${row.count.toLocaleString()} ${esc(row.label)}</span>`
       ))
       .join('');
+  }
+
+  function buildBreakdownTable(s, raw, keptN, killed) {
+    const rows = buildScrubBreakdown(s);
+    // Always show kept + any non-zero kill buckets; also always show the big three kill categories
+    const always = new Set(['kept', 'no_distress', 'deduped', 'already']);
+    const visible = rows.filter((r) => always.has(r.key) || r.count > 0);
+    const body = visible
+      .map((r) => {
+        const pct =
+          raw > 0 ? Math.round((r.count / raw) * 1000) / 10 : 0;
+        return (
+          `<tr class="bridge-breakdown-row bridge-breakdown-row--${esc(r.tone)}">` +
+          `<td class="bridge-breakdown-label">${esc(r.label)}</td>` +
+          `<td class="bridge-breakdown-count">${r.count.toLocaleString()}</td>` +
+          `<td class="bridge-breakdown-pct">${pct}%</td>` +
+          `</tr>`
+        );
+      })
+      .join('');
+
+    let note = '';
+    if (raw > 0 && keptN <= 1 && killed > 0) {
+      const top = rows
+        .filter((r) => r.key !== 'kept' && r.count > 0)
+        .sort((a, b) => b.count - a.count)[0];
+      if (top) {
+        note =
+          `<p class="bridge-breakdown-note">` +
+          `Only <strong>${keptN.toLocaleString()}</strong> row${keptN === 1 ? '' : 's'} kept of ` +
+          `<strong>${raw.toLocaleString()}</strong> parsed. ` +
+          `Biggest kill bucket: <strong>${esc(top.label)}</strong> (${top.count.toLocaleString()}). ` +
+          `Code lists only keep Strong Distressed Signal types (weeds, trash, blight, junk vehicles, etc.) — ` +
+          `generic “code complaint” rows land in Train / no distress.` +
+          `</p>`;
+      }
+    }
+
+    return (
+      `<div class="bridge-scrub-breakdown" aria-label="Upload scrub breakdown">` +
+      `<h3 class="bridge-scrub-breakdown-title">What happened to this upload</h3>` +
+      `<table class="bridge-breakdown-table">` +
+      `<thead><tr>` +
+      `<th scope="col">Bucket</th>` +
+      `<th scope="col">Count</th>` +
+      `<th scope="col">Share</th>` +
+      `</tr></thead>` +
+      `<tbody>${body}</tbody>` +
+      `</table>` +
+      note +
+      `</div>`
+    );
   }
 
   function buildProofChips(s, meta) {
@@ -2773,6 +2874,7 @@
     const killed = Math.max(0, raw - keptN);
 
     const reasonHtml = buildKillReasons(s);
+    const breakdownHtml = buildBreakdownTable(s, raw, keptN, killed);
     const proofHtml = buildProofChips(s, meta);
     const samplesHtml = buildKeptSamples(rows);
 
@@ -2781,7 +2883,7 @@
       `<div class="bridge-kill-flow" role="group" aria-label="Kill-rate scrub report">` +
       `<div class="bridge-kill-stat bridge-kill-stat--raw">` +
       `<span class="bridge-kill-stat-value">${raw.toLocaleString()}</span>` +
-      `<span class="bridge-kill-stat-label">RAW</span>` +
+      `<span class="bridge-kill-stat-label">RAW IN</span>` +
       `</div>` +
       `<span class="bridge-kill-arrow" aria-hidden="true">→</span>` +
       `<div class="bridge-kill-stat bridge-kill-stat--killed">` +
@@ -2794,7 +2896,8 @@
       `<span class="bridge-kill-stat-label">KEPT</span>` +
       `</div>` +
       `</div>` +
-      (reasonHtml ? `<div class="bridge-kill-reasons">${reasonHtml}</div>` : '') +
+      breakdownHtml +
+      (reasonHtml ? `<div class="bridge-kill-reasons" aria-label="Kill reason chips">${reasonHtml}</div>` : '') +
       (proofHtml ? `<div class="bridge-proof-chips">${proofHtml}</div>` : '') +
       samplesHtml;
   }

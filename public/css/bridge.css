@@ -1567,6 +1567,92 @@ body {
   white-space: nowrap;
 }
 
+/* Full upload breakout table — always under RAW → KILLED → KEPT */
+.bridge-scrub-breakdown {
+  width: 100%;
+  margin: 0.15rem 0 0.35rem;
+  padding: 0.85rem 1rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.bridge-scrub-breakdown-title {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.bridge-breakdown-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.bridge-breakdown-table th {
+  text-align: left;
+  padding: 0.35rem 0.5rem 0.45rem 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+  border-bottom: 1px solid rgba(174, 163, 143, 0.18);
+}
+
+.bridge-breakdown-table th:nth-child(2),
+.bridge-breakdown-table th:nth-child(3),
+.bridge-breakdown-table td:nth-child(2),
+.bridge-breakdown-table td:nth-child(3) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bridge-breakdown-table td {
+  padding: 0.4rem 0.5rem 0.4rem 0;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.08);
+  color: var(--phuglee-cream);
+}
+
+.bridge-breakdown-table tr:last-child td {
+  border-bottom: none;
+}
+
+.bridge-breakdown-row--kept .bridge-breakdown-count {
+  color: var(--phuglee-gold);
+  font-weight: 700;
+}
+
+.bridge-breakdown-row--kill .bridge-breakdown-count {
+  color: color-mix(in srgb, var(--phuglee-danger) 70%, var(--phuglee-orange));
+  font-weight: 600;
+}
+
+.bridge-breakdown-pct {
+  color: var(--phuglee-stone);
+  font-size: 0.8rem;
+}
+
+.bridge-breakdown-note {
+  margin: 0.75rem 0 0;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: rgba(245, 242, 228, 0.82);
+  background: rgba(229, 132, 53, 0.08);
+  border: 1px solid rgba(229, 132, 53, 0.22);
+  border-radius: 8px;
+}
+
+.bridge-breakdown-note strong {
+  color: var(--phuglee-cream);
+  font-weight: 700;
+}
+
 .bridge-proof-chips {
   display: flex;
   flex-wrap: wrap;
