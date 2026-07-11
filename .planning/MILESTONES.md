@@ -1,5 +1,31 @@
 # Project Milestones: Distress OS
 
+## v2.1 Filter Scrub Theater (Shipped: 2026-07-11)
+
+**Delivered:** Gritty multi-city scrub desk on `/bridge` — asymmetric foundation, city dossier, live idle proof + Process climax, client-staged scrub feed, cinematic kill-rate report, admin Train theater (brain as Rules armory), sticky shift queue + staging inventory HUD with brand-heat success — matching Collect/Command quality without rewriting the keep/kill engine or re-coupling Analyze.
+
+**Phases completed:** 61–68 (8 phases, 20 plans)
+
+**Design bible:** `.planning/v2.1-FILTER-SCRUB-THEATER.md`  
+**GSD doc:** `docs/gsd/milestones/M8-filter-scrub-theater.md`  
+**Archive:** `.planning/milestones/v2.1-ROADMAP.md`, `v2.1-REQUIREMENTS.md`
+
+**Key accomplishments:**
+- Asymmetric `bridge-desk` shell, Collect-grade heat atmosphere, cream Anton hero, unified `phuglee-btn` + ops slang (DESK)
+- City case-file dossier from history/lists APIs; no-list outcomes demoted to scrap drawer (CITY)
+- Live idle proof from `savedLists`; Process climax with demoted response-date meta (IDLE)
+- Client-staged scrub feed from process payload; reduced-motion safe; no SSE (FEED)
+- RAW → KILLED → KEPT kill report + proof chips; Save list / Stage elevated primary (KILL)
+- Admin Train theater pivot when open groups; live mission HUD; Rules armory + non-admin fail-closed (THTR)
+- Sticky session shift queue, inventory HUD, ember/gold post-save flash (SHIFT)
+- **679** tests + `scripts/verify-live.ps1` green; `/bridge` 200; v1.6–v2.0 locks held (QA)
+
+**Git range:** `78e44f0` → `5791223` (~87 commits, +9.5k / −815 across ~50 files)
+
+**Note:** Formal `/gsd:audit-milestone` not run; all eight phase VERIFICATION.md reports **passed** (61 after gap-closure 61-03); suite + live gate green.
+
+---
+
 ## v1.8 Type Column Intelligence (Shipped: 2026-07-10)
 
 **Delivered:** Smart Violation Type column detection (headers + value shapes), per-city format memory with admin confirm gate, display-only short Train labels, and processUpload regression locks — so city exports no longer poison Train/brain with wrong columns or unreadable walls of text.

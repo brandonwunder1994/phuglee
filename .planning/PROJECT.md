@@ -66,15 +66,34 @@ Full requirement text: `.planning/milestones/v1.7-REQUIREMENTS.md`
 
 Full requirement text: `.planning/milestones/v1.8-REQUIREMENTS.md`
 
-### Active (v2.0 Filter Independence & Learning)
+### Validated (v2.0 — shipped 2026-07-10)
 
-Milestone goals (requirements REQ-IDs defined next in this workflow):
+- [x] **IND-01–04**: Filter write-isolated from Analyze; push adapter gone; `already_imported` default-off
+- [x] **LIST-01–03**: List factory Save → Download path + multi-city persistence + teaching
+- [x] **ACC-01–03**: Gold accuracy + silent-drop bans + v1.7–v1.8 locks
+- [x] **LRN-01–03**: Paired learning metrics + anti-game + type live / phrases proposed
+- [x] **EFF-01–02**: Day-2 efficiency without accuracy or Analyze re-coupling tradeoffs
+- [x] **TEST-01–03 (v2.0)**: Independence + gold + verify-live permanent bar
 
-- [ ] **Independence:** Remove automatic Filter → Analyze push; Filter only stages/saves lists for download and external enrichment before manual Analyze import
-- [ ] **Saved lists:** Multi-city list store + UI (save, name, download, delete) so sequential city uploads persist until the operator removes them
-- [ ] **Accuracy pass:** Full Filter structure review + implement keep/kill, Type/format, Train grouping, and brain-learning improvements so Approve/Deny volume falls over time
-- [ ] **Efficiency:** Operator time, process runtime, and cross-city reuse all improve (no single-dimension tradeoff)
-- [ ] **Learning bar:** Code-violation Approve/Deny becomes less frequent as the brain absorbs admin decisions and auto-filtering gets trustworthy
+Full requirement text: `.planning/milestones/v2.0-REQUIREMENTS.md`
+
+### Validated (v2.1 — shipped 2026-07-11)
+
+- [x] **DESK-01–06**: Asymmetric scrub desk, no proof rail, Collect-grade heat, slim chrome, cream Anton, phuglee-btn + ops slang
+- [x] **CITY-01–02**: City dossier case file; no-list path demoted to scrap drawer
+- [x] **IDLE-01–02**: Live idle proof from lists; Process climax + demoted date meta
+- [x] **FEED-01–02**: Client-staged live scrub feed; reduced-motion safe
+- [x] **KILL-01–03**: RAW → KILLED → KEPT report, proof chips, Save/Stage primary
+- [x] **THTR-01–03**: Admin Train theater, Rules armory, non-admin gate
+- [x] **SHIFT-01–03**: Sticky shift queue, inventory HUD, brand-heat success
+- [x] **QA-01–03**: v1.6–v2.0 locks + suite + verify-live + mobile/a11y motion
+
+Full requirement text: `.planning/milestones/v2.1-REQUIREMENTS.md`  
+Design bible: `.planning/v2.1-FILTER-SCRUB-THEATER.md`
+
+## Current Milestone
+
+**None active** — v2.1 Filter Scrub Theater shipped 2026-07-11. Define next with `/gsd:new-milestone`.
 
 ### Backlog (later)
 
@@ -106,13 +125,16 @@ Milestone goals (requirements REQ-IDs defined next in this workflow):
 - Form Forge: `C:\Users\brand\Projects\city-list-requests` (Python Flask, port 8787)
 - Property Analyzer: `C:\Users\brand\Projects\property-distress-analyzer` (Node, port 3456)
 
-**Tests:** `npm test` (distress-os **460** after v1.8), `scripts/verify-live.ps1`, Form Forge / Analyzer suites separately
+**Tests:** `npm test` (distress-os **679** after v2.1), `scripts/verify-live.ps1`, Form Forge / Analyzer suites separately
+
+**Filter Scrub Theater (v2.1):** `/bridge` desk shell + dossier + idle/process climax + scrub feed (`bridge-scrub-feed.js`) + kill-rate report + Train theater + shift queue/inventory HUD — surface only; process engine unchanged.
 
 **Known soft debt (accepted):**
 - Dedicated `GET /api/bridge/brain/metrics` unused by UI (metrics via `GET /brain`)
 - Decision POST ships full row arrays (15MB cap)
 - Header-based admin is acceptable for single-tenant local; multi-tenant needs server sessions
-- Formal `/gsd:audit-milestone` for v1.8 not run (phase VERIFICATION.md all passed)
+- Formal `/gsd:audit-milestone` for v1.8 / v2.1 not run (phase VERIFICATION.md all passed)
+- Residual green on some save/attach/train status helpers (outside SHIFT-03 lists flash scope)
 
 ## Key Decisions (v1.6)
 
@@ -136,41 +158,32 @@ Milestone goals (requirements REQ-IDs defined next in this workflow):
 | Water shut-off skips Type confirm gate | ✓ Good — water path unblocked |
 | Deterministic short labels (no LLM paraphrase) | ✓ Good — testable, zero new deps |
 
-## Current Milestone: v2.0 Filter Independence & Learning
-
-**Goal:** Make Filter a standalone list factory — no Analyze push — with a full accuracy/efficiency pass so admin Train work drops as the brain learns from real Approve/Deny decisions.
-
-**Target features:**
-- Decouple Filter from Analyze (remove auto-push; keep manual import path only)
-- Saved multi-city filtered lists (save / download / delete; external enrichment outside the tool)
-- Structural accuracy pass across process, Type/format, keep/kill tagging, Train grouping, brain apply
-- Efficiency: less operator grind, faster process, better reuse across heterogeneous city files
-- Success bar: Approve/Deny of code violations becomes less frequent over time because the bot already filtered correctly
-
-**In scope:** Upload/process, column map, format memory, distress tagging, Train brain, phrase rules, Filter lists/save/download, admin + customer Filter UX.  
-**Explicitly out:** Pushing lists into Analyze from Filter.
-
-**Phase numbering:** continues from **55**  
-**Approach:** Audit what matters + implement improvements in this same major milestone (not audit-only).
-
 ## Current State
 
-**Active:** v2.0 Filter Independence & Learning (defining requirements)  
-**Shipped:** v1.8 Type Column Intelligence (2026-07-10)  
-**Prior:** v1.7 Filter Accuracy & Grouping; v1.6 Filter Superpower Brain  
+**Active:** none (awaiting next milestone)  
+**Shipped:** v2.1 Filter Scrub Theater (2026-07-11)  
+**Prior:** v2.0 Independence & Learning; v1.8 Type Column; v1.7 Accuracy; v1.6 Superpower Brain  
 
-**Type column stack (v1.8):** `lib/bridge-type-column-score.js`, `lib/bridge-city-format-store.js`, processUpload confirm gate, `lib/bridge-short-label.js` + Train UI; processUpload e2e TEST-01/02/03 (v1.8).
+**Known product direction:** Filter stages filtered lead lists only; enrichment + skip-trace happen outside; Analyze receives data via manual import of fully prepared lists. Analyze independence and keep/kill engine remain locked.
 
-**Known product direction (pre-v2.0 decisions):** Filter stages filtered lead lists only; enrichment + skip-trace happen outside; Analyze receives data via manual import of fully prepared lists.
-
-## Key Decisions (v2.0 — provisional)
+## Key Decisions (v2.0 — shipped)
 
 | Decision | Outcome |
 |----------|---------|
-| No Filter → Analyze auto-push | — Pending implement — external workflow + manual import |
-| Multi-list staging on Filter (not single lastResult) | — Pending implement |
-| Accuracy + efficiency + learning bar in one major milestone | — Pending — all peer priorities |
+| No Filter → Analyze auto-push | ✓ Good — external workflow + manual import |
+| Multi-list staging on Filter (not single lastResult) | ✓ Good — list factory |
+| Accuracy + efficiency + learning bar in one major milestone | ✓ Good |
 | Global brain remains single shared quality product | ✓ Carry forward from v1.6 |
+
+## Key Decisions (v2.1)
+
+| Decision | Outcome |
+|----------|---------|
+| Surface-only theater; no process engine rewrite | ✓ Good — 679 tests held accuracy bar |
+| Client-staged feed (no SSE v1) | ✓ Good — FEED from process payload |
+| Live train path = `bridge-train.js` (not bridge.js fallback) | ✓ Good — gap 61-03 closed DESK-06 |
+| Session shift queue (sessionStorage), not server API | ✓ Good — SHIFT-01 without new routes |
+| Brain demoted to Rules armory under Train theater | ✓ Good — THTR-02 |
 
 ---
 
@@ -185,4 +198,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-07-10 after starting v2.0 Filter Independence & Learning*
+*Last updated: 2026-07-11 after v2.1 Filter Scrub Theater*
