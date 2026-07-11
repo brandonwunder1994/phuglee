@@ -145,3 +145,76 @@ test('SHIFT-03 carry: resetImportAreaAfterSave clears working set and never auto
     'resetImportAreaAfterSave must not auto-call downloadSavedList('
   );
 });
+
+// ---------------------------------------------------------------------------
+// SHIFT-02: staging inventory HUD above saved-lists table
+// ---------------------------------------------------------------------------
+
+const html = fs.readFileSync(path.join(ROOT, 'public', 'bridge.html'), 'utf8');
+
+function renderSavedListsSlice() {
+  const start = js.indexOf('function renderSavedLists');
+  assert.ok(start >= 0, 'function renderSavedLists must exist');
+  const rest = js.slice(start + 1);
+  const next = rest.search(/\n  (?:async )?function \w+/);
+  return next >= 0 ? js.slice(start, start + 1 + next) : js.slice(start, start + 6000);
+}
+
+test('SHIFT-02: HTML has bridge-inventory-hud mount', () => {
+  assert.match(html, /id=["']bridge-inventory-hud["']/);
+});
+
+test('SHIFT-02: lists heading uses Staging inventory voice', () => {
+  assert.match(html, /Staging inventory/);
+});
+
+test('SHIFT-02: bridge.js fills inventory HUD from savedLists', () => {
+  assert.match(js, /bridge-inventory-hud/);
+  const hasRenderHelper = /function\s+renderInventoryHud\b/.test(js);
+  const hasHudMetricLang =
+    /Ready/.test(js) &&
+    /Downloaded/.test(js) &&
+    (/renderInventoryHud|inventory-hud|lists staged|records/i.test(js));
+  assert.ok(
+    hasRenderHelper || hasHudMetricLang,
+    'bridge.js must render inventory HUD metrics (renderInventoryHud or Ready/Downloaded inventory language)'
+  );
+  // Must touch HUD from renderSavedLists so empty + non-empty stay in sync
+  const slice = renderSavedListsSlice();
+  assert.match(
+    slice,
+    /renderInventoryHud|bridge-inventory-hud/,
+    'renderSavedLists must update inventory HUD'
+  );
+});
+
+test('SHIFT-02: renderSavedLists still emits rename/download/delete actions', () => {
+  const slice = renderSavedListsSlice();
+  assert.match(slice, /data-action=["']rename["']/);
+  assert.match(slice, /data-action=["']download["']/);
+  assert.match(slice, /data-action=["']delete["']/);
+});
+
+test('SHIFT-02: download-all + clear-all toolbar IDs preserved', () => {
+  assert.match(html, /id=["']bridge-download-all-csv["']/);
+  assert.match(html, /id=["']bridge-download-all-xlsx["']/);
+  assert.match(html, /id=["']bridge-clear-all-lists["']/);
+});
+
+test('SHIFT-02: no /api/bridge/shift route introduced', () => {
+  assert.equal(
+    /\/api\/bridge\/shift/.test(js),
+    false,
+    'bridge.js must not introduce /api/bridge/shift'
+  );
+});
+
+test('SHIFT-02: CSS styles inventory HUD strip', () => {
+  const body =
+    cssRuleBody(css, '.bridge-inventory-hud') ||
+    cssRuleBody(css, '#bridge-inventory-hud');
+  assert.ok(
+    body != null,
+    '.bridge-inventory-hud or #bridge-inventory-hud rule must exist in bridge.css'
+  );
+});
