@@ -122,9 +122,9 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   1. Admin with open train groups after process sees **Train theater** (mission header with open-group count; Distressed / Not Distressed with live kept-count feedback) — not equal peer tabs with Kept / Brain by default
   2. Filter brain panel is **secondary** (rules armory), not a third equal-weight peer competing with the scrub win
   3. Non-admin never sees train/brain chrome (v1.6 TRAIN-03 / admin gate preserved)
-**Plans**: 3 plans · plan-check **PASS**
+**Plans**: 2/3 plans complete · plan-check **PASS** · status: In Progress
 - [x] 66-01-PLAN.md — Open-count helper + process→train theater pivot + mission header (THTR-01)
-- [ ] 66-02-PLAN.md — Live kept HUD + theater chrome / demoted Kept (THTR-01)
+- [x] 66-02-PLAN.md — Live kept HUD + theater chrome / demoted Kept (THTR-01)
 - [ ] 66-03-PLAN.md — Rules armory demotion + admin gate + suite/live (THTR-02, THTR-03)
 
 ### Phase 67: Multi-City Shift & Staging
@@ -165,7 +165,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | 63. Idle Proof & Process Climax | 2/2 | Complete | PASS | 2026-07-10 |
 | 64. Live Scrub Feed | 2/2 | Complete | PASS | 2026-07-11 |
 | 65. Kill-Rate Scrub Report | 3/3 | Complete | PASS | 2026-07-11 |
-| 66. Superpower Train Theater | 1/3 | In Progress | PASS | — |
+| 66. Superpower Train Theater | 2/3 | In Progress | PASS | — |
 | 67. Multi-City Shift & Staging | 0/3 | Ready to execute | PASS | — |
 | 68. Regression QA Lock | 0/2 | Ready to execute | PASS | — |
 

@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2
+current_plan: 3
 status: executing
-stopped_at: Completed 66-01-PLAN.md
-last_updated: "2026-07-11T00:30:00.000Z"
-last_activity: 2026-07-10 — 66-01 Train theater pivot + mission header (THTR-01)
+stopped_at: Completed 66-02-PLAN.md
+last_updated: "2026-07-11T00:27:58.496Z"
+last_activity: 2026-07-11
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 20
-  completed_plans: 13
-  percent: 65
+  completed_plans: 14
+  percent: 70
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 66 Superpower Train Theater (plan 01 done; next 66-02)
+**Current focus:** v2.1 Filter Scrub Theater — Phase 66 Superpower Train Theater (plan 02 done; next 66-03)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 66 — Superpower Train Theater  
-**Current Plan:** 2 of 3  
+**Current Plan:** 3 of 3  
 **Total Plans in Phase:** 3  
 **Status:** Executing  
-**Last activity:** 2026-07-10 — 66-01 Train theater pivot + mission header (THTR-01)
+**Last activity:** 2026-07-10 — 66-02 live kept HUD + theater chrome (THTR-01)
 
-Progress: [███████░░░] 65% (13/20 plans executed)
+Progress: [███████░░░] 70% (14/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -44,7 +44,7 @@ Progress: [███████░░░] 65% (13/20 plans executed)
 | 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
 | 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
-| 66 | Superpower Train Theater | 3 (1 done) | PASS |
+| 66 | Superpower Train Theater | 3 (2 done) | PASS |
 | 67 | Multi-City Shift & Staging | 3 | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
 
@@ -97,6 +97,8 @@ Progress: [███████░░░] 65% (13/20 plans executed)
 - [66] forceTrainTheater one-shot after process only; mid-session preserves resultsMode
 - [66] countOpenTrainGroups is single source of truth for undecided open count (never search-filtered)
 - [66] Mission header inside bridge-train-wrap only; presentation-only no decision API changes
+- [66] Mission re-sync in refreshTrainUiAfterDecision so undo/conflict inherit without API rewrite
+- [66] Theater chrome when admin wrap visible and (train mode OR open > 0); Kept demoted CSS-only
 
 ## Performance Metrics
 
@@ -115,6 +117,7 @@ Progress: [███████░░░] 65% (13/20 plans executed)
 | 65 | 02 | 2min | 2 | 3 |
 | 65 | 03 | 2min | 2 | 3 |
 | 66 | 01 | 8min | 3 | 5 |
+| 66 | 02 | 12min | 2 | 4 |
 
 ## Next command
 
@@ -122,9 +125,9 @@ Progress: [███████░░░] 65% (13/20 plans executed)
 /gsd:execute-phase 66
 ```
 
-(Or execute plan 66-02 directly — live kept HUD + theater chrome)
+(Or execute plan 66-03 — brain demotion + admin gate + suite/live)
 
 ## Session
 
-**Last session:** 2026-07-11T00:24:29.683Z
-**Stopped at:** Completed 66-01-PLAN.md
+**Last session:** 2026-07-11T00:27:58.486Z
+**Stopped at:** Completed 66-02-PLAN.md
