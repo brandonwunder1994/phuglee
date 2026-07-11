@@ -1698,9 +1698,9 @@ body {
   margin: 0.65rem 0 0;
   padding: 0.65rem 0.85rem;
   border-radius: var(--radius-sm);
-  background: rgba(120, 180, 140, 0.12);
-  border: 1px solid rgba(120, 180, 140, 0.28);
-  color: #9fd4a8;
+  background: rgba(229, 132, 53, 0.12);
+  border: 1px solid rgba(238, 183, 70, 0.35);
+  color: var(--phuglee-gold, #eeb746);
   font-size: 0.9rem;
 }
 
@@ -1709,18 +1709,18 @@ body {
   line-height: 1.45;
 }
 
-/* One-click CSV for the list just saved — success-adjacent, not primary orange */
+/* One-click CSV for the list just saved — heat-adjacent secondary, not primary orange */
 .bridge-flash-download {
   margin-top: 0;
-  color: #c8e8cf;
+  color: var(--phuglee-cream, #f0e6d0);
   background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(120, 180, 140, 0.42);
+  border: 1px solid rgba(238, 183, 70, 0.42);
   cursor: pointer;
 }
 
 .bridge-flash-download:hover {
-  border-color: rgba(120, 180, 140, 0.7);
-  color: #e2f5e6;
+  border-color: rgba(238, 183, 70, 0.7);
+  color: var(--phuglee-gold, #eeb746);
 }
 
 .bridge-lists-empty {
@@ -1838,8 +1838,9 @@ body {
 }
 
 .bridge-list-status--downloaded {
-  background: rgba(120, 180, 140, 0.14);
-  color: #9fd4a8;
+  background: rgba(174, 163, 143, 0.12);
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  color: var(--phuglee-cream, #f0e6d0);
 }
 
 .bridge-list-actions {

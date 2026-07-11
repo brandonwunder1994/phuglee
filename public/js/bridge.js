@@ -2438,8 +2438,8 @@
       const teaching = document.createElement('span');
       teaching.className = 'bridge-lists-flash-text';
       teaching.textContent = savedLabel
-        ? `Saved “${savedLabel}”. Filter reset — pick the next city to start a fresh list, or download from Saved lists for enrichment.`
-        : 'List saved. Filter reset — pick the next city to start a fresh list, or download from Saved lists for enrichment.';
+        ? `Staged “${savedLabel}”. Filter reset — pick the next city, or download from Saved lists for enrichment.`
+        : 'List staged. Filter reset — pick the next city, or download from Saved lists for enrichment.';
       flash.appendChild(teaching);
       // One-click CSV for the just-saved list only — never auto-download.
       // Wire via data-action; click handled outside this function (EFF-02).
