@@ -9,7 +9,7 @@ body {
 
 .bridge-main {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-main);
   max-width: 1040px;
   margin: 0 auto;
   padding: 2rem 1.5rem 3rem;
@@ -17,7 +17,7 @@ body {
 
 .bridge-main > * {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-main);
 }
 
 .bridge-hero {
@@ -35,7 +35,7 @@ body {
 }
 
 .bridge-eyebrow {
-  font-size: 0.72rem;
+  font-size: var(--text-eyebrow);
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -643,7 +643,7 @@ body {
 .bridge-last-scan-when {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #f5efe4;
+  color: var(--phuglee-cream);
   letter-spacing: 0.01em;
 }
 
@@ -850,11 +850,11 @@ body {
 }
 
 .bridge-outcome-status.is-success {
-  color: #8fd4a0;
+  color: var(--status-success-fg, var(--phuglee-success));
 }
 
 .bridge-outcome-status.is-error {
-  color: #f0a0a0;
+  color: var(--status-danger-fg, var(--phuglee-danger));
 }
 
 .bridge-history-open-btn {
@@ -1944,11 +1944,11 @@ body {
 }
 
 .bridge-save-status.is-error {
-  color: #e8a0a0;
+  color: var(--status-danger-fg, var(--phuglee-danger));
 }
 
 .bridge-save-status.is-success {
-  color: #9fd4a8;
+  color: var(--status-success-fg, var(--phuglee-success));
 }
 
 /* Staging inventory — collapsed by default (details, no open attr) */
@@ -2172,7 +2172,7 @@ button.bridge-inventory-filter-chip.is-active {
 .bridge-scanned-toast {
   position: fixed;
   inset: 0;
-  z-index: 12000;
+  z-index: var(--z-toast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2611,7 +2611,7 @@ button.bridge-inventory-filter-chip.is-active {
 .bridge-list-action--danger:hover,
 #bridge-clear-all-lists:hover {
   border-color: rgba(220, 120, 120, 0.5);
-  color: #e8a0a0;
+  color: var(--status-danger-fg, var(--phuglee-danger));
 }
 
 @media (max-width: 720px) {
@@ -2836,7 +2836,7 @@ button.bridge-inventory-filter-chip.is-active {
 }
 
 .bridge-attach-status.is-success {
-  color: #9fd4a8;
+  color: var(--status-success-fg, var(--phuglee-success));
 }
 
 .bridge-history-dialog {
@@ -2847,15 +2847,15 @@ button.bridge-inventory-filter-chip.is-active {
   width: 100%;
   background: transparent;
   color: var(--text);
-  /* Above loading panel / chrome so Type confirm is never buried */
-  z-index: 10000;
+  /* Above loading panel / chrome so Type confirm is never buried — tokens scale */
+  z-index: var(--z-dialog);
 }
 
 .bridge-history-dialog::backdrop {
+  /* Native <dialog> top-layer handles stacking; no ad-hoc 9999 needed */
   background: rgba(13, 13, 13, 0.82);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  z-index: 9999;
 }
 
 @keyframes bridge-dialog-rise {
@@ -3408,11 +3408,11 @@ button.bridge-inventory-filter-chip.is-active {
 }
 
 .bridge-train-status.is-error {
-  color: #e8a0a0;
+  color: var(--status-danger-fg, var(--phuglee-danger));
 }
 
 .bridge-train-status.is-success {
-  color: #9fd4a8;
+  color: var(--status-success-fg, var(--phuglee-success));
 }
 
 .bridge-train-section {
@@ -3559,13 +3559,13 @@ button.bridge-inventory-filter-chip.is-active {
 }
 
 .bridge-train-deny {
-  color: #e8a0a0;
+  color: var(--status-danger-fg, var(--phuglee-danger));
   border-color: rgba(220, 120, 120, 0.4);
   background: rgba(220, 120, 120, 0.08);
 }
 
 .bridge-train-deny:hover {
-  color: #f0b8b8;
+  color: var(--status-danger-fg, var(--phuglee-danger));
   border-color: rgba(220, 120, 120, 0.55);
   background: rgba(220, 120, 120, 0.14);
 }
@@ -3605,8 +3605,8 @@ button.bridge-inventory-filter-chip.is-active {
 .bridge-city-search-block {
   position: relative;
   margin: 0 0 0.85rem;
-  /* Beat .phuglee-panel > * { z-index: 1 } so results sit above state/city row */
-  z-index: 40 !important;
+  /* Beat .phuglee-panel > * { z-index: var(--z-main) } so results sit above state/city row */
+  z-index: var(--z-typeahead) !important;
 }
 
 .bridge-city-search-label {
@@ -3630,22 +3630,23 @@ button.bridge-inventory-filter-chip.is-active {
   box-sizing: border-box;
   margin: 0;
   padding: 0.7rem 0.9rem;
-  border: 1px solid rgba(232, 200, 140, 0.35);
+  border: 1px solid var(--glass-border-strong, var(--border-hot));
   border-radius: 10px;
-  background: #14110e;
-  color: #f5efe4;
+  /* Opaque solid — readable over glass desk (TOKENS-01) */
+  background: var(--glass-bg-solid, var(--phuglee-black-mid));
+  color: var(--phuglee-cream);
   font-size: 0.95rem;
   line-height: 1.35;
 }
 
 .bridge-city-search::placeholder {
-  color: rgba(245, 239, 228, 0.45);
+  color: rgba(245, 242, 228, 0.45);
 }
 
 .bridge-city-search:focus {
   outline: none;
-  border-color: rgba(232, 160, 96, 0.75);
-  box-shadow: 0 0 0 2px rgba(232, 160, 96, 0.22);
+  border-color: var(--glass-border-hover, var(--border-hot));
+  box-shadow: 0 0 0 2px rgba(229, 132, 53, 0.22);
 }
 
 .bridge-city-search-results {
@@ -3653,17 +3654,17 @@ button.bridge-inventory-filter-chip.is-active {
   left: 0;
   right: 0;
   top: calc(100% + 4px);
-  z-index: 50;
+  z-index: var(--z-typeahead-menu);
   margin: 0;
   padding: 0.4rem 0;
   list-style: none;
   max-height: 16rem;
   overflow-y: auto;
-  border: 1px solid rgba(232, 180, 110, 0.45);
+  border: 1px solid var(--glass-border-strong, var(--border-hot));
   border-radius: 10px;
   /* Solid opaque menu — glass behind made options unreadable */
-  background: #1c1712;
-  color: #f5efe4;
+  background: var(--bg-elevated, var(--phuglee-black-mid));
+  color: var(--phuglee-cream);
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.55),
     0 16px 40px rgba(0, 0, 0, 0.65);
@@ -3676,7 +3677,7 @@ button.bridge-inventory-filter-chip.is-active {
   gap: 0.75rem;
   padding: 0.65rem 1rem;
   cursor: pointer;
-  color: #f5efe4;
+  color: var(--phuglee-cream);
   font-size: 0.95rem;
   user-select: none;
   -webkit-user-select: none;
@@ -3684,18 +3685,18 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-city-search-option:hover,
 .bridge-city-search-option.is-active {
-  background: #2a2118;
-  color: #fff8ee;
+  background: var(--row-hover-bg, var(--glass-bg-elevated));
+  color: var(--phuglee-cream);
 }
 
 .bridge-city-search-option:hover .bridge-city-search-state,
 .bridge-city-search-option.is-active .bridge-city-search-state {
-  color: #e8b070;
+  color: var(--phuglee-gold);
 }
 
 .bridge-city-search-name {
   font-weight: 700;
-  color: #faf6ef;
+  color: var(--phuglee-cream);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3707,13 +3708,13 @@ button.bridge-inventory-filter-chip.is-active {
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: #d4a574;
+  color: var(--phuglee-terracotta, var(--phuglee-orange));
 }
 
 .bridge-city-search-empty {
   padding: 0.75rem 1rem;
   font-size: 0.88rem;
-  color: rgba(245, 239, 228, 0.7);
+  color: var(--text-muted, rgba(245, 242, 228, 0.7));
 }
 
 /* ── Step 3: paste OR drop (one import panel) ── */
@@ -3829,11 +3830,11 @@ button.bridge-inventory-filter-chip.is-active {
 }
 
 .bridge-paste-status.is-success {
-  color: #8fd4a0;
+  color: var(--status-success-fg, var(--phuglee-success));
 }
 
 .bridge-paste-status.is-error {
-  color: #f0a0a0;
+  color: var(--status-danger-fg, var(--phuglee-danger));
 }
 
 .bridge-paste-status.is-busy {
