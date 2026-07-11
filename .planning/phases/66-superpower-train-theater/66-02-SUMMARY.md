@@ -75,7 +75,7 @@ Each task was committed atomically:
 1. **Task 1: Live mission HUD on decision path** - `4aa314e` (feat)
 2. **Task 2: Theater CSS + is-theater class hierarchy** - `0615aa0` (feat)
 
-**Plan metadata:** (docs commit after this SUMMARY)
+**Plan metadata:** `50b00c8` (docs: complete plan)
 
 _Note: TDD Task 1 — static contracts for decision/undo mission path; GREEN via refresh light-path mission re-sync._
 
