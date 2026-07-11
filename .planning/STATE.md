@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 2 of 2
-status: verifying
+current_plan: Not started
+status: completed
 stopped_at: Completed 68-02-PLAN.md
-last_updated: "2026-07-11T01:12:00.000Z"
+last_updated: "2026-07-11T00:55:33.894Z"
 last_activity: 2026-07-11 — 68-02 ship gate green (679/0 + verify-live + /bridge)
 progress:
   total_phases: 8
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 68 — Regression QA Lock  
-**Current Plan:** 2 of 2 (complete)  
+**Current Plan:** Not started
 **Total Plans in Phase:** 2  
-**Status:** Phase complete — ready for verification  
+**Status:** Milestone complete
 **Last activity:** 2026-07-11 — 68-02 ship gate green (679/0 + verify-live + /bridge)
 
 Progress: [██████████] 100% (20/20 plans executed)
