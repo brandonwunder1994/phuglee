@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: 3 of 3
-status: verifying
+current_plan: Not started
+status: planning
 stopped_at: Completed 66-03-PLAN.md
-last_updated: "2026-07-11T00:30:58.349Z"
-last_activity: 2026-07-11
+last_updated: "2026-07-11T00:33:01.254Z"
+last_activity: 2026-07-10 — 66-03 Rules armory + admin gate (THTR-02/03)
 progress:
   total_phases: 8
   completed_phases: 6
@@ -28,9 +28,9 @@ See: `.planning/PROJECT.md`
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
 **Phase:** 66 — Superpower Train Theater  
-**Current Plan:** 3 of 3 (complete)  
+**Current Plan:** Not started
 **Total Plans in Phase:** 3  
-**Status:** Phase complete — ready for verification  
+**Status:** Ready to plan
 **Last activity:** 2026-07-10 — 66-03 Rules armory + admin gate (THTR-02/03)
 
 Progress: [████████░░] 75% (15/20 plans executed)
