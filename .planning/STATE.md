@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: Not started
-status: planning
-stopped_at: Completed 64-02-PLAN.md
-last_updated: "2026-07-11T00:13:14.572Z"
-last_activity: 2026-07-11 — 64-02 feed mount + processUpload staged play shipped
+current_plan: 2
+status: executing
+stopped_at: Completed 65-01-PLAN.md
+last_updated: "2026-07-11T00:17:30.000Z"
+last_activity: 2026-07-11 — 65-01 Wave 0 KILL contracts suite shipped
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 20
-  completed_plans: 9
-  percent: 45
+  completed_plans: 10
+  percent: 50
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 64 complete; next Phase 65 Kill-Rate Scrub Report
+**Current focus:** v2.1 Filter Scrub Theater — Phase 65 Kill-Rate Scrub Report (plan 01 complete)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
-**Phase:** 64 — Live Scrub Feed (complete)  
-**Current Plan:** Not started
-**Total Plans in Phase:** 2  
-**Status:** Ready to plan
-**Last activity:** 2026-07-11 — 64-02 feed mount + processUpload staged play shipped
+**Phase:** 65 — Kill-Rate Scrub Report  
+**Current Plan:** 2 of 3  
+**Total Plans in Phase:** 3  
+**Status:** In progress  
+**Last activity:** 2026-07-11 — 65-01 Wave 0 KILL contracts suite shipped
 
-Progress: [█████░░░░░] 45% (9/20 plans executed)
+Progress: [█████░░░░░] 50% (10/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -43,7 +43,7 @@ Progress: [█████░░░░░] 45% (9/20 plans executed)
 | 62 | City Dossier | 2 (2 done) | PASS |
 | 63 | Idle Proof & Process Climax | 2 (2 done) | PASS |
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
-| 65 | Kill-Rate Scrub Report | 3 | PASS |
+| 65 | Kill-Rate Scrub Report | 3 (1 done) | PASS |
 | 66 | Superpower Train Theater | 3 | PASS |
 | 67 | Multi-City Shift & Staging | 3 | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
@@ -84,6 +84,9 @@ Progress: [█████░░░░░] 45% (9/20 plans executed)
 - [64] already-imported via key already_imported OR /already imported/i; remainder from stats not pool length
 - [64] Feed only in #bridge-loading-panel; slogans during HTTP wait; staged play before renderResults
 - [64] stopLoadingAnimation + clearScrubFeedUi clear feed timers on confirm/catch/finally
+- [65] Wave 0 only — no production edits; RED hierarchy/proof prove Plan 02 gate is real
+- [65] Stage language already green from existing Stage the list heading — keep asserting
+- [65] discardReasons already referenced in renderKpis — keep as green lock so Plan 02 cannot drop it
 
 ## Performance Metrics
 
@@ -98,6 +101,7 @@ Progress: [█████░░░░░] 45% (9/20 plans executed)
 | 63 | 02 | 8min | 2 | 3 |
 | 64 | 01 | 2min | 2 | 2 |
 | 64 | 02 | 2min | 3 | 4 |
+| 65 | 01 | 4min | 1 | 1 |
 
 ## Next command
 
@@ -105,9 +109,9 @@ Progress: [█████░░░░░] 45% (9/20 plans executed)
 /gsd:execute-phase 65
 ```
 
-(Phase 64 complete — Kill-Rate Scrub Report next)
+(Continue Phase 65 — next plan 65-02 kill-rate HUD)
 
 ## Session
 
-**Last session:** 2026-07-11T00:10:42.995Z
-**Stopped at:** Completed 64-02-PLAN.md
+**Last session:** 2026-07-11T00:17:30.000Z
+**Stopped at:** Completed 65-01-PLAN.md

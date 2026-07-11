@@ -109,8 +109,8 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   1. After process, results open with a **kill-rate scrub report**: display-scale RAW → KILLED → KEPT hierarchy, kill-reason breakdown, optional sample kept dossiers — not only equal KPI tiles
   2. Process meta already computed (duration, format reuse, discard story) surfaces as **proof chips/HUD**, not a single buried meta sentence
   3. Primary post-scrub CTA remains **Save list / Stage**; Preview CSV stays secondary; Analyze boundary language preserved
-**Plans**: 3 plans · plan-check **PASS**
-- [ ] 65-01-PLAN.md — Wave 0 TDD: kill-rate contracts (KILL-01–03)
+**Plans**: 1/3 plans complete · plan-check **PASS** · status: In Progress
+- [x] 65-01-PLAN.md — Wave 0 TDD: kill-rate contracts (KILL-01–03)
 - [ ] 65-02-PLAN.md — Kill-rate HUD: reforge `renderKpis` RAW→KILLED→KEPT + proof chips
 - [ ] 65-03-PLAN.md — Elevate Save/Stage; Preview secondary; suite + verify-live
 
@@ -164,7 +164,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | 62. City Dossier | 2/2 | Complete | PASS | 2026-07-10 |
 | 63. Idle Proof & Process Climax | 2/2 | Complete | PASS | 2026-07-10 |
 | 64. Live Scrub Feed | 2/2 | Complete | PASS | 2026-07-11 |
-| 65. Kill-Rate Scrub Report | 0/3 | Ready to execute | PASS | — |
+| 65. Kill-Rate Scrub Report | 1/3 | In Progress | PASS | — |
 | 66. Superpower Train Theater | 0/3 | Ready to execute | PASS | — |
 | 67. Multi-City Shift & Staging | 0/3 | Ready to execute | PASS | — |
 | 68. Regression QA Lock | 0/2 | Ready to execute | PASS | — |
