@@ -60,7 +60,7 @@
     0 4px 18px rgba(0, 0, 0, 0.65);
 }
 
-/* ── Buttons — raised glass / gem CTAs ── */
+/* ── Buttons — raised glass / gem CTAs (BUTTONS-01..03) ── */
 .phuglee-btn {
   display: inline-flex;
   align-items: center;
@@ -84,6 +84,20 @@
     filter var(--card-duration) ease;
 }
 
+/* Dense desk size — tighter padding for ops chrome */
+.phuglee-btn-sm {
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  border-radius: 10px;
+  padding: 0.5rem 0.95rem;
+}
+
+.phuglee-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
 .phuglee-btn:disabled,
 .phuglee-btn[disabled] {
   opacity: 0.45;
@@ -91,8 +105,10 @@
   transform: none !important;
   filter: none !important;
   box-shadow: none;
+  pointer-events: none;
 }
 
+/* Primary gem — gold→orange→terracotta (auth/home DNA) */
 .phuglee-btn-primary {
   position: relative;
   overflow: hidden;
@@ -101,13 +117,17 @@
   font-weight: 400;
   background: linear-gradient(
     145deg,
-    #f0c45a 0%,
-    var(--phuglee-gold) 22%,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-gold) 18%,
     var(--phuglee-orange) 55%,
     var(--phuglee-terracotta) 100%
   );
   box-shadow: var(--shadow-cta);
   border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.phuglee-btn-primary.phuglee-btn-sm {
+  padding: 0.55rem 1.1rem;
 }
 
 .phuglee-btn-primary::before {
@@ -123,6 +143,7 @@
   opacity: 0.85;
 }
 
+/* BUTTONS-03: hover-only sheen; capped lift for desk */
 .phuglee-btn-primary::after {
   content: '';
   position: absolute;
@@ -130,28 +151,38 @@
   background: linear-gradient(
     105deg,
     transparent 38%,
-    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0.24) 50%,
     transparent 62%
   );
   transform: translateX(-120%);
   transition: transform 0.55s var(--card-ease);
+  pointer-events: none;
 }
 
 .phuglee-btn-primary:hover:not(:disabled) {
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-2px) scale(1.01);
   box-shadow: var(--shadow-cta-hover, var(--shadow-cta)), var(--shadow-glow-orange);
-  filter: brightness(1.05);
+  filter: brightness(1.04);
 }
 
 .phuglee-btn-primary:hover:not(:disabled)::after {
   transform: translateX(120%);
 }
 
-.phuglee-btn-primary:active:not(:disabled) {
-  transform: translateY(-1px) scale(0.99);
-  filter: brightness(0.98);
+.phuglee-btn-primary:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--shadow-cta),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
 }
 
+.phuglee-btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+  filter: brightness(0.98);
+  box-shadow: var(--shadow-cta);
+}
+
+/* Secondary — glass fill + gold-tint border + top hairline */
 .phuglee-btn-secondary {
   position: relative;
   overflow: hidden;
@@ -165,6 +196,10 @@
   box-shadow: var(--shadow-btn-glass, var(--glass-shadow));
   backdrop-filter: blur(18px) saturate(155%);
   -webkit-backdrop-filter: blur(18px) saturate(155%);
+}
+
+.phuglee-btn-secondary.phuglee-btn-sm {
+  padding: 0.5rem 1rem;
 }
 
 .phuglee-btn-secondary::before {
@@ -185,7 +220,7 @@
 }
 
 .phuglee-btn-secondary:hover:not(:disabled) {
-  border-color: rgba(229, 132, 53, 0.58);
+  border-color: var(--glass-border-hover);
   color: var(--phuglee-gold);
   background:
     linear-gradient(155deg, rgba(255, 255, 255, 0.12) 0%, transparent 42%),
@@ -199,45 +234,88 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
-.phuglee-btn-secondary:active:not(:disabled) {
-  transform: translateY(0);
+.phuglee-btn-secondary:focus-visible {
+  outline: none;
+  border-color: var(--glass-border-hover);
+  box-shadow:
+    var(--shadow-btn-glass, var(--glass-shadow)),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
 }
 
+.phuglee-btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+/* Ghost — text-only cream → orange */
 .phuglee-btn-ghost {
   padding: 0.5rem 0.75rem;
   color: var(--phuglee-cream);
   background: transparent;
   box-shadow: none;
+  border: 1px solid transparent;
+}
+
+.phuglee-btn-ghost.phuglee-btn-sm {
+  padding: 0.35rem 0.55rem;
 }
 
 .phuglee-btn-ghost:hover:not(:disabled) {
   color: var(--phuglee-orange);
 }
 
+.phuglee-btn-ghost:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-btn-ghost:active:not(:disabled) {
+  color: var(--phuglee-terracotta);
+  transform: translateY(1px);
+}
+
+/* Danger — glass danger treatment via --phuglee-danger */
 .phuglee-btn-danger {
   position: relative;
   overflow: hidden;
   padding: 0.85rem 1.5rem;
-  color: #ffc9c9;
+  color: var(--phuglee-danger);
   background:
     linear-gradient(155deg, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
-    rgba(248, 113, 113, 0.12);
-  border: 1px solid rgba(248, 113, 113, 0.35);
+    var(--status-danger-bg, rgba(248, 113, 113, 0.12));
+  border: 1px solid color-mix(in srgb, var(--phuglee-danger) 35%, transparent);
   box-shadow:
     0 4px 14px rgba(0, 0, 0, 0.28),
-    0 0 20px rgba(248, 113, 113, 0.1),
+    0 0 20px color-mix(in srgb, var(--phuglee-danger) 10%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
+.phuglee-btn-danger.phuglee-btn-sm {
+  padding: 0.5rem 1rem;
+}
+
 .phuglee-btn-danger:hover:not(:disabled) {
   transform: translateY(-2px);
-  border-color: rgba(248, 113, 113, 0.55);
+  border-color: color-mix(in srgb, var(--phuglee-danger) 55%, transparent);
+  color: var(--phuglee-danger);
   box-shadow:
     0 8px 22px rgba(0, 0, 0, 0.35),
-    0 0 28px rgba(248, 113, 113, 0.18),
+    0 0 28px color-mix(in srgb, var(--phuglee-danger) 18%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.phuglee-btn-danger:focus-visible {
+  outline: none;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.28),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-btn-danger:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.96);
 }
 
 /* ── Panels — premium raised glass ── */
@@ -324,6 +402,7 @@
   .phuglee-btn,
   .phuglee-btn-primary,
   .phuglee-btn-secondary,
+  .phuglee-btn-ghost,
   .phuglee-btn-danger,
   .phuglee-panel,
   .phuglee-panel.is-interactive,
@@ -334,11 +413,21 @@
   .phuglee-btn:hover:not(:disabled),
   .phuglee-btn-primary:hover:not(:disabled),
   .phuglee-btn-secondary:hover:not(:disabled),
+  .phuglee-btn-ghost:hover:not(:disabled),
   .phuglee-btn-danger:hover:not(:disabled),
+  .phuglee-btn:active:not(:disabled),
+  .phuglee-btn-primary:active:not(:disabled),
+  .phuglee-btn-secondary:active:not(:disabled),
+  .phuglee-btn-ghost:active:not(:disabled),
+  .phuglee-btn-danger:active:not(:disabled),
   .phuglee-panel:hover,
   .phuglee-panel.is-interactive:hover,
   .phuglee-panel--interactive:hover {
     transform: none !important;
+  }
+
+  .phuglee-btn-primary::after {
+    display: none;
   }
 }
 
@@ -675,6 +764,12 @@ body:not(.home-page) .phuglee-logo-svg--hero {
 
   .phuglee-btn-primary:hover,
   .phuglee-btn-secondary:hover,
+  .phuglee-btn-ghost:hover,
+  .phuglee-btn-danger:hover,
+  .phuglee-btn-primary:active,
+  .phuglee-btn-secondary:active,
+  .phuglee-btn-ghost:active,
+  .phuglee-btn-danger:active,
   .phuglee-panel:hover,
   .phuglee-panel-featured:hover,
   .phuglee-panel-vault:hover,
