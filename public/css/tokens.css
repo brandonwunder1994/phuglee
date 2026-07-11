@@ -153,50 +153,50 @@
   --glass-bg-elevated: rgba(22, 18, 14, 0.58);
   --glass-bg-chrome: rgba(12, 11, 10, 0.78);
   --glass-bg-solid: rgba(16, 14, 12, 0.92);
-  --glass-border: rgba(238, 183, 70, 0.18);
-  --glass-border-chrome: rgba(174, 163, 143, 0.16);
-  --glass-border-strong: rgba(229, 132, 53, 0.38);
-  --glass-border-hover: rgba(229, 132, 53, 0.58);
+  /* Borders: hairline taupe by default; orange only for strong/hover emphasis */
+  --glass-border: rgba(174, 163, 143, 0.16);
+  --glass-border-chrome: rgba(174, 163, 143, 0.14);
+  --glass-border-strong: rgba(229, 132, 53, 0.28);
+  --glass-border-hover: rgba(229, 132, 53, 0.42);
   --glass-edge-shine: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(238, 183, 70, 0.22) 18%,
-    rgba(229, 132, 53, 0.65) 48%,
-    rgba(238, 183, 70, 0.4) 68%,
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(238, 183, 70, 0.28) 50%,
+    rgba(255, 255, 255, 0.1) 70%,
     transparent 100%
   );
   --glass-fill:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, transparent 40%),
-    linear-gradient(165deg, rgba(229, 132, 53, 0.09) 0%, transparent 44%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.05) 0%, transparent 42%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.04) 0%, transparent 48%),
     var(--glass-bg);
   --glass-fill-elevated:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.1) 0%, transparent 38%),
-    linear-gradient(165deg, rgba(229, 132, 53, 0.12) 0%, transparent 46%),
+    linear-gradient(155deg, rgba(255, 255, 255, 0.07) 0%, transparent 40%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 50%),
     var(--glass-bg-elevated);
-  /* Default card: sits off the surface */
+  /* Default card: depth without orange halo */
   --glass-shadow:
     0 1px 2px rgba(0, 0, 0, 0.28),
-    0 6px 16px rgba(0, 0, 0, 0.34),
-    0 24px 56px rgba(0, 0, 0, 0.52),
+    0 6px 16px rgba(0, 0, 0, 0.32),
+    0 20px 48px rgba(0, 0, 0, 0.45),
     0 0 0 1px rgba(255, 255, 255, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28);
-  /* Hover / elevated: higher lift + soft ember glow */
-  --glass-shadow-float:
-    0 2px 4px rgba(0, 0, 0, 0.3),
-    0 12px 28px rgba(0, 0, 0, 0.4),
-    0 36px 80px rgba(0, 0, 0, 0.58),
-    0 0 48px rgba(229, 132, 53, 0.16),
-    0 0 0 1px rgba(255, 255, 255, 0.04),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
     inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  /* Hover / elevated: lift without competing glow */
+  --glass-shadow-float:
+    0 2px 4px rgba(0, 0, 0, 0.28),
+    0 10px 24px rgba(0, 0, 0, 0.38),
+    0 28px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   --glass-shadow-featured:
-    0 2px 6px rgba(0, 0, 0, 0.32),
-    0 14px 32px rgba(0, 0, 0, 0.42),
-    0 36px 84px rgba(0, 0, 0, 0.58),
-    0 0 56px rgba(229, 132, 53, 0.26),
-    0 0 0 1px rgba(229, 132, 53, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    0 12px 28px rgba(0, 0, 0, 0.4),
+    0 28px 64px rgba(0, 0, 0, 0.5),
+    0 0 32px rgba(229, 132, 53, 0.12),
+    0 0 0 1px rgba(229, 132, 53, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   --zone-solid-bg: rgba(8, 6, 5, 0.94);
   --zone-solid-border: rgba(255, 255, 255, 0.06);
 

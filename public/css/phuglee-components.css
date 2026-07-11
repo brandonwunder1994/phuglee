@@ -337,7 +337,7 @@
     background var(--card-duration) ease;
 }
 
-/* Fine grain + soft ambient wash */
+/* Soft ambient wash — restrained (no orange fog on every panel) */
 .phuglee-panel::before {
   content: '';
   position: absolute;
@@ -345,30 +345,23 @@
   pointer-events: none;
   border-radius: inherit;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(229, 132, 53, 0.14), transparent 55%),
-    radial-gradient(ellipse 70% 40% at 100% 100%, rgba(0, 0, 0, 0.2), transparent 50%),
-    repeating-linear-gradient(
-      -3deg,
-      transparent,
-      transparent 3px,
-      rgba(255, 255, 255, 0.012) 3px,
-      rgba(255, 255, 255, 0.012) 4px
-    );
-  opacity: 0.95;
+    radial-gradient(ellipse 90% 50% at 50% -12%, rgba(255, 255, 255, 0.04), transparent 55%),
+    radial-gradient(ellipse 70% 40% at 100% 100%, rgba(0, 0, 0, 0.18), transparent 50%);
+  opacity: 0.9;
   z-index: 0;
 }
 
-/* Hairline gold edge + inner top highlight */
+/* Quiet top hairline — not a neon beam */
 .phuglee-panel::after {
   content: '';
   position: absolute;
   top: 0;
-  left: 6%;
-  right: 6%;
+  left: 8%;
+  right: 8%;
   height: 1px;
   background: var(--glass-edge-shine);
-  opacity: 1;
-  box-shadow: 0 0 22px rgba(229, 132, 53, 0.32);
+  opacity: 0.55;
+  box-shadow: none;
   pointer-events: none;
   z-index: 2;
 }
@@ -378,11 +371,11 @@
   z-index: 1;
 }
 
-/* Structural panels: lift slightly on hover for premium depth */
+/* Structural panels: border feedback only — no float (float = cheap card grid) */
 .phuglee-panel:hover {
-  border-color: var(--glass-border-hover);
-  box-shadow: var(--glass-shadow-float);
-  transform: translateY(-2px);
+  border-color: rgba(174, 163, 143, 0.28);
+  box-shadow: var(--glass-shadow);
+  transform: none;
 }
 
 /* Interactive / clickable cards */
@@ -616,14 +609,22 @@
 .phuglee-textarea,
 .phuglee-select {
   width: 100%;
-  padding: 0.75rem 1rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.95rem;
   font-family: var(--font-body);
   font-size: var(--text-body);
   color: var(--phuglee-cream);
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--phuglee-stone-warm);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(174, 163, 143, 0.24);
   border-radius: var(--radius-md);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.phuglee-input:hover,
+.phuglee-textarea:hover,
+.phuglee-select:hover {
+  border-color: rgba(174, 163, 143, 0.38);
 }
 
 .phuglee-input:focus,
@@ -631,12 +632,13 @@
 .phuglee-select:focus {
   outline: none;
   border-color: var(--phuglee-orange);
-  box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.15);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.16);
 }
 
 .phuglee-input::placeholder,
 .phuglee-textarea::placeholder {
-  color: var(--phuglee-stone);
+  color: rgba(174, 163, 143, 0.72);
 }
 
 .phuglee-input:disabled,
