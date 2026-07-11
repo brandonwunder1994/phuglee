@@ -44,7 +44,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 - [ ] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
 - [x] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
 - [x] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
-- [ ] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
+- [x] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
 - [ ] **Phase 65: Kill-Rate Scrub Report** — RAW → KILLED → KEPT hierarchy; proof chips; Save/Stage primary
 - [ ] **Phase 66: Superpower Train Theater** — Admin Train climax when open groups; brain secondary; non-admin gate
 - [ ] **Phase 67: Multi-City Shift & Staging** — Sticky shift queue; inventory HUD; brand-heat success
@@ -97,9 +97,9 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 **Success Criteria** (what must be TRUE):
   1. During process, operator sees a **live scrub activity feed** (addresses and/or types with kept / no-distress / discarded / already-in-Analyze language) derived from real process outcomes (client-staged from response preferred)
   2. Feed respects `prefers-reduced-motion` (static summary / crossfade allowed; motion never required for comprehension)
-**Plans**: 1/2 plans complete · plan-check **PASS** · status: In Progress
+**Plans**: 2/2 plans complete · plan-check **PASS** · status: Complete
 - [x] 64-01-PLAN.md — Pure `bridge-scrub-feed.js` + Wave 0 unit tests (FEED-01/02)
-- [ ] 64-02-PLAN.md — DOM/CSS feed theater + process play + live gate
+- [x] 64-02-PLAN.md — DOM/CSS feed theater + process play + live gate
 
 ### Phase 65: Kill-Rate Scrub Report
 **Goal**: Results open as a cinematic kill-rate mission readout — RAW → KILLED → KEPT — with proof chips and Save/Stage still the operator primary
@@ -163,7 +163,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | 61. Scrub Desk Foundation | 3/3 | Complete (re-verify) | PASS | 2026-07-10 |
 | 62. City Dossier | 2/2 | Complete | PASS | 2026-07-10 |
 | 63. Idle Proof & Process Climax | 2/2 | Complete | PASS | 2026-07-10 |
-| 64. Live Scrub Feed | 1/2 | In Progress | PASS | — |
+| 64. Live Scrub Feed | 2/2 | Complete | PASS | 2026-07-11 |
 | 65. Kill-Rate Scrub Report | 0/3 | Ready to execute | PASS | — |
 | 66. Superpower Train Theater | 0/3 | Ready to execute | PASS | — |
 | 67. Multi-City Shift & Staging | 0/3 | Ready to execute | PASS | — |
