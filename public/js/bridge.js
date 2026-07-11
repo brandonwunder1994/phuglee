@@ -1599,11 +1599,12 @@
   /**
    * Today + previous 7 days (8 chips) as one-click received dates.
    * Hidden #bridge-response-date holds YYYY-MM-DD for process.
-   * Nothing is pre-selected — both paste and file-drop areas start empty.
+   * Nothing is pre-selected. Visible host is #bridge-date-chips only
+   * (alias hosts stay empty / hidden).
    */
   function buildResponseDateChips() {
-    const hosts = getDateChipHosts();
-    if (!hosts.length) return;
+    const primary = document.getElementById('bridge-date-chips');
+    if (!primary) return;
     const today = new Date();
     today.setHours(12, 0, 0, 0);
     const chips = [];
@@ -1627,21 +1628,18 @@
         `</button>`
       );
     }
-    const html = chips.join('');
-    hosts.forEach((host) => {
-      host.innerHTML = html;
-    });
+    primary.innerHTML = chips.join('');
     // Explicit: no default selection
     setResponseDateYmd('');
   }
 
   function syncDateChipSelection(ymd) {
-    getDateChipHosts().forEach((host) => {
-      host.querySelectorAll('.bridge-date-chip').forEach((btn) => {
-        const on = Boolean(ymd) && btn.getAttribute('data-date') === ymd;
-        btn.classList.toggle('is-selected', on);
-        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
+    const host = document.getElementById('bridge-date-chips');
+    if (!host) return;
+    host.querySelectorAll('.bridge-date-chip').forEach((btn) => {
+      const on = Boolean(ymd) && btn.getAttribute('data-date') === ymd;
+      btn.classList.toggle('is-selected', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
   }
 
@@ -1665,13 +1663,11 @@
 
   function focusResponseDateTime() {
     try {
-      // Prefer paste chips (primary path), then file-drop chips
+      // Shared received chips (single import section)
       const selected = document.querySelector(
-        '#bridge-paste-date-chips .bridge-date-chip.is-selected, #bridge-date-chips .bridge-date-chip.is-selected'
+        '#bridge-date-chips .bridge-date-chip.is-selected'
       );
-      const first = document.querySelector(
-        '#bridge-paste-date-chips .bridge-date-chip, #bridge-date-chips .bridge-date-chip'
-      );
+      const first = document.querySelector('#bridge-date-chips .bridge-date-chip');
       (selected || first)?.focus();
       (selected || first)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } catch (_) { /* ignore */ }
@@ -5090,14 +5086,12 @@
   renderShiftQueue();
 
   buildResponseDateChips();
-  // Shared received date: chips on paste panel + file-drop panel stay in sync
-  document.querySelectorAll('.bridge-date-chips').forEach((host) => {
-    host.addEventListener('click', (event) => {
-      const chip = event.target.closest('.bridge-date-chip[data-date]');
-      if (!chip || !host.contains(chip)) return;
-      event.preventDefault();
-      setResponseDateYmd(chip.getAttribute('data-date') || '');
-    });
+  // Shared received date chips (single import section)
+  document.getElementById('bridge-date-chips')?.addEventListener('click', (event) => {
+    const chip = event.target.closest('.bridge-date-chip[data-date]');
+    if (!chip) return;
+    event.preventDefault();
+    setResponseDateYmd(chip.getAttribute('data-date') || '');
   });
 
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));

@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=41">
+  <link rel="stylesheet" href="/css/bridge.css?v=42">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -235,61 +235,71 @@
       </div>
     </section>
 
-    <!-- Primary path: paste tabular text → convert → scrub (above file drop) -->
-    <section class="bridge-panel phuglee-panel bridge-paste-panel" id="bridge-paste-panel" aria-labelledby="bridge-paste-heading" data-phuglee-reveal-child>
-      <h2 id="bridge-paste-heading"><span class="bridge-step-badge" aria-hidden="true">3</span> Paste Text to Excel</h2>
-      <label class="bridge-paste-label" for="bridge-paste-text">
-        <span class="visually-hidden">Paste tabular text</span>
-        <textarea
-          id="bridge-paste-text"
-          class="bridge-paste-textarea"
-          rows="12"
-          spellcheck="false"
-          placeholder="Paste tab- or comma-separated rows here…&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
-        ></textarea>
-      </label>
-      <!-- Received date — same value as file-drop chips; nothing pre-selected -->
-      <div class="bridge-response-row bridge-response-row--meta bridge-paste-date-row">
-        <fieldset class="bridge-datetime-picker bridge-date-chips-wrap">
-          <legend class="bridge-datetime-label">Received</legend>
-          <div class="bridge-date-chips" id="bridge-paste-date-chips" role="group" aria-label="Paste list received date"></div>
-        </fieldset>
-      </div>
-      <div class="bridge-paste-actions">
-        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Convert to Excel</button>
-        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
-        <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
-      </div>
-    </section>
+    <!-- Step 3: paste OR drop — same scrub path -->
+    <section
+      class="bridge-panel phuglee-panel bridge-panel--stage bridge-import-panel"
+      id="bridge-upload-panel"
+      hidden
+      aria-labelledby="bridge-step-upload"
+      data-phuglee-reveal-child
+    >
+      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Add the list</h2>
 
-    <section class="bridge-panel phuglee-panel bridge-panel--stage" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
-      <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">4</span> Or drop the clerk file</h2>
-      <p class="bridge-panel-lead">Up to <strong>5 files</strong> from this city. Photos OK if the clerk printed it.</p>
-      <div class="bridge-format-badges" aria-hidden="true">
-        <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
-      </div>
-      <!-- STAGE — dropzone is the climax surface -->
-      <div class="bridge-dropzone" id="bridge-dropzone" tabindex="0" role="button" aria-describedby="bridge-drop-hint">
-        <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" multiple hidden />
-        <div class="bridge-dropzone-inner" id="bridge-dropzone-inner">
-          <p class="bridge-drop-title">Drop files here</p>
-          <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button> · up to 5</p>
-          <p class="bridge-drop-file" id="bridge-file-name" hidden></p>
+      <div class="bridge-import-paths">
+        <!-- Path A: paste tabular text -->
+        <div class="bridge-import-path bridge-import-path--paste" id="bridge-paste-panel">
+          <h3 class="bridge-import-path-title" id="bridge-paste-heading">Paste text to Excel</h3>
+          <label class="bridge-paste-label" for="bridge-paste-text">
+            <span class="visually-hidden">Paste tabular text</span>
+            <textarea
+              id="bridge-paste-text"
+              class="bridge-paste-textarea"
+              rows="10"
+              spellcheck="false"
+              placeholder="Paste tab- or comma-separated rows here…&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
+            ></textarea>
+          </label>
+          <div class="bridge-paste-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Convert to Excel</button>
+            <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
+            <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
+          </div>
+        </div>
+
+        <div class="bridge-import-or" role="separator" aria-label="or">
+          <span class="bridge-import-or-line" aria-hidden="true"></span>
+          <span class="bridge-import-or-text">OR</span>
+          <span class="bridge-import-or-line" aria-hidden="true"></span>
+        </div>
+
+        <!-- Path B: drop / browse clerk file -->
+        <div class="bridge-import-path bridge-import-path--file">
+          <h3 class="bridge-import-path-title">Drop the clerk file</h3>
+          <div class="bridge-format-badges" aria-hidden="true">
+            <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
+          </div>
+          <div class="bridge-dropzone" id="bridge-dropzone" tabindex="0" role="button" aria-describedby="bridge-drop-hint">
+            <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" multiple hidden />
+            <div class="bridge-dropzone-inner" id="bridge-dropzone-inner">
+              <p class="bridge-drop-title">Drop files here</p>
+              <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button> · up to 5</p>
+              <p class="bridge-drop-file" id="bridge-file-name" hidden></p>
+            </div>
+          </div>
+          <div class="bridge-actions bridge-actions--upload">
+            <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Scrub it</button>
+            <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
+          </div>
         </div>
       </div>
-      <!-- Received: today + last 7 days as one-click chips (no calendar) -->
-      <div class="bridge-response-row bridge-response-row--meta">
+
+      <!-- Shared received date for either path — nothing pre-selected -->
+      <div class="bridge-response-row bridge-response-row--meta bridge-import-received">
         <fieldset class="bridge-datetime-picker bridge-date-chips-wrap" id="bridge-response-datetime">
           <legend class="bridge-datetime-label">Received</legend>
           <input type="hidden" id="bridge-response-date" value="" required aria-describedby="bridge-response-hint" />
           <div class="bridge-date-chips" id="bridge-date-chips" role="group" aria-label="Response received date"></div>
         </fieldset>
-        <p class="bridge-response-hint" id="bridge-response-hint"
-           title="Feeds Form Forge turnaround KPIs">Pick a day · no default · Form Forge KPIs</p>
-      </div>
-      <div class="bridge-actions bridge-actions--upload">
-        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Scrub it</button>
-        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
       </div>
     </section>
     </div><!-- /bridge-scrub-stage -->
@@ -304,7 +314,7 @@
     </section>
 
     <section class="bridge-panel phuglee-panel bridge-panel--mission" id="bridge-results-panel" hidden aria-labelledby="bridge-step-results" data-phuglee-reveal-child>
-      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">5</span> Scrub report</h2>
+      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Scrub report</h2>
       <!-- Phase 72: mission surface — kill report + stage CTA first -->
       <div class="bridge-mission-surface" id="bridge-mission-surface">
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
@@ -554,6 +564,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=60"></script>
+  <script src="/js/bridge.js?v=61"></script>
 </body>
 </html>
