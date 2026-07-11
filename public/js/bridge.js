@@ -5,7 +5,7 @@
     'Detecting format…',
     'Parsing records…',
     'Normalizing addresses…',
-    'Tagging distressed signals…',
+    'Tagging categories & distressed signals…',
     'Deduplicating upload…',
     'Cross-checking Analyze…',
     'Building filtered list…'
@@ -18,6 +18,7 @@
     ['violationIssueType', 'Violation/Issue Type'],
     ['violationDate', 'Violation Date'],
     ['descriptionNotes', 'Description/Notes'],
+    ['category', 'Category'],
     ['distressedSignalTag', 'Distressed Signal Tag'],
     ['matchedIndicators', 'Matched Indicators'],
     ['confidenceLevel', 'Confidence Level'],
@@ -55,6 +56,7 @@
   const resultsTable = document.getElementById('bridge-results-table');
   const paginationEl = document.getElementById('bridge-pagination');
   const filterSearch = document.getElementById('bridge-filter-search');
+  const filterCategory = document.getElementById('bridge-filter-category');
   const filterTag = document.getElementById('bridge-filter-tag');
   const filterConfidence = document.getElementById('bridge-filter-confidence');
   const filterReview = document.getElementById('bridge-filter-review');
@@ -1381,8 +1383,9 @@
       selectedUploadType = '';
       selectedFiles = [];
       lastResult = null;
-      setHidden(typePanel, true);
-      setHidden(uploadPanel, true);
+      // Phase 69: desk stays open once a city is chosen — type + upload co-visible
+      setHidden(typePanel, !selectedCity);
+      setHidden(uploadPanel, !selectedCity);
       setHidden(resultsPanel, true);
       clearFileUi();
       document.querySelectorAll('input[name="bridge-upload-type"]').forEach((input) => {
@@ -1393,7 +1396,8 @@
     }
     if (from === 'type') {
       selectedFiles = [];
-      setHidden(uploadPanel, true);
+      // Phase 69: keep upload stage open; type is meta, not a gate that hides the desk
+      setHidden(uploadPanel, false);
       setHidden(resultsPanel, true);
       lastResult = null;
       clearFileUi();
@@ -1815,10 +1819,12 @@
       selectedCity = cities.find((city) => String(city.id) === String(id)) || null;
       if (!selectedCity) return;
 
-      // Happy path: type panel immediately — history must not block type reveal
+      // Phase 69: one scrub desk — type chips + dropzone open together after city
       setHidden(typePanel, false);
+      setHidden(uploadPanel, false);
       setHidden(cityActions, false);
       setPipelineStep('type');
+      hideVictoryStrip();
 
       // CITY-01: dossier with lists now; history loads async
       dossierHistoryCache = [];
@@ -1844,8 +1850,12 @@
     selectedUploadType = checked ? checked.value : '';
     resetDownstream('type');
     showError('');
-    if (!selectedUploadType) return;
+    // Phase 69: upload stage already open with city; type only advances pipeline
     setHidden(uploadPanel, false);
+    if (!selectedUploadType) {
+      setPipelineStep('type');
+      return;
+    }
     setPipelineStep('upload');
   }
 
@@ -2125,7 +2135,7 @@
       return (
         `<article class="bridge-kept-sample">` +
         `<strong class="bridge-kept-sample-addr">${esc(row.streetAddress || '—')}</strong>` +
-        `<span class="bridge-kept-sample-type">${esc(row.violationIssueType || '')}</span>` +
+        `<span class="bridge-kept-sample-type">${esc(row.violationIssueType || row.category || '')}</span>` +
         tagHtml +
         `</article>`
       );
@@ -2222,30 +2232,100 @@
     }
   }
 
-  /** IDLE-01: derive desk-rest proof metrics from savedLists summaries (no extra fetch). */
+  /** IDLE-01 + Phase 70: derive mission-board metrics from savedLists (no extra fetch). */
   function computeIdleProof(lists) {
     const rows = Array.isArray(lists) ? lists : [];
     const listCount = rows.length;
     const recordTotal = rows.reduce((s, r) => s + (Number(r.recordCount) || 0), 0);
     const lastSaveAt = rows[0]?.createdAt || null; // API sorts createdAt desc
-    return { listCount, recordTotal, lastSaveAt };
+    const cityKeys = new Set();
+    for (const r of rows) {
+      const key = String(r.cityId || r.cityName || r.city || '').trim().toLowerCase();
+      if (key) cityKeys.add(key);
+    }
+    return { listCount, recordTotal, lastSaveAt, cityCount: cityKeys.size };
   }
 
-  /** IDLE-01: render live inventory strip under hero from computeIdleProof(savedLists). */
+  /** IDLE-01 + Phase 70: mission board under hero from computeIdleProof(savedLists). */
   function renderIdleProof() {
     const lineEl = document.getElementById('bridge-idle-proof-line');
+    const facets = document.getElementById('bridge-mission-facets');
+    const listsEl = document.getElementById('bridge-mission-lists');
+    const recordsEl = document.getElementById('bridge-mission-records');
+    const citiesEl = document.getElementById('bridge-mission-cities');
+    const lastEl = document.getElementById('bridge-mission-last');
     if (!lineEl) return;
-    const { listCount, recordTotal, lastSaveAt } = computeIdleProof(savedLists);
+    const { listCount, recordTotal, lastSaveAt, cityCount } = computeIdleProof(savedLists);
     if (listCount === 0) {
-      lineEl.textContent = '0 lists staged · Ready when you scrub the first city';
+      lineEl.textContent = '0 lists staged · Drop a clerk file when ready';
+      if (facets) setHidden(facets, true);
+      if (listsEl) listsEl.textContent = '0';
+      if (recordsEl) recordsEl.textContent = '0';
+      if (citiesEl) citiesEl.textContent = '0';
+      if (lastEl) lastEl.textContent = '—';
       return;
     }
     const listsLabel = listCount === 1 ? 'list' : 'lists';
     const recordsLabel = recordTotal === 1 ? 'record' : 'records';
+    const citiesLabel = cityCount === 1 ? 'city' : 'cities';
     lineEl.textContent =
       `${listCount.toLocaleString()} ${listsLabel} staged · ` +
       `${recordTotal.toLocaleString()} ${recordsLabel} ready · ` +
+      `${cityCount.toLocaleString()} ${citiesLabel} in inventory · ` +
       `Last save ${formatListWhen(lastSaveAt)}`;
+    if (listsEl) listsEl.textContent = listCount.toLocaleString();
+    if (recordsEl) recordsEl.textContent = recordTotal.toLocaleString();
+    if (citiesEl) citiesEl.textContent = cityCount.toLocaleString();
+    if (lastEl) lastEl.textContent = formatListWhen(lastSaveAt);
+    if (facets) setHidden(facets, false);
+  }
+
+  /** Phase 73: hide war-room victory strip. */
+  function hideVictoryStrip() {
+    const strip = document.getElementById('bridge-victory-strip');
+    if (strip) setHidden(strip, true);
+    const dl = document.getElementById('bridge-victory-download');
+    if (dl) {
+      setHidden(dl, true);
+      delete dl.dataset.listId;
+    }
+  }
+
+  /**
+   * Phase 73: show war-room victory after Stage list.
+   * Working set still resets so next city is clean; victory stays until next scrub.
+   */
+  function showVictoryStrip({ label, listId, keptCount, cityName, state }) {
+    const strip = document.getElementById('bridge-victory-strip');
+    const titleEl = document.getElementById('bridge-victory-title');
+    const metaEl = document.getElementById('bridge-victory-meta');
+    const dl = document.getElementById('bridge-victory-download');
+    if (!strip) return;
+    const kept = Math.max(0, Number(keptCount) || 0);
+    const place = [cityName, state].filter(Boolean).join(', ');
+    const { listCount, recordTotal, cityCount } = computeIdleProof(savedLists);
+    if (titleEl) {
+      titleEl.textContent = label ? `Staged · ${label}` : 'List staged';
+    }
+    if (metaEl) {
+      metaEl.textContent =
+        [place, `${kept.toLocaleString()} kept this scrub`].filter(Boolean).join(' · ') +
+        ` · Shift: ${listCount.toLocaleString()} list${listCount === 1 ? '' : 's'}` +
+        ` · ${recordTotal.toLocaleString()} records` +
+        (cityCount ? ` · ${cityCount.toLocaleString()} cities` : '');
+    }
+    if (dl && listId) {
+      dl.dataset.listId = String(listId);
+      dl.dataset.action = 'flash-download';
+      dl.dataset.format = 'csv';
+      setHidden(dl, false);
+    } else if (dl) {
+      setHidden(dl, true);
+    }
+    setHidden(strip, false);
+    try {
+      strip.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (_) { /* ignore */ }
   }
 
   /** Saved-list kind chip: hazard for code violation, water for shut-off. */
@@ -2630,6 +2710,7 @@
     if (kpiGrid) kpiGrid.innerHTML = '';
     if (resultsBody) resultsBody.innerHTML = '';
     if (filterSearch) filterSearch.value = '';
+    if (filterCategory) filterCategory.value = '';
     if (filterTag) filterTag.value = '';
     if (filterConfidence) filterConfidence.value = '';
     if (filterReview) filterReview.checked = false;
@@ -2915,18 +2996,21 @@
   function getFilteredRows() {
     if (!lastResult?.rows) return [];
     const query = String(filterSearch?.value || '').trim().toLowerCase();
+    const category = filterCategory?.value || '';
     const tag = filterTag?.value || '';
     const confidence = filterConfidence?.value || '';
     const reviewOnly = Boolean(filterReview?.checked);
 
     return lastResult.rows.filter((row) => {
       if (reviewOnly && !row.needsReview) return false;
+      if (category && row.category !== category) return false;
       if (tag && row.distressedSignalTag !== tag) return false;
       if (confidence && row.confidenceLevel !== confidence) return false;
       if (!query) return true;
       const haystack = [
         row.streetAddress,
         row.violationIssueType,
+        row.category,
         row.distressedSignalTag,
         row.descriptionNotes
       ].join(' ').toLowerCase();
@@ -2955,6 +3039,15 @@
     if (tags.includes(current)) filterTag.value = current;
   }
 
+  function populateCategoryFilter(rows) {
+    if (!filterCategory) return;
+    const categories = [...new Set(rows.map((row) => row.category).filter(Boolean))].sort();
+    const current = filterCategory.value;
+    filterCategory.innerHTML = '<option value="">All categories</option>' +
+      categories.map((cat) => `<option value="${esc(cat)}">${esc(cat)}</option>`).join('');
+    if (categories.includes(current)) filterCategory.value = current;
+  }
+
   function updateSortHeaders() {
     resultsTable?.querySelectorAll('th[data-sort]').forEach((th) => {
       const active = th.dataset.sort === tableState.sortKey;
@@ -2975,11 +3068,12 @@
       `<tr class="${row.needsReview ? 'bridge-row-review' : ''}">` +
       `<td>${esc(row.streetAddress)}</td>` +
       `<td>${esc(row.violationIssueType)}</td>` +
+      `<td>${esc(row.category || '')}</td>` +
       `<td><span class="bridge-tag bridge-tag--${tagClass(row.distressedSignalTag)}">${esc(row.distressedSignalTag)}</span></td>` +
       `<td>${esc(row.confidenceLevel)}${row.needsReview ? ' <span class="bridge-review-flag">Review</span>' : ''}</td>` +
       `<td>${esc(row.violationDate)}</td>` +
       `</tr>`
-    )).join('') || '<tr><td colspan="5">No rows match the current filters.</td></tr>';
+    )).join('') || '<tr><td colspan="6">No rows match the current filters.</td></tr>';
 
     paginationEl.innerHTML =
       `<span>${filtered.length.toLocaleString()} shown · page ${tableState.page} of ${totalPages}</span>` +
@@ -3120,6 +3214,7 @@
 
     if (showTable) {
       populateTagFilter(rows);
+      populateCategoryFilter(rows);
       renderResultsTable();
       setAttachStatus('', '');
       setSaveStatus('', '');
@@ -3833,6 +3928,10 @@
   }
 
   filterSearch?.addEventListener('input', () => {
+    tableState.page = 1;
+    renderResultsTable();
+  });
+  filterCategory?.addEventListener('change', () => {
     tableState.page = 1;
     renderResultsTable();
   });

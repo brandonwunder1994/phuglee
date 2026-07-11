@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=27">
+  <link rel="stylesheet" href="/css/bridge.css?v=28">
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
@@ -57,13 +57,47 @@
       <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
     </header>
 
-    <div id="bridge-idle-proof" class="bridge-idle-proof" role="status" aria-live="polite" data-phuglee-reveal-child>
+    <!-- Phase 70: idle mission board (from savedLists — no new API) -->
+    <div id="bridge-idle-proof" class="bridge-idle-proof bridge-mission-board" role="status" aria-live="polite" data-phuglee-reveal-child>
+      <p class="bridge-mission-board-kicker">Shift board</p>
       <p class="bridge-idle-proof-line" id="bridge-idle-proof-line">0 lists staged · Ready when you scrub the first city</p>
+      <div class="bridge-mission-facets" id="bridge-mission-facets" hidden>
+        <div class="bridge-mission-facet">
+          <span class="bridge-mission-facet-value" id="bridge-mission-lists">0</span>
+          <span class="bridge-mission-facet-label">Staged</span>
+        </div>
+        <div class="bridge-mission-facet">
+          <span class="bridge-mission-facet-value" id="bridge-mission-records">0</span>
+          <span class="bridge-mission-facet-label">Records</span>
+        </div>
+        <div class="bridge-mission-facet">
+          <span class="bridge-mission-facet-value" id="bridge-mission-cities">0</span>
+          <span class="bridge-mission-facet-label">Cities</span>
+        </div>
+        <div class="bridge-mission-facet bridge-mission-facet--wide">
+          <span class="bridge-mission-facet-value bridge-mission-facet-value--sm" id="bridge-mission-last">—</span>
+          <span class="bridge-mission-facet-label">Last save</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 73: war-room victory (shown after Stage list) -->
+    <div id="bridge-victory-strip" class="bridge-victory-strip" hidden role="status" aria-live="polite">
+      <div class="bridge-victory-main">
+        <p class="bridge-victory-kicker">Shift advanced</p>
+        <p class="bridge-victory-title" id="bridge-victory-title">List staged</p>
+        <p class="bridge-victory-meta" id="bridge-victory-meta"></p>
+        <p class="bridge-victory-boundary">Staged for enrichment · Analyze stays manual</p>
+      </div>
+      <div class="bridge-victory-actions">
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-victory-download" hidden data-action="flash-download" data-format="csv">Download for enrichment</button>
+        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-victory-next">Scrub next city</button>
+      </div>
     </div>
 
     <div class="bridge-desk">
       <div class="bridge-desk-primary">
-    <nav class="bridge-pipeline" aria-label="Intake steps" data-phuglee-reveal-child>
+    <nav class="bridge-pipeline bridge-pipeline--slim" aria-label="Intake steps" data-phuglee-reveal-child>
       <ol class="bridge-pipeline-list" id="bridge-pipeline">
         <li class="bridge-pipeline-step is-active" data-step="location"><span>1</span> City</li>
         <li class="bridge-pipeline-step" data-step="type"><span>2</span> Type</li>
@@ -72,9 +106,11 @@
       </ol>
     </nav>
 
-    <section class="bridge-panel phuglee-panel" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
-      <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Pick the city</h2>
-      <p class="bridge-panel-lead">Name the city you're scrubbing. Only Form Forge cities show here.</p>
+    <!-- Phase 69: one scrub desk stage (city + type + dropzone as one job surface) -->
+    <div class="bridge-scrub-stage" id="bridge-scrub-stage">
+    <section class="bridge-panel phuglee-panel bridge-panel--desk" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
+      <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Scrub desk</h2>
+      <p class="bridge-panel-lead">Pick the city. Tag the list type. Drop the clerk file. One desk — not four chapters.</p>
       <div class="bridge-row">
         <label for="bridge-state">State
           <select id="bridge-state" disabled>
@@ -186,32 +222,25 @@
       </div>
     </section>
 
-    <section class="bridge-panel phuglee-panel" id="bridge-type-panel" hidden aria-labelledby="bridge-step-type" data-phuglee-reveal-child>
-      <h2 id="bridge-step-type"><span class="bridge-step-badge" aria-hidden="true">2</span> What did the clerk send?</h2>
-      <p class="bridge-panel-lead">Tag the list type so history and filters stay clean.</p>
-      <div class="bridge-type-grid" role="radiogroup" aria-label="Upload type">
-        <label class="bridge-type-card">
+    <section class="bridge-panel phuglee-panel bridge-panel--meta" id="bridge-type-panel" hidden aria-labelledby="bridge-step-type" data-phuglee-reveal-child>
+      <h2 id="bridge-step-type" class="bridge-meta-heading"><span class="bridge-step-badge" aria-hidden="true">2</span> List type</h2>
+      <p class="bridge-panel-lead bridge-panel-lead--tight">Label for history. Not a product pitch.</p>
+      <!-- Phase 71: ops chips (same radio name/values) -->
+      <div class="bridge-type-chips" role="radiogroup" aria-label="Upload type">
+        <label class="bridge-type-chip">
           <input type="radio" name="bridge-upload-type" value="code_violation" />
-          <span class="bridge-type-body">
-            <span class="bridge-type-icon" aria-hidden="true">CV</span>
-            <span class="bridge-type-title">Code Violation</span>
-            <span class="bridge-type-desc">Municipal code enforcement lists — open and closed violations retained when address is usable.</span>
-          </span>
+          <span class="bridge-type-chip-face">Code violation</span>
         </label>
-        <label class="bridge-type-card">
+        <label class="bridge-type-chip">
           <input type="radio" name="bridge-upload-type" value="water_shut_off" />
-          <span class="bridge-type-body">
-            <span class="bridge-type-icon bridge-type-icon--water" aria-hidden="true">WS</span>
-            <span class="bridge-type-title">Water Shut Off</span>
-            <span class="bridge-type-desc">Utility disconnect lists — every usable address tagged as a high-value distress signal.</span>
-          </span>
+          <span class="bridge-type-chip-face">Water shut-off</span>
         </label>
       </div>
     </section>
 
-    <section class="bridge-panel phuglee-panel" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
+    <section class="bridge-panel phuglee-panel bridge-panel--stage" id="bridge-upload-panel" hidden aria-labelledby="bridge-step-upload" data-phuglee-reveal-child>
       <h2 id="bridge-step-upload"><span class="bridge-step-badge" aria-hidden="true">3</span> Drop the clerk file</h2>
-      <p class="bridge-panel-lead">Drop or browse up to <strong>5 files</strong> from the same city. Photos OK if the clerk printed it.</p>
+      <p class="bridge-panel-lead">Up to <strong>5 files</strong> from this city. Photos OK if the clerk printed it.</p>
       <div class="bridge-format-badges" aria-hidden="true">
         <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
       </div>
@@ -243,6 +272,7 @@
         <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
       </div>
     </section>
+    </div><!-- /bridge-scrub-stage -->
 
     <section class="bridge-panel phuglee-panel" id="bridge-loading-panel" hidden aria-live="polite" aria-busy="true">
       <div class="bridge-loading phuglee-loading-state">
@@ -253,25 +283,28 @@
       </div>
     </section>
 
-    <section class="bridge-panel phuglee-panel" id="bridge-results-panel" hidden aria-labelledby="bridge-step-results" data-phuglee-reveal-child>
-      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Results &amp; save</h2>
+    <section class="bridge-panel phuglee-panel bridge-panel--mission" id="bridge-results-panel" hidden aria-labelledby="bridge-step-results" data-phuglee-reveal-child>
+      <h2 id="bridge-step-results"><span class="bridge-step-badge" aria-hidden="true">4</span> Scrub report</h2>
+      <!-- Phase 72: mission surface — kill report + stage CTA first -->
+      <div class="bridge-mission-surface" id="bridge-mission-surface">
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
       <p class="bridge-note" id="bridge-stub-note" hidden></p>
 
-      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download → enrich outside → manual Analyze import</p>
-
-      <section class="bridge-save-panel" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
+      <section class="bridge-save-panel bridge-save-panel--climax" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
         <h3 id="bridge-save-heading">Stage this scrub</h3>
-        <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
+        <p class="bridge-panel-lead">Lock the kept list into this shift. Download later for enrichment. Nothing is sent to Analyze.</p>
         <div class="bridge-save-row">
           <label class="bridge-save-name" for="bridge-list-name">List name
             <input type="text" id="bridge-list-name" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
           </label>
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Stage list</button>
         </div>
         <p class="bridge-save-status" id="bridge-save-status" hidden role="status"></p>
       </section>
+      </div><!-- /bridge-mission-surface -->
+
+      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">After stage: download → enrich outside → manual Analyze import</p>
 
       <div id="bridge-train-wrap" hidden>
         <div id="bridge-train-mission" class="bridge-train-mission" hidden>
@@ -333,10 +366,20 @@
         </div>
       </div>
 
+      <!-- Phase 72: kept table secondary (collapsible) -->
+      <details class="bridge-results-details" id="bridge-results-details" open>
+        <summary class="bridge-results-details-summary" id="bridge-results-details-summary">Kept table</summary>
+        <div class="bridge-results-details-body">
       <div class="bridge-results-toolbar" id="bridge-results-toolbar" hidden>
         <label class="bridge-toolbar-search">
           <span class="bridge-sr-only">Filter records</span>
-          <input type="search" id="bridge-filter-search" placeholder="Filter by address, issue, or tag…" autocomplete="off" />
+          <input type="search" id="bridge-filter-search" placeholder="Filter by address, issue, category, or tag…" autocomplete="off" />
+        </label>
+        <label class="bridge-toolbar-field">
+          <span>Category</span>
+          <select id="bridge-filter-category">
+            <option value="">All categories</option>
+          </select>
         </label>
         <label class="bridge-toolbar-field">
           <span>Tag</span>
@@ -366,6 +409,7 @@
             <tr>
               <th scope="col" data-sort="streetAddress">Street Address</th>
               <th scope="col" data-sort="violationIssueType">Violation/Issue</th>
+              <th scope="col" data-sort="category">Category</th>
               <th scope="col" data-sort="distressedSignalTag">Distressed Tag</th>
               <th scope="col" data-sort="confidenceLevel">Confidence</th>
               <th scope="col" data-sort="violationDate">Date</th>
@@ -375,8 +419,10 @@
         </table>
       </div>
       <div class="bridge-pagination" id="bridge-pagination" hidden></div>
+        </div>
+      </details>
 
-      <section class="bridge-attach-panel" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
+      <section class="bridge-attach-panel bridge-attach-panel--scrap" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
         <h3 id="bridge-attach-heading">Optional · Attach to city profile</h3>
         <p class="bridge-panel-lead">Log this response on the Form Forge city profile for turnaround tracking. This does not send leads to Analyze.</p>
         <div class="bridge-attach-row">
@@ -483,6 +529,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=47"></script>
+  <script src="/js/bridge.js?v=48"></script>
 </body>
 </html>

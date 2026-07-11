@@ -6,14 +6,23 @@
 
 ### Code Violation
 
-1. Search text is built from: `Violation/Issue Type` + `Description/Notes` + `Street Address`
-2. If **any** strong indicator category matches → tag **Strong Distressed Signal** and list matched categories
-3. If no strong match → tag **Standard Code Violation**
-4. **Retention:** only **Strong Distressed Signal** rows are kept. Standard/generic rows are discarded with reason `no_distress_signal` (permits, parking, noise, zoning, etc.).
+1. Search text is built from: `Violation/Issue Type` + `Description/Notes` + `Street Address` (+ all raw cells)
+2. **Category** — every row is assigned **exactly one** of 24 clear categories (`lib/bridge-violation-categories.js`). No "Other". Used for Filter table, search, CSV/XLSX export.
+3. If **any** strong indicator category matches → tag **Strong Distressed Signal** and list matched indicators
+4. If no strong match → tag **Standard Code Violation**
+5. **Retention:** only **Strong Distressed Signal** rows are kept. Standard/generic rows are discarded with reason `no_distress_signal` (permits, parking, noise, zoning, etc.). Category is still set on both kept and not-distressed rows for Train/review.
 
 Open/closed status does **not** affect tagging. Vegetation / property maintenance / blight matching is intentionally **loose** so vague city labels still keep.
 
 **Not kept as distress:** parking on lawn, fence/pool/sign permits, noise, HOA admin, business license, etc.
+
+### 24 Filter Categories (display / export)
+
+Exactly one per code-violation row (priority pick when multiple patterns match):
+
+1. Overgrown Grass & Weeds · 2. Trash & Junk Accumulation · 3. Abandoned or Broken Vehicles · 4. Illegal Parking · 5. Business Tax or License · 6. General Sanitation · 7. Exterior Paint & Walls · 8. Roof or Drainage Problems · 9. Interior Walls & Doors · 10. Broken Appliances · 11. Electrical or Plumbing Issues · 12. Bugs or Rodents (Infestation) · 13. Windows & Screens · 14. Sheds or Accessory Buildings · 15. Outdoor Storage · 16. Sidewalks or Driveways · 17. House Number / Address Sign · 18. Building Permits · 19. Zoning or Property Rules · 20. Illegal Signs or Banners · 21. Stairs or Porch Safety · 22. Corner Visibility (Sight Lines) · 23. Farming or Tree Issues · 24. Business Operation Rules
+
+Unmatched text falls back to **Zoning or Property Rules** (never vague "Other").
 
 ### Water Shut Off
 
@@ -92,8 +101,9 @@ Matches other clear exterior neglect not covered above.
 
 | Field | Strong Match | No Match (Code Violation) | Water Shut Off |
 |-------|--------------|---------------------------|----------------|
+| Category | One of 24 clear categories | One of 24 clear categories | (empty) |
 | Distressed Signal Tag | Strong Distressed Signal | Standard Code Violation | Water Shut Off – High Value Distress Signal |
-| Matched Indicators | Category labels joined with `; ` | (empty) | (empty) |
+| Matched Indicators | Distress indicator labels joined with `; ` | (empty) | (empty) |
 
 ---
 

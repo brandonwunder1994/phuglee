@@ -67,7 +67,7 @@ body {
   font-size: 1rem;
 }
 
-/* IDLE-01: live inventory proof — compact single-row strip (not equal 3-up cards) */
+/* IDLE-01 + Phase 70: mission board (live inventory HUD under hero) */
 .bridge-idle-proof {
   width: 100%;
   margin: 0 0 1rem;
@@ -75,6 +75,24 @@ body {
   border: 1px solid rgba(174, 163, 143, 0.16);
   border-radius: var(--radius-sm, 6px);
   background: rgba(0, 0, 0, 0.18);
+}
+
+.bridge-idle-proof.bridge-mission-board {
+  padding: 0.85rem 1rem 0.95rem;
+  border-color: rgba(238, 183, 70, 0.22);
+  background:
+    linear-gradient(135deg, rgba(229, 132, 53, 0.08), transparent 55%),
+    rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 248, 235, 0.04);
+}
+
+.bridge-mission-board-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-gold, #eeb746);
 }
 
 .bridge-idle-proof-line {
@@ -86,6 +104,239 @@ body {
   color: var(--phuglee-cream, #f5f0e8);
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.bridge-mission-facets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.bridge-mission-facet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 4.25rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(174, 163, 143, 0.16);
+}
+
+.bridge-mission-facet--wide {
+  min-width: 8rem;
+  flex: 1 1 8rem;
+}
+
+.bridge-mission-facet-value {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-gold, #eeb746);
+}
+
+.bridge-mission-facet-value--sm {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--phuglee-cream, #f5f0e8);
+  letter-spacing: 0.01em;
+}
+
+.bridge-mission-facet-label {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone, #aea38f);
+}
+
+/* Phase 69: one scrub desk stage */
+.bridge-scrub-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 0.35rem;
+  padding: 0.15rem 0 0.25rem;
+}
+
+.bridge-scrub-stage .bridge-panel {
+  margin-bottom: 0;
+}
+
+.bridge-panel--meta {
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.bridge-panel--stage {
+  border-color: rgba(229, 132, 53, 0.28);
+  box-shadow:
+    0 0 0 1px rgba(229, 132, 53, 0.08),
+    var(--glass-shadow, 0 12px 40px rgba(0, 0, 0, 0.35));
+}
+
+.bridge-panel-lead--tight {
+  margin-bottom: 0.55rem;
+}
+
+.bridge-meta-heading {
+  font-size: 1rem !important;
+}
+
+/* Phase 69: slim pipeline (progress, not teaching wall) */
+.bridge-pipeline--slim {
+  margin-bottom: 0.65rem;
+}
+
+.bridge-pipeline--slim .bridge-pipeline-step {
+  padding: 0.28rem 0.4rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+}
+
+.bridge-pipeline--slim .bridge-pipeline-step span {
+  width: 1.05rem;
+  height: 1.05rem;
+  font-size: 0.62rem;
+}
+
+/* Phase 73: war-room victory strip */
+.bridge-victory-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin: 0 0 1.15rem;
+  padding: 1rem 1.15rem 1.1rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(238, 183, 70, 0.38);
+  background:
+    linear-gradient(120deg, rgba(229, 132, 53, 0.16), rgba(0, 0, 0, 0.35) 55%),
+    rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 0 40px rgba(229, 132, 53, 0.12),
+    inset 0 1px 0 rgba(255, 248, 235, 0.06);
+}
+
+.bridge-victory-kicker {
+  margin: 0 0 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phuglee-gold, #eeb746);
+}
+
+.bridge-victory-title {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream, #f5f0e8);
+  line-height: 1.1;
+}
+
+.bridge-victory-meta {
+  margin: 0 0 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--phuglee-taupe-mid, #c4b8a4);
+  line-height: 1.4;
+}
+
+.bridge-victory-boundary {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(238, 183, 70, 0.85);
+}
+
+.bridge-victory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Phase 72: post-scrub mission surface */
+.bridge-mission-surface {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem 0.95rem 1rem;
+  border-radius: var(--radius-md, 10px);
+  border: 1px solid rgba(238, 183, 70, 0.22);
+  background:
+    linear-gradient(160deg, rgba(229, 132, 53, 0.07), transparent 60%),
+    rgba(0, 0, 0, 0.2);
+}
+
+.bridge-save-panel--climax {
+  margin-top: 0.25rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid rgba(229, 132, 53, 0.35);
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(229, 132, 53, 0.08);
+}
+
+.bridge-results-details {
+  margin: 0.75rem 0 1rem;
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  border-radius: var(--radius-sm, 8px);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.bridge-results-details-summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe-mid, #c4b8a4);
+  user-select: none;
+}
+
+.bridge-results-details-summary::-webkit-details-marker {
+  display: none;
+}
+
+.bridge-results-details-summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 0.45rem;
+  color: var(--phuglee-orange, #e58435);
+  transition: transform 0.15s ease;
+}
+
+.bridge-results-details[open] > .bridge-results-details-summary::before {
+  transform: rotate(90deg);
+}
+
+.bridge-results-details-body {
+  padding: 0 0.85rem 0.85rem;
+}
+
+.bridge-attach-panel--scrap {
+  margin-top: 0.5rem;
+  opacity: 0.92;
+  border-top: 1px dashed rgba(174, 163, 143, 0.18);
+  padding-top: 0.85rem;
+}
+
+.bridge-workflow-strip {
+  opacity: 0.85;
+  font-size: 0.8rem !important;
 }
 
 /* Scrub desk — dominant work + quiet scrap (DESK-01) */
@@ -576,92 +827,66 @@ body {
   color: var(--phuglee-cream);
 }
 
-/* Upload type cards */
-.bridge-type-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.85rem;
+/* Phase 71: ops type chips (not peer feature cards) */
+.bridge-type-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
-.bridge-type-card {
+.bridge-type-chip {
   position: relative;
   cursor: pointer;
+  margin: 0;
 }
 
-.bridge-type-card input {
+.bridge-type-chip input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
 }
 
-.bridge-type-body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  height: 100%;
-  padding: 1.1rem 1.15rem;
-  background: var(--glass-fill);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--card-radius, 14px);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
-  box-shadow: var(--glass-shadow);
+.bridge-type-chip-face {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.95rem;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--phuglee-taupe-mid, #c4b8a4);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  border-radius: 999px;
   transition:
-    border-color var(--card-duration, 0.28s) ease,
-    box-shadow var(--card-duration, 0.28s) ease,
-    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-    background var(--card-duration, 0.28s) ease;
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.bridge-type-card:hover .bridge-type-body {
-  border-color: var(--glass-border-hover);
-  background: var(--glass-fill-elevated);
-  box-shadow: var(--glass-shadow-float);
-  transform: translateY(-2px);
+.bridge-type-chip:hover .bridge-type-chip-face {
+  border-color: rgba(229, 132, 53, 0.4);
+  color: var(--phuglee-cream, #f5f0e8);
 }
 
-.bridge-type-card input:checked + .bridge-type-body {
-  border-color: var(--glass-border-strong);
-  background: var(--glass-fill-elevated);
-  box-shadow: var(--glass-shadow-featured);
-  transform: translateY(-2px);
+.bridge-type-chip input:checked + .bridge-type-chip-face {
+  color: var(--phuglee-cream, #f5f0e8);
+  border-color: rgba(238, 183, 70, 0.55);
+  background: rgba(229, 132, 53, 0.14);
+  box-shadow: 0 0 18px rgba(229, 132, 53, 0.15);
 }
 
-.bridge-type-card input:focus-visible + .bridge-type-body {
+.bridge-type-chip input:focus-visible + .bridge-type-chip-face {
   outline: 2px solid var(--phuglee-orange);
   outline-offset: 2px;
 }
 
-.bridge-type-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  font-family: var(--font-display);
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  color: var(--phuglee-black);
-  background: linear-gradient(135deg, var(--phuglee-gold), var(--phuglee-orange));
-  border-radius: var(--radius-sm);
-}
-
-.bridge-type-icon--water {
-  background: linear-gradient(135deg, #6eb8d4, #3a8fb5);
-  color: var(--phuglee-cream);
-}
-
-.bridge-type-title {
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  color: var(--phuglee-cream);
-}
-
-.bridge-type-desc {
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--phuglee-stone);
+/* Legacy type-card hooks (harmless if unused) */
+.bridge-type-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 /* Format badges + dropzone */
