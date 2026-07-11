@@ -136,7 +136,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   2. Saved lists read as **staging inventory** (counts, type heat, ready/download language) while rename / download / delete / download-all APIs still work
   3. Post-save success uses **brand heat** (ember/gold), not green SaaS flash; optional “Download this list” path remains
 **Plans**: 3 plans · plan-check **PASS**
-- [ ] 67-01-PLAN.md — Brand-heat post-save flash (SHIFT-03)
+- [x] 67-01-PLAN.md — Brand-heat post-save flash (SHIFT-03)
 - [ ] 67-02-PLAN.md — Staging inventory HUD over lists table (SHIFT-02)
 - [ ] 67-03-PLAN.md — Sticky client shift queue + next-city posture (SHIFT-01)
 
@@ -165,8 +165,8 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | 63. Idle Proof & Process Climax | 2/2 | Complete | PASS | 2026-07-10 |
 | 64. Live Scrub Feed | 2/2 | Complete | PASS | 2026-07-11 |
 | 65. Kill-Rate Scrub Report | 3/3 | Complete | PASS | 2026-07-11 |
-| 66. Superpower Train Theater | 2/3 | In Progress | PASS | — |
-| 67. Multi-City Shift & Staging | 0/3 | Ready to execute | PASS | — |
+| 66. Superpower Train Theater | 3/3 | Complete | PASS | — |
+| 67. Multi-City Shift & Staging | 1/3 | In Progress | PASS | — |
 | 68. Regression QA Lock | 0/2 | Ready to execute | PASS | — |
 
 ### Coverage Map

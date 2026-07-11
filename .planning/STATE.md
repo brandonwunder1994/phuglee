@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: Not started
-status: planning
-stopped_at: Completed 66-03-PLAN.md
-last_updated: "2026-07-11T00:33:01.254Z"
-last_activity: 2026-07-10 — 66-03 Rules armory + admin gate (THTR-02/03)
+current_plan: 2
+status: in_progress
+stopped_at: Completed 67-01-PLAN.md
+last_updated: "2026-07-11T00:41:00Z"
+last_activity: 2026-07-11 — 67-01 brand-heat post-save flash (SHIFT-03)
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 20
-  completed_plans: 15
-  percent: 75
+  completed_plans: 16
+  percent: 80
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 66 complete (ready for verify-work); next Phase 67
+**Current focus:** v2.1 Filter Scrub Theater — Phase 67 Multi-City Shift & Staging (plan 01 done)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
-**Phase:** 66 — Superpower Train Theater  
-**Current Plan:** Not started
+**Phase:** 67 — Multi-City Shift & Staging  
+**Current Plan:** 2 of 3
 **Total Plans in Phase:** 3  
-**Status:** Ready to plan
-**Last activity:** 2026-07-10 — 66-03 Rules armory + admin gate (THTR-02/03)
+**Status:** In progress
+**Last activity:** 2026-07-11 — 67-01 brand-heat post-save flash (SHIFT-03)
 
-Progress: [████████░░] 75% (15/20 plans executed)
+Progress: [████████░░] 80% (16/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -45,7 +45,7 @@ Progress: [████████░░] 75% (15/20 plans executed)
 | 64 | Live Scrub Feed | 2 (2 done) | PASS |
 | 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
 | 66 | Superpower Train Theater | 3 (3 done) | PASS |
-| 67 | Multi-City Shift & Staging | 3 | PASS |
+| 67 | Multi-City Shift & Staging | 3 (1 done) | PASS |
 | 68 | Regression QA Lock | 2 | PASS |
 
 ## GSD artifacts
@@ -102,6 +102,8 @@ Progress: [████████░░] 75% (15/20 plans executed)
 - [66] Train tab stays Train brain; brain MUST be Rules armory (THTR-02)
 - [66] Armory demotion CSS-only under theater; never display:none on tab
 - [66] THTR-03 locked as-built fail-closed (wrap hidden, isBridgeAdmin gates) — no JS rewrite
+- [67] Flash heat: orange rgba bg + gold border/text; downloaded chip muted taupe/cream so Ready stays ember
+- [67] Shift flash copy: Staged/List staged; keep pick-the-next-city + download from Saved lists anchors
 
 ## Performance Metrics
 
@@ -122,16 +124,17 @@ Progress: [████████░░] 75% (15/20 plans executed)
 | 66 | 01 | 8min | 3 | 5 |
 | 66 | 02 | 12min | 2 | 4 |
 | 66 | 03 | 8min | 2 | 3 |
+| 67 | 01 | 8min | 2 | 4 |
 
 ## Next command
 
 ```text
-/gsd:verify-work 66
+/gsd:execute-phase 67
 ```
 
-(Then `/gsd:execute-phase 67` — Multi-City Shift & Staging)
+(Continue Phase 67 — plans 02–03 remaining)
 
 ## Session
 
-**Last session:** 2026-07-11T00:30:58.338Z
-**Stopped at:** Completed 66-03-PLAN.md
+**Last session:** 2026-07-11T00:41:00Z
+**Stopped at:** Completed 67-01-PLAN.md
