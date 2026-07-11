@@ -41,7 +41,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 
 ## Phases
 
-- [ ] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
+- [x] **Phase 61: Scrub Desk Foundation** — Asymmetric desk shell; kill proof rail; atmosphere + Anton H1; slim chrome; unified buttons/voice
 - [x] **Phase 62: City Dossier** — Ops case-file on city select; no-list path demoted to scrap/drawer
 - [x] **Phase 63: Idle Proof & Process Climax** — Live idle metrics; Process as upload-step fire climax
 - [x] **Phase 64: Live Scrub Feed** — Address/type activity feed during process; reduced-motion safe
