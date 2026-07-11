@@ -76,7 +76,7 @@ Each task was committed atomically:
 1. **Task 1: Inventory theater hooks + QA-03 surface contracts (gates-only)** — no code commit (gates-only confirmation; product dual-tags already green)
 2. **Task 2: TEST-PLAN §O v2.1 map + QA-03 checklist template** - `83975af` (docs)
 
-**Plan metadata:** (final docs commit after SUMMARY)
+**Plan metadata:** `35bc793` (docs: complete plan)
 
 _Note: Task 1 produced no file delta by design (prefer gates-only when already green)._
 
