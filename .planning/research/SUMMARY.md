@@ -1,198 +1,223 @@
 # Project Research Summary
 
-**Project:** Distress OS — Filter Independence & Learning (v2.0)
-**Domain:** Municipal FOIA list factory — Filter staging + HITL brain learning (subsequent milestone on shipped v1.6–v1.8 pipeline)
-**Researched:** 2026-07-10
+**Project:** Distress OS / Phuglee — v3.0 Filter Visual Makeover  
+**Domain:** Brownfield CSS/markup-only design-system restyle of Filter ops desk (`/bridge`)  
+**Researched:** 2026-07-11  
 **Confidence:** HIGH
 
 ## Executive Summary
 
-v2.0 makes Filter a **standalone list factory**: process city files → admin Train when needed → save multi-city lists → download for external enrich/skip-trace → **manual** Analyze import. It is not greenfield. Process already omits Analyze push; multi-list store, Type column gate, and global HITL brain all shipped. The real work is locking independence (including the residual `already_imported` hard-drop), elevating Save/Download as the hero path, fixing residual heterogeneous-city accuracy so Train is not thrashing, and instrumenting a learning bar so Approve/Deny volume falls for the right reason.
+v3.0 is a **surface redesign, not a product rewrite**. Filter (`/bridge`) must catch up to the login/home “badass” look — glass, grain, cream Anton hierarchy, raised CTAs — while process, brain, keep/kill, lists, Train gates, and all `public/js/bridge*.js` behavior stay frozen. Experts ship this class of makeover with a design-system-first sequence: **tokens → shared primitives → page composition**, using one page (Filter) as the dense showcase before site-wide rollout.
 
-**Recommended approach: add zero npm packages.** Delete/quarantine dead push surfaces, extend pure CommonJS modules + atomic JSON stores, harden the existing brain loop. Phase order is opinionated and non-negotiable: **independence first** (so later work cannot re-couple), **list factory UX second** (destination for leads), **accuracy before learning strength** (bad Type/groups poison global rules), **learning metrics before pure perf**, **QA lock last**.
+**Recommended approach:** add **zero npm packages and zero CSS tooling**. Extend the existing vanilla cascade (`tokens.css` → `distress-glass.css` → `phuglee-components.css` → page CSS) with dual-class markup hooks (`bridge-*` structure + `phuglee-*` look). Promote reusable controls (buttons, inputs, chips, tables, empty/loading/error) into the shared system; keep desk cinema (kill report, scrub feed, Train theater, victory strip) in `bridge.css` as Filter-only layout. Bump manual `?v=` query params for cache bust — no bundler.
 
-**Key risks:** (1) independence that only removes push while `already_imported` still silently empties re-work lists; (2) accuracy PRs that “clean” kept counts by silent-dropping leads; (3) learning KPI gamed by hiding Train groups instead of better rules; (4) Train-then-Save seam so downloads miss admin decisions. Mitigate with product default for import-filter, gold fixtures before keep/kill changes, paired learning metrics (decision ↓ **and** precision not ↓), and guided Process → Train → Save workflow.
+**Key risks:** (1) renaming locked IDs/`data-action` contracts that ~70+ JS boot lookups depend on; (2) CSS stratigraphy — dumping a 4th milestone layer on ~3.3k lines of layered `bridge.css`; (3) `hidden`/`disabled` semantics broken by display hacks that fail-open admin Train; (4) motion that ignores `prefers-reduced-motion` and sticks the scrub feed. Mitigate by freezing contracts first, styling only JS-toggled state classes, extracting shared look before full paint, and gating every ship with the 679-test suite + `verify-live.ps1` + 390/1440 layout QA.
 
 ## Key Findings
 
 ### Recommended Stack
 
-**Add zero runtime dependencies.** All three capability areas (independence, multi-list staging, accuracy/learning) ship by retiring residual Analyze-push coupling, extending existing pure JS modules, and hardening the HITL brain already in `lib/bridge-brain-*`. Only re-evaluate a library after measured failure of pure heuristics on a curated multi-city fixture set.
-
-Full detail: [STACK.md](./STACK.md)
+**Add nothing.** Ship by extending the vanilla cascade already powering home, auth, and Filter. Full detail: [STACK.md](./STACK.md).
 
 **Core technologies:**
-- **Node.js 20+ / CommonJS** — in-process Filter under `server.js`; every `lib/bridge-*.js` module is CJS; no TS/build step
-- **Vanilla browser JS** — Filter UI in `public/js/bridge.js` + Train in `bridge-train.js`; no React rewrite
-- **Node `http` + `fs` + atomic JSON** — `/api/bridge/*` via `bridge-api.js`; lists/brain/formats volume-safe on Railway
-- **`xlsx@0.18.5` (locked)** — parse + list export; do not swap engines mid-milestone
-- **`node --test`** — independence + learning + processUpload regression locks (~460 tests after v1.8)
-- **HITL hybrid only** — type rules live on decision; phrases proposed-only until admin activate; no ML/LLM stack
+- **Vanilla CSS3 + custom properties** — all visual system; no build step; edits go live via static serve
+- **`tokens.css`** — single brand/glass/type/space source of truth; extend density tokens only when needed
+- **`distress-glass.css` + `phuglee-components.css`** — elevation + shared controls; expand chips/tables/forms here
+- **`bridge.css` (~85 KB)** — page layout + desk theater only; stop growing shared look rules here
+- **Manual `?v=` cache bust** — CSS `max-age=86400`; HTML `no-store`; query string is the established bust mechanism
+- **Anton / Outfit / JetBrains Mono** — already aligned with home; do not add typefaces
+- **Playwright + Edge (existing)** — layout QA at 390 / 1440; not a stack addition
 
-**Optional pure modules (create only if phase proves need):** `bridge-learning-metrics.js`, `bridge-type-synonyms.js`, `bridge-tag-policy.js` — no install.
+**Do not use:** React/Tailwind/Framer, Sass/PostCSS, parallel `filter-design-system.css`, content-hash bundler, second glass palette in `bridge.css`, any touch to `lib/bridge-engine/*` or brain/keep-kill JS.
 
 ### Expected Features
 
-Not greenfield MVP — **milestone-minimum** for independence + learning bar. Full detail: [FEATURES.md](./FEATURES.md)
+Full landscape: [FEATURES.md](./FEATURES.md). Sequence: TOKENS → PRIMITIVES → PATTERNS → PAGE WIRE → QA GATE.
 
-**Must have (table stakes / P1):**
-- **No automatic Filter → Analyze push** — process/UI/API never write Analyze; lock tests; retire/quarantine `bridge-analyzer-push.js`
-- **Explicit Save list + multi-city persist** — lists accumulate until operator deletes; never wipe on process/restart/deploy
-- **Per-list download (CSV/XLSX) + download-all** — external enrich handoff; freeze export contract
-- **Independence messaging** — “Download → enrich outside → manual Analyze import”
-- **Heterogeneous city process still works** — Type scorer + format gate + keep/kill + Train groups (accuracy pass)
-- **Admin Train after process, before save** — learning remains primary accuracy path; customer path has no Train chrome
-- **Regression: process never invents Analyze session writes**
+**Must have (table stakes — P1):**
+- **TOKENS** — Home/login-aligned glass, grain, type scale, shadows, semantic status colors; no local hex in `bridge.css`
+- **BUTTONS** — Every actionable control on system primary/secondary/ghost/danger + full states
+- **FORMS** — Search, select, text, chips, dropzone share system form language
+- **CARDS** — Panels, drawers, dialogs share glass elevation (auth-modal energy, desk density)
+- **DESK** — Full surface pass (hero, pipeline, scrub, dossier, import, mission/kill, train, table, lists, shift, victory, dialogs); no orphan chrome
+- **STATES** — Empty / loading / error / success via shared patterns; scrub feed stays legible
+- **QA** — Reduced-motion, 390 + 1440, permanent suite + verify-live; behavior freeze absolute
 
-**Should have (differentiators / P1–P2):**
-- **Global HITL brain that reduces future Approve/Deny volume** — measured decline + rule hit rates
-- **Learning health surface (admin)** — decisions-per-process, auto-applied hits, new-type vs known-type ratio
-- **Cross-city rule reuse visible in meta/metrics**
-- **Operator-time efficiency** — format reuse, stacked Train, bulk download (peer with runtime, not tradeoff)
-- **Optional clarity on `alreadyImported`** — product default decision (research recommends off/opt-in)
+**Should have (differentiators — P2):**
+- Elevation hierarchy map (primary scrub vs scrap drawer vs featured victory)
+- Auth-tab energy on selected type chips (gold/orange gradient face)
+- Contained CTA shimmer (capped for all-day desk use)
+- Short component catalog note for later Collect/Hub reuse
+- Screenshot parity matrix (login/home vs Filter pairs)
 
-**Defer (after v2.0 / never):**
-- Richer time-series learning dashboard, list tags/folders, server-side sessions
-- Skip-trace inside Filter, auto-push / “Send to Analyze”, per-user brains, Type blend, unsupervised ML live rules
+**Defer (P3 / later milestones):**
+- Site-wide reskin (Collect, Command Hub, Analyze chrome)
+- Storybook / visual CI beyond Playwright smoke
+- React/Framer migration (explicit backlog)
+- Multi-theme / light mode switcher
 
-**Requirement buckets for REQUIREMENTS.md:** IND · LIST · ACC · LRN · EFF · TEST
+**Anti-features (never this milestone):** workflow/IA changes, Analyze re-coupling, excessive perpetual motion, wiping runtime data for screenshots, pixel-cloning auth modal density onto ops tables.
 
 ### Architecture Approach
 
-v2.0 re-centers existing seams as a **standalone list factory** with an **in-Filter learning loop**. No new service boundary, shared DB, or top-level product folder. Process may **read** Analyze address index for de-dupe (soft coupling); process/save/Train must never **write** Analyze. Working set is single client `lastResult`; durability is only via multi-list store under `FILTER_LISTS_ROOT`.
+Layered CSS cascade with frozen JS. Full detail: [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-Full detail: [ARCHITECTURE.md](./ARCHITECTURE.md)
+```
+Layer 0  tokens.css              → brand/glass/type values
+Layer 1  glass + phuglee-*       → shared elevation + controls
+Layer 2  shell + premium-atm     → authenticated app chrome
+Layer 3  bridge.html + bridge.css → Filter layout + theater only
+```
 
 **Major components:**
-1. **`handleProcess` / `processUpload`** — parse → type gate → tag → import-filter (read) → brain apply → keep/kill → review groups; **no push**
-2. **List store + lists API** — user-scoped multi-list CRUD, download, download-all, clear; primary product sink
-3. **Filter UI (`bridge.js`)** — process results, Train, Save/Download CTAs, multi-list panel; working-set hygiene
-4. **Brain stack** — store / apply / decisions / phrase miner; global rules; learning bar metrics
-5. **Type column + city format memory** — v1.8 carry-forward; accuracy touch only if residual failures
-6. **Analyzer push adapter** — **delete or quarantine**; not on process path
-7. **Form Forge attach** — keep; independent of Analyze (city KPI only)
+1. **`tokens.css`** — extend carefully (desk density, chip, row tokens if gaps proven)
+2. **`phuglee-components.css`** — primary shared expansion (forms, chips, tables, polish buttons/panels)
+3. **`bridge.css`** — restyle + dedupe glass; own desk grid, kill HUD, Train theater, feed
+4. **`bridge.html`** — dual-class hooks only; **no id/role/`data-action` churn**
+5. **`bridge*.js` + `lib/**`** — frozen; visual system never rewrites behavior
 
-**Key patterns:** Independence write-ban · Ephemeral working set → durable lists · Brain apply before distress filter · Decision path mutates brain + client lists only (not list store, not Analyze) · Pure helper + thin engine wire
+**Critical cascade fix:** today `bridge.css` loads *before* `phuglee-components.css` (inverted composition). Target: components → bridge → a11y last. Home/auth CSS stay **read-only north star** — port DNA via tokens/components, never `@import` home into Filter.
 
 ### Critical Pitfalls
 
-Full detail: [PITFALLS.md](./PITFALLS.md). Top risks for roadmap:
+Top failure modes from [PITFALLS.md](./PITFALLS.md):
 
-1. **`already_imported` still hard-drops after independence** — purge/re-work workflows empty silently. **Avoid:** treat cross-ref as opt-in or soft-flag; prefer **off by default** for list factory; never leave “as is” without product decision in Independence phase.
-2. **Re-introducing auto-push** — dead module still in tree; docs/agents may “restore” it. **Avoid:** quarantine/delete; negative tests that process/save never require push or hit bridge-import-records.
-3. **Train decisions never land on saved list** — Save-before-Train or process-next-city without save loses trained rows. **Avoid:** Process → Train → Save pipeline; dirty/unsaved guards; optional warn on open Train groups.
-4. **“Accuracy” that silently drops leads** — cleaner kept counts, real distress gone. **Avoid:** gold fixtures first; wrong keeps → Deny suppress; wrong drops → FN → promote; never auto-activate phrases.
-5. **Brain poison from wrong Type vocabulary** — one bad Train session is product-wide. **Avoid:** preserve v1.8 locks; gate Train on trusted `typeResolution`; phrases proposed-only.
-6. **Learning metric gamed** — fewer clicks ≠ better accuracy. **Avoid:** paired metrics (decision ↓ **and** precision/recall not ↓ on gold); never hide groups as “learning.”
+1. **Locked ID / `data-action` breakage** — ~70+ `getElementById` boot caches; restyle via classes/wrappers only; never rename `bridge-*` IDs or `data-action`/`data-mode`/`data-format` values
+2. **`hidden`/`disabled` CSS hacks** — never force `display:flex !important` on Train wrap; style `button:disabled` and `[hidden]`, not invented `.is-disabled` without JS
+3. **CSS stratigraphy war** — do not append a 4th “v3.0 block” at end of 3.3k-line `bridge.css`; extract system first, thin bridge to layout, ban unscoped `!important`
+4. **Admin / type-confirm gate fail-open** — keep Train mission inside wrap with default `hidden`; keep `<dialog>` elements; dual-role QA mandatory
+5. **Reduced-motion / feed stuck** — every new keyframe gets a reduce twin; feed must populate final DOM without `animationend`; FEED-02 stays green
+6. **“Visual only” drift** — if `public/js/**` or `lib/**` appears in a visual PR, stop and split; cinema string locks (required + banned copy) stay intact
 
 ## Implications for Roadmap
 
-Phase numbering continues from **55**. Dependency rule: **decouple push + import hard-drop decision before list UX; accuracy/learning must not reintroduce Analyze writes.**
+Based on combined stack + features + architecture + pitfalls, suggested phase structure:
 
-### Phase 55: Independence Lock
-**Rationale:** Product definition of done for v2.0. Prevents every later phase from “temporarily” calling push or treating Analyze as the Filter sink. Must also decide `already_imported` default — push-only cleanup is incomplete independence.
-**Delivers:** Process/save/Train write-isolated from Analyze; push module deleted or quarantined; UI/docs teach download → external enrich → manual import; export contract frozen; regression negative tests.
-**Addresses:** IND table stakes; no-push anti-feature lock; export/enrich schema stability
-**Avoids:** Pitfalls 1, 2, 7, 9 (import hard-drop, push resurrection, export drift, stale index)
-**Stack:** Code delete + tests only — no new packages
+### Phase 1: Contract Freeze & Surface Inventory
+**Rationale:** Without a locked ID/`data-*` checklist, every visual edit is roulette against ~70 JS boot lookups and cinema/theater tests.  
+**Delivers:** Frozen contract list (IDs, `data-action`, `data-mode`, structure order locks); surface inventory mapped to component targets; state matrix doc (`hidden`, `disabled`, `is-theater`, `has-file`, …).  
+**Addresses:** QA readiness foundation; DESK inventory from FEATURES.  
+**Avoids:** Pitfall 1 (renamed IDs), Pitfall 6 (behavior drift under “visual”).
 
-### Phase 56: List Factory UX
-**Rationale:** Store/API already exist; gap is workflow elevation. Operators need Save/Download as hero path and multi-city staging that cannot clobber unsaved work. Do this before deep accuracy so operators can stage correct-enough lists immediately.
-**Delivers:** Multi-list Save → accumulate → download one/all as primary path; working-set hygiene (`processed_unsaved` vs saved vs downloaded); Process → Train → Save guidance; dirty-guard / optional draft; clear-all strong confirm only.
-**Addresses:** LIST table stakes; multi-list differentiator polish; Train→Save seam
-**Avoids:** Pitfalls 3, 8 (Train ≠ saved list; single-slot staging)
-**Uses:** `bridge-list-store`, lists API, `bridge.js` / `bridge.html` CTAs — extend, don’t rewrite store
+### Phase 2: Tokens & Layer Audit
+**Rationale:** Every later rule should read variables; changing tokens after component polish causes thrash. Map z-index once before paint.  
+**Delivers:** Home/login vs Filter token gap audit; density/chip/row tokens only if missing; semantic status colors canonical; z-index scale (bg → main → sticky HUD → typeahead → dialog → toast).  
+**Addresses:** TOKENS (P1).  
+**Uses:** `tokens.css` extensions; shared `glassN` cache-bust convention.  
+**Avoids:** Pitfall 3 (stratigraphy), second palette, hardcoded hex.
 
-### Phase 57: Accuracy Structure Pass
-**Rationale:** Wrong Type/groups poison global brain. Fix keep/kill, Type/format residual, Train grouping, and brain-apply structure **with gold fixtures** before strengthening learning automation. Implement, not audit-only.
-**Delivers:** Residual heterogeneous-city failure modes fixed; gold distress kept + permit FN fixtures green; v1.8 locks preserved (no Type blend, no silent drop, empty-only promote, short labels display-only); water early-return intact.
-**Addresses:** ACC accuracy pass; protects learning quality
-**Avoids:** Pitfalls 4, 5, 10, 12 (silent drop, Type poison, water regression, batch schema blend)
-**Implements:** tagger, review-groups, type scorer/format touch only if needed, engine accuracy hooks
+### Phase 3: Shared Components Expansion
+**Rationale:** Filter must *consume* the system, not invent one-off CTAs that later get copy-pasted.  
+**Delivers:** Home-grade `.phuglee-btn*` polish; expanded `.phuglee-input/select/textarea`; new `.phuglee-chip` (+ variants); optional `.phuglee-table`; empty/loading/error wired for desk use.  
+**Addresses:** BUTTONS, FORMS (partial), CARDS (panel polish), STATES primitives.  
+**Uses:** `phuglee-components.css` as sole shared expansion surface.  
+**Avoids:** Parallel theme sheet; promoting kill-report theater into shared.
 
-### Phase 58: Learning Loop Strength
-**Rationale:** Success bar is fewer **necessary** Approve/Deny actions because rules fire correctly — not fewer buttons. Instrument before “smart” automation. Depends on Phase 57 so training targets good groups/types.
-**Delivers:** Decision → rule → apply coverage improved; learning health metrics (decisions-per-process, rule hits, trendable counters); phrase mining quality without auto-activate; admin can see brain getting smarter.
-**Addresses:** LRN learning bar; cross-city reuse visibility
-**Avoids:** Pitfall 6 (gamed metrics); Pitfall 11 if touching decisions (payload/409)
-**Uses:** `bridge-brain-store/apply/decisions`, phrase-miner; optional `bridge-learning-metrics.js`
+### Phase 4: Cascade Order, Markup Hooks & State CSS
+**Rationale:** Wrong load order makes “why didn’t my override win?” dominate the milestone; state CSS before pretty idle prevents ghost panels.  
+**Delivers:** Target load order (components → bridge → a11y); dual-class hooks on selects/inputs/buttons; state-matrix CSS rules that honor `[hidden]` and `:disabled`; city-search overflow/z-index exceptions preserved.  
+**Addresses:** FORMS wire, BUTTONS wire start, CARDS overflow patterns.  
+**Avoids:** Pitfall 2 (display hacks), cascade inversion regressions.
 
-### Phase 59: Efficiency
-**Rationale:** Operator time, process runtime, and cross-city reuse are peer goals — only meaningful after accuracy freezes and learning path is trustworthy. Do not “efficiency” away Type confirm or hard-drop accuracy.
-**Delivers:** Shorter time-to-saved-list (format reuse, stacked Train, bulk download polish); process duration improvements only where profiled; no single-dimension tradeoff that tanks accuracy or reuse.
-**Addresses:** EFF efficiency peer metrics
-**Avoids:** Optimizing confirm/fingerprint into rubber-stamp or wrong-type reuse
-**Depends on:** 57–58 for meaningful “reuse” claims
+### Phase 5: Desk Core Restyle
+**Rationale:** Operators live in city + dropzone + process; win parity on high-frequency chrome before theater polish.  
+**Delivers:** Hero/type hierarchy, pipeline chips, scrub desk forms, dropzone states, Process CTA energy, panel glass dedupe, dossier/outcome scrap hierarchy — layout-preserving.  
+**Addresses:** DESK core surfaces (hero, pipeline, scrub, dossier, import).  
+**Avoids:** Structural HTML rewrite; equal-card marketing density on ops chrome.
 
-### Phase 60: Integration QA / Regression Lock
-**Rationale:** Independence invariants must be permanent. Full suite + processUpload e2e + no-push require + water + export contract + verify-live.
-**Delivers:** Green `npm test`; independence + multi-list + accuracy gold + learning metric locks; `scripts/verify-live.ps1` green after any `public/` touch.
-**Addresses:** TEST regression suite
-**Avoids:** All pitfalls reintroduced by later PRs; Agents.md data wipe
+### Phase 6: Theater, Gates & Motion
+**Rationale:** Highest product risk in a “CSS-only” milestone lives in Train/type-confirm/admin; motion amplifies broken DOM — restyle after structure.  
+**Delivers:** Kill report / mission board climax restyle; scrub feed readability; Train theater + armory modes; lists/shift HUD; victory strip; history + type-confirm dialogs (still `<dialog>`); reduced-motion twins for all new motion.  
+**Addresses:** DESK theater surfaces, STATES feed, P2 elevation/chip energy if time.  
+**Avoids:** Pitfalls 4–5 (gates + motion); demoting Save; reintroducing Analyze chrome.
+
+### Phase 7: Visual QA Lock & Ship
+**Rationale:** Full makeover claim fails without complete surface coverage + permanent bars.  
+**Delivers:** 390 + 1440 layout QA (idle/upload/results/train/lists); keyboard happy path; contrast on glass/grain; full `npm test` (679+); `verify-live.ps1` exit 0; CSS `?v=` bumps; hard-refresh note.  
+**Addresses:** QA (P1); optional P2 screenshot matrix + component catalog note.  
+**Avoids:** Cache-stale false bugs; shipping without dual-role (admin/non-admin) smoke.
 
 ### Phase Ordering Rationale
 
-- **Independence first** — product boundary; stops re-coupling and forces `already_imported` product call while context is fresh
-- **Lists second** — destination for leads; store exists; UX is the gap; Train→Save seam is workflow not algorithm
-- **Accuracy before learning strength** — bad groups/types → durable global poison; gold fixtures before keep/kill changes
-- **Learning before pure perf** — success metric is fewer Approve/Deny actions; runtime secondary
-- **QA last** — regression suite must include independence forever
-- **Grouping** matches architecture seams (API lock → list UX → engine/tagger → brain → perf → test), not feature laundry lists
+- **Contracts before paint** — ID freeze prevents silent dead desk while suite string-matches still pass.
+- **Tokens before components before page** — industry design-system sequence; prevents second rewrite when parity is measured.
+- **Cascade/hooks before mass restyle** — inverted load order is a known as-built bug; fix once early.
+- **Core desk before theater** — high-frequency operator path first; cinema is secondary surface.
+- **Gate surfaces as dedicated slice** — Train/type-confirm are fail-closed product locks, not decoration.
+- **Motion after structure; QA last** — animations amplify broken DOM; suite + verify-live are permanent freeze bars.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 55:** Product default for `already_imported` (off / opt-in / soft-flag) — research recommends off/opt-in; confirm in requirements. Inventory all push references (docs, GSD-AUDIT, tests).
-- **Phase 56:** Whether dirty-guard / “Save & next city” / draft autosave needs brief UX research (not architecture rewrite).
-- **Phase 57:** Residual accuracy bugs on real city fixtures — **needs `/gsd:research-phase` with sample files** (tagger FPs, singleton noise, format edge cases).
-- **Phase 58:** Concrete learning metrics formula (events per N processes vs absolute count; rule-hit schema) — medium research.
-- **Phase 59:** Profile processUpload only after accuracy freezes — skip early research.
+- **Phase 3 (Shared components):** Medium — native `<select>` styling limits across Chromium/Edge; chip selected-state parity with `.auth-tab.is-active` needs careful token mapping
+- **Phase 4 (Cascade flip):** Low research, **high care** — any bridge rule that accidentally depended on loading before components must become intentional dual-class override or deleted
 
 Phases with standard patterns (skip research-phase):
-- **Phase 55 (mechanical half):** Push quarantine + negative tests — well-documented as-built path
-- **Phase 56 (store half):** List store CRUD already complete — polish only
-- **Phase 60:** Established test + verify-live patterns from v1.6–v1.8
+- **Phase 1 (Contract freeze):** Inventory from HTML + JS + existing tests — mechanical
+- **Phase 2 (Tokens):** Tokens already rich; mostly gap audit
+- **Phase 5–6 (Desk + theater restyle):** Execution against known structure; v2.1–v2.2 layout constraints documented
+- **Phase 7 (QA):** Existing Playwright widths + suite + verify-live patterns
+
+## Watch Out For
+
+Hard constraints for every phase (from pitfalls + product locks):
+
+| Watch-out | Rule |
+|-----------|------|
+| **Function freeze** | CSS + presentational classes + non-behavioral wrappers only. No process/brain/API/keep-kill changes. |
+| **ID / data-action API** | Every `id="bridge-*"` and `data-action`/`data-mode`/`data-format`/`data-step` is locked. Wrap outside, never replace. |
+| **Admin fail-closed** | Non-admin must never see/operate Train mission or Rules armory. CSS is never the sole gate. |
+| **Keep `<dialog>`** | Type-confirm and history stay native dialogs; skin cards only. |
+| **No 4th CSS strata** | Extract to tokens/components; thin `bridge.css`; ban unscoped `!important`. |
+| **Reduced-motion** | Every new animation gets a reduce path; feed must complete without `animationend`. |
+| **Cache bust** | Bump shared `glassN` trio and/or `bridge.css?v=` on every visual ship. |
+| **No data wipe** | Never clear `data/filter-lists/` or brain for screenshots (AGENTS.md). |
+| **Permanent bars** | `npm test` green + `scripts/verify-live.ps1` exit 0 after site edits. |
+| **Cinema copy locks** | Required slogans stay; banned strings stay banned; copy change = product change + tests. |
+| **Desk density ≠ auth modal** | Same tokens/components; denser spacing — do not clone modal roominess onto tables. |
+| **Filter-only application** | System designed for reuse; full wire this milestone is `/bridge` only. |
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Process no-push verified; list store complete; brain HITL shipped; zero-dep pattern proven v1.7–v1.8 |
-| Features | HIGH | Table stakes map to code + product locks; residual accuracy sizing MEDIUM until fixtures |
-| Architecture | HIGH | As-built seams verified in `lib/` + `bridge.js`; UX gap vs greenfield is MEDIUM only on polish size |
-| Pitfalls | HIGH | Coupling / Train seam / Type poison from live code; `already_imported` default MEDIUM (product call) |
+| Stack | HIGH | Repo ground truth: existing CSS files, `static-cache.js`, no CSS tooling in package.json; PROJECT.md freezes CSS/markup-only |
+| Features | HIGH | Full surface inventory from `bridge.html` + prior v2.1–v2.2 theater; industry token→component sequence well established |
+| Architecture | HIGH | As-built cascade verified; cascade inversion and dual-class patterns confirmed; MEDIUM only on exact token gaps until inventory pass |
+| Pitfalls | HIGH | Selector/DOM contracts from bridge.js + 45+ bridge tests; layered CSS strata documented; phase mapping opinionated and actionable |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **`already_imported` default under full independence** — Architecture “keep soft read”; Pitfalls “off/opt-in preferred.” **Resolve in requirements Phase 55 scope** before implement. Recommendation: **opt-in or off by default** for code_violation list factory; soft-flag alternative acceptable.
-- **Exact residual accuracy bugs** — needs phase research with real heterogeneous city fixtures (not invent at roadmap).
-- **Learning metrics formula** — define paired success bar in requirements (decision volume + precision proxy/gold).
-- **Performance budget** for large multi-file batches — profile in Phase 59 only if operator pain.
-- **Whether load-saved-list-into-Train** is in scope — longer-term; document “Train only on live process” unless product wants re-work.
-- **Phase count 55–60** — may compress 59/60 if efficiency is light polish after accuracy/learning.
+- **Exact token gaps:** Until Phase 2 surface inventory, proposed desk-density / chip / row token names are provisional — add only when first consumer needs them
+- **Cascade flip regressions:** Phase 4 needs a deliberate pass for any bridge rule that depended on loading before components (equal-specificity fights)
+- **Native select polish limits:** Phase 3 may need browser-specific form styling research for full home parity on `<select>`
+- **Elevation map (P2):** Primary vs scrap vs featured roles not yet formalized — define during Phase 5–6 if time, else immediate follow-on
+- **Component catalog location:** Whether short reuse guide lives in `.planning/` vs `docs/design/` — decide at P2 ship, not a blocker
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Codebase (2026-07-10): `lib/bridge-api.js`, `lib/bridge-engine/index.js`, `lib/bridge-list-store.js`, `lib/bridge-analyzer-push.js`, `lib/bridge-brain-*.js`, `lib/bridge-type-column-score.js`, `lib/bridge-city-format-store.js`, `public/js/bridge.js`, `public/bridge.html`
-- Product locks: `.planning/PROJECT.md`, `.planning/STATE.md` — v2.0 goals, no auto-push, learning bar, phases from 55
-- Shipped milestones: v1.6 brain/Train/decisions, v1.7 groups/promote, v1.8 Type column + format gate
-- Docs: `docs/bridge/API.md`, `docs/bridge/DATA-STANDARDS.md` — Filter-only process; no auto-push
-- Design: `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md` — HITL D6–D8
-- Agents.md — never wipe `filter-lists` / brain volumes
-- Research files: [STACK.md](./STACK.md), [FEATURES.md](./FEATURES.md), [ARCHITECTURE.md](./ARCHITECTURE.md), [PITFALLS.md](./PITFALLS.md)
+- Repo CSS cascade — `public/css/tokens.css`, `distress-glass.css`, `phuglee-components.css`, `auth.css`, `bridge.css` (~85 KB / ~3.3k lines), `bridge.html` link order
+- JS contracts — `public/js/bridge.js` (~70+ id boots), `bridge-train.js`, `bridge-scrub-feed.js`
+- Test locks — `tests/bridge-desk-cinema.test.js`, `bridge-train-theater.test.js`, `bridge-scrub-feed.test.js` (FEED-02), `bridge-shift-staging.test.js`, a11y/brand audits
+- `lib/static-cache.js` — CSS `max-age=86400`, HTML `no-store`
+- `.planning/PROJECT.md` — v3.0 decisions (CSS/markup only; home/login north star; Filter showcase; 679 suite)
+- `AGENTS.md` — no data wipe; verify-live after site edits
+- Prior milestones — v1.3 brand tokens; v2.1 scrub theater; v2.2 desk cinema layout DNA
 
 ### Secondary (MEDIUM confidence)
-- Industry workflow patterns: import confirm gates (Flatfile/OneSchema-class), HITL labeling loops, external enrichment before CRM ingest
-- Suggested phase IDs 55–60 — roadmap may compress
-- Fuzzy/ML re-evaluation threshold — only after measured multi-city fixture failure
+- NN/g Design Systems 101 — tokens → components → patterns; adopt/adapt/create
+- Industry brownfield vanilla redesign practice (2025–2026) — prefer tokens + classes over introducing a build for a single-page reskin
+- Auth-tab energy → type chip selected state mapping (pattern transfer; exact tokens TBD in Phase 3)
 
-### Tertiary (LOW confidence)
-- None material — domain is in-repo, not speculative SaaS greenfield
+### Research files synthesized
+- [STACK.md](./STACK.md) — CSS-only stack, cache-bust protocol, what not to use
+- [FEATURES.md](./FEATURES.md) — table stakes, differentiators, anti-features, REQ-ID skeleton
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — layer model, cascade fix, promote-vs-isolate, phase build order
+- [PITFALLS.md](./PITFALLS.md) — contract/state/stratigraphy/gate/motion/a11y traps + recovery
 
 ---
-*Research completed: 2026-07-10*
+*Research completed: 2026-07-11*  
 *Ready for roadmap: yes*
-*Milestone: v2.0 Filter Independence & Learning*

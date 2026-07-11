@@ -1,273 +1,274 @@
 # Feature Research
 
-**Domain:** Filter list factory — independence, multi-list staging, heterogeneous-city accuracy, continuous brain learning (v2.0)
-**Researched:** 2026-07-10
-**Confidence:** HIGH (codebase + shipped v1.6–v1.8 + locked PROJECT/STATE decisions); MEDIUM (industry HITL / staging-workflow norms)
+**Domain:** Full visual makeover / design-system-first page upgrade for Filter ops desk (`/bridge`)
+**Researched:** 2026-07-11
+**Confidence:** HIGH (codebase inventory of home/login + Filter surfaces + prior Phuglee brand system); MEDIUM (industry design-system adoption patterns)
 
-## Context (already shipped — do not re-spec as greenfield)
+## Context (locked behavior — visual only)
 
-| Capability | Where | Role relative to v2.0 |
-|------------|-------|------------------------|
-| Process upload (parse → normalize → tag → brain → keep/kill) | `lib/bridge-engine`, tagger, brain-apply | Core factory; accuracy pass improves this path |
-| Type column scoring + format confirm gate | v1.8 COL/GATE | Heterogeneous city accuracy foundation |
-| Category promote empty-only + stable groups + short labels | v1.7–v1.8 | Train usability; must not regress |
-| Admin Train Approve/Deny → global type/phrase rules | v1.6 BRAIN/TRAIN/DEC/PHRASE | Learning loop already exists; v2.0 measures + tightens it |
-| Saved lists CRUD + download-all + clear-all | `lib/bridge-list-store.js`, `/api/bridge/lists*`, Saved lists panel | Multi-list staging largely built; polish + workflow lock |
-| Process does **not** call push today | `bridge-api` handleProcess comment; tests assert no `analyzerPush` | Product still wants remnant push path removed / never re-coupled |
-| Optional Form Forge attach | `/api/bridge/attach` | Keep optional; not Analyze |
-| `bridge-analyzer-push.js` module | Still in tree | Legacy adapter — anti-feature for this milestone if wired back |
-| `alreadyImported` filter via Analyze session index | `import-filter` + `analyzer-import-index` | Soft Analyze coupling on process; product may keep (dedupe) or relax under independence |
+v3.0 is a **surface redesign**, not a product rewrite. Existing Filter functions stay frozen:
 
-**Gap statement:** Filter is already closer to a list factory than a push pipeline, but the product narrative and code still carry Analyze-era coupling (`bridge-analyzer-push`, import-index discard, “day of uploads” mental model). Operators need a durable multi-city staging workflow (save → enrich outside → manual Analyze import), a full accuracy pass so heterogeneous city files don’t thrash Train, and a measurable learning bar: Approve/Deny of code violations becomes less frequent as the global brain absorbs admin decisions.
+| Surface (already built) | Role | Visual dependency |
+|-------------------------|------|-------------------|
+| City select + quick search + dossier | Intake location | Forms, cards, empty states |
+| Type chips (code / water) | List type | Chips / radio-face components |
+| File dropzone + paste path | Upload | Dropzone, inputs, CTAs |
+| Process scrub + loading feed | Climax action | Loading, feed, primary CTA |
+| Kill report / KPI mission board | Results climax | Cards, stats, victory energy |
+| Kept table + filters + pagination | Data review | Tables, forms, secondary chrome |
+| Save list / download / inventory | Staging | Forms, buttons, lists panel |
+| Train theater + Rules armory | Admin learning | Tabs, groups, buttons, status |
+| Shift queue / inventory HUD | Session HUD | Chips, sticky chrome |
+| Victory strip | Post-stage celebration | Banner + CTA pair |
+| History / type-column confirm dialogs | Gates | Modals, forms, buttons |
+| Empty / loading / error / status lines | Feedback | Shared state components |
 
-## Expected Operator Behavior
+**North star:** login modal (`auth.css`) + home premium (`home-premium.css` + glass/grain/Anton/Outfit) — not a new aesthetic.
 
-Canonical post-v2.0 loop (admin + customer Filter; only admin trains):
+**Shared system intent:** extract/normalize tokens + components so later pages (Collect, Hub, Analyze shell) can adopt without another ad-hoc patch layer. **This milestone applies fully only to Filter.**
+
+## How design-system-first page upgrades work (industry pattern → Phuglee)
+
+Opinionated sequence used by teams that ship makeovers without thrashing product logic:
 
 ```
-COLLECT (outside / Form Forge)
-  city response arrives (portal / email / FOIA dump)
-
-FILTER — per city file
-  1. Select city + upload type (code_violation | water_shut_off)
-  2. Drop file(s) → process
-  3. If first/changed format (admin): confirm ONE Type column (or none)
-  4. System: map columns, tag distress, apply global brain, keep strong / stage FN pool
-  5. Admin (when needed): Train — Approve/Deny stacked violation types
-        ├── fixes current kept/FN lists immediately
-        └── writes global rules for every future upload
-  6. Save filtered list → appears in Saved lists (bottom); import area clears for next city
-  7. Optional: Attach versioned dataset to Form Forge city profile (KPI only)
-
-STAGING (multi-city)
-  8. Repeat 1–6 for more cities — lists persist until operator deletes them
-  9. Download one list or Download all (CSV/XLSX) for third-party enrichment / skip-trace
-
-EXTERNAL (outside Distress OS)
-  10. Enrich / skip-trace / hand-edit as needed
-
-ANALYZE (manual only)
-  11. Operator imports fully prepared list into Analyze (no Filter push)
-  12. Scan / review / export dial-ready
-
-SUCCESS SIGNALS
-  - Fewer Train Approve/Deny actions per city over time (same type vocabulary already handled)
-  - Less operator time per city (format reuse, stacked groups, bulk download)
-  - Acceptable process runtime on large heterogeneous sheets
-  - Cross-city reuse: rules + format memory help city N without re-teaching city 1 lessons
+1. TOKENS     Source of truth (color, type, space, radius, shadow, glass, motion)
+2. PRIMITIVES Buttons, inputs, selects, chips, cards, tables, dialogs, states
+3. PATTERNS   Desk layout, kill report, inventory, theater chrome (compose primitives)
+4. PAGE WIRE  Map every /bridge control onto primitives/patterns (CSS/markup only)
+5. QA GATE    Visual parity + a11y + reduced-motion + permanent suite bar
 ```
 
-**Customer (non-admin) path:** Upload → process → save/download lists. No Train chrome. Benefits from admin-trained global brain automatically.
+| Industry practice | Why it matters here | Phuglee application |
+|-------------------|---------------------|---------------------|
+| **Tokens before components** | Prevents “pretty once, drift forever” | Extend `tokens.css` + glass vars; deprecate one-off hex in `bridge.css` |
+| **One page as showcase** | Proves system under real density before site-wide | Filter is densest ops desk → perfect pilot |
+| **Adopt → Adapt → Create** (NN/g) | Don’t invent a second brand | **Adapt** existing Phuglee (`phuglee-*`) to match login/home energy; do not create “Filter brand 2.0” |
+| **Markup-class migration, not rewrite** | Behavior locks survive | Prefer class swaps onto `phuglee-btn` / `phuglee-input` / etc.; keep IDs + data-actions |
+| **Reduced-motion as first-class** | Ops desks run all day; motion fatigue + a11y | Honor `prefers-reduced-motion` on every new animation |
+| **Visual regression at fixed widths** | Desk breaks at mobile + ultrawide differently | Lock **390** and **1440** (existing Playwright pattern) |
 
-**Admin path:** Same + Type confirm on new formats + Train + brain panel (activate phrases, undo, metrics).
+**Do not:** redesign workflow order, invent new panels for “cleaner IA,” or “simplify” Train/Save as part of the makeover. Visual parity with home/login is the job; desk cinema structure from v2.1–v2.2 stays.
+
+---
 
 ## Feature Landscape
 
+Features grouped for REQ-ID mapping: **TOKENS · BUTTONS · FORMS · CARDS · DESK · STATES · QA**.
+
 ### Table Stakes (Users Expect These)
 
-Features operators assume for a Filter-as-list-factory. Missing = workflow feels broken or still “push-coupled.”
+Missing any of these = Filter still feels like “the old tool after a badass homepage.”
 
-| Feature | Why Expected | Complexity | Notes / existing dependency |
-|---------|--------------|------------|----------------------------|
-| **No automatic Filter → Analyze push** | Product core: enrich outside, then manual Analyze import | LOW | Process already omits push; remove/retire `pushRowsToAnalyzer` call sites + UI affordances; lock tests (C-20 style) |
-| **Explicit Save list after process** | Staging is intentional, not silent side-effect | LOW | Exists (`POST /api/bridge/lists` + save panel). Ensure save remains required; never auto-save into Analyze |
-| **Multi-city lists persist until deleted** | Sequential city work must not overwrite prior lists | LOW–MEDIUM | List store is multi-list by design; kill any single-`lastResult`-only mental model in UX copy; never wipe lists on process/restart |
-| **List rename / per-list download (CSV+XLSX) / delete** | Staging area hygiene | LOW | Shipped in list store + UI |
-| **Download all as one sheet** | Operators batch enrich many cities at once | LOW | Shipped (`download-all`); mark downloaded status |
-| **Clear messaging: Filter ≠ Analyze** | Prevents “where did my leads go?” and accidental re-coupling | LOW | Lead copy exists; extend empty states, save success, Analyze import docs |
-| **Heterogeneous city process still works** | Every city export is different headers/shapes | MEDIUM–HIGH | Depends on v1.8 Type scorer + format gate + v1.7 promote/groups; v2.0 accuracy pass audits residual failures |
-| **Keep/kill distress tagging with visible reasons** | Operators must trust what stayed vs dropped | MEDIUM | Tagger + FN pool + Train groups shipped; accuracy pass may tighten rules without silent drops |
-| **Admin Train still works after save workflow** | Learning is primary accuracy metric | LOW | Decisions mutate `lastResult` before save; document: Train then Save (or re-process after rules) |
-| **Optional Form Forge attach (not Analyze)** | City Tracker turnaround KPIs | LOW | Keep optional; independent of list factory |
-| **Regression: process never invents Analyze session writes** | Independence must be test-locked | LOW | Handler + engine tests |
+| REQ group | Feature | Why Expected | Complexity | Notes / existing dependency |
+|-----------|---------|--------------|------------|----------------------------|
+| **TOKENS** | Canonical Phuglee token set aligned to login/home | Visual continuity across app entry → desk | MEDIUM | Source: `tokens.css`, auth glass/grain, home cream/orange hierarchy. Gap: `bridge.css` still has local overrides and legacy heat residue |
+| **TOKENS** | Typography hierarchy (Anton display / Outfit body / mono data) | Login/home signature; operators read denser data | LOW | Fonts already loaded on `bridge.html`; many bridge titles/labels still custom, not token-scale |
+| **TOKENS** | Glass + grain + wear atmosphere parity | “Badass” = atmosphere, not only button color | MEDIUM | `premium-bg`, heat-field already on body; panels must *read* as same glass family as auth modal |
+| **BUTTONS** | Primary / secondary / ghost / danger CTA system on every action | Home/login CTAs are the brand promise | MEDIUM | `phuglee-btn*` exists; residual non-system controls (browse links, mode tabs, drawer toggles, summary chrome) |
+| **BUTTONS** | Disabled / hover / focus / active states consistent | Ops desk is click-heavy; inconsistent states feel broken | LOW–MEDIUM | Focus rings in `phuglee-a11y.css`; enforce on chips/tabs/dropzone too |
+| **FORMS** | Inputs, selects, textareas, search fields match system | City search + save name + Train search are high-frequency | MEDIUM | `phuglee-input/select/textarea` exist but most bridge fields use bare or `bridge-*` styles |
+| **FORMS** | Type chips + date chips as first-class chip components | Core intake UX; currently bespoke | MEDIUM | `.bridge-type-chip`, `.bridge-date-chips` — restyle to system chip, keep radio semantics |
+| **FORMS** | Dropzone visual upgrade (idle / dragover / has-file / error) | Upload is the money moment of the desk | MEDIUM | Keep multi-file + accept list; no new formats; visual states only |
+| **CARDS** | Panel/card system (`phuglee-panel` + variants) on all desk sections | Login modal panel is the north-star card | MEDIUM | Most sections already `bridge-panel phuglee-panel`; hover/overflow quirks (city search results) need system-safe fixes |
+| **CARDS** | Dialogs / confirm sheets match auth-modal energy | Type-column confirm + history dialogs must not look like OS defaults | MEDIUM | History dialog card exists; confirm gates need same grain/glass treatment |
+| **DESK** | Full pass on every visible Filter surface (no orphan chrome) | Partial makeovers read as unfinished | HIGH | Inventory: hero, pipeline, scrub stage, dossier, outcome drawer, import, loading feed, mission/kill report, save, train/armory, kept table, lists, shift HUD, victory strip, dialogs |
+| **DESK** | Kill report + mission board still climax-first | v2.1–v2.2 theater is product DNA | MEDIUM | Restyle RAW→KILLED→KEPT + Stage CTA; do not demote Save or reintroduce Analyze push chrome |
+| **DESK** | Tables (kept + inventory) readable on dark glass | Dense data is table stakes for ops tools | HIGH | Sticky header, zebra/hover, mono cells optional, horizontal scroll on 390 |
+| **STATES** | Empty / loading / error / success status patterns | Operators need trust signals during long scrubs | MEDIUM | `phuglee-loading-state`, `phuglee-empty-state`, `phuglee-error` exist; bridge status lines still ad-hoc |
+| **STATES** | Scrub feed + loading copy remain legible | Theater without readability is cosplay | LOW–MEDIUM | Client-staged feed (no SSE); visual only |
+| **QA** | Reduced-motion safe animations | Permanent a11y bar from v2.1 | LOW | Extend `phuglee-a11y` + bridge motion media queries to any new shimmer/reveal |
+| **QA** | 390 + 1440 layout QA (and suite + verify-live bar) | Desk is used on laptop + phone photos of sheets | MEDIUM | Existing Playwright/Edge pattern; no functional suite regressions (679+ bar) |
 
 ### Differentiators (Competitive Advantage)
 
-Align with core value: filter non-deals with a brain that learns; stage clean multi-city lists for external enrichment.
+Not required for “looks finished,” but make Filter feel like a premium war-room product vs generic dark SaaS.
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| **Global HITL brain that reduces future Approve/Deny volume** | Competitors re-filter the same junk types every city; Phuglee learns once | MEDIUM | v1.6 loop exists; v2.0 differentiates on **measured decline** of Train actions + rule hit rates |
-| **Learning health surface (admin)** | “Is the brain getting smarter?” is the sellable superpower | MEDIUM | Beyond raw `totalDecisions`: decisions-per-process, auto-applied suppress/promote hits, new-type vs known-type ratio over time |
-| **Per-city format memory + Type confirm** | Zero-friction day-2 uploads without silent wrong maps | Already mostly shipped | Differentiator vs dumb column renamers; keep as accuracy backbone |
-| **Type-stacked Train (not row grind)** | One Deny kills 40 High Grass rows + future cities | Shipped | Protect with correct Type column + short display labels |
-| **Multi-list master staging + Download all** | Operator runs a full market day, then one enrichment batch | LOW–MEDIUM | UX polish: city/type chips, record totals, “ready vs downloaded,” non-destructive clear |
-| **Cross-city rule reuse (efficiency peer)** | Admin tax paid once; customers inherit quality | MEDIUM | Global brain product decision; metrics should show cross-city apply |
-| **Accuracy pass on residual heterogeneous failure modes** | Real FOIA dumps still break Train/groups | HIGH | Audit: keep/kill edge cases, singleton noise, phrase propose quality, batch mixed formats, large files |
-| **Operator-time efficiency (not just runtime)** | Time-to-saved-list is the real KPI | MEDIUM | Fewer confirms, fewer Train clicks, clearer save/download path |
+| REQ group | Feature | Value Proposition | Complexity | Notes |
+|-----------|---------|-------------------|------------|-------|
+| **TOKENS** | Shared “design system package” documented for later pages | Site-wide rollout without redesign-from-scratch | MEDIUM | Tokens + component class catalog + usage do/don’t in `.planning` or short `docs/design/` note — not a Storybook app |
+| **BUTTONS** | Gem/shimmer primary CTA energy matching home (contained) | Emotional continuity from marketing → work | LOW–MEDIUM | Use existing `phuglee-btn-primary` sheen; **cap** motion so all-day desk use doesn’t fatigue |
+| **FORMS** | Chip “selected” state with gold/orange gradient face (auth-tab energy) | Type selection feels as deliberate as Sign In tab | MEDIUM | Mirror `.auth-tab.is-active` treatment on type chips |
+| **CARDS** | Elevation hierarchy (desk primary vs scrap/secondary vs vault) | Operators scan importance without reading labels | MEDIUM | Map: scrub stage = elevated; attach/outcome scrap = quieter; victory = featured |
+| **DESK** | Atmosphere depth that survives long sessions | Premium without arcade overload | MEDIUM | Grain/wear opacity tuned for desk (slightly calmer than home hero photo) while same DNA |
+| **DESK** | Victory strip + kill report as brand-heat moments | Celebrate kills — product story is “delete the junk” | LOW–MEDIUM | Copy locked; visual intensity only |
+| **DESK** | Train theater + armory as distinct visual modes | Admin power tools feel intentional, not bolted on | MEDIUM | Mode tabs → system segmented control; non-admin still hidden |
+| **STATES** | Status toasts/lines with semantic color tokens (success/warn/danger) | Instant trust on save/train/attach | LOW | Use `--phuglee-success/warn/danger`; avoid random greens |
+| **QA** | Side-by-side visual checklist: home/login vs Filter component pairs | Prevents “close enough” drift | LOW | Manual or screenshot matrix: button, input, panel, modal |
 
-### Anti-Features (Explicitly Do Not Build)
+### Anti-Features (Commonly Requested, Often Problematic)
 
-Quality gate for requirements scoping — commonly requested or historically tempting, but wrong for this product.
+| Anti-Feature | Why Requested | Why Problematic | Alternative |
+|--------------|---------------|-----------------|-------------|
+| **Behavior / workflow changes** (“simplify steps”, reorder pipeline, auto-save, hide Train) | Makeover chat often mutates product | Breaks v1.6–v2.2 locks; confounds visual QA | CSS/markup only; IDs, handlers, process path frozen |
+| **New process/brain/list engines** | “While we’re in there…” | Accuracy + 679-test bar at risk; out of milestone scope | Visual pass only; engine work = later milestone |
+| **Re-couple Analyze** (push buttons, “send to Analyze”, shared store UI) | Old product muscle memory | Explicitly out of scope (v2.0 IND) | Keep “Analyze stays separate” copy; no new Analyze affordances |
+| **Excessive motion** (constant grain animation, parallax, infinite shimmer, auto-scroll feed thrash) | Feels “premium” in demos | Breaks a11y, causes fatigue on 8-hour shifts, fails reduced-motion | Short enter transitions; static grain; `prefers-reduced-motion: reduce` hard stop |
+| **React / Tailwind / Framer migration for this milestone** | Modern stack aspiration | Parallel stack on vanilla Filter is a rewrite, not a makeover | Stay vanilla HTML/CSS/JS; optional React later (PROJECT backlog) |
+| **Full site reskin in same milestone** | Consistency anxiety | Dilutes Filter showcase; multiplies regression surface | System designed for reuse; apply fully to `/bridge` only |
+| **New IA / remove desk cinema** (kill report demotion, proof-rail return, hub-style cards) | Cleaner mockups | Undoes v2.1–v2.2 operator narrative | Restyle cinema; don’t replace it with generic dashboard |
+| **Light theme / multi-theme switcher** | Accessibility argument | Brand is black/cream/orange; doubles QA surface | Improve contrast within dark Phuglee; keep single theme |
+| **Custom icon font / illustration pack rebuild** | Polish | Scope explosion; emoji/ops slang already work | Reuse existing marks; optional SVG only if critical |
+| **Pixel-perfect clone of login modal as every panel** | Literal parity | Auth is a small modal; desk needs denser data density | Same **tokens and components**, different **layout density** |
+| **Inline style / one-off hex proliferation in bridge.css** | Fast local fixes | Kills the design system before it starts | Token or shared class only |
+| **Wiping runtime data to “test the new look”** | Clean screenshots | Destroys real Filter lists / brain (AGENTS.md hard rule) | Use fixtures / screenshots; never clear `data/filter-lists` or brain |
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| **Auto-push Filter → Analyze** | “Seamless pipeline” | Blocks external enrich/skip-trace; mixes half-ready leads into Analyze; couples modules | Save/download lists; manual Analyze import of prepared data |
-| **Silent drop leads** (no Type, no distress, no address edge) | “Cleaner lists” | Hides real inventory; destroys trust; blocks FN Train | Keep for review / FN pool / explicit discard reasons + previews |
-| **Blend / concatenate multiple Type columns** | “Capture category + subtype” | Unstable groups; brain poison; v1.8 COL anti-pattern | Single winner Type column; subtype stays in notes/raw |
-| **Non-admin training** | Scale labeling | Quality control / sellable integrity; poisoned global brain | Admin-only Train + decisions API 403 |
-| **Per-user / per-city brains** | Multi-tenant customization | Fragmented quality; no cross-city reuse; product is shared global quality | One global brain; per-city **format** memory only (not type rules) |
-| **Re-introduce Analyze push button “optional”** | Power-user shortcut | Becomes default path; undoes independence narrative | Never on Filter; Analyze has its own import |
-| **Auto-save every process to lists** | Fewer clicks | Junk intermediate runs clutter staging; Train-before-save lost | Explicit Save after operator is happy with Train/result |
-| **Auto-delete lists after download** | “Tidy staging” | Destroys user work (Agents.md); re-download / re-enrich needs history | Persist until explicit Delete / Clear all |
-| **Skip-trace / enrichment inside Filter** | One-stop shop | Wrong product boundary; bloat; delays list factory | External tools; Filter only stages clean distress lists |
-| **Black-box ML fine-tune without admin gate** | “SOTA learning” | Uncontrollable, untestable, hard to undo | HITL type + proposed phrases → admin activate |
-| **Shared store with Analyzer learned-brain** | Code reuse | Different domain (vision tiers vs text tags) | Patterns only (atomic JSON, caps); separate files/APIs |
-| **Wipe filter-lists / brain to “reset accuracy”** | Dev convenience | Destroys operator work | Separate test fixtures; never tidy user volumes |
-| **Force confirm every upload** | Max safety | Fatigue; defeats format memory | Confirm first time + format change only |
-| **Replace stored type with short/LLM label** | Pretty UI | Breaks match/export/brain keys | Display-only short labels (shipped) |
+---
 
 ## Feature Dependencies
 
 ```
-[Independence: no Analyze push]
-    └──requires──> Explicit Save list + Download paths (shipped)
-    └──conflicts──> Auto-push / push button / process-side session writes
-    └──enhances──> Multi-list staging (Filter is destination, not pass-through)
+TOKENS (color, type, space, glass, motion, focus)
+    └──requires──> BUTTONS (primary/secondary/ghost/danger + states)
+    └──requires──> FORMS (input/select/textarea/search/chip/dropzone)
+    └──requires──> CARDS (panel/dialog/elevation)
+    └──requires──> STATES (empty/loading/error/success)
 
-[Multi-list staging]
-    └──requires──> Durable list store (FILTER_LISTS_ROOT) — shipped
-    └──requires──> Process produces kept rows (pipeline)
-    └──enhances──> External enrich → manual Analyze import
-    └──soft-couples──> alreadyImported index (optional Analyze read; not push)
+BUTTONS + FORMS + CARDS + STATES
+    └──requires──> DESK (page wire of every /bridge surface)
 
-[Heterogeneous-city accuracy]
-    └──requires──> Type column score + single winner (v1.8)
-    └──requires──> Format fingerprint + confirm gate (v1.8)
-    └──requires──> Promote empty-only + stable groups (v1.7)
-    └──requires──> Distress tagger + brain apply (v1.6)
-    └──feeds──> Train group quality
-                    └──feeds──> Brain rule quality
-                         └──feeds──> Fewer future Approve/Deny  ← success metric
+DESK
+    └──requires──> QA (390/1440, reduced-motion, suite, verify-live)
 
-[Continuous brain learning]
-    └──requires──> Admin-only decisions + audit (v1.6)
-    └──requires──> Runtime apply on every process (v1.6)
-    └──requires──> Correct Type keys (v1.8) — else learning poisons
-    └──enhanced-by──> Learning metrics / decision-volume trends (v2.0 gap)
-    └──conflicts──> Per-user brains, non-admin train, auto-ML live rules
+DIFFERENTIATORS (shimmer, elevation map, theater modes)
+    └──enhances──> DESK
+    └──conflicts──> excessive motion anti-feature
 
-[Efficiency: operator time + runtime + cross-city reuse]
-    └──requires──> Format auto_reuse (operator time)
-    └──requires──> Type-stacked Train (operator time)
-    └──requires──> Download all (operator time)
-    └──requires──> Process performance budget (runtime)
-    └──requires──> Global brain apply (cross-city reuse)
+BEHAVIOR FREEZE
+    └──conflicts──> any DESK change that alters process/API/brain/Train logic
 ```
 
 ### Dependency Notes
 
-- **Independence requires Save/Download, not Analyze:** If push is removed without a trustworthy staging UX, operators lose the “where do leads go?” answer. Lists panel is the destination.
-- **Learning requires Type accuracy:** Wrong Type column → wrong group keys → wrong suppress/promote → every city gets worse. v1.8 is prerequisite; v2.0 accuracy pass must not reopen blend/silent-drop.
-- **Train-then-Save order:** Decisions mutate in-session `lastResult`. Saved lists snapshot rows at save time. Operators should Train before Save for that list; new rules still apply on next process for other cities.
-- **alreadyImported is not push:** Reading Analyze addresses to drop duplicates is a soft coupling. Product may keep it as dedupe or make it optional under independence — but it must not write to Analyze.
-- **Clear all is operator-only:** Never agent/deploy “cleanup.” Confirm dialog already matches Agents.md spirit.
+- **DESK requires TOKENS + primitives:** Wiring page chrome before tokens guarantees a second rewrite when home parity is measured.
+- **FORMS chips depend on BUTTONS state language:** Selected chip should feel related to primary CTA / auth active tab, not a random outline.
+- **CARDS overflow vs city search:** Desk panels use `overflow: hidden` for glass; search results need a system pattern (portal/popout or overflow exception) already partially special-cased — preserve behavior, fix visually.
+- **QA depends on DESK completeness:** Partial surface coverage fails the “full makeover” claim even if tokens are perfect.
+- **Differentiators enhance, don’t gate MVP:** Ship parity first; gem energy and elevation map polish second.
 
-## MVP Definition (this milestone = v2.0)
+### Existing surface → component map (wire targets)
 
-Not a greenfield MVP — **milestone-minimum** to declare Filter independence + learning bar met.
+| Filter surface | Primary component targets | Notes |
+|----------------|---------------------------|-------|
+| Hero + pipeline | type scale, eyebrow, slim step chips | Keep step semantics |
+| Scrub desk (city/state/search) | forms + cards | Search listbox a11y preserved |
+| City dossier + outcome drawer | cards + secondary chrome | Scrap drawer stays demoted |
+| Type chips | chips | Radio group intact |
+| Paste + dropzone + Process | forms + buttons + dropzone | SCRUB IT primary energy |
+| Loading + scrub feed | states + list pattern | `aria-busy` preserved |
+| Kill report / KPIs / save climax | cards + buttons + stats | Mission-first order frozen |
+| Mode tabs (Kept / Train / Armory) | segmented control / chips | Admin gates unchanged |
+| Train groups + pager | cards + buttons + status | No decision logic changes |
+| Kept table + filters | forms + table | Sort/filter behavior frozen |
+| Lists inventory | table + buttons + details | Collapse default preserved |
+| Shift queue HUD | chips + sticky bar | sessionStorage behavior frozen |
+| Victory strip | banner + button pair | Post-stage only |
+| Dialogs (history, type confirm) | modal + forms + buttons | Confirm logic frozen |
 
-### Ship in v2.0
+---
 
-- [ ] **Independence lock** — No process/UI/API path auto-pushes or one-clicks leads into Analyze; legacy push module unreferenced or clearly dead; regression tests
-- [ ] **Multi-list staging as primary workflow** — Save → multi-city accumulate → download one/all → delete only on purpose; copy and empty states teach the loop
-- [ ] **Accuracy pass (implement, not audit-only)** — Fix residual keep/kill, Type/format, Train grouping, and brain-apply issues found on real heterogeneous city files
-- [ ] **Learning bar instrumentation** — Admin can see that brain activity is working (rules applied / decision volume trends); success = Approve/Deny code-violation volume falls over comparable uploads
-- [ ] **Efficiency peer metrics** — Operator path shorter (reuse format, stacked Train, bulk download); no single-dimension tradeoff that tanks runtime or reuse
-- [ ] **Regression suite + verify-live** — processUpload e2e + list independence tests green
+## MVP Definition
 
-### Add after v2.0 validation
+### Launch With (v3.0 Filter Visual Makeover)
 
-- [ ] Richer learning dashboard (time-series decisions/process, per-type rule effectiveness)
-- [ ] Optional toggle: skip `alreadyImported` filter when Analyze session should not influence Filter
-- [ ] List tags / folders (market day, campaign) if staging volume grows
-- [ ] Server-side sessions (replace spoofable admin header) for multi-tenant
+Minimum for “Filter matches login/home badass” without functional risk:
 
-### Explicitly later / never for this product line
+- [ ] **TOKENS** — Home/login-aligned token layer (glass, grain-aware surfaces, type scale, shadows, semantic status colors); bridge stops inventing local palettes
+- [ ] **BUTTONS** — All actionable controls on `/bridge` use system button variants + states
+- [ ] **FORMS** — Search, select, text, textarea, chips, dropzone share system form language
+- [ ] **CARDS** — Panels, drawers, dialogs share glass elevation system
+- [ ] **DESK** — Full surface pass (inventory above); no orphan pre-system chrome
+- [ ] **STATES** — Empty / loading / error / success use shared patterns
+- [ ] **QA** — Reduced-motion, 390 + 1440 layout, permanent suite + verify-live green
+- [ ] **Behavior freeze** — No process/API/brain/keep-kill/list workflow changes
 
-- [ ] Skip-trace vendors inside Filter
-- [ ] Auto-push or “send to Analyze” convenience
-- [ ] Per-user brains / non-admin Train
-- [ ] Multi-column Type blend
-- [ ] Unsupervised ML live rules without admin gate
+### Add After Validation (same milestone if time; else immediate follow-on)
+
+- [ ] **Elevation map** — Explicit primary vs scrap vs featured panel roles documented + applied
+- [ ] **Auth-tab energy on type chips** — Selected chip = gradient face parity
+- [ ] **Component catalog note** — Short reuse guide for Collect/Hub later (not a full Storybook)
+- [ ] **Screenshot parity matrix** — Login/home vs Filter paired components
+
+### Future Consideration (later milestones)
+
+- [ ] Site-wide application (Collect, Command Hub, Analyze chrome, Forge proxy skins)
+- [ ] Optional Storybook / visual regression CI beyond Playwright smoke
+- [ ] React/Framer migration (explicit backlog — not v3.0)
+- [ ] Multi-theme / light mode
+
+---
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Remove/lock no Analyze auto-push | HIGH | LOW | P1 |
-| Multi-list save/download/delete workflow polish + copy | HIGH | LOW–MEDIUM | P1 |
-| Heterogeneous accuracy pass (keep/kill + Type/Train residual) | HIGH | HIGH | P1 |
-| Learning success metric (decision volume / rule hits) | HIGH | MEDIUM | P1 |
-| Format reuse + Type gate remain correct (no regression) | HIGH | LOW (protect) | P1 |
-| Download all + downloaded status | HIGH | LOW (exists) | P1 |
-| Cross-city brain reuse visible in meta/metrics | MEDIUM–HIGH | MEDIUM | P2 |
-| Optional alreadyImported policy clarity | MEDIUM | LOW–MEDIUM | P2 |
-| Process runtime improvements | MEDIUM | MEDIUM–HIGH | P2 |
-| List organization (tags/folders) | LOW–MEDIUM | MEDIUM | P3 |
-| Enrichment integrations | LOW (out of scope) | HIGH | — anti / later |
+| Token alignment (TOKENS) | HIGH | MEDIUM | **P1** |
+| Buttons everywhere (BUTTONS) | HIGH | MEDIUM | **P1** |
+| Forms + chips + dropzone (FORMS) | HIGH | MEDIUM | **P1** |
+| Cards/panels/dialogs (CARDS) | HIGH | MEDIUM | **P1** |
+| Full desk surface wire (DESK) | HIGH | HIGH | **P1** |
+| Empty/loading/error (STATES) | HIGH | LOW–MEDIUM | **P1** |
+| Reduced-motion + 390/1440 + suite (QA) | HIGH | MEDIUM | **P1** |
+| Auth-tab chip energy | MEDIUM | LOW–MEDIUM | **P2** |
+| Elevation hierarchy map | MEDIUM | MEDIUM | **P2** |
+| Contained CTA shimmer polish | MEDIUM | LOW | **P2** |
+| Design-system reuse doc | MEDIUM (future) | LOW | **P2** |
+| Screenshot parity matrix | MEDIUM | LOW | **P2** |
+| Site-wide rollout | HIGH (later) | HIGH | **P3** |
+| Storybook / visual CI suite | LOW–MEDIUM | HIGH | **P3** |
+| React migration | LOW (now) | VERY HIGH | **P3** / anti for v3.0 |
 
 **Priority key:**
-- P1: Must have for v2.0 milestone done
-- P2: Should have if accuracy/efficiency pass surfaces them
-- P3: Nice to have after independence + learning bar proven
+- **P1:** Must have for v3.0 launch (parity + freeze + QA)
+- **P2:** Should have if it strengthens parity without risk
+- **P3:** Later milestones / explicit defer
 
-## Competitor / Pattern Mapping
+---
 
-Not SaaS competitors — **workflow patterns** operators already know.
+## Competitor / Reference Feature Analysis
 
-| Pattern | Typical tools | Our approach |
-|---------|---------------|--------------|
-| Import mapping confirm | Flatfile, OneSchema, CSVBox | Type column confirm + format fingerprint (shipped); accuracy pass hardens |
-| Staging before CRM | Spreadsheet “working tabs,” enrichment vendors | Saved multi-city lists + download-all; **no** CRM/Analyze auto-ingest |
-| HITL labeling → model improve | Label studios, active learning | Admin Approve/Deny type stacks → global rules; phrases proposed-only |
-| Dedup against existing CRM | Salesforce import skip | Optional `alreadyImported` vs Analyze index (read-only); never write-back push |
-| Per-tenant models | Enterprise ML | **Rejected** — one global brain for sellable shared quality |
+Not SaaS competitors — **reference surfaces** for this makeover:
 
-## Implications for REQUIREMENTS.md Categories
+| Concern | Login modal (`auth.css`) | Home premium | Filter today | v3.0 approach |
+|---------|--------------------------|--------------|--------------|---------------|
+| Atmosphere | Backdrop blur + grain overlay | Photo grain/wear + scrim | premium-bg + heat-field present; panels uneven | Unify panel glass to auth/home family; calm desk grain |
+| Primary CTA | Gold→orange gradient, lift | Gem CTAs | Mix of `phuglee-btn` + residual chrome | System buttons only |
+| Inputs | Auth field styling | Marketing forms rare | Bridge-specific fields | Adopt `phuglee-input*` + auth-grade focus |
+| Cards | `phuglee-panel` + no hover thrash on modal | Chapter cards | `phuglee-panel` with overflow/hover edge cases | System cards + desk-safe overflow patterns |
+| Density | Low (auth) | Medium (story) | **High (ops)** | Same tokens; denser spacing scale, not different brand |
+| Motion | Modal rise, tab swap | Scroll/monitor accents | Feed + reveals + victory | Short, reduced-motion safe; no perpetual motion |
 
-Suggested requirement buckets (IDs to assign in requirements phase):
+**Industry systems referenced (patterns, not to adopt wholesale):** Material / Carbon / Atlassian / USWDS — tokens → components → patterns → page templates; accessibility and state tables as first-class.
 
-| Category | Table stakes / differentiators to capture | Anti-features to list in Out of Scope |
-|----------|-------------------------------------------|----------------------------------------|
-| **IND — Independence** | No push; no Analyze write from Filter process; docs/UI independence | Auto-push, optional push button |
-| **LIST — Multi-list staging** | Persist multi-city; save/rename/download/delete/download-all; clear only explicit | Auto-save all processes; auto-delete on download; wipe on deploy |
-| **ACC — Accuracy pass** | Residual keep/kill, Type/format, grouping, brain-apply fixes on heterogeneous files | Silent drop; Type blend; short-label as stored type |
-| **LRN — Learning bar** | Measure/show declining Approve/Deny need; rule apply on process | Non-admin train; per-user brains; auto-ML live |
-| **EFF — Efficiency** | Operator time + runtime + cross-city reuse peer goals | Optimize one dimension by harming another |
-| **TEST — Regression** | Independence + list + process e2e locks | — |
+---
 
-**Dependencies on existing (do not rebuild):** list store, processUpload, brain store/apply/decisions, Type scorer, format store, Train UI, Form Forge attach.
+## Suggested REQ-ID skeleton (for requirements phase)
+
+Use stable prefixes for roadmap/requirements drafting:
+
+| Prefix | Scope |
+|--------|--------|
+| **TOKENS-*** | Color, type, space, radius, shadow, glass, motion, focus, semantic status |
+| **BUTTONS-*** | Primary/secondary/ghost/danger; sizes; icon+label; disabled/hover/focus/active |
+| **FORMS-*** | Input/select/textarea/search; labels; chips; dropzone states; checkbox/radio faces |
+| **CARDS-*** | Panel, featured, scrap/secondary, dialog/modal, elevation rules |
+| **DESK-*** | Per-surface wire: hero, pipeline, scrub, dossier, import, mission, train, table, lists, shift, victory, dialogs |
+| **STATES-*** | Empty, loading, error, success/status, feed readability |
+| **QA-*** | Reduced-motion, 390/1440, contrast, focus order, suite bar, verify-live, no behavior drift |
+
+Each REQ should state: **visual acceptance + “no functional change” lock** + dependency on existing DOM ids/classes where relevant.
+
+---
 
 ## Sources
 
-- `.planning/PROJECT.md`, `.planning/STATE.md` — v2.0 locked intent
-- `.planning/milestones/v1.6-REQUIREMENTS.md`, `v1.7-REQUIREMENTS.md`, `v1.8-REQUIREMENTS.md` — shipped foundations
-- `docs/bridge/API.md`, `DATA-STANDARDS.md` — Filter-only process + lists contract
-- `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md` — HITL learning model
-- `lib/bridge-list-store.js`, `lib/bridge-api.js`, `public/bridge.html`, `public/js/bridge.js` — staging UX reality
-- `lib/bridge-analyzer-push.js` — legacy push surface to retire from product path
-- Agents.md — never wipe filter-lists / brain as “cleanup”
-- Industry patterns: import confirm gates (Flatfile/OneSchema-class), HITL labeling loops, external enrichment before CRM ingest (mapped; MEDIUM confidence)
-
-## Confidence Assessment
-
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Independence table stakes | HIGH | Product docs + process path already non-push; remnant module is cleanup |
-| Multi-list staging | HIGH | CRUD + download-all exist; v2.0 is workflow lock + polish |
-| Heterogeneous accuracy | MEDIUM–HIGH | Stack shipped; residual failure modes need audit-during-implement |
-| Learning bar | MEDIUM | Loop exists; **decline-in-Train-volume** metric UX not fully productized |
-| Anti-features | HIGH | Explicitly locked across PROJECT + prior milestones |
-
-## Gaps to Address in Later Research / Phases
-
-- Exact residual accuracy bugs on real city fixtures (needs phase research with sample files)
-- Whether `alreadyImported` stays on by default under full independence (product call)
-- Concrete learning metrics formula (events per N processes vs absolute decision count)
-- Performance budget for large multi-file batches (runtime peer of efficiency)
+- Codebase: `public/css/tokens.css`, `phuglee-components.css`, `phuglee-a11y.css`, `auth.css`, `home-premium.css`, `bridge.css`, `public/bridge.html`
+- Product locks: `.planning/PROJECT.md` (v3.0), `.planning/STATE.md`, v2.1–v2.2 desk cinema constraints
+- NN/g — Design Systems 101 (tokens/components/patterns; adopt/adapt/create): https://www.nngroup.com/articles/design-systems-101/
+- Prior Phuglee brand system (v1.3) + Filter theater (v2.1–v2.2) as in-repo ground truth
+- Agent rules: `AGENTS.md` (no data wipe; verify-live after site edits)
 
 ---
-*Feature research for: Distress OS Filter Independence & Learning (v2.0)*
-*Researched: 2026-07-10*
-*Supersedes prior FEATURES.md focus on v1.8 Type Column Intelligence alone*
+*Feature research for: Distress OS / Phuglee — v3.0 Filter Visual Makeover*
+*Researched: 2026-07-11*
+*Mode: ecosystem / visual design-system upgrade*

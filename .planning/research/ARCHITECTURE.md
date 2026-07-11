@@ -1,470 +1,442 @@
 # Architecture Research
 
-**Domain:** Distress OS Filter (Data Bridge) — Independence, multi-list staging, accuracy & learning (v2.0)
-**Researched:** 2026-07-10
-**Confidence:** HIGH for as-built seams (verified in `lib/`, `public/js/bridge.js`); MEDIUM for product-gap sizing (UX elevation vs greenfield)
+**Domain:** Filter visual makeover — CSS/markup system integration (v3.0)
+**Researched:** 2026-07-11
+**Confidence:** HIGH (as-built cascade + class inventory verified in `public/`); MEDIUM (exact token gaps until surface inventory pass)
 
 ## Standard Architecture
 
 ### System Overview
 
-v2.0 does **not** invent a new product surface or shared DB. It re-centers Filter as a **standalone list factory** and strengthens the **in-Filter learning loop**. Three product moves plug into existing seams:
+v3.0 is **surface-only**. Process, brain, keep/kill, lists API, and all `public/js/bridge*.js` behavior stay frozen. The visual system is a **layered CSS cascade** with one source of truth for brand tokens and shared primitives; Filter applies them via markup hooks + a page-scoped stylesheet.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  UI  public/bridge.html + public/js/bridge.js (+ bridge-train.js)            │
-│  · process · Train Approve/Deny · Save list (primary CTA) · multi-list panel │
-│  · download / download-all · attach to Collect (optional)                    │
-│  · single lastResult working set (ephemeral until Save)                      │
-└───────────────────────────────┬──────────────────────────────────────────────┘
-                                │ /api/bridge/*
-                                ▼
+│  NORTH STAR (look reference only — do NOT load home.css on /bridge)          │
+│  public/index.html + home.css / home-premium.css / auth.css                  │
+│  glass cards · grain · raised CTAs · cream Anton hierarchy · photo atmosphere│
+└───────────────────────────────────┬──────────────────────────────────────────┘
+                                    │ visual DNA only
+                                    ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│  API  lib/bridge-api.js                                                      │
-│  process · lists CRUD/download · brain decisions/undo/rules · attach/history │
-│  ★ NO process-path write to Analyze (already true; v2.0 locks + purges dead) │
-└───┬─────────────────────┬──────────────────────────┬─────────────────────────┘
-    │                     │                          │
-    ▼                     ▼                          ▼
-┌─────────────┐   ┌──────────────────┐    ┌────────────────────┐
-│ Engine      │   │ List store       │    │ Brain stack        │
-│ processUp-  │   │ bridge-list-     │    │ store / apply /    │
-│ load + batch│   │ store.js         │    │ decisions / miner  │
-└──────┬──────┘   └────────┬─────────┘    └─────────┬──────────┘
-       │                   │                        │
-       │                   ▼                        ▼
-       │          data/filter-lists/         BRIDGE_BRAIN_ROOT/
-       │          {scopeKey}/                global-brain.json
-       │            index.json
-       │            {listId}/meta.json
-       │            {listId}/rows.json
-       │
-       │  READ-ONLY soft link (keep)
-       ▼
-┌──────────────────┐     optional legacy (quarantine / delete in v2.0)
-│ analyzer-import- │     lib/bridge-analyzer-push.js  ──X──► Analyze write
-│ index.js         │     (NOT called from handleProcess today)
-└──────────────────┘
+│  LAYER 0 — TOKENS                                                            │
+│  public/css/tokens.css                                                       │
+│  --phuglee-* · --glass-* · --shadow-* · type scale · space · radius          │
+│  [data-theme="light"] overrides                                              │
+└───────────────────────────────────┬──────────────────────────────────────────┘
+                                    │ CSS custom properties (runtime inheritance)
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  LAYER 1 — SHARED ELEVATION + COMPONENTS                                     │
+│  distress-glass.css   → .distress-glass* · glass-card · monitor primitives   │
+│  phuglee-components.css → .phuglee-btn* · .phuglee-panel* · inputs · empty   │
+│  phuglee-a11y.css     → skip-link, focus, reduced-motion helpers             │
+└───────────────────────────────────┬──────────────────────────────────────────┘
+                                    │ class hooks on DOM
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  LAYER 2 — APP SHELL (authenticated pages)                                   │
+│  heat-base · heat-atmosphere · premium-atmosphere · premium-components       │
+│  shell · shell-nav · settings-menu · command-palette · distress-status       │
+│  body.has-premium-bg · .premium-bg photo/grain stack                         │
+└───────────────────────────────────┬──────────────────────────────────────────┘
+                                    │ page composition
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  LAYER 3 — FILTER PAGE (isolate domain layout + theater)                     │
+│  public/bridge.html  — structure + dual classes (bridge-* + phuglee-*)       │
+│  public/css/bridge.css (~85KB) — desk layout, kill HUD, Train theater, feed  │
+│  public/js/bridge*.js — LOCKED (no architecture rewrite)                     │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Product pipeline after v2.0 (locked):**
-
-```
-Collect (city files)
-    → Filter process (tag + brain + dedupe + optional already_imported)
-    → Train (admin) → brain rules (global)
-    → Save list(s) → Download → external enrich/skip-trace
-    → Manual Analyze import
-```
-
-No Filter → Analyze **write** path. Analyze → Filter **read** (address index) remains intentional soft coupling.
+**Opinionated rule:** tokens and shared components own *how things look*; `bridge.css` owns *how Filter is laid out and which ops surfaces exist*. If a style would look correct on Collect, Command, or Vault tomorrow, it belongs in Layer 1 — not in `bridge.css`.
 
 ### Component Responsibilities
 
 | Component | Responsibility | New vs modified | Typical implementation |
 |-----------|----------------|-----------------|------------------------|
-| `handleProcess` | Upload → `processUpload(Batch)`; return payload only | **Modified** (lock: assert no push; docs/tests) | `lib/bridge-api.js` |
-| `processUpload` | Parse → type gate → normalize/tag → dedupe → import-filter → **brain apply** → distress filter → rowIds → review groups | **Modified** (accuracy/learning only) | `lib/bridge-engine/index.js` |
-| List store | User-scoped multi-list durable staging | **Mostly exists; modify** for any meta/UX gaps | `lib/bridge-list-store.js` |
-| Lists API | CRUD, download, download-all, clear | **Exists; polish** | `lib/bridge-api.js` list handlers |
-| Filter UI | Process results, Train, Save/Download CTAs, multi-list panel | **Modified** (CTA primacy, working-set hygiene) | `public/js/bridge.js` |
-| Brain store | Global rules + events + metrics | **Modified** (learning bar metrics) | `lib/bridge-brain-store.js` |
-| Brain apply | Promote/suppress type+phrase before distress filter | **Modified** (accuracy) | `lib/bridge-brain-apply.js` |
-| Brain decisions | Admin Approve/Deny → rules + list mutation | **Modified** (learning quality) | `lib/bridge-brain-decisions.js` |
-| Phrase miner | Proposed phrases from deny events | **Modified** (activation efficiency) | `lib/bridge-phrase-miner.js` |
-| Review groups | Train grouping keys (timestamp-stable) | **Modified** (accuracy) | `lib/bridge-review-groups.js` |
-| Type column + city format | Scorer + confirm gate + format memory | **Carry forward** (v1.8); accuracy touch only if needed | `bridge-type-column-score.js`, `bridge-city-format-store.js` |
-| Distress tagger | Base keep/kill regex categories | **Modified** (accuracy pass) | `lib/bridge-distress-tagger.js` |
-| Import address index | Strip rows already in Analyze session | **Keep** (read-only soft coupling) | `analyzer-import-index.js` + `import-filter.js` |
-| Analyzer push adapter | Bridge rows → Analyze session write | **Delete or quarantine** | `lib/bridge-analyzer-push.js` |
-| Forge attach | Version dataset + response KPI on city | **Unchanged** (independent of Analyze) | attach handlers + `forge-client` |
-| Format store | Per-city Type header fingerprint | **Unchanged** domain boundary | `BRIDGE_CITY_FORMATS_ROOT` |
+| `tokens.css` | Brand + glass + type + spacing custom properties | **Modified** (extend only if shared gaps found) | `:root` + `[data-theme="light"]` |
+| `distress-glass.css` | Elevation primitives (glass, card, solid zone) | **Mostly keep**; light extend if needed | utility classes |
+| `phuglee-components.css` | Buttons, panels, forms, empty/loading/error | **Modified** (primary shared expansion) | `.phuglee-*` API |
+| `phuglee-a11y.css` | Focus, skip, reduced-motion | **Keep** (touch only if makeover breaks a11y) | last in cascade |
+| `premium-atmosphere.css` | Photo + grain backdrop for app pages | **Keep** (already on bridge) | `.premium-bg*` |
+| `bridge.css` | Filter layout, theater, domain widgets | **Modified heavily** (restyle + dedupe) | `.bridge-*` |
+| `bridge.html` | Markup hooks / dual-class composition | **Modified lightly** (classes only) | no structure rewrite |
+| `bridge*.js` | Behavior, process, Train, lists | **Frozen** | zero visual-system rewrites |
+| Home/auth CSS | North-star reference | **Read-only** this milestone | do not import into Filter |
 
 ## Recommended Project Structure
 
-v2.0 stays in the existing shell layout. Prefer **pure modules + thin API wiring** (v1.6–v1.8 pattern). No new top-level product folder.
-
 ```
-lib/
-├── bridge-api.js                 # MODIFY — routes; independence lock; list/brain polish
-├── bridge-engine/
-│   ├── index.js                  # MODIFY — processUpload order; accuracy/learning hooks only
-│   ├── normalizer.js             # MODIFY only if type/map accuracy needs it
-│   ├── import-filter.js          # KEEP (read-only Analyze soft link)
-│   └── parsers/                  # KEEP
-├── bridge-list-store.js          # MODIFY if meta/status/fields needed; API surface largely done
-├── bridge-export.js              # KEEP (CSV/XLSX for downloads)
-├── bridge-analyzer-push.js       # DELETE or move to legacy/ — not on process path
-├── bridge-brain-store.js         # MODIFY — metrics for learning bar
-├── bridge-brain-apply.js         # MODIFY — apply order / rule quality
-├── bridge-brain-decisions.js     # MODIFY — decision → rule quality
-├── bridge-phrase-miner.js        # MODIFY — propose → activate efficiency
-├── bridge-review-groups.js       # MODIFY — grouping accuracy
-├── bridge-distress-tagger.js     # MODIFY — keep/kill accuracy
-├── bridge-type-column-score.js   # KEEP (v1.8)
-├── bridge-city-format-store.js   # KEEP (v1.8)
-├── bridge-short-label.js         # KEEP (display-only)
-├── analyzer-import-index.js      # KEEP read-only
-└── config.js                     # KEEP FILTER_LISTS_ROOT / BRIDGE_BRAIN_ROOT
-
 public/
-├── bridge.html                   # MODIFY — CTA hierarchy (Save/Download first-class)
+├── css/
+│   ├── tokens.css                 # Layer 0 — brand + glass tokens (extend carefully)
+│   ├── distress-glass.css         # Layer 1 — elevation utilities
+│   ├── phuglee-components.css     # Layer 1 — shared controls (expand here)
+│   ├── phuglee-a11y.css           # Layer 1 — a11y last
+│   ├── heat-base.css              # Layer 2 — reset/type base
+│   ├── heat-atmosphere.css        # Layer 2 — ambient heat
+│   ├── premium-atmosphere.css     # Layer 2 — photo/grain stack
+│   ├── premium-components.css     # Layer 2 — premium chrome helpers
+│   ├── shell.css / shell-nav.css  # Layer 2 — authenticated chrome
+│   ├── bridge.css                 # Layer 3 — Filter-only (layout + theater)
+│   ├── home.css / home-premium.css / auth.css  # North star ONLY (not on /bridge)
+│   └── …page sheets…              # collect, vault, hub — later consumers of Layer 1
+├── bridge.html                    # class hooks; keep ids/roles for JS
 └── js/
-    ├── bridge.js                 # MODIFY — lastResult lifecycle, lists UX, no push
-    └── bridge-train.js           # MODIFY — Train efficiency / labels only
-
-data/                             # runtime (gitignored) — DO NOT wipe in agents
-├── filter-lists/{scopeKey}/      # multi-list store
-└── bridge-brain/global-brain.json
-
-tests/
-├── bridge-list-store.test.js     # KEEP + extend
-├── bridge-api-handlers.test.js   # MODIFY — process never pushes
-├── bridge-engine*.test.js        # MODIFY — accuracy locks
-└── bridge-analyzer-push.test.js  # DELETE with module or reframe as “must not be required by process”
+    └── bridge*.js                 # LOCKED — no visual architecture work
 ```
 
 ### Structure Rationale
 
-- **In-process Filter:** Same as v1.x — zero new service boundary; roadmapper phases stay file-local.
-- **List store under `FILTER_LISTS_ROOT`:** Already volume-safe; multi-list is directory-per-list + `index.json` — extend, don’t replace.
-- **Brain separate from list store and from Analyzer learned-brain:** Carry-forward v1.6 decision; accuracy/learning must not merge domains.
-- **Push module as dead code:** Treating it as “optional library” invites re-coupling. Quarantine/delete in independence phase.
+- **No new CSS build step / bundler.** Distress OS serves plain CSS. Prefer extending existing files over inventing a design-system package.
+- **Do not create `bridge-v3.css` or `phuglee-filter.css` as a parallel universe.** A second Filter sheet guarantees cascade fights. Expand shared + restyle `bridge.css`.
+- **Optional new file only if `phuglee-components.css` exceeds ~25–30KB of true shared primitives** (e.g. `phuglee-forms.css` or `phuglee-data.css`). Default: keep one shared components file.
+- **Home CSS stays isolated.** Pull DNA (tokens, glass, buttons), not homepage layout selectors.
 
 ## Architectural Patterns
 
-### Pattern 1: Independence boundary (Filter write ban)
+### Pattern 1: Token → Primitive → Composition
 
-**What:** Filter may **read** Analyze state for de-dupe; Filter must never **write** Analyze session/records from process, save, or Train.
-**When to use:** Every v2.0 phase that touches process, lists, or brain.
-**Trade-offs:** Operators must manually import after enrich (product intent). Soft read coupling still requires Analyzer data root / process availability for `already_imported` stats.
+**What:** Visual values live in `tokens.css`. Primitives (`.phuglee-btn-primary`, `.phuglee-panel`) consume tokens. Page sheets compose primitives with domain layout.
 
-**Example (as-built process handler):**
+**When to use:** Always for v3.0 surface work.
 
-```javascript
-// lib/bridge-api.js handleProcess — keep this contract
-const payload = await processUploadBatch(fileList, batchArgs);
-// Filter only — do not auto-push to Analyze. Lists are saved explicitly via /api/bridge/lists.
-sendJson(res, 200, payload);
+**Trade-offs:** Slightly more class names on elements (`bridge-panel phuglee-panel`); wins reuse and theme consistency. Avoids hardcoding `#e58435` in page CSS.
+
+**Example:**
+```html
+<!-- Composition: domain layout class + shared look class -->
+<section class="bridge-panel phuglee-panel bridge-panel--desk">
+  <select id="bridge-state" class="phuglee-select">…</select>
+  <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-process">Scrub it</button>
+</section>
 ```
 
-**Enforcement for v2.0:**
-
-1. Static: process path must not `require('bridge-analyzer-push')`.
-2. Test: handler/unit lock that `pushRowsToAnalyzer` is never invoked from process.
-3. UI: primary CTA is Save / Download, not “Send to Analyze”.
-
-### Pattern 2: Ephemeral working set → durable multi-list store
-
-**What:** `lastResult` in `public/js/bridge.js` is a **single working set** (process + Train mutations). Durability is only via `POST /api/bridge/lists` into `data/filter-lists/{scopeKey}/`.
-**When to use:** Multi-city sequential days; external enrichment batches.
-**Trade-offs:** Processing city B without saving city A loses the working set. That is correct if Save is primary — v2.0 UX must make the risk obvious (and ideally block silent overwrite).
-
-```
-lastResult (client memory)
-    │  processUpload overwrites
-    │  Train decision mutates rows / reviewGroups / stats
-    ▼
-POST /api/bridge/lists  →  saveList()  →  index.json + {id}/meta.json + {id}/rows.json
-    │
-    ▼
-GET .../download | download-all  →  CSV/XLSX (markDownloaded status)
+```css
+/* bridge.css — layout only; look comes from .phuglee-panel */
+.bridge-panel--desk {
+  display: grid;
+  gap: var(--space-md);
+}
+/* BAD: re-declare glass fill/shadow already on .phuglee-panel */
 ```
 
-**Do not** invent a second parallel store (e.g. session draft DB) unless UX research proves multi-working-set is required. Prefer: Save → clear working set → next city (already partially implemented via `resetImportAreaAfterSave`).
+### Pattern 2: Shared System Wins; Page Overrides by Specificity (not !important)
 
-### Pattern 3: Brain apply before distress filter (learning plug-in)
-
-**What:** Global brain rules re-tag rows **after** import-filter and **before** `filterDistressOnly`, so suppress/promote changes who enters kept vs FN review pools.
-**When to use:** All code_violation process runs; water is no-op (BRAIN-03).
-**Trade-offs:** Suppress-last-wins means promote can be overridden — intentional (v1.6). Accuracy work must preserve water early-exit and order tests.
+**What:** Cascade order should be:
 
 ```
-normalize/tagRow → dedupe → filterAlreadyImported
-    → applyBrainToRows (promote_type → promote_phrase → suppress_phrase → suppress_type)
-    → filterDistressOnly
-    → assignRowIds + buildReviewGroups
+tokens → glass → heat/premium shell → phuglee-components → bridge.css → phuglee-a11y
 ```
 
-### Pattern 4: Decision write path is brain + client lists only
+**When to use:** For the makeover load-order fix. **Today** `bridge.html` loads `bridge.css` *before* `phuglee-components.css`, so shared components override equal-specificity bridge rules. That is inverted from normal page composition.
 
-**What:** `POST /api/bridge/brain/decisions` mutates global brain and returns mutated `rows` / `notDistressedRows` / `reviewGroups`. Client applies to `lastResult`. **Does not** touch list store or Analyze.
-**When to use:** Admin Train Approve/Deny.
-**Trade-offs:** Saving a list **after** Train is the operator’s job; list store has no automatic “save trained result” unless v2.0 adds optional auto-save. Prefer explicit Save CTA over silent list writes.
+**Trade-offs:** Flipping order is the right long-term model (page composes system), but requires a deliberate pass: any bridge rule that *accidentally* depended on loading first must be rewritten as intentional higher-specificity override (`.bridge-panel.phuglee-panel { … }`) or deleted as dead duplicate.
 
-### Pattern 5: Pure helper + thin engine wire (accuracy modules)
+**Recommended target order in `bridge.html`:**
+```html
+<link rel="stylesheet" href="/css/tokens.css?v=…">
+<link rel="stylesheet" href="/css/distress-glass.css?v=…">
+<link rel="stylesheet" href="/css/heat-base.css">
+<link rel="stylesheet" href="/css/heat-atmosphere.css">
+<link rel="stylesheet" href="/css/premium-atmosphere.css">
+<link rel="stylesheet" href="/css/premium-components.css">
+<link rel="stylesheet" href="/css/shell.css">
+<link rel="stylesheet" href="/css/shell-nav.css?v=…">
+<link rel="stylesheet" href="/css/settings-menu.css">
+<link rel="stylesheet" href="/css/command-palette.css">
+<link rel="stylesheet" href="/css/distress-status.css">
+<link rel="stylesheet" href="/css/phuglee-components.css?v=…">  <!-- shared system -->
+<link rel="stylesheet" href="/css/bridge.css?v=…">              <!-- page last -->
+<link rel="stylesheet" href="/css/phuglee-a11y.css">             <!-- a11y final -->
+```
 
-**What:** Accuracy improvements ship as pure functions (score, group key, phrase mine) with engine/API only wiring. Matches v1.7–v1.8 (e.g. `bridge-type-column-score.js`).
-**When to use:** Any keep/kill, Type, grouping, or learning algorithm change.
-**Trade-offs:** Slightly more files; massively better testability and no Analyze dependency leakage.
+### Pattern 3: Dual-Class Hooks (no JS rewrite)
+
+**What:** Keep stable `id`s and `bridge-*` classes that JS queries. Add or align `phuglee-*` / `distress-glass*` classes for look.
+
+**When to use:** Every control restyle.
+
+**Trade-offs:** Markup is slightly noisier; behavior stays zero-risk. Prefer class adds over selector rewrites in JS.
+
+**Example:**
+```html
+<!-- ids and data-action stay; visual classes upgrade -->
+<button type="button"
+  class="phuglee-btn phuglee-btn-primary"
+  id="bridge-process"
+  disabled>Scrub it</button>
+```
+
+### Pattern 4: Promote Once, Specialize in Bridge
+
+**What:** When three+ Filter surfaces need the same control look (select, chip, table row, empty state), promote the primitive to `phuglee-components.css`. Keep Filter-only semantics (kill-rate HUD, Train theater modes, dossier stamp, scrub feed) in `bridge.css`.
+
+**When to use:** During component inventory in Phase 2 of the roadmap.
+
+**Promote (shared):**
+| Primitive | Exists? | Action |
+|-----------|---------|--------|
+| Buttons primary/secondary/ghost/danger | Yes | Polish to home CTA energy; already used on Filter |
+| Panels / featured / float | Yes | Ensure Filter panels drop local glass re-declarations |
+| Inputs / textarea / select | Partial | Expand + **apply** on Filter (today many raw `<select>` use `.bridge-row select` only) |
+| Empty / loading / error | Yes | Wire Filter error/loading panels to shared classes |
+| Eyebrow / hero title utilities | Yes | Align Filter hero with `phuglee-eyebrow` / cream Anton DNA |
+| Chips (ops type / filter chips) | No shared | **Promote** generic `.phuglee-chip` if used beyond Filter; else keep `.bridge-type-chip` |
+| Data tables | No shared | **Promote** dense `.phuglee-table` if Collect/Vault will need it; else Filter-only for v3.0 |
+
+**Stay isolated in `bridge.css`:**
+| Surface | Why Filter-only |
+|---------|-----------------|
+| `.bridge-desk` / scrub stage layout | Product layout, not a brand primitive |
+| Kill-rate report / victory strip | Scrub theater domain |
+| Live scrub feed | Process climax UI |
+| Train theater modes / Rules armory | Admin ops chrome |
+| City dossier / outcome drawer | City Tracker adjacency |
+| Shift queue / staging inventory HUD | Session workflow |
+| Type column confirm dialog layout | Format-memory gate UX |
+| Type chips (violation vs water) | Domain choice control |
 
 ## Data Flow
 
-### Request Flow — process (no Analyze write)
+### Token Data Flow (not app state)
 
 ```
-[User: city + file(s)]
-    ↓
-public/js/bridge.js processUpload()
-    ↓ POST multipart /api/bridge/process
-handleProcess → processUploadBatch → processUpload
-    ↓
-parse → type confirm gate (v1.8) → normalizeRawRows/tagRow
-    → dedupeRows → loadImportAddressIndex (READ Analyze)
-    → filterAlreadyImported
-    → loadBrain + applyBrainToRows
-    → filterDistressOnly
-    → assignRowIds + buildReviewGroups
-    ↓
-JSON { rows, notDistressedRows, reviewGroups, stats, processingMeta }
-    ↓
-lastResult = data; renderResults; Train chrome if admin
-    ✗ never pushRowsToAnalyzer
+tokens.css (:root custom properties)
+    │
+    ├─► distress-glass.css     uses --glass-fill, --glass-blur, --glass-shadow*
+    ├─► phuglee-components.css uses --phuglee-*, --glass-*, --shadow-cta*, --card-*
+    ├─► premium-atmosphere.css uses opacity vars; photo stack
+    ├─► shell / nav            uses chrome glass tokens
+    └─► bridge.css             MUST prefer var(--phuglee-*) / var(--glass-*)
+                               over raw rgba(#e58435) duplicates
+
+theme.js → document [data-theme="light"|"dark"]
+    └─► tokens.css [data-theme="light"] redefines the same property names
+         (components need no theme forks if they only use tokens)
 ```
 
-### Request Flow — save / multi-list / download (primary product path)
+### Markup → Look Flow
 
 ```
-[User: Save list]
-    ↓ POST /api/bridge/lists { name, rows: lastResult.rows, city, stats, ... }
-handleListCreate → saveList
-    ↓
-FILTER_LISTS_ROOT/{storageKey}/index.json + {listId}/…
-    ↓
-UI: loadSavedLists + resetImportAreaAfterSave (ready for next city)
-
-[User: Download all]
-    ↓ GET /api/bridge/lists/download-all?format=csv|xlsx
-buildDownloadAll → browser file
-    ↓ external enrich / skip-trace
-    ↓ manual Analyze import (outside Filter)
+bridge.html element
+  classes: bridge-* (structure/JS) + phuglee-* (look)
+       │
+       ▼
+cascade resolves:
+  tokens provide values
+  phuglee-components paint shared look
+  bridge.css positions, densifies, and paints domain-only theater
+       │
+       ▼
+browser paint (no build step, no CSS-in-JS)
 ```
 
-### Request Flow — Train → brain learning (independent of lists & Analyze)
+### Key Data Flows (visual system only)
+
+1. **Brand change:** edit `tokens.css` once → every surface on tokens updates (home + Filter + shell).
+2. **Shared control change:** edit `.phuglee-btn-primary` → Filter process CTA + home CTAs stay aligned.
+3. **Filter layout change:** edit `bridge.css` only → no risk to home/auth.
+4. **Filter behavior change:** **out of scope** — `bridge*.js` / `lib/bridge-*` frozen.
+
+### Request Flow (unchanged product path)
 
 ```
-[Admin: Approve/Deny group]
-    ↓ POST /api/bridge/brain/decisions
-applyDecision(brain, currentRows, notDistressedRows)
-    → typeRules upsert/disable + events + phrase mine (proposed)
-    → saveBrain (version RMW)
-    ↓
-response mutates lastResult lists + reviewGroups
-    ↓ (later process runs)
-applyBrainToRows uses active rules → fewer wrong keeps/kills → fewer Train actions
+Operator → bridge.html UI → bridge.js → /api/bridge/* → engine/brain/lists
+                ▲
+                └── visual makeover touches only the first box (HTML classes + CSS)
 ```
-
-### State Management
-
-| State | Location | Owner | Lifetime |
-|-------|----------|-------|----------|
-| Working process result | `lastResult` in `bridge.js` | Client | Until next process or page reload; cleared after successful Save |
-| Saved lists | `FILTER_LISTS_ROOT/{scope}/` | List store | Until user delete/clear |
-| Global brain | `BRIDGE_BRAIN_ROOT/global-brain.json` | Brain store | Durable; admin decisions |
-| City Type format memory | `BRIDGE_CITY_FORMATS_ROOT` | Format store | Durable; admin confirm |
-| Analyze session addresses | Analyzer data root / API | Import index (read) | Soft cache (~5 min TTL; force on process) |
-| Forge bridge datasets | Form Forge city profile | Attach API | Independent KPI/history |
-
-### Key Data Flows (v2.0 deltas)
-
-1. **Independence:** Process/save/Train remain write-isolated from Analyze; purge dead push so it cannot be re-wired casually.
-2. **Multi-list:** Sequential cities accumulate in list store; download-all is the enrichment handoff; not a single `lastResult`.
-3. **Learning bar:** Decision events + active rules + (recommended) process-time rule-hit counters feed “Approve/Deny volume falls over time.”
-4. **Accuracy:** Changes stay inside tagger / groups / brain apply / type gate — never “fix accuracy by pushing to Analyze for re-scan.”
-
-## Scaling Considerations
-
-| Scale | Architecture adjustments |
-|-------|---------------------------|
-| Single admin, local/Railway (current) | Monolith shell + file stores; fine. Header user scope OK. |
-| Multi-operator same tenant | Scope keys already isolate lists; brain remains **global** (product). Don’t split brain per user. |
-| Very large city files / many lists | List `rows.json` size + decision POST body (15MB soft debt) — stream/export and decision payload thinning only if operator pain appears. |
-| Multi-tenant SaaS | Out of scope for v2.0 (needs real sessions); independence work should not depend on it. |
-
-### Scaling Priorities
-
-1. **First bottleneck:** Operator time on Train Approve/Deny (learning quality), not HTTP scale.
-2. **Second bottleneck:** Process runtime on large OCR/PDF batches — optimize parsers/tagger only after independence + list UX.
-3. **Third bottleneck:** Decision POST shipping full row arrays — defer unless Train latency hurts.
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Re-coupling “for convenience”
-
-**What people do:** Re-enable `pushRowsToAnalyzer` after process or after Save “so Analyze has the list.”
-**Why it's wrong:** Violates core value (enrich outside; manual import); blurs Filter/Analyze domains; undoes independence milestone.
-**Do this instead:** Save + Download + document manual Analyze import. Keep push deleted/quarantined.
-
-### Anti-Pattern 2: Treating import-filter as “push coupling” to remove
-
-**What people do:** Strip `filterAlreadyImported` to “fully decouple.”
-**Why it's wrong:** That path is **read-only** and prevents re-working leads already in Analyze; product still wants it.
-**Do this instead:** Keep import-filter; label it soft coupling in architecture docs; never write back.
-
-### Anti-Pattern 3: Merging Filter brain with Analyzer learned-brain
-
-**What people do:** Share stores so “one brain rules all.”
-**Why it's wrong:** Different domains (text tags vs vision tiers); v1.6 explicitly separated.
-**Do this instead:** Improve Filter brain metrics/apply only; Analyzer brain stays out of scope.
-
-### Anti-Pattern 4: Accuracy fixes that only work after Analyze import
-
-**What people do:** Defer keep/kill quality to Analyze classification.
-**Why it's wrong:** Re-couples product flow; learning bar is **Filter Train volume**, not Analyze review volume.
-**Do this instead:** Fix tagger/brain/groups so kept lists are trustworthy before download.
-
-### Anti-Pattern 5: Multi-list store rewrite
-
-**What people do:** Replace filesystem list store with DB or Analyzer session-as-lists.
-**Why it's wrong:** Store already matches product (`index` + per-list meta/rows, scope keys, download-all); rewrite burns phase budget.
-**Do this instead:** Elevate UX and any missing meta; keep atomic JSON writes.
-
-### Anti-Pattern 6: Auto-save every process without Train
-
-**What people do:** Persist every process result immediately to lists.
-**Why it's wrong:** Admin may Train-mutate `lastResult` after process; auto-save freezes pre-Train rows or creates junk lists.
-**Do this instead:** Explicit Save after Train (admin) or after process (customer). Optional “Save & next city” CTA is fine; silent auto-save is not.
-
-### Anti-Pattern 7: lastResult multi-city without durable save
-
-**What people do:** Array of in-memory results across cities with no disk.
-**Why it's wrong:** Refresh/reload loses a day’s work; contradicts multi-list store purpose.
-**Do this instead:** One working set + durable multi-list panel.
 
 ## Integration Points
-
-### External Services
-
-| Service | Integration pattern | Notes |
-|---------|---------------------|-------|
-| Property Analyzer | **Read** address index only (`analyzer-import-index` / `/api/import-address-index`) | Soft coupling; keep. **No** Filter write via process. |
-| Property Analyzer bridge-import | Legacy HTTP/disk push via `bridge-analyzer-push.js` | **Not** on process path; delete/quarantine in independence phase. Manual import UI in Analyze remains the product path. |
-| Form Forge | City summaries; attach dataset + response KPI | Independent of Analyze; keep. |
-| External enrich / skip-trace | Offline / third-party after download | Outside codebase; download-all is the handoff. |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| UI ↔ Bridge API | REST JSON / multipart | Same origin shell |
-| API ↔ Engine | In-process function call | `processUpload` / batch |
-| API ↔ List store | In-process | Scope from `X-Phuglee-User` / plan |
-| API ↔ Brain | In-process load/save | Admin gate on writes |
-| Engine ↔ Import index | Async load Set | Force refresh each process |
-| Engine ↔ Brain apply | Pure function | No fs inside apply |
-| List store ↔ Brain | **None** | Save does not train; train does not auto-save |
-| List store ↔ Analyze | **None** | Download is human bridge |
-| Format store ↔ Brain | **None** | Separate roots (v1.8) |
-| Filter brain ↔ Analyzer learned-brain | **None** | Hard domain split |
+| tokens ↔ all CSS | CSS variables | Single write surface for palette/type/glass |
+| phuglee-components ↔ bridge.html | Class names | Dual-class composition; no JS contract |
+| distress-glass ↔ phuglee-panel | Shared tokens + optional dual class | `.phuglee-panel.distress-glass--float` already exists |
+| premium-atmosphere ↔ body | `has-premium-bg` + `.premium-bg` stack | Already on bridge; keep as atmosphere source |
+| bridge.css ↔ bridge.js | Class/id/aria selectors | **Do not rename** ids, `data-action`, `data-mode`, `data-step`, role hooks without JS work (forbidden) |
+| home/auth CSS ↔ Filter | **None (reference only)** | Copy DNA via tokens/components, not `@import` |
 
-### New vs Modified (v2.0 summary)
+### External Services
 
-| Kind | Items |
-|------|--------|
-| **NEW (only if learning bar needs it)** | Process-time rule-hit metrics helper; optional UI “Save & next city” / dirty-working-set guard; independence regression tests |
-| **MODIFY** | `bridge-api.js`, `bridge-engine`, tagger, review-groups, brain-*, list-store (meta only), `bridge.js` / `bridge.html` CTAs, docs (`DATA-STANDARDS`, audit that still list auto-push as a feature) |
-| **DELETE / QUARANTINE** | Process-path use of `pushRowsToAnalyzer`; ideally module + tests that imply push is product behavior |
-| **KEEP AS-IS** | Multi-list filesystem layout; import-filter read path; Forge attach; city format memory; short labels display-only |
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Google Fonts (Anton / Outfit / JetBrains Mono) | `<link>` in HTML head | Already on bridge + home; keep parity |
+| Static images (`home-hero-distressed.jpg`, grain SVG, wear) | CSS `url()` via premium-atmosphere | Already wired; do not re-home into bridge.css |
 
-## Suggested Build Order (phases from 55)
+### New vs Modified Files (explicit)
 
-Dependency rule: **decouple push before list UX elevation; accuracy/learning must not reintroduce Analyze writes.**
+| File | Action | Scope |
+|------|--------|-------|
+| `public/css/tokens.css` | **Modify** | Add missing density/form/table tokens only if shared need is proven |
+| `public/css/phuglee-components.css` | **Modify** | Expand forms, chips (if shared), tables (if shared), polish buttons/panels to home energy |
+| `public/css/distress-glass.css` | **Modify lightly or keep** | Only if elevation primitive missing; prefer reuse |
+| `public/css/bridge.css` | **Modify heavily** | Restyle surfaces; delete duplicate glass; densify ops chrome with tokens |
+| `public/bridge.html` | **Modify lightly** | Add/align `phuglee-*` classes; fix stylesheet order; **no id/role churn** |
+| `public/css/phuglee-a11y.css` | Touch only if needed | Focus/reduced-motion after restyle |
+| `public/css/premium-atmosphere.css` | Keep | Atmosphere already correct class of system |
+| `public/js/bridge*.js` | **Do not modify** for visual system | Function freeze |
+| `lib/**` | **Do not modify** | Function freeze |
+| **New** `public/css/phuglee-forms.css` (optional) | Only if components file bloats | Prefer not |
+| **New** parallel Filter theme sheet | **Do not create** | Cascade debt |
 
-```
-55 Independence lock
-    → 56 List factory UX (Save/Download primary; multi-list workflow)
-        → 57 Accuracy structure pass (tagger / type / groups / process)
-            → 58 Learning loop strength (decisions → rules → fewer Train actions)
-                → 59 Efficiency (runtime + operator time + cross-city reuse)
-                    → 60 Integration QA / regression (no re-couple; verify-live)
-```
+## Build Order for Roadmap Phases
 
-| Phase (suggested) | Goal | Touches | Depends on | Avoids |
-|-------------------|------|---------|------------|--------|
-| **55 — Independence lock** | Prove and harden “Filter never writes Analyze”; remove dead push surface; docs/tests | `bridge-api`, `bridge-analyzer-push` (delete/quarantine), tests, docs, UI copy that still implies push | Nothing | List redesign, accuracy rewrites |
-| **56 — List factory UX** | Make multi-list Save/Download the hero path; working-set hygiene after process/Train; sequential city day workflow | `bridge.js`, `bridge.html`, minor `bridge-list-store` / list API if gaps | 55 (so Save isn’t “instead of push” half-done) | Brain algorithm changes; Analyze features |
-| **57 — Accuracy structure** | Keep/kill, Type/format, grouping correctness so first-pass lists need less Train | tagger, review-groups, normalizer/type gate, engine only | 55 (boundary clear); 56 optional but preferred so correct rows land in lists | Any Analyze write; brain store schema churn unless required |
-| **58 — Learning loop** | Stronger decision→rule→apply so Approve/Deny volume falls; metrics for the bar | brain-decisions, brain-apply, phrase-miner, brain-store metrics, Train UI | 57 (train against better groups/types) | Push; list store rewrite |
-| **59 — Efficiency** | Operator time, process duration, cross-city reuse (format memory, batch) | engine perf, format reuse UX, Train batching | 57–58 for meaningful “reuse” | New product modules |
-| **60 — QA lock** | processUpload e2e + list e2e + “no push require” + verify-live | tests, `scripts/verify-live.ps1` | 55–59 | New features |
-
-**Ordering rationale:**
-
-1. **Independence first** — product definition of done for v2.0; prevents later phases from “temporarily” calling push.
-2. **Lists second** — store/API already exist; UX elevation is the real gap (primary CTA, multi-city day). Doing this before deep accuracy means operators can stage correct-enough lists immediately.
-3. **Accuracy before learning strength** — bad groups/types poison rules; fix structure then reinforce brain.
-4. **Learning before pure perf** — success metric is fewer Approve/Deny actions; runtime secondary.
-5. **QA last** — regression suite must include independence invariants forever.
-
-**Research flags for later phase digs:**
-
-- Phase 55: Inventory all references to push (docs, GSD-AUDIT, tests) — mostly mechanical.
-- Phase 56: Whether dirty-guard / “Save & next” needs design research (UX), not architecture rewrite.
-- Phase 57–58: Likely need deeper per-topic research (tagger false positives, phrase activation rates, learning metrics schema).
-- Phase 59: Profile processUpload duration only after accuracy freezes.
-
-## processUpload stage diagram (v2.0 target — same skeleton)
+Dependency order is non-negotiable. Later phases assume earlier layers are stable.
 
 ```
-buffer + filename + city + uploadType + user scope
-        │
-        ▼
-   [parse tabular | document/OCR]
-        │
-        ▼
-   [type column gate + city format memory]     ← v1.8; accuracy-only tweaks
-        │
-        ▼
-   normalizeRawRows ── tagRow (base distress)
-        │
-        ▼
-   dedupeRows (within file / batch merge)
-        │
-        ▼
-   loadImportAddressIndex (Analyze READ)       ← soft coupling KEEP
-        │
-        ▼
-   filterAlreadyImported
-        │
-        ▼
-   applyBrainToRows (global brain)             ← learning path
-        │
-        ▼
-   filterDistressOnly (code violations)
-        │
-        ▼
-   assignRowIds → buildReviewGroups
-        │
-        ▼
-   { rows, notDistressedRows, reviewGroups, stats, processingMeta }
-        │
-        ✗  NO pushRowsToAnalyzer
-        │
-        ▼
-   [UI lastResult] → Train? → POST /lists → download → external → manual Analyze
+1. Tokens foundation
+       ↓
+2. Shared components expansion
+       ↓
+3. Cascade order + markup hooks
+       ↓
+4. Bridge application (layout-preserving restyle)
+       ↓
+5. Surface-by-surface theater polish
+       ↓
+6. Visual QA lock (no process tests rewrite beyond smoke)
 ```
 
-## Confidence Assessment
+| Phase | Name | Depends on | Deliverables | Avoids |
+|-------|------|------------|--------------|--------|
+| **A** | Token audit & gaps | — | Inventory home vs Filter token usage; add only missing shared vars; document aliases | Inventing a second palette |
+| **B** | Shared components | A | Upgrade `phuglee-components` (buttons/panels/forms/empty) to home-grade; expand select/input | Filter-only hacks in shared file |
+| **C** | Cascade + hooks | A, B | Flip load order to components→bridge; add `phuglee-select`/`phuglee-input` classes in HTML | Renaming JS-bound ids |
+| **D** | Bridge restyle core | B, C | Strip duplicate glass from `.bridge-panel*`; hero/desk/dropzone/process CTA parity | Structural HTML rewrite |
+| **E** | Theater surfaces | D | Kill report, feed, Train, lists, victory, dossier — still CSS/markup only | Promoting theater to shared |
+| **F** | QA | E | 390 + 1440 visual, reduced-motion, contrast, `verify-live`, full suite green | “Looks fine on my laptop” only |
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Process has no auto-push today | HIGH | `handleProcess` comment + no require of push module in process path |
-| Multi-list store exists | HIGH | `bridge-list-store.js` + full lists API + UI panel |
-| Soft Analyze read coupling | HIGH | `import-filter` + `analyzer-import-index` every process |
-| Brain learning plug-in points | HIGH | apply → decisions → phrase miner verified |
-| UX gap vs greenfield lists | MEDIUM | Store done; product elevation is UI/workflow, not new persistence |
-| Exact phase count 55–60 | MEDIUM | Suggested for roadmapper; may compress 59/60 |
+**Phase ordering rationale:**
+1. **Tokens first** — every later rule should read variables; changing tokens after component polish causes thrash.
+2. **Shared components before Filter application** — Filter should *consume* the system, not invent one-off CTAs that later get copy-pasted to shared.
+3. **Cascade/hooks before mass restyle** — wrong load order makes “why didn’t my override win?” debugging dominate the milestone.
+4. **Core desk before theater chrome** — operators live in city + dropzone + process; victory/Train are secondary surfaces.
+5. **QA last** — visual lock after surfaces stabilize; suite remains the function freeze bar (no intentional behavior change).
+
+**Research flags:**
+- Phase A: Low research — tokens already rich; mostly inventory.
+- Phase B: Medium — form control styling across browsers (native `<select>` limits).
+- Phase C: Low research, high care — cascade flip regression risk.
+- Phase D–E: Low research — execution against existing structure.
+- Phase F: Standard patterns (Playwright widths already used in prior milestones).
+
+## Scaling Considerations
+
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| Filter-only (this milestone) | Extend tokens + phuglee-components; restyle bridge.css |
+| Site-wide later (Collect, Vault, Hub, Heat) | Reuse Layer 0–1 unchanged; each page sheet becomes a thin composition layer |
+| Design drift at 5+ pages | Add a short `docs/brand/PHUGLEE-SYSTEM.md` inventory of primitives — still no bundler |
+
+### Scaling Priorities
+
+1. **First bottleneck:** `bridge.css` size + duplicated glass rules → fix by promotion + deletion, not by splitting into 10 Filter partials without a shared system.
+2. **Second bottleneck:** Unstyled native form controls after button pass → expand shared form primitives early (Phase B).
+3. **Non-bottleneck:** CSS file count / HTTP — local + Railway static serve is fine; do not introduce a CSS pipeline for this milestone.
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Parallel Theme Sheet
+
+**What people do:** Add `bridge-makeover.css` loaded after everything “just for v3”.
+**Why it's wrong:** Permanent cascade debt; next milestone adds `bridge-makeover-2.css`.
+**Do this instead:** Modify `tokens` / `phuglee-components` / `bridge.css` in place; bump `?v=` cache query.
+
+### Anti-Pattern 2: Import Home CSS on Filter
+
+**What people do:** `<link href="/css/home.css">` to “get the badass look.”
+**Why it's wrong:** Homepage layout, chronicle, map preview, and marketing selectors leak; specificity wars; dead weight.
+**Do this instead:** Treat home as visual reference; port DNA into tokens + shared components.
+
+### Anti-Pattern 3: Hardcoded Palette in bridge.css
+
+**What people do:** Re-declare `rgba(229, 132, 53, …)` and custom shadows on every Filter widget.
+**Why it's wrong:** Light theme and future brand tweaks miss half the page; file bloats.
+**Do this instead:** `var(--phuglee-orange)`, `var(--glass-shadow-float)`, `var(--shadow-cta)`.
+
+### Anti-Pattern 4: Restyle via JavaScript
+
+**What people do:** Inject styles, rebuild DOM for “prettier” chips, swap class names JS depends on.
+**Why it's wrong:** Breaks function freeze; flaky Train/process selectors; out of scope for v3.0.
+**Do this instead:** CSS + additive HTML classes only; preserve ids/`data-*`/roles.
+
+### Anti-Pattern 5: Promote Theater to Shared
+
+**What people do:** Move `.bridge-kill-report` into `phuglee-components` “for the system.”
+**Why it's wrong:** Shared layer becomes Filter dump; other pages never use it; system loses meaning.
+**Do this instead:** Shared = reusable controls. Theater = `bridge.css`.
+
+### Anti-Pattern 6: Equal-Card Marketing Layout on Ops Desk
+
+**What people do:** Force home-style large marketing cards onto dense Train/lists HUD.
+**Why it's wrong:** v2.1/v2.2 already learned asymmetric ops density; marketing lift on every row kills scan speed.
+**Do this instead:** Home energy on hero/CTAs/panels; keep dense ops chrome for tables, chips, Train.
+
+### Anti-Pattern 7: Rename Classes JS Selects
+
+**What people do:** Rename `.bridge-mode-tab` or strip `id="bridge-process"` for cleaner BEM.
+**Why it's wrong:** Silent behavior regressions; suite may not cover every DOM query.
+**Do this instead:** Additive classes; if a class must go, grep `public/js/bridge*.js` first — and still prefer not.
+
+## Current Cascade Snapshot (as-built 2026-07-11)
+
+### `/bridge` (authenticated Filter)
+
+```
+tokens → distress-glass → heat-base → heat-atmosphere → premium-atmosphere
+→ premium-components → shell → shell-nav → settings-menu → command-palette
+→ distress-status → bridge.css → phuglee-components → phuglee-a11y
+```
+
+**Issue:** page sheet before shared components (inverted composition). Fix in Phase C.
+
+### `/` (home — north star)
+
+```
+tokens → heat-base → heat-atmosphere → heat-components → distress-glass
+→ distress-heat-v2 → landing → home → home-chronicle → home-ui-preview
+→ home-premium → coverage-dock → auth → phuglee-components → phuglee-a11y
+```
+
+**Note:** Home does not use shell/premium-atmosphere the same way; atmosphere is embedded in home layers. Filter correctly uses premium-atmosphere for the app-shell photo stack — keep that split.
+
+### Already-good integration (do not undo)
+
+- CTAs largely on `phuglee-btn` / `phuglee-btn-primary|secondary` (DESK-06 killed dead `.bridge-btn*`).
+- Major panels dual-class: `bridge-panel phuglee-panel`.
+- Pattern bg on main: `phuglee-pattern-bg phuglee-pattern-bg--subtle`.
+- Dialogs use `phuglee-panel distress-glass--float`.
+- Body atmosphere: `has-premium-bg` + `.premium-bg`.
+
+### Gaps the makeover must close
+
+| Gap | Evidence | Fix layer |
+|-----|----------|-----------|
+| Raw selects/inputs | `#bridge-state` / `#bridge-city` lack `phuglee-select` | HTML hooks + shared forms |
+| Local glass re-declarations | `.bridge-panel.phuglee-panel` re-sets blur/shadow; pipeline steps hand-roll glass | bridge.css dedupe → tokens |
+| Hero not home-grade | `.bridge-title` forces cream solid, strips gradient clip | bridge.css type hierarchy |
+| Cascade inversion | bridge before phuglee-components | link order |
+| Domain widgets still “pre-home” | kill HUD, chips, feed, Train — v2.1 theater without full home energy | bridge.css Phase E |
 
 ## Sources
 
-- Code (2026-07-10): `lib/bridge-api.js`, `lib/bridge-engine/index.js`, `lib/bridge-list-store.js`, `lib/bridge-analyzer-push.js`, `lib/bridge-brain-*.js`, `public/js/bridge.js`, `public/bridge.html`
-- Product: `.planning/PROJECT.md` (v2.0 goals, out of scope auto-push), `.planning/STATE.md`
-- Prior architecture: `.planning/codebase/ARCHITECTURE.md` (2026-07-09)
-- Docs: `docs/bridge/DATA-STANDARDS.md` (Filter saved lists; no auto-push), `docs/bridge/API.md`
-- Prior milestone research: `.planning/research/ARCHITECTURE.md` (v1.8 Type Column — superseded by this file for roadmap focus)
+- `public/bridge.html` — CSS includes + dual-class markup (verified 2026-07-11)
+- `public/index.html` — home north-star includes
+- `public/css/tokens.css` — full token surface including glass + light theme
+- `public/css/distress-glass.css` — elevation primitives inventory
+- `public/css/phuglee-components.css` — shared component API inventory
+- `public/css/bridge.css` — section map (~85KB, 40+ theater/layout sections)
+- `public/css/premium-atmosphere.css` — photo/grain stack
+- `.planning/PROJECT.md` — v3.0 goal: CSS/markup only, home as north star, shared system for later site-wide
+- Prior shipped visual work: v1.3 tokens, v2.1 scrub theater, v2.2 desk cinema (layout constraints to preserve)
 
 ---
-*Architecture research for: Filter Independence & Learning (v2.0)*
-*Researched: 2026-07-10*
-*Feeds roadmap phases starting at 55; do not commit from researcher — orchestrator commits*
-```
+*Architecture research for: Filter visual makeover (v3.0) — CSS system integration*
+*Researched: 2026-07-11*
+*Supersedes prior `.planning/research/ARCHITECTURE.md` content scoped to v2.0 product/engine seams*
