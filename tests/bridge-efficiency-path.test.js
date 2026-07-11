@@ -69,18 +69,18 @@ test('EFF-01 polish: Format reused operator chip string in bridge.js', () => {
   assert.match(js, /Format reused/);
 });
 
-test('EFF-01 polish: post-save Download this list flash affordance', () => {
-  // Plan 02: one-click flash download after save, wired to downloadSavedList
-  assert.match(js, /Download this list/);
-  const hasFlashId = /bridge-flash-download/.test(js);
-  const hasFlashAction = /data-action="flash-download"/.test(js);
-  assert.ok(
-    hasFlashId || hasFlashAction,
-    'bridge.js must expose bridge-flash-download id or data-action="flash-download" for post-save download'
+test('EFF-01 polish: post-save Scanned toast confirmation', () => {
+  // Plan 02 evolved: big “Scanned” toast instead of long staged teaching flash
+  assert.match(js, /function showScannedToast\s*\(/);
+  assert.match(js, /bridge-scanned-toast/);
+  assert.match(js, /Scanned/);
+  assert.equal(
+    /Staged .*Filter reset/i.test(js),
+    false,
+    'must not show long Staged / Filter reset teaching flash'
   );
   // Post-save session is fully reset so next city cannot inherit prior city/type/results
   assert.match(js, /selectedCity\s*=\s*null/);
-  assert.match(js, /Filter reset|pick the next city/i);
 });
 
 // ---------------------------------------------------------------------------

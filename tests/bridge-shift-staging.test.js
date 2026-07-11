@@ -114,19 +114,23 @@ test('SHIFT-03: .bridge-list-status--downloaded is not green SaaS', () => {
   );
 });
 
-test('SHIFT-03 / EFF carry: Download this list flash CTA still present', () => {
-  assert.match(js, /Download this list/);
-  const hasFlashId = /bridge-flash-download/.test(js);
-  const hasFlashAction = /data-action="flash-download"|dataset\.action\s*=\s*['"]flash-download['"]/.test(js);
-  assert.ok(
-    hasFlashId || hasFlashAction,
-    'bridge.js must expose bridge-flash-download id or flash-download action'
-  );
+test('SHIFT-03 / EFF carry: Scanned toast after stage', () => {
+  assert.match(js, /function showScannedToast\s*\(/);
+  assert.match(js, /bridge-scanned-toast/);
+  assert.match(js, /Scanned/);
 });
 
-test('SHIFT-03: flash teaching keeps pick-next-city + Saved lists enrichment anchors', () => {
-  assert.match(js, /pick the next city|Filter reset/i);
-  assert.match(js, /download from Saved lists for enrichment/);
+test('SHIFT-03: no long staged teaching flash after save', () => {
+  assert.equal(
+    /Staged .*Filter reset/i.test(js),
+    false,
+    'must not show Staged / Filter reset teaching flash'
+  );
+  assert.equal(
+    /download from Saved lists for enrichment/i.test(js),
+    false,
+    'must not show enrichment teaching flash on stage'
+  );
 });
 
 test('SHIFT-03 carry: resetImportAreaAfterSave clears working set and never auto-downloads', () => {

@@ -2697,6 +2697,54 @@
     if (tone) saveStatus.classList.add(`is-${tone}`);
   }
 
+  /** Timer for fade-out of the Scanned toast */
+  let scannedToastTimer = null;
+  let scannedToastHideTimer = null;
+
+  /**
+   * Quick professional confirmation after list stage / auto-save.
+   * Big centered “Scanned” — appears, holds briefly, fades out.
+   */
+  function showScannedToast() {
+    let toast = document.getElementById('bridge-scanned-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'bridge-scanned-toast';
+      toast.className = 'bridge-scanned-toast';
+      toast.setAttribute('role', 'status');
+      toast.setAttribute('aria-live', 'polite');
+      toast.innerHTML =
+        '<div class="bridge-scanned-toast-card">' +
+        '<span class="bridge-scanned-toast-word">Scanned</span>' +
+        '</div>';
+      document.body.appendChild(toast);
+    }
+    if (scannedToastTimer) {
+      window.clearTimeout(scannedToastTimer);
+      scannedToastTimer = null;
+    }
+    if (scannedToastHideTimer) {
+      window.clearTimeout(scannedToastHideTimer);
+      scannedToastHideTimer = null;
+    }
+    toast.hidden = false;
+    toast.classList.remove('is-out');
+    // Force reflow so re-trigger restarts animation
+    void toast.offsetWidth;
+    toast.classList.add('is-in');
+    // Hold ~0.7s, then fade (~0.35s) — total under ~1.2s
+    scannedToastTimer = window.setTimeout(() => {
+      toast.classList.remove('is-in');
+      toast.classList.add('is-out');
+      scannedToastHideTimer = window.setTimeout(() => {
+        toast.hidden = true;
+        toast.classList.remove('is-out');
+        scannedToastHideTimer = null;
+      }, 360);
+      scannedToastTimer = null;
+    }, 720);
+  }
+
   function defaultNameFromResult(data) {
     if (!data) return '';
     const typeLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
@@ -3363,42 +3411,8 @@
     setPipelineStep('location');
     showError('');
 
-    // Secondary flash on staging inventory
-    const listsPanel = document.getElementById('bridge-lists-panel');
-    if (listsPanel) {
-      let flash = document.getElementById('bridge-lists-flash');
-      if (!flash) {
-        flash = document.createElement('div');
-        flash.id = 'bridge-lists-flash';
-        flash.className = 'bridge-lists-flash';
-        flash.setAttribute('role', 'status');
-        const lead = listsPanel.querySelector('.bridge-panel-lead');
-        if (lead) lead.insertAdjacentElement('afterend', flash);
-        else listsPanel.prepend(flash);
-      }
-      flash.textContent = '';
-      const teaching = document.createElement('span');
-      teaching.className = 'bridge-lists-flash-text';
-      teaching.textContent = savedLabel
-        ? `Staged “${savedLabel}”. Filter reset — pick the next city, or download from Saved lists for enrichment.`
-        : 'List staged. Filter reset — pick the next city, or download from Saved lists for enrichment.';
-      flash.appendChild(teaching);
-      if (savedListId) {
-        const dlBtn = document.createElement('button');
-        dlBtn.type = 'button';
-        dlBtn.id = 'bridge-flash-download-csv';
-        dlBtn.className = 'bridge-flash-download bridge-list-action';
-        dlBtn.dataset.action = 'flash-download';
-        dlBtn.dataset.listId = String(savedListId);
-        dlBtn.dataset.format = 'csv';
-        dlBtn.textContent = 'Download this list (CSV)';
-        flash.appendChild(dlBtn);
-      }
-      flash.hidden = false;
-      window.setTimeout(() => {
-        if (flash) flash.hidden = true;
-      }, 10000);
-    }
+    // Brief professional toast — replaces long “Staged … Filter reset” flash
+    showScannedToast();
 
     // Phase 73: hero victory (stays until next scrub / Scrub next city)
     showVictoryStrip({

@@ -2135,6 +2135,7 @@ button.bridge-inventory-filter-chip.is-active {
   color: var(--phuglee-cream, #f5f0e8);
 }
 
+/* Legacy inventory flash shell (kept for token tests; no longer used for stage copy) */
 .bridge-lists-flash {
   display: flex;
   flex-direction: column;
@@ -2154,7 +2155,6 @@ button.bridge-inventory-filter-chip.is-active {
   line-height: 1.45;
 }
 
-/* One-click CSV for the list just saved — heat-adjacent secondary, not primary orange */
 .bridge-flash-download {
   margin-top: 0;
   color: var(--phuglee-cream, #f0e6d0);
@@ -2166,6 +2166,78 @@ button.bridge-inventory-filter-chip.is-active {
 .bridge-flash-download:hover {
   border-color: rgba(238, 183, 70, 0.7);
   color: var(--phuglee-gold, #eeb746);
+}
+
+/* Quick professional “Scanned” confirmation after stage / auto-save */
+.bridge-scanned-toast {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  background: rgba(6, 5, 4, 0.28);
+  opacity: 0;
+  transition: opacity 0.32s ease;
+}
+
+.bridge-scanned-toast[hidden] {
+  display: none !important;
+}
+
+.bridge-scanned-toast.is-in {
+  opacity: 1;
+}
+
+.bridge-scanned-toast.is-out {
+  opacity: 0;
+}
+
+.bridge-scanned-toast-card {
+  padding: 1.35rem 2.75rem;
+  border-radius: 14px;
+  border: 1px solid rgba(238, 183, 70, 0.42);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, transparent 45%),
+    rgba(18, 14, 10, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 18px 48px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(229, 132, 53, 0.12);
+  transform: scale(0.94) translateY(6px);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bridge-scanned-toast.is-in .bridge-scanned-toast-card {
+  transform: scale(1) translateY(0);
+}
+
+.bridge-scanned-toast.is-out .bridge-scanned-toast-card {
+  transform: scale(0.98) translateY(-4px);
+}
+
+.bridge-scanned-toast-word {
+  display: block;
+  font-family: var(--font-display, "Anton", system-ui, sans-serif);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream, #f5efe4);
+  text-shadow: 0 2px 18px rgba(229, 132, 53, 0.35);
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bridge-scanned-toast,
+  .bridge-scanned-toast-card {
+    transition: opacity 0.15s ease;
+  }
+
+  .bridge-scanned-toast-card {
+    transform: none;
+  }
 }
 
 /* SHIFT-01: sticky session shift queue — this sitting only (not durable inventory) */
