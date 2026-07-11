@@ -223,6 +223,26 @@ Human layout/motion gate: `.planning/phases/68-regression-qa-lock/68-QA-CHECKLIS
 
 ---
 
+## P. v3.0 DESK-05 contract freeze (Phase 75)
+
+> Locks Filter DOM contracts so visual makeover phases cannot rename `bridge-*` IDs or churn `data-action` / `data-mode` / `data-format` / `data-step`.  
+> Product HTML/JS is **not** changed by this suite — it freezes the shipped spine.  
+> Complementary locks (still required): `tests/bridge-desk-cinema.test.js`, `tests/bridge-train-theater.test.js`.
+
+| ID | Case | Expected | Auto |
+|----|------|----------|------|
+| DESK-05 | Critical scrub-path IDs + train fail-closed + data-mode/format/step + radios | Static greps green on `bridge.html` / `bridge.js` / `bridge-train.js` | ✓ `tests/bridge-contract-freeze.test.js` |
+| DESK-05 | Written freeze checklist (full ID inventory + restyle bans) | Human bible present | ✓ `docs/bridge/CONTRACT-FREEZE.md` |
+| DESK-05 | Cinema/theater structure remains complementary | Mission surface, victory slogans, no Analyze push CTAs | ✓ desk-cinema + train-theater (not reimplemented here) |
+
+```bash
+node --test tests/bridge-contract-freeze.test.js
+node --test tests/bridge-desk-cinema.test.js tests/bridge-train-theater.test.js
+npm test
+```
+
+---
+
 ## Execution order (GSD verify loop)
 
 1. `npm test` — distress-os (all bridge + regression)
