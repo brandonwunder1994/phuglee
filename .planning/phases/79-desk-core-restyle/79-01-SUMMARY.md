@@ -76,7 +76,7 @@ Each task was committed atomically:
 1. **Task 1 + 2: Elevation map + desk chrome restyle** - `4b2bd6e` (feat)
 2. **Verify unblock: TYPE-71 dual-class cinema assertion** - `a8f2314` (test)
 
-**Plan metadata:** _(pending docs commit)_
+**Plan metadata:** `4a4e7ad` (docs: complete plan)
 
 ## Files Created/Modified
 
