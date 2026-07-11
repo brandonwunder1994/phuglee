@@ -78,7 +78,7 @@ Each task was committed atomically:
 
 _Note: Both tasks edit the same two files (`phuglee-components.css`, `bridge.html`); shipped as a single atomic feat commit (same pattern as 77-01)._
 
-**Plan metadata:** _(pending docs commit)_
+**Plan metadata:** `34600d7` (docs: complete plan)
 
 ## Files Created/Modified
 
