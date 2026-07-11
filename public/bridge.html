@@ -27,8 +27,8 @@
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/bridge.css?v=45">
-  <link rel="stylesheet" href="/css/phuglee-components.css?v=glass4">
+  <link rel="stylesheet" href="/css/phuglee-components.css?v=glass5">
+  <link rel="stylesheet" href="/css/bridge.css?v=46">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -91,7 +91,7 @@
           <input
             type="search"
             id="bridge-city-search"
-            class="bridge-city-search"
+            class="bridge-city-search phuglee-input"
             placeholder="Start typing a city… e.g. Marana"
             autocomplete="off"
             spellcheck="false"
@@ -110,12 +110,12 @@
       </div>
       <div class="bridge-row">
         <label for="bridge-state">State
-          <select id="bridge-state" disabled>
+          <select id="bridge-state" class="phuglee-select" disabled>
             <option value="">Loading states…</option>
           </select>
         </label>
         <label for="bridge-city">City
-          <select id="bridge-city" disabled>
+          <select id="bridge-city" class="phuglee-select" disabled>
             <option value="">Select a state first</option>
           </select>
         </label>
@@ -199,12 +199,12 @@
           <div class="bridge-other-source-wrap" id="bridge-other-source-wrap" hidden>
             <label for="bridge-other-source-notes">
               <span id="bridge-outcome-notes-label">Who / where to contact</span>
-              <textarea id="bridge-other-source-notes" rows="3" placeholder="e.g. Code Enforcement · (555) 123-4567 · ask for Jane · portal.city.gov/foia"></textarea>
+              <textarea id="bridge-other-source-notes" class="phuglee-textarea" rows="3" placeholder="e.g. Code Enforcement · (555) 123-4567 · ask for Jane · portal.city.gov/foia"></textarea>
             </label>
           </div>
           <div class="bridge-row bridge-outcome-meta">
             <label for="bridge-outcome-type">Request type
-              <select id="bridge-outcome-type">
+              <select id="bridge-outcome-type" class="phuglee-select">
                 <option value="code_violation">Code violation</option>
                 <option value="water_shutoff">Water shutoff</option>
               </select>
@@ -258,7 +258,7 @@
             <span class="visually-hidden">Paste tabular text</span>
             <textarea
               id="bridge-paste-text"
-              class="bridge-paste-textarea"
+              class="bridge-paste-textarea phuglee-textarea"
               rows="10"
               spellcheck="false"
               placeholder="Paste tab- or comma-separated rows here…&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
@@ -322,7 +322,7 @@
         <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
         <div class="bridge-save-row">
           <label class="bridge-save-name" for="bridge-list-name">List name
-            <input type="text" id="bridge-list-name" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
+            <input type="text" id="bridge-list-name" class="phuglee-input" maxlength="120" placeholder="e.g. Marana · Code Violation · Jul 9" autocomplete="off" />
           </label>
           <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-save-list">Save list</button>
         </div>
@@ -354,7 +354,7 @@
           <div class="bridge-train-toolbar" id="bridge-train-toolbar">
             <label class="bridge-toolbar-search">
               <span class="bridge-sr-only">Filter train groups</span>
-              <input type="search" id="bridge-train-search" placeholder="Search violation type…" autocomplete="off" />
+              <input type="search" id="bridge-train-search" class="phuglee-input" placeholder="Search violation type…" autocomplete="off" />
             </label>
             <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-train-undo" disabled title="Undo last training decision">↩️ Undo</button>
           </div>
@@ -399,23 +399,23 @@
       <div class="bridge-results-toolbar" id="bridge-results-toolbar" hidden>
         <label class="bridge-toolbar-search">
           <span class="bridge-sr-only">Filter records</span>
-          <input type="search" id="bridge-filter-search" placeholder="Filter by address, issue, category, or tag…" autocomplete="off" />
+          <input type="search" id="bridge-filter-search" class="phuglee-input" placeholder="Filter by address, issue, category, or tag…" autocomplete="off" />
         </label>
         <label class="bridge-toolbar-field">
           <span>Category</span>
-          <select id="bridge-filter-category">
+          <select id="bridge-filter-category" class="phuglee-select">
             <option value="">All categories</option>
           </select>
         </label>
         <label class="bridge-toolbar-field">
           <span>Tag</span>
-          <select id="bridge-filter-tag">
+          <select id="bridge-filter-tag" class="phuglee-select">
             <option value="">All tags</option>
           </select>
         </label>
         <label class="bridge-toolbar-field">
           <span>Confidence</span>
-          <select id="bridge-filter-confidence">
+          <select id="bridge-filter-confidence" class="phuglee-select">
             <option value="">All levels</option>
             <option value="high">High</option>
             <option value="medium">Medium</option>
