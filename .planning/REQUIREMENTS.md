@@ -54,9 +54,9 @@ Requirements for this milestone only. Each maps to exactly one roadmap phase.
 
 ### Regression & quality (QA)
 
-- [ ] **QA-01**: All Filter independence / accuracy / brain / processUpload locks from v1.6–v2.0 stay green (`npm test`)
-- [ ] **QA-02**: `scripts/verify-live.ps1` exit 0 after milestone work; `/bridge` health + homepage 200
-- [ ] **QA-03**: Mobile 390 + desktop 1440: no horizontal overflow; primary CTAs ≥ 44px; reduced-motion paths verified for FEED/KILL/THTR motion
+- [x] **QA-01**: All Filter independence / accuracy / brain / processUpload locks from v1.6–v2.0 stay green (`npm test`)
+- [x] **QA-02**: `scripts/verify-live.ps1` exit 0 after milestone work; `/bridge` health + homepage 200
+- [x] **QA-03**: Mobile 390 + desktop 1440: no horizontal overflow; primary CTAs ≥ 44px; reduced-motion paths verified for FEED/KILL/THTR motion
 
 ## Future Requirements (deferred)
 
@@ -128,9 +128,9 @@ Every requirement maps to exactly one phase (roadmapper 2026-07-10).
 | SHIFT-01 | 67 | Complete |
 | SHIFT-02 | 67 | Complete |
 | SHIFT-03 | 67 | Complete |
-| QA-01 | 68 | Pending |
-| QA-02 | 68 | Pending |
-| QA-03 | 68 | Pending |
+| QA-01 | 68 | Complete |
+| QA-02 | 68 | Complete |
+| QA-03 | 68 | Complete |
 
 **Coverage:**
 - v2.1 requirements: **24** total
