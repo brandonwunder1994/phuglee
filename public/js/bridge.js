@@ -1918,7 +1918,7 @@
 
   /**
    * FEED-01/02: stage real process outcomes after /api/bridge/process returns.
-   * Client-staged only — no EventSource / SSE / fake addresses.
+   * Client-staged only — no server-push stream / SSE / fake addresses.
    */
   async function playScrubFeedFromProcess(data) {
     const feedEl = document.getElementById('bridge-scrub-feed');

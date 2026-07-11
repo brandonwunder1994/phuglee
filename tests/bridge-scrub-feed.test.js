@@ -269,3 +269,75 @@ test('formatScrubFeedSummary honesty when alreadyImported is 0', () => {
   });
   assert.match(withImport, /Already in Analyze 3/);
 });
+
+// --- Plan 02: static DOM / source contracts (FEED-01 mount + FEED-02 reduced-motion wiring) ---
+
+const BRIDGE_HTML = path.join(ROOT, 'public', 'bridge.html');
+const BRIDGE_JS = path.join(ROOT, 'public', 'js', 'bridge.js');
+const BRIDGE_CSS = path.join(ROOT, 'public', 'css', 'bridge.css');
+
+test('FEED-01: bridge.html mounts #bridge-scrub-feed and #bridge-scrub-feed-summary in loading panel', () => {
+  const html = fs.readFileSync(BRIDGE_HTML, 'utf8');
+  assert.ok(html.includes('id="bridge-loading-panel"'), 'loading panel present');
+  assert.ok(html.includes('id="bridge-scrub-feed"'), 'feed list mount id');
+  assert.ok(html.includes('id="bridge-scrub-feed-summary"'), 'feed summary mount id');
+  assert.ok(html.includes('id="bridge-process"'), 'process hook preserved (D5)');
+
+  const panelIdx = html.indexOf('id="bridge-loading-panel"');
+  const feedIdx = html.indexOf('id="bridge-scrub-feed"');
+  const summaryIdx = html.indexOf('id="bridge-scrub-feed-summary"');
+  const panelEnd = html.indexOf('</section>', panelIdx);
+  assert.ok(panelIdx !== -1 && feedIdx > panelIdx && feedIdx < panelEnd, 'feed inside loading panel');
+  assert.ok(summaryIdx > panelIdx && summaryIdx < panelEnd, 'summary inside loading panel');
+});
+
+test('FEED-01: bridge-scrub-feed.js script loads before bridge.js', () => {
+  const html = fs.readFileSync(BRIDGE_HTML, 'utf8');
+  assert.ok(html.includes('bridge-scrub-feed.js'), 'includes bridge-scrub-feed.js');
+  const feedScript = html.indexOf('bridge-scrub-feed.js');
+  const bridgeScript = html.indexOf('/js/bridge.js');
+  assert.ok(feedScript !== -1 && bridgeScript !== -1, 'both scripts present');
+  assert.ok(feedScript < bridgeScript, 'scrub feed helper before bridge.js');
+});
+
+test('FEED-01: bridge.js wires BridgeScrubFeed play before renderResults on process success', () => {
+  const js = fs.readFileSync(BRIDGE_JS, 'utf8');
+  assert.ok(/BridgeScrubFeed|buildScrubFeedEvents/.test(js), 'calls BridgeScrubFeed / buildScrubFeedEvents');
+  assert.ok(/playScrubFeedFromProcess/.test(js), 'playScrubFeedFromProcess helper');
+
+  const procIdx = js.indexOf('async function processUpload');
+  assert.ok(procIdx !== -1, 'processUpload present');
+  // Success path chunk: feed play must precede renderResults(data)
+  const chunk = js.slice(procIdx, procIdx + 12000);
+  const feed = chunk.search(/playScrubFeedFromProcess|buildScrubFeedEvents|BridgeScrubFeed/);
+  const render = chunk.indexOf('renderResults(data)');
+  assert.ok(feed !== -1, 'feed wiring inside processUpload');
+  assert.ok(render !== -1, 'renderResults(data) inside processUpload');
+  assert.ok(feed < render, 'staged feed before renderResults(data)');
+});
+
+test('FEED-02: bridge.js gates staged play via prefers-reduced-motion: reduce', () => {
+  const js = fs.readFileSync(BRIDGE_JS, 'utf8');
+  assert.match(js, /prefers-reduced-motion:\s*reduce/);
+  assert.ok(/matchMedia/.test(js), 'uses matchMedia for reduced-motion gate');
+});
+
+test('FEED-02: bridge.css styles scrub feed and disables motion under reduced-motion', () => {
+  const css = fs.readFileSync(BRIDGE_CSS, 'utf8');
+  assert.ok(css.includes('.bridge-scrub-feed'), 'feed list class');
+  assert.ok(css.includes('.bridge-scrub-feed-item'), 'feed item class');
+  assert.ok(css.includes('prefers-reduced-motion'), 'reduced-motion media query');
+  assert.ok(
+    /is-kept|is-no-distress|is-discarded|is-already-in-analyze/.test(css),
+    'status modifier classes present'
+  );
+});
+
+test('FEED-01/02: no EventSource or SSE streaming in feed modules', () => {
+  const helper = fs.readFileSync(HELPER_JS, 'utf8');
+  const js = fs.readFileSync(BRIDGE_JS, 'utf8');
+  assert.ok(!/EventSource/.test(helper), 'helper bans EventSource');
+  assert.ok(!/text\/event-stream/.test(helper), 'helper bans text/event-stream');
+  assert.ok(!/EventSource/.test(js), 'bridge.js bans EventSource');
+  assert.ok(!/text\/event-stream/.test(js), 'bridge.js bans text/event-stream');
+});
