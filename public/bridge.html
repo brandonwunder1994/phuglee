@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
   <link rel="stylesheet" href="/css/phuglee-components.css?v=glass5">
-  <link rel="stylesheet" href="/css/bridge.css?v=47">
+  <link rel="stylesheet" href="/css/bridge.css?v=48">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -58,7 +58,7 @@
     </header>
 
     <!-- Phase 73: war-room victory (shown after Stage list) -->
-    <div id="bridge-victory-strip" class="bridge-victory-strip" hidden role="status" aria-live="polite">
+    <div id="bridge-victory-strip" class="bridge-victory-strip bridge-elev--featured" hidden role="status" aria-live="polite">
       <div class="bridge-victory-main">
         <p class="bridge-victory-title" id="bridge-victory-title">DELETE THE JUNK</p>
         <p class="bridge-victory-meta" id="bridge-victory-meta"></p>
@@ -82,8 +82,8 @@
     </nav>
 
     <!-- Phase 69: one scrub desk stage (city + type + dropzone as one job surface) -->
-    <div class="bridge-scrub-stage" id="bridge-scrub-stage">
-    <section class="bridge-panel phuglee-panel bridge-panel--desk" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
+    <div class="bridge-scrub-stage bridge-elev--primary" id="bridge-scrub-stage">
+    <section class="bridge-panel phuglee-panel bridge-panel--desk bridge-elev--primary" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
       <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Scrub desk</h2>
       <div class="bridge-city-search-block">
         <label class="bridge-city-search-label" for="bridge-city-search">
@@ -146,7 +146,7 @@
       </div>
 
       <!-- CITY-02: no-list outcomes demoted into secondary scrap/drawer -->
-      <div class="bridge-outcome-drawer" id="bridge-outcome-drawer" data-bridge-outcome-drawer hidden>
+      <div class="bridge-outcome-drawer bridge-elev--scrap" id="bridge-outcome-drawer" data-bridge-outcome-drawer hidden>
         <button
           type="button"
           id="bridge-outcome-drawer-toggle"
@@ -233,7 +233,7 @@
 
     <!-- Step 3: paste OR drop — same scrub path -->
     <section
-      class="bridge-panel phuglee-panel bridge-panel--stage bridge-import-panel"
+      class="bridge-panel phuglee-panel bridge-panel--stage bridge-import-panel bridge-elev--primary"
       id="bridge-upload-panel"
       hidden
       aria-labelledby="bridge-step-upload"
