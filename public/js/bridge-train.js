@@ -61,6 +61,16 @@
     });
   }
 
+  /**
+   * Open (undecided) train groups across distressed + notDistressed.
+   * Pure — uses full review groups, never search-filtered length.
+   */
+  function countOpenTrainGroups(data, decidedKeys) {
+    var groups = getReviewGroups(data);
+    var all = (groups.distressed || []).concat(groups.notDistressed || []);
+    return filterUndecidedTrainGroups(all, decidedKeys).length;
+  }
+
   function truncateTrainSample(text, maxLen) {
     var s = String(text || '');
     var max = maxLen || 160;
@@ -165,6 +175,7 @@
     getReviewGroups: getReviewGroups,
     trainDecisionKey: trainDecisionKey,
     filterUndecidedTrainGroups: filterUndecidedTrainGroups,
+    countOpenTrainGroups: countOpenTrainGroups,
     renderTrainGroupCard: renderTrainGroupCard,
     trainActionButtonLabels: trainActionButtonLabels,
     truncateTrainSample: truncateTrainSample,

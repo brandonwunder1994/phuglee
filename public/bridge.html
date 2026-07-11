@@ -274,6 +274,14 @@
       </section>
 
       <div id="bridge-train-wrap" hidden>
+        <div id="bridge-train-mission" class="bridge-train-mission" hidden>
+          <p class="bridge-train-mission-kicker">Train mission</p>
+          <p class="bridge-train-mission-stats" role="status">
+            <span id="bridge-train-open-count">0 open groups</span>
+            <span class="bridge-train-mission-sep" aria-hidden="true">·</span>
+            <span id="bridge-train-kept-count">0 kept</span>
+          </p>
+        </div>
         <div class="bridge-results-mode" role="tablist" aria-label="Results mode">
           <button type="button" role="tab" id="bridge-mode-kept" data-mode="kept"
             class="bridge-mode-tab is-active" aria-selected="true" aria-controls="bridge-kept-view">Kept list</button>
@@ -469,8 +477,8 @@
   <script src="/js/command-palette.js"></script>
   <script src="/js/distress-status.js"></script>
   <script src="/js/shell-nav.js?v=12"></script>
-  <script src="/js/bridge-train.js?v=6"></script>
+  <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=41"></script>
+  <script src="/js/bridge.js?v=42"></script>
 </body>
 </html>

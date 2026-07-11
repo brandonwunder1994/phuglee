@@ -107,6 +107,8 @@
   let selectedFiles = [];
   let lastResult = null;
   let resultsMode = 'kept';
+  /** After processUpload: force Train theater once when open groups exist (THTR-01). */
+  let forceTrainTheater = false;
   let savedLists = [];
   let tableState = {
     sortKey: 'streetAddress',
@@ -161,6 +163,41 @@
       const k = trainDecisionKey(g);
       return !k || !trainDecidedKeys.has(k);
     });
+  }
+
+  /** Undecided open-group count (full review groups — never search-filtered). */
+  function countOpenTrainGroups(data, decidedKeys) {
+    if (window.BridgeTrain && typeof window.BridgeTrain.countOpenTrainGroups === 'function') {
+      return window.BridgeTrain.countOpenTrainGroups(data, decidedKeys != null ? decidedKeys : trainDecidedKeys);
+    }
+    const groups = getReviewGroups(data);
+    const all = (groups.distressed || []).concat(groups.notDistressed || []);
+    return filterUndecidedTrainGroups(all).length;
+  }
+
+  /**
+   * Mission header open/kept counts (admin + #bridge-train-mission only).
+   * Non-admin / missing markup → hide and no-op (THTR-03 fail-closed).
+   */
+  function updateTrainMissionHeader(openCount, keptCount) {
+    const mission = document.getElementById('bridge-train-mission');
+    const openEl = document.getElementById('bridge-train-open-count');
+    const keptEl = document.getElementById('bridge-train-kept-count');
+    if (!mission) return;
+    if (!isBridgeAdmin()) {
+      setHidden(mission, true);
+      return;
+    }
+    const open = Math.max(0, Number(openCount) || 0);
+    const kept = Math.max(0, Number(keptCount) || 0);
+    if (openEl) {
+      openEl.textContent = open === 1 ? '1 open group' : `${open} open groups`;
+    }
+    if (keptEl) {
+      keptEl.textContent = `${kept.toLocaleString()} kept`;
+    }
+    // Show whenever admin train wrap is in play (mission is inside wrap)
+    setHidden(mission, false);
   }
 
   function animateTrainCardExit(card) {
@@ -952,12 +989,9 @@
     }
     refreshTrainUiAfterDecision();
 
-    const remaining = filterUndecidedTrainGroups(
-      (getReviewGroups(lastResult).distressed || []).concat(
-        getReviewGroups(lastResult).notDistressed || []
-      )
-    ).length;
+    const remaining = countOpenTrainGroups(lastResult, trainDecidedKeys);
     const keptNow = (lastResult.rows || []).length;
+    updateTrainMissionHeader(remaining, keptNow);
     if (remaining === 0) {
       setTrainStatus(
         `Decision saved · ${keptNow.toLocaleString()} kept. Save list below when this city is ready.`,
@@ -2795,9 +2829,19 @@
     if (isBridgeAdmin()) {
       setHidden(trainWrap, false);
       renderTrainGroups(getReviewGroups(data), data);
-      setResultsMode(resultsMode || 'kept');
+      const openCount = countOpenTrainGroups(data, trainDecidedKeys);
+      updateTrainMissionHeader(openCount, (data.rows || []).length);
+      // THTR-01: process success forces Train theater when open groups remain
+      if (forceTrainTheater) {
+        forceTrainTheater = false;
+        setResultsMode(openCount > 0 ? 'train' : 'kept');
+      } else {
+        setResultsMode(resultsMode || 'kept');
+      }
     } else {
       setHidden(trainWrap, true);
+      const mission = document.getElementById('bridge-train-mission');
+      if (mission) setHidden(mission, true);
       const d = document.getElementById('bridge-train-distressed');
       const n = document.getElementById('bridge-train-not-distressed');
       if (d) d.innerHTML = '';
@@ -3385,6 +3429,8 @@
       stopLoadingAnimation();
       if (loadingCopy) loadingCopy.textContent = 'Scrubbing results…';
       await playScrubFeedFromProcess(data);
+      // THTR-01: land admin in Train theater after process when open groups exist
+      forceTrainTheater = true;
       renderResults(data);
       updateTrainUndoButton();
       // Ensure results are visible (not left under the fold after loader)
