@@ -1288,13 +1288,13 @@ body {
   display: none !important;
 }
 
-/* Live scrub feed (process beat — FEED-01 / FEED-02) — cream/taupe on glass */
+/* Live scrub feed (process beat — FEED-01 / FEED-02) — dark glass + token status */
 .bridge-scrub-feed-summary {
   margin: 0.85rem 0 0.4rem;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
   font-size: 0.78rem;
   letter-spacing: 0.02em;
-  color: var(--phuglee-taupe, #c4b8a4);
+  color: var(--phuglee-taupe);
   line-height: 1.35;
   text-align: left;
   width: 100%;
@@ -1309,12 +1309,15 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.28rem;
-  border: 1px solid var(--glass-border, rgba(174, 163, 143, 0.14));
+  border: 1px solid var(--glass-border-chrome);
   border-radius: var(--radius-sm, 6px);
-  background: var(--glass-fill, rgba(0, 0, 0, 0.28));
-  padding: 0.45rem 0.5rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 35%),
+    color-mix(in srgb, var(--glass-bg) 88%, transparent);
+  padding: 0.5rem 0.55rem;
   width: 100%;
   text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   /* Population is JS-owned — never hide rows until a CSS animation finishes */
   opacity: 1;
   visibility: visible;
@@ -1325,10 +1328,10 @@ body {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.35rem 0.65rem;
   align-items: baseline;
-  padding: 0.28rem 0.4rem;
+  padding: 0.3rem 0.45rem;
   border-radius: 4px;
-  border-left: 2px solid rgba(174, 163, 143, 0.25);
-  background: rgba(255, 255, 255, 0.02);
+  border-left: 2px solid color-mix(in srgb, var(--phuglee-taupe) 28%, transparent);
+  background: color-mix(in srgb, var(--phuglee-cream) 2.5%, transparent);
   font-size: 0.78rem;
   line-height: 1.3;
   min-width: 0;
@@ -1354,7 +1357,7 @@ body {
 
 .bridge-scrub-feed-addr {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
-  color: var(--phuglee-cream, #f3ecdf);
+  color: var(--phuglee-cream);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1371,7 +1374,7 @@ body {
 }
 
 .bridge-scrub-feed-type {
-  color: var(--phuglee-stone, #aea38f);
+  color: var(--phuglee-stone);
   font-size: 0.7rem;
   max-width: 10rem;
   overflow: hidden;
@@ -1388,44 +1391,46 @@ body {
 }
 
 .bridge-scrub-feed-item.is-kept {
-  border-left-color: color-mix(in srgb, var(--phuglee-orange) 75%, transparent);
-  background: color-mix(in srgb, var(--phuglee-orange) 8%, transparent);
+  border-left-color: color-mix(in srgb, var(--phuglee-success) 65%, var(--phuglee-gold));
+  background: color-mix(in srgb, var(--phuglee-success) 8%, transparent);
 }
 
 .bridge-scrub-feed-item.is-kept .bridge-scrub-feed-status {
-  color: var(--phuglee-gold, #e5a435);
+  color: var(--status-success-fg, var(--phuglee-success));
 }
 
 .bridge-scrub-feed-item.is-no-distress {
-  border-left-color: rgba(174, 163, 143, 0.45);
+  border-left-color: color-mix(in srgb, var(--phuglee-warn) 55%, transparent);
+  background: color-mix(in srgb, var(--phuglee-warn) 5%, transparent);
 }
 
 .bridge-scrub-feed-item.is-no-distress .bridge-scrub-feed-status {
-  color: var(--phuglee-stone, #aea38f);
+  color: var(--status-warn-fg, var(--phuglee-warn));
 }
 
 .bridge-scrub-feed-item.is-discarded {
-  border-left-color: rgba(140, 128, 110, 0.5);
+  border-left-color: color-mix(in srgb, var(--phuglee-danger) 42%, transparent);
+  background: color-mix(in srgb, var(--phuglee-danger) 5%, transparent);
 }
 
 .bridge-scrub-feed-item.is-discarded .bridge-scrub-feed-status {
-  color: var(--phuglee-stone, #aea38f);
+  color: var(--status-danger-fg, var(--phuglee-danger));
 }
 
 .bridge-scrub-feed-item.is-already-in-analyze {
-  border-left-color: rgba(174, 163, 143, 0.35);
-  opacity: 0.9;
+  border-left-color: color-mix(in srgb, var(--phuglee-taupe) 40%, transparent);
+  opacity: 0.88;
 }
 
 .bridge-scrub-feed-item.is-already-in-analyze .bridge-scrub-feed-status {
-  color: var(--phuglee-taupe, #c4b8a4);
+  color: var(--phuglee-taupe);
 }
 
 .bridge-scrub-feed-remainder {
   margin: 0.15rem 0 0;
   padding: 0.2rem 0.4rem;
   font-size: 0.72rem;
-  color: var(--phuglee-stone, #aea38f);
+  color: var(--phuglee-stone);
   font-style: italic;
 }
 
@@ -2207,23 +2212,20 @@ body {
   color: var(--status-success-fg, var(--phuglee-success));
 }
 
-/* Staging inventory — secondary shell (quieter than primary scrub) */
+/* Staging inventory — glass HUD shell aligned with mission language */
 .bridge-lists-panel {
   padding: 0;
   overflow: hidden;
-  border-color: var(--glass-border-chrome);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    0 4px 14px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-color: var(--glass-border);
+  background: var(--glass-fill);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(calc(var(--glass-blur, 36px) * 0.4)) saturate(var(--glass-saturate, 170%));
+  -webkit-backdrop-filter: blur(calc(var(--glass-blur, 36px) * 0.4)) saturate(var(--glass-saturate, 170%));
 }
 
 .bridge-lists-panel:hover {
-  border-color: var(--glass-border);
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.22),
-    0 8px 20px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float);
 }
 
 .bridge-lists-details {
@@ -2408,10 +2410,11 @@ button.bridge-inventory-filter-chip.is-active {
   margin: 0.65rem 0 0;
   padding: 0.65rem 0.85rem;
   border-radius: var(--radius-sm);
-  background: rgba(229, 132, 53, 0.12);
-  border: 1px solid rgba(238, 183, 70, 0.35);
-  color: var(--phuglee-gold, #eeb746);
+  background: color-mix(in srgb, var(--phuglee-orange) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phuglee-gold) 38%, transparent);
+  color: var(--phuglee-gold);
   font-size: 0.9rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .bridge-lists-flash-text {
@@ -2421,15 +2424,15 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-flash-download {
   margin-top: 0;
-  color: var(--phuglee-cream, #f0e6d0);
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(238, 183, 70, 0.42);
+  color: var(--phuglee-cream);
+  background: color-mix(in srgb, var(--phuglee-black) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phuglee-gold) 42%, transparent);
   cursor: pointer;
 }
 
 .bridge-flash-download:hover {
-  border-color: rgba(238, 183, 70, 0.7);
-  color: var(--phuglee-gold, #eeb746);
+  border-color: color-mix(in srgb, var(--phuglee-gold) 72%, transparent);
+  color: var(--phuglee-gold);
 }
 
 /* Quick professional “Scanned” confirmation after stage / auto-save */
@@ -2441,7 +2444,7 @@ button.bridge-inventory-filter-chip.is-active {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: rgba(6, 5, 4, 0.28);
+  background: color-mix(in srgb, var(--phuglee-black) 55%, transparent);
   opacity: 0;
   transition: opacity 0.32s ease;
 }
@@ -2460,15 +2463,14 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-scanned-toast-card {
   padding: 1.35rem 2.75rem;
-  border-radius: 14px;
-  border: 1px solid rgba(238, 183, 70, 0.42);
-  background:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.08) 0%, transparent 45%),
-    rgba(18, 14, 10, 0.92);
+  border-radius: var(--card-radius, 14px);
+  border: 1px solid var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
   box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.45),
-    0 18px 48px rgba(0, 0, 0, 0.55),
-    0 0 40px rgba(229, 132, 53, 0.12);
+    var(--glass-shadow-featured),
+    0 0 40px color-mix(in srgb, var(--phuglee-orange) 14%, transparent);
+  backdrop-filter: blur(var(--glass-blur, 36px)) saturate(var(--glass-saturate, 170%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 36px)) saturate(var(--glass-saturate, 170%));
   transform: scale(0.94) translateY(6px);
   transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -2488,8 +2490,8 @@ button.bridge-inventory-filter-chip.is-active {
   font-weight: 400;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--phuglee-cream, #f5efe4);
-  text-shadow: 0 2px 18px rgba(229, 132, 53, 0.35);
+  color: var(--phuglee-cream);
+  text-shadow: 0 2px 18px color-mix(in srgb, var(--phuglee-orange) 38%, transparent);
   line-height: 1;
 }
 
@@ -2507,13 +2509,16 @@ button.bridge-inventory-filter-chip.is-active {
 /* SHIFT-01: sticky session shift queue — this sitting only (not durable inventory) */
 .bridge-shift-queue {
   margin-top: 0.75rem;
-  padding: 0.55rem 0.75rem 0.65rem;
+  padding: 0.6rem 0.8rem 0.7rem;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
   border-radius: var(--radius-md);
-  background: rgba(229, 132, 53, 0.06);
-  border: 1px solid rgba(238, 183, 70, 0.28);
+  background:
+    linear-gradient(155deg, color-mix(in srgb, var(--phuglee-orange) 8%, transparent) 0%, transparent 50%),
+    color-mix(in srgb, var(--glass-bg) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phuglee-gold) 28%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .bridge-shift-queue-head {
@@ -2529,15 +2534,15 @@ button.bridge-inventory-filter-chip.is-active {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--phuglee-gold, #eeb746);
+  color: var(--phuglee-gold);
 }
 
 .bridge-shift-queue-clear {
   appearance: none;
   background: transparent;
-  border: 1px solid rgba(174, 163, 143, 0.28);
+  border: 1px solid var(--glass-border-chrome);
   border-radius: 999px;
-  color: var(--phuglee-stone, #aea38f);
+  color: var(--phuglee-stone);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -2547,8 +2552,8 @@ button.bridge-inventory-filter-chip.is-active {
 }
 
 .bridge-shift-queue-clear:hover {
-  border-color: rgba(238, 183, 70, 0.45);
-  color: var(--phuglee-cream, #f0e6d0);
+  border-color: color-mix(in srgb, var(--phuglee-gold) 48%, transparent);
+  color: var(--phuglee-cream);
 }
 
 .bridge-shift-queue-chips {
@@ -2566,8 +2571,8 @@ button.bridge-inventory-filter-chip.is-active {
   max-width: 14rem;
   padding: 0.35rem 0.6rem;
   border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(229, 132, 53, 0.32);
+  background: color-mix(in srgb, var(--phuglee-black) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--phuglee-orange) 32%, transparent);
 }
 
 .bridge-shift-queue-chip-main {
@@ -2586,7 +2591,7 @@ button.bridge-inventory-filter-chip.is-active {
 .bridge-shift-queue-chip-label {
   font-size: 0.84rem;
   font-weight: 700;
-  color: var(--phuglee-cream, #f0e6d0);
+  color: var(--phuglee-cream);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2596,7 +2601,7 @@ button.bridge-inventory-filter-chip.is-active {
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  color: var(--phuglee-taupe-mid, #9a9080);
+  color: var(--phuglee-taupe-mid);
   white-space: nowrap;
 }
 
@@ -2607,17 +2612,12 @@ button.bridge-inventory-filter-chip.is-active {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  border-radius: 14px;
-  background:
-    linear-gradient(155deg, rgba(255, 255, 255, 0.06) 0%, transparent 42%),
-    rgba(10, 8, 6, 0.4);
-  border: 1px solid rgba(238, 183, 70, 0.18);
-  box-shadow:
-    0 4px 14px rgba(0, 0, 0, 0.3),
-    0 16px 40px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  border-radius: var(--card-radius, 14px);
+  background: var(--glass-fill-elevated);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(var(--glass-blur, 36px)) saturate(var(--glass-saturate, 170%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 36px)) saturate(var(--glass-saturate, 170%));
 }
 
 .bridge-inventory-hud-tiles {
@@ -2899,7 +2899,7 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-list-action--danger:hover,
 #bridge-clear-all-lists:hover {
-  border-color: rgba(220, 120, 120, 0.5);
+  border-color: color-mix(in srgb, var(--phuglee-danger) 52%, transparent);
   color: var(--status-danger-fg, var(--phuglee-danger));
 }
 
@@ -3128,7 +3128,7 @@ button.bridge-inventory-filter-chip.is-active {
   color: var(--status-success-fg, var(--phuglee-success));
 }
 
-/* ── Native dialogs — system modal glass/grain (CARDS-02) ── */
+/* ── Native dialogs — system modal glass/grain (CARDS-02 / Phase 80) ── */
 .bridge-history-dialog {
   border: none;
   padding: 0;
@@ -3143,16 +3143,20 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-history-dialog::backdrop {
   /* Match .phuglee-modal-backdrop DNA; native top-layer stacks without ad-hoc islands */
-  background: rgba(13, 13, 13, 0.88);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--phuglee-black) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 /* Rise via shared .phuglee-modal-panel (phuglee-modal-rise); no duplicate keyframes */
 .bridge-history-dialog-card.phuglee-panel {
-  padding: 1.35rem 1.5rem 1.5rem;
+  padding: 1.4rem 1.55rem 1.55rem;
+  border: 1px solid var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
   /* Elevated float glass densify on dual-class card */
-  box-shadow: var(--glass-shadow-float, 0 16px 48px rgba(0, 0, 0, 0.45));
+  box-shadow:
+    var(--glass-shadow-float, 0 16px 48px rgba(0, 0, 0, 0.45)),
+    0 0 40px color-mix(in srgb, var(--phuglee-orange) 10%, transparent);
 }
 
 .bridge-history-dialog-head {
@@ -3165,7 +3169,7 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-history-dialog-head h2 {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   font-weight: 400;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3184,9 +3188,9 @@ button.bridge-inventory-filter-chip.is-active {
   flex-shrink: 0;
   width: 2rem;
   height: 2rem;
-  border: 1px solid var(--glass-border, rgba(174, 163, 143, 0.2));
+  border: 1px solid var(--glass-border-chrome);
   border-radius: var(--radius-sm);
-  background: var(--glass-fill, rgba(0, 0, 0, 0.25));
+  background: color-mix(in srgb, var(--phuglee-black) 40%, transparent);
   color: var(--phuglee-stone);
   font-size: 1.35rem;
   line-height: 1;
@@ -3222,8 +3226,8 @@ button.bridge-inventory-filter-chip.is-active {
   grid-template-columns: 1fr auto;
   gap: 0.5rem 1rem;
   padding: 0.85rem 1rem;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(174, 163, 143, 0.14);
+  background: color-mix(in srgb, var(--phuglee-black) 48%, transparent);
+  border: 1px solid var(--glass-border-chrome);
   border-radius: var(--radius-sm);
 }
 
@@ -3352,8 +3356,8 @@ button.bridge-inventory-filter-chip.is-active {
   min-height: 2.5rem;
   margin-bottom: 1rem;
   padding: 0.65rem 0.85rem;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(174, 163, 143, 0.12);
+  background: color-mix(in srgb, var(--phuglee-black) 42%, transparent);
+  border: 1px solid var(--glass-border-chrome);
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
   line-height: 1.45;
