@@ -340,6 +340,21 @@ test('filterUndecidedTrainGroups removes only the decided groupId, not all __unk
   assert.ok(remaining.length > badKeyBug.length, 'groupId key keeps sibling __unknown__ cards');
 });
 
+/** THTR-01 carry: open-count helper coexists with filterUndecidedTrainGroups (admin unit lock). */
+test('countOpenTrainGroups exports and counts undecided across sections', () => {
+  const api = loadBridgeTrain({ sessionUser: 'admin' });
+  assert.ok(typeof api.filterUndecidedTrainGroups === 'function', 'filterUndecidedTrainGroups still exported');
+  assert.ok(typeof api.countOpenTrainGroups === 'function', 'countOpenTrainGroups exported on BridgeTrain');
+  const data = {
+    reviewGroups: {
+      distressed: [{ groupId: 'a' }, { groupId: 'b' }],
+      notDistressed: [{ groupId: 'c' }]
+    }
+  };
+  assert.equal(api.countOpenTrainGroups(data, new Set(['a'])), 2);
+  assert.equal(api.countOpenTrainGroups(data, new Set(['a', 'b', 'c'])), 0);
+});
+
 test('renderTrainGroupCard includes label, count, signals, samples, and outcome buttons', () => {
   const api = loadBridgeTrain({ sessionUser: 'admin' });
   const html = api.renderTrainGroupCard(SAMPLE_GROUP);
