@@ -194,6 +194,33 @@ npm test
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1
 ```
 
+## O. v2.1 permanent regression bar (QA-01..03)
+
+> Milestone lock for Filter Scrub Theater. Packaging + gates only — product theater ships in phases 61–67.  
+> Note: v1.7 bare `TEST-0N`, v1.8 `TEST-0N (v1.8)`, and v2.0 `TEST-0N (v2.0)` titles mean different contracts — do not rename them. New packaging titles use `QA-0N (v2.1)`.
+
+| ID | Case | Expected | Auto |
+|----|------|----------|------|
+| QA-01 (v2.1) | v1.6–v2.0 independence / gold / brain / processUpload locks | Full suite green | ✓ `npm test` (+ independence, gold, engine COL/GATE/water, brain, train, list, LRN, EFF) |
+| QA-01 (v2.1) | Independence no-push + already_imported default-off | TEST-01 (v2.0) still greppable | ✓ `tests/bridge-independence.test.js` |
+| QA-01 (v2.1) | Gold ACC keep/deny/water/type/silent-drop | TEST-02 (v2.0) fixtures intact | ✓ `tests/bridge-accuracy-gold.test.js` + `tests/fixtures/bridge/gold/*` |
+| QA-02 (v2.1) | Live server after milestone | health + homepage + `/bridge` HTTP 200 | ✓ `scripts/verify-live.ps1` + explicit `/bridge` check (Option A) |
+| QA-03 (v2.1) | Theater FEED/KILL/THTR reduced-motion + surface contracts | Product dual-tags green (gates-only; no `bridge-scrub-theater.test.js`) | ✓ `tests/bridge-scrub-feed.test.js` + `tests/bridge-kill-rate-scrub.test.js` + `tests/bridge-train-theater.test.js` (+ list-factory Save primary + train-ux fail-closed) |
+| QA-03 (v2.1) | Mobile 390 + desktop 1440 layout; CTAs ≥ 44px | No horizontal overflow; tap targets; motion reduce paths verified | ✓ phase `68-QA-CHECKLIST.md` (+ CSS asserts greppable in product suites) |
+
+```bash
+node --test tests/bridge-independence.test.js tests/bridge-accuracy-gold.test.js
+node --test --test-name-pattern="IND-04|GATE-|COL-|water|TEST-0" tests/bridge-engine.test.js
+node --test tests/bridge-scrub-feed.test.js tests/bridge-kill-rate-scrub.test.js tests/bridge-train-theater.test.js
+# (gates-only: product FEED/KILL/THTR dual-tags; no tests/bridge-scrub-theater.test.js)
+npm test
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1
+# QA-02 /bridge explicit (Option A)
+# Invoke-WebRequest http://127.0.0.1:3000/bridge → 200
+```
+
+Human layout/motion gate: `.planning/phases/68-regression-qa-lock/68-QA-CHECKLIST.md` (filled in Plan 02).
+
 ---
 
 ## Execution order (GSD verify loop)
