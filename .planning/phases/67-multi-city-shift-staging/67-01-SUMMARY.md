@@ -73,7 +73,7 @@ Each task was committed atomically:
 1. **Task 1: SHIFT-03 static test file** - `706708b` (test)
 2. **Task 2: Ember/gold flash + shift copy** - `e13ca29` (feat)
 
-**Plan metadata:** (docs commit after state update)
+**Plan metadata:** `395b285` (docs: complete plan)
 
 _Note: TDD — RED test commit then GREEN implementation._
 
