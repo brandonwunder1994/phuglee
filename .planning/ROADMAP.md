@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 79 in progress (1/2); next 79-02  
-**Next:** Execute 79-02 (kept + inventory table polish)
+**Status:** In progress — Phase 79 complete (2/2); next Phase 80  
+**Next:** Execute 80-01 (theater / kill climax surface paint)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -39,7 +39,7 @@
 - [x] **Phase 76: Tokens & Layer Audit** — Align Filter with home/login tokens; map z-index and ban hex islands
 - [x] **Phase 77: Shared Components Expansion** — Grow `phuglee-*` buttons, chips, panels, empty/error patterns to home grade
 - [x] **Phase 78: Cascade, Hooks & State CSS** — Fix load order; dual-class wire forms/dropzone/dialogs; honor `hidden`/`disabled`
-- [ ] **Phase 79: Desk Core Restyle** — Restyle high-frequency chrome (hero, pipeline, scrub, tables, elevation)
+- [x] **Phase 79: Desk Core Restyle** — Restyle high-frequency chrome (hero, pipeline, scrub, tables, elevation)
 - [ ] **Phase 80: Theater, Gates & Motion** — Full surface paint including kill/Train/victory; reduced-motion twins
 - [ ] **Phase 81: Visual QA Lock & Catalog** — 390/1440 QA, suite + verify-live, parity matrix + component catalog
 
@@ -126,7 +126,7 @@ Plans:
 
 Plans:
 - [x] 79-01-PLAN.md - Elevation hierarchy + hero/pipeline/scrub/dossier/import shells (CARDS-03)
-- [ ] 79-02-PLAN.md - Kept + inventory dark-glass tables sticky/zebra/hover/390 scroll (DESK-03)
+- [x] 79-02-PLAN.md - Kept + inventory dark-glass tables sticky/zebra/hover/390 scroll (DESK-03)
 
 ### Phase 80: Theater, Gates & Motion
 **Goal**: Full Filter surface paint including cinema climax, Train gates, and reduced-motion-safe motion — no orphan pre-system chrome  

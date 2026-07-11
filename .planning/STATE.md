@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
 status: executing
-stopped_at: Completed 79-01-PLAN.md
-last_updated: "2026-07-11T20:31:00.000Z"
-last_activity: 2026-07-11 — Completed 79-01 desk elevation + chrome restyle
+stopped_at: Completed 79-02-PLAN.md
+last_updated: "2026-07-11T20:35:00.000Z"
+last_activity: 2026-07-11 — Completed 79-02 dark-glass desk tables (DESK-03); Phase 79 complete
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 14
-  completed_plans: 9
-  percent: 64
+  completed_plans: 10
+  percent: 71
 ---
 
 # State
@@ -21,30 +21,30 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 79 (desk core restyle)
+**Current focus:** v3.0 Filter Visual Makeover — Phase 80 (theater gates & motion)
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 79 of 81 (Desk Core Restyle)  
-**Plan:** 2 of 2  
-**Status:** Ready to execute  
-**Last activity:** 2026-07-11 — Completed 79-01 desk elevation + chrome restyle  
+**Phase:** 80 of 81 (Theater, Gates & Motion)  
+**Plan:** 1 of 2  
+**Status:** Ready to plan/execute  
+**Last activity:** 2026-07-11 — Completed 79-02 dark-glass desk tables (DESK-03); Phase 79 complete  
 
-Progress: [██████░░░░] 64%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9 (this milestone)
+- Total plans completed: 10 (this milestone)
 - Average duration: 10min
-- Total execution time: 92min
+- Total execution time: 100min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 9 done | 14 | 10min |
+| 75–81 | 10 done | 14 | 10min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
@@ -54,6 +54,7 @@ Progress: [██████░░░░] 64%
 | Phase 78 P01 | 12min | 3 tasks | 3 files |
 | Phase 78 P02 | 12min | 3 tasks | 2 files |
 | Phase 79 P01 | 8min | 2 tasks | 3 files |
+| Phase 79 P02 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,8 @@ Progress: [██████░░░░] 64%
 - [Phase 79]: Elevation overrides after base phuglee-panel glass so float/featured win cascade
 - [Phase 79]: Victory featured via strip tokens not phuglee-panel-featured hover thrash
 - [Phase 79]: Desk panel densify 1rem/1.1rem — ops density not auth-modal roominess
+- [Phase 79]: Filter-only dark-glass table rules in bridge.css (no phuglee-table dual-class)
+- [Phase 79]: Ops table density via row tokens + sticky glass-bg-solid headers; min-width 680/860 for 390 scroll
 
 ### Pending Todos
 None yet.
@@ -98,7 +101,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:31:00.000Z
-Stopped at: Completed 79-01-PLAN.md
+Last session: 2026-07-11T20:35:00.000Z
+Stopped at: Completed 79-02-PLAN.md
 Resume file: None
-Next: Phase 79 Plan 02 — kept/inventory table polish
+Next: Phase 80 — Theater, Gates & Motion
