@@ -74,7 +74,7 @@ Each task was committed atomically:
 1. **Task 1: SHIFT-02 HUD + action-preservation tests** - `fa80193` (test)
 2. **Task 2: Inventory HUD mount + render + CSS** - `84dbadb` (feat)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `494fe69` (docs: complete plan)
 
 _Note: TDD — RED test commit then GREEN implementation._
 
