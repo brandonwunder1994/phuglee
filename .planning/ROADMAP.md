@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 79 complete (2/2); next Phase 80  
-**Next:** Execute 80-01 (theater / kill climax surface paint)
+**Status:** In progress — Phase 80 (1/2 plans); 80-01 complete  
+**Next:** Execute 80-02 (Train theater/armory modes + reduced-motion twins)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -141,7 +141,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 80-01-PLAN.md — Kill climax + mission/victory/lists/feed/dialog surface paint (DESK-01, DESK-02)
+- [x] 80-01-PLAN.md — Kill climax + mission/victory/lists/feed/dialog surface paint (DESK-01, DESK-02)
 - [ ] 80-02-PLAN.md — Train theater/armory modes + reduced-motion twins (DESK-04, STATES-04)
 
 ### Phase 81: Visual QA Lock & Catalog
