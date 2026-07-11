@@ -79,7 +79,7 @@ Each task was committed atomically:
 2. **Task 2: History + type-confirm dialogs** - `626e099` (feat)
 3. **Task 3: Loading panel + scrub feed** - `baf147a` (feat)
 
-**Plan metadata:** (docs commit after SUMMARY/STATE)
+**Plan metadata:** `d8fc0e1` (docs: complete plan)
 
 ## Files Created/Modified
 
