@@ -130,12 +130,14 @@ test('KILL-02: format reuse still chip-capable', () => {
 // ---------------------------------------------------------------------------
 
 test('KILL-03: Stage language near save without renaming button', () => {
-  // Stage teaching in results/save panel (heading/lead/CTA strip)
-  const stageInHtml = /Stage/.test(html);
-  const stageInJs = /Stage/.test(js);
-  assert.ok(
-    stageInHtml || stageInJs,
-    'HTML or JS must contain Stage language near save/results teaching'
+  // Stage teaching in save panel heading/lead (button stays Save list)
+  const saveStart = html.indexOf('id="bridge-save-panel"');
+  assert.ok(saveStart >= 0, 'bridge-save-panel must exist');
+  const saveSlice = html.slice(saveStart, saveStart + 900);
+  assert.match(
+    saveSlice,
+    /Stage/,
+    'save panel heading/lead must include Stage language'
   );
   // Primary button text remains Save list (not Stage list only)
   assert.match(html, /id="bridge-save-list"[^>]*>\s*Save list\s*</);
@@ -146,8 +148,35 @@ test('KILL-03: Stage language near save without renaming button', () => {
   );
 });
 
+test('KILL-03: save panel elevated before train wrap', () => {
+  const saveIdx = html.indexOf('id="bridge-save-panel"');
+  const trainIdx = html.indexOf('id="bridge-train-wrap"');
+  const kpiIdx = html.indexOf('id="bridge-kpi-grid"');
+  assert.ok(saveIdx >= 0 && trainIdx >= 0 && kpiIdx >= 0, 'save, train, kpi hosts required');
+  assert.ok(
+    saveIdx < trainIdx,
+    'bridge-save-panel must appear before bridge-train-wrap (elevated next to kill report)'
+  );
+  assert.ok(
+    kpiIdx < saveIdx,
+    'kill report host (bridge-kpi-grid) must appear before elevated save panel'
+  );
+  // Workflow strip stays near save (before train)
+  const workflowIdx = html.indexOf('id="bridge-workflow-strip"');
+  assert.ok(workflowIdx >= 0, 'workflow strip required');
+  assert.ok(
+    workflowIdx < trainIdx,
+    'workflow strip should sit with save path before train wrap'
+  );
+  assert.match(
+    html,
+    /Process → \(Train\) → Save list → Download/,
+    'workflow teaching phrase must remain'
+  );
+});
+
 // ---------------------------------------------------------------------------
-// Optional: kept sample dossiers (RED until Plan 02 or 03 ships samples)
+// Optional: kept sample dossiers (shipped Plan 02; lock stays green)
 // ---------------------------------------------------------------------------
 
 test('KILL-01 optional: kept sample dossiers class', () => {
