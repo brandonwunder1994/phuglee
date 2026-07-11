@@ -70,7 +70,7 @@ Each task was committed atomically:
 1. **Task 1: Add documented z-index scale tokens** - `16fd3ba` (feat)
 2. **Task 2: Add proven desk density / chip / row / status-surface tokens** - `e83f5de` (feat)
 
-**Plan metadata:** (pending final docs commit)
+**Plan metadata:** `f2a1180` (docs: complete plan)
 
 ## Files Created/Modified
 - `public/css/tokens.css` — z-index scale, desk/chip/row/status tokens, light surface overrides, `--text-display-sm`

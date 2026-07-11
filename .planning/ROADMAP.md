@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 75 complete (2/2 plans); next Phase 76  
-**Next:** Execute Phase 76 (Tokens & Layer Audit)
+**Status:** In progress — Phase 76 plan 01 complete (1/2); next 76-02  
+**Next:** Execute 76-02 (wire bridge.css to tokens)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -75,7 +75,7 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 76-01-PLAN.md — Extend tokens.css: z-index scale + desk density/chip/row/status tokens
+- [x] 76-01-PLAN.md — Extend tokens.css: z-index scale + desk density/chip/row/status tokens
 - [ ] 76-02-PLAN.md — Wire bridge.css to tokens (hex islands, z-index, type); cache-bust ?v=
 
 ### Phase 77: Shared Components Expansion
@@ -162,7 +162,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 75. Contract Freeze & Surface Inventory | v3.0 | 2/2 | Complete | 2026-07-11 |
-| 76. Tokens & Layer Audit | v3.0 | 0/2 | Planned | - |
+| 76. Tokens & Layer Audit | v3.0 | 1/2 | In Progress | - |
 | 77. Shared Components Expansion | v3.0 | 0/2 | Planned | - |
 | 78. Cascade, Hooks & State CSS | v3.0 | 0/TBD | Not started | - |
 | 79. Desk Core Restyle | v3.0 | 0/2 | Planned | - |
