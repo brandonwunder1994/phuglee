@@ -55,7 +55,12 @@
   3. A state matrix documents JS-toggled states (`hidden`, `disabled`, `is-theater`, `has-file`, etc.) that CSS may style but must not invent
   4. Operator workflows still boot with all locked contracts intact (no renames, no `data-action` churn)
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual  
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 75-01-PLAN.md — DESK-05 contract freeze checklist + greppable freeze test
+- [ ] 75-02-PLAN.md — Surface inventory + JS state matrix for restyle phases
+
 
 ### Phase 76: Tokens & Layer Audit
 **Goal**: Filter reads the same Phuglee token DNA as login/home — color, glass, type, status — before any mass paint  
@@ -68,7 +73,11 @@
   4. Operator sees success / warn / danger only via canonical semantic status tokens
   5. Maintainer has a documented z-index scale (bg → main → sticky HUD → typeahead → dialog → toast) with no competing ad-hoc stacks
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; extend `tokens.css` only when a gap is proven  
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 76-01-PLAN.md — Extend tokens.css: z-index scale + desk density/chip/row/status tokens
+- [ ] 76-02-PLAN.md — Wire bridge.css to tokens (hex islands, z-index, type); cache-bust ?v=
 
 ### Phase 77: Shared Components Expansion
 **Goal**: Filter consumes a home-grade shared control system instead of inventing one-off CTAs and panels  
@@ -106,7 +115,15 @@
   3. Operator sees hero/type hierarchy, pipeline chips, scrub desk forms, dropzone, Process CTA energy, and dossier/outcome scrap hierarchy restyled without layout rewrite
   4. Operator still completes city → type → dropzone → process path with unchanged structure and contracts
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; desk density ≠ auth-modal roominess on tables; no 4th unscoped `!important` strata  
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 79-01-PLAN.md - Elevation hierarchy + hero/pipeline/scrub/dossier/import shells (CARDS-03)
+- [ ] 79-02-PLAN.md - Kept + inventory dark-glass tables sticky/zebra/hover/390 scroll (DESK-03)
+
+ -  [ ] 79 - 01 - PLAN.md  -  Elevation hierarchy + hero/pipeline/scrub/dossier/import shells (CARDS - 03)
+ -  [ ] 79 - 02 - PLAN.md  -  Kept + inventory dark - glass tables sticky/zebra/hover/390 scroll (DESK - 03)
+
 
 ### Phase 80: Theater, Gates & Motion
 **Goal**: Full Filter surface paint including cinema climax, Train gates, and reduced-motion-safe motion — no orphan pre-system chrome  
@@ -129,21 +146,25 @@
   2. Full automated suite remains green at or above the pre-milestone bar (679+ tests; no intentional behavior regressions)
   3. `scripts/verify-live.ps1` exits 0 (health + homepage HTTP 200) after Filter visual changes
   4. Behavior freeze holds — no process/API/brain/keep-kill/list workflow changes; no Analyze re-coupling chrome
-  5. Maintainer has a short component catalog note (tokens + class names + do/don’t) and a screenshot parity matrix checklist (login/home vs Filter pairs)
+  5. Maintainer has a short component catalog note (tokens + class names + do/don't) and a screenshot parity matrix checklist (login/home vs Filter pairs)
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; **verify-live + suite bar mandatory**; bump CSS `?v=` / hard-refresh note; never wipe `data/filter-lists` or brain for screenshots  
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 81-01-PLAN.md — Component catalog, parity matrix, 390/1440 checklist template, TEST-PLAN §P
+- [ ] 81-02-PLAN.md — Suite ≥679 + verify-live + fill checklist / freeze / parity Pass
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 75. Contract Freeze & Surface Inventory | v3.0 | 0/TBD | Not started | - |
-| 76. Tokens & Layer Audit | v3.0 | 0/TBD | Not started | - |
+| 75. Contract Freeze & Surface Inventory | v3.0 | 0/2 | Planned | - |
+| 76. Tokens & Layer Audit | v3.0 | 0/2 | Planned | - |
 | 77. Shared Components Expansion | v3.0 | 0/TBD | Not started | - |
 | 78. Cascade, Hooks & State CSS | v3.0 | 0/TBD | Not started | - |
-| 79. Desk Core Restyle | v3.0 | 0/TBD | Not started | - |
+| 79. Desk Core Restyle | v3.0 | 0/2 | Planned | - |
 | 80. Theater, Gates & Motion | v3.0 | 0/TBD | Not started | - |
-| 81. Visual QA Lock & Catalog | v3.0 | 0/TBD | Not started | - |
+| 81. Visual QA Lock & Catalog | v3.0 | 0/2 | Planned | - |
 | 69–74 | v2.2 | 6/6 | Complete | 2026-07-10 |
 | 61–68 | v2.1 | 20/20 | Complete | 2026-07-11 |
 
