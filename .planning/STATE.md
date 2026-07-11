@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Filter Scrub Theater
-current_plan: Not started
-status: planning
-stopped_at: Completed 67-03-PLAN.md
-last_updated: "2026-07-11T00:44:25.645Z"
-last_activity: 2026-07-11 — 67-03 sticky shift queue (SHIFT-01)
+current_plan: 2
+status: executing
+stopped_at: Completed 68-01-PLAN.md
+last_updated: "2026-07-11T00:56:00.000Z"
+last_activity: 2026-07-11 — 68-01 QA permanent bar packaging (gates-only theater)
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 20
-  completed_plans: 18
-  percent: 90
+  completed_plans: 19
+  percent: 95
 ---
 
 # State
@@ -22,18 +22,18 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v2.1 Filter Scrub Theater — Phase 67 complete; Phase 68 Regression QA Lock next
+**Current focus:** v2.1 Filter Scrub Theater — Phase 68 Regression QA Lock (Plan 01 done; Plan 02 ship gate next)
 
 ## Current Position
 
 **Milestone:** v2.1 Filter Scrub Theater (M8)  
-**Phase:** 67 — Multi-City Shift & Staging  
-**Current Plan:** Not started
-**Total Plans in Phase:** 3  
-**Status:** Ready to plan
-**Last activity:** 2026-07-11 — 67-03 sticky shift queue (SHIFT-01)
+**Phase:** 68 — Regression QA Lock  
+**Current Plan:** 2 of 2  
+**Total Plans in Phase:** 2  
+**Status:** Executing  
+**Last activity:** 2026-07-11 — 68-01 QA permanent bar packaging (gates-only theater)
 
-Progress: [█████████░] 90% (18/20 plans executed)
+Progress: [██████████] 95% (19/20 plans executed)
 
 ## Phase map (v2.1)
 
@@ -46,7 +46,7 @@ Progress: [█████████░] 90% (18/20 plans executed)
 | 65 | Kill-Rate Scrub Report | 3 (3 done) | PASS |
 | 66 | Superpower Train Theater | 3 (3 done) | PASS |
 | 67 | Multi-City Shift & Staging | 3 (3 done) | PASS |
-| 68 | Regression QA Lock | 2 | PASS |
+| 68 | Regression QA Lock | 2 (1 done) | PASS |
 
 ## GSD artifacts
 
@@ -108,6 +108,8 @@ Progress: [█████████░] 90% (18/20 plans executed)
 - [67] Empty inventory hides HUD; Ready ember heat, Downloaded muted taupe; keep lists-total a11y strip
 - [67] Hybrid shiftQueue + sessionStorage bridge_shift_queue (no shift API); durable inventory stays savedLists
 - [67] Clear shift strip is session-only; never DELETE /api/bridge/lists; prune orphans on loadSavedLists
+- [68] Gates-only QA-03 theater packaging: product FEED/KILL/THTR dual-tags already green; no bridge-scrub-theater.test.js
+- [68] QA-02 Option A: verify-live + explicit /bridge 200 in Plan 02 (do not extend verify-live.ps1)
 
 ## Performance Metrics
 
@@ -131,16 +133,17 @@ Progress: [█████████░] 90% (18/20 plans executed)
 | 67 | 01 | 8min | 2 | 4 |
 | 67 | 02 | 8min | 2 | 4 |
 | 67 | 03 | 12min | 3 | 4 |
+| 68 | 01 | 12min | 2 | 2 |
 
 ## Next command
 
 ```text
-/gsd:complete-phase 67
+/gsd:execute-phase 68
 ```
 
-(Or `/gsd:execute-phase 68` after phase verification)
+(Or execute plan 68-02 ship gate: full suite + verify-live + `/bridge` + checklist)
 
 ## Session
 
-**Last session:** 2026-07-11T00:42:06.539Z
-**Stopped at:** Completed 67-03-PLAN.md
+**Last session:** 2026-07-11T00:56:00.000Z
+**Stopped at:** Completed 68-01-PLAN.md

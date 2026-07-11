@@ -148,8 +148,8 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
   1. All Filter independence / accuracy / brain / processUpload locks from v1.6–v2.0 stay green (`npm test`)
   2. `scripts/verify-live.ps1` exits 0 after milestone work; `/bridge` health + homepage HTTP 200
   3. Mobile 390 + desktop 1440: no horizontal overflow; primary CTAs ≥ 44px; reduced-motion paths verified for FEED/KILL/THTR motion
-**Plans**: 2 plans · plan-check **PASS**
-- [ ] 68-01-PLAN.md — Theater contracts packaging + TEST-PLAN §O + QA checklist
+**Plans**: 1/2 plans complete · plan-check **PASS**
+- [x] 68-01-PLAN.md — Theater contracts packaging + TEST-PLAN §O + QA checklist
 - [ ] 68-02-PLAN.md — Ship gate: full suite + verify-live + `/bridge` 200 + checklist evidence
 
 ---
@@ -167,7 +167,7 @@ v2.1 makes `/bridge` feel like a **gritty multi-city scrub desk**: asymmetric fo
 | 65. Kill-Rate Scrub Report | 3/3 | Complete | PASS | 2026-07-11 |
 | 66. Superpower Train Theater | 3/3 | Complete | PASS | — |
 | 67. Multi-City Shift & Staging | 2/3 | In Progress | PASS | — |
-| 68. Regression QA Lock | 0/2 | Ready to execute | PASS | — |
+| 68. Regression QA Lock | 1/2 | In Progress | PASS | — |
 
 ### Coverage Map
 
