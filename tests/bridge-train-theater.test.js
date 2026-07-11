@@ -360,3 +360,154 @@ test('THTR-01 theater chrome: bridge.js toggles is-theater / bridge-results-mode
     'Decision saved · kept strings must remain after theater chrome'
   );
 });
+
+// ─── 66-03 THTR-02: brain demoted to Rules armory ────────────────────────────
+
+test('THTR-02: brain control is Rules armory (not equal Filter brain peer)', () => {
+  const html = readHtml();
+
+  assert.ok(html.includes('id="bridge-mode-brain"'), 'must keep id="bridge-mode-brain"');
+  assert.ok(
+    /id="bridge-mode-brain"[^>]*>\s*Rules armory\s*</.test(html) ||
+      /id="bridge-mode-brain"[\s\S]{0,120}>\s*Rules armory\s*</.test(html),
+    'brain tab visible label must be Rules armory'
+  );
+  assert.ok(html.includes('id="bridge-brain-panel"'), 'must keep id="bridge-brain-panel"');
+  assert.ok(
+    /data-mode=["']brain["']/.test(html),
+    'brain tab must keep data-mode="brain" for setResultsMode'
+  );
+  assert.ok(
+    /aria-controls=["']bridge-brain-panel["']/.test(html),
+    'brain tab must aria-controls bridge-brain-panel'
+  );
+
+  // Equal peer ban: tab label must not still say Filter brain
+  const brainBtn = html.match(
+    /<button[^>]*id="bridge-mode-brain"[^>]*>[\s\S]*?<\/button>/
+  );
+  assert.ok(brainBtn, 'brain mode button present');
+  assert.ok(
+    !/>\s*Filter brain\s*</.test(brainBtn[0]),
+    'brain tab label must not be equal-peer "Filter brain"'
+  );
+  assert.ok(
+    /Rules armory/.test(brainBtn[0]),
+    'brain button text must include Rules armory'
+  );
+});
+
+test('THTR-02: theater CSS demotes armory; loadBrainPanel path intact', () => {
+  const cssPath = path.join(ROOT, 'public', 'css', 'bridge.css');
+  const css = fs.readFileSync(cssPath, 'utf8');
+  const js = readBridgeJs();
+
+  const armoryDemotion =
+    /bridge-results-mode--theater[\s\S]{0,800}bridge-mode-tab--armory/.test(css) ||
+    /bridge-results-mode--theater[\s\S]{0,800}data-mode=["']brain["']/.test(css) ||
+    /bridge-results-mode--theater[\s\S]{0,800}\[data-mode=["']brain["']\]/.test(css) ||
+    /\.bridge-mode-tab--armory/.test(css);
+  assert.ok(
+    armoryDemotion,
+    'CSS must demote armory/brain under theater (armory class or data-mode=brain)'
+  );
+
+  assert.ok(
+    /function\s+loadBrainPanel\s*\(/.test(js),
+    'bridge.js must still define loadBrainPanel'
+  );
+  assert.ok(
+    /setResultsMode\s*\(\s*['"]brain['"]\s*\)/.test(js) ||
+      /mode\s*===\s*['"]brain['"]/.test(js) ||
+      /data-mode/.test(js),
+    'setResultsMode brain path / data-mode wiring must remain'
+  );
+  // loadBrainPanel still invoked from brain mode
+  assert.ok(
+    /loadBrainPanel\s*\(/.test(js),
+    'loadBrainPanel must still be called (admin armory still loadable)'
+  );
+});
+
+// ─── 66-03 THTR-03: non-admin never sees train/brain chrome ──────────────────
+
+test('THTR-03: train wrap hidden by default; mission only inside wrap', () => {
+  const html = readHtml();
+
+  // Opening tag for train wrap must include hidden attribute
+  const wrapTag = html.match(/<div[^>]*id="bridge-train-wrap"[^>]*>/);
+  assert.ok(wrapTag, 'bridge-train-wrap opening tag present');
+  assert.ok(
+    /\bhidden\b/.test(wrapTag[0]),
+    'train wrap opening tag must have hidden (default fail-closed)'
+  );
+
+  const wrapOpen = html.indexOf('id="bridge-train-wrap"');
+  const missionIdx = html.indexOf('id="bridge-train-mission"');
+  const modeBrainIdx = html.indexOf('id="bridge-mode-brain"');
+  const brainPanelIdx = html.indexOf('id="bridge-brain-panel"');
+  const toolbarIdx = html.indexOf('id="bridge-results-toolbar"');
+
+  assert.ok(missionIdx > wrapOpen, 'mission after wrap open');
+  assert.ok(modeBrainIdx > wrapOpen, 'brain tab after wrap open');
+  assert.ok(brainPanelIdx > wrapOpen, 'brain panel after wrap open');
+  assert.ok(missionIdx < toolbarIdx, 'mission before results toolbar sibling');
+  assert.ok(modeBrainIdx < toolbarIdx, 'brain chrome before toolbar (inside wrap region)');
+  assert.ok(brainPanelIdx < toolbarIdx, 'brain panel before toolbar (inside wrap region)');
+});
+
+test('THTR-03: non-admin renderResults clears train; isBridgeAdmin gates clicks', () => {
+  const js = readBridgeJs();
+
+  // renderResults non-admin branch: hide wrap + clear containers
+  const renderIdx = js.indexOf('function renderResults');
+  assert.ok(renderIdx !== -1, 'renderResults must exist');
+  // Approximate region: from renderResults through next top-level async function or large chunk
+  const renderRegion = js.slice(renderIdx, renderIdx + 12000);
+
+  assert.ok(
+    /isBridgeAdmin\s*\(\s*\)/.test(renderRegion),
+    'renderResults must gate on isBridgeAdmin'
+  );
+  assert.ok(
+    /setHidden\s*\(\s*trainWrap\s*,\s*true\s*\)/.test(renderRegion) ||
+      /setHidden\s*\(\s*trainWrap\s*,\s*!0\s*\)/.test(renderRegion),
+    'non-admin must setHidden(trainWrap, true)'
+  );
+  assert.ok(
+    /bridge-train-distressed/.test(renderRegion) &&
+      /innerHTML\s*=\s*['"]['"]/.test(renderRegion),
+    'non-admin path must clear train containers'
+  );
+
+  // Mission header never unhides wrap for non-admin
+  const missionFn = js.indexOf('function updateTrainMissionHeader');
+  assert.ok(missionFn !== -1, 'updateTrainMissionHeader must exist');
+  const missionRegion = js.slice(missionFn, missionFn + 900);
+  assert.ok(
+    /isBridgeAdmin\s*\(\s*\)/.test(missionRegion),
+    'updateTrainMissionHeader must check isBridgeAdmin'
+  );
+  // Non-admin early return must not setHidden(trainWrap, false)
+  assert.ok(
+    !/setHidden\s*\(\s*trainWrap\s*,\s*false\s*\)/.test(missionRegion),
+    'mission header must not unhide trainWrap'
+  );
+
+  // Click / mode handlers gate isBridgeAdmin
+  assert.ok(
+    /isBridgeAdmin\s*\(\s*\)/.test(js),
+    'bridge.js must use isBridgeAdmin on train/brain paths'
+  );
+  // Mode tab delegation near train wrap
+  const modeClickRegion =
+    js.includes("data-mode") && js.includes('isBridgeAdmin')
+      ? js
+      : '';
+  assert.ok(modeClickRegion, 'mode + isBridgeAdmin wiring present');
+  assert.ok(
+    /if\s*\(\s*!tab\s*\|\|\s*!isBridgeAdmin\s*\(\s*\)\s*\)\s*return/.test(js) ||
+      /!isBridgeAdmin\s*\(\s*\)\s*\)\s*return/.test(js),
+    'tab/decision handlers must early-return when !isBridgeAdmin'
+  );
+});
