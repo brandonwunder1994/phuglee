@@ -22,7 +22,7 @@
 
 ### FORMS
 
-- [ ] **FORMS-01**: Operator uses text inputs, selects, textareas, and search fields that share the system form language (city search, save name, Train search, filters)
+- [x] **FORMS-01**: Operator uses text inputs, selects, textareas, and search fields that share the system form language (city search, save name, Train search, filters)
 - [x] **FORMS-02**: Operator selects list type via system chip components (code / water) with radio semantics preserved
 - [x] **FORMS-03**: Operator sees selected type chips with auth-tab energy (gold/orange gradient face) while unselected chips stay calm
 - [ ] **FORMS-04**: Operator uses the file dropzone with clear idle / dragover / has-file / error visual states (multi-file + accept list unchanged)
@@ -91,7 +91,7 @@
 | BUTTONS-01 | Phase 77 | Complete |
 | BUTTONS-02 | Phase 77 | Complete |
 | BUTTONS-03 | Phase 77 | Complete |
-| FORMS-01 | Phase 78 | Pending |
+| FORMS-01 | Phase 78 | Complete |
 | FORMS-02 | Phase 77 | Complete |
 | FORMS-03 | Phase 77 | Complete |
 | FORMS-04 | Phase 78 | Pending |

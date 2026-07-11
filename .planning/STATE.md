@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Filter Visual Makeover
-status: In Progress
-stopped_at: Completed 77-02-PLAN.md
-last_updated: "2026-07-11T20:13:51.652Z"
-last_activity: 2026-07-11 — Completed 77-02 chips/panels/status patterns
+status: executing
+stopped_at: Completed 78-01-PLAN.md
+last_updated: "2026-07-11T20:28:00.000Z"
+last_activity: 2026-07-11 — Completed 78-01 cascade/form hooks
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 14
-  completed_plans: 6
-  percent: 43
+  completed_plans: 7
+  percent: 50
 ---
 
 # State
@@ -21,36 +21,37 @@ progress:
 See: `.planning/PROJECT.md`
 
 **Core value:** Collect → scrub non-deals (brain-learned) → save lists → external enrich → **manual** Analyze import.  
-**Current focus:** v3.0 Filter Visual Makeover — Phase 78 next (cascade/hooks)
+**Current focus:** v3.0 Filter Visual Makeover — Phase 78 (cascade/hooks)
 
 ## Current Position
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Phase:** 78 of 81 (Cascade, Hooks & State CSS) — next  
-**Plan:** 1 of TBD (next)  
+**Phase:** 78 of 81 (Cascade, Hooks & State CSS) — in progress  
+**Plan:** 2 of 2 (next)  
 **Status:** In Progress  
-**Last activity:** 2026-07-11 — Completed 77-02 chips/panels/status patterns  
+**Last activity:** 2026-07-11 — Completed 78-01 cascade/form hooks  
 
-Progress: [████░░░░░░] 43%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6 (this milestone)
+- Total plans completed: 7 (this milestone)
 - Average duration: 10min
-- Total execution time: 60min
+- Total execution time: 72min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 75–81 | 6 done | 14 | 10min |
+| 75–81 | 7 done | 14 | 10min |
 | Phase 75 P01 | 12min | 2 tasks | 3 files |
 | Phase 75 P02 | 18min | 2 tasks | 3 files |
 | Phase 76 P01 | 8min | 2 tasks | 1 files |
 | Phase 76 P02 | 12min | 2 tasks | 7 files |
 | Phase 77 P01 | 8min | 2 tasks | 1 files |
 | Phase 77 P02 | 2min | 2 tasks | 2 files |
+| Phase 78 P01 | 12min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,18 +77,21 @@ Progress: [████░░░░░░] 43%
 - [Phase 77]: Dual-class bridge-type-chip + phuglee-chip; selected face mirrors auth-tab gradient values
 - [Phase 77]: Panel --static kills hover lift; --dense uses desk-pad tokens
 - [Phase 77]: Status patterns use --phuglee-success|danger|warn only; no kill theater in shared CSS
+- [Phase 78]: Cascade order fixed to components then bridge then a11y so page densify wins without inverted load
+- [Phase 78]: Form paint in phuglee-components; bridge keeps layout densify only; :disabled native mute
+- [Phase 78]: Train wrap never display:flex|block|grid !important — hidden remains sole gate
 
 ### Pending Todos
 None yet.
 
 ### Blockers/Concerns
-- Cascade load order today is inverted (bridge before components) — fix in Phase 78
 - ~70+ JS `getElementById` boots — never rename `bridge-*` IDs or `data-action` values
 - Admin Train must stay fail-closed; CSS is never the sole gate
+- Pre-existing TYPE-71 cinema test expects exact `class="bridge-type-chips"` (Phase 77 dual-class widened class attr)
 
 ## Session Continuity
 
-Last session: 2026-07-11T20:13:51.639Z
-Stopped at: Completed 77-02-PLAN.md
+Last session: 2026-07-11T20:28:00.000Z
+Stopped at: Completed 78-01-PLAN.md
 Resume file: None
-Next: Phase 78 — cascade, hooks & state CSS
+Next: Phase 78-02 — dropzone/dialogs/loading hooks

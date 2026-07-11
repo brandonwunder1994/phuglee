@@ -22,8 +22,8 @@
 ## Active Work
 
 **Milestone:** v3.0 Filter Visual Makeover  
-**Status:** In progress — Phase 77 complete (2/2); next Phase 78  
-**Next:** Execute Phase 78 (cascade, hooks & state CSS)
+**Status:** In progress — Phase 78 in progress (1/2); next 78-02  
+**Next:** Execute Phase 78-02 (dropzone/dialogs/loading hooks)
 
 **Goal:** Full visual redesign of Filter (`/bridge`) so it matches the login/home “badass” look — every control upgraded — plus a reusable Phuglee design system for later site-wide rollout, with **zero functional change**.
 
@@ -106,7 +106,11 @@ Plans:
   4. Operator sees loading / scrub-in-progress feedback via shared loading patterns; scrub feed remains legible and populates without relying on `animationend`
   5. CSS load order is components → bridge → a11y; dual-class hooks applied without renaming IDs; no `display` hacks that fail-open Train for non-admins
 **Hard constraints**: CSS/markup only; freeze bridge IDs and data-action; north star login/home visual; never force `display:flex !important` on Train wrap  
-**Plans**: TBD
+**Plans:** 2 plans (1/2 complete)
+
+Plans:
+- [x] 78-01-PLAN.md -- Cascade order + dual-class form hooks + Train fail-closed state CSS (FORMS-01)
+- [ ] 78-02-PLAN.md -- Dropzone / dialogs / loading dual-class hooks (FORMS-04, CARDS-02, STATES-02)
 
 ### Phase 79: Desk Core Restyle
 **Goal**: High-frequency operator chrome (hero, pipeline, scrub stage, dossier, import, tables) matches Phuglee density and elevation  
