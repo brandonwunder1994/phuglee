@@ -76,7 +76,7 @@ Each task was committed atomically:
 2. **Task 1 GREEN: Rules armory demotion** - `e271074` (feat)
 3. **Task 2: Cross-suite + verify-live** - verification only (no code delta; efficiency already green)
 
-**Plan metadata:** (pending docs commit)
+**Plan metadata:** `21954a9` (docs: complete plan)
 
 _Note: TDD Task 1 — RED tests for armory label/CSS/admin gate; GREEN via HTML+CSS only._
 
