@@ -353,3 +353,15 @@ rg 'data-action' public/js/bridge.js public/js/bridge-train.js public/bridge.htm
 ```
 
 If freeze tests fail after a visual edit: **restore the contract** — do not weaken the test to match a rename.
+
+---
+
+## § Related docs
+
+| Doc | Role |
+|-----|------|
+| [`SURFACE-INVENTORY.md`](./SURFACE-INVENTORY.md) | Region → design-system layer map + paint phase hints (76–80) |
+| [`STATE-MATRIX.md`](./STATE-MATRIX.md) | JS-owned states CSS may style; bans inventing parallel show/hide |
+| [`TEST-PLAN.md`](./TEST-PLAN.md) | Suite map including DESK-05 freeze tests |
+
+v3.0 restyles: read freeze (what not to rename) → inventory (where to paint) → state matrix (which toggles to style).
