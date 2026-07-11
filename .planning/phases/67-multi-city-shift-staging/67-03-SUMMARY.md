@@ -78,7 +78,7 @@ Each task was committed atomically:
 2. **Task 2: Session shift queue + sticky strip + save/delete wiring** - `ba2f201` (feat)
 3. **Task 3: Phase gate — full suite + verify-live** - verification only (no code delta)
 
-**Plan metadata:** (docs commit after this SUMMARY)
+**Plan metadata:** `55032ef` (docs: complete plan)
 
 _Note: TDD — RED test commit then GREEN implementation._
 
