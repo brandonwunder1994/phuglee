@@ -81,7 +81,7 @@ Each task was committed atomically:
 2. **Task 2: countOpenTrainGroups + mission markup + theater pivot** - `3a8f8f4` (feat)
 3. **Task 3: Align train-ux + theater tests; cache-bust confirm** - `3627565` (test)
 
-**Plan metadata:** _(pending final docs commit)_
+**Plan metadata:** `8232c20` (docs: complete plan)
 
 _Note: TDD RED → GREEN → align; all THTR-01 asserts green after Task 2._
 
