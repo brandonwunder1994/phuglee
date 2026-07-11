@@ -39,7 +39,7 @@
 - [ ] **DESK-02**: Operator still experiences kill report + mission board as climax-first (RAW → KILLED → KEPT order and Save elevation preserved; visual only)
 - [ ] **DESK-03**: Operator can read kept + inventory tables on dark glass (sticky header, hover/zebra, usable horizontal scroll at 390 width)
 - [ ] **DESK-04**: Operator (admin) experiences Train theater + Rules armory as distinct visual modes; non-admin Train remains fail-closed/hidden
-- [ ] **DESK-05**: Operator never loses locked workflow contracts — all `bridge-*` IDs, `data-action` / `data-mode` / `data-format` values, and cinema structure order remain intact
+- [x] **DESK-05**: Operator never loses locked workflow contracts — all `bridge-*` IDs, `data-action` / `data-mode` / `data-format` values, and cinema structure order remain intact
 
 ### STATES
 
@@ -102,7 +102,7 @@
 | DESK-02 | Phase 80 | Pending |
 | DESK-03 | Phase 79 | Pending |
 | DESK-04 | Phase 80 | Pending |
-| DESK-05 | Phase 75 | Pending |
+| DESK-05 | Phase 75 | Complete |
 | STATES-01 | Phase 77 | Pending |
 | STATES-02 | Phase 78 | Pending |
 | STATES-03 | Phase 77 | Pending |
