@@ -63,8 +63,9 @@ test('MISSION-70: computeIdleProof still available for victory metrics', () => {
 // ── Phase 71: Type chips ───────────────────────────────────────────────────
 
 test('TYPE-71: chips not essay cards', () => {
-  assert.match(html, /class="bridge-type-chips"/);
-  assert.match(html, /class="bridge-type-chip"/);
+  // Dual-class allowed (e.g. bridge-type-chips phuglee-chip-group from Phase 77)
+  assert.match(html, /class="[^"]*\bbridge-type-chips\b[^"]*"/);
+  assert.match(html, /class="[^"]*\bbridge-type-chip\b[^"]*"/);
   assert.match(html, /Code violation/);
   assert.match(html, /Water shut-off/);
   assert.equal(html.includes('bridge-type-card'), false);
