@@ -84,7 +84,7 @@ Each task was committed atomically:
 2. **Task 2: Thin form paint + :disabled system language** - `3d25105` (feat)
 3. **Task 3: State CSS guards — Train fail-closed** - verified no code change required (guards already clean after audit)
 
-**Plan metadata:** _(pending final docs commit)_
+**Plan metadata:** `df77bc1` (docs: complete plan)
 
 ## Files Created/Modified
 
