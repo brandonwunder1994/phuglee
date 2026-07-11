@@ -1140,11 +1140,31 @@ body {
   min-height: 44px;
 }
 
-.bridge-loading {
-  padding: 1.5rem 0;
+/* Loading shell densify — shared .phuglee-loading-* paint owns the bar (STATES-02) */
+.bridge-loading.phuglee-loading-state {
+  padding: 1.5rem 1rem;
+  gap: 0.85rem;
+  width: 100%;
+  align-items: stretch;
 }
 
-/* Live scrub feed (process beat — FEED-01 / FEED-02) */
+.bridge-loading.phuglee-loading-state .phuglee-loading-bar {
+  align-self: center;
+}
+
+.bridge-loading.phuglee-loading-state .phuglee-loading-copy {
+  color: var(--phuglee-cream, #f3ecdf);
+  text-align: center;
+}
+
+/* Never force-show loading/feed while JS keeps hidden */
+#bridge-loading-panel[hidden],
+#bridge-scrub-feed-summary[hidden],
+#bridge-scrub-feed[hidden] {
+  display: none !important;
+}
+
+/* Live scrub feed (process beat — FEED-01 / FEED-02) — cream/taupe on glass */
 .bridge-scrub-feed-summary {
   margin: 0.85rem 0 0.4rem;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
@@ -1152,22 +1172,28 @@ body {
   letter-spacing: 0.02em;
   color: var(--phuglee-taupe, #c4b8a4);
   line-height: 1.35;
+  text-align: left;
+  width: 100%;
 }
 
 .bridge-scrub-feed {
   list-style: none;
   margin: 0.5rem 0 0;
-  padding: 0;
   max-height: 14rem;
   overflow-x: hidden;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 0.28rem;
-  border: 1px solid rgba(174, 163, 143, 0.14);
+  border: 1px solid var(--glass-border, rgba(174, 163, 143, 0.14));
   border-radius: var(--radius-sm, 6px);
-  background: rgba(0, 0, 0, 0.28);
+  background: var(--glass-fill, rgba(0, 0, 0, 0.28));
   padding: 0.45rem 0.5rem;
+  width: 100%;
+  text-align: left;
+  /* Population is JS-owned — never hide rows until a CSS animation finishes */
+  opacity: 1;
+  visibility: visible;
 }
 
 .bridge-scrub-feed-item {
@@ -1182,12 +1208,15 @@ body {
   font-size: 0.78rem;
   line-height: 1.3;
   min-width: 0;
+  /* Default fully visible — enter anim is progressive enhancement only */
+  opacity: 1;
 }
 
 .bridge-scrub-feed-item.is-enter {
-  animation: bridge-scrub-feed-enter 0.22s ease-out;
+  animation: bridge-scrub-feed-enter 0.22s ease-out both;
 }
 
+/* Final keyframe leaves content fully visible (no CSS event-gated show) */
 @keyframes bridge-scrub-feed-enter {
   from {
     opacity: 0;
@@ -1235,8 +1264,8 @@ body {
 }
 
 .bridge-scrub-feed-item.is-kept {
-  border-left-color: rgba(229, 132, 53, 0.75);
-  background: rgba(229, 132, 53, 0.08);
+  border-left-color: color-mix(in srgb, var(--phuglee-orange) 75%, transparent);
+  background: color-mix(in srgb, var(--phuglee-orange) 8%, transparent);
 }
 
 .bridge-scrub-feed-item.is-kept .bridge-scrub-feed-status {
@@ -1281,6 +1310,8 @@ body {
   .bridge-scrub-feed-item.is-enter {
     animation: none !important;
     transition: none !important;
+    opacity: 1;
+    transform: none;
   }
 }
 
