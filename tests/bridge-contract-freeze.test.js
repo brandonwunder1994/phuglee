@@ -88,7 +88,8 @@ test('DESK-05: victory flash-download + slogans; data-format csv', () => {
 test('DESK-05: radio name bridge-upload-type code_violation + water_shut_off', () => {
   assert.match(html, /name="bridge-upload-type" value="code_violation"/);
   assert.match(html, /name="bridge-upload-type" value="water_shut_off"/);
-  assert.match(html, /class="bridge-type-chips"/);
+  // Dual-class allowed (e.g. bridge-type-chips phuglee-chip-group from Phase 77+)
+  assert.match(html, /class="[^"]*\bbridge-type-chips\b[^"]*"/);
   assert.equal(html.includes('bridge-type-card'), false);
 });
 
