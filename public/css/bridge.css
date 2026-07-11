@@ -2426,6 +2426,46 @@ body {
   box-shadow: none;
 }
 
+/* THTR-02: Rules armory quietest — secondary rules surface, not equal third peer */
+.bridge-mode-tab--armory,
+.bridge-results-mode .bridge-mode-tab[data-mode="brain"] {
+  /* base: slightly quieter than Train/Kept even outside theater */
+  font-size: 0.88em;
+  font-weight: 600;
+  opacity: 0.78;
+  color: var(--phuglee-stone);
+}
+
+.bridge-results-mode--theater .bridge-mode-tab--armory,
+.bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"] {
+  opacity: 0.55;
+  font-size: 0.82em;
+  font-weight: 500;
+  color: var(--phuglee-stone);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  letter-spacing: 0.01em;
+}
+
+.bridge-results-mode--theater .bridge-mode-tab--armory:hover,
+.bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"]:hover {
+  opacity: 0.78;
+  color: var(--phuglee-taupe-mid);
+  border-color: rgba(174, 163, 143, 0.12);
+}
+
+.bridge-results-mode--theater .bridge-mode-tab--armory.is-active,
+.bridge-results-mode--theater .bridge-mode-tab--armory[aria-selected="true"],
+.bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"].is-active,
+.bridge-results-mode--theater .bridge-mode-tab[data-mode="brain"][aria-selected="true"] {
+  opacity: 0.82;
+  color: var(--phuglee-cream);
+  background: rgba(174, 163, 143, 0.08);
+  border-color: rgba(174, 163, 143, 0.16);
+  box-shadow: none;
+}
+
 .bridge-train-toolbar {
   display: flex;
   flex-wrap: wrap;
