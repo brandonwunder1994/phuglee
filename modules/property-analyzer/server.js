@@ -11,6 +11,7 @@ const createSafety = require('./lib/safety');
 const { ensureSeededSession } = require('./lib/seed-session');
 const mapsModule = require('./routes/maps');
 const geminiModule = require('./routes/gemini');
+const { createUsageStore } = require('./lib/api-usage');
 
 config.loadEnvFile();
 
@@ -110,13 +111,20 @@ const apiStats = {
   gemini429: 0,
   gemini503: 0,
   gemini429Times: [],
+  geminiHardQuota: 0,
   mapsOk: 0,
   mapsFail: 0,
   streetViewOk: 0,
   streetViewFail: 0,
+  mapsHardQuota: 0,
   lastGeminiError: '',
-  lastGeminiErrorAt: 0
+  lastGeminiErrorAt: 0,
+  lastMapsError: '',
+  lastMapsErrorAt: 0,
+  lastHardQuota: null
 };
+
+const usageStore = createUsageStore(config.DATA_ROOT || path.join(__dirname));
 
 function getServerConfig() {
   const maps = mapsModule.mapsKeyStatus(MAPS_KEY_FILE);
@@ -140,6 +148,8 @@ function getApiStatus() {
   const rateLimited = recent429 >= 3 || /429|rate limit/i.test(apiStats.lastGeminiError);
   const mapsQueue = mapsModule.getMapsQueueState();
   const geminiQueue = geminiModule.getGeminiQueueState();
+  const usage = usageStore.snapshot(apiStats);
+  const hardQuotaActive = !!(usage.hardQuotaActive || apiStats.lastHardQuota);
   return {
     ok: true,
     uptimeSec: Math.floor((now - apiStats.startedAt) / 1000),
@@ -152,6 +162,7 @@ function getApiStatus() {
       recent429,
       total429: apiStats.gemini429,
       total503: apiStats.gemini503,
+      hardQuota: apiStats.geminiHardQuota || 0,
       rateLimited,
       lastError: apiStats.lastGeminiError,
       lastErrorAgeSec: apiStats.lastGeminiErrorAt
@@ -163,12 +174,20 @@ function getApiStatus() {
       waiting: mapsQueue.waiting,
       maxConcurrent: mapsQueue.maxConcurrent,
       ok: apiStats.mapsOk,
-      fail: apiStats.mapsFail
+      fail: apiStats.mapsFail,
+      hardQuota: apiStats.mapsHardQuota || 0,
+      lastError: apiStats.lastMapsError || '',
+      lastErrorAgeSec: apiStats.lastMapsErrorAt
+        ? Math.floor((now - apiStats.lastMapsErrorAt) / 1000)
+        : null
     },
     streetView: {
       ok: apiStats.streetViewOk,
       fail: apiStats.streetViewFail
-    }
+    },
+    usage,
+    hardQuotaActive,
+    lastHardQuota: usage.lastHardQuota || apiStats.lastHardQuota || null
   };
 }
 
@@ -184,6 +203,7 @@ const ctx = {
   imageryCache,
   authToken,
   apiStats,
+  usageStore,
   fs,
   path
 };
@@ -209,6 +229,16 @@ async function handleAnalyzerRequest(req, res) {
 
     if (url.pathname === '/api/status') {
       return sendJson(res, 200, getApiStatus());
+    }
+
+    if (url.pathname === '/api/usage' && req.method === 'GET') {
+      return sendJson(res, 200, usageStore.snapshot(apiStats));
+    }
+
+    if (url.pathname === '/api/usage/clear-quota' && req.method === 'POST') {
+      usageStore.clearHardQuota();
+      apiStats.lastHardQuota = null;
+      return sendJson(res, 200, { ok: true, usage: usageStore.snapshot(apiStats) });
     }
 
     if ((url.pathname === '/api/config' || url.pathname === '/api/maps-config') && req.method === 'GET') {

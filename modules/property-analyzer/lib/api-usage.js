@@ -1,0 +1,284 @@
+/**
+ * API usage ledger + hard-quota classification for Maps / Gemini.
+ *
+ * Google does not expose live "credits remaining" for AI Studio / simple API keys.
+ * We track call counts, surface free-tier estimates when configured, and detect
+ * hard quota / billing exhaustion so scans can stop and resume cleanly.
+ */
+'use strict';
+
+const fs = require('fs');
+const path = require('path');
+
+/** Soft daily free-tier estimates (override via env). Used only for UI guidance. */
+const DEFAULT_GEMINI_DAILY_LIMIT = Number(process.env.GEMINI_FREE_TIER_DAILY_LIMIT) || 1500;
+const DEFAULT_MAPS_MONTHLY_CREDIT_USD = Number(process.env.MAPS_MONTHLY_CREDIT_USD) || 200;
+/** Rough Street View Static + Static Maps blended cost per successful image request. */
+const MAPS_USD_PER_OK = Number(process.env.MAPS_USD_PER_CALL) || 0.007;
+
+function dayKey(d = new Date()) {
+  return d.toISOString().slice(0, 10);
+}
+
+function monthKey(d = new Date()) {
+  return d.toISOString().slice(0, 7);
+}
+
+function classifyApiError(status, message = '') {
+  const m = String(message || '').toLowerCase();
+  const st = Number(status) || 0;
+
+  const hardQuota =
+    /exceeded your current quota|quota exceeded|resource_exhausted|billing not enabled|enable billing|free_tier.*limit|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|payment|invoice|account.*disabled|api key not valid.*quota/i.test(
+      m
+    ) ||
+    (/quota/i.test(m) && /exhausted|exceeded|daily|monthly|free.?tier/i.test(m)) ||
+    (st === 429 && /quota|resource_exhausted|free.?tier|daily|monthly/i.test(m) && !/try again in|rate/i.test(m));
+
+  const mapsHard =
+    /over_query_limit|request_denied.*billing|billing.*not.?enabled|you must enable billing|this api project is not authorized/i.test(
+      m
+    );
+
+  if (hardQuota || mapsHard) {
+    return { kind: 'hard_quota', retryable: false };
+  }
+
+  const softRate =
+    st === 429 ||
+    st === 503 ||
+    /rate limit|too many requests|high demand|overloaded|try again later|temporarily unavailable|resource has been exhausted.*rate/i.test(
+      m
+    );
+
+  if (softRate) {
+    return { kind: 'soft_rate_limit', retryable: true };
+  }
+
+  return { kind: 'other', retryable: false };
+}
+
+function isHardQuotaError(status, message) {
+  return classifyApiError(status, message).kind === 'hard_quota';
+}
+
+function isSoftRateLimitError(status, message) {
+  return classifyApiError(status, message).kind === 'soft_rate_limit';
+}
+
+function createUsageStore(dataRoot) {
+  const file = path.join(dataRoot || process.cwd(), 'logs', 'api-usage-ledger.json');
+  let state = load();
+
+  function load() {
+    try {
+      if (fs.existsSync(file)) {
+        return JSON.parse(fs.readFileSync(file, 'utf8'));
+      }
+    } catch (_) {}
+    return {
+      days: {},
+      months: {},
+      lastHardQuota: null,
+      updatedAt: 0
+    };
+  }
+
+  function save() {
+    try {
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      const tmp = `${file}.${process.pid}.tmp`;
+      fs.writeFileSync(tmp, JSON.stringify(state, null, 2));
+      fs.renameSync(tmp, file);
+    } catch (err) {
+      console.warn('[api-usage] save failed:', err.message);
+    }
+  }
+
+  function ensureDay(day) {
+    if (!state.days[day]) {
+      state.days[day] = {
+        geminiOk: 0,
+        geminiFail: 0,
+        gemini429: 0,
+        gemini503: 0,
+        geminiHardQuota: 0,
+        mapsOk: 0,
+        mapsFail: 0,
+        streetViewOk: 0,
+        streetViewFail: 0,
+        mapsHardQuota: 0
+      };
+    }
+    return state.days[day];
+  }
+
+  function ensureMonth(month) {
+    if (!state.months[month]) {
+      state.months[month] = {
+        mapsOk: 0,
+        mapsFail: 0,
+        streetViewOk: 0,
+        estimatedMapsUsd: 0
+      };
+    }
+    return state.months[month];
+  }
+
+  function prune() {
+    const days = Object.keys(state.days || {}).sort();
+    while (days.length > 45) {
+      delete state.days[days.shift()];
+    }
+    const months = Object.keys(state.months || {}).sort();
+    while (months.length > 18) {
+      delete state.months[months.shift()];
+    }
+  }
+
+  function recordGemini({ ok, status, error } = {}) {
+    const day = ensureDay(dayKey());
+    if (ok) {
+      day.geminiOk += 1;
+    } else {
+      day.geminiFail += 1;
+      if (Number(status) === 429) day.gemini429 += 1;
+      if (Number(status) === 503) day.gemini503 += 1;
+      if (isHardQuotaError(status, error)) {
+        day.geminiHardQuota += 1;
+        state.lastHardQuota = {
+          provider: 'gemini',
+          at: Date.now(),
+          status: Number(status) || 0,
+          message: String(error || '').slice(0, 280)
+        };
+      }
+    }
+    state.updatedAt = Date.now();
+    prune();
+    save();
+    return snapshot();
+  }
+
+  function recordMaps({ ok, kind = 'maps', status, error } = {}) {
+    const day = ensureDay(dayKey());
+    const month = ensureMonth(monthKey());
+    const isSv = kind === 'streetView' || kind === 'streetview';
+    if (ok) {
+      day.mapsOk += 1;
+      month.mapsOk += 1;
+      if (isSv) {
+        day.streetViewOk += 1;
+        month.streetViewOk += 1;
+      }
+      month.estimatedMapsUsd = Number(
+        ((month.estimatedMapsUsd || 0) + MAPS_USD_PER_OK).toFixed(4)
+      );
+    } else {
+      day.mapsFail += 1;
+      month.mapsFail += 1;
+      if (isSv) day.streetViewFail += 1;
+      if (isHardQuotaError(status, error)) {
+        day.mapsHardQuota += 1;
+        state.lastHardQuota = {
+          provider: 'maps',
+          at: Date.now(),
+          status: Number(status) || 0,
+          message: String(error || '').slice(0, 280)
+        };
+      }
+    }
+    state.updatedAt = Date.now();
+    prune();
+    save();
+    return snapshot();
+  }
+
+  function clearHardQuota() {
+    state.lastHardQuota = null;
+    state.updatedAt = Date.now();
+    save();
+  }
+
+  function snapshot(apiStats = null) {
+    const day = dayKey();
+    const month = monthKey();
+    const d = ensureDay(day);
+    const m = ensureMonth(month);
+    const geminiUsed = d.geminiOk + d.geminiFail;
+    const geminiLimit = DEFAULT_GEMINI_DAILY_LIMIT;
+    const geminiRemainingEst = Math.max(0, geminiLimit - geminiUsed);
+    const mapsCredit = DEFAULT_MAPS_MONTHLY_CREDIT_USD;
+    const mapsSpentEst = Number(m.estimatedMapsUsd) || 0;
+    const mapsRemainingUsdEst = Math.max(0, mapsCredit - mapsSpentEst);
+    const last = state.lastHardQuota;
+    const lastAgeSec = last?.at ? Math.floor((Date.now() - last.at) / 1000) : null;
+    // Consider hard quota "active" for 6 hours unless cleared
+    const hardQuotaActive = !!(last && lastAgeSec != null && lastAgeSec < 6 * 3600);
+
+    return {
+      ok: true,
+      day,
+      month,
+      note:
+        'Google does not publish live remaining balance for API keys. ' +
+        'Counts below are from this app. “Remaining” estimates use free-tier / credit defaults and are approximate.',
+      gemini: {
+        todayOk: d.geminiOk,
+        todayFail: d.geminiFail,
+        today429: d.gemini429,
+        today503: d.gemini503,
+        todayHardQuota: d.geminiHardQuota,
+        todayTotal: geminiUsed,
+        freeTierDailyLimitEst: geminiLimit,
+        remainingTodayEst: geminiRemainingEst,
+        remainingLabel:
+          geminiLimit > 0
+            ? `~${geminiRemainingEst.toLocaleString()} of ~${geminiLimit.toLocaleString()} free-tier calls left today (est.)`
+            : 'Daily free-tier limit not configured',
+        sessionOk: apiStats ? apiStats.geminiOk : null,
+        sessionFail: apiStats ? apiStats.geminiFail : null
+      },
+      maps: {
+        todayOk: d.mapsOk,
+        todayFail: d.mapsFail,
+        todayStreetViewOk: d.streetViewOk,
+        todayStreetViewFail: d.streetViewFail,
+        todayHardQuota: d.mapsHardQuota,
+        monthOk: m.mapsOk,
+        monthFail: m.mapsFail,
+        estimatedSpendUsdMonth: mapsSpentEst,
+        monthlyCreditUsdEst: mapsCredit,
+        remainingCreditUsdEst: mapsRemainingUsdEst,
+        remainingLabel: `~$${mapsRemainingUsdEst.toFixed(2)} of ~$${mapsCredit.toFixed(0)} Maps credit left this month (est.)`,
+        sessionOk: apiStats ? apiStats.mapsOk : null,
+        sessionFail: apiStats ? apiStats.mapsFail : null,
+        sessionStreetViewOk: apiStats ? apiStats.streetViewOk : null,
+        sessionStreetViewFail: apiStats ? apiStats.streetViewFail : null
+      },
+      lastHardQuota: last,
+      hardQuotaActive,
+      hardQuotaAgeSec: lastAgeSec,
+      updatedAt: state.updatedAt || Date.now()
+    };
+  }
+
+  return {
+    recordGemini,
+    recordMaps,
+    clearHardQuota,
+    snapshot,
+    isHardQuotaError,
+    isSoftRateLimitError,
+    classifyApiError
+  };
+}
+
+module.exports = {
+  createUsageStore,
+  classifyApiError,
+  isHardQuotaError,
+  isSoftRateLimitError,
+  dayKey,
+  monthKey
+};

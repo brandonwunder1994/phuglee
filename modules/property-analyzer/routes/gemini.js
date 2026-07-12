@@ -135,24 +135,38 @@ function geminiAuthForKey(key) {
   };
 }
 
-function createGeminiHelpers(apiStats) {
+function createGeminiHelpers(apiStats, usageStore) {
+  const { isHardQuotaError } = require('../lib/api-usage');
+
   function noteGeminiResult(status, ok, errMsg) {
     const now = Date.now();
+    const st = Number(status) || 0;
     if (ok) {
       apiStats.geminiOk++;
+      if (usageStore) usageStore.recordGemini({ ok: true, status: 200 });
       return;
     }
     apiStats.geminiFail++;
-    if (status === 429) {
+    if (st === 429) {
       apiStats.gemini429++;
       apiStats.gemini429Times.push(now);
     }
-    if (status === 503) apiStats.gemini503++;
+    if (st === 503) apiStats.gemini503++;
     apiStats.gemini429Times = apiStats.gemini429Times.filter(t => now - t < 120000);
     if (errMsg) {
       apiStats.lastGeminiError = String(errMsg).slice(0, 200);
       apiStats.lastGeminiErrorAt = now;
     }
+    if (isHardQuotaError(st, errMsg)) {
+      apiStats.geminiHardQuota = (apiStats.geminiHardQuota || 0) + 1;
+      apiStats.lastHardQuota = {
+        provider: 'gemini',
+        at: now,
+        status: st,
+        message: String(errMsg || '').slice(0, 280)
+      };
+    }
+    if (usageStore) usageStore.recordGemini({ ok: false, status: st, error: errMsg });
   }
 
   async function geminiGenerateInner(key, { prompt, base64, mimeType, images, maxOutputTokens = 1024 }) {
@@ -188,6 +202,12 @@ function createGeminiHelpers(apiStats) {
           break;
         }
         lastErr = shortenGeminiError(result.status, result.body);
+        const hardQuota = isHardQuotaError(result.status, lastErr);
+        // Hard quota is not retryable — stop trying models/attempts immediately
+        if (hardQuota) {
+          noteGeminiResult(result.status, false, lastErr);
+          return { ok: false, error: lastErr, hardQuota: true, status: result.status };
+        }
         const retryable = result.status === 429 || result.status === 503 || result.status === 500;
         if (retryable && attempt < maxAttempts - 1) {
           const waitMs = result.status === 503
@@ -204,8 +224,12 @@ function createGeminiHelpers(apiStats) {
         break;
       }
     }
-    noteGeminiResult(429, false, lastErr);
-    return { ok: false, error: lastErr };
+    // Infer status from error text when loop ends without a hard-quota short-circuit
+    let failStatus = 500;
+    if (/429|rate limit/i.test(lastErr)) failStatus = 429;
+    else if (/503|overloaded/i.test(lastErr)) failStatus = 503;
+    noteGeminiResult(failStatus, false, lastErr);
+    return { ok: false, error: lastErr, hardQuota: isHardQuotaError(failStatus, lastErr), status: failStatus };
   }
 
   async function geminiGenerate(key, opts) {
@@ -300,9 +324,9 @@ function createAuditHelpers(GEMINI_AUDIT_DIR) {
 }
 
 function register(ctx) {
-  const { router, sendJson, readBody, config, apiStats, fs: ctxFs } = ctx;
+  const { router, sendJson, readBody, config, apiStats, usageStore, fs: ctxFs } = ctx;
   const { GEMINI_AUDIT_DIR } = config;
-  const geminiHelpers = createGeminiHelpers(apiStats);
+  const geminiHelpers = createGeminiHelpers(apiStats, usageStore);
   const auditHelpers = createAuditHelpers(GEMINI_AUDIT_DIR);
 
   ctx.loadGeminiKey = loadGeminiKey;

@@ -932,6 +932,11 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
           break;
         }
       }
+      if (isHardQuotaError(err.message)) {
+        const provider = /street|maps|over_query|billing/i.test(String(err.message || '')) ? 'maps' : 'gemini';
+        haltScanForQuota(provider, err.message);
+        break;
+      }
       if (attempt < maxAttempts && isTransientError(err.message)) {
         noteRateLimit(err);
         log(`↻ ${label} — busy, retrying (${attempt}/${maxAttempts})…`, 'warn');
@@ -942,7 +947,12 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
     }
   }
 
-  noteRateLimit(lastErr);
+  if (lastErr && isHardQuotaError(lastErr.message)) {
+    const provider = /street|maps|over_query|billing/i.test(String(lastErr.message || '')) ? 'maps' : 'gemini';
+    haltScanForQuota(provider, lastErr.message);
+  } else {
+    noteRateLimit(lastErr);
+  }
   const cat = categorizeError(lastErr?.message);
   if (cat === 'streetview') state.failStreetView++;
   else if (cat === 'gemini') state.failGemini++;
@@ -1067,6 +1077,7 @@ startBtn?.addEventListener('click', async () => {
   state.serverStopAlertShown = false;
   state.satelliteWarnShown = false;
   state.rateLimitWarned = false;
+  state.quotaHaltShown = false;
   firstErrorShown = false;
   errorBanner.classList.remove('visible');
   rateLimitUntil = 0;
@@ -1542,6 +1553,8 @@ R.bootstrapApp = async function bootstrapApp() {
     updateCommandBar();
     startServerStatusPolling();
     startAlwaysOnSafetyPolling();
+    fetchApiUsage?.();
+    wireApiUsageControls?.();
     updateStartButton();
     syncAdminUi?.();
     updateScanReadyUi?.();

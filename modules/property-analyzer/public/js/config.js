@@ -504,6 +504,7 @@ R.state = {
   serverStopAlertShown: false,
   satelliteWarnShown: false,
   rateLimitWarned: false,
+  quotaHaltShown: false,
   fileName: '',
   filter: 'all',
   leadTypeFilter: 'all',
@@ -1146,7 +1147,14 @@ R.refreshServerStatusUi = async function refreshServerStatusUi() {
     serverOnline = true;
     updateServerOfflineBanner();
     fetchServerSafetyStatus().then(updateServerSafetyIndicator);
-    if (st.gemini?.rateLimited) {
+    if (st.hardQuotaActive || st.lastHardQuota) {
+      if (state.running) {
+        const p = st.lastHardQuota?.provider || 'gemini';
+        haltScanForQuota(p, st.lastHardQuota?.message || 'API quota exhausted');
+      }
+      if (diagGemini) setDiag(diagGemini, 'fail', 'Gemini: ⚠ QUOTA / CREDITS EXHAUSTED');
+      if (diagFull) setDiag(diagFull, 'fail', 'Full pipeline: ⚠ reload API credits before scanning');
+    } else if (st.gemini?.rateLimited) {
       const msg = `${st.gemini.recent429} Gemini rate limits in the last 2 min` +
         ` (${st.gemini.active}/${st.gemini.maxConcurrent} active, ${st.gemini.waiting} queued).` +
         ' Stop scan, set workers to 3–5, wait 10–15 min.';
@@ -1163,6 +1171,8 @@ R.refreshServerStatusUi = async function refreshServerStatusUi() {
       }
     }
     lastServerApiStatus = st;
+    if (st.usage) updateApiUsageUi(st.usage);
+    else fetchApiUsage();
     updateWorkerActivityUi(st);
     return st;
   }
@@ -1400,10 +1410,25 @@ R.waitForRateLimit = async function waitForRateLimit() {
   }
 }
 
+/** Hard quota / billing / free-tier exhausted — stop scan (not retry forever). */
+R.isHardQuotaError = function isHardQuotaError(msg, status) {
+  const m = String(msg || '').toLowerCase();
+  const st = Number(status) || 0;
+  if (/exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|payment required|over_query_limit|must enable billing|api project is not authorized/i.test(m)) {
+    return true;
+  }
+  if (/resource_exhausted/i.test(m) && /quota|daily|monthly|free/i.test(m)) return true;
+  if ((st === 429 || /429/.test(m)) && /quota|resource_exhausted|free.?tier|daily|monthly/i.test(m) && !/try again in|per minute|rate/i.test(m)) {
+    return true;
+  }
+  return false;
+}
+
 R.isTransientError = function isTransientError(msg) {
   if (isServerConnectionError(msg)) return false;
+  if (isHardQuotaError(msg)) return false; // do not treat hard quota as "retry later"
   const m = String(msg || '').toLowerCase();
-  return /503|429|high demand|overloaded|rate limit|resource_exhausted|too many requests|try again later|quota|temporarily unavailable|econnreset|socket hang up|image fetch failed|bad json|invalid json|unterminated|invalid score/.test(m);
+  return /503|429|high demand|overloaded|rate limit|too many requests|try again later|temporarily unavailable|econnreset|socket hang up|image fetch failed|bad json|invalid json|unterminated|invalid score/.test(m);
 }
 
 R.isStreetViewConfirmedAbsent = function isStreetViewConfirmedAbsent(streetViewResult) {
@@ -1419,11 +1444,50 @@ R.isStreetViewFetchFailure = function isStreetViewFetchFailure(streetViewResult)
 
 R.isStreetViewQuotaError = function isStreetViewQuotaError(msg) {
   const m = String(msg || '').toLowerCase();
-  return /403|request_denied|over_query|quota exceeded|billing/.test(m);
+  return isHardQuotaError(m) || /403|request_denied|over_query|quota exceeded|billing/.test(m);
+}
+
+/**
+ * Stop the scan when Maps/Gemini credits or free-tier quota are exhausted.
+ * Progress is already saved per-property — Start Scan resumes unscanned only.
+ */
+R.haltScanForQuota = function haltScanForQuota(provider, errMsg) {
+  if (state.quotaHaltShown) return;
+  state.quotaHaltShown = true;
+  state.aborted = true;
+  const who = provider === 'maps' ? 'Google Maps / Street View' : 'Gemini';
+  const detail = String(errMsg || 'API quota or credits exhausted').slice(0, 280);
+  const title = `${who} credits / quota exhausted — scan stopped`;
+  const body =
+    `${detail}\n\n` +
+    `Progress is saved. Reload credits or wait for free-tier reset, then click Start Scan — ` +
+    `it only runs addresses that still need scanning.`;
+  log(`${title}: ${detail}`, 'error');
+  notifyScanIssue('quota_exhausted', body, {
+    title,
+    dedupeKey: `quota-${provider}`,
+    browserNotify: true,
+    tier: 'error'
+  });
+  showFatalError?.(`${title}. ${detail}`);
+  try {
+    alert(
+      `Scan stopped — ${who} credits/quota ran out.\n\n` +
+      `${detail}\n\n` +
+      `Your progress is saved. After you reload credits (or free tier resets), click Start Scan to pick up where you left off.`
+    );
+  } catch (_) {}
+  updateApiUsageUi();
 }
 
 R.noteRateLimit = function noteRateLimit(err) {
-  const m = String(err?.message || '').toLowerCase();
+  const raw = String(err?.message || err || '');
+  if (isHardQuotaError(raw)) {
+    const provider = /street|maps|over_query|billing/i.test(raw) ? 'maps' : 'gemini';
+    haltScanForQuota(provider, raw);
+    return;
+  }
+  const m = raw.toLowerCase();
   if (isServerConnectionError(m) || !isTransientError(m)) return;
   const pauseMs = /503|high demand|overloaded/.test(m)
     ? 12000 + Math.floor(Math.random() * 6000)
@@ -1438,6 +1502,126 @@ R.noteRateLimit = function noteRateLimit(err) {
     state.rateLimitWarned = true;
     log(`Gemini/Google busy (503 or rate limit) — pausing ~${pauseSec}s and retrying. Try lowering parallel workers to 5–8.`, 'warn');
   }
+}
+
+R.lastApiUsage = null;
+
+R.updateApiUsageUi = function updateApiUsageUi(usage) {
+  const u = usage || lastApiUsage || lastServerApiStatus?.usage;
+  if (!u) return;
+  lastApiUsage = u;
+
+  const gemMain = $('apiUsageGeminiMain');
+  const gemSub = $('apiUsageGeminiSub');
+  const gemBar = $('apiUsageGeminiBar');
+  const gemCard = $('apiUsageGeminiCard');
+  const mapsMain = $('apiUsageMapsMain');
+  const mapsSub = $('apiUsageMapsSub');
+  const mapsBar = $('apiUsageMapsBar');
+  const mapsCard = $('apiUsageMapsCard');
+  const statusEl = $('apiUsageStatus');
+  const noteEl = $('apiUsageNote');
+  const clearBtn = $('apiUsageClearQuotaBtn');
+
+  const g = u.gemini || {};
+  const m = u.maps || {};
+  if (noteEl && u.note) noteEl.textContent = u.note;
+
+  if (gemMain) {
+    gemMain.textContent = g.remainingLabel
+      || `Today: ${(g.todayOk || 0).toLocaleString()} ok · ${(g.todayFail || 0).toLocaleString()} fail`;
+  }
+  if (gemSub) {
+    const sess = (g.sessionOk != null)
+      ? `This server session: ${(g.sessionOk || 0).toLocaleString()} ok · ${(g.sessionFail || 0).toLocaleString()} fail`
+      : '';
+    gemSub.textContent = [
+      `Today calls: ${(g.todayTotal || 0).toLocaleString()} (429s: ${g.today429 || 0})`,
+      sess
+    ].filter(Boolean).join(' · ');
+  }
+  if (gemBar && g.freeTierDailyLimitEst) {
+    const usedPct = Math.min(100, Math.round(((g.todayTotal || 0) / g.freeTierDailyLimitEst) * 100));
+    gemBar.style.width = `${usedPct}%`;
+    gemCard?.classList.toggle('is-warn', usedPct >= 70 && usedPct < 95);
+    gemCard?.classList.toggle('is-danger', usedPct >= 95 || (g.todayHardQuota || 0) > 0);
+  }
+
+  if (mapsMain) {
+    mapsMain.textContent = m.remainingLabel
+      || `Month est. spend: $${Number(m.estimatedSpendUsdMonth || 0).toFixed(2)}`;
+  }
+  if (mapsSub) {
+    mapsSub.textContent = [
+      `Today SV/Maps ok: ${(m.todayStreetViewOk || m.todayOk || 0).toLocaleString()} · fail: ${(m.todayStreetViewFail || m.todayFail || 0).toLocaleString()}`,
+      m.sessionStreetViewOk != null
+        ? `Session SV: ${(m.sessionStreetViewOk || 0).toLocaleString()} ok · ${(m.sessionStreetViewFail || 0).toLocaleString()} fail`
+        : ''
+    ].filter(Boolean).join(' · ');
+  }
+  if (mapsBar && m.monthlyCreditUsdEst) {
+    const spent = Number(m.estimatedSpendUsdMonth || 0);
+    const usedPct = Math.min(100, Math.round((spent / m.monthlyCreditUsdEst) * 100));
+    mapsBar.style.width = `${usedPct}%`;
+    mapsCard?.classList.toggle('is-warn', usedPct >= 70 && usedPct < 95);
+    mapsCard?.classList.toggle('is-danger', usedPct >= 95 || (m.todayHardQuota || 0) > 0);
+  }
+
+  if (statusEl) {
+    statusEl.classList.remove('is-ok', 'is-warn', 'is-danger');
+    if (u.hardQuotaActive && u.lastHardQuota) {
+      statusEl.classList.add('is-danger');
+      const who = u.lastHardQuota.provider === 'maps' ? 'Maps/Street View' : 'Gemini';
+      statusEl.textContent =
+        `⚠ ${who} quota/credits exhausted — scans auto-stop so you can reload credits and resume. ` +
+        `${String(u.lastHardQuota.message || '').slice(0, 160)}`;
+      if (clearBtn) clearBtn.hidden = false;
+    } else if ((g.today429 || 0) >= 3 || lastServerApiStatus?.gemini?.rateLimited) {
+      statusEl.classList.add('is-warn');
+      statusEl.textContent = 'Soft rate limit activity — workers pause briefly and retry (not a full credit stop).';
+      if (clearBtn) clearBtn.hidden = true;
+    } else {
+      statusEl.classList.add('is-ok');
+      statusEl.textContent = 'APIs healthy. Scan will auto-stop if free-tier or billing credits run out so you can pick up later.';
+      if (clearBtn) clearBtn.hidden = true;
+    }
+  }
+}
+
+R.fetchApiUsage = async function fetchApiUsage() {
+  if (!USE_PROXY) return null;
+  try {
+    const res = await apiFetch('/api/usage', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data?.ok) {
+      lastApiUsage = data;
+      updateApiUsageUi(data);
+      return data;
+    }
+  } catch (_) {}
+  return null;
+}
+
+R.wireApiUsageControls = function wireApiUsageControls() {
+  if (R._apiUsageWired) return;
+  R._apiUsageWired = true;
+  $('apiUsageRefreshBtn')?.addEventListener('click', () => {
+    fetchApiUsage();
+    refreshServerStatusUi?.();
+  });
+  $('apiUsageClearQuotaBtn')?.addEventListener('click', async () => {
+    try {
+      const res = await apiFetch('/api/usage/clear-quota', { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (data?.usage) updateApiUsageUi(data.usage);
+      else await fetchApiUsage();
+      state.quotaHaltShown = false;
+      log('Quota stop flag cleared — you can Start Scan again after reloading credits.', 'success');
+    } catch (err) {
+      log(`Could not clear quota flag: ${err.message}`, 'error');
+    }
+  });
 }
 
 R.buildNeedsReviewResult = function buildNeedsReviewResult(record, err, partial = {}) {

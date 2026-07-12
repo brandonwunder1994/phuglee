@@ -860,11 +860,39 @@ function register(ctx) {
     }
 
     const sv = await helpers.fetchStreetViewPayload(address, key);
+    const usageStore = ctx.usageStore;
+    const { isHardQuotaError } = require('../lib/api-usage');
     if (!sv.ok) {
       apiStats.streetViewFail++;
+      apiStats.mapsFail = (apiStats.mapsFail || 0) + 1;
+      apiStats.lastMapsError = String(sv.error || '').slice(0, 200);
+      apiStats.lastMapsErrorAt = Date.now();
+      if (isHardQuotaError(sv.status || 403, sv.error)) {
+        apiStats.mapsHardQuota = (apiStats.mapsHardQuota || 0) + 1;
+        apiStats.lastHardQuota = {
+          provider: 'maps',
+          at: Date.now(),
+          status: sv.status || 403,
+          message: String(sv.error || '').slice(0, 280)
+        };
+      }
+      if (usageStore) {
+        usageStore.recordMaps({
+          ok: false,
+          kind: 'streetView',
+          status: sv.status || 403,
+          error: sv.error
+        });
+      }
       console.error(`[Street View] FAIL ${address?.slice(0, 60)} — ${sv.error}`);
     } else {
       apiStats.streetViewOk++;
+      apiStats.mapsOk = (apiStats.mapsOk || 0) + 1;
+      if (usageStore) usageStore.recordMaps({ ok: true, kind: 'streetView', status: 200 });
+    }
+    // Surface hardQuota so the client can stop the scan
+    if (!sv.ok && isHardQuotaError(sv.status || 403, sv.error)) {
+      sv.hardQuota = true;
     }
     sendJson(res, 200, sv);
     return true;
