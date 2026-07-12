@@ -505,6 +505,8 @@ R.state = {
   satelliteWarnShown: false,
   rateLimitWarned: false,
   quotaHaltShown: false,
+  apiFailStreak: 0,
+  apiHaltReason: null,
   fileName: '',
   filter: 'all',
   leadTypeFilter: 'all',
@@ -1421,7 +1423,23 @@ R.isHardQuotaError = function isHardQuotaError(msg, status) {
   if ((st === 429 || /429/.test(m)) && /quota|resource_exhausted|free.?tier|daily|monthly/i.test(m) && !/try again in|per minute|rate/i.test(m)) {
     return true;
   }
+  // Dead API key / Maps denied / Gemini auth
+  if (/api key not valid|api_key_invalid|invalid api key|key expired|permission.?denied|request_denied|access.?denied|unregistered|api is not activated|has not been used|not authorized to use this api|google_maps.*denied|maps_api.*denied/i.test(m)) {
+    return true;
+  }
+  if (st === 401 || st === 403) {
+    if (/gemini|maps|street|google|api key|quota|billing|denied/i.test(m)) return true;
+  }
   return false;
+}
+
+/** Maps vs Gemini from an error string */
+R.apiProviderFromError = function apiProviderFromError(msg) {
+  const m = String(msg || '').toLowerCase();
+  if (/street|maps|over_query|staticmap|streetview|geocod|billing.*maps|maps.*billing/i.test(m)) {
+    return 'maps';
+  }
+  return 'gemini';
 }
 
 R.isTransientError = function isTransientError(msg) {
@@ -1448,47 +1466,97 @@ R.isStreetViewQuotaError = function isStreetViewQuotaError(msg) {
 }
 
 /**
- * Stop the scan when Maps/Gemini credits or free-tier quota are exhausted.
- * Progress is already saved per-property — Start Scan resumes unscanned only.
+ * Stop the scan when Maps/Gemini credits run out or the API is down/denied.
+ * Does NOT mark the current address as scanned — Start Scan resumes unscanned only.
  */
-R.haltScanForQuota = function haltScanForQuota(provider, errMsg) {
+R.haltScanForQuota = function haltScanForQuota(provider, errMsg, opts = {}) {
   if (state.quotaHaltShown) return;
   state.quotaHaltShown = true;
   state.aborted = true;
+  state.apiHaltReason = {
+    provider: provider === 'maps' ? 'maps' : 'gemini',
+    message: String(errMsg || '').slice(0, 400),
+    at: Date.now(),
+    kind: opts.kind || 'quota'
+  };
   const who = provider === 'maps' ? 'Google Maps / Street View' : 'Gemini';
-  const detail = String(errMsg || 'API quota or credits exhausted').slice(0, 280);
-  const title = `${who} credits / quota exhausted — scan stopped`;
+  const detail = String(errMsg || 'API stopped working').slice(0, 280);
+  const title = opts.kind === 'outage'
+    ? `${who} stopped responding — scan paused`
+    : `${who} credits / quota / key issue — scan stopped`;
   const body =
     `${detail}\n\n` +
-    `Progress is saved. Reload credits or wait for free-tier reset, then click Start Scan — ` +
-    `it only runs addresses that still need scanning.`;
+    `Progress is saved. The current property was NOT marked done — when APIs work again, click Start Scan to pick up where you left off.`;
   log(`${title}: ${detail}`, 'error');
   notifyScanIssue('quota_exhausted', body, {
     title,
-    dedupeKey: `quota-${provider}`,
+    dedupeKey: `quota-${provider}-${opts.kind || 'hard'}`,
     browserNotify: true,
     tier: 'error'
   });
   showFatalError?.(`${title}. ${detail}`);
   try {
+    // Best-effort save so resume has latest completed properties
+    if (typeof requestServerSave === 'function') requestServerSave('api-halt');
+    else if (typeof flushSaveSession === 'function') {
+      flushSaveSession({ force: true, reason: 'api-halt' });
+    }
+  } catch (_) {}
+  try {
     alert(
-      `Scan stopped — ${who} credits/quota ran out.\n\n` +
+      `Scan stopped — ${who} is not usable right now.\n\n` +
       `${detail}\n\n` +
-      `Your progress is saved. After you reload credits (or free tier resets), click Start Scan to pick up where you left off.`
+      `Your finished properties are saved.\n` +
+      `When credits/keys are fixed (or free tier resets), click Start Scan — it only runs addresses still left.`
     );
   } catch (_) {}
   updateApiUsageUi();
+  updateStartButton?.();
+  updateScanReadyUi?.();
+}
+
+/** Count consecutive Maps/Gemini failures; stop after a streak so we can resume later. */
+R.noteApiScanFailure = function noteApiScanFailure(errMsg, provider) {
+  state.apiFailStreak = (state.apiFailStreak || 0) + 1;
+  const streak = state.apiFailStreak;
+  if (isHardQuotaError(errMsg)) {
+    haltScanForQuota(provider || apiProviderFromError(errMsg), errMsg, { kind: 'quota' });
+    return true;
+  }
+  // Sustained outage / rate-limit thrash — pause so you can restart cleanly
+  if (streak >= 10) {
+    haltScanForQuota(
+      provider || apiProviderFromError(errMsg),
+      `API failed ${streak} times in a row. Last error: ${String(errMsg || '').slice(0, 160)}`,
+      { kind: 'outage' }
+    );
+    return true;
+  }
+  return false;
+}
+
+R.noteApiScanSuccess = function noteApiScanSuccess() {
+  state.apiFailStreak = 0;
 }
 
 R.noteRateLimit = function noteRateLimit(err) {
   const raw = String(err?.message || err || '');
   if (isHardQuotaError(raw)) {
-    const provider = /street|maps|over_query|billing/i.test(raw) ? 'maps' : 'gemini';
-    haltScanForQuota(provider, raw);
+    haltScanForQuota(apiProviderFromError(raw), raw, { kind: 'quota' });
     return;
   }
   const m = raw.toLowerCase();
   if (isServerConnectionError(m) || !isTransientError(m)) return;
+  // Count soft failures toward outage streak (without marking property done)
+  state.apiFailStreak = (state.apiFailStreak || 0) + 1;
+  if (state.apiFailStreak >= 12) {
+    haltScanForQuota(
+      apiProviderFromError(raw),
+      `Google/Gemini kept rate-limiting or failing (${state.apiFailStreak} in a row). Pause and restart later.`,
+      { kind: 'outage' }
+    );
+    return;
+  }
   const pauseMs = /503|high demand|overloaded/.test(m)
     ? 12000 + Math.floor(Math.random() * 6000)
     : 8000 + Math.floor(Math.random() * 4000);

@@ -879,6 +879,7 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
           includeSatellite: analysis.usedSatellite || analysis.skippedStreetView
         });
       }
+      noteApiScanSuccess?.();
       state.results.push(result);
       state.succeeded++;
       state.processed++;
@@ -932,13 +933,18 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
           break;
         }
       }
-      if (isHardQuotaError(err.message)) {
-        const provider = /street|maps|over_query|billing/i.test(String(err.message || '')) ? 'maps' : 'gemini';
-        haltScanForQuota(provider, err.message);
+      if (isHardQuotaError(err.message) || noteApiScanFailure?.(err.message, apiProviderFromError?.(err.message))) {
+        const provider = typeof apiProviderFromError === 'function'
+          ? apiProviderFromError(err.message)
+          : (/street|maps|over_query|billing/i.test(String(err.message || '')) ? 'maps' : 'gemini');
+        if (!state.quotaHaltShown) {
+          haltScanForQuota(provider, err.message, { kind: 'quota' });
+        }
         break;
       }
       if (attempt < maxAttempts && isTransientError(err.message)) {
         noteRateLimit(err);
+        if (state.aborted) break;
         log(`↻ ${label} — busy, retrying (${attempt}/${maxAttempts})…`, 'warn');
         await sleep(4000 * attempt + Math.floor(Math.random() * 2000));
         continue;
@@ -947,11 +953,30 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
     }
   }
 
+  // API dead / quota / aborted — leave this address unscanned so Start Scan can resume it
+  if (state.aborted || state.quotaHaltShown) {
+    updateAgentSlot(workerNum, {
+      active: false,
+      status: 'Paused — API',
+      phase: 'idle',
+      address: ''
+    });
+    if (state.running) scheduleThrottledUi();
+    return null;
+  }
+
   if (lastErr && isHardQuotaError(lastErr.message)) {
-    const provider = /street|maps|over_query|billing/i.test(String(lastErr.message || '')) ? 'maps' : 'gemini';
-    haltScanForQuota(provider, lastErr.message);
-  } else {
+    const provider = typeof apiProviderFromError === 'function'
+      ? apiProviderFromError(lastErr.message)
+      : 'gemini';
+    haltScanForQuota(provider, lastErr.message, { kind: 'quota' });
+    return null;
+  }
+  if (lastErr) {
     noteRateLimit(lastErr);
+    if (state.aborted) return null;
+    noteApiScanFailure?.(lastErr.message, apiProviderFromError?.(lastErr.message));
+    if (state.aborted) return null;
   }
   const cat = categorizeError(lastErr?.message);
   if (cat === 'streetview') state.failStreetView++;
@@ -1096,6 +1121,8 @@ startBtn?.addEventListener('click', async () => {
   state.satelliteWarnShown = false;
   state.rateLimitWarned = false;
   state.quotaHaltShown = false;
+  state.apiFailStreak = 0;
+  state.apiHaltReason = null;
   firstErrorShown = false;
   errorBanner.classList.remove('visible');
   rateLimitUntil = 0;
