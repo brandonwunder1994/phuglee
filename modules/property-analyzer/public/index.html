@@ -143,24 +143,24 @@
       </div>
 
       <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import leads for scan">
-        <div class="scan-import-drop" id="scanImportDrop" tabindex="0">
-          <div class="scan-import-drop-icon" aria-hidden="true">⬆</div>
-          <p class="scan-import-drop-title">Drop spreadsheet here</p>
-          <p class="scan-import-drop-hint">CSV / Excel · works with “New Analyzer Leads” and standard address lists</p>
-          <div class="scan-import-drop-actions">
-            <label class="btn-secondary scan-import-browse" for="scanFileInput">Choose file…</label>
-            <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Choose spreadsheet to scan">
+        <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-label="Drag and drop a CSV or Excel file, or press Enter to browse">
+          <div class="scan-import-drop-visual" aria-hidden="true">
+            <span class="scan-import-drop-icon">⬇</span>
           </div>
+          <p class="scan-import-drop-title">Drag &amp; drop your lead file here</p>
+          <p class="scan-import-drop-hint">CSV or Excel · e.g. <strong>New Analyzer Leads.csv</strong></p>
+          <p class="scan-import-drop-or">or</p>
+          <label class="btn-secondary scan-import-browse" for="scanFileInput" id="scanImportBrowseLabel">Browse files…</label>
+          <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Browse for spreadsheet to scan">
           <p class="scan-import-status" id="scanImportStatus" hidden></p>
         </div>
+        <p class="scan-import-safe-note" id="scanImportSafeNote">
+          Your <strong>already-scanned</strong> properties stay in the tool. Import only sets up the <strong>next batch to scan</strong> — it does not delete your ~10k results.
+        </p>
         <div class="scan-import-options">
           <label class="scan-import-option" for="scanImportLeadType">
             <span>Lead type</span>
             <select id="scanImportLeadType" aria-label="Lead type for this import"></select>
-          </label>
-          <label class="scan-import-option scan-import-option-check" for="scanImportKeepResults">
-            <input type="checkbox" id="scanImportKeepResults" checked>
-            <span>Keep my already-scanned leads (recommended)</span>
           </label>
         </div>
       </div>

@@ -1,4 +1,4 @@
-// scan-ready.js — Import dropzone + Start Scan
+// scan-ready.js — Drag-and-drop import + Start Scan
 (function (global) {
   const PDA = global.PDA = global.PDA || {};
   PDA.env = PDA.env || {};
@@ -6,9 +6,9 @@
   with (R) {
     const ib = () => PDA.lib?.importBatches;
     const im = () => PDA.lib?.importMeta;
+    let scanDropDepth = 0;
 
     R.updateScanReadyUi = function updateScanReadyUi() {
-      // Always show Ready to scan so import stays available
       if (scanReadySection) scanReadySection.hidden = false;
 
       const hasRecords = (state.records || []).length > 0;
@@ -49,10 +49,10 @@
       if (scanReadyCount) {
         if (pendingUnscanned > 0) {
           scanReadyCount.textContent =
-            `${pendingUnscanned.toLocaleString()} lead${pendingUnscanned === 1 ? '' : 's'} ready to scan`;
+            `${pendingUnscanned.toLocaleString()} lead${pendingUnscanned === 1 ? '' : 's'} ready to scan — hit Start Scan`;
         } else {
           scanReadyCount.textContent =
-            'Upload a CSV/Excel file, then start Street View + AI scan.';
+            'Drag & drop a CSV/Excel file below, then start Street View + AI scan.';
         }
       }
 
@@ -70,7 +70,7 @@
         } else if (!serverConfig?.hasMapsKey || !serverConfig?.hasGeminiKey) {
           scanReadyStartBtn.title = 'Maps or Gemini API key missing on server';
         } else if (!hasRecords) {
-          scanReadyStartBtn.title = 'Import a spreadsheet first';
+          scanReadyStartBtn.title = 'Drag & drop a spreadsheet first';
         } else {
           scanReadyStartBtn.title = startBtn?.title || 'Cannot start yet';
         }
@@ -79,62 +79,99 @@
     };
 
     function setScanDropActive(active) {
-      $('scanImportDrop')?.classList.toggle('dragover', !!active);
+      const drop = $('scanImportDrop');
+      if (!drop) return;
+      drop.classList.toggle('dragover', !!active);
+      drop.setAttribute('aria-dropeffect', active ? 'copy' : 'none');
+    }
+
+    async function importScanFile(file) {
+      if (!file) return;
+      if (state.running) {
+        alert('Stop the scan before uploading a new file.');
+        return;
+      }
+      // Always keep already-scanned results — import only replaces the next scan batch
+      await handleFile(file, { keepResults: true });
     }
 
     function wireScanImportZone() {
       const drop = $('scanImportDrop');
       const input = $('scanFileInput');
+      const browseLabel = $('scanImportBrowseLabel');
       initLeadTypeSelects?.();
 
       input?.addEventListener('change', async () => {
         const file = input.files?.[0];
-        if (!file) return;
-        if (state.running) {
-          alert('Stop the scan before uploading a new file.');
-          input.value = '';
-          return;
-        }
-        await handleFile(file, {
-          keepResults: $('scanImportKeepResults')?.checked !== false
-        });
         input.value = '';
+        if (!file) return;
+        await importScanFile(file);
       });
 
-      if (drop) {
-        drop.addEventListener('dragenter', (e) => {
-          if (!hasFileDrag?.(e.dataTransfer)) return;
+      // Don't let label click bubble and double-open; input is still triggered by label[for]
+      browseLabel?.addEventListener('click', (e) => e.stopPropagation());
+
+      if (!drop) return;
+
+      // Click empty drop area → browse (except when clicking the label/button)
+      drop.addEventListener('click', (e) => {
+        if (e.target.closest('label, button, a, input, select')) return;
+        input?.click();
+      });
+
+      drop.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          setScanDropActive(true);
-        });
-        drop.addEventListener('dragover', (e) => {
-          if (!hasFileDrag?.(e.dataTransfer)) return;
-          e.preventDefault();
-          setScanDropActive(true);
-        });
-        drop.addEventListener('dragleave', (e) => {
-          if (!drop.contains(e.relatedTarget)) setScanDropActive(false);
-        });
-        drop.addEventListener('drop', async (e) => {
-          e.preventDefault();
-          setScanDropActive(false);
-          if (state.running) {
-            alert('Stop the scan before uploading a new file.');
-            return;
-          }
-          const file = fileFromDataTransfer?.(e.dataTransfer) || e.dataTransfer?.files?.[0];
-          if (!file) return;
-          await handleFile(file, {
-            keepResults: $('scanImportKeepResults')?.checked !== false
-          });
-        });
-        drop.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            input?.click();
-          }
-        });
-      }
+          input?.click();
+        }
+      });
+
+      drop.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        scanDropDepth += 1;
+        setScanDropActive(true);
+      });
+
+      drop.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+        setScanDropActive(true);
+      });
+
+      drop.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        scanDropDepth = Math.max(0, scanDropDepth - 1);
+        if (scanDropDepth === 0) setScanDropActive(false);
+      });
+
+      drop.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        scanDropDepth = 0;
+        setScanDropActive(false);
+        const file = fileFromDataTransfer?.(e.dataTransfer)
+          || (e.dataTransfer?.files && e.dataTransfer.files[0])
+          || null;
+        if (!file) {
+          alert('Drop a CSV or Excel file (.csv, .xlsx, .xls).');
+          return;
+        }
+        if (typeof isSpreadsheetFile === 'function' && !isSpreadsheetFile(file)) {
+          alert(`That file type is not supported.\n\nUse CSV or Excel:\n${file.name || ''}`);
+          return;
+        }
+        await importScanFile(file);
+      });
+
+      // Prevent browser from opening the file if drop misses the zone slightly
+      // only while pointer is over the import section
+      const zone = $('scanImportZone');
+      zone?.addEventListener('dragover', (e) => {
+        if (hasFileDrag?.(e.dataTransfer)) e.preventDefault();
+      });
     }
 
     function wireScanReady() {

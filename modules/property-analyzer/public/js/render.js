@@ -1290,9 +1290,8 @@ R.handleFile = async function handleFile(file, opts = {}) {
     );
     state.importLeadType = leadType;
     const records = await parseSpreadsheet(file, leadType);
-    const keepResults = opts.keepResults != null
-      ? !!opts.keepResults
-      : ($('scanImportKeepResults')?.checked !== false);
+    // Always keep prior AI results unless caller explicitly opts out
+    const keepResults = opts.keepResults !== false;
 
     const importedAt = Date.now();
     const batchId = `batch_upload_${importedAt}`;
