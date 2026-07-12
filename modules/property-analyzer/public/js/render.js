@@ -488,6 +488,11 @@ R.showInspector = function showInspector(r, opts = {}) {
   state.selectedKey = recordKey(r);
   if (state.scoreEditKey && state.scoreEditKey !== recordKey(r)) state.scoreEditKey = null;
   if (previewHeaderTitle) previewHeaderTitle.textContent = propertyLocationTitle(r);
+  if (propertyModalTierPill) {
+    propertyModalTierPill.hidden = false;
+    propertyModalTierPill.className = 'property-modal-tier-pill tier-badge ' + tierBadgeClassForRecord(r);
+    propertyModalTierPill.textContent = tierBadgeLabelForRecord(r);
+  }
   const urls = getPropertyImageUrls(r.address, r);
   const { satellite, streetView, preferSatellite } = urls;
   if (preferSatellite) {
@@ -508,13 +513,14 @@ R.showInspector = function showInspector(r, opts = {}) {
   previewWrap.classList.remove('scanning');
   recBadge.classList.add('idle');
 
-  inspectorBody.className = 'inspector-body inspector-body-calm';
+  inspectorBody.className = 'inspector-body inspector-body-calm property-profile-body';
   inspectorBody.innerHTML = `
-    <div class="inspector-address-primary">${escapeHtml(propertyStreetLine(r))}</div>
-    <div class="inspector-name-secondary">${propertyTitleHtml(r)}</div>
-    ${leadUploadedHtml(r, 'detail')}
+    <div class="inspector-identity">
+      <div class="inspector-address-primary">${escapeHtml(propertyStreetLine(r))}</div>
+      <div class="inspector-name-secondary">${propertyTitleHtml(r)}</div>
+      ${leadUploadedHtml(r, 'detail')}
+    </div>
     <div class="inspector-badges">
-      <span class="tier-badge ${tierBadgeClassForRecord(r)}">${tierBadgeLabelForRecord(r)}</span>
       <span class="category-badge ${categoryBadgeClass(cat)}">${categoryLabel(cat)}</span>
       ${leadTypeBadgeHtml(r)}
       ${r.usedSatellite && urls.streetView ? '<span class="category-badge property">Satellite + Street View</span>' : ''}
@@ -569,7 +575,7 @@ R.showInspector = function showInspector(r, opts = {}) {
       </div>
     </div>
     ${formatPropertyProfileHtml(r)}
-    <div class="inspector-hint">↑↓ or J/K between leads · Esc to close</div>
+    <div class="inspector-hint">↑↓ or J/K to move between leads · Esc to close</div>
   `;
   const phoneBtn = inspectorBody.querySelector('.copy-phone');
   const emailBtn = inspectorBody.querySelector('.copy-email');

@@ -1649,3 +1649,594 @@ body.analyze-phuglee:not(.analyzer-embedded) .analyze-sidebar {
   body.analyze-phuglee .analyze-panel.phuglee-panel:hover { transform: none; }
   body.analyze-phuglee .card-thumb-fallback.thumb-loading { animation: none; }
 }
+
+
+/* ============================================================
+   Task 6 — Property profile modal (media-first glass)
+   ============================================================ */
+
+body.analyze-phuglee .property-modal {
+  padding: 1rem 1.15rem;
+}
+
+body.analyze-phuglee .property-modal-backdrop {
+  background: rgba(8, 7, 6, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+body.analyze-phuglee .property-modal-dialog.property-profile-dialog,
+body.analyze-phuglee .property-modal-dialog.phuglee-dialog {
+  width: min(96vw, 1180px);
+  max-height: min(92vh, 900px);
+  border-radius: 14px;
+  border: 1px solid var(--glass-border-strong, rgba(229, 132, 53, 0.28));
+  background: var(--glass-fill-elevated, rgba(16, 14, 12, 0.94));
+  box-shadow: var(--glass-shadow-float, 0 28px 72px rgba(0, 0, 0, 0.58));
+  backdrop-filter: blur(var(--glass-blur, 18px)) saturate(var(--glass-saturate, 140%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 18px)) saturate(var(--glass-saturate, 140%));
+  overflow: hidden;
+}
+
+/* Kill nested card-in-card cyber chrome on details */
+body.analyze-phuglee .property-modal-details {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.analyze-phuglee .property-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 0.85rem 1.15rem;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+  flex-shrink: 0;
+}
+
+body.analyze-phuglee .property-modal-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  flex: 1;
+}
+
+body.analyze-phuglee .property-modal-title {
+  margin: 0;
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 1.05rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  color: var(--phuglee-cream, #f5f2e4);
+  text-shadow: none;
+  min-width: 0;
+}
+
+body.analyze-phuglee .property-modal-title .property-title-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.analyze-phuglee .property-modal-tier-pill.tier-badge {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+}
+
+body.analyze-phuglee .property-modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+
+body.analyze-phuglee .property-modal-header .inspector-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+body.analyze-phuglee .inspector-nav-btn {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--phuglee-cream, #f5f2e4);
+  border-radius: 8px;
+  padding: 0.4rem 0.7rem;
+  min-height: 2.25rem;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+body.analyze-phuglee .inspector-nav-btn:hover:not(:disabled) {
+  border-color: rgba(229, 132, 53, 0.45);
+  background: rgba(229, 132, 53, 0.12);
+  color: var(--phuglee-orange, #e58435);
+  box-shadow: none;
+}
+
+body.analyze-phuglee .inspector-nav-btn:focus-visible {
+  outline: 2px solid var(--phuglee-orange, #e58435);
+  outline-offset: 2px;
+}
+
+body.analyze-phuglee .inspector-pos {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-stone, #9c968a);
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+body.analyze-phuglee .property-modal-close {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--phuglee-cream, #f5f2e4);
+  font-size: 1.25rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+body.analyze-phuglee .property-modal-close:hover {
+  border-color: rgba(229, 132, 53, 0.4);
+  color: var(--phuglee-orange, #e58435);
+  background: rgba(229, 132, 53, 0.1);
+  box-shadow: none;
+}
+
+/* Media-first grid */
+body.analyze-phuglee .property-modal-grid.property-profile-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.9fr);
+  gap: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body.analyze-phuglee .property-modal-media {
+  border-right: 1px solid rgba(174, 163, 143, 0.12);
+  min-height: 0;
+  overflow: hidden;
+  background: #0a0908;
+}
+
+body.analyze-phuglee .property-modal-media .preview-images {
+  height: 100%;
+  min-height: 360px;
+  background: #0a0908;
+}
+
+body.analyze-phuglee .property-modal-media .preview-images.dual {
+  aspect-ratio: auto;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+body.analyze-phuglee .property-modal-media .preview-images.dual .preview-sat-pane {
+  flex: 0 0 36%;
+  min-height: 120px;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+}
+
+body.analyze-phuglee .property-modal-media .preview-images.dual .preview-sv-pane {
+  flex: 1;
+  min-height: 0;
+}
+
+body.analyze-phuglee .property-modal-media .preview-image-wrap {
+  min-height: 280px;
+  height: 100%;
+  aspect-ratio: auto;
+  border: none !important;
+  border-radius: 0 !important;
+  background: #0a0908;
+}
+
+/* Kill cyber corner brackets */
+body.analyze-phuglee .property-modal-media .preview-image-wrap::before,
+body.analyze-phuglee .property-modal-media .preview-image-wrap::after {
+  content: none !important;
+  display: none !important;
+}
+
+body.analyze-phuglee .property-modal-media .preview-pane-label {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream, #f5f2e4);
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(174, 163, 143, 0.18);
+  border-radius: 6px;
+  padding: 0.22rem 0.45rem;
+  top: 10px;
+  left: 10px;
+}
+
+body.analyze-phuglee .preview-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: var(--phuglee-stone, #9c968a);
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  text-shadow: none;
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+body.analyze-phuglee .preview-placeholder svg {
+  width: 36px;
+  height: 36px;
+  opacity: 0.4;
+  stroke: var(--phuglee-taupe, #aea38f);
+  margin: 0 0 0.5rem;
+}
+
+body.analyze-phuglee .preview-placeholder-title {
+  display: block;
+  color: var(--phuglee-cream, #f5f2e4);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+body.analyze-phuglee .preview-placeholder-hint {
+  display: block;
+  color: var(--phuglee-stone, #9c968a);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* Clean distress score — number + compact meter, no SVG HUD */
+body.analyze-phuglee .property-distress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 1rem 1.2rem 0.85rem;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+body.analyze-phuglee .property-distress-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+body.analyze-phuglee .property-distress-score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+body.analyze-phuglee .property-distress-num,
+body.analyze-phuglee .property-distress .gauge-num {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--phuglee-cream, #f5f2e4);
+  text-shadow: none;
+}
+
+body.analyze-phuglee .property-distress.distress-distressed .property-distress-num,
+body.analyze-phuglee .property-distress.distress-distressed .gauge-num {
+  color: var(--phuglee-orange, #e58435);
+}
+
+body.analyze-phuglee .property-distress.distress-well-maintained .property-distress-num,
+body.analyze-phuglee .property-distress.distress-well-maintained .gauge-num {
+  color: var(--tier-well-bright, #8fd4a8);
+}
+
+body.analyze-phuglee .property-distress.distress-vacant .property-distress-num,
+body.analyze-phuglee .property-distress.distress-vacant .gauge-num {
+  color: var(--tier-land-bright, #c4b89a);
+}
+
+body.analyze-phuglee .property-distress.distress-blurred .property-distress-num,
+body.analyze-phuglee .property-distress.distress-blurred .gauge-num {
+  color: var(--tier-blurred, #aea38f);
+}
+
+body.analyze-phuglee .property-distress-scale {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--phuglee-stone, #9c968a);
+}
+
+body.analyze-phuglee .property-distress-lbl {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone, #9c968a);
+}
+
+body.analyze-phuglee .property-distress-meter-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(174, 163, 143, 0.14);
+  overflow: hidden;
+}
+
+body.analyze-phuglee .property-distress-meter-fill,
+body.analyze-phuglee .property-distress .gauge-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: var(--phuglee-orange, #e58435);
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s ease;
+  fill: none;
+  stroke: none !important;
+  stroke-width: 0 !important;
+  filter: none !important;
+  stroke-dasharray: none !important;
+  stroke-dashoffset: 0 !important;
+}
+
+body.analyze-phuglee .property-distress .gauge-fill.distressed,
+body.analyze-phuglee .property-distress .gauge-fill.critical,
+body.analyze-phuglee .property-distress .gauge-fill.high {
+  background: var(--phuglee-orange, #e58435);
+}
+
+body.analyze-phuglee .property-distress .gauge-fill.well-maintained {
+  background: var(--tier-well-bright, #8fd4a8);
+}
+
+body.analyze-phuglee .property-distress .gauge-fill.vacant {
+  background: var(--tier-land-bright, #c4b89a);
+}
+
+body.analyze-phuglee .property-distress .gauge-fill.blurred,
+body.analyze-phuglee .property-distress .gauge-fill.low {
+  background: var(--phuglee-taupe, #aea38f);
+}
+
+body.analyze-phuglee .property-modal-details .inspector-body {
+  flex: 1;
+  overflow-y: auto;
+  border-top: none;
+  padding: 1rem 1.2rem 1.35rem;
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.86rem;
+  color: var(--phuglee-cream, #f5f2e4);
+  scrollbar-color: rgba(229, 132, 53, 0.35) transparent;
+}
+
+body.analyze-phuglee .property-modal-details .inspector-body.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--phuglee-stone, #9c968a);
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  padding: 2.5rem 1.5rem;
+}
+
+body.analyze-phuglee .inspector-identity {
+  margin-bottom: 0.55rem;
+}
+
+body.analyze-phuglee .inspector-address-primary {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--phuglee-cream, #f5f2e4);
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+body.analyze-phuglee .inspector-name-secondary {
+  margin-top: 0.2rem;
+  font-size: 0.84rem;
+  color: var(--phuglee-stone, #9c968a);
+  line-height: 1.4;
+}
+
+body.analyze-phuglee .inspector-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.55rem 0 0.75rem;
+}
+
+body.analyze-phuglee .property-profile-body .score-display-row {
+  margin-top: 0.5rem;
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+}
+
+body.analyze-phuglee .property-profile-body .score-display-label {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  color: var(--phuglee-stone, #9c968a);
+}
+
+body.analyze-phuglee .property-profile-body .score-display-val {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--phuglee-cream, #f5f2e4);
+}
+
+body.analyze-phuglee .property-profile-body .score-change-btn {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  border-radius: 8px;
+  border: 1px solid rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.1);
+  color: var(--phuglee-orange, #e58435);
+  padding: 0.45rem 0.75rem;
+  min-height: 2.25rem;
+}
+
+body.analyze-phuglee .property-profile-body .score-change-btn:hover {
+  background: rgba(229, 132, 53, 0.18);
+}
+
+body.analyze-phuglee .property-profile-body .score-adjust-panel {
+  border-radius: 10px;
+  border: 1px solid rgba(229, 132, 53, 0.28);
+  background: rgba(229, 132, 53, 0.06);
+}
+
+body.analyze-phuglee .property-profile-body .contact-chip {
+  border-radius: 8px;
+  border: 1px solid rgba(174, 163, 143, 0.14);
+  background: rgba(0, 0, 0, 0.22);
+  padding: 0.55rem 0.7rem;
+}
+
+body.analyze-phuglee .property-profile-body .contact-chip .lbl {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  color: var(--phuglee-stone, #9c968a);
+}
+
+body.analyze-phuglee .property-profile-body .profile-section {
+  margin-bottom: 0.85rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+body.analyze-phuglee .property-profile-body .profile-section-title {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe, #aea38f);
+  margin-bottom: 0.4rem;
+}
+
+body.analyze-phuglee .property-profile-body .inspector-hint {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-stone, #9c968a);
+  margin-top: 1rem;
+  text-align: center;
+}
+
+body.analyze-phuglee .property-profile-body .google-search-btn {
+  border-radius: 8px;
+}
+
+body.analyze-phuglee .property-profile-body .inspector-actions {
+  margin-top: 0.75rem;
+}
+
+/* Stack on narrow viewports */
+@media (max-width: 900px) {
+  body.analyze-phuglee .property-modal-grid.property-profile-grid {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  body.analyze-phuglee .property-modal-media {
+    border-right: none;
+    border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+  }
+
+  body.analyze-phuglee .property-modal-media .preview-images {
+    min-height: 220px;
+  }
+
+  body.analyze-phuglee .property-modal-media .preview-image-wrap {
+    min-height: 200px;
+  }
+
+  body.analyze-phuglee .property-modal-dialog.property-profile-dialog {
+    max-height: 96vh;
+  }
+
+  body.analyze-phuglee .property-modal-header {
+    flex-wrap: wrap;
+  }
+
+  body.analyze-phuglee .property-modal-heading {
+    width: 100%;
+  }
+
+  body.analyze-phuglee .property-modal-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 560px) {
+  body.analyze-phuglee .inspector-nav-btn {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  body.analyze-phuglee .property-distress-num,
+  body.analyze-phuglee .property-distress .gauge-num {
+    font-size: 1.55rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.analyze-phuglee .property-distress-meter-fill,
+  body.analyze-phuglee .property-distress .gauge-fill {
+    transition: none;
+  }
+  body.analyze-phuglee .property-distress .gauge-num.pop {
+    animation: none;
+  }
+}

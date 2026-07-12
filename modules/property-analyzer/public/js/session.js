@@ -514,22 +514,59 @@ R.gaugeFillClass = function gaugeFillClass(score, category = 'property', leadTie
 R.updateGauge = function updateGauge(score, animate = false, target = 'property', meta = {}) {
   const fill = target === 'scan' ? scanGaugeFill : gaugeFill;
   const num = target === 'scan' ? scanGaugeNum : gaugeNum;
-  if (!fill || !num) return;
+  if (!num) return;
+  const isCircle = !!(fill && (fill.tagName === 'circle' || fill.tagName === 'CIRCLE'));
+  const barExtra = isCircle || !fill ? '' : ' property-distress-meter-fill';
+  const panel = target === 'property' ? inspectorGaugePanel : null;
+  const scaleEl = target === 'property' ? propertyDistressScale : null;
+
   if (score == null || score === undefined) {
-    fill.style.strokeDashoffset = GAUGE_CIRC;
-    fill.className = 'gauge-fill';
+    if (fill) {
+      if (isCircle) fill.style.strokeDashoffset = GAUGE_CIRC;
+      else {
+        fill.style.width = '0%';
+        fill.style.strokeDashoffset = '';
+      }
+      fill.className = 'gauge-fill' + barExtra;
+    }
     num.textContent = '—';
     num.classList.remove('emoji-tier');
+    if (scaleEl) scaleEl.hidden = true;
+    if (panel) {
+      panel.className = panel.className
+        .split(/\s+/)
+        .filter((c) => c && !c.startsWith('distress-') && c !== 'has-score')
+        .concat(['property-distress'])
+        .filter((c, i, a) => a.indexOf(c) === i)
+        .join(' ');
+    }
     return;
   }
-  const pct = score / 10;
-  fill.style.strokeDashoffset = GAUGE_CIRC * (1 - pct);
+
+  const pct = Math.max(0, Math.min(1, Number(score) / 10));
   const category = meta.category || 'property';
   const leadTier = meta.leadTier ?? tierFromScore(score, category);
-  fill.className = 'gauge-fill ' + gaugeFillClass(score, category, leadTier);
-  const tier = leadTier || tierFromScore(score, category);
-  num.textContent = tierEmoji(tier);
-  num.classList.add('emoji-tier');
+  const fillTone = gaugeFillClass(score, category, leadTier);
+  if (fill) {
+    if (isCircle) {
+      fill.style.strokeDashoffset = GAUGE_CIRC * (1 - pct);
+      fill.style.width = '';
+    } else {
+      fill.style.width = `${Math.round(pct * 100)}%`;
+      fill.style.strokeDashoffset = '';
+    }
+    fill.className = 'gauge-fill ' + fillTone + barExtra;
+  }
+
+  // Clean numeric distress (no emoji HUD cosplay) on property modal; scan follows same number.
+  const n = Number(score);
+  num.textContent = Number.isFinite(n) ? String(Math.round(n * 10) / 10) : '—';
+  num.classList.remove('emoji-tier');
+  if (scaleEl) scaleEl.hidden = false;
+  if (panel) {
+    const base = ['property-distress', 'has-score', 'distress-' + fillTone];
+    panel.className = base.join(' ');
+  }
   if (animate) {
     num.classList.remove('pop');
     void num.offsetWidth;

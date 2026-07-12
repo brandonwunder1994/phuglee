@@ -952,6 +952,9 @@ R.liveDot = $('liveDot');
 R.logPanel = $('logPanel');
 R.gaugeFill = $('gaugeFill');
 R.gaugeNum = $('gaugeNum');
+R.propertyModalTierPill = $('propertyModalTierPill');
+R.propertyDistressScale = $('propertyDistressScale');
+R.inspectorGaugePanel = $('inspectorGaugePanel');
 
 R.recBadge = $('recBadge');
 
