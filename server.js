@@ -355,7 +355,10 @@ async function bootModules() {
 
 function runListOpsMigrations() {
   try {
-    const { resetCitiesStatusToReady } = require('./lib/bridge-list-store');
+    const {
+      resetCitiesStatusToReady,
+      resetAllDownloadedStatusToReady
+    } = require('./lib/bridge-list-store');
     // One-time: Cheyenne / Midlothian were marked Downloaded during testing — back to Ready.
     const result = resetCitiesStatusToReady(['Cheyenne', 'Midlothian'], {
       onceKey: 'ready-cheyenne-midlothian-v1'
@@ -369,6 +372,22 @@ function runListOpsMigrations() {
       );
     } else {
       console.log('[Filter lists] no Cheyenne/Midlothian lists needed status reset');
+    }
+
+    // One-time: operator accidental bulk download — restore all Downloaded → Ready.
+    const allDl = resetAllDownloadedStatusToReady({
+      onceKey: 'ready-all-downloaded-2026-07-12'
+    });
+    if (allDl.skipped) {
+      console.log('[Filter lists] all-downloaded→ready already applied');
+    } else if (allDl.updated > 0) {
+      console.log(
+        `[Filter lists] reset ${allDl.updated} Downloaded list(s) to Ready:`,
+        allDl.matches.slice(0, 40).join(', ') +
+          (allDl.matches.length > 40 ? ` …+${allDl.matches.length - 40} more` : '')
+      );
+    } else {
+      console.log('[Filter lists] no Downloaded lists needed status reset');
     }
   } catch (err) {
     console.warn('[Filter lists] status migration skipped:', err.message);

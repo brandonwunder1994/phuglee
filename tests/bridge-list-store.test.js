@@ -34,7 +34,8 @@ const {
   EXPORT_BATCH_SIZE,
   markDownloaded,
   setListStatus,
-  resetCitiesStatusToReady
+  resetCitiesStatusToReady,
+  resetAllDownloadedStatusToReady
 } = require('../lib/bridge-list-store');
 
 test('saveList creates a list and appears in summaries', () => {
@@ -128,6 +129,43 @@ test('setListStatus ready clears downloadedAt', () => {
   const reset = setListStatus(meta.id, 'ready', { username: user });
   assert.equal(reset.meta.status, 'ready');
   assert.equal(reset.meta.downloadedAt, null);
+});
+
+test('resetAllDownloadedStatusToReady flips every downloaded list', () => {
+  const user = 'reset-all-dl-user';
+  const a = saveList({
+    name: 'DL A',
+    rows: [{ streetAddress: '1 A', city: 'Alpha', state: 'TX' }],
+    city: 'Alpha',
+    state: 'TX',
+    username: user
+  });
+  const b = saveList({
+    name: 'DL B',
+    rows: [{ streetAddress: '2 B', city: 'Beta', state: 'TX' }],
+    city: 'Beta',
+    state: 'TX',
+    username: user
+  });
+  markDownloaded(a.meta.id, { username: user });
+  markDownloaded(b.meta.id, { username: user });
+  assert.equal(getList(a.meta.id, { username: user }).meta.status, 'downloaded');
+
+  const first = resetAllDownloadedStatusToReady({
+    onceKey: 'test-ready-all-dl-v1'
+  });
+  assert.equal(first.skipped, false);
+  assert.ok(first.updated >= 2, `expected >=2 updates, got ${first.updated}`);
+  assert.equal(getList(a.meta.id, { username: user }).meta.status, 'ready');
+  assert.equal(getList(b.meta.id, { username: user }).meta.status, 'ready');
+  assert.equal(getList(a.meta.id, { username: user }).meta.downloadedAt, null);
+
+  markDownloaded(a.meta.id, { username: user });
+  const second = resetAllDownloadedStatusToReady({
+    onceKey: 'test-ready-all-dl-v1'
+  });
+  assert.equal(second.skipped, true);
+  assert.equal(getList(a.meta.id, { username: user }).meta.status, 'downloaded');
 });
 
 test('resetCitiesStatusToReady matches Cheyenne and Midlothian once', () => {
