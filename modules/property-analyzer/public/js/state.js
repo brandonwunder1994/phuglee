@@ -185,9 +185,10 @@ R.buildKnownAddressSets = function buildKnownAddressSets(results = [], index = n
   };
   for (const r of results || []) addRow(r);
   if (index) {
+    // matchKeys = scanned results only. Do NOT use index.addresses — it includes
+    // the scan queue (imported but not analyzed) and would block re-uploads.
     for (const k of index.matchKeys || []) if (k) exact.add(k);
     for (const k of index.matchKeysLoose || []) if (k) loose.add(k);
-    for (const k of index.addresses || []) if (k) exact.add(k);
   }
   return { exact, loose };
 }

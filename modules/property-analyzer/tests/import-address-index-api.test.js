@@ -18,4 +18,40 @@ describe('import-address-index API payload', () => {
     assert.ok(index.matchKeys[0].includes('oak'));
     assert.equal(index.resultsCount, 1);
   });
+
+  it('matchKeys excludes scan queue so re-import is not blocked', () => {
+    const session = {
+      results: [
+        { street: '100 Oak Ave', city: 'Waco', state: 'TX', postal: '76701' }
+      ],
+      records: [
+        { street: '100 Oak Ave', city: 'Waco', state: 'TX', postal: '76701' },
+        { street: '200 Pine Rd', city: 'Waco', state: 'TX', postal: '76702' },
+        { street: '300 Elm St', city: 'Waco', state: 'TX', postal: '76703' }
+      ]
+    };
+    const index = buildImportAddressIndex(session);
+    const { addressMatchKey, dedupeIncomingAgainstKnown } = require('../lib/address-match');
+
+    assert.equal(index.resultsCount, 1);
+    assert.equal(index.recordsCount, 3);
+    assert.ok(index.addresses.length > index.matchKeys.length);
+
+    const known = {
+      exact: new Set(index.matchKeys),
+      loose: new Set(index.matchKeysLoose)
+    };
+    const incoming = [
+      { street: '200 Pine Rd', city: 'Waco', state: 'TX', postal: '76702' },
+      { street: '300 Elm St', city: 'Waco', state: 'TX', postal: '76703' }
+    ];
+    const { kept, skippedTotal } = dedupeIncomingAgainstKnown(incoming, known);
+    assert.equal(kept.length, 2, 'unscanned queue rows must not block re-import');
+    assert.equal(skippedTotal, 0);
+
+    const dup = { street: '100 Oak Ave', city: 'Waco', state: 'TX', postal: '76701' };
+    assert.ok(known.exact.has(addressMatchKey(dup)), 'scanned result still blocks');
+    const blocked = dedupeIncomingAgainstKnown([dup], known);
+    assert.equal(blocked.kept.length, 0);
+  });
 });
