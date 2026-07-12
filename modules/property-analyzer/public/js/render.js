@@ -781,6 +781,12 @@ R.exportResults = async function exportResults(format = 'xlsx', opts = {}) {
     alert('No leads in the current list to export — try a different filter or clear search.');
     return;
   }
+  try {
+    await ensureSheetJs();
+  } catch (e) {
+    alert(e?.message || 'Spreadsheet library failed to load. Check your internet connection and refresh the page.');
+    return;
+  }
   if (typeof XLSX === 'undefined') {
     alert('Spreadsheet library failed to load. Check your internet connection and refresh the page.');
     return;
@@ -1030,8 +1036,34 @@ R.buildImportProfile = function buildImportProfile(row, cols) {
   return hasAny ? profile : null;
 }
 
-R.parseSpreadsheet = function parseSpreadsheet(file, leadType = DEFAULT_LEAD_TYPE) {
+/** Lazy-load SheetJS only when importing/exporting (keeps analyzer first paint fast). */
+R.ensureSheetJs = function ensureSheetJs() {
+  if (typeof XLSX !== 'undefined') return Promise.resolve();
+  if (R._sheetJsPromise) return R._sheetJsPromise;
+  R._sheetJsPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-sheetjs]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve());
+      existing.addEventListener('error', () => reject(new Error('Spreadsheet library failed to load')));
+      return;
+    }
+    const s = document.createElement('script');
+    s.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+    s.async = true;
+    s.dataset.sheetjs = '1';
+    s.onload = () => resolve();
+    s.onerror = () => {
+      R._sheetJsPromise = null;
+      reject(new Error('Spreadsheet library failed to load. Check your network and try again.'));
+    };
+    document.head.appendChild(s);
+  });
+  return R._sheetJsPromise;
+};
+
+R.parseSpreadsheet = async function parseSpreadsheet(file, leadType = DEFAULT_LEAD_TYPE) {
   const importLeadType = normalizeLeadType(leadType || 'code_violation');
+  await ensureSheetJs();
   return new Promise((resolve, reject) => {
     if (typeof XLSX === 'undefined') {
       reject(new Error('Spreadsheet library failed to load. Hard-refresh the page (Ctrl+Shift+R) and try again.'));

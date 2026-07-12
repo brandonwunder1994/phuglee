@@ -324,49 +324,54 @@ if (!isEmbedded) {
 }
 
 function bootStandaloneServer() {
+  // Bind immediately so /api/status is up before we parse multi-10MB session files.
+  // Eager promote/read of large sessions was delaying health and causing parent 502s.
   server.listen(PORT, '127.0.0.1', () => {
-  writePidFile();
-  const promoteResult = backups.promoteIncrementalToLatest('startup');
-  safety.safetyState.lastStartupPromote = {
-    at: Date.now(),
-    promoted: !!promoteResult.promoted,
-    results: promoteResult.results || 0,
-    error: promoteResult.error || null
-  };
-  console.log(`[Safety] Startup promote: ${JSON.stringify(promoteResult)}`);
-  const adminSession = backups.readLatestSessionFileForScope({ storageKey: 'admin' });
-  const adminCount = Array.isArray(adminSession.results) ? adminSession.results.length : 0;
-  const vaultSession = backups.readLatestSessionFileForScope({ storageKey: '_vault' });
-  const vaultCount = Array.isArray(vaultSession.results) ? vaultSession.results.length : 0;
-  console.log(`Scoped sessions: admin=${adminCount} results, vault=${vaultCount} results`);
-  const maps = mapsModule.mapsKeyStatus(MAPS_KEY_FILE);
-  const gemini = geminiModule.geminiKeyStatus();
-  const authTail = authToken.length >= 6 ? authToken.slice(-6) : '(short)';
-  console.log('');
-  console.log('  Property Distress Analyzer');
-  console.log('  --------------------------');
-  console.log(`  Open: http://${LOCAL_HOSTNAME}:${PORT}`);
-  console.log(`       http://localhost:${PORT} (also works)`);
-  console.log(`  Auth: token …${authTail}`);
-  console.log(`  Maps key: ${maps.hasServerKey ? `configured (…${maps.keyTail})` : 'missing — add MAPS_API_KEY to .env'}`);
-  console.log(`  Gemini key: ${gemini.hasGeminiKey ? `configured (…${gemini.geminiKeyTail})` : 'missing — add GEMINI_API_KEY to .env'}`);
-  console.log(`  Gemini queue: max ${geminiModule.GEMINI_MAX_CONCURRENT} concurrent AI calls`);
-  console.log(`  Maps queue: max ${mapsModule.MAPS_MAX_CONCURRENT} concurrent Google Maps calls`);
-  console.log(`  Gemini audit log: ${GEMINI_AUDIT_DIR}`);
-  console.log(`  Auto backups:   ${AUTO_BACKUPS_DIR} (ephemeral, max ${MAX_EPHEMERAL_BACKUPS})`);
-  console.log(`  Milestones:     ${MILESTONE_BACKUPS_DIR} (review/code changes, max ${MAX_MILESTONE_BACKUPS})`);
-  console.log(`  Manual backups: ${MANUAL_BACKUPS_DIR} (downloads, max ${MAX_MANUAL_BACKUPS})`);
-  console.log(`  Imagery cache:  ${imageryCache.IMAGERY_DIR}`);
-  if (imageryCache.isR2Configured()) {
-    console.log('  R2 mirror:      enabled');
-  } else {
-    console.log('  R2 mirror:      off (local disk only — set R2_* env vars to enable)');
-  }
-  console.log('');
-  console.log('  Keep this window open while using the tool.');
-  console.log('');
-  setInterval(safety.runAutoSafetyTick, AUTO_SAFETY_TICK_MS);
-  setTimeout(safety.runAutoSafetyTick, 12000);
+    writePidFile();
+    const maps = mapsModule.mapsKeyStatus(MAPS_KEY_FILE);
+    const gemini = geminiModule.geminiKeyStatus();
+    const authTail = authToken.length >= 6 ? authToken.slice(-6) : '(short)';
+    console.log('');
+    console.log('  Property Distress Analyzer');
+    console.log('  --------------------------');
+    console.log(`  Open: http://${LOCAL_HOSTNAME}:${PORT}`);
+    console.log(`       http://localhost:${PORT} (also works)`);
+    console.log(`  Auth: token …${authTail}`);
+    console.log(`  Maps key: ${maps.hasServerKey ? `configured (…${maps.keyTail})` : 'missing — add MAPS_API_KEY to .env'}`);
+    console.log(`  Gemini key: ${gemini.hasGeminiKey ? `configured (…${gemini.geminiKeyTail})` : 'missing — add GEMINI_API_KEY to .env'}`);
+    console.log(`  Gemini queue: max ${geminiModule.GEMINI_MAX_CONCURRENT} concurrent AI calls`);
+    console.log(`  Maps queue: max ${mapsModule.MAPS_MAX_CONCURRENT} concurrent Google Maps calls`);
+    console.log(`  Imagery cache:  ${imageryCache.IMAGERY_DIR}`);
+    console.log('');
+    console.log('  Keep this window open while using the tool.');
+    console.log('');
+
+    setImmediate(() => {
+      try {
+        const promoteResult = backups.promoteIncrementalToLatest('startup');
+        safety.safetyState.lastStartupPromote = {
+          at: Date.now(),
+          promoted: !!promoteResult.promoted,
+          results: promoteResult.results || 0,
+          error: promoteResult.error || null
+        };
+        console.log(`[Safety] Startup promote: ${JSON.stringify(promoteResult)}`);
+      } catch (err) {
+        console.warn('[Safety] Startup promote failed:', err?.message || err);
+      }
+      try {
+        const adminSession = backups.readLatestSessionFileForScope({ storageKey: 'admin' });
+        const adminCount = Array.isArray(adminSession.results) ? adminSession.results.length : 0;
+        const vaultSession = backups.readLatestSessionFileForScope({ storageKey: '_vault' });
+        const vaultCount = Array.isArray(vaultSession.results) ? vaultSession.results.length : 0;
+        console.log(`Scoped sessions: admin=${adminCount} results, vault=${vaultCount} results`);
+      } catch (err) {
+        console.warn('[Session] Startup session count failed:', err?.message || err);
+      }
+    });
+
+    setInterval(safety.runAutoSafetyTick, AUTO_SAFETY_TICK_MS);
+    setTimeout(safety.runAutoSafetyTick, 12000);
   });
 }
 

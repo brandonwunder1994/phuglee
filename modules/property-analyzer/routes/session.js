@@ -140,13 +140,22 @@ function register(ctx) {
 
     let source = allRecords;
     if (mode === 'unscanned' || mode === 'pending') {
-      const existing = new Set(
-        results.map((r) => `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`).filter(Boolean)
-      );
-      source = allRecords.filter((r) => {
-        const k = `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`;
-        return !k || !existing.has(k);
-      });
+      // Match client recordKey (email|phone|address) used across the analyzer
+      const keyOf = (r) => `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`;
+      const existing = new Set();
+      for (const r of results) {
+        const k = keyOf(r);
+        if (k && k !== '||') existing.add(k);
+      }
+      // Fast path: if session already processed everything, avoid O(n) filter
+      if (allRecords.length && existing.size >= allRecords.length && (finalized.processed || 0) >= allRecords.length) {
+        source = [];
+      } else {
+        source = allRecords.filter((r) => {
+          const k = keyOf(r);
+          return !k || k === '||' || !existing.has(k);
+        });
+      }
     }
 
     const slice = source.slice(offset, offset + limit);

@@ -1670,8 +1670,15 @@ resultSearch.addEventListener('input', () => {
   }, 320);
 });
 
-resultsLoadMoreBtn?.addEventListener('click', () => {
+resultsLoadMoreBtn?.addEventListener('click', async () => {
   state.displayLimit = (state.displayLimit || getDisplayLimitInitial()) + getDisplayLimitStep();
+  // If deferred hydration hasn't finished, pull more results so Load more isn't empty
+  if (sessionLoadState && !sessionLoadState.complete && typeof ensureSessionResultsLoaded === 'function') {
+    const need = state.displayLimit + 40;
+    if ((state.results?.length || 0) < need) {
+      await ensureSessionResultsLoaded();
+    }
+  }
   renderResults({ force: true });
 });
 

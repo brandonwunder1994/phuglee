@@ -185,6 +185,10 @@
         <div id="agentGridPanel"><div id="agentGrid"></div><div id="agentGridSub"></div><div id="agentWorkerSummary"></div><button id="agentGridCollapseBtn"></button></div>
         <div id="logPanel"></div><button id="scanLogToggle"></button>
         <section id="progressSection"></section>
+        <div id="failStats" hidden aria-hidden="true">
+          <span id="failSvCount">0</span>
+          <span id="failGemCount">0</span>
+        </div>
       </div>
     </section>
 
@@ -667,31 +671,31 @@
       <img class="lightbox-img" id="lightboxImg" alt="Enlarged property view">
     </div>
   </div>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
-  <script src="/persistence.js?v=20260630c"></script>
-  <script src="/lib/gemini-json.js?v=20260630c"></script>
-  <script src="/lib/tier-engine.js?v=20260630c"></script>
-  <script src="/lib/imagery-routing.js?v=20260630c"></script>
-  <script src="/lib/imagery-urls.js?v=20260630c"></script>
-  <script src="/lib/import-meta.js?v=20260708a"></script>
-  <script src="/lib/import-batches.js?v=20260708b"></script>
-  <script src="/lib/location-index.js?v=20260708c"></script>
-  <script src="/lib/virtual-scroll.js?v=20260630c"></script>
-  <script src="/lib/classification-confidence.js?v=20260630i"></script>
-  <script src="/lib/result-classify.js?v=20260704a"></script>
-  <script src="/lib/review-training.js?v=20260630c"></script>
-  <script src="/lib/export-schema.js?v=20260701a"></script>
-  <script src="/js/config.js?v=20260712-apihalt"></script>
-  <script src="/js/state.js?v=20260712-dedupe"></script>
-  <script src="/js/imagery.js?v=20260701b"></script>
-  <script src="/js/scan.js?v=20260630e"></script>
-  <script src="/js/review.js?v=20260708f"></script>
-  <script src="/js/render.js?v=20260712-dedupe"></script>
-  <script src="/js/session.js?v=20260708h"></script>
-  <script src="/js/premium-shell.js?v=20260708e"></script>
-  <script src="/js/scan-ready.js?v=20260712-drop-min"></script>
-  <script src="/js/live-scan-feed.js?v=20260708b"></script>
-  <script src="/js/location-hub.js?v=20260708d"></script>
-  <script src="/js/app.js?v=20260712-apihalt"></script>
+  <!-- SheetJS loaded on-demand at import time (saves ~900KB off first paint) -->
+  <script src="/persistence.js?v=20260630c" defer></script>
+  <script src="/lib/gemini-json.js?v=20260630c" defer></script>
+  <script src="/lib/tier-engine.js?v=20260630c" defer></script>
+  <script src="/lib/imagery-routing.js?v=20260630c" defer></script>
+  <script src="/lib/imagery-urls.js?v=20260630c" defer></script>
+  <script src="/lib/import-meta.js?v=20260708a" defer></script>
+  <script src="/lib/import-batches.js?v=20260708b" defer></script>
+  <script src="/lib/location-index.js?v=20260708c" defer></script>
+  <script src="/lib/virtual-scroll.js?v=20260630c" defer></script>
+  <script src="/lib/classification-confidence.js?v=20260630i" defer></script>
+  <script src="/lib/result-classify.js?v=20260704a" defer></script>
+  <script src="/lib/review-training.js?v=20260630c" defer></script>
+  <script src="/lib/export-schema.js?v=20260701a" defer></script>
+  <script src="/js/config.js?v=20260712-fast" defer></script>
+  <script src="/js/state.js?v=20260712-fast" defer></script>
+  <script src="/js/imagery.js?v=20260701b" defer></script>
+  <script src="/js/scan.js?v=20260630e" defer></script>
+  <script src="/js/review.js?v=20260708f" defer></script>
+  <script src="/js/render.js?v=20260712-fast" defer></script>
+  <script src="/js/session.js?v=20260708h" defer></script>
+  <script src="/js/premium-shell.js?v=20260708e" defer></script>
+  <script src="/js/scan-ready.js?v=20260712-fast" defer></script>
+  <script src="/js/live-scan-feed.js?v=20260708b" defer></script>
+  <script src="/js/location-hub.js?v=20260708d" defer></script>
+  <script src="/js/app.js?v=20260712-fast" defer></script>
 </body>
 </html>

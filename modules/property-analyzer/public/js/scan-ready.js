@@ -177,7 +177,19 @@
     }
 
     function wireScanReady() {
-      scanReadyStartBtn?.addEventListener('click', () => startBtn?.click());
+      // Call startScanAnalysis directly — do not rely on hidden startBtn.click()
+      // (disabled buttons suppress programmatic clicks; missing DOM nodes used to abort silently).
+      scanReadyStartBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (scanReadyStartBtn.disabled) return;
+        if (typeof startScanAnalysis === 'function') {
+          startScanAnalysis();
+          return;
+        }
+        // Fallback if app.js not yet bound
+        if (startBtn && !startBtn.disabled) startBtn.click();
+      });
 
       reviewLeadsBtn?.addEventListener('click', (e) => {
         e.stopPropagation();

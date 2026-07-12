@@ -1367,10 +1367,12 @@ R.categorizeError = function categorizeError(msg) {
 }
 
 R.updateFailStats = function updateFailStats() {
-  $('failSvCount').textContent = state.failStreetView;
-  $('failGemCount').textContent = state.failGemini;
+  const sv = $('failSvCount');
+  const gem = $('failGemCount');
+  if (sv) sv.textContent = state.failStreetView;
+  if (gem) gem.textContent = state.failGemini;
   if (state.failStreetView || state.failGemini) {
-    $('failStats').classList.add('visible');
+    $('failStats')?.classList.add('visible');
   }
 }
 
@@ -1859,6 +1861,8 @@ R.updateStartButton = function updateStartButton() {
   if (resetUploadBtn) {
     resetUploadBtn.disabled = state.running || (!state.records.length && !state.results.length && !state.fileName);
   }
+  // Keep Scan Ready primary button in sync with hidden startBtn
+  try { updateScanReadyUi?.(); } catch (_) {}
 }
 
 R.runStreetViewTest = async function runStreetViewTest() {

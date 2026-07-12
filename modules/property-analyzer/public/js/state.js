@@ -1297,7 +1297,16 @@ R.markSessionResultsReady = function markSessionResultsReady() {
   sessionLoadState.complete = true;
 }
 
-R.loadSessionResultsBackground = async function loadSessionResultsBackground(expectedTotal) {
+/**
+ * Page size for background hydration. Smaller pages = less main-thread freeze
+ * when parsing multi-MB JSON chunks on large (10k+) sessions.
+ */
+R.getSessionBackgroundPageSize = function getSessionBackgroundPageSize() {
+  if (typeof isAnalyzeLayout === 'function' && isAnalyzeLayout()) return 250;
+  return Math.min(500, Number(SESSION_PAGE_SIZE) || 500);
+};
+
+R.loadSessionResultsBackground = async function loadSessionResultsBackground(expectedTotal, opts = {}) {
   if (sessionLoadState.loading) return;
   const target = Math.max(
     Number(expectedTotal) || 0,
@@ -1305,14 +1314,42 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
     sessionLoadState.total || 0
   );
   if (sessionLoadState.complete && target > 0 && state.results.length >= target) return;
+
+  // Fast first paint: wait until browser is idle before sucking down remaining 10k rows
+  if (opts.deferIdle && !opts.force && target > (state.results?.length || 0) + 50) {
+    const run = () => {
+      if (sessionLoadState.loading || state.running) return;
+      if (sessionLoadState.complete && state.results.length >= target) return;
+      loadSessionResultsBackground(target, { force: true });
+    };
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(() => setTimeout(run, 120), { timeout: 2500 });
+    } else {
+      setTimeout(run, 600);
+    }
+    return;
+  }
+
   const generation = sessionLoadGeneration;
   sessionLoadState.loading = true;
   sessionLoadState.total = target || sessionLoadState.total;
   let offset = state.results.length;
   let emptyStreak = 0;
+  const pageSize = getSessionBackgroundPageSize();
+  let pagesSinceUi = 0;
   while (offset < sessionLoadState.total) {
     if (generation !== sessionLoadGeneration) break;
-    const page = await fetchSessionResultsPage(offset, SESSION_PAGE_SIZE);
+    // Pause hydration while a live scan is running so Street View/Gemini stay snappy
+    if (state.running) {
+      sessionLoadState.loading = false;
+      setTimeout(() => {
+        if (!sessionLoadState.complete && !sessionLoadState.loading && !state.running) {
+          loadSessionResultsBackground(sessionLoadState.total, { force: true });
+        }
+      }, 4000);
+      return;
+    }
+    const page = await fetchSessionResultsPage(offset, pageSize);
     if (!page?.results?.length) {
       emptyStreak++;
       if (emptyStreak >= 3) break;
@@ -1323,29 +1360,26 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
     state.results.push(...page.results);
     offset += page.results.length;
     sessionLoadState.loaded = state.results.length;
+    pagesSinceUi += 1;
+    // Cheap bookkeeping every page; expensive UI only every few pages
     invalidateFilteredResultsCache();
-    invalidateTierCountsCache();
-    updateResultCountLabel();
-    updateScannedCountUi?.();
-    const pageNum = Math.floor(offset / SESSION_PAGE_SIZE);
-    if (pageNum === 0 || pageNum % 2 === 0 || !page.hasMore) {
-      updateSummaryStats({ light: true });
-    }
-    updateSessionSaveStatus();
-    if (!sessionLoadState.complete && state.results.length >= getDisplayCap()) {
-      if (isAnalyzeLayout()) {
-        updateResultCountLabel();
-      } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {
-        renderVirtualCards();
-      } else {
-        renderResults({ force: true });
+    if (pagesSinceUi >= 4 || !page.hasMore || offset >= sessionLoadState.total) {
+      pagesSinceUi = 0;
+      updateResultCountLabel();
+      updateScannedCountUi?.();
+      updateSessionSaveStatus();
+      if (cardsVirtualWindow) {
+        const el = cardsVirtualWindow.querySelector('.session-load-indicator');
+        if (el) {
+          el.textContent =
+            `Loading results… ${sessionLoadState.loaded.toLocaleString()} / ${sessionLoadState.total.toLocaleString()}`;
+        }
       }
     }
-    if (cardsVirtualWindow) {
-      const el = cardsVirtualWindow.querySelector('.session-load-indicator');
-      if (el) el.textContent = `Loading results… ${sessionLoadState.loaded.toLocaleString()} / ${sessionLoadState.total.toLocaleString()}`;
-    }
-    await yieldToMain();
+    // Yield longer on large sessions so click handlers (Start Scan) stay responsive
+    const yieldMs = target > 3000 ? 24 : 0;
+    if (yieldMs) await new Promise((r) => setTimeout(r, yieldMs));
+    else await yieldToMain();
     if (!page.hasMore) break;
   }
   sessionLoadState.loading = false;
@@ -1356,23 +1390,28 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
     console.warn(`[Session] Background load incomplete: ${state.results.length} / ${sessionLoadState.total}`);
     setTimeout(() => {
       if (!sessionLoadState.complete && !sessionLoadState.loading) {
-        loadSessionResultsBackground(sessionLoadState.total);
+        loadSessionResultsBackground(sessionLoadState.total, { force: true });
       }
     }, 3000);
   } else {
     sessionDirty = false;
-    flushPendingServerSave('session-ready');
+    // Large sessions: server is authoritative — avoid multi-10MB IDB rewrite on every restore
+    if ((state.results?.length || 0) < 1500) {
+      flushPendingServerSave('session-ready');
+    }
   }
   updateSessionSaveStatus();
-  invalidateTierCountsCache();
-  delete state._tierCountsFromServer;
+  // Keep server tier counts for KPIs until user changes filters — avoid full O(n) recompute
+  if ((state.results?.length || 0) >= (sessionLoadState.total || 0)) {
+    invalidateTierCountsCache();
+    delete state._tierCountsFromServer;
+  }
   if (isAnalyzeLayout() && resultsUiRendered) {
     updateResultCountLabel();
-    updateSummaryStats({ full: true });
-    refreshAllCardThumbs?.();
+    updateSummaryStats({ light: true });
   } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {
     renderVirtualCards();
-  } else {
+  } else if (!isAnalyzeLayout()) {
     renderResults({ force: true });
   }
   cardsVirtualWindow?.querySelector('.session-load-indicator')?.remove();
@@ -1575,6 +1614,22 @@ R.ensureScanRecordsLoaded = async function ensureScanRecordsLoaded() {
   const res = await loadSessionRecords({ mode: 'unscanned' });
   setSessionRestoreBanner?.('');
   return !!(res?.ok && (state.records || []).length);
+};
+
+/** Finish background result hydration before review/export (first paint stays partial). */
+R.ensureSessionResultsLoaded = async function ensureSessionResultsLoaded() {
+  const target = Math.max(
+    Number(sessionLoadState?.total) || 0,
+    Number(sessionLoadState?.serverCanonical) || 0,
+    Number(state._tierCountsFromServer?.total) || 0
+  );
+  if (!USE_PROXY) return true;
+  if (sessionLoadState?.complete && (!target || state.results.length >= target)) return true;
+  if (!target && state.results.length) return true;
+  setSessionRestoreBanner?.('Loading remaining results…');
+  await loadSessionResultsBackground(target || sessionLoadState?.total || state.results.length, { force: true });
+  setSessionRestoreBanner?.('');
+  return !!(sessionLoadState?.complete || state.results.length);
 };
 
 R.sessionDataRank = function sessionDataRank(data) {
@@ -1952,23 +2007,39 @@ R.loadSession = async function loadSession() {
           requestServerSave('review-metadata-merge');
         }
       }
-      // Load unscanned import queue so Ready to scan / Start Scan work on large sessions
-      const pendingHint = Number(summary.pendingUnscanned) || Number(summary.records) || 0;
+      // Load unscanned import queue so Ready to scan / Start Scan work on large sessions.
+      // Only block paint when there is a real pending queue (not the full 10k records count).
+      const pendingHint = Number(summary.pendingUnscanned) || 0;
       if (pendingHint > 0) {
         setSessionRestoreBanner(
-          `Loading ${pendingHint.toLocaleString()} unscanned leads for scan…`
+          pendingHint > 200
+            ? `Loading ${pendingHint.toLocaleString()} unscanned leads…`
+            : `Loading unscanned leads…`
         );
         await loadSessionRecords({ mode: 'unscanned' });
+      } else {
+        // Defer full records fetch — Start Scan will call ensureScanRecordsLoaded if needed
+        state._pendingUnscanned = 0;
+        state._expectedRecords = Number(summary.records) || 0;
+        state._recordsLoadComplete = true;
       }
-      setSessionRestoreBanner(`Loaded ${summary.results.toLocaleString()} properties — loading results…`);
+      setSessionRestoreBanner(
+        summary.results > 500
+          ? `Loaded ${summary.results.toLocaleString()} properties — showing first page…`
+          : `Loaded ${summary.results.toLocaleString()} properties — loading results…`
+      );
       await loadSessionResultsFirstPage(summary.results, firstPagePromise);
-      loadSessionResultsBackground(summary.results);
+      // Idle-deferred hydration so first paint / Start Scan stay snappy on 10k sessions
+      loadSessionResultsBackground(summary.results, { deferIdle: true });
       hydrateSessionReviewMeta().catch((e) => console.warn('Review meta hydrate failed', e));
       if (!sessionDirty) sessionDirty = false;
-      if (window.DistressPersistence) {
+      // Skip urgent local full-session write for large restores (can freeze tab for seconds)
+      if (window.DistressPersistence && (summary.results || 0) <= 400) {
         DistressPersistence.saveNow('restore', { urgent: true, localOnly: true });
       }
+      setSessionRestoreBanner('');
       updateScanReadyUi?.();
+      updateStartButton?.();
       return;
     }
     const best = window.DistressPersistence
@@ -2101,8 +2172,8 @@ R.clearSession = function clearSession() {
   initLeadTypeSelects();
   resultSearch.value = '';
   collapseSetup(false);
-  progressSection.classList.remove('review-minimal');
-  $('failStats').classList.remove('visible');
+  progressSection?.classList.remove('review-minimal');
+  $('failStats')?.classList.remove('visible');
   firstErrorShown = false;
   errorBanner.classList.remove('visible');
   errorBanner.innerHTML = '';

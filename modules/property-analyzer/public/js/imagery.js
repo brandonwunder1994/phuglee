@@ -1026,7 +1026,15 @@ R.reviewUndo = function reviewUndo() {
   renderReviewLead();
 }
 
-R.openReviewMode = function openReviewMode(filter, opts = {}) {
+R.openReviewMode = async function openReviewMode(filter, opts = {}) {
+  // Review needs the full result set — finish deferred hydration if still loading
+  if (typeof ensureSessionResultsLoaded === 'function' && sessionLoadState && !sessionLoadState.complete) {
+    try {
+      await ensureSessionResultsLoaded();
+    } catch (e) {
+      console.warn('[review] ensureSessionResultsLoaded failed', e);
+    }
+  }
   if (!state.results.length) {
     alert('No analyzed leads yet â€” run a scan or restore your saved session first.');
     return;

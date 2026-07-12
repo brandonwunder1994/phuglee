@@ -1050,265 +1050,310 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
   scheduleSaveSession('scan-batch');
 }
 
-startBtn?.addEventListener('click', async () => {
-  saveKeys();
-  if (USE_PROXY) {
-    startBtn.disabled = true;
-    const hint = $('startBlockHint');
-    if (hint) {
-      hint.textContent = 'Connecting to local server…';
-      hint.hidden = false;
-    }
-    const st = await waitForServerReady({ attempts: 12, delayMs: 1500 });
-    if (!st) {
-      serverOnline = false;
+/**
+ * Start Street View + Gemini scan for unscanned import queue.
+ * Extracted so Scan Ready button can call it directly (not only via hidden startBtn).
+ */
+R.startScanAnalysis = async function startScanAnalysis() {
+  if (state.running) {
+    alert('Scan already running — use Stop first if it looks stuck.');
+    return;
+  }
+  try {
+    saveKeys?.();
+    if (startBtn) startBtn.disabled = true;
+    if (scanReadyStartBtn) scanReadyStartBtn.disabled = true;
+
+    if (USE_PROXY) {
+      const hint = $('startBlockHint');
+      if (hint) {
+        hint.textContent = 'Connecting to local server…';
+        hint.hidden = false;
+      }
+      const st = await waitForServerReady({ attempts: 12, delayMs: 1500 });
+      if (!st) {
+        serverOnline = false;
+        updateServerOfflineBanner();
+        alert('Server not responding.\n\nDouble-click "Property Distress Analyzer" on your desktop (no window needs to stay open), wait a few seconds, refresh this page, then click Start again.');
+        updateStartButton();
+        updateScanReadyUi?.();
+        return;
+      }
+      serverOnline = true;
+      serverOfflineStreak = 0;
+      clearServerOfflineFatalBanner();
       updateServerOfflineBanner();
-      alert('Server not responding.\n\nDouble-click "Property Distress Analyzer" on your desktop (no window needs to stay open), wait a few seconds, refresh this page, then click Start again.');
       updateStartButton();
+    }
+    // Large sessions only load results by default — pull unscanned records before scan
+    if (USE_PROXY && !(state.records || []).length) {
+      const hint = $('startBlockHint');
+      if (hint) {
+        hint.textContent = 'Loading leads for scan…';
+        hint.hidden = false;
+      }
+      const loaded = await ensureScanRecordsLoaded?.();
+      updateScanReadyUi?.();
+      updateStartButton();
+      if (!loaded || !(state.records || []).length) {
+        alert(
+          'Could not load leads into the scan queue.\n\n' +
+          'Hard-refresh (Ctrl+Shift+R). If you are not on the admin account, switch to admin — the New Analyzer Leads were imported there.'
+        );
+        updateStartButton();
+        updateScanReadyUi?.();
+        return;
+      }
+    }
+    const blockReason = getStartBlockReason();
+    if (blockReason) {
+      alert(blockReason);
+      updateStartButton();
+      updateScanReadyUi?.();
       return;
     }
-    serverOnline = true;
-    serverOfflineStreak = 0;
-    clearServerOfflineFatalBanner();
-    updateServerOfflineBanner();
-    updateStartButton();
-  }
-  // Large sessions only load results by default — pull unscanned records before scan
-  if (USE_PROXY && !(state.records || []).length) {
-    const hint = $('startBlockHint');
-    if (hint) {
-      hint.textContent = 'Loading leads for scan…';
-      hint.hidden = false;
+    if (!serverConfig.hasMapsKey || !serverConfig.hasGeminiKey || !state.records.length) {
+      alert('Cannot start — configure .env keys or upload leads. Refresh the page and try again.');
+      updateStartButton();
+      updateScanReadyUi?.();
+      return;
     }
-    const loaded = await ensureScanRecordsLoaded?.();
+    const svKey = '';
+    const gKey = '';
+
+    abortSessionBackgroundLoad();
+    state.running = true;
     updateScanReadyUi?.();
-    updateStartButton();
-    if (!loaded || !(state.records || []).length) {
-      alert(
-        'Could not load leads into the scan queue.\n\n' +
-        'Hard-refresh (Ctrl+Shift+R). If you are not on the admin account, switch to admin — the New Analyzer Leads were imported there.'
+    if (state.results.length >= 2500) {
+      log(
+        `Large session (${state.results.length.toLocaleString()} analyzed) — saves are throttled during scan to keep the server stable. Progress still logs to disk every property.`,
+        'warn'
       );
-      return;
     }
-  }
-  const blockReason = getStartBlockReason();
-  if (blockReason) {
-    alert(blockReason);
-    updateStartButton();
-    return;
-  }
-  if (!serverConfig.hasMapsKey || !serverConfig.hasGeminiKey || !state.records.length) {
-    alert('Cannot start — configure .env keys or upload leads. Refresh the page and try again.');
-    return;
-  }
-  const svKey = '';
-  const gKey = '';
-
-  abortSessionBackgroundLoad();
-  state.running = true;
-  if (state.results.length >= 2500) {
-    log(
-      `Large session (${state.results.length.toLocaleString()} analyzed) — saves are throttled during scan to keep the server stable. Progress still logs to disk every property.`,
-      'warn'
-    );
-  }
-  startScanSaveHeartbeat();
-  pushScanSessionMeta();
-  state.aborted = false;
-  state.haltAlertShown = false;
-  state.serverStopAlertShown = false;
-  state.serverStopAlertShown = false;
-  state.satelliteWarnShown = false;
-  state.rateLimitWarned = false;
-  state.quotaHaltShown = false;
-  state.apiFailStreak = 0;
-  state.apiHaltReason = null;
-  firstErrorShown = false;
-  errorBanner.classList.remove('visible');
-  rateLimitUntil = 0;
-  adaptiveConcurrentCap = null;
-  resetScanIssueState();
-  setHudStatus('ACTIVE', true);
-  updateScanRunningUi();
-  setAgentPanelCollapsed(true);
-  showScanStartedAlert();
-  startServerStatusPolling();
-  initAgentSlots(getEffectiveConcurrentLimit());
-  // Prefer address-level dedupe so different phone/email on same property still skip re-scan
-  const existingAddr = new Set();
-  const existingRecordKeys = new Set();
-  for (const r of state.results || []) {
-    existingRecordKeys.add(recordKey(r));
-    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
-    if (ak) existingAddr.add(ak);
-  }
-  let skippedDupAtStart = 0;
-  const pending = state.records.filter((r) => {
-    if (existingRecordKeys.has(recordKey(r))) {
-      skippedDupAtStart += 1;
-      return false;
+    startScanSaveHeartbeat();
+    pushScanSessionMeta();
+    state.aborted = false;
+    state.haltAlertShown = false;
+    state.serverStopAlertShown = false;
+    state.serverStopAlertShown = false;
+    state.satelliteWarnShown = false;
+    state.rateLimitWarned = false;
+    state.quotaHaltShown = false;
+    state.apiFailStreak = 0;
+    state.apiHaltReason = null;
+    firstErrorShown = false;
+    errorBanner?.classList.remove('visible');
+    rateLimitUntil = 0;
+    adaptiveConcurrentCap = null;
+    resetScanIssueState();
+    setHudStatus('ACTIVE', true);
+    updateScanRunningUi();
+    setAgentPanelCollapsed(true);
+    showScanStartedAlert();
+    startServerStatusPolling();
+    initAgentSlots(getEffectiveConcurrentLimit());
+    // Prefer address-level dedupe so different phone/email on same property still skip re-scan
+    const existingAddr = new Set();
+    const existingRecordKeys = new Set();
+    for (const r of state.results || []) {
+      existingRecordKeys.add(recordKey(r));
+      const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
+      if (ak) existingAddr.add(ak);
     }
-    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
-    if (ak && existingAddr.has(ak)) {
-      skippedDupAtStart += 1;
-      return false;
+    let skippedDupAtStart = 0;
+    const pending = state.records.filter((r) => {
+      if (existingRecordKeys.has(recordKey(r))) {
+        skippedDupAtStart += 1;
+        return false;
+      }
+      const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
+      if (ak && existingAddr.has(ak)) {
+        skippedDupAtStart += 1;
+        return false;
+      }
+      return true;
+    });
+    // Keep scan queue clean for credits — remove skipped dups from records
+    if (skippedDupAtStart > 0) {
+      state.records = pending.slice();
+      state._pendingUnscanned = pending.length;
     }
-    return true;
-  });
-  // Keep scan queue clean for credits — remove skipped dups from records
-  if (skippedDupAtStart > 0) {
-    state.records = pending.slice();
-    state._pendingUnscanned = pending.length;
-  }
-  const resumeCount = state.results.length;
+    const resumeCount = state.results.length;
 
-  if (!pending.length) {
-    log('All addresses already analyzed — open results to review', 'success');
-    if (skippedDupAtStart) {
-      log(`Skipped ${skippedDupAtStart.toLocaleString()} duplicates already in the system`, 'warn');
-    }
-    enterReviewMode();
-    state.running = false;
-    stopScanSaveHeartbeat();
-    updateStartButton();
-    return;
-  }
-  if (skippedDupAtStart > 0) {
-    log(
-      `Skipping ${skippedDupAtStart.toLocaleString()} already-scanned addresses (saving Maps/Gemini credits)`,
-      'warn'
-    );
-  }
-
-  state.processed = resumeCount;
-  syncResultCounters();
-  state.failStreetView = 0;
-  state.failGemini = 0;
-  state.selectedKey = null;
-  state.pinnedKey = null;
-  state.pinnedLiveAddress = null;
-  state.scanLiveSnapshot = null;
-  state.scoreEditKey = null;
-  closePropertyModal({ save: false });
-  updateScanPinUi();
-  $('failStats').classList.remove('visible');
-  progressSection.classList.remove('review-minimal');
-  collapseSetup(true);
-  state.appView = 'dashboard';
-  updateScanFeedUi();
-  updateAppNav();
-  updateCommandBar();
-
-  startBtn.disabled = true;
-  stopBtn.disabled = false;
-  updateExportButtons();
-  progressSection.classList.add('active');
-  if (!resumeCount) {
-    logPanel.innerHTML = '';
-    resetVirtualScrollDom();
-    cardsGrid.innerHTML = '';
-    resultsBody.innerHTML = '';
-  }
-  $('progressPct').textContent = `${Math.round((resumeCount / state.records.length) * 100)}%`;
-  updateGauge(null);
-  updateGauge(null, false, 'scan');
-  updateProgress();
-  saveSession();
-  if (resumeCount > 0) {
-    log(`Resuming — ${countSuccessfulResults().toLocaleString()} good leads kept, ${pending.length.toLocaleString()} to scan`, 'success');
-  }
-  if (pending.length > 15 && resumeCount === 0) {
-    const waitSec = Math.min(20, 8 + Math.floor(pending.length / 500));
-    log(`Gemini warmup ${waitSec}s before fresh bulk scan…`, 'warn');
-    await sleep(waitSec * 1000);
-    if (state.aborted) {
+    if (!pending.length) {
+      log('All addresses already analyzed — open results to review', 'success');
+      if (skippedDupAtStart) {
+        log(`Skipped ${skippedDupAtStart.toLocaleString()} duplicates already in the system`, 'warn');
+      }
+      alert(
+        skippedDupAtStart
+          ? `All ${skippedDupAtStart.toLocaleString()} imported addresses were already scanned.\n\nNothing new to run — open Review Leads to work existing results.`
+          : 'No unscanned leads in the queue.\n\nImport a new spreadsheet, then click Start Scan.'
+      );
       state.running = false;
       stopScanSaveHeartbeat();
       updateStartButton();
+      updateScanReadyUi?.();
+      if (state.results.length) enterReviewMode();
       return;
     }
-  }
-  const concurrentLimit = getEffectiveConcurrentLimit();
-  if (getConcurrentLimit() > MAX_SAFE_CONCURRENT) {
-    log(`Parallel workers capped at ${MAX_SAFE_CONCURRENT} to reduce mass skips`, 'warn');
-  }
-  const estPerMin = concurrentLimit * 2.5;
-  const estHours = pending.length / (estPerMin * 60);
-  log(`Analyzing ${pending.length} addresses — ${concurrentLimit} parallel workers (est. ${estHours < 1 ? Math.round(estHours * 60) + ' min' : estHours.toFixed(1) + ' hrs'})`);
-
-  try {
-    const batches = [];
-    for (let i = 0; i < pending.length; i += BATCH_SIZE) {
-      batches.push(pending.slice(i, i + BATCH_SIZE));
-    }
-
-    for (let i = 0; i < batches.length; i++) {
-      if (state.aborted) break;
-      await processBatch(batches[i], i + 1, svKey, gKey, getEffectiveConcurrentLimit());
-      if (state.aborted) break;
-    }
-  } catch (err) {
-    log(`Scan error: ${err.message}`, 'error');
-    console.error(err);
-    showFatalError(`Scan stopped: ${err.message}. Refresh the page and click Start again.`);
-  }
-
-  flushThrottledUi(true);
-  hideLiveTierAlert();
-  resetDisplayLimit();
-  cardsGrid?.querySelector('.results-scan-cap-hint')?.remove();
-  await renderResultsProgressive();
-
-  state.running = false;
-  stopScanSaveHeartbeat();
-  markSessionResultsReady();
-  state.pinnedKey = null;
-  state.pinnedLiveAddress = null;
-  stopServerStatusPolling();
-  updateScanPinUi();
-  updateScanFeedUi();
-  stopBtn.disabled = true;
-  updateExportButtons();
-  updateStartButton();
-  updateCommandBar();
-
-  const failed = state.haltAlertShown;
-  if (!failed) {
-    setHudStatus(state.aborted ? 'ABORTED' : 'COMPLETE', !!state.results.length);
-  }
-
-  if (failed) {
-    showPreview('', `Failed — ${state.succeeded} done before error`, null);
-    log(`Stopped due to error. ${state.succeeded} succeeded before failure.`, 'error');
-    if (state.results.length) {
-      enterReviewMode();
-    }
-  } else if (state.aborted) {
-    showPreview('', `Stopped — ${state.succeeded} analyzed`, null);
-    log('Analysis stopped by user', 'error');
-    if (state.results.length) {
-      enterReviewMode();
-    }
-  } else {
-    const reviewCount = countFailedResults();
-    if (reviewCount || state.failStreetView || state.failGemini) {
-      notifyScanIssue('complete_issues',
-        `${reviewCount.toLocaleString()} need review (${state.failStreetView} Street View, ${state.failGemini} Gemini failures). Scan otherwise complete.`,
-        { title: 'Scan complete — some issues', dedupeKey: 'complete_issues', browserNotify: true }
+    if (skippedDupAtStart > 0) {
+      log(
+        `Skipping ${skippedDupAtStart.toLocaleString()} already-scanned addresses (saving Maps/Gemini credits)`,
+        'warn'
       );
     }
-    log(`Finished. ${state.succeeded.toLocaleString()} properties analyzed.`, 'success');
-    if (state.results.length) {
-      enterReviewMode();
-    } else {
-      showPreview('', 'Complete — no results', null);
+
+    state.processed = resumeCount;
+    syncResultCounters();
+    state.failStreetView = 0;
+    state.failGemini = 0;
+    state.selectedKey = null;
+    state.pinnedKey = null;
+    state.pinnedLiveAddress = null;
+    state.scanLiveSnapshot = null;
+    state.scoreEditKey = null;
+    closePropertyModal({ save: false });
+    updateScanPinUi();
+    // failStats is optional legacy chrome — never throw if missing
+    $('failStats')?.classList.remove('visible');
+    progressSection?.classList.remove('review-minimal');
+    collapseSetup(true);
+    state.appView = 'dashboard';
+    updateScanFeedUi();
+    updateAppNav();
+    updateCommandBar();
+
+    if (startBtn) startBtn.disabled = true;
+    if (stopBtn) stopBtn.disabled = false;
+    if (scanReadyStartBtn) scanReadyStartBtn.disabled = true;
+    updateExportButtons();
+    progressSection?.classList.add('active');
+    if (!resumeCount) {
+      if (logPanel) logPanel.innerHTML = '';
+      resetVirtualScrollDom?.();
+      if (cardsGrid) cardsGrid.innerHTML = '';
+      if (resultsBody) resultsBody.innerHTML = '';
     }
+    const pctEl = $('progressPct');
+    if (pctEl) {
+      pctEl.textContent = `${Math.round((resumeCount / Math.max(1, state.records.length)) * 100)}%`;
+    }
+    updateGauge(null);
+    updateGauge(null, false, 'scan');
+    updateProgress();
+    saveSession();
+    if (resumeCount > 0) {
+      log(`Resuming — ${countSuccessfulResults().toLocaleString()} good leads kept, ${pending.length.toLocaleString()} to scan`, 'success');
+    }
+    // Short warmup only for large fresh runs (was up to 20s — felt like "nothing happened")
+    if (pending.length > 50 && resumeCount === 0) {
+      const waitSec = Math.min(6, 2 + Math.floor(pending.length / 1000));
+      log(`Gemini warmup ${waitSec}s before fresh bulk scan…`, 'warn');
+      await sleep(waitSec * 1000);
+      if (state.aborted) {
+        state.running = false;
+        stopScanSaveHeartbeat();
+        updateStartButton();
+        updateScanReadyUi?.();
+        return;
+      }
+    }
+    const concurrentLimit = getEffectiveConcurrentLimit();
+    if (getConcurrentLimit() > MAX_SAFE_CONCURRENT) {
+      log(`Parallel workers capped at ${MAX_SAFE_CONCURRENT} to reduce mass skips`, 'warn');
+    }
+    const estPerMin = concurrentLimit * 2.5;
+    const estHours = pending.length / (estPerMin * 60);
+    log(`Analyzing ${pending.length} addresses — ${concurrentLimit} parallel workers (est. ${estHours < 1 ? Math.round(estHours * 60) + ' min' : estHours.toFixed(1) + ' hrs'})`);
+
+    try {
+      const batches = [];
+      for (let i = 0; i < pending.length; i += BATCH_SIZE) {
+        batches.push(pending.slice(i, i + BATCH_SIZE));
+      }
+
+      for (let i = 0; i < batches.length; i++) {
+        if (state.aborted) break;
+        await processBatch(batches[i], i + 1, svKey, gKey, getEffectiveConcurrentLimit());
+        if (state.aborted) break;
+      }
+    } catch (err) {
+      log(`Scan error: ${err.message}`, 'error');
+      console.error(err);
+      showFatalError(`Scan stopped: ${err.message}. Refresh the page and click Start again.`);
+    }
+
+    flushThrottledUi(true);
+    hideLiveTierAlert();
+    resetDisplayLimit();
+    cardsGrid?.querySelector('.results-scan-cap-hint')?.remove();
+    await renderResultsProgressive();
+
+    state.running = false;
+    stopScanSaveHeartbeat();
+    markSessionResultsReady();
+    state.pinnedKey = null;
+    state.pinnedLiveAddress = null;
+    stopServerStatusPolling();
+    updateScanPinUi();
+    updateScanFeedUi();
+    if (stopBtn) stopBtn.disabled = true;
+    updateExportButtons();
+    updateStartButton();
+    updateScanReadyUi?.();
+    updateCommandBar();
+
+    const failed = state.haltAlertShown;
+    if (!failed) {
+      setHudStatus(state.aborted ? 'ABORTED' : 'COMPLETE', !!state.results.length);
+    }
+
+    if (failed) {
+      showPreview('', `Failed — ${state.succeeded} done before error`, null);
+      log(`Stopped due to error. ${state.succeeded} succeeded before failure.`, 'error');
+      if (state.results.length) {
+        enterReviewMode();
+      }
+    } else if (state.aborted) {
+      showPreview('', `Stopped — ${state.succeeded} analyzed`, null);
+      log('Analysis stopped by user', 'error');
+      if (state.results.length) {
+        enterReviewMode();
+      }
+    } else {
+      const reviewCount = countFailedResults();
+      if (reviewCount || state.failStreetView || state.failGemini) {
+        notifyScanIssue('complete_issues',
+          `${reviewCount.toLocaleString()} need review (${state.failStreetView} Street View, ${state.failGemini} Gemini failures). Scan otherwise complete.`,
+          { title: 'Scan complete — some issues', dedupeKey: 'complete_issues', browserNotify: true }
+        );
+      }
+      log(`Finished. ${state.succeeded.toLocaleString()} properties analyzed.`, 'success');
+      if (state.results.length) {
+        enterReviewMode();
+      } else {
+        showPreview('', 'Complete — no results', null);
+      }
+    }
+    updateExportButtons();
+    pushScanSessionMeta();
+    saveSession('scan-complete');
+    flushPendingServerSave('scan-complete');
+    flushSaveSession({ sync: true, force: true, reason: 'scan-complete' });
+  } catch (err) {
+    console.error('[startScanAnalysis] failed', err);
+    state.running = false;
+    stopScanSaveHeartbeat?.();
+    if (stopBtn) stopBtn.disabled = true;
+    updateStartButton();
+    updateScanReadyUi?.();
+    alert(`Could not start scan: ${err?.message || err}\n\nHard-refresh (Ctrl+Shift+R) and try again.`);
   }
-  updateExportButtons();
-  pushScanSessionMeta();
-  saveSession('scan-complete');
-  flushPendingServerSave('scan-complete');
-  flushSaveSession({ sync: true, force: true, reason: 'scan-complete' });
+};
+
+startBtn?.addEventListener('click', () => {
+  startScanAnalysis();
 });
 
 stopBtn?.addEventListener('click', () => {
