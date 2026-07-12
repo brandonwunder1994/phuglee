@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/css/premium-analyzer.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-scan-smart">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-distill">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <link rel="stylesheet" href="/css/premium-motion.css">
   <script src="/js/phuglee-motion.js" defer></script>
@@ -153,21 +153,29 @@
       </div>
 
       <div class="scan-ready-actions">
-        <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Start Scan</button>
-        <button type="button" class="btn-secondary scan-ready-stop" id="scanReadyStopBtn" hidden>Stop Scan</button>
-        <button type="button" class="btn-secondary" id="openResultsWorkbenchBtn" hidden>Work results</button>
-        <div class="review-leads-wrap" id="reviewLeadsWrap">
-          <button type="button" class="btn-secondary review-leads-btn" id="reviewLeadsBtn" disabled aria-haspopup="true" aria-expanded="false" aria-controls="reviewLeadsMenu">Review Leads</button>
-          <div class="review-leads-menu" id="reviewLeadsMenu" role="menu" hidden>
-            <button type="button" class="review-leads-item" data-review-flow="distressed" role="menuitem">Distressed</button>
-            <button type="button" class="review-leads-item" data-review-flow="well_maintained" role="menuitem">Well Maintained</button>
-            <button type="button" class="review-leads-item" data-review-flow="vacant" role="menuitem">Land / Vacant</button>
-            <button type="button" class="review-leads-item" data-review-flow="blurred" role="menuitem">Blocked Image</button>
-            <button type="button" class="review-leads-item" data-review-flow="review" role="menuitem">Manual Review</button>
+        <div class="scan-ready-actions-primary">
+          <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Start Scan</button>
+          <button type="button" class="btn-secondary scan-ready-stop" id="scanReadyStopBtn" hidden>Stop Scan</button>
+          <div class="review-leads-wrap" id="reviewLeadsWrap">
+            <button type="button" class="btn-secondary review-leads-btn" id="reviewLeadsBtn" disabled aria-haspopup="true" aria-expanded="false" aria-controls="reviewLeadsMenu">Review Leads</button>
+            <div class="review-leads-menu" id="reviewLeadsMenu" role="menu" hidden>
+              <button type="button" class="review-leads-item" data-review-flow="distressed" role="menuitem">Distressed</button>
+              <button type="button" class="review-leads-item" data-review-flow="well_maintained" role="menuitem">Well Maintained</button>
+              <button type="button" class="review-leads-item" data-review-flow="vacant" role="menuitem">Land</button>
+              <button type="button" class="review-leads-item" data-review-flow="blurred" role="menuitem">Blocked</button>
+              <button type="button" class="review-leads-item" data-review-flow="review" role="menuitem">Needs Review</button>
+            </div>
+          </div>
+          <button type="button" class="btn-secondary scan-ready-work-results" id="openResultsWorkbenchBtn" hidden>Work results</button>
+        </div>
+        <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
+          <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
+            aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">···</button>
+          <div class="scan-desk-overflow-menu" id="scanDeskOverflow" role="menu" hidden>
+            <button type="button" class="scan-desk-overflow-item" id="exportBackupNowBtn" role="menuitem" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
+            <button type="button" class="scan-desk-overflow-item" id="apiUsageOpenBtn" role="menuitem" title="View Maps and Gemini usage estimates">API usage and credits</button>
           </div>
         </div>
-        <button type="button" class="btn-secondary" id="exportBackupNowBtn" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
-        <button type="button" class="btn-secondary" id="apiUsageOpenBtn" title="View Maps and Gemini usage estimates">API usage and credits</button>
       </div>
     </section>
 
@@ -357,8 +365,8 @@
             <button class="filter-btn filter-segment-btn distressed-filter" data-filter="distressed" type="button">Distressed</button>
             <button class="filter-btn filter-segment-btn review-filter" data-filter="review" type="button">Needs Review</button>
             <button class="filter-btn filter-segment-btn well-maintained-filter" data-filter="well_maintained" type="button">Well Maintained</button>
-            <button class="filter-btn filter-segment-btn vacant-filter" data-filter="vacant" type="button">Vacant Lot/Land</button>
-            <button class="filter-btn filter-segment-btn blurred-filter" data-filter="blurred" type="button">Blocked Image</button>
+            <button class="filter-btn filter-segment-btn vacant-filter" data-filter="vacant" type="button">Land</button>
+            <button class="filter-btn filter-segment-btn blurred-filter" data-filter="blurred" type="button">Blocked</button>
           </div>
           <select id="leadTypeFilter" class="lead-type-filter lead-type-filter-inline" title="Filter by lead source type" aria-label="Filter by lead type">
             <option value="all">All lead types</option>
@@ -736,7 +744,7 @@
   <script src="/lib/import-meta.js?v=20260708a" defer></script>
   <script src="/lib/import-batches.js?v=20260708b" defer></script>
   <script src="/lib/location-index.js?v=20260708c" defer></script>
-  <script src="/lib/analyze-visibility.js?v=20260712a" defer></script>
+  <script src="/lib/analyze-visibility.js?v=20260712-distill" defer></script>
   <script src="/lib/tier-labels.js?v=20260712a" defer></script>
   <script src="/lib/virtual-scroll.js?v=20260630c" defer></script>
   <script src="/lib/classification-confidence.js?v=20260630i" defer></script>
@@ -747,12 +755,12 @@
   <script src="/js/state.js?v=20260712-visibility" defer></script>
   <script src="/js/imagery.js?v=20260712-scan-accurate" defer></script>
   <script src="/js/scan.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/review.js?v=20260712-scan-accurate" defer></script>
+  <script src="/js/review.js?v=20260712-distill" defer></script>
   <script src="/js/render.js?v=20260712-visibility" defer></script>
-  <script src="/js/session.js?v=20260712-visibility" defer></script>
+  <script src="/js/session.js?v=20260712-distill" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/scan-ready.js?v=20260712-visibility" defer></script>
-  <script src="/js/live-scan-feed.js?v=20260712-scan-accurate" defer></script>
+  <script src="/js/scan-ready.js?v=20260712-distill" defer></script>
+  <script src="/js/live-scan-feed.js?v=20260712-distill" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
   <script src="/js/app.js?v=20260712-scan-accurate" defer></script>
 </body>

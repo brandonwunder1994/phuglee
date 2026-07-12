@@ -80,8 +80,12 @@
       if (!liveScanFeed) return;
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       liveScanFeed.innerHTML = feedItems.map((item) => {
-        const tierHtml = item.tier
-          ? `<span class="live-scan-tier tier-${escapeHtml(item.tier)}">${escapeHtml(leadTierLabel(item.tier) || item.tier)}</span>`
+        const tierKey = item.tier || '';
+        const uiLabel = (typeof tierUiLabel === 'function' && tierKey)
+          ? tierUiLabel(tierKey)
+          : (leadTierLabel(tierKey) || tierKey);
+        const tierHtml = tierKey
+          ? `<span class="live-scan-tier tier-${escapeHtml(tierKey)}">${escapeHtml(uiLabel)}</span>`
           : '';
         return `<li class="live-scan-item is-${escapeHtml(item.phase || 'working')}${reducedMotion ? ' no-motion' : ''}">
           <span class="live-scan-addr">${escapeHtml(item.address)}</span>
@@ -95,6 +99,7 @@
     }
 
     R.updateLiveScanSectionUi = function updateLiveScanSectionUi() {
+      // Live KPIs are scan-time truth only; session strip owns post-scan buckets
       const show = !!state.running;
       if (liveScanSection) liveScanSection.hidden = !show;
       if (stopBtn) stopBtn.hidden = !show;
@@ -114,6 +119,7 @@
         readyStart.disabled = true;
       }
 
+      // When idle, applyAnalyzeVisibility owns zone visibility; do not paint live KPI grid
       if (!show) return;
 
       // THIS list progress (not historical session total vs queue size)

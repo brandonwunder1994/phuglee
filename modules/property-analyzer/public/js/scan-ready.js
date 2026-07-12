@@ -319,6 +319,28 @@
         dashboard?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       });
 
+      const overflowToggle = document.getElementById('scanDeskOverflowToggle');
+      const overflowMenu = document.getElementById('scanDeskOverflow');
+      const overflowWrap = document.getElementById('scanDeskOverflowWrap');
+      function closeScanDeskOverflow() {
+        if (overflowMenu) overflowMenu.hidden = true;
+        overflowToggle?.setAttribute('aria-expanded', 'false');
+      }
+      overflowToggle?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!overflowMenu) return;
+        const open = overflowMenu.hidden;
+        overflowMenu.hidden = !open;
+        overflowToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+      document.addEventListener('click', (e) => {
+        if (!overflowWrap?.contains(e.target)) closeScanDeskOverflow();
+      });
+      overflowMenu?.addEventListener('click', () => {
+        closeScanDeskOverflow();
+      });
+
+      applyTierUiLabelsToChrome?.();
       wireScanImportZone();
       updateScanReadyUi();
     }

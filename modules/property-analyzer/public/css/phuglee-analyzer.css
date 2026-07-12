@@ -1063,15 +1063,84 @@ button.bridge-kpi:hover {
 .scan-ready-actions {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  justify-content: space-between;
+  gap: 0.65rem;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
+.scan-ready-actions-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+/* Heat only on Start — secondary actions stay quiet */
 body.analyze-phuglee .scan-ready-start {
   padding: 0.75rem 1.35rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   box-shadow: var(--shadow-cta, 0 8px 32px rgba(229, 132, 53, 0.45));
+}
+
+body.analyze-phuglee .scan-ready-stop,
+body.analyze-phuglee .review-leads-btn,
+body.analyze-phuglee .scan-ready-work-results,
+body.analyze-phuglee .scan-desk-overflow-toggle {
+  box-shadow: none;
+  font-weight: 500;
+}
+
+.scan-desk-overflow {
+  position: relative;
+  margin-left: auto;
+}
+
+.scan-desk-overflow-toggle {
+  min-width: 2.4rem;
+  padding: 0.55rem 0.65rem;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+}
+
+.scan-desk-overflow-toggle:hover {
+  opacity: 1;
+}
+
+.scan-desk-overflow-menu {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  min-width: 13.5rem;
+  padding: 0.4rem;
+  background: var(--phuglee-charcoal, #353630);
+  border: 1px solid var(--border-hot);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-panel, 0 12px 40px rgba(0, 0, 0, 0.5));
+  z-index: 200;
+}
+
+.scan-desk-overflow-menu[hidden] {
+  display: none !important;
+}
+
+.scan-desk-overflow-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--phuglee-cream);
+  font-size: 0.84rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.scan-desk-overflow-item:hover {
+  background: rgba(229, 132, 53, 0.14);
 }
 
 .review-leads-wrap { position: relative; }
@@ -1508,6 +1577,17 @@ body.analyze-phuglee:not(.analyzer-embedded) .analyze-sidebar {
   .scan-ready-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+  .scan-ready-actions-primary {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .scan-desk-overflow {
+    margin-left: 0;
+  }
+  .scan-desk-overflow-menu {
+    left: 0;
+    right: 0;
   }
   .historical-search-controls {
     grid-template-columns: 1fr;

@@ -31,7 +31,7 @@ describe('getAnalyzeZones', () => {
     assert.equal(z.showResultsWorkbench, false);
   });
 
-  it('scanning: live + KPIs on, results off', () => {
+  it('scanning: live on, session KPIs off (live owns scan-time counts)', () => {
     const z = getAnalyzeZones({
       hasRecords: true,
       hasResults: true,
@@ -40,7 +40,7 @@ describe('getAnalyzeZones', () => {
       pastMarketsOpen: false
     });
     assert.equal(z.showLiveScan, true);
-    assert.equal(z.showSessionKpis, true);
+    assert.equal(z.showSessionKpis, false);
     assert.equal(z.showResultsWorkbench, false);
   });
 

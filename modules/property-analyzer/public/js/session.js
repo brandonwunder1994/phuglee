@@ -300,8 +300,14 @@ R.updateLoadMoreBar = function updateLoadMoreBar(filteredTotal, shown) {
   }
 }
 
+R.tierUiLabel = function tierUiLabel(key) {
+  const lib = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.tierLabels) || null;
+  if (lib && typeof lib.tierUiLabel === 'function') return lib.tierUiLabel(key);
+  return (FILTER_LABELS && FILTER_LABELS[key]) || String(key || '').replace(/_/g, ' ') || '—';
+}
+
 R.categoryLabelWithCount = function categoryLabelWithCount(filter, count) {
-  const base = FILTER_LABELS[filter] || filter;
+  const base = tierUiLabel(filter);
   return `${base} (${count})`;
 }
 
@@ -1112,7 +1118,8 @@ R.cloneReviewUndoStack = function cloneReviewUndoStack(stack) {
 }
 
 R.reviewFilterLabel = function reviewFilterLabel(filter = state.reviewFilter) {
-  return REVIEW_FILTER_LABELS[filter] || FILTER_LABELS[filter] || filter || 'All';
+  if (!filter || filter === 'all') return tierUiLabel('all');
+  return tierUiLabel(filter);
 }
 
 R.matchesReviewFilter = function matchesReviewFilter(r, filter) {
@@ -1415,6 +1422,24 @@ R.hideReviewOverlay = function hideReviewOverlay() {
 
 
 // DOM bindings (deferred to end of module — handlers defined above)
+R.applyTierUiLabelsToChrome = function applyTierUiLabelsToChrome() {
+  document.querySelectorAll('.review-leads-item[data-review-flow]').forEach((btn) => {
+    const flow = btn.dataset.reviewFlow;
+    if (flow) btn.textContent = tierUiLabel(flow);
+  });
+  // Filter bar bases (counts reapplied by updateFilterLabels when results exist)
+  document.querySelectorAll('.filter-btn[data-filter]').forEach((btn) => {
+    const f = btn.dataset.filter;
+    if (!f) return;
+    // Keep count suffix if already present
+    const cur = String(btn.textContent || '');
+    const m = cur.match(/\s*\((\d[\d,]*)\)\s*$/);
+    const countPart = m ? ` (${m[1]})` : '';
+    btn.textContent = tierUiLabel(f) + countPart;
+  });
+};
+applyTierUiLabelsToChrome();
+
 openUploadModalBtn?.addEventListener('click', openUploadModal);
 openSettingsBtn?.addEventListener('click', openSettingsModal);
 openBrainBtn?.addEventListener('click', openBrainModal);

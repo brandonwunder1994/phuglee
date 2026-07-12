@@ -17,7 +17,8 @@
     const showPipeline = true;
     const showScanDesk = true;
     const showLiveScan = isScanning;
-    const showSessionKpis = isScanning || hasResults;
+    // Live scan KPIs own the five buckets while scanning; session strip is post-scan truth only
+    const showSessionKpis = hasResults && !isScanning;
     const showResultsWorkbench = !isScanning && hasResults && resultsWorkbenchOpen;
     let pastMarketsMode = 'control';
     if (pastMarketsOpen) pastMarketsMode = 'expanded';

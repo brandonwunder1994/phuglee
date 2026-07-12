@@ -282,8 +282,8 @@ R.FILTER_LABELS = {
   all: 'All',
   distressed: 'Distressed',
   well_maintained: 'Well Maintained',
-  vacant: 'Vacant Lot/Land',
-  blurred: 'Blocked Image',
+  vacant: 'Land',
+  blurred: 'Blocked',
   review: 'Needs Review'
 };
 
@@ -291,7 +291,8 @@ R.REVIEW_FILTER_LABELS = {
   distressed: 'Distressed',
   well_maintained: 'Well Maintained',
   vacant: 'Land',
-  review: 'Manual Review'
+  blurred: 'Blocked',
+  review: 'Needs Review'
 };
 
 R.LEAD_TYPES = [
