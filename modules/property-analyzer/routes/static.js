@@ -97,7 +97,12 @@ function register(ctx) {
     if (!file.startsWith(path.join(config.PUBLIC_DIR, 'js'))) return false;
     if (!fs.existsSync(file)) return false;
     const ext = path.extname(file);
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream', 'Cache-Control': 'public, max-age=86400' });
+    // no-store: Distress OS rewrites JS on the fly (module prefix). A 24h cache
+    // once served mangled proxyFetchUrl → proxyFetchurl and froze scans for a day.
+    res.writeHead(200, {
+      'Content-Type': MIME[ext] || 'application/octet-stream',
+      'Cache-Control': 'no-store, no-cache, must-revalidate'
+    });
     res.end(fs.readFileSync(file));
     return true;
   });

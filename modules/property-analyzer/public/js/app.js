@@ -933,7 +933,8 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
           break;
         }
       }
-      if (isHardQuotaError(err.message) || noteApiScanFailure?.(err.message, apiProviderFromError?.(err.message))) {
+      // Hard quota → stop immediately (do not burn retries / fail streak).
+      if (isHardQuotaError(err.message)) {
         const provider = typeof apiProviderFromError === 'function'
           ? apiProviderFromError(err.message)
           : (/street|maps|over_query|billing/i.test(String(err.message || '')) ? 'maps' : 'gemini');
@@ -942,6 +943,8 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
         }
         break;
       }
+      // Transient: back off and retry. Do NOT increment apiFailStreak per attempt —
+      // that used to halt the whole scan after ~2 flaky addresses (5 retries × 2).
       if (attempt < maxAttempts && isTransientError(err.message)) {
         noteRateLimit(err);
         if (state.aborted) break;
