@@ -126,6 +126,51 @@ R.recordKey = function recordKey(r) {
   return `${r.email}|${r.phone}|${r.address}`;
 }
 
+/**
+ * Stable address key for dedupe (street + city + state + zip).
+ * Used so re-imports of already-scanned properties are dropped and don't burn Maps/Gemini credits.
+ */
+R.addressMatchKey = function addressMatchKey(r) {
+  if (!r) return '';
+  const streetAbbr = {
+    street: 'st', st: 'st', avenue: 'ave', ave: 'ave', road: 'rd', rd: 'rd',
+    drive: 'dr', dr: 'dr', lane: 'ln', ln: 'ln', boulevard: 'blvd', blvd: 'blvd',
+    court: 'ct', ct: 'ct', circle: 'cir', cir: 'cir', way: 'way', place: 'pl', pl: 'pl',
+    terrace: 'ter', ter: 'ter', trail: 'trl', trl: 'trl', parkway: 'pkwy', pkwy: 'pkwy',
+    highway: 'hwy', hwy: 'hwy', north: 'n', south: 's', east: 'e', west: 'w',
+    northeast: 'ne', northwest: 'nw', southeast: 'se', southwest: 'sw'
+  };
+  const norm = (s) => String(s || '')
+    .toLowerCase()
+    .replace(/[#.,/]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const streetPart = norm(r.street || String(r.address || '').split(',')[0] || '')
+    .replace(/\b([a-z0-9]+)\b/g, (m) => streetAbbr[m] || m);
+  const city = norm(r.city || '');
+  let state = norm(r.state || '');
+  if (state.length > 2) {
+    const map = {
+      texas: 'tx', florida: 'fl', georgia: 'ga', ohio: 'oh', colorado: 'co',
+      arizona: 'az', 'north carolina': 'nc', wyoming: 'wy', california: 'ca'
+    };
+    state = map[state] || state.slice(0, 2);
+  }
+  const zip = norm(r.postal || r.zip || '').replace(/\s+/g, '').slice(0, 5);
+  if (!streetPart) return '';
+  return [streetPart, city, state, zip].filter(Boolean).join('|');
+}
+
+/** True if this lead already exists among scanned results (address-level). */
+R.isAlreadyScannedAddress = function isAlreadyScannedAddress(row, results) {
+  const k = addressMatchKey(row);
+  if (!k) return false;
+  for (const r of results || []) {
+    if (addressMatchKey(r) === k) return true;
+  }
+  return false;
+}
+
 R.markRecordManuallyReviewed = function markRecordManuallyReviewed(r, via = 'manual') {
   if (!r) return r;
   return {

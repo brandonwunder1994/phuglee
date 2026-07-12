@@ -1370,12 +1370,64 @@ R.handleFile = async function handleFile(file, opts = {}) {
 
     const importedAt = Date.now();
     const batchId = `batch_upload_${importedAt}`;
-    const stamped = records.map((r) => ({
+    let stamped = records.map((r) => ({
       ...r,
       importedAt: r.importedAt || importedAt,
       importBatchId: batchId,
       sourceFile: file.name
     }));
+
+    // Drop addresses already in the system (already scanned) so we never re-scan / burn credits.
+    // Also drop duplicates inside this same upload file.
+    const existingAddr = new Set();
+    if (keepResults && typeof addressMatchKey === 'function') {
+      for (const r of state.results || []) {
+        const k = addressMatchKey(r);
+        if (k) existingAddr.add(k);
+      }
+    }
+    let skippedAlreadyInSystem = 0;
+    let skippedDupInFile = 0;
+    const seenInFile = new Set();
+    const deduped = [];
+    for (const r of stamped) {
+      const k = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
+      if (!k) {
+        deduped.push(r);
+        continue;
+      }
+      if (existingAddr.has(k)) {
+        skippedAlreadyInSystem += 1;
+        continue;
+      }
+      if (seenInFile.has(k)) {
+        skippedDupInFile += 1;
+        continue;
+      }
+      seenInFile.add(k);
+      deduped.push(r);
+    }
+    stamped = deduped;
+
+    if (!stamped.length) {
+      setStatus(
+        `All ${records.length.toLocaleString()} rows were already in the system (or blank). Nothing new to scan.`
+      );
+      alert(
+        `No new leads to scan.\n\n` +
+        `${skippedAlreadyInSystem.toLocaleString()} already scanned in the Analyzer.\n` +
+        `${skippedDupInFile.toLocaleString()} duplicate rows inside the file.\n\n` +
+        `Your existing results were left alone.`
+      );
+      log(
+        `Import skipped — ${skippedAlreadyInSystem.toLocaleString()} already scanned, ` +
+        `${skippedDupInFile.toLocaleString()} in-file dups`,
+        'warn'
+      );
+      updateStartButton();
+      updateScanReadyUi?.();
+      return;
+    }
 
     abortSessionBackgroundLoad();
     sessionLoadState = {
@@ -1387,7 +1439,7 @@ R.handleFile = async function handleFile(file, opts = {}) {
     };
     delete state._tierCountsFromServer;
 
-    // Scan queue = this file. Keep prior AI results unless user opts out.
+    // Scan queue = this file (minus already-scanned addresses). Keep prior AI results.
     state.records = stamped;
     if (!keepResults) {
       state.results = [];
@@ -1424,14 +1476,23 @@ R.handleFile = async function handleFile(file, opts = {}) {
     ];
 
     $('failStats')?.classList.remove('visible');
-    fileInfo.textContent = `✓ ${file.name} — ${stamped.length.toLocaleString()} rows ready to scan · ${leadTypeLabel(leadType)}`;
+    const skipNote = skippedAlreadyInSystem || skippedDupInFile
+      ? ` · skipped ${skippedAlreadyInSystem.toLocaleString()} already in system` +
+        (skippedDupInFile ? ` · ${skippedDupInFile.toLocaleString()} file dups` : '')
+      : '';
+    fileInfo.textContent =
+      `✓ ${file.name} — ${stamped.length.toLocaleString()} new leads ready to scan` +
+      `${skipNote} · ${leadTypeLabel(leadType)}`;
     fileInfo.classList.add('visible');
     if (heroCount) heroCount.textContent = stamped.length.toLocaleString();
     setStatus(
-      `Loaded ${stamped.length.toLocaleString()} leads from ${file.name}. ` +
-      (keepResults
-        ? `Kept ${(state.results || []).length.toLocaleString()} already-scanned results.`
-        : 'Prior scan results cleared.')
+      `✓ ${stamped.length.toLocaleString()} new leads ready — click Start Scan.` +
+      (skippedAlreadyInSystem
+        ? ` Removed ${skippedAlreadyInSystem.toLocaleString()} already-scanned (no credit waste).`
+        : '') +
+      (skippedDupInFile
+        ? ` Removed ${skippedDupInFile.toLocaleString()} duplicate rows in the file.`
+        : '')
     );
 
     updateExportButtons();
@@ -1458,8 +1519,14 @@ R.handleFile = async function handleFile(file, opts = {}) {
     }
 
     log(
-      `Loaded ${stamped.length.toLocaleString()} rows from ${file.name}` +
-      (keepResults ? ` (kept ${(state.results || []).length.toLocaleString()} prior results)` : ''),
+      `Loaded ${stamped.length.toLocaleString()} new leads from ${file.name}` +
+      (skippedAlreadyInSystem
+        ? ` · dropped ${skippedAlreadyInSystem.toLocaleString()} already scanned`
+        : '') +
+      (skippedDupInFile
+        ? ` · dropped ${skippedDupInFile.toLocaleString()} in-file dups`
+        : '') +
+      (keepResults ? ` · kept ${(state.results || []).length.toLocaleString()} prior results` : ''),
       'success'
     );
     state.appView = 'dashboard';

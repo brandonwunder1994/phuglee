@@ -1107,17 +1107,50 @@ startBtn?.addEventListener('click', async () => {
   showScanStartedAlert();
   startServerStatusPolling();
   initAgentSlots(getEffectiveConcurrentLimit());
-  const existingKeys = new Set(state.results.map(r => recordKey(r)));
-  const pending = state.records.filter(r => !existingKeys.has(recordKey(r)));
+  // Prefer address-level dedupe so different phone/email on same property still skip re-scan
+  const existingAddr = new Set();
+  const existingRecordKeys = new Set();
+  for (const r of state.results || []) {
+    existingRecordKeys.add(recordKey(r));
+    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
+    if (ak) existingAddr.add(ak);
+  }
+  let skippedDupAtStart = 0;
+  const pending = state.records.filter((r) => {
+    if (existingRecordKeys.has(recordKey(r))) {
+      skippedDupAtStart += 1;
+      return false;
+    }
+    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
+    if (ak && existingAddr.has(ak)) {
+      skippedDupAtStart += 1;
+      return false;
+    }
+    return true;
+  });
+  // Keep scan queue clean for credits — remove skipped dups from records
+  if (skippedDupAtStart > 0) {
+    state.records = pending.slice();
+    state._pendingUnscanned = pending.length;
+  }
   const resumeCount = state.results.length;
 
   if (!pending.length) {
     log('All addresses already analyzed — open results to review', 'success');
+    if (skippedDupAtStart) {
+      log(`Skipped ${skippedDupAtStart.toLocaleString()} duplicates already in the system`, 'warn');
+    }
     enterReviewMode();
     state.running = false;
     stopScanSaveHeartbeat();
     updateStartButton();
     return;
+  }
+  if (skippedDupAtStart > 0) {
+    log(
+      `Skipping ${skippedDupAtStart.toLocaleString()} already-scanned addresses (saving Maps/Gemini credits)`,
+      'warn'
+    );
   }
 
   state.processed = resumeCount;
