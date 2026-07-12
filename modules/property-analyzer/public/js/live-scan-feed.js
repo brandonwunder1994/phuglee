@@ -130,29 +130,46 @@
         }
       }
 
-      // Live KPIs from current results (server snapshot cleared at scan start)
+      // Live KPIs — four primary buckets + scanned (Needs Review residual only)
       let distressed = 0;
+      let wellMaintained = 0;
+      let land = 0;
+      let blocked = 0;
       let review = 0;
       let scanned = sessionTotal;
       try {
         if (typeof getSummaryMetrics === 'function') {
           const m = getSummaryMetrics();
           distressed = Number(m?.counts?.distressed) || 0;
+          wellMaintained = Number(m?.counts?.well_maintained) || 0;
+          land = Number(m?.counts?.vacant) || 0;
+          blocked = Number(m?.counts?.blurred) || 0;
           review = Number(m?.counts?.review) || 0;
           scanned = Number(m?.total) || scanned;
         } else if (typeof getTierCounts === 'function') {
           const c = getTierCounts({ global: true });
           distressed = Number(c?.distressed) || 0;
+          wellMaintained = Number(c?.well_maintained) || 0;
+          land = Number(c?.vacant) || 0;
+          blocked = Number(c?.blurred) || 0;
           review = Number(c?.review) || 0;
         }
       } catch (_) {}
 
       const elD = $('liveScanKpiDistressed');
+      const elWm = $('liveScanKpiWellMaintained');
+      const elL = $('liveScanKpiLand');
+      const elB = $('liveScanKpiBlocked');
       const elR = $('liveScanKpiReview');
+      const elRw = $('liveScanKpiReviewWrap');
       const elS = $('liveScanKpiScanned');
       const elW = $('liveScanKpiWorkers');
       if (elD) elD.textContent = distressed.toLocaleString();
+      if (elWm) elWm.textContent = wellMaintained.toLocaleString();
+      if (elL) elL.textContent = land.toLocaleString();
+      if (elB) elB.textContent = blocked.toLocaleString();
       if (elR) elR.textContent = review.toLocaleString();
+      if (elRw) elRw.hidden = review <= 0;
       if (elS) elS.textContent = scanned.toLocaleString();
 
       const configured = typeof getConcurrentLimit === 'function' ? getConcurrentLimit() : 0;

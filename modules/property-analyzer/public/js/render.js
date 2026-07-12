@@ -1472,12 +1472,38 @@ R.handleFile = async function handleFile(file, opts = {}) {
     }));
 
     // Drop addresses already in the system (already scanned) so we never re-scan / burn credits.
+    // Source of truth = full results DB (local + server index when not fully hydrated).
     // Also drop duplicates inside this same upload file.
     const existingAddr = new Set();
     if (keepResults && typeof addressMatchKey === 'function') {
       for (const r of state.results || []) {
         const k = addressMatchKey(r);
         if (k) existingAddr.add(k);
+      }
+    }
+    // Server has the full ~10k session even if the browser only loaded a page of results
+    if (keepResults && typeof USE_PROXY !== 'undefined' && USE_PROXY && typeof apiFetch === 'function') {
+      try {
+        setStatus('Checking against existing scanned database…');
+        const idxRes = await apiFetch('/api/import-address-index', { cache: 'no-store' });
+        if (idxRes.ok) {
+          const idx = await idxRes.json();
+          const matchKeys = Array.isArray(idx?.matchKeys) ? idx.matchKeys : [];
+          for (const k of matchKeys) {
+            if (k) existingAddr.add(k);
+          }
+          // Legacy normalizeAddress keys — match if we can map via addressMatchKey of stub
+          // matchKeys is authoritative for scan-desk dedupe
+          if (matchKeys.length) {
+            log?.(
+              `Dedupe index: ${matchKeys.length.toLocaleString()} scanned addresses from server` +
+              (idx.resultsCount != null ? ` (${Number(idx.resultsCount).toLocaleString()} results)` : ''),
+              'info'
+            );
+          }
+        }
+      } catch (idxErr) {
+        console.warn('[import] address index fetch failed — using local results only', idxErr);
       }
     }
     let skippedAlreadyInSystem = 0;
@@ -1499,6 +1525,7 @@ R.handleFile = async function handleFile(file, opts = {}) {
         continue;
       }
       seenInFile.add(k);
+      existingAddr.add(k); // prevent double-add if later code re-walks
       deduped.push(r);
     }
     stamped = deduped;
@@ -1592,24 +1619,21 @@ R.handleFile = async function handleFile(file, opts = {}) {
     updateExportButtons();
     updateGauge(null);
 
-    // Persist without failing the whole import if the big session push times out.
-    // Local first, then best-effort server save.
+    // v3.1 lean persist: never re-POST the full ~60MB results blob on upload.
+    // Scan-queue endpoint updates records + importBatches only; results stay on server.
     try {
-      saveSession('file-upload');
-      flushSaveSession({ sync: true, force: true, reason: 'file-upload', localOnly: true });
-    } catch (saveErr) {
-      console.warn('[import] local save warning', saveErr);
-    }
-    try {
-      // Non-blocking server push — large sessions can time out without blocking Start Scan
-      if (typeof requestServerSave === 'function') {
-        requestServerSave('file-upload');
-      } else {
-        flushSaveSession({ force: true, reason: 'file-upload' });
+      if (typeof pushScanQueueToServer === 'function' && typeof USE_PROXY !== 'undefined' && USE_PROXY) {
+        const q = await pushScanQueueToServer({ reason: 'file-upload' });
+        if (!q?.ok) {
+          console.warn('[import] scan-queue save failed', q?.error);
+          log('Queue saved in browser — server sync may retry when you Start Scan.', 'warn');
+        }
+      } else if (typeof saveSession === 'function') {
+        saveSession('file-upload');
       }
     } catch (saveErr) {
-      console.warn('[import] server save warning', saveErr);
-      log('File loaded locally — server sync may retry in the background.', 'warn');
+      console.warn('[import] scan-queue save warning', saveErr);
+      log('File loaded — server queue sync may retry in the background.', 'warn');
     }
 
     log(

@@ -874,6 +874,96 @@ R.pushScanSessionMeta = function pushScanSessionMeta() {
   }).catch(() => {});
 }
 
+/**
+ * Lean upload persist (v3.1): push only the scan queue + batches — never the full results array.
+ * Prevents tab freezes / 502s when the historical session is multi‑10MB.
+ * Server re-dedupes against full results so already-scanned addresses never re-queue.
+ */
+R.pushScanQueueToServer = async function pushScanQueueToServer(opts = {}) {
+  const reason = opts.reason || 'scan-queue';
+  if (!USE_PROXY) {
+    // Offline / direct mode: local stub only (skip full results stringify when huge)
+    try {
+      if (typeof buildSessionSummaryStub === 'function' && typeof buildSessionPayload === 'function') {
+        const payload = buildSessionPayload();
+        const stub = buildSessionSummaryStub(payload);
+        stub.records = state.records || [];
+        stub.importBatches = state.importBatches || [];
+        stub.fileName = state.fileName || '';
+        const json = JSON.stringify(stub);
+        await idbPutSession(json).catch(() => {});
+      }
+    } catch (_) {}
+    return { ok: true, local: true };
+  }
+  try {
+    // Strip fat profile blobs from queue rows — scan only needs address identity fields
+    const leanRecords = (state.records || []).map((r) => {
+      if (!r || typeof r !== 'object') return r;
+      if (!r.profile) return r;
+      const { profile, ...rest } = r;
+      return rest;
+    });
+    const body = JSON.stringify({
+      replaceQueue: true,
+      records: leanRecords,
+      importBatches: Array.isArray(state.importBatches) ? state.importBatches : [],
+      fileName: state.fileName || '',
+      importLeadType: state.importLeadType || null,
+      savedAt: Date.now()
+    });
+    const res = await apiFetch(`/api/session-scan-queue?reason=${encodeURIComponent(reason)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: body.length <= FETCH_KEEPALIVE_MAX_BYTES
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.ok === false) {
+      return { ok: false, error: data?.error || `HTTP ${res.status}`, data };
+    }
+    // Server may drop more dups than the client saw (full DB) — trust its queue length
+    if (data && typeof data.records === 'number' && Array.isArray(state.records)) {
+      if (data.dedupe && data.dedupe.kept < leanRecords.length) {
+        const keptN = Number(data.dedupe.kept) || 0;
+        const skippedServer = Number(data.dedupe.skippedTotal) || (leanRecords.length - keptN);
+        if (skippedServer > 0) {
+          log?.(
+            `Server dedupe: dropped ${skippedServer.toLocaleString()} already in database · ${keptN.toLocaleString()} left to scan`,
+            'warn'
+          );
+        }
+        // Align local queue with server-kept count (re-filter locally by address vs results)
+        if (keptN === 0) {
+          state.records = [];
+          state._pendingUnscanned = 0;
+        } else if (keptN < state.records.length && typeof addressMatchKey === 'function') {
+          const known = new Set();
+          for (const r of state.results || []) {
+            const k = addressMatchKey(r);
+            if (k) known.add(k);
+          }
+          state.records = (state.records || []).filter((r) => {
+            const k = addressMatchKey(r);
+            return !k || !known.has(k);
+          }).slice(0, keptN);
+          state._pendingUnscanned = state.records.length;
+        }
+        updateScanReadyUi?.();
+        updateStartButton?.();
+      }
+    }
+    lastSessionSaveAt = Date.now();
+    lastSessionSaveError = null;
+    sessionDirty = false;
+    updateSessionSaveStatus?.();
+    return { ok: true, data };
+  } catch (e) {
+    console.warn('[scan-queue] push failed', e);
+    return { ok: false, error: e };
+  }
+};
+
 R.startScanSaveHeartbeat = function startScanSaveHeartbeat() {
   stopScanSaveHeartbeat();
   const tick = () => {

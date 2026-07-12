@@ -889,7 +889,7 @@ R.REVIEW_ENTRY_BTNS = [
   sidebarReviewLandBtn,
   sidebarReviewNeedsReviewBtn
 ];
-R.REVIEW_MODE_FILTERS = ['distressed', 'well_maintained', 'vacant', 'review'];
+R.REVIEW_MODE_FILTERS = ['distressed', 'well_maintained', 'vacant', 'blurred', 'review'];
 R.reviewTierPickResolver = null;
 R.inspectorBody = $('inspectorBody');
 R.inspectorPos = $('inspectorPos');

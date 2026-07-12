@@ -166,11 +166,18 @@
 
       const counts = typeof getTierCounts === 'function'
         ? getTierCounts() // market-scoped when locationFilter is set
-        : { distressed: 0, review: 0, all: 0 };
+        : { distressed: 0, well_maintained: 0, vacant: 0, blurred: 0, review: 0, all: 0 };
 
       if (localDistressed) localDistressed.textContent = Number(counts.distressed || 0).toLocaleString();
-      if (localReview) localReview.textContent = Number(counts.review || 0).toLocaleString();
+      if ($('localWellMaintained')) {
+        $('localWellMaintained').textContent = Number(counts.well_maintained || 0).toLocaleString();
+      }
+      if ($('localLand')) $('localLand').textContent = Number(counts.vacant || 0).toLocaleString();
+      if ($('localBlocked')) $('localBlocked').textContent = Number(counts.blurred || 0).toLocaleString();
       if (localTotal) localTotal.textContent = Number(counts.all || 0).toLocaleString();
+      const reviewN = Number(counts.review || 0);
+      if (localReview) localReview.textContent = reviewN.toLocaleString();
+      if ($('localReviewWrap')) $('localReviewWrap').hidden = reviewN <= 0;
 
       const label = locationBreadcrumbLabel?.textContent || 'Selected market';
       if (localKpiTitle) localKpiTitle.textContent = label;

@@ -341,24 +341,21 @@ R.updateScannedCountUi = function updateScannedCountUi() {}
 R.buildSummaryIntro = function buildSummaryIntro(metrics) {
   const { total, counts } = metrics;
   const parts = [];
-  if (state.running && state.records.length) {
-    parts.push(`${total.toLocaleString()} of ${state.records.length.toLocaleString()} scanned so far`);
-  } else if (state.records.length && total < state.records.length) {
-    parts.push(`${total.toLocaleString()} of ${state.records.length.toLocaleString()} rows processed`);
+  const batchTotal = Number(state.scanBatchTotal) || 0;
+  const batchDone = Number(state.scanBatchDone) || 0;
+  if (state.running && batchTotal > 0) {
+    parts.push(`${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()} on this list`);
+    parts.push(`${total.toLocaleString()} total saved`);
+  } else if (state.running && state.records.length) {
+    parts.push(`${total.toLocaleString()} saved · ${state.records.length.toLocaleString()} in queue`);
   } else {
-    parts.push(`${total.toLocaleString()} propert${total === 1 ? 'y' : 'ies'} in your list`);
+    parts.push(`${total.toLocaleString()} scanned`);
   }
-  if (counts.distressed) {
-    parts.push(`${counts.distressed.toLocaleString()} distressed lead${counts.distressed === 1 ? '' : 's'} ready for outreach`);
-  }
-  if (counts.review) {
-    parts.push(`${counts.review.toLocaleString()} need land vs home review`);
-  }
-  if (counts.blurred) {
-    parts.push(`${counts.blurred.toLocaleString()} blocked image tracked separately`);
-  } else if (counts.distressed && !counts.review) {
-    parts.push('no items flagged for review');
-  }
+  if (counts.distressed) parts.push(`${counts.distressed.toLocaleString()} distressed`);
+  if (counts.well_maintained) parts.push(`${counts.well_maintained.toLocaleString()} well maintained`);
+  if (counts.vacant) parts.push(`${counts.vacant.toLocaleString()} land`);
+  if (counts.blurred) parts.push(`${counts.blurred.toLocaleString()} blocked`);
+  if (counts.review) parts.push(`${counts.review.toLocaleString()} residual review`);
   return parts.join(' · ');
 }
 
@@ -450,12 +447,16 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   const totalScanned = metrics.total || 0;
   const hasData = totalScanned > 0 || n > 0 || state.records.length > 0;
   if (!hasData) {
-    animateStatNumber($('sumReview'), 0, { instant: true });
     animateStatNumber($('sumDistressedKpi'), 0, { instant: true });
+    animateStatNumber($('sumWellMaintained'), 0, { instant: true });
+    animateStatNumber($('sumVacant'), 0, { instant: true });
+    animateStatNumber($('sumBlurred'), 0, { instant: true });
     animateStatNumber($('sumScannedHero'), 0, { instant: true });
+    animateStatNumber($('sumReview'), 0, { instant: true });
     const intro = $('summaryIntro');
-    if (intro) intro.textContent = 'Global totals across all scanned leads.';
+    if (intro) intro.textContent = 'Upload a list and scan — buckets fill here.';
     $('sumReviewCard')?.classList.remove('has-items');
+    if ($('sumReviewCard')) $('sumReviewCard').hidden = true;
     summarySection?.classList.remove('visible');
     updateScannedCountUi();
     updateScanReadyUi?.();
@@ -464,9 +465,19 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
 
   summarySection?.classList.add('visible');
   updateScannedCountUi();
-  animateStatNumber($('sumReview'), counts.review, animOpts);
+  // Four primary buckets (operator contract) + scanned total
   animateStatNumber($('sumDistressedKpi'), counts.distressed, animOpts);
+  animateStatNumber($('sumWellMaintained'), counts.well_maintained, animOpts);
+  animateStatNumber($('sumVacant'), counts.vacant, animOpts);
+  animateStatNumber($('sumBlurred'), counts.blurred, animOpts);
   animateStatNumber($('sumScannedHero'), metrics.total, animOpts);
+  // Residual only — hidden when zero
+  const reviewN = Number(counts.review) || 0;
+  animateStatNumber($('sumReview'), reviewN, animOpts);
+  if ($('sumReviewCard')) {
+    $('sumReviewCard').hidden = reviewN <= 0;
+    $('sumReviewCard').classList.toggle('has-items', reviewN > 0);
+  }
   if (counts.distressed > 0 && typeof R.pulseDistressedKpi === 'function' && !instant) {
     R.pulseDistressedKpi(counts.distressed);
   }
@@ -475,10 +486,9 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   if (intro) {
     intro.textContent = totalScanned
       ? buildSummaryIntro(metrics)
-      : 'Global totals — scan results will appear here.';
+      : 'Buckets fill as Street View + AI finish each property.';
   }
 
-  $('sumReviewCard')?.classList.toggle('has-items', counts.review > 0);
   if (!scanLight) updateFilterLabels();
   updateScanReadyUi?.();
   updateLocalKpis?.();

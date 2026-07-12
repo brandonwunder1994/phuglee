@@ -19,6 +19,7 @@ function register(ctx) {
         });
         if (entry.viewMeta?.panoId) q.set('pano', entry.viewMeta.panoId);
         if (entry.viewMeta?.heading != null) q.set('heading', String(entry.viewMeta.heading));
+        // Absolute /api path — module proxy rewrites Location to /analyzer/api/...
         res.writeHead(302, { Location: `/api/sv-image?${q.toString()}` });
         res.end();
         return true;

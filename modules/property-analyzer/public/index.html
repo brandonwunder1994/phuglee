@@ -122,16 +122,16 @@
     <div class="analyze-hero-zone" data-phuglee-reveal>
       <header class="analyze-page-hero">
         <p class="analyze-step-label">Step 03 · Analyze</p>
-        <h1 class="analyze-page-title">Rank visible distress</h1>
-        <p class="analyze-page-lead">AI scans Street View, ranks every property, and builds a dial-ready database — you double-check every tier.</p>
+        <h1 class="analyze-page-title">Scan desk</h1>
+        <p class="analyze-page-lead">Upload a list → Start Scan → Street View + AI sorts into Distressed, Well Maintained, Land, or Blocked → Review those groups.</p>
       </header>
 
       <nav class="analyze-pipeline" aria-label="Analyze workflow">
         <ol class="analyze-pipeline-list">
-          <li class="analyze-pipeline-step is-complete"><span>1</span> Import</li>
+          <li class="analyze-pipeline-step is-complete"><span>1</span> Upload</li>
           <li class="analyze-pipeline-step is-active"><span>2</span> Scan</li>
-          <li class="analyze-pipeline-step"><span>3</span> Review</li>
-          <li class="analyze-pipeline-step"><span>4</span> Export</li>
+          <li class="analyze-pipeline-step"><span>3</span> Buckets</li>
+          <li class="analyze-pipeline-step"><span>4</span> Review</li>
         </ol>
       </nav>
 
@@ -161,6 +161,7 @@
             <button type="button" class="review-leads-item" data-review-flow="distressed" role="menuitem">Distressed</button>
             <button type="button" class="review-leads-item" data-review-flow="well_maintained" role="menuitem">Well Maintained</button>
             <button type="button" class="review-leads-item" data-review-flow="vacant" role="menuitem">Land / Vacant</button>
+            <button type="button" class="review-leads-item" data-review-flow="blurred" role="menuitem">Blocked Image</button>
             <button type="button" class="review-leads-item" data-review-flow="review" role="menuitem">Manual Review</button>
           </div>
         </div>
@@ -181,8 +182,16 @@
           <span class="live-scan-kpi-label">Distressed</span>
         </div>
         <div class="live-scan-kpi">
-          <span class="live-scan-kpi-value" id="liveScanKpiReview">0</span>
-          <span class="live-scan-kpi-label">Needs Review</span>
+          <span class="live-scan-kpi-value" id="liveScanKpiWellMaintained">0</span>
+          <span class="live-scan-kpi-label">Well Maintained</span>
+        </div>
+        <div class="live-scan-kpi">
+          <span class="live-scan-kpi-value" id="liveScanKpiLand">0</span>
+          <span class="live-scan-kpi-label">Land</span>
+        </div>
+        <div class="live-scan-kpi">
+          <span class="live-scan-kpi-value" id="liveScanKpiBlocked">0</span>
+          <span class="live-scan-kpi-label">Blocked</span>
         </div>
         <div class="live-scan-kpi">
           <span class="live-scan-kpi-value" id="liveScanKpiScanned">0</span>
@@ -191,6 +200,10 @@
         <div class="live-scan-kpi">
           <span class="live-scan-kpi-value" id="liveScanKpiWorkers">—</span>
           <span class="live-scan-kpi-label">Workers</span>
+        </div>
+        <div class="live-scan-kpi live-scan-kpi--residual" id="liveScanKpiReviewWrap" hidden>
+          <span class="live-scan-kpi-value" id="liveScanKpiReview">0</span>
+          <span class="live-scan-kpi-label">Needs Review</span>
         </div>
       </div>
       <p class="live-scan-meta" id="liveScanMeta">Progress auto-saves · workers auto-adjust when APIs cap out</p>
@@ -215,29 +228,41 @@
 
     <section class="summary-section phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" data-phuglee-reveal-child>
       <div class="summary-head">
-        <h2 class="analyze-panel-heading">Session totals</h2>
-        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Across every market you've scanned this session.</p>
+        <h2 class="analyze-panel-heading">Session buckets</h2>
+        <p class="summary-intro analyze-panel-lead" id="summaryIntro">AI sorted every scanned property into these groups — open Review Leads when ready.</p>
       </div>
-      <div class="bridge-kpi-grid" id="summaryHeroRow">
+      <div class="bridge-kpi-grid bridge-kpi-grid--five" id="summaryHeroRow">
         <button type="button" class="bridge-kpi bridge-kpi--accent clickable" id="sumDistressedKpiCard" title="Filter distressed leads">
           <span class="bridge-kpi-value" id="sumDistressedKpi">0</span>
           <span class="bridge-kpi-label">Distressed</span>
         </button>
-        <button type="button" class="bridge-kpi clickable" id="sumReviewCard" title="Filter needs-review leads">
-          <span class="bridge-kpi-value" id="sumReview">0</span>
-          <span class="bridge-kpi-label">Needs Review</span>
+        <button type="button" class="bridge-kpi clickable" id="sumWellMaintainedCard" title="Filter well maintained leads">
+          <span class="bridge-kpi-value" id="sumWellMaintained">0</span>
+          <span class="bridge-kpi-label">Well Maintained</span>
+        </button>
+        <button type="button" class="bridge-kpi clickable" id="sumVacantCard" title="Filter land / vacant lots">
+          <span class="bridge-kpi-value" id="sumVacant">0</span>
+          <span class="bridge-kpi-label">Land</span>
+        </button>
+        <button type="button" class="bridge-kpi clickable" id="sumBlurredCard" title="Filter blocked / blurry imagery">
+          <span class="bridge-kpi-value" id="sumBlurred">0</span>
+          <span class="bridge-kpi-label">Blocked</span>
         </button>
         <div class="bridge-kpi" id="sumScannedHeroCard">
           <span class="bridge-kpi-value" id="sumScannedHero">0</span>
           <span class="bridge-kpi-label">Scanned</span>
         </div>
       </div>
+      <button type="button" class="bridge-kpi bridge-kpi--residual clickable" id="sumReviewCard" title="Residual uncertain queue only" hidden>
+        <span class="bridge-kpi-value" id="sumReview">0</span>
+        <span class="bridge-kpi-label">Needs Review</span>
+      </button>
       <div id="summaryBreakdown" hidden aria-hidden="true">
         <div id="summaryPipeline"><div id="summaryPipelineTrack"></div></div>
         <div id="summarySecondaryGrid">
-          <div id="sumWellMaintainedCard"><span id="sumWellMaintained">0</span><span id="sumWellMaintainedPct">0%</span></div>
-          <div id="sumVacantCard"><span id="sumVacant">0</span><span id="sumVacantPct">0%</span></div>
-          <div id="sumBlurredCard"><span id="sumBlurred">0</span><span id="sumBlurredPct">0%</span></div>
+          <div id="sumWellMaintainedLegacy"><span id="sumWellMaintainedPct">0%</span></div>
+          <div id="sumVacantLegacy"><span id="sumVacantPct">0%</span></div>
+          <div id="sumBlurredLegacy"><span id="sumBlurredPct">0%</span></div>
         </div>
         <span id="sumDistressedKpiPct" hidden>0%</span><span id="sumReviewPct" hidden>0%</span>
         <span id="sumDistressedKpiHint" hidden></span>
@@ -248,11 +273,12 @@
     <div class="analyze-data-zone" data-phuglee-reveal>
       <div class="analyze-zone-divider" aria-hidden="true"><span>Market &amp; results</span></div>
 
-    <section class="historical-search phuglee-panel analyze-panel" id="locationHub" hidden aria-label="Historical search" data-phuglee-reveal-child>
-      <div class="historical-search-head">
-        <h2 class="analyze-panel-heading">Historical search</h2>
-        <p class="historical-search-sub analyze-panel-lead">Pick a state and city to view leads from past uploads.</p>
-      </div>
+    <details class="historical-search phuglee-panel analyze-panel historical-search--secondary" id="locationHub" hidden aria-label="Historical search" data-phuglee-reveal-child>
+      <summary class="historical-search-head">
+        <h2 class="analyze-panel-heading">Past markets <span class="historical-search-optional">(optional)</span></h2>
+        <p class="historical-search-sub analyze-panel-lead">Browse older scans by state/city — not required to upload or scan a new list.</p>
+      </summary>
+      <div class="historical-search-body">
       <div class="historical-search-controls">
         <label class="historical-field">State
           <select id="historicalStateSelect" disabled><option value="">Select state…</option></select>
@@ -268,17 +294,24 @@
       <p class="historical-search-hint" id="locationHubEmpty" hidden>Select a state and city to view results.</p>
       <div class="location-hub-list" id="locationHubList" hidden aria-hidden="true"></div>
       <input type="search" class="location-hub-search" id="locationHubSearch" hidden aria-hidden="true">
-    </section>
+      </div>
+    </details>
 
     <section class="local-kpi-section phuglee-panel analyze-panel" id="localKpiSection" hidden data-phuglee-reveal-child>
       <div class="summary-head">
         <h2 class="analyze-panel-heading" id="localKpiTitle">Market results</h2>
         <p class="summary-intro analyze-panel-lead" id="localKpiIntro">Totals for the selected market.</p>
       </div>
-      <div class="bridge-kpi-grid" id="localKpiGrid">
+      <div class="bridge-kpi-grid bridge-kpi-grid--five" id="localKpiGrid">
         <div class="bridge-kpi bridge-kpi--accent"><span class="bridge-kpi-value" id="localDistressed">0</span><span class="bridge-kpi-label">Distressed</span></div>
-        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localReview">0</span><span class="bridge-kpi-label">Needs Review</span></div>
+        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localWellMaintained">0</span><span class="bridge-kpi-label">Well Maintained</span></div>
+        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localLand">0</span><span class="bridge-kpi-label">Land</span></div>
+        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localBlocked">0</span><span class="bridge-kpi-label">Blocked</span></div>
         <div class="bridge-kpi"><span class="bridge-kpi-value" id="localTotal">0</span><span class="bridge-kpi-label">In view</span></div>
+      </div>
+      <div class="bridge-kpi bridge-kpi--residual" id="localReviewWrap" hidden>
+        <span class="bridge-kpi-value" id="localReview">0</span>
+        <span class="bridge-kpi-label">Needs Review</span>
       </div>
     </section>
 

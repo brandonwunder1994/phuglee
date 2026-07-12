@@ -140,20 +140,31 @@ function register(ctx) {
 
     let source = allRecords;
     if (mode === 'unscanned' || mode === 'pending') {
-      // Match client recordKey (email|phone|address) used across the analyzer
+      // Match Start Scan dedupe: recordKey OR normalized address
       const keyOf = (r) => `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`;
-      const existing = new Set();
+      const addrOf = (r) => String(r?.address || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      const existingKeys = new Set();
+      const existingAddr = new Set();
       for (const r of results) {
         const k = keyOf(r);
-        if (k && k !== '||') existing.add(k);
+        if (k && k !== '||') existingKeys.add(k);
+        const a = addrOf(r);
+        if (a) existingAddr.add(a);
       }
-      // Fast path: if session already processed everything, avoid O(n) filter
-      if (allRecords.length && existing.size >= allRecords.length && (finalized.processed || 0) >= allRecords.length) {
+      // Fast path: processed count says we're done and queue is not a fresh batch
+      if (
+        allRecords.length
+        && existingKeys.size >= allRecords.length
+        && (finalized.processed || 0) >= allRecords.length
+      ) {
         source = [];
       } else {
         source = allRecords.filter((r) => {
           const k = keyOf(r);
-          return !k || k === '||' || !existing.has(k);
+          if (k && k !== '||' && existingKeys.has(k)) return false;
+          const a = addrOf(r);
+          if (a && existingAddr.has(a)) return false;
+          return true;
         });
       }
     }
@@ -269,6 +280,94 @@ function register(ctx) {
       count: inc.count,
       processed: inc.meta.processed,
       savedAt: inc.meta.savedAt || null
+    });
+    return true;
+  });
+
+  /**
+   * Lean scan-queue write (v3.1). Updates records + importBatches + fileName only.
+   * Never touches results — avoids multi‑10MB client POST on every spreadsheet upload.
+   * Server-side dedupe against full results DB so already-scanned addresses never re-queue.
+   * Body: { replaceQueue?: true, records: [], importBatches?: [], fileName?: string }
+   */
+  router.post('/api/session-scan-queue', async (req, res, url) => {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch (e) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
+      return true;
+    }
+    if (!body || !Array.isArray(body.records)) {
+      sendJson(res, 400, { ok: false, error: 'records array required' });
+      return true;
+    }
+
+    const {
+      buildKnownAddressKeySet,
+      dedupeIncomingAgainstKnown
+    } = require('../lib/address-match');
+
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const base = finalizeSession(session) || {};
+    const results = Array.isArray(base.results) ? base.results : [];
+    const replaceQueue = body.replaceQueue !== false;
+    const incoming = body.records;
+    const existingBatches = Array.isArray(base.importBatches) ? base.importBatches : [];
+    let nextBatches = existingBatches;
+    if (Array.isArray(body.importBatches) && body.importBatches.length) {
+      // Prefer client list when it is a full replacement (includes prior + new)
+      nextBatches = body.importBatches;
+    }
+
+    // Drop fat profile objects if client sent them (scan queue only needs identity)
+    const lean = incoming.map((r) => {
+      if (!r || typeof r !== 'object' || !r.profile) return r;
+      const { profile, ...rest } = r;
+      return rest;
+    });
+
+    // Authoritative dedupe vs full scanned results (and non-replace append vs existing queue)
+    const known = buildKnownAddressKeySet(
+      results,
+      replaceQueue ? [] : (Array.isArray(base.records) ? base.records : [])
+    );
+    const deduped = dedupeIncomingAgainstKnown(lean, known);
+
+    const next = {
+      ...base,
+      records: replaceQueue
+        ? deduped.kept
+        : [...(Array.isArray(base.records) ? base.records : []), ...deduped.kept],
+      results,
+      processed: Number(base.processed) || results.length || 0,
+      importBatches: nextBatches,
+      fileName: body.fileName != null ? String(body.fileName) : (base.fileName || ''),
+      importLeadType: body.importLeadType || base.importLeadType || null,
+      savedAt: Number(body.savedAt) || Date.now()
+    };
+
+    backups.writeLatestSessionFileForScope(scope, next);
+    try {
+      safety.writeMirrorLatest(next);
+      safety.writeSafetyStatus(next, { reason: url.searchParams.get('reason') || 'scan-queue', tier: 'mirror' });
+    } catch (_) {}
+
+    sendJson(res, 200, {
+      ok: true,
+      records: Array.isArray(next.records) ? next.records.length : 0,
+      results: results.length,
+      importBatches: Array.isArray(next.importBatches) ? next.importBatches.length : 0,
+      fileName: next.fileName || '',
+      savedAt: next.savedAt,
+      dedupe: {
+        incoming: lean.length,
+        kept: deduped.kept.length,
+        skippedExact: deduped.skippedExact,
+        skippedLoose: deduped.skippedLoose,
+        skippedInFile: deduped.skippedInFile,
+        skippedTotal: deduped.skippedTotal
+      }
     });
     return true;
   });
