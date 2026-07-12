@@ -1,5 +1,6 @@
 const { buildImportAddressIndex } = require('../lib/import-address-index');
 const { appendRecordsToSession } = require('../lib/bridge-import-records');
+const { applyProfilePatchesToSession } = require('../lib/profile-enrich');
 const { readScopeFromRequest } = require('../lib/user-session');
 
 function register(ctx) {
@@ -62,6 +63,70 @@ function register(ctx) {
       skipped: merged.skipped,
       totalRecords: merged.totalRecords,
       fileName: merged.session.fileName,
+      scope: scope.kind,
+      storageKey: scope.storageKey
+    });
+    return true;
+  });
+
+  /**
+   * Chunked profile enrichment for existing scanned leads.
+   * Body: { patches: [{ street, city, state, postal, address, profile, marketValue, ... }] }
+   * Matches by normalized address; writes only extra profile fields.
+   */
+  router.post('/api/enrich-profiles', async (req, res) => {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch (err) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + err.message });
+      return true;
+    }
+
+    const patches = Array.isArray(body.patches) ? body.patches : [];
+    if (!patches.length) {
+      sendJson(res, 400, { ok: false, error: 'patches must be a non-empty array' });
+      return true;
+    }
+    if (patches.length > 500) {
+      sendJson(res, 400, { ok: false, error: 'patches max 500 per request' });
+      return true;
+    }
+    for (const p of patches) {
+      if (!p || typeof p !== 'object' || !p.profile || typeof p.profile !== 'object') {
+        sendJson(res, 400, { ok: false, error: 'Each patch requires a profile object' });
+        return true;
+      }
+      const hasAddr =
+        String(p.address || '').trim() ||
+        (String(p.street || '').trim() && String(p.city || '').trim());
+      if (!hasAddr) {
+        sendJson(res, 400, { ok: false, error: 'Each patch requires address or street+city' });
+        return true;
+      }
+    }
+
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const base = finalizeSession(backups, session);
+    const merged = applyProfilePatchesToSession(base, patches);
+    merged.session.profileEnrichment = {
+      ...(base.profileEnrichment || {}),
+      source: body.source || 'desktop-csv-profile-stack',
+      lastChunkAt: new Date().toISOString(),
+      lastResultsUpdated: merged.resultsUpdated,
+      lastRecordsUpdated: merged.recordsUpdated
+    };
+
+    backups.writeLatestSessionFileForScope(scope, merged.session);
+
+    sendJson(res, 200, {
+      ok: true,
+      resultsUpdated: merged.resultsUpdated,
+      recordsUpdated: merged.recordsUpdated,
+      unmatched: merged.unmatched,
+      alreadyHad: merged.alreadyHad,
+      totalResults: (merged.session.results || []).length,
+      totalRecords: (merged.session.records || []).length,
       scope: scope.kind,
       storageKey: scope.storageKey
     });
