@@ -1,6 +1,11 @@
 (function () {
   const ACCEPTED_EXT = /\.(xlsx|xls|xlsm|csv|tsv|txt|pdf|docx|jpg|jpeg|png)$/i;
   const PAGE_SIZE = 50;
+  /** Inventory (saved lists) table page size */
+  const LISTS_PAGE_SIZE = 25;
+  /** Match server MAX_ROWS — pre-check before shipping a giant Save */
+  const MAX_SAVE_ROWS = 100000;
+  const FILTER_SEARCH_DEBOUNCE_MS = 180;
   const LOADING_STEPS = [
     'Detecting format…',
     'Parsing records…',
@@ -149,8 +154,15 @@
     sortDir: 'asc',
     page: 1
   };
+  /** Cached filtered+sorted kept rows — rebuilt only when filters/sort/result change */
+  let filteredTableCache = { signature: '', sorted: null };
+  let filterSearchTimer = null;
+  /** Saved-lists inventory pagination */
+  let inventoryPage = 1;
   let lastFailedAction = 'loadStates';
   let loadingTimer = null;
+  /** Real elapsed seconds on Process spinner (not fake stage only) */
+  let loadingStartedAt = 0;
   /** Scrub feed staged-play interval (FEED-01 client theater; not SSE) */
   let feedPlayTimer = null;
   /** Last history payload for the selected city (dossier composition) */
@@ -446,27 +458,33 @@
       const idSet = new Set(
         (snap.rowIds || []).map((id) => (id == null ? '' : String(id))).filter(Boolean)
       );
-      if (snap.action === 'deny' && snap.section === 'distressed' && snap.movedRows) {
-        // Undo demote: remove from FN, restore to kept
-        lastResult.notDistressedRows = (lastResult.notDistressedRows || []).filter(
-          (r) => r && !idSet.has(String(r.rowId))
-        );
-        lastResult.rows = (lastResult.rows || []).concat(snap.movedRows);
-      } else if (snap.action === 'deny' && snap.section === 'not_distressed' && snap.movedRows) {
-        // Undo promote: remove from kept, restore to FN (original tags on movedRows)
-        lastResult.rows = (lastResult.rows || []).filter(
-          (r) => r && !idSet.has(String(r.rowId))
-        );
-        lastResult.notDistressedRows = (lastResult.notDistressedRows || []).concat(
-          snap.movedRows
-        );
+      // Draft mode: stats restore is enough here; server restore is async in onTrainUndo
+      if (!snap.draftMode) {
+        if (snap.action === 'deny' && snap.section === 'distressed' && snap.movedRows) {
+          // Undo demote: remove from FN, restore to kept
+          lastResult.notDistressedRows = (lastResult.notDistressedRows || []).filter(
+            (r) => r && !idSet.has(String(r.rowId))
+          );
+          lastResult.rows = (lastResult.rows || []).concat(snap.movedRows);
+        } else if (snap.action === 'deny' && snap.section === 'not_distressed' && snap.movedRows) {
+          // Undo promote: remove from kept, restore to FN (original tags on movedRows)
+          lastResult.rows = (lastResult.rows || []).filter(
+            (r) => r && !idSet.has(String(r.rowId))
+          );
+          lastResult.notDistressedRows = (lastResult.notDistressedRows || []).concat(
+            snap.movedRows
+          );
+        }
       }
       // approve paths: no row moves to reverse
       if (snap.stats && lastResult.stats) {
         lastResult.stats = { ...lastResult.stats, ...snap.stats };
-      } else if (lastResult.stats) {
+      } else if (lastResult.stats && !snap.draftMode) {
         lastResult.stats.kept = (lastResult.rows || []).length;
         lastResult.stats.notDistressed = (lastResult.notDistressedRows || []).length;
+      }
+      if (lastResult.stats) {
+        lastResult.rowsTotal = Number(lastResult.stats.kept) || lastResult.rowsTotal;
       }
       return;
     }
@@ -551,6 +569,7 @@
 
   function refreshTrainUiAfterDecision() {
     if (!lastResult) return;
+    invalidateFilterCache();
     if (typeof renderKpis === 'function' && lastResult.stats) {
       renderKpis(lastResult.stats);
     }
@@ -1009,6 +1028,40 @@
    * Synchronous Train commit: local list moves + UI. Returns persist meta or null.
    * Network is separate so the next click is not blocked by brain POST latency.
    */
+  function groupRowCount(group) {
+    if (!group) return 0;
+    if (Number.isFinite(Number(group.count)) && Number(group.count) > 0) {
+      return Number(group.count);
+    }
+    if (Number.isFinite(Number(group.rowIdCount))) return Number(group.rowIdCount);
+    if (Array.isArray(group.rowIds)) return group.rowIds.length;
+    return 0;
+  }
+
+  /** Optimistic stats-only train move when rows live on a server draft (paged mode). */
+  function applyTrainDecisionDraftLocal(action, section, group) {
+    const n = groupRowCount(group);
+    if (lastResult.stats) {
+      if (action === 'deny' && section === 'distressed') {
+        lastResult.stats.kept = Math.max(0, (Number(lastResult.stats.kept) || 0) - n);
+        lastResult.stats.notDistressed = (Number(lastResult.stats.notDistressed) || 0) + n;
+        lastResult.stats.noDistress = (Number(lastResult.stats.noDistress) || 0) + n;
+      } else if (action === 'deny' && section === 'not_distressed') {
+        lastResult.stats.notDistressed = Math.max(
+          0,
+          (Number(lastResult.stats.notDistressed) || 0) - n
+        );
+        lastResult.stats.kept = (Number(lastResult.stats.kept) || 0) + n;
+        lastResult.stats.noDistress = Math.max(
+          0,
+          (Number(lastResult.stats.noDistress) || 0) - n
+        );
+      }
+    }
+    lastResult.rowsTotal = Number(lastResult.stats && lastResult.stats.kept) || lastResult.rowsTotal;
+    return { movedRows: null, movedCount: n, draftMode: true };
+  }
+
   function commitTrainDecisionLocally({ action, section, group, card }) {
     if (!lastResult) {
       throw new Error('Process a file before training the brain.');
@@ -1020,8 +1073,13 @@
     const resolvedSection = section || (group && group.section) || (card && card.dataset.section) || '';
     const groupId = (group && group.groupId) || (card && card.dataset.groupId) || '';
     const liveGroup = findTrainGroupById(groupId, resolvedSection) || group;
-    if (!liveGroup || !Array.isArray(liveGroup.rowIds) || !liveGroup.rowIds.length) {
-      throw new Error('This group has no row ids to decide on. Re-process the file and try again.');
+    const hasLocalRowIds = liveGroup && Array.isArray(liveGroup.rowIds) && liveGroup.rowIds.length;
+    const draftMode = Boolean(lastResult.draftId) || Boolean(lastResult.paged);
+    if (!liveGroup || (!hasLocalRowIds && !draftMode && groupRowCount(liveGroup) <= 0)) {
+      throw new Error('This group has no rows to decide on. Re-process the file and try again.');
+    }
+    if (draftMode && groupRowCount(liveGroup) <= 0 && action === 'deny') {
+      throw new Error('This group has no rows to decide on. Re-process the file and try again.');
     }
     const sectionForPost = liveGroup.section || resolvedSection;
     if (sectionForPost !== 'distressed' && sectionForPost !== 'not_distressed') {
@@ -1044,16 +1102,22 @@
           noDistress: lastResult.stats.noDistress
         }
       : null;
-    const local = applyTrainDecisionLocally(action, sectionForPost, liveGroup);
+    const local = draftMode
+      ? applyTrainDecisionDraftLocal(action, sectionForPost, liveGroup)
+      : applyTrainDecisionLocally(action, sectionForPost, liveGroup);
     if (decidedKey) trainDecidedKeys.add(decidedKey);
     pushTrainUndoSnapshot({
       kind: 'patch',
       decidedKey,
       action,
       section: sectionForPost,
-      rowIds: liveGroup.rowIds.slice(),
+      rowIds: hasLocalRowIds ? liveGroup.rowIds.slice() : [],
       movedRows: local.movedRows,
-      stats: statsBefore
+      stats: statsBefore,
+      draftMode: Boolean(local.draftMode),
+      draftId: lastResult.draftId || null,
+      groupId: liveGroup.groupId || '',
+      movedCount: local.movedCount || 0
     });
 
     if (card && card.isConnected) {
@@ -1062,7 +1126,9 @@
     refreshTrainUiAfterDecision();
 
     const remaining = countOpenTrainGroups(lastResult, trainDecidedKeys);
-    const keptNow = (lastResult.rows || []).length;
+    const keptNow = lastResult.stats && lastResult.stats.kept != null
+      ? Number(lastResult.stats.kept)
+      : (lastResult.rows || []).length;
     updateTrainMissionHeader(remaining, keptNow);
     if (remaining === 0) {
       setTrainStatus(
@@ -1081,12 +1147,14 @@
       remaining,
       body: {
         clientApplied: true,
+        draftId: lastResult.draftId || undefined,
         action,
         section: sectionForPost,
         groupId: liveGroup.groupId || '',
-        rowIds: liveGroup.rowIds,
+        rowIds: hasLocalRowIds ? liveGroup.rowIds : [],
         violationTypeKey: liveGroup.violationTypeKey || '',
         violationTypeLabel: liveGroup.violationTypeLabel || '',
+        descriptionKey: liveGroup.descriptionKey ?? null,
         city: lastResult.city || null,
         sourceFile: lastResult.sourceFile || '',
         uploadType: lastResult.uploadType || '',
@@ -1109,9 +1177,18 @@
    * Save list. Runs after brain POST chain so rules land first; only fires when
    * at least one decision was made this batch (never on process with 0 groups).
    */
+  function keptRowCount() {
+    if (!lastResult) return 0;
+    if (lastResult.stats && lastResult.stats.kept != null) {
+      return Number(lastResult.stats.kept) || 0;
+    }
+    if (lastResult.rowsTotal != null) return Number(lastResult.rowsTotal) || 0;
+    return Array.isArray(lastResult.rows) ? lastResult.rows.length : 0;
+  }
+
   function queueAutoSaveAfterTrainComplete() {
     if (autoSaveAfterTrainQueued) return;
-    if (!lastResult || !Array.isArray(lastResult.rows) || !lastResult.rows.length) return;
+    if (!lastResult || keptRowCount() <= 0) return;
     if (countOpenTrainGroups(lastResult, trainDecidedKeys) !== 0) return;
     if (!trainDecidedKeys.size) return;
 
@@ -1122,7 +1199,7 @@
     const run = async () => {
       try {
         // Re-check after brain chain — undo or empty kept list aborts
-        if (!lastResult || !Array.isArray(lastResult.rows) || !lastResult.rows.length) {
+        if (!lastResult || keptRowCount() <= 0) {
           return;
         }
         if (countOpenTrainGroups(lastResult, trainDecidedKeys) !== 0) {
@@ -1172,6 +1249,31 @@
     }
 
     if (data && data.brainSummary) rememberBrainVersion(data.brainSummary);
+    // Attach moved rows for draft undo (from server)
+    if (data && Array.isArray(data.movedRows) && data.movedRows.length) {
+      const top = trainUndoStack[trainUndoStack.length - 1];
+      if (top && top.kind === 'patch' && !top.movedRows) {
+        top.movedRows = data.movedRows;
+        top.rowIds = data.movedRowIds || top.rowIds;
+      }
+    }
+    if (data && data.statsPatch && lastResult && lastResult.stats) {
+      if (data.statsPatch.kept != null) lastResult.stats.kept = data.statsPatch.kept;
+      if (data.statsPatch.notDistressed != null) {
+        lastResult.stats.notDistressed = data.statsPatch.notDistressed;
+      }
+      if (data.statsPatch.noDistress != null) {
+        lastResult.stats.noDistress = data.statsPatch.noDistress;
+      }
+      lastResult.rowsTotal = Number(lastResult.stats.kept) || lastResult.rowsTotal;
+    }
+    if (data && data.reviewGroups) {
+      lastResult.reviewGroups = data.reviewGroups;
+    }
+    if (data && lastResult && lastResult.draftId) {
+      // Refresh kept table page so demoted rows leave the grid
+      void loadDraftTablePage(tableState.page).catch(() => {});
+    }
     if (data && !data.clientApplied) {
       if (Array.isArray(data.rows)) lastResult.rows = data.rows;
       if (Array.isArray(data.notDistressedRows)) {
@@ -1220,6 +1322,33 @@
       });
       if (data && data.brainSummary) rememberBrainVersion(data.brainSummary);
       const snap = popTrainUndoSnapshot();
+      // Restore draft lists on server when Train used paged/draft mode
+      if (snap && snap.draftMode && snap.draftId && snap.movedRows && snap.movedRows.length) {
+        try {
+          const restored = await fetchJson(
+            `/api/bridge/drafts/${encodeURIComponent(snap.draftId)}/restore`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: snap.action,
+                section: snap.section,
+                movedRows: snap.movedRows
+              })
+            }
+          );
+          if (restored && restored.stats && lastResult) {
+            lastResult.stats = { ...lastResult.stats, ...restored.stats };
+            lastResult.rowsTotal = Number(restored.stats.kept) || lastResult.rowsTotal;
+          }
+          if (restored && restored.reviewGroups && lastResult) {
+            lastResult.reviewGroups = restored.reviewGroups;
+          }
+          await loadDraftTablePage(tableState.page).catch(() => {});
+        } catch (restoreErr) {
+          console.warn('[Filter] draft restore failed', restoreErr);
+        }
+      }
       applyTrainSnapshot(snap);
       if (snap && snap.decidedKey) trainDecidedKeys.delete(snap.decidedKey);
       const modeBefore = resultsMode;
@@ -2491,12 +2620,18 @@
 
   function startLoadingAnimation() {
     let index = 0;
-    // HTTP wait: slogans only — feed stays empty/hidden (no fake addresses)
+    loadingStartedAt = Date.now();
+    // HTTP wait: slogans + real elapsed seconds (so long Process does not feel stuck)
     clearScrubFeedUi();
-    loadingCopy.textContent = LOADING_STEPS[0];
+    const paintStep = () => {
+      const elapsedSec = Math.max(0, Math.floor((Date.now() - loadingStartedAt) / 1000));
+      const slogan = LOADING_STEPS[index % LOADING_STEPS.length];
+      loadingCopy.textContent = `${slogan} (${elapsedSec}s)`;
+    };
+    paintStep();
     loadingTimer = window.setInterval(() => {
       index = (index + 1) % LOADING_STEPS.length;
-      loadingCopy.textContent = LOADING_STEPS[index];
+      paintStep();
     }, 900);
   }
 
@@ -3275,6 +3410,7 @@
     // Toggle off if clicking the active filter again
     inventoryTypeFilter = inventoryTypeFilter === v ? '' : v;
     inventorySelectedIds.clear();
+    inventoryPage = 1;
     renderSavedLists();
   }
 
@@ -3424,10 +3560,13 @@
     if (!savedLists.length) {
       inventoryTypeFilter = '';
       inventorySelectedIds.clear();
+      inventoryPage = 1;
       setHidden(listsEmpty, false);
       setHidden(listsWrap, true);
       setHidden(listsToolbar, true);
       listsBody.innerHTML = '';
+      const emptyPager = document.getElementById('bridge-lists-pager');
+      if (emptyPager) emptyPager.remove();
       if (listsTotalEl) {
         listsTotalEl.textContent = '';
         setHidden(listsTotalEl, true);
@@ -3455,7 +3594,14 @@
     setHidden(listsEmpty, visible.length > 0);
     setHidden(listsWrap, visible.length === 0);
     setHidden(listsToolbar, false);
-    listsBody.innerHTML = visible.map((list) => {
+
+    const listPages = Math.max(1, Math.ceil(visible.length / LISTS_PAGE_SIZE));
+    if (inventoryPage > listPages) inventoryPage = listPages;
+    if (inventoryPage < 1) inventoryPage = 1;
+    const listStart = (inventoryPage - 1) * LISTS_PAGE_SIZE;
+    const pageLists = visible.slice(listStart, listStart + LISTS_PAGE_SIZE);
+
+    listsBody.innerHTML = pageLists.map((list) => {
       const cityLabel = [list.city, list.state].filter(Boolean).join(', ') || '—';
       const kind = listUploadTypeBadge(list.uploadType);
       const id = String(list.id || '');
@@ -3483,6 +3629,23 @@
         `</tr>`
       );
     }).join('');
+
+    // Inventory pager (only when more than one page of lists)
+    let pagerHtml = '';
+    if (visible.length > LISTS_PAGE_SIZE) {
+      pagerHtml =
+        `<div class="bridge-lists-pager" id="bridge-lists-pager" role="navigation" aria-label="Saved lists pages">` +
+        `<span class="bridge-lists-pager-meta">Lists page ${inventoryPage} of ${listPages} · showing ${pageLists.length} of ${visible.length}</span>` +
+        `<div class="bridge-lists-pager-actions">` +
+        `<button type="button" class="bridge-pagination-btn" data-lists-page="prev" ${inventoryPage <= 1 ? 'disabled' : ''}>Previous</button>` +
+        `<button type="button" class="bridge-pagination-btn" data-lists-page="next" ${inventoryPage >= listPages ? 'disabled' : ''}>Next</button>` +
+        `</div></div>`;
+    }
+    const existingPager = document.getElementById('bridge-lists-pager');
+    if (existingPager) existingPager.remove();
+    if (pagerHtml && listsBody && listsBody.parentElement) {
+      listsBody.parentElement.insertAdjacentHTML('afterend', pagerHtml);
+    }
 
     const totalRecords = visible.reduce(
       (sum, row) => sum + (Number(row.recordCount) || 0),
@@ -3701,8 +3864,17 @@
    */
   async function saveCurrentList(opts) {
     const auto = !!(opts && opts.auto);
-    if (!lastResult?.rows?.length) {
+    const rowCount = keptRowCount();
+    if (!lastResult || rowCount <= 0) {
       setSaveStatus('Process a file with kept rows before saving.', 'error');
+      return;
+    }
+    if (rowCount > MAX_SAVE_ROWS) {
+      setSaveStatus(
+        `Too many rows to save in one list (${rowCount.toLocaleString()}). ` +
+        `Max is ${MAX_SAVE_ROWS.toLocaleString()}. Filter or split the file, then save again.`,
+        'error'
+      );
       return;
     }
     // LIST-02 soft Train-before-Save (admin only; never hard-block without cancel).
@@ -3726,20 +3898,26 @@
     setSaveStatus(auto ? 'Auto-saving list…' : 'Saving list…', '');
     lastFailedAction = 'saveList';
     try {
+      const payload = {
+        name,
+        stats: lastResult.stats || {},
+        cityId: lastResult.city?.id || selectedCity?.id || '',
+        cityName: lastResult.city?.city || selectedCity?.city || '',
+        state: lastResult.city?.state || selectedCity?.state || '',
+        uploadType: lastResult.uploadType || selectedUploadType,
+        sourceFile: lastResult.sourceFile || '',
+        processingMeta: lastResult.processingMeta || {}
+      };
+      // Prefer server draft (no re-upload of tens of thousands of rows)
+      if (lastResult.draftId) {
+        payload.draftId = lastResult.draftId;
+      } else {
+        payload.rows = lastResult.rows;
+      }
       const data = await fetchJson('/api/bridge/lists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          rows: lastResult.rows,
-          stats: lastResult.stats || {},
-          cityId: lastResult.city?.id || selectedCity?.id || '',
-          cityName: lastResult.city?.city || selectedCity?.city || '',
-          state: lastResult.city?.state || selectedCity?.state || '',
-          uploadType: lastResult.uploadType || selectedUploadType,
-          sourceFile: lastResult.sourceFile || '',
-          processingMeta: lastResult.processingMeta || {}
-        })
+        body: JSON.stringify(payload)
       });
       const savedName = data.list?.name || name;
       const savedId = data.list?.id || '';
@@ -3808,6 +3986,15 @@
           : 'No saved lists to download yet.'
       );
       return;
+    }
+    const totalRec = visible.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0);
+    if (totalRec > 5000) {
+      const ok = window.confirm(
+        `You are about to download ${totalRec.toLocaleString()} leads as ONE big file.\n\n` +
+        `For large piles, prefer “Export batches (5k)” — spreadsheets stay happier.\n\n` +
+        `Continue with a single file anyway?`
+      );
+      if (!ok) return;
     }
     const fmt = format === 'xlsx' ? 'xlsx' : 'csv';
     const ids = visible.map((l) => l.id).filter(Boolean);
@@ -4042,6 +4229,10 @@
     return 'standard';
   }
 
+  function invalidateFilterCache() {
+    filteredTableCache = { signature: '', sorted: null };
+  }
+
   function getFilteredRows() {
     if (!lastResult?.rows) return [];
     const query = String(filterSearch?.value || '').trim().toLowerCase();
@@ -4079,6 +4270,29 @@
     });
   }
 
+  /** Filter + sort once; page flips reuse the cache until filters or data change. */
+  function getFilteredAndSortedRows() {
+    if (!lastResult?.rows) return [];
+    const signature = [
+      lastResult.processedAt || '',
+      lastResult.rows.length,
+      lastResult.stats && lastResult.stats.kept,
+      String(filterSearch?.value || ''),
+      String(filterCategory?.value || ''),
+      String(filterTag?.value || ''),
+      String(filterConfidence?.value || ''),
+      filterReview?.checked ? '1' : '0',
+      tableState.sortKey,
+      tableState.sortDir
+    ].join('\u0001');
+    if (filteredTableCache.signature === signature && Array.isArray(filteredTableCache.sorted)) {
+      return filteredTableCache.sorted;
+    }
+    const sorted = sortRows(getFilteredRows());
+    filteredTableCache = { signature, sorted };
+    return sorted;
+  }
+
   function populateTagFilter(rows) {
     if (!filterTag) return;
     const tags = [...new Set(rows.map((row) => row.distressedSignalTag).filter(Boolean))].sort();
@@ -4105,15 +4319,48 @@
     });
   }
 
-  function renderResultsTable() {
-    if (!lastResult) return;
-    const filtered = sortRows(getFilteredRows());
-    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-    if (tableState.page > totalPages) tableState.page = totalPages;
-    const start = (tableState.page - 1) * PAGE_SIZE;
-    const pageRows = filtered.slice(start, start + PAGE_SIZE);
+  let draftPageRequestId = 0;
 
-    resultsBody.innerHTML = pageRows.map((row) => (
+  /** Load one page of kept rows from the server draft (big-list mode). */
+  async function loadDraftTablePage(page) {
+    if (!lastResult || !lastResult.draftId) return null;
+    const reqId = ++draftPageRequestId;
+    const qs = new URLSearchParams({
+      page: String(page || 1),
+      pageSize: String(PAGE_SIZE),
+      q: String(filterSearch?.value || '').trim(),
+      category: filterCategory?.value || '',
+      tag: filterTag?.value || '',
+      confidence: filterConfidence?.value || '',
+      reviewOnly: filterReview?.checked ? '1' : '',
+      sortKey: tableState.sortKey || 'streetAddress',
+      sortDir: tableState.sortDir || 'asc'
+    });
+    const data = await fetchJson(
+      `/api/bridge/drafts/${encodeURIComponent(lastResult.draftId)}/rows?${qs.toString()}`
+    );
+    if (reqId !== draftPageRequestId) return null;
+    lastResult.rows = Array.isArray(data.rows) ? data.rows : [];
+    lastResult.filteredTotal = Number(data.total) || 0;
+    lastResult.rowsTotal = Number(data.rowsTotal) != null
+      ? Number(data.rowsTotal)
+      : lastResult.rowsTotal;
+    tableState.page = Number(data.page) || page || 1;
+    paintResultsTablePage(
+      lastResult.rows,
+      lastResult.filteredTotal,
+      Number(data.totalPages) || 1
+    );
+    return data;
+  }
+
+  function paintResultsTablePage(pageRows, filteredTotal, totalPages) {
+    const rows = Array.isArray(pageRows) ? pageRows : [];
+    const total = Number(filteredTotal) || 0;
+    const pages = Math.max(1, Number(totalPages) || 1);
+    if (tableState.page > pages) tableState.page = pages;
+
+    resultsBody.innerHTML = rows.map((row) => (
       `<tr class="${row.needsReview ? 'bridge-row-review' : ''}">` +
       `<td>${esc(row.streetAddress)}</td>` +
       `<td>${esc(row.violationIssueType)}</td>` +
@@ -4125,12 +4372,36 @@
     )).join('') || '<tr><td colspan="6">No rows match the current filters.</td></tr>';
 
     paginationEl.innerHTML =
-      `<span>${filtered.length.toLocaleString()} shown · page ${tableState.page} of ${totalPages}</span>` +
+      `<span>${total.toLocaleString()} shown · page ${tableState.page} of ${pages}</span>` +
       '<div class="bridge-pagination-actions">' +
       `<button type="button" class="bridge-pagination-btn" data-page="prev" ${tableState.page <= 1 ? 'disabled' : ''}>Previous</button>` +
-      `<button type="button" class="bridge-pagination-btn" data-page="next" ${tableState.page >= totalPages ? 'disabled' : ''}>Next</button>` +
+      `<button type="button" class="bridge-pagination-btn" data-page="next" ${tableState.page >= pages ? 'disabled' : ''}>Next</button>` +
       '</div>';
     updateSortHeaders();
+  }
+
+  function renderResultsTable() {
+    if (!lastResult) return;
+    // Big lists: rows live on the server draft — fetch page + filters there
+    if (lastResult.draftId && lastResult.paged !== false) {
+      if (resultsBody) {
+        resultsBody.innerHTML =
+          '<tr><td colspan="6">Loading rows…</td></tr>';
+      }
+      loadDraftTablePage(tableState.page).catch((err) => {
+        if (resultsBody) {
+          resultsBody.innerHTML =
+            `<tr><td colspan="6">${esc((err && err.message) || 'Could not load rows')}</td></tr>`;
+        }
+      });
+      return;
+    }
+    const filtered = getFilteredAndSortedRows();
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    if (tableState.page > totalPages) tableState.page = totalPages;
+    const start = (tableState.page - 1) * PAGE_SIZE;
+    const pageRows = filtered.slice(start, start + PAGE_SIZE);
+    paintResultsTablePage(pageRows, filtered.length, totalPages);
   }
 
   function rowsToCsv(rows) {
@@ -4231,10 +4502,17 @@
 
   function renderResults(data) {
     lastResult = data;
-    tableState.page = 1;
+    if (data && data.draftId) {
+      lastResult.paged = data.paged !== false;
+      lastResult.rowsTotal = Number(data.rowsTotal) || (data.rows || []).length;
+      lastResult.filteredTotal = Number(data.rowsTotal) || (data.rows || []).length;
+    }
+    tableState.page = Number(data && data.page) || 1;
+    invalidateFilterCache();
     hideVictoryStrip();
     const stats = data.stats || {};
     const rows = data.rows || [];
+    const displayCount = Number(data.rowsTotal) || rows.length;
     const uploadLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
     const fileCount = Number(data.fileCount) || (Array.isArray(data.sourceFiles) ? data.sourceFiles.length : 1) || 1;
     const fileLabel = fileCount > 1
@@ -4259,7 +4537,7 @@
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');
-    const showTable = !data.stub && rows.length > 0;
+    const showTable = !data.stub && displayCount > 0;
     setHidden(resultsToolbar, !showTable);
     setHidden(tableWrap, !showTable);
     setHidden(paginationEl, !showTable);
@@ -4268,13 +4546,14 @@
     // Phase 72: kept table summary label
     const detailsSummary = document.getElementById('bridge-results-details-summary');
     if (detailsSummary) {
-      const n = rows.length;
+      const n = displayCount;
       detailsSummary.textContent = showTable
         ? `Kept table · ${n.toLocaleString()} row${n === 1 ? '' : 's'}`
         : 'Kept table';
     }
 
     if (showTable) {
+      // Category/tag dropdowns: page-1 sample only when paged (full lists stay on server)
       populateTagFilter(rows);
       populateCategoryFilter(rows);
       renderResultsTable();
@@ -4756,8 +5035,8 @@
       return;
     }
     // LIST-02 dirty-guard: do not silently clobber unsaved kept / Train work
-    if (lastResult && Array.isArray(lastResult.rows) && lastResult.rows.length > 0) {
-      const n = lastResult.rows.length;
+    if (lastResult && keptRowCount() > 0) {
+      const n = keptRowCount();
       const ok = window.confirm(
         `You have ${n.toLocaleString()} kept row(s) that are not saved yet.\n\n` +
         `Process a new file anyway? Unsaved work (including any Train decisions) will be lost.`
@@ -4991,27 +5270,52 @@
 
   filterSearch?.addEventListener('input', () => {
     tableState.page = 1;
-    renderResultsTable();
+    invalidateFilterCache();
+    if (filterSearchTimer) clearTimeout(filterSearchTimer);
+    filterSearchTimer = setTimeout(() => {
+      filterSearchTimer = null;
+      renderResultsTable();
+    }, FILTER_SEARCH_DEBOUNCE_MS);
   });
   filterCategory?.addEventListener('change', () => {
     tableState.page = 1;
+    invalidateFilterCache();
     renderResultsTable();
   });
   filterTag?.addEventListener('change', () => {
     tableState.page = 1;
+    invalidateFilterCache();
     renderResultsTable();
   });
   filterConfidence?.addEventListener('change', () => {
     tableState.page = 1;
+    invalidateFilterCache();
     renderResultsTable();
   });
   filterReview?.addEventListener('change', () => {
     tableState.page = 1;
+    invalidateFilterCache();
     renderResultsTable();
   });
   exportCsvBtn?.addEventListener('click', () => {
     if (!lastResult) return;
-    const rows = sortRows(getFilteredRows());
+    if (lastResult.draftId) {
+      // Full filtered export lives on the server after Save; avoid shipping all rows to the tab
+      window.alert(
+        'For large lists, click Save list, then use Export batches (5k) from Scan History.\n\n' +
+        'That keeps big downloads fast and spreadsheet-friendly.'
+      );
+      return;
+    }
+    const rows = getFilteredAndSortedRows();
+    if (rows.length > 10000) {
+      const ok = window.confirm(
+        `Export ${rows.length.toLocaleString()} filtered rows in this browser tab?\n\n` +
+        `For very large piles, Save the list first, then use “Export batches (5k)”.\n\n` +
+        `Continue?`
+      );
+      if (!ok) return;
+    }
     const base = (lastResult.sourceFile || 'bridge-export').replace(/\.[^.]+$/, '');
     downloadCsv(rows, `${base}-filtered.csv`);
   });
@@ -5031,6 +5335,7 @@
         tableState.sortKey = key;
         tableState.sortDir = 'asc';
       }
+      invalidateFilterCache();
       renderResultsTable();
     });
   });
@@ -5265,27 +5570,59 @@
   }
 
   async function refreshGeocodioUsage() {
-    const data = await fetchJson('/api/bridge/geocodio/usage');
     if (geocodioUsageTotals) {
-      geocodioUsageTotals.textContent =
-        `${Number(data.totalRemaining) || 0} lookups left today across ${Number(data.keyCount) || 0} keys`
-        + ` · day ${data.day || ''} (${data.timezone || ''})`;
-    }
-    if (geocodioUsageNote) {
-      geocodioUsageNote.textContent = data.note || '';
+      geocodioUsageTotals.textContent = 'Loading usage…';
     }
     if (geocodioUsageBody) {
-      const accounts = Array.isArray(data.accounts) ? data.accounts : [];
-      geocodioUsageBody.innerHTML = accounts.map((a) => {
-        const statusCls = a.exhausted ? 'is-exhausted' : 'is-ok';
-        return `<tr>
+      geocodioUsageBody.innerHTML =
+        '<tr><td colspan="5">Loading API keys…</td></tr>';
+    }
+    try {
+      const data = await fetchJson('/api/bridge/geocodio/usage');
+      if (geocodioUsageTotals) {
+        geocodioUsageTotals.textContent =
+          `${Number(data.totalRemaining) || 0} lookups left today across ${Number(data.keyCount) || 0} keys`
+          + ` · day ${data.day || ''} (${data.timezone || ''})`;
+      }
+      if (geocodioUsageNote) {
+        geocodioUsageNote.textContent = data.note || '';
+      }
+      if (geocodioUsageBody) {
+        const accounts = Array.isArray(data.accounts) ? data.accounts : [];
+        if (!accounts.length) {
+          geocodioUsageBody.innerHTML =
+            '<tr><td colspan="5">' +
+            '<strong>No API keys on this server.</strong> ' +
+            'Local: put GEOCODIO_API_KEYS + GEOCODIO_API_ACCOUNTS in .env and restart. ' +
+            'Live (Railway): set the same variables on the service, then redeploy.' +
+            '</td></tr>';
+        } else {
+          geocodioUsageBody.innerHTML = accounts.map((a) => {
+            const statusCls = a.exhausted ? 'is-exhausted' : 'is-ok';
+            return `<tr>
           <td>${esc(a.email || '')}</td>
           <td class="bridge-geocodio-usage-key">${esc(a.apiKey || '')}</td>
           <td>${Number(a.used) || 0} / ${Number(a.dailyLimit) || 2500}</td>
           <td><strong>${Number(a.remaining) || 0}</strong></td>
           <td><span class="bridge-geocodio-status-pill ${statusCls}">${esc(a.status || '')}</span></td>
         </tr>`;
-      }).join('') || '<tr><td colspan="5">No API keys configured on the server.</td></tr>';
+          }).join('');
+        }
+      }
+    } catch (err) {
+      const msg = (err && err.message) || 'Could not load usage';
+      if (geocodioUsageTotals) {
+        geocodioUsageTotals.textContent = 'Usage unavailable';
+      }
+      if (geocodioUsageNote) {
+        geocodioUsageNote.textContent =
+          'Could not reach /api/bridge/geocodio/usage. Is the Filter server running?';
+      }
+      if (geocodioUsageBody) {
+        geocodioUsageBody.innerHTML =
+          `<tr><td colspan="5"><strong>Error:</strong> ${esc(msg)}</td></tr>`;
+      }
+      throw err;
     }
   }
 
@@ -5336,8 +5673,16 @@
 
   refreshGeocodioJobs().catch(() => {});
 
-  // Inventory type filters + post-save flash
+  // Inventory type filters + list pager + post-save flash
   document.getElementById('bridge-lists-panel')?.addEventListener('click', (event) => {
+    const pageBtn = event.target.closest('[data-lists-page]');
+    if (pageBtn && !pageBtn.disabled) {
+      event.preventDefault();
+      if (pageBtn.getAttribute('data-lists-page') === 'prev') inventoryPage -= 1;
+      if (pageBtn.getAttribute('data-lists-page') === 'next') inventoryPage += 1;
+      renderSavedLists();
+      return;
+    }
     const filterBtn = event.target.closest('[data-inventory-filter]');
     if (filterBtn) {
       event.preventDefault();

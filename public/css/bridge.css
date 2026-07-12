@@ -2449,6 +2449,22 @@ body {
   margin-top: 0.75rem;
 }
 
+.bridge-lists-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0.65rem 0 0.25rem;
+  font-size: 0.875rem;
+  color: var(--phuglee-muted, #9aa3b2);
+}
+
+.bridge-lists-pager-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
 .bridge-list-check-col {
   width: 2.25rem;
   text-align: center;

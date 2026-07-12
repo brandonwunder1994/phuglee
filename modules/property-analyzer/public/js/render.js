@@ -6,6 +6,212 @@
   const R = PDA.env;
   with (R) {
 
+R.profileField = function profileField(val) {
+  const s = String(val == null ? '' : val).trim();
+  if (!s || /^n\/?a$/i.test(s) || /^none$/i.test(s) || s === '0' && false) return '';
+  return s;
+};
+
+R.formatProfileMoney = function formatProfileMoney(val) {
+  const s = profileField(val);
+  return s || '';
+};
+
+R.formatProfileFlagChips = function formatProfileFlagChips(flags) {
+  if (!flags || typeof flags !== 'object') return '';
+  const labels = {
+    absenteeOwner: 'Absentee',
+    activeListing: 'Active listing',
+    boredInvestor: 'Bored investor',
+    cashBuyer: 'Cash buyer',
+    delinquentTaxActivity: 'Tax delinquent',
+    flipped: 'Flipped',
+    foreclosureActivity: 'Foreclosure activity',
+    foreclosures: 'Foreclosure',
+    freeAndClear: 'Free & clear',
+    highEquity: 'High equity',
+    longTermOwner: 'Long-term owner',
+    lowEquity: 'Low equity',
+    potentiallyInherited: 'Inherited?',
+    preForeclosure: 'Pre-foreclosure',
+    upsideDown: 'Upside down',
+    vacancy: 'Vacant',
+    zombieProperty: 'Zombie',
+    activeInvestorOwned: 'Investor owned'
+  };
+  const chips = [];
+  for (const [key, label] of Object.entries(labels)) {
+    const v = flags[key];
+    if (v === 1 || v === true || v === '1' || String(v).toLowerCase() === 'true') {
+      chips.push(`<span class="profile-flag-chip">${escapeHtml(label)}</span>`);
+    }
+  }
+  return chips.length ? `<div class="profile-flags">${chips.join('')}</div>` : '';
+};
+
+R.formatPropertyProfileHtml = function formatPropertyProfileHtml(r) {
+  const p = r && r.profile;
+  if (!p || typeof p !== 'object') return '';
+
+  const row = (label, value) => {
+    const v = profileField(value);
+    if (!v) return '';
+    return `<div class="profile-kv"><span class="lbl">${escapeHtml(label)}</span><span class="val">${escapeHtml(v)}</span></div>`;
+  };
+
+  const mailingParts = [p.mailingStreet, p.mailingCity, p.mailingState, p.mailingPostal].filter((x) => profileField(x));
+  const propParts = [r.street, r.city, r.state, r.postal].filter((x) => profileField(x));
+  const mailingLine = mailingParts.join(', ');
+  const propLine = propParts.join(', ');
+  const showMailing = mailingLine && mailingLine.toLowerCase() !== propLine.toLowerCase();
+
+  const phoneRows = Array.isArray(p.phones)
+    ? p.phones.map((ph, i) => {
+      const num = profileField(ph && ph.number);
+      if (!num) return '';
+      const meta = [profileField(ph.type), ph.dnc ? 'DNC' : '', ph.litigator ? 'Litigator' : ''].filter(Boolean).join(' · ');
+      return `<div class="contact-chip profile-extra-contact">
+        <span class="lbl">Phone ${i + 1}</span>
+        <span class="val">${escapeHtml(num)}${meta ? ` <span class="profile-meta">(${escapeHtml(meta)})</span>` : ''}</span>
+        <button type="button" class="copy-btn copy-profile-phone" data-phone="${escapeHtml(num)}">Copy</button>
+      </div>`;
+    }).join('')
+    : '';
+
+  const emailRows = Array.isArray(p.emails)
+    ? p.emails.map((em, i) => {
+      const email = profileField(em);
+      if (!email) return '';
+      return `<div class="contact-chip profile-extra-contact">
+        <span class="lbl">Email ${i + 1}</span>
+        <span class="val">${escapeHtml(email)}</span>
+        <button type="button" class="copy-btn copy-profile-email" data-email="${escapeHtml(email)}">Copy</button>
+      </div>`;
+    }).join('')
+    : '';
+
+  const facts = [
+    row('Type', p.propertyType),
+    row('Beds / Baths', [profileField(p.beds), profileField(p.baths)].filter(Boolean).join(' / ')),
+    row('Sq Ft', p.squareFootage),
+    row('Lot Sq Ft', p.lotSizeSqFt),
+    row('Year built', p.yearBuilt),
+    row('Stories', p.stories),
+    row('Units', p.units),
+    row('Owner type', p.ownerType),
+    row('County', p.county),
+    row('Last sale', [profileField(p.lastSalesDate), formatProfileMoney(p.lastSalesPrice)].filter(Boolean).join(' · ')),
+    row('Price / sqft', p.pricePerSqFt)
+  ].join('');
+
+  const money = [
+    row('AVM', p.avm),
+    row('Market (retail)', p.marketValue),
+    row('Wholesale', p.wholesaleValue),
+    row('Tax assessed', p.taxAssessedValue),
+    row('Tax amount', p.taxAmount),
+    row('LTV', p.ltv),
+    row('Mortgage bal.', p.estimatedMortgageBalance),
+    row('Est. payment', p.estimatedMortgagePayment),
+    row('Interest rate', p.mortgageInterestRate),
+    row('Lender', p.lenderName),
+    row('Loan type', p.loanType),
+    row('Loans', p.numberOfLoans ? `${p.numberOfLoans}${profileField(p.totalLoans) ? ` · ${p.totalLoans}` : ''}` : '')
+  ].join('');
+
+  const amenities = [
+    row('Heating', [profileField(p.heating), profileField(p.heatingFuel)].filter(Boolean).join(' · ')),
+    row('A/C', p.airConditioning),
+    row('Fireplace', p.fireplace),
+    row('Roof', [profileField(p.roof), profileField(p.roofShape)].filter(Boolean).join(' · ')),
+    row('Walls', p.interiorWalls),
+    row('Basement', p.basement),
+    row('Water', p.water),
+    row('Sewer', p.sewer),
+    row('Garage', p.garage),
+    row('Patio', p.patio),
+    row('Pool', p.pool),
+    row('Porch', p.porch),
+    row('HOA', p.hoa),
+    row('HOA name', p.hoaName),
+    row('HOA fee', [profileField(p.hoaFee), profileField(p.hoaFeeFrequency)].filter(Boolean).join(' / '))
+  ].join('');
+
+  const distressExtra = [
+    row('Auction date', p.auctionDate),
+    row('Last notice', p.lastNoticeDate)
+  ].join('');
+
+  const flagHtml = formatProfileFlagChips(p.flags);
+
+  // Code violation history (Filter SCAN HISTORY cross-ref + top-level fields)
+  const violList = Array.isArray(p.violations) && p.violations.length
+    ? p.violations
+    : (Array.isArray(r.violations) ? r.violations : []);
+  const primaryCat = profileField(p.codeCategory) || profileField(r.codeCategory);
+  const primaryType = profileField(p.codeType) || profileField(r.codeType);
+  const primaryDesc = profileField(p.violationDescription) || profileField(r.violationDescription);
+  const primaryDate = profileField(p.violationDate) || profileField(r.violationDate);
+  let violationHtml = '';
+  if (violList.length) {
+    const items = violList.slice(0, 8).map((v) => {
+      const cat = profileField(v.category) || profileField(v.codeType);
+      const desc = profileField(v.violationDescription) || profileField(v.codeType);
+      const date = profileField(v.violationDate);
+      const bits = [cat || desc, date].filter(Boolean).join(' · ');
+      if (!bits) return '';
+      return `<div class="profile-kv profile-violation-row"><span class="lbl">${escapeHtml(date || 'Violation')}</span><span class="val">${escapeHtml(cat || desc || '—')}${desc && cat && desc !== cat ? `<div class="profile-meta">${escapeHtml(desc)}</div>` : ''}</span></div>`;
+    }).join('');
+    violationHtml = items;
+  } else if (primaryCat || primaryType || primaryDesc || primaryDate) {
+    violationHtml = [
+      row('Code type / category', primaryCat || primaryType),
+      row('Violation description', primaryDesc),
+      row('Violation date', primaryDate)
+    ].join('');
+  }
+
+  const sections = [];
+  if (violationHtml) {
+    const count = violList.length || (primaryCat || primaryDesc ? 1 : 0);
+    sections.push(`<div class="profile-section profile-section-violations"><div class="profile-section-title">Code violation history${count > 1 ? ` (${count})` : ''}</div>
+      <div class="profile-grid">${violationHtml}</div>
+      <div class="profile-meta" style="margin-top:0.35rem;">From Filter SCAN HISTORY</div></div>`);
+  }
+  if (showMailing) {
+    sections.push(`<div class="profile-section"><div class="profile-section-title">Mailing address</div>
+      <div class="profile-kv"><span class="lbl">Mail to</span><span class="val">${escapeHtml(mailingLine)}</span></div></div>`);
+  }
+  if (phoneRows || emailRows || profileField(p.contactName) || profileField(p.contactType)) {
+    sections.push(`<div class="profile-section"><div class="profile-section-title">Contact stack</div>
+      ${row('Contact name', p.contactName)}
+      ${row('Contact type', p.contactType)}
+      ${phoneRows}${emailRows}</div>`);
+  }
+  if (flagHtml || distressExtra) {
+    sections.push(`<div class="profile-section"><div class="profile-section-title">Distress / motivation</div>
+      ${flagHtml}${distressExtra}</div>`);
+  }
+  if (money) {
+    sections.push(`<div class="profile-section"><div class="profile-section-title">Value & equity</div>
+      <div class="profile-grid">${money}</div></div>`);
+  }
+  if (facts) {
+    sections.push(`<div class="profile-section"><div class="profile-section-title">Property facts</div>
+      <div class="profile-grid">${facts}</div></div>`);
+  }
+  if (amenities) {
+    sections.push(`<div class="profile-section"><div class="profile-section-title">Features & HOA</div>
+      <div class="profile-grid">${amenities}</div></div>`);
+  }
+
+  if (!sections.length) return '';
+  return `<div class="inspector-profile">
+    <div class="inspector-profile-title">Property profile</div>
+    ${sections.join('')}
+  </div>`;
+};
+
 R.wireCardThumb = function wireCardThumb(card, result) {
   const img = card.querySelector('.card-thumb img');
   const fallbackEl = card.querySelector('.card-thumb-fallback');
@@ -300,12 +506,25 @@ R.showInspector = function showInspector(r, opts = {}) {
         ${r.email ? '<button type="button" class="copy-btn copy-email">Copy</button>' : ''}
       </div>
     </div>
+    ${formatPropertyProfileHtml(r)}
     <div class="inspector-hint">↑↓ or J/K between leads · Esc to close</div>
   `;
   const phoneBtn = inspectorBody.querySelector('.copy-phone');
   const emailBtn = inspectorBody.querySelector('.copy-email');
   if (phoneBtn) phoneBtn.addEventListener('click', (e) => { e.stopPropagation(); copyText(r.phone, phoneBtn); });
   if (emailBtn) emailBtn.addEventListener('click', (e) => { e.stopPropagation(); copyText(r.email, emailBtn); });
+  inspectorBody.querySelectorAll('.copy-profile-phone').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      copyText(btn.getAttribute('data-phone') || '', btn);
+    });
+  });
+  inspectorBody.querySelectorAll('.copy-profile-email').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      copyText(btn.getAttribute('data-email') || '', btn);
+    });
+  });
   inspectorBody.querySelectorAll('[data-change-cat]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();

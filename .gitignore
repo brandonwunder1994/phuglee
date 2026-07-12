@@ -19,6 +19,7 @@ modules/form-forge/.env
 
 # Filter page saved lists (user staging)
 data/filter-lists/
+data/filter-drafts/
 
 # Filter global brain (runtime)
 data/bridge-brain/
