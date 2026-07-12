@@ -3,7 +3,9 @@ const assert = require('node:assert/strict');
 const {
   rowsToCsv,
   rowsToXlsxBuffer,
-  parseResponseReceivedAt
+  parseResponseReceivedAt,
+  ADDRESS_EXPORT_HEADERS,
+  toAddressExportRow
 } = require('../lib/bridge-export');
 
 const sampleRow = {
@@ -22,11 +24,52 @@ const sampleRow = {
   processedAt: '2026-07-06T12:00:00.000Z'
 };
 
-test('rowsToCsv includes headers and escaped values', () => {
+test('ADDRESS_EXPORT_HEADERS are the four enrichment columns', () => {
+  assert.deepEqual([...ADDRESS_EXPORT_HEADERS], [
+    'Street Address',
+    'City',
+    'State',
+    'Postal Code'
+  ]);
+});
+
+test('toAddressExportRow maps zip → Postal Code and drops other fields', () => {
+  const out = toAddressExportRow(sampleRow);
+  assert.deepEqual(out, {
+    'Street Address': '123 Main St',
+    City: 'Marana',
+    State: 'Arizona',
+    'Postal Code': '85704'
+  });
+  assert.equal(Object.keys(out).length, 4);
+});
+
+test('rowsToCsv includes only Street Address, City, State, Postal Code', () => {
   const csv = rowsToCsv([sampleRow]);
-  assert.match(csv, /Street Address/);
+  const header = csv.split('\n')[0];
+  assert.equal(header, 'Street Address,City,State,Postal Code');
   assert.match(csv, /123 Main St/);
-  assert.match(csv, /Strong Distressed Signal/);
+  assert.match(csv, /Marana/);
+  assert.match(csv, /85704/);
+  assert.doesNotMatch(csv, /Strong Distressed Signal/);
+  assert.doesNotMatch(csv, /Overgrown weeds/);
+  assert.doesNotMatch(csv, /List Name/);
+  assert.doesNotMatch(csv, /Violation/);
+});
+
+test('rowsToCsv falls back to list city/state when row lacks them', () => {
+  const csv = rowsToCsv([
+    {
+      streetAddress: '9 Oak',
+      zip: '75001',
+      savedListCity: 'Commerce',
+      savedListState: 'TX'
+    }
+  ]);
+  assert.match(csv, /9 Oak/);
+  assert.match(csv, /Commerce/);
+  assert.match(csv, /TX/);
+  assert.match(csv, /75001/);
 });
 
 test('rowsToXlsxBuffer returns non-empty buffer', () => {
@@ -49,43 +92,4 @@ test('parseResponseReceivedAt accepts date-only YYYY-MM-DD', () => {
 
 test('parseResponseReceivedAt rejects empty values', () => {
   assert.throws(() => parseResponseReceivedAt(''), /required/i);
-});
-
-// SHAPE-02: array indicators → single CSV cell joined with '; '
-test('rowsToCsv joins array matchedIndicators with semicolon space', () => {
-  const arrayRow = {
-    ...sampleRow,
-    matchedIndicators: [
-      'Tall/overgrown/high grass or weeds',
-      'Accumulation of trash or debris'
-    ]
-  };
-  const csv = rowsToCsv([arrayRow]);
-  assert.match(csv, /Tall\/overgrown\/high grass or weeds/);
-  assert.match(csv, /Accumulation of trash or debris/);
-  assert.ok(
-    csv.includes('Tall/overgrown/high grass or weeds; Accumulation of trash or debris'),
-    'CSV must join array indicators with "; " (not Array.toString commas alone)'
-  );
-});
-
-// LBL-02: export always uses full row.violationIssueType — never shortLabel / …
-test('LBL-02: rowsToCsv emits full long violationIssueType (not shortLabel or ellipsis)', () => {
-  const longType =
-    'High Grass and Weeds — Sec. 12-34 of the municipal code regarding vegetation height limits on residential parcels and enforcement procedures';
-  assert.ok(longType.length > 64, 'fixture must be longer than short-label max');
-  const longRow = {
-    ...sampleRow,
-    violationIssueType: longType
-    // intentionally no shortLabel on the row
-  };
-  const csv = rowsToCsv([longRow]);
-  assert.ok(
-    csv.includes(longType),
-    'LBL-02: export CSV must contain the full Violation/Issue Type from the row'
-  );
-  assert.ok(
-    !csv.includes('…'),
-    'LBL-02: export must not substitute shortLabel ellipsis for full type'
-  );
 });

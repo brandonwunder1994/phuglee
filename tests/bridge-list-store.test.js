@@ -258,11 +258,13 @@ test('buildDownloadAll combines rows with list name columns', () => {
   assert.equal(dl.listCount, 2);
   assert.equal(dl.recordCount, 3);
   const text = dl.buffer.toString('utf8');
-  assert.match(text, /List Name/);
-  assert.match(text, /City A List/);
-  assert.match(text, /City B List/);
+  const header = text.split('\n')[0];
+  assert.equal(header, 'Street Address,City,State,Postal Code');
   assert.match(text, /1 A St/);
   assert.match(text, /2 B St/);
+  assert.doesNotMatch(text, /List Name/);
+  assert.doesNotMatch(text, /City A List/);
+  assert.doesNotMatch(text, /Distressed Signal/);
 });
 
 test('chunkRowsForExport splits 26000 into six 5k batches (last 1000)', () => {
