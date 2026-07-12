@@ -32,6 +32,28 @@ test('rewrites apiFetch calls for Property Analyzer', () => {
   assert.ok(out.includes("apiFetch('/analyzer/api/session-backup'"));
 });
 
+test('does not mangle proxyFetchUrl when rewriting analyzer JS', () => {
+  const js = [
+    "R.proxyFetchUrl = function proxyFetchUrl(path, params, apiKey) {",
+    "  return `${path}?${q}`;",
+    "};",
+    "const res = await fetch(proxyFetchUrl('/api/sv-base64', { address }, apiKey));",
+    "const sat = await fetch(proxyFetchUrl('/api/satellite-base64', { address }, apiKey));"
+  ].join('\n');
+  const out = analyzerRewriter.rewriteTextBody(js, 'application/javascript');
+  assert.ok(out.includes('proxyFetchUrl'), 'keeps camelCase proxyFetchUrl');
+  assert.equal(out.includes('proxyFetchurl'), false, 'must not lowercase Url → url');
+  // fetch(proxyFetchUrl(...)) is not fetch('/api/...') — path is inside the helper
+  assert.ok(out.includes("proxyFetchUrl('/api/sv-base64'"));
+  assert.ok(out.includes("proxyFetchUrl('/api/satellite-base64'"));
+});
+
+test('still rewrites CSS url() paths', () => {
+  const css = 'background: url(/static/bg.png);';
+  const out = forgeRewriter.rewriteTextBody(css, 'text/css');
+  assert.ok(out.includes('url(/forge/static/bg.png)'));
+});
+
 test('does not double-prefix paths', () => {
   const html = '<a href="/forge/portal">x</a>';
   const out = forgeRewriter.rewriteTextBody(html, 'text/html');
