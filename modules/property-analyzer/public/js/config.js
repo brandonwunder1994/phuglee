@@ -1155,21 +1155,27 @@ R.refreshServerStatusUi = async function refreshServerStatusUi() {
     serverOnline = true;
     updateServerOfflineBanner();
     fetchServerSafetyStatus().then(updateServerSafetyIndicator);
-    if (st.hardQuotaActive || st.lastHardQuota) {
+    const hardMsg = st.lastHardQuota?.message || '';
+    const serverHardQuota = st.hardQuotaActive && isHardQuotaError(hardMsg);
+    if (serverHardQuota) {
       if (state.running) {
         const p = st.lastHardQuota?.provider || 'gemini';
-        haltScanForQuota(p, st.lastHardQuota?.message || 'API quota exhausted');
+        haltScanForQuota(p, hardMsg || 'API quota exhausted');
       }
       if (diagGemini) setDiag(diagGemini, 'fail', 'Gemini: ⚠ QUOTA / CREDITS EXHAUSTED');
       if (diagFull) setDiag(diagFull, 'fail', 'Full pipeline: ⚠ reload API credits before scanning');
     } else if (st.gemini?.rateLimited) {
+      if (state.running) {
+        scaleDownWorkers?.('Gemini rate limits (server)', { hard: true });
+      }
+      const eff = getEffectiveConcurrentLimit();
       const msg = `${st.gemini.recent429} Gemini rate limits in the last 2 min` +
         ` (${st.gemini.active}/${st.gemini.maxConcurrent} active, ${st.gemini.waiting} queued).` +
-        ' Stop scan, set workers to 3–5, wait 10–15 min.';
+        ` Workers at ${eff}; pausing briefly then retrying — scan does not stop for soft limits.`;
       notifyScanIssue('rate_limit', msg, {
-        title: 'Gemini rate limited — scan stalled',
+        title: state.running ? `Gemini busy — slowed to ${eff} workers` : 'Gemini rate limited — wait before bulk scan',
         dedupeKey: `srv-429-${st.gemini.recent429}`,
-        browserNotify: true
+        browserNotify: !state.running
       });
       if (diagGemini && !state.running) {
         setDiag(diagGemini, 'warn', `Gemini: ⚠ RATE LIMITED (${st.gemini.recent429} recent 429s)`);
@@ -1293,7 +1299,7 @@ R.updateScanIssuePanel = function updateScanIssuePanel() {
   } else if (throttled) {
     tier = 'warn';
     title = `Slowed to ${getEffectiveConcurrentLimit()} workers`;
-    detail = 'Many properties failed this batch — parallelism reduced to avoid more skips.';
+    detail = 'API or imagery pressure — workers auto-lowered. Scan keeps going; speed climbs back after clean batches.';
   } else if (failSv || failGem) {
     tier = 'warn';
     title = 'Some properties need review';
@@ -1414,6 +1420,31 @@ R.countFailedResults = function countFailedResults() {
     return cat === 'unavailable' || cat === 'fetch_failed';
   }).length;
 }
+
+/** Transient 429/503 — defer/retry, do not treat as batch pressure or scan halt. */
+R.isDeferrableRateLimitError = function isDeferrableRateLimitError(msg) {
+  const m = String(msg || '');
+  if (isHardQuotaError(m)) return false;
+  return isTransientError(m);
+};
+
+/** Failures that should trigger worker step-down (excludes Gemini busy / rate limit). */
+R.resultCountsAsBatchPressureFailure = function resultCountsAsBatchPressureFailure(r) {
+  if (!r) return false;
+  if (r.errorType === 'transient') return false;
+  const reason = String(r.reason || r.error || '');
+  if (/503|rate limit|overloaded|high demand|\b429\b|resource_exhausted|timeout|temporarily unavailable|try again/i.test(reason)) {
+    return false;
+  }
+  if (computeNeedsReview(r)) return true;
+  if (r.fetchFailed) return true;
+  const cat = String(r.category || '').toLowerCase();
+  return cat === 'unavailable' || cat === 'fetch_failed';
+};
+
+R.countBatchPressureFailuresInSlice = function countBatchPressureFailuresInSlice(resultsSlice) {
+  return (resultsSlice || []).filter(resultCountsAsBatchPressureFailure).length;
+};
 
 R.clampWorkerCount = function clampWorkerCount(n) {
   const min = Number(MIN_CONCURRENT_LIMIT) || 5;
@@ -1609,19 +1640,23 @@ R.haltScanForQuota = function haltScanForQuota(provider, errMsg, opts = {}) {
   updateScanReadyUi?.();
 }
 
-/** Count consecutive Maps/Gemini failures; stop after a streak so we can resume later. */
+/** Count consecutive non-transient API failures; soft 429/503 never halts the scan. */
 R.noteApiScanFailure = function noteApiScanFailure(errMsg, provider) {
-  state.apiFailStreak = (state.apiFailStreak || 0) + 1;
-  const streak = state.apiFailStreak;
   if (isHardQuotaError(errMsg)) {
     haltScanForQuota(provider || apiProviderFromError(errMsg), errMsg, { kind: 'quota' });
     return true;
   }
-  // Sustained outage / rate-limit thrash — pause so you can restart cleanly
-  if (streak >= 10) {
+  if (isDeferrableRateLimitError(errMsg)) {
+    noteRateLimit({ message: errMsg });
+    return false;
+  }
+  state.apiFailStreak = (state.apiFailStreak || 0) + 1;
+  const streak = state.apiFailStreak;
+  // Only stop on sustained non-transient failures (not Gemini busy / 429 thrash).
+  if (streak >= 30) {
     haltScanForQuota(
       provider || apiProviderFromError(errMsg),
-      `API failed ${streak} times in a row. Last error: ${String(errMsg || '').slice(0, 160)}`,
+      `API failed ${streak} times in a row (non-rate-limit). Last error: ${String(errMsg || '').slice(0, 160)}`,
       { kind: 'outage' }
     );
     return true;
@@ -1641,16 +1676,8 @@ R.noteRateLimit = function noteRateLimit(err) {
   }
   const m = raw.toLowerCase();
   if (isServerConnectionError(m) || !isTransientError(m)) return;
-  // Count soft failures toward outage streak (without marking property done)
-  state.apiFailStreak = (state.apiFailStreak || 0) + 1;
-  if (state.apiFailStreak >= 12) {
-    haltScanForQuota(
-      apiProviderFromError(raw),
-      `Google/Gemini kept rate-limiting or failing (${state.apiFailStreak} in a row). Pause and restart later.`,
-      { kind: 'outage' }
-    );
-    return;
-  }
+  // Soft limits: throttle + pause only — never abort the scan.
+  state.apiFailStreak = 0;
   const pauseMs = /503|high demand|overloaded/.test(m)
     ? 12000 + Math.floor(Math.random() * 6000)
     : 8000 + Math.floor(Math.random() * 4000);

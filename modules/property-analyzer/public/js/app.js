@@ -845,7 +845,8 @@ R.processAddress = async function processAddress(address, svKey, gKey, workerNum
   return result;
 }
 
-R.processOneRecord = async function processOneRecord(record, svKey, gKey, workerNum = null) {
+R.processOneRecord = async function processOneRecord(record, svKey, gKey, workerNum = null, scanOpts = null) {
+  const deferQueue = scanOpts && scanOpts.deferQueue;
   if (state.aborted) return null;
 
   const label = `${propertyLocationTitle(record)} — ${record.address}`;
@@ -982,6 +983,19 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
     return null;
   }
   if (lastErr) {
+    if (isDeferrableRateLimitError?.(lastErr.message) && deferQueue && !state.aborted) {
+      noteRateLimit(lastErr);
+      deferQueue.push(record);
+      log(`⏸ ${label} — Gemini/Google busy; will retry this run (not marked scanned)`, 'warn');
+      updateAgentSlot(workerNum, {
+        active: false,
+        status: 'Waiting — API busy',
+        phase: 'idle',
+        address: ''
+      });
+      if (state.running) scheduleThrottledUi();
+      return null;
+    }
     noteRateLimit(lastErr);
     if (state.aborted) return null;
     noteApiScanFailure?.(lastErr.message, apiProviderFromError?.(lastErr.message));
@@ -1028,13 +1042,15 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
   $('statBatch').textContent = batchNum;
   let batchPreview = null;
   let idx = 0;
-  const failedBefore = countFailedResults();
+  const resultsBefore = state.results.length;
+  const deferQueue = [];
+  const scanOpts = { deferQueue };
 
   async function worker(workerNum) {
     await sleep(workerNum * 80);
     while (idx < batch.length && !state.aborted) {
       const i = idx++;
-      const preview = await processOneRecord(batch[i], svKey, gKey, workerNum);
+      const preview = await processOneRecord(batch[i], svKey, gKey, workerNum, scanOpts);
       if (preview) batchPreview = preview;
       await sleep(200);
     }
@@ -1044,12 +1060,40 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
     Array.from({ length: Math.min(concurrentLimit, batch.length) }, (_, n) => worker(n))
   );
 
-  const batchFailed = countFailedResults() - failedBefore;
-  const failRatio = batch.length ? batchFailed / batch.length : 0;
-  if (batch.length >= 4 && batchFailed >= Math.ceil(batch.length * 0.25)) {
+  // Retry addresses deferred by soft rate limits (still unscanned — no Needs Review row).
+  let deferRound = 0;
+  while (deferQueue.length && !state.aborted && deferRound < 4) {
+    deferRound += 1;
+    const round = deferQueue.splice(0, deferQueue.length);
+    log(`Retrying ${round.length} address(es) after API pause (round ${deferRound})…`, 'warn');
+    await waitForRateLimit();
+    await sleep(3000 + deferRound * 2000);
+    const retryWorkers = Math.min(2, getEffectiveConcurrentLimit(), round.length);
+    let ridx = 0;
+    async function deferWorker(wNum) {
+      while (ridx < round.length && !state.aborted) {
+        const ri = ridx++;
+        const preview = await processOneRecord(round[ri], svKey, gKey, wNum, scanOpts);
+        if (preview) batchPreview = preview;
+        await sleep(400);
+      }
+    }
+    await Promise.all(
+      Array.from({ length: retryWorkers }, (_, n) => deferWorker(n))
+    );
+  }
+  if (deferQueue.length && !state.aborted) {
+    log(`${deferQueue.length} still waiting on API — left unscanned for next Start Scan`, 'warn');
+    deferQueue.length = 0;
+  }
+
+  const newResults = state.results.slice(resultsBefore);
+  const batchPressureFailed = countBatchPressureFailuresInSlice(newResults);
+  const failRatio = batch.length ? batchPressureFailed / batch.length : 0;
+  if (batch.length >= 4 && batchPressureFailed >= Math.ceil(batch.length * 0.25)) {
     // Batch-level failure pressure — hard step-down (also resets healthy streak)
     scaleDownWorkers?.(
-      `${batchFailed}/${batch.length} failed this batch`,
+      `${batchPressureFailed}/${batch.length} imagery/analysis issues this batch`,
       { hard: true }
     );
   } else if (batch.length >= 4 && failRatio <= 0.1) {
