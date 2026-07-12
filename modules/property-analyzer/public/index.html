@@ -135,12 +135,36 @@
         </ol>
       </nav>
 
-    <section class="scan-ready-section phuglee-panel phuglee-panel-featured analyze-panel" id="scanReadySection" hidden data-phuglee-reveal-child>
+    <section class="scan-ready-section phuglee-panel phuglee-panel-featured analyze-panel" id="scanReadySection" data-phuglee-reveal-child>
       <div class="scan-ready-meta">
         <p class="analyze-panel-eyebrow">Ready to scan</p>
-        <h2 class="scan-ready-location" id="scanReadyLocation">—</h2>
-        <p class="scan-ready-count analyze-panel-lead" id="scanReadyCount">—</p>
+        <h2 class="scan-ready-location" id="scanReadyLocation">Import leads to scan</h2>
+        <p class="scan-ready-count analyze-panel-lead" id="scanReadyCount">Upload a CSV/Excel file, then start Street View + AI scan.</p>
       </div>
+
+      <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import leads for scan">
+        <div class="scan-import-drop" id="scanImportDrop" tabindex="0">
+          <div class="scan-import-drop-icon" aria-hidden="true">⬆</div>
+          <p class="scan-import-drop-title">Drop spreadsheet here</p>
+          <p class="scan-import-drop-hint">CSV / Excel · works with “New Analyzer Leads” and standard address lists</p>
+          <div class="scan-import-drop-actions">
+            <label class="btn-secondary scan-import-browse" for="scanFileInput">Choose file…</label>
+            <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Choose spreadsheet to scan">
+          </div>
+          <p class="scan-import-status" id="scanImportStatus" hidden></p>
+        </div>
+        <div class="scan-import-options">
+          <label class="scan-import-option" for="scanImportLeadType">
+            <span>Lead type</span>
+            <select id="scanImportLeadType" aria-label="Lead type for this import"></select>
+          </label>
+          <label class="scan-import-option scan-import-option-check" for="scanImportKeepResults">
+            <input type="checkbox" id="scanImportKeepResults" checked>
+            <span>Keep my already-scanned leads (recommended)</span>
+          </label>
+        </div>
+      </div>
+
       <div class="scan-ready-actions">
         <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Start Scan</button>
         <div class="review-leads-wrap" id="reviewLeadsWrap">

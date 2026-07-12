@@ -897,6 +897,127 @@ R.buildFullAddress = function buildFullAddress(street, city, stateName, postal) 
   return parts.join(', ');
 }
 
+R.cellStr = function cellStr(row, col) {
+  if (!col) return '';
+  return String(row[col] ?? '').trim();
+}
+
+R.flag01 = function flag01(v) {
+  const s = String(v ?? '').trim().toLowerCase();
+  if (!s) return 0;
+  if (s === '1' || s === 'true' || s === 'yes' || s === 'y') return 1;
+  if (s === '0' || s === 'false' || s === 'no' || s === 'n') return 0;
+  const n = Number(s);
+  return Number.isFinite(n) && n !== 0 ? 1 : 0;
+}
+
+/** Build optional property profile from skip-trace / New Analyzer Leads style columns. */
+R.buildImportProfile = function buildImportProfile(row, cols) {
+  const g = (names) => {
+    for (const n of names) {
+      const c = cols._byLower?.get(n);
+      if (c && String(row[c] ?? '').trim()) return String(row[c]).trim();
+    }
+    return '';
+  };
+  const phones = [];
+  const p1 = g(['contact1phone_1', 'contact1phone1', 'phone', 'phone number', 'mobile']);
+  if (p1) {
+    phones.push({
+      number: p1,
+      type: g(['contact1phone_1_type', 'contact1phone1type', 'phone type']),
+      dnc: /true|1|yes/i.test(g(['contact1phone_1_dnc', 'contact1phone1dnc', 'dnc'])),
+      litigator: /true|1|yes/i.test(g(['contact1phone_1_litigator', 'litigator']))
+    });
+  }
+  const p2 = g(['contact1phone_2', 'contact1phone2']);
+  if (p2) {
+    phones.push({
+      number: p2,
+      type: g(['contact1phone_2_type']),
+      dnc: /true|1|yes/i.test(g(['contact1phone_2_dnc'])),
+      litigator: /true|1|yes/i.test(g(['contact1phone_2_litigator']))
+    });
+  }
+  const emails = [];
+  const e1 = g(['contact1email_1', 'contact1email1', 'email', 'email address']);
+  const e2 = g(['contact1email_2', 'contact1email2']);
+  if (e1) emails.push(e1);
+  if (e2) emails.push(e2);
+
+  const profile = {
+    _shaped: true,
+    propertyType: g(['propertytype', 'property type']),
+    beds: g(['beds', 'bedrooms']),
+    baths: g(['baths', 'bathrooms']),
+    squareFootage: g(['squarefootage', 'sqft', 'living area']),
+    lotSizeSqFt: g(['lotsizesqft', 'lot size', 'lot sqft']),
+    yearBuilt: g(['yearbuilt', 'year built']),
+    stories: g(['stories']),
+    units: g(['units']),
+    ownerType: g(['ownertype', 'owner type']),
+    county: g(['county']),
+    lastSalesDate: g(['lastsalesdate', 'last sale date', 'sale date']),
+    lastSalesPrice: g(['lastsalesprice', 'last sale price', 'sale price']),
+    pricePerSqFt: g(['pricepersqft', 'price per sqft']),
+    avm: g(['avm']),
+    marketValue: g(['marketvalue', 'market value']),
+    wholesaleValue: g(['wholesalevalue', 'wholesale value']),
+    taxAssessedValue: g(['taxassessedvalue', 'assessed value']),
+    taxAmount: g(['taxamount', 'tax amount']),
+    ltv: g(['ltv']),
+    estimatedMortgageBalance: g(['estimatedmortgagebalance', 'mortgage balance']),
+    estimatedMortgagePayment: g(['estimatedmortgagepayment', 'mortgage payment']),
+    mortgageInterestRate: g(['mortgageinterestrate', 'interest rate']),
+    lenderName: g(['lendername', 'lender']),
+    loanType: g(['loantype', 'loan type']),
+    numberOfLoans: g(['numberofloans', 'loans']),
+    totalLoans: g(['totalloans']),
+    loanAmount: g(['loanamount', 'loan amount']),
+    mailingStreet: g(['recipientaddress', 'mailing address', 'mail street']),
+    mailingCity: g(['recipientcity', 'mail city']),
+    mailingState: g(['recipientstate', 'mail state']),
+    mailingPostal: g(['recipientpostalcode', 'mail zip', 'mail postal']),
+    contactName: g(['contact1name', 'contact name', 'owner name']),
+    contactType: g(['contact1type', 'contact type']),
+    phones,
+    emails,
+    heating: g(['heating']),
+    airConditioning: g(['airconditioning', 'ac', 'a/c']),
+    garage: g(['garage']),
+    roof: g(['roof']),
+    pool: g(['pool']),
+    porch: g(['porch']),
+    basement: g(['basement']),
+    hoa: flag01(g(['hoa'])) ? 'Yes' : '',
+    auctionDate: g(['auctiondate', 'auction date']),
+    lastNoticeDate: g(['lastnoticedate', 'last notice date']),
+    flags: {
+      absenteeOwner: flag01(g(['absenteeowner', 'absentee owner'])),
+      activeListing: flag01(g(['activelisting', 'active listing'])),
+      highEquity: flag01(g(['highequity', 'high equity'])),
+      preForeclosure: flag01(g(['preforeclosure', 'pre foreclosure'])),
+      vacancy: flag01(g(['vacancy', 'vacant'])),
+      freeAndClear: flag01(g(['freeandclear', 'free and clear'])),
+      longTermOwner: flag01(g(['longtermowner', 'long term owner'])),
+      potentiallyInherited: flag01(g(['potentiallyinherited', 'inherited'])),
+      delinquentTaxActivity: flag01(g(['delinquenttaxactivity', 'tax delinquent'])),
+      zombieProperty: flag01(g(['zombieproperty', 'zombie'])),
+      cashBuyer: flag01(g(['cashbuyer', 'cash buyer'])),
+      flipped: flag01(g(['flipped']))
+    }
+  };
+
+  const hasAny = Object.values(profile).some((v) => {
+    if (v && typeof v === 'object') {
+      if (Array.isArray(v)) return v.length > 0;
+      return Object.values(v).some((x) => x === 1 || (typeof x === 'string' && x));
+    }
+    return !!v && v !== true;
+  });
+  return hasAny ? profile : null;
+}
+
 R.parseSpreadsheet = function parseSpreadsheet(file, leadType = DEFAULT_LEAD_TYPE) {
   const importLeadType = normalizeLeadType(leadType);
   return new Promise((resolve, reject) => {
@@ -914,53 +1035,94 @@ R.parseSpreadsheet = function parseSpreadsheet(file, leadType = DEFAULT_LEAD_TYP
         }
 
         const headers = Object.keys(rows[0]);
+        const byLower = new Map(headers.map((h) => [String(h).trim().toLowerCase(), h]));
         const cols = {
-          firstName: findColumn(headers, ['first name', 'firstname', 'first']),
-          lastName: findColumn(headers, ['last name', 'lastname', 'last']),
-          phone: findColumn(headers, ['phone', 'phone number', 'telephone', 'mobile', 'cell']),
-          email: findColumn(headers, ['email', 'email address', 'e-mail']),
-          street: findColumn(headers, ['street address', 'street', 'address']),
-          city: findColumn(headers, ['city']),
-          state: findColumn(headers, ['state']),
-          postal: findColumn(headers, ['postal code', 'zip code', 'zip', 'postal'])
+          firstName: findColumn(headers, [
+            'first name', 'firstname', 'first', 'owner first name', 'owner first'
+          ]),
+          lastName: findColumn(headers, [
+            'last name', 'lastname', 'last', 'owner last name', 'owner last'
+          ]),
+          phone: findColumn(headers, [
+            'phone', 'phone number', 'telephone', 'mobile', 'cell',
+            'contact1phone_1', 'contact1 phone 1', 'primary phone'
+          ]),
+          email: findColumn(headers, [
+            'email', 'email address', 'e-mail',
+            'contact1email_1', 'contact1 email 1', 'primary email'
+          ]),
+          street: findColumn(headers, [
+            'street address', 'street', 'address', 'property address', 'propertyaddress',
+            'site address', 'full address', 'situs address'
+          ]),
+          city: findColumn(headers, [
+            'city', 'property city', 'propertycity', 'situs city'
+          ]),
+          state: findColumn(headers, [
+            'state', 'property state', 'propertystate', 'st', 'situs state'
+          ]),
+          postal: findColumn(headers, [
+            'postal code', 'zip code', 'zip', 'postal',
+            'property postal code', 'propertypostalcode', 'property zip', 'situs zip'
+          ]),
+          _byLower: byLower
         };
 
-        const missing = [];
-        if (!cols.firstName) missing.push('First Name');
-        if (!cols.lastName) missing.push('Last Name');
-        if (!cols.phone) missing.push('Phone');
-        if (!cols.email) missing.push('Email');
-        if (!cols.street) missing.push('Street Address');
-        if (!cols.city) missing.push('City');
-        if (!cols.state) missing.push('State');
-        if (!cols.postal) missing.push('Postal Code');
-
-        if (missing.length) {
-          reject(new Error(`Missing columns: ${missing.join(', ')}`));
+        // Only address is required — New Analyzer Leads / skip-trace exports vary
+        if (!cols.street) {
+          reject(new Error(
+            'Missing address column. Need one of: Street Address, Property Address, Address, Street.'
+          ));
           return;
         }
 
-        const records = rows.map(r => {
-          const street = String(r[cols.street] || '').trim();
-          const city = String(r[cols.city] || '').trim();
-          const stateName = String(r[cols.state] || '').trim();
-          const postal = String(r[cols.postal] || '').trim();
-          return {
-            firstName: String(r[cols.firstName] || '').trim(),
-            lastName: String(r[cols.lastName] || '').trim(),
-            phone: String(r[cols.phone] || '').trim(),
-            email: String(r[cols.email] || '').trim(),
+        const importedAt = Date.now();
+        const records = rows.map((r) => {
+          const street = cellStr(r, cols.street);
+          const city = cellStr(r, cols.city);
+          const stateName = cellStr(r, cols.state);
+          const postal = cellStr(r, cols.postal);
+          const firstName = cellStr(r, cols.firstName);
+          const lastName = cellStr(r, cols.lastName);
+          let phone = cellStr(r, cols.phone);
+          let email = cellStr(r, cols.email);
+          // Fallbacks for New Analyzer Leads layout
+          if (!phone) {
+            phone = cellStr(r, byLower.get('contact1phone_1'))
+              || cellStr(r, byLower.get('contact1phone_2'));
+          }
+          if (!email) {
+            email = cellStr(r, byLower.get('contact1email_1'))
+              || cellStr(r, byLower.get('contact1email_2'));
+          }
+          const profile = buildImportProfile(r, cols);
+          const rec = {
+            firstName,
+            lastName,
+            phone,
+            email,
             street,
             city,
             state: stateName,
             postal,
             address: buildFullAddress(street, city, stateName, postal),
-            leadType: importLeadType
+            leadType: importLeadType,
+            importedAt,
+            sourceFile: file.name || ''
           };
-        }).filter(r => r.address.length > 0);
+          if (profile) {
+            rec.profile = profile;
+            if (profile.marketValue) rec.marketValue = profile.marketValue;
+            if (profile.avm) rec.avm = profile.avm;
+            if (profile.ownerType) rec.ownerType = profile.ownerType;
+            if (profile.county) rec.county = profile.county;
+            if (profile.contactName) rec.ownerName = profile.contactName;
+          }
+          return rec;
+        }).filter((r) => r.address.length > 0);
 
         if (!records.length) {
-          reject(new Error('No valid rows found in the spreadsheet'));
+          reject(new Error('No valid rows found in the spreadsheet (need at least an address)'));
           return;
         }
 
@@ -1108,59 +1270,120 @@ document.addEventListener('drop', async (e) => {
   await acceptDroppedFile(fileFromDataTransfer(e.dataTransfer), 'drop');
 });
 
-R.handleFile = async function handleFile(file) {
+R.handleFile = async function handleFile(file, opts = {}) {
   if (!isSpreadsheetFile(file)) {
     alert(`Unsupported file type: ${file.name}\n\nPlease use an Excel file (.xlsx, .xls) or .csv`);
     return;
   }
+  const statusEl = $('scanImportStatus');
+  const setStatus = (msg, show = true) => {
+    if (!statusEl) return;
+    statusEl.hidden = !show;
+    statusEl.textContent = msg || '';
+  };
   try {
-    const leadType = normalizeLeadType($('importLeadTypeSelect')?.value || state.importLeadType);
+    setStatus(`Reading ${file.name}…`);
+    const leadType = normalizeLeadType(
+      $('scanImportLeadType')?.value
+      || $('importLeadTypeSelect')?.value
+      || state.importLeadType
+    );
     state.importLeadType = leadType;
     const records = await parseSpreadsheet(file, leadType);
+    const keepResults = opts.keepResults != null
+      ? !!opts.keepResults
+      : ($('scanImportKeepResults')?.checked !== false);
+
+    const importedAt = Date.now();
+    const batchId = `batch_upload_${importedAt}`;
+    const stamped = records.map((r) => ({
+      ...r,
+      importedAt: r.importedAt || importedAt,
+      importBatchId: batchId,
+      sourceFile: file.name
+    }));
+
     abortSessionBackgroundLoad();
     sessionLoadState = {
-      complete: false,
+      complete: true,
       loading: false,
-      loaded: 0,
-      total: 0,
-      serverCanonical: 0
+      loaded: keepResults ? (state.results || []).length : 0,
+      total: keepResults ? (state.results || []).length : 0,
+      serverCanonical: keepResults ? (state.results || []).length : 0
     };
     delete state._tierCountsFromServer;
-    state.records = records;
-    state.results = [];
-    state.processed = 0;
-    state.succeeded = 0;
-    state.skipped = 0;
-    state.failStreetView = 0;
-    state.failGemini = 0;
+
+    // Scan queue = this file. Keep prior AI results unless user opts out.
+    state.records = stamped;
+    if (!keepResults) {
+      state.results = [];
+      state.processed = 0;
+      state.succeeded = 0;
+      state.skipped = 0;
+      state.failStreetView = 0;
+      state.failGemini = 0;
+      summarySection?.classList.remove('visible');
+      if (cardsGrid) {
+        cardsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">▶</div>Ready — hit Start Scan</div>';
+      }
+      if (resultsBody) {
+        resultsBody.innerHTML = '<tr><td colspan="13" class="empty-state">Ready — hit Start Scan</td></tr>';
+      }
+      if ($('resultCount')) $('resultCount').textContent = '';
+    }
+
     state.fileName = file.name;
     state.selectedKey = null;
-    $('failStats').classList.remove('visible');
-    fileInfo.textContent = `✓ ${file.name} — ${records.length.toLocaleString()} rows · ${leadTypeLabel(leadType)}`;
+    state._pendingUnscanned = stamped.length;
+    state._expectedRecords = stamped.length;
+    state._recordsLoadComplete = true;
+    state.importBatches = [
+      ...(Array.isArray(state.importBatches) ? state.importBatches : []),
+      {
+        id: batchId,
+        city: '',
+        state: '',
+        sourceFile: file.name,
+        leadCount: stamped.length,
+        importedAt
+      }
+    ];
+
+    $('failStats')?.classList.remove('visible');
+    fileInfo.textContent = `✓ ${file.name} — ${stamped.length.toLocaleString()} rows ready to scan · ${leadTypeLabel(leadType)}`;
     fileInfo.classList.add('visible');
-    if (heroCount) heroCount.textContent = records.length.toLocaleString();
-    cardsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">▶</div>Ready — hit Start Analysis</div>';
-    resultsBody.innerHTML = '<tr><td colspan="13" class="empty-state">Ready — hit Start Analysis</td></tr>';
-    $('resultCount').textContent = '';
+    if (heroCount) heroCount.textContent = stamped.length.toLocaleString();
+    setStatus(
+      `Loaded ${stamped.length.toLocaleString()} leads from ${file.name}. ` +
+      (keepResults
+        ? `Kept ${(state.results || []).length.toLocaleString()} already-scanned results.`
+        : 'Prior scan results cleared.')
+    );
+
     updateExportButtons();
-    summarySection.classList.remove('visible');
     updateGauge(null);
     saveSession('file-upload');
     flushSaveSession({ sync: true, force: true, reason: 'file-upload' });
-    log(`Loaded ${records.length} rows from ${file.name}`, 'success');
+    log(
+      `Loaded ${stamped.length.toLocaleString()} rows from ${file.name}` +
+      (keepResults ? ` (kept ${(state.results || []).length.toLocaleString()} prior results)` : ''),
+      'success'
+    );
     state.appView = 'dashboard';
     collapseSetup(true);
     updateCommandBar();
     closeToolModal(uploadModal);
     updateStartButton();
+    updateScanReadyUi?.();
   } catch (err) {
+    setStatus(err.message || 'Import failed');
     fileInfo.textContent = '';
     fileInfo.classList.remove('visible');
     if (heroCount) heroCount.textContent = '—';
-    state.records = [];
     log(err.message, 'error');
     alert(err.message);
     updateStartButton();
+    updateScanReadyUi?.();
   }
 }
 

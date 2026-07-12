@@ -1,4 +1,4 @@
-// scan-ready.js — Section 1: most recent import + Start Scan
+// scan-ready.js — Import dropzone + Start Scan
 (function (global) {
   const PDA = global.PDA = global.PDA || {};
   PDA.env = PDA.env || {};
@@ -8,27 +8,22 @@
     const im = () => PDA.lib?.importMeta;
 
     R.updateScanReadyUi = function updateScanReadyUi() {
+      // Always show Ready to scan so import stays available
+      if (scanReadySection) scanReadySection.hidden = false;
+
       const hasRecords = (state.records || []).length > 0;
-      // Total still waiting for Street View / satellite AI (not already in results)
       let pendingUnscanned = typeof recordKey === 'function'
         ? (im()?.countUnscannedLeads(state.records, state.results, recordKey) || 0)
         : 0;
-      // Large-session summary path may not have loaded records yet — use server hint
+      if (!pendingUnscanned && hasRecords) {
+        pendingUnscanned = state.records.length;
+      }
       if (!pendingUnscanned && Number(state._pendingUnscanned) > 0) {
         pendingUnscanned = Number(state._pendingUnscanned);
       }
-      const loadingRecords = !hasRecords && pendingUnscanned > 0 && !state._recordsLoadComplete;
-      const show = !state.running && (pendingUnscanned > 0 || loadingRecords);
-      if (scanReadySection) scanReadySection.hidden = !show;
-
-      if (!show) return;
 
       const batches = ib()?.deriveRecentImport(state.importBatches, state.records);
-      let city = '';
-      let stateName = '';
       let sourceFile = String(state.fileName || batches?.sourceFile || '').trim();
-
-      // If many batches share the same import (e.g. New Analyzer Leads), roll up label
       const recentAt = Number(batches?.importedAt) || 0;
       if (recentAt && Array.isArray(state.importBatches)) {
         const sameWave = state.importBatches.filter(
@@ -36,59 +31,110 @@
         );
         if (sameWave.length > 1) {
           sourceFile = sameWave.find((b) => b.sourceFile)?.sourceFile || sourceFile;
-          city = '';
-          stateName = '';
         }
       }
-
-      if (batches && sameWaveIsSingleLocation(batches, state.importBatches)) {
-        city = batches.city || '';
-        stateName = batches.state || '';
-      }
-
-      if (!city && !stateName && !sourceFile) {
-        const loc = im()?.deriveImportLocation(state.records);
-        if (loc) {
-          city = loc.city;
-          stateName = loc.state;
-        }
-      }
-
-      // Always show full unscanned queue — not a single batch's leadCount (was showing 41 of 5,291)
-      const leadCount = pendingUnscanned || state.records.length;
 
       const locationLabel = sourceFile
-        || im()?.formatImportLocation({ city, state: stateName })
-        || 'Imported list';
+        || im()?.formatImportLocation?.({
+          city: batches?.city || '',
+          state: batches?.state || ''
+        })
+        || 'Import leads to scan';
 
-      if (scanReadyLocation) scanReadyLocation.textContent = locationLabel;
+      if (scanReadyLocation) {
+        scanReadyLocation.textContent = hasRecords || pendingUnscanned
+          ? locationLabel
+          : 'Import leads to scan';
+      }
       if (scanReadyCount) {
-        scanReadyCount.textContent = loadingRecords
-          ? `Loading ${leadCount.toLocaleString()} lead${leadCount === 1 ? '' : 's'}…`
-          : `${leadCount.toLocaleString()} lead${leadCount === 1 ? '' : 's'} ready to scan`;
+        if (pendingUnscanned > 0) {
+          scanReadyCount.textContent =
+            `${pendingUnscanned.toLocaleString()} lead${pendingUnscanned === 1 ? '' : 's'} ready to scan`;
+        } else {
+          scanReadyCount.textContent =
+            'Upload a CSV/Excel file, then start Street View + AI scan.';
+        }
       }
 
-      const canStart = hasRecords && pendingUnscanned > 0 && !state.running && startBtn && !startBtn.disabled;
+      const canStart = pendingUnscanned > 0
+        && hasRecords
+        && !state.running
+        && !!serverConfig?.hasMapsKey
+        && !!serverConfig?.hasGeminiKey;
       if (scanReadyStartBtn) {
         scanReadyStartBtn.disabled = !canStart;
-        scanReadyStartBtn.title = canStart
-          ? 'Start Street View + satellite AI scan'
-          : (loadingRecords
-            ? 'Loading leads…'
-            : (startBtn?.title || 'Waiting for leads or API keys'));
+        if (canStart) {
+          scanReadyStartBtn.title = 'Start Street View + satellite AI scan';
+        } else if (state.running) {
+          scanReadyStartBtn.title = 'Scan already running';
+        } else if (!serverConfig?.hasMapsKey || !serverConfig?.hasGeminiKey) {
+          scanReadyStartBtn.title = 'Maps or Gemini API key missing on server';
+        } else if (!hasRecords) {
+          scanReadyStartBtn.title = 'Import a spreadsheet first';
+        } else {
+          scanReadyStartBtn.title = startBtn?.title || 'Cannot start yet';
+        }
       }
-      if (reviewLeadsBtn) reviewLeadsBtn.disabled = !state.results.length;
+      if (reviewLeadsBtn) reviewLeadsBtn.disabled = !(state.results || []).length;
     };
 
-    function sameWaveIsSingleLocation(recent, allBatches) {
-      if (!recent) return false;
-      const recentAt = Number(recent.importedAt) || 0;
-      const wave = (allBatches || []).filter(
-        (b) => Math.abs((Number(b.importedAt) || 0) - recentAt) < 60_000
-      );
-      if (wave.length <= 1) return true;
-      const cities = new Set(wave.map((b) => String(b.city || '').trim().toLowerCase()).filter(Boolean));
-      return cities.size <= 1;
+    function setScanDropActive(active) {
+      $('scanImportDrop')?.classList.toggle('dragover', !!active);
+    }
+
+    function wireScanImportZone() {
+      const drop = $('scanImportDrop');
+      const input = $('scanFileInput');
+      initLeadTypeSelects?.();
+
+      input?.addEventListener('change', async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+        if (state.running) {
+          alert('Stop the scan before uploading a new file.');
+          input.value = '';
+          return;
+        }
+        await handleFile(file, {
+          keepResults: $('scanImportKeepResults')?.checked !== false
+        });
+        input.value = '';
+      });
+
+      if (drop) {
+        drop.addEventListener('dragenter', (e) => {
+          if (!hasFileDrag?.(e.dataTransfer)) return;
+          e.preventDefault();
+          setScanDropActive(true);
+        });
+        drop.addEventListener('dragover', (e) => {
+          if (!hasFileDrag?.(e.dataTransfer)) return;
+          e.preventDefault();
+          setScanDropActive(true);
+        });
+        drop.addEventListener('dragleave', (e) => {
+          if (!drop.contains(e.relatedTarget)) setScanDropActive(false);
+        });
+        drop.addEventListener('drop', async (e) => {
+          e.preventDefault();
+          setScanDropActive(false);
+          if (state.running) {
+            alert('Stop the scan before uploading a new file.');
+            return;
+          }
+          const file = fileFromDataTransfer?.(e.dataTransfer) || e.dataTransfer?.files?.[0];
+          if (!file) return;
+          await handleFile(file, {
+            keepResults: $('scanImportKeepResults')?.checked !== false
+          });
+        });
+        drop.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            input?.click();
+          }
+        });
+      }
     }
 
     function wireScanReady() {
@@ -116,6 +162,9 @@
           reviewLeadsBtn?.setAttribute('aria-expanded', 'false');
         }
       });
+
+      wireScanImportZone();
+      updateScanReadyUi();
     }
 
     if (document.readyState === 'loading') {
