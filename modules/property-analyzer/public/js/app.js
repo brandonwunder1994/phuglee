@@ -1060,7 +1060,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
     return;
   }
   try {
-    saveKeys?.();
+    // Keys live in server .env (no client-side saveKeys) — never call a removed helper here.
     if (startBtn) startBtn.disabled = true;
     if (scanReadyStartBtn) scanReadyStartBtn.disabled = true;
 
