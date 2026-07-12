@@ -52,7 +52,7 @@
             `${pendingUnscanned.toLocaleString()} lead${pendingUnscanned === 1 ? '' : 's'} ready to scan — hit Start Scan`;
         } else {
           scanReadyCount.textContent =
-            'Drag & drop a CSV/Excel file below, then start Street View + AI scan.';
+            'Drop a file below, then start Street View + AI scan.';
         }
       }
 
@@ -70,7 +70,7 @@
         } else if (!serverConfig?.hasMapsKey || !serverConfig?.hasGeminiKey) {
           scanReadyStartBtn.title = 'Maps or Gemini API key missing on server';
         } else if (!hasRecords) {
-          scanReadyStartBtn.title = 'Drag & drop a spreadsheet first';
+          scanReadyStartBtn.title = 'Import a spreadsheet first';
         } else {
           scanReadyStartBtn.title = startBtn?.title || 'Cannot start yet';
         }
