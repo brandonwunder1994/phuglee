@@ -1373,6 +1373,7 @@ R.handleFile = async function handleFile(file, opts = {}) {
     updateCommandBar();
     closeToolModal(uploadModal);
     updateStartButton();
+    document.getElementById('scanImportDrop')?.classList.add('has-file');
     updateScanReadyUi?.();
   } catch (err) {
     setStatus(err.message || 'Import failed');
