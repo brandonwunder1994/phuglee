@@ -677,7 +677,8 @@ R.updateUploadCollapsedBar = function updateUploadCollapsedBar() {
 R.enterReviewMode = function enterReviewMode() {
   if (!state.results.length) return;
   progressSection.classList.add('review-minimal');
-  summarySection.classList.add('visible');
+  state.resultsWorkbenchOpen = true;
+  applyAnalyzeVisibility?.();
   const reviewQueue = getReviewQueue();
   if (reviewQueue.length) {
     state.filter = 'review';

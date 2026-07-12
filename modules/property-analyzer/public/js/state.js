@@ -1685,7 +1685,7 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   updateSummaryStats({ instant: true });
   updateFilterLabels?.();
   updateExportButtons();
-  summarySection.classList.add('visible');
+  if (summary.results) state.resultsWorkbenchOpen = true;
   progressSection.classList.add('review-minimal');
   if (state.processed > 0) progressSection.classList.add('active');
   state.appView = summary.results ? 'dashboard' : 'setup';
@@ -2014,9 +2014,13 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
 
   syncResultCounters();
 
+  // Auto-open workbench when session already has results (scan-first IA)
+  if (state.results.length > 0) {
+    state.resultsWorkbenchOpen = true;
+  }
+
   if (state.results.length) {
     updateExportButtons();
-    summarySection.classList.add('visible');
     progressSection.classList.add('review-minimal');
     if (state.processed > 0) progressSection.classList.add('active');
     collapseSetup(!!state.setupCollapsed);
@@ -2096,7 +2100,7 @@ R.primeSessionFromLocalStorage = function primeSessionFromLocalStorage() {
         fileInfo.classList.add('visible');
       }
       if (sessionLoadState.total) {
-        summarySection?.classList.add('visible');
+        state.resultsWorkbenchOpen = true;
         progressSection?.classList.add('review-minimal');
       }
       updateCommandBar();
@@ -2126,7 +2130,7 @@ R.primeSessionFromLocalStorage = function primeSessionFromLocalStorage() {
         fileInfo.classList.add('visible');
       }
       if (sessionLoadState.total) {
-        summarySection?.classList.add('visible');
+        state.resultsWorkbenchOpen = true;
         progressSection?.classList.add('review-minimal');
         if (state.processed > 0) progressSection?.classList.add('active');
       }
@@ -2147,7 +2151,7 @@ R.primeSessionFromLocalStorage = function primeSessionFromLocalStorage() {
       fileInfo.classList.add('visible');
     }
     if (state.results.length) {
-      summarySection?.classList.add('visible');
+      state.resultsWorkbenchOpen = true;
       progressSection?.classList.add('review-minimal');
       if (state.processed > 0) progressSection?.classList.add('active');
       updateExportButtons();
@@ -2364,6 +2368,8 @@ R.clearSession = function clearSession() {
   state.searchQuery = '';
   state.locationFilter = null;
   state.locationHubQuery = '';
+  state.resultsWorkbenchOpen = false;
+  state.pastMarketsOpen = false;
   state.sortMode = 'newest';
   state.leadTypeFilter = 'all';
   state.importLeadType = DEFAULT_LEAD_TYPE;
@@ -2383,7 +2389,6 @@ R.clearSession = function clearSession() {
   fileInfo.textContent = '';
   fileInfo.classList.remove('visible');
   updateExportButtons();
-  summarySection.classList.remove('visible');
   progressSection.classList.remove('active');
   progressBar.style.width = '0%';
   $('progressPct').textContent = '0%';

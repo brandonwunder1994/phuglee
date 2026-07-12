@@ -1,4 +1,4 @@
-// scan-ready.js — Drag-and-drop import + Start Scan
+// scan-ready.js — Drag-and-drop import + Start Scan + zone visibility
 (function (global) {
   const PDA = global.PDA = global.PDA || {};
   PDA.env = PDA.env || {};
@@ -7,6 +7,76 @@
     const ib = () => PDA.lib?.importBatches;
     const im = () => PDA.lib?.importMeta;
     let scanDropDepth = 0;
+
+    /** True when session has analyzed results (in-memory or server-primed). */
+    function analyzeHasResults() {
+      if ((state.results || []).length > 0) return true;
+      if (Number(sessionLoadState?.total || 0) > 0) return true;
+      const tc = state._tierCountsFromServer;
+      if (tc && (Number(tc.all) > 0 || Number(tc.total) > 0)) return true;
+      return false;
+    }
+
+    /**
+     * Scan-first IA: show/hide zones from pure getAnalyzeZones matrix.
+     * Call after session load, scan start/stop, summary update, desk refresh.
+     */
+    R.applyAnalyzeVisibility = function applyAnalyzeVisibility() {
+      const lib = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.analyzeVisibility) || null;
+      const getZones = (lib && lib.getAnalyzeZones)
+        || (typeof getAnalyzeZones === 'function' ? getAnalyzeZones : null);
+      if (!getZones) return;
+
+      const hasResults = analyzeHasResults();
+      const z = getZones({
+        hasRecords: (state.records && state.records.length > 0) || false,
+        hasResults,
+        isScanning: !!state.running,
+        resultsWorkbenchOpen: !!state.resultsWorkbenchOpen,
+        pastMarketsOpen: !!state.pastMarketsOpen
+      });
+
+      const pipeline = document.getElementById('analyzePipeline');
+      const desk = scanReadySection || document.getElementById('scanReadySection');
+      const live = liveScanSection || document.getElementById('liveScanSection');
+      const summary = summarySection || document.getElementById('summarySection');
+      const dash = dashboard || document.getElementById('dashboard');
+      const hub = locationHub || document.getElementById('locationHub');
+      const localKpi = localKpiSection || document.getElementById('localKpiSection');
+      const workBtn = document.getElementById('openResultsWorkbenchBtn');
+
+      if (pipeline) pipeline.hidden = !z.showPipeline;
+      if (desk) desk.hidden = !z.showScanDesk;
+
+      if (live) live.hidden = !z.showLiveScan;
+      if (summary) {
+        summary.hidden = !z.showSessionKpis;
+        summary.classList.toggle('visible', z.showSessionKpis);
+      }
+      if (dash) dash.hidden = !z.showResultsWorkbench;
+      if (localKpi && !z.showResultsWorkbench) localKpi.hidden = true;
+
+      if (hub) {
+        // Hard demote: never a peer panel on first paint — control or expanded only
+        if (z.pastMarketsMode === 'control') {
+          hub.hidden = false;
+          hub.classList.add('historical-search--control');
+          if (hub.open && !state.pastMarketsOpen) hub.open = false;
+        } else if (z.pastMarketsMode === 'expanded') {
+          hub.hidden = false;
+          hub.classList.remove('historical-search--control');
+          if (!hub.open) hub.open = true;
+        } else {
+          hub.hidden = true;
+        }
+      }
+
+      // Work results entry when results exist but workbench closed (not while scanning)
+      if (workBtn) {
+        const showWork = hasResults && !state.resultsWorkbenchOpen && !state.running;
+        workBtn.hidden = !showWork;
+      }
+    };
 
     R.updateScanReadyUi = function updateScanReadyUi() {
       if (scanReadySection) scanReadySection.hidden = false;
@@ -100,6 +170,8 @@
         readyStop.disabled = !state.running || !!state.aborted;
       }
       if (reviewLeadsBtn) reviewLeadsBtn.disabled = !(state.results || []).length;
+
+      applyAnalyzeVisibility();
     };
 
     function setScanDropActive(active) {
@@ -236,6 +308,15 @@
           if (reviewLeadsMenu) reviewLeadsMenu.hidden = true;
           reviewLeadsBtn?.setAttribute('aria-expanded', 'false');
         }
+      });
+
+      const openWorkbenchBtn = document.getElementById('openResultsWorkbenchBtn');
+      openWorkbenchBtn?.addEventListener('click', () => {
+        state.resultsWorkbenchOpen = true;
+        applyAnalyzeVisibility();
+        if (typeof renderResults === 'function') renderResults({ force: true });
+        else if (typeof renderResultsProgressive === 'function') renderResultsProgressive();
+        dashboard?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       });
 
       wireScanImportZone();

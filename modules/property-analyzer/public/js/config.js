@@ -525,6 +525,8 @@ R.state = {
   searchQuery: '',
   locationFilter: null,
   locationHubQuery: '',
+  resultsWorkbenchOpen: false,
+  pastMarketsOpen: false,
   importBatches: [],
   importDateFilter: [],
   sortMode: 'newest',

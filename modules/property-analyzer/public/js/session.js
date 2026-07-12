@@ -457,13 +457,14 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
     if (intro) intro.textContent = 'Upload a list and scan — buckets fill here.';
     $('sumReviewCard')?.classList.remove('has-items');
     if ($('sumReviewCard')) $('sumReviewCard').hidden = true;
-    summarySection?.classList.remove('visible');
+    // Zone show/hide owned by applyAnalyzeVisibility (scan-first IA)
     updateScannedCountUi();
     updateScanReadyUi?.();
+    applyAnalyzeVisibility?.();
     return;
   }
 
-  summarySection?.classList.add('visible');
+  // Numbers only — visibility gated by getAnalyzeZones via applyAnalyzeVisibility
   updateScannedCountUi();
   // Four primary buckets (operator contract) + scanned total
   animateStatNumber($('sumDistressedKpi'), counts.distressed, animOpts);
@@ -492,6 +493,7 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   if (!scanLight) updateFilterLabels();
   updateScanReadyUi?.();
   updateLocalKpis?.();
+  applyAnalyzeVisibility?.();
 }
 
 R.gaugeFillClass = function gaugeFillClass(score, category = 'property', leadTier = null) {

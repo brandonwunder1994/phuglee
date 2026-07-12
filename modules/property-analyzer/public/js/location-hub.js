@@ -38,6 +38,8 @@
 
     R.setLocationFilter = function setLocationFilter(filter) {
       state.locationFilter = filter;
+      // Selecting a market implies working results
+      if (filter) state.resultsWorkbenchOpen = true;
       state.importDateFilter = [];
       resetDisplayLimit();
       // Filter change must not wipe global session KPIs
@@ -161,8 +163,10 @@
     R.updateLocalKpis = function updateLocalKpis() {
       if (!localKpiSection) return;
       const picked = !!state.locationFilter;
-      localKpiSection.hidden = !picked;
-      if (!picked) return;
+      // Local market KPIs only when workbench is open (scan-first IA)
+      const workbenchOpen = !!state.resultsWorkbenchOpen && !state.running;
+      localKpiSection.hidden = !picked || !workbenchOpen;
+      if (!picked || !workbenchOpen) return;
 
       const counts = typeof getTierCounts === 'function'
         ? getTierCounts() // market-scoped when locationFilter is set
@@ -191,8 +195,7 @@
         || !!(state._geoFromServer?.states?.length);
       const picked = !!state.locationFilter;
 
-      if (locationHub) locationHub.hidden = !hasData;
-      if (dashboard) dashboard.hidden = !picked;
+      // Zone show/hide owned by applyAnalyzeVisibility — only manage breadcrumb here
       if (locationBreadcrumb) locationBreadcrumb.hidden = !picked;
 
       if (hasData) populateStateSelect();
@@ -214,10 +217,17 @@
       }
 
       updateScanReadyUi?.();
+      applyAnalyzeVisibility?.();
       syncResultsExportButtons?.();
     };
 
     function wireHistoricalSearch() {
+      // Past markets control: details open/close drives pastMarketsOpen
+      locationHub?.addEventListener('toggle', () => {
+        state.pastMarketsOpen = !!locationHub.open;
+        applyAnalyzeVisibility?.();
+      });
+
       historicalStateSelect?.addEventListener('change', () => {
         const abbr = historicalStateSelect.value;
         populateCitySelect(abbr);
