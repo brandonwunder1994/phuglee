@@ -143,20 +143,17 @@
       </div>
 
       <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import leads for scan">
-        <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-label="Drag and drop a CSV or Excel file, or press Enter to browse">
-          <div class="scan-import-drop-visual" aria-hidden="true">
-            <span class="scan-import-drop-icon">⬇</span>
-          </div>
-          <p class="scan-import-drop-title">Drag &amp; drop your lead file here</p>
-          <p class="scan-import-drop-hint">CSV or Excel · e.g. <strong>New Analyzer Leads.csv</strong></p>
-          <p class="scan-import-drop-or">or</p>
-          <label class="btn-secondary scan-import-browse" for="scanFileInput" id="scanImportBrowseLabel">Browse files…</label>
-          <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Browse for spreadsheet to scan">
-          <p class="scan-import-status" id="scanImportStatus" hidden></p>
+        <div class="scan-format-badges" aria-hidden="true">
+          <span>.xlsx</span><span>.csv</span><span>.xls</span>
         </div>
-        <p class="scan-import-safe-note" id="scanImportSafeNote">
-          Your <strong>already-scanned</strong> properties stay in the tool. Import only sets up the <strong>next batch to scan</strong> — it does not delete your ~10k results.
-        </p>
+        <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-describedby="scanImportDropHint" aria-label="Drag and drop a CSV or Excel file, or press Enter to browse">
+          <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Browse for spreadsheet to scan">
+          <div class="scan-import-drop-inner" id="scanImportDropInner">
+            <p class="scan-import-drop-title">Drop files here</p>
+            <p class="scan-import-drop-hint" id="scanImportDropHint">or <button type="button" class="scan-import-browse-link" id="scanImportBrowseLabel">browse files</button></p>
+            <p class="scan-import-status" id="scanImportStatus" hidden></p>
+          </div>
+        </div>
         <div class="scan-import-options">
           <label class="scan-import-option" for="scanImportLeadType">
             <span>Lead type</span>

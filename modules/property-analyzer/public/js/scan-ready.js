@@ -81,7 +81,8 @@
     function setScanDropActive(active) {
       const drop = $('scanImportDrop');
       if (!drop) return;
-      drop.classList.toggle('dragover', !!active);
+      drop.classList.toggle('is-dragover', !!active);
+      drop.classList.toggle('dragover', !!active); // legacy class
       drop.setAttribute('aria-dropeffect', active ? 'copy' : 'none');
     }
 
@@ -108,14 +109,17 @@
         await importScanFile(file);
       });
 
-      // Don't let label click bubble and double-open; input is still triggered by label[for]
-      browseLabel?.addEventListener('click', (e) => e.stopPropagation());
+      browseLabel?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        input?.click();
+      });
 
       if (!drop) return;
 
-      // Click empty drop area → browse (except when clicking the label/button)
+      // Click empty drop area → browse (except when clicking the browse control)
       drop.addEventListener('click', (e) => {
-        if (e.target.closest('label, button, a, input, select')) return;
+        if (e.target.closest('button, a, input, select, label')) return;
         input?.click();
       });
 
