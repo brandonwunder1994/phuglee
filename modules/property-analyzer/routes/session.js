@@ -1,81 +1,7 @@
 const { writeFileAtomic } = require('../lib/fs-atomic');
 const backupLogic = require('../lib/backup-logic');
 const { scopeSessionPath } = require('../lib/user-session');
-
-function freeSessionDiskSpace(fs, path, config, { aggressive = false } = {}) {
-  const dirs = [
-    config.ARCHIVE_REJECTED_DIR,
-    config.AUTO_BACKUPS_DIR,
-    config.ARCHIVE_DIR
-  ];
-  if (aggressive) {
-    dirs.push(config.MILESTONE_BACKUPS_DIR, config.MANUAL_BACKUPS_DIR, config.GEMINI_AUDIT_DIR);
-  }
-  let files = 0;
-  let bytes = 0;
-
-  function rmTree(dir, depth = 0) {
-    if (!dir || !fs.existsSync(dir)) return;
-    let entries = [];
-    try {
-      entries = fs.readdirSync(dir, { withFileTypes: true });
-    } catch (_) {
-      return;
-    }
-    for (const entry of entries) {
-      const full = path.join(dir, entry.name);
-      try {
-        if (entry.isDirectory()) {
-          // Keep archive root structure; wipe rejected contents fully.
-          if (depth === 0 && /archive$/i.test(dir) && entry.name !== 'rejected') {
-            continue;
-          }
-          rmTree(full, depth + 1);
-          try {
-            fs.rmdirSync(full);
-          } catch (_) {}
-        } else {
-          // Never delete live latest session files.
-          if (/distressAnalyzerSession_LATEST\.json$/i.test(entry.name)) continue;
-          const st = fs.statSync(full);
-          fs.unlinkSync(full);
-          files += 1;
-          bytes += st.size || 0;
-        }
-      } catch (_) {}
-    }
-  }
-
-  for (const dir of dirs) rmTree(dir, 0);
-
-  // Also clear *.tmp near data root users folders
-  try {
-    const usersDir = path.join(config.DATA_ROOT, 'users');
-    if (fs.existsSync(usersDir)) {
-      for (const user of fs.readdirSync(usersDir)) {
-        const uDir = path.join(usersDir, user);
-        let entries = [];
-        try {
-          entries = fs.readdirSync(uDir);
-        } catch (_) {
-          continue;
-        }
-        for (const name of entries) {
-          if (!/\.tmp$/i.test(name) && !/\.bak-/i.test(name)) continue;
-          const full = path.join(uDir, name);
-          try {
-            const st = fs.statSync(full);
-            fs.unlinkSync(full);
-            files += 1;
-            bytes += st.size || 0;
-          } catch (_) {}
-        }
-      }
-    }
-  } catch (_) {}
-
-  return { files, bytes };
-}
+const { freeSessionDiskSpace, pruneRejectedQuarantine, isDiskSpaceError } = require('../lib/disk-cleanup');
 
 function register(ctx) {
   const { router, sendJson, readBody, backups, safety, config, fs, path } = ctx;
@@ -140,33 +66,28 @@ function register(ctx) {
 
     let source = allRecords;
     if (mode === 'unscanned' || mode === 'pending') {
-      // Match Start Scan dedupe: recordKey OR normalized address
-      const keyOf = (r) => `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`;
-      const addrOf = (r) => String(r?.address || '').toLowerCase().replace(/\s+/g, ' ').trim();
-      const existingKeys = new Set();
-      const existingAddr = new Set();
+      const {
+        addressMatchKey,
+        addressMatchKeyLoose,
+        buildKnownAddressKeySet
+      } = require('../lib/address-match');
+      const recordKeyOf = (r) => `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`;
+      const known = buildKnownAddressKeySet(results, []);
+      const existingRecordKeys = new Set();
       for (const r of results) {
-        const k = keyOf(r);
-        if (k && k !== '||') existingKeys.add(k);
-        const a = addrOf(r);
-        if (a) existingAddr.add(a);
+        const rk = recordKeyOf(r);
+        if (rk && rk !== '||') existingRecordKeys.add(rk);
       }
-      // Fast path: processed count says we're done and queue is not a fresh batch
-      if (
-        allRecords.length
-        && existingKeys.size >= allRecords.length
-        && (finalized.processed || 0) >= allRecords.length
-      ) {
-        source = [];
-      } else {
-        source = allRecords.filter((r) => {
-          const k = keyOf(r);
-          if (k && k !== '||' && existingKeys.has(k)) return false;
-          const a = addrOf(r);
-          if (a && existingAddr.has(a)) return false;
-          return true;
-        });
-      }
+      const isScanned = (r) => {
+        const rk = recordKeyOf(r);
+        if (rk && rk !== '||' && existingRecordKeys.has(rk)) return true;
+        const k = addressMatchKey(r);
+        if (k && known.exact.has(k)) return true;
+        const l = addressMatchKeyLoose(r);
+        if (l && known.loose.has(l) && !String(r.postal || r.zip || '').trim()) return true;
+        return false;
+      };
+      source = allRecords.filter((r) => !isScanned(r));
     }
 
     const slice = source.slice(offset, offset + limit);
@@ -435,7 +356,10 @@ function register(ctx) {
       const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
       backups.ensureArchiveDirs();
       const quarantine = path.join(ARCHIVE_REJECTED_DIR, `distressAnalyzerSession_REJECTED_${scope.storageKey}_${results}_${stamp}.json`);
-      try { writeFileAtomic(quarantine, JSON.stringify(session)); } catch (_) {}
+      try {
+        writeFileAtomic(quarantine, JSON.stringify(session));
+        pruneRejectedQuarantine(fs, path, config);
+      } catch (_) {}
       sendJson(res, 409, {
         ok: false,
         rejected: true,
@@ -712,13 +636,19 @@ function register(ctx) {
   });
 
   router.post('/api/manual-backup', async (req, res, url) => {
+    const fromServer = url.searchParams.get('fromServer') === '1';
     let raw = await readBody(req);
     let session;
-    try {
-      session = JSON.parse(raw);
-    } catch (e) {
-      sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
-      return true;
+    if (fromServer || !String(raw || '').trim()) {
+      const { session: diskSession } = backups.loadSessionForRequest(req);
+      session = finalizeSession(diskSession);
+    } else {
+      try {
+        session = JSON.parse(raw);
+      } catch (e) {
+        sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
+        return true;
+      }
     }
     if (!session || (!Array.isArray(session.records) && !Array.isArray(session.results))) {
       sendJson(res, 400, { ok: false, error: 'Missing session records/results' });
@@ -738,4 +668,4 @@ function register(ctx) {
   });
 }
 
-module.exports = { register, freeSessionDiskSpace };
+module.exports = { register, freeSessionDiskSpace, isDiskSpaceError };

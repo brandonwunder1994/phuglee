@@ -859,7 +859,25 @@ function register(ctx) {
       return true;
     }
 
-    const sv = await helpers.fetchStreetViewPayload(address, key);
+    let sv;
+    try {
+      sv = await helpers.fetchStreetViewPayload(address, key);
+    } catch (err) {
+      const { isDiskSpaceError, freeSessionDiskSpace } = require('../lib/disk-cleanup');
+      if (isDiskSpaceError(err)) {
+        const freed = freeSessionDiskSpace(ctx.fs, ctx.path, ctx.config, { aggressive: true });
+        console.error(`[Street View] ENOSPC ${address?.slice(0, 60)} — freed ${freed.files} files`);
+        sv = {
+          ok: false,
+          error: 'Server disk full — temp files cleaned; retry in a few seconds',
+          diskFull: true,
+          retryable: true,
+          unavailable: false
+        };
+      } else {
+        throw err;
+      }
+    }
     const usageStore = ctx.usageStore;
     const { isHardQuotaError } = require('../lib/api-usage');
     if (!sv.ok) {

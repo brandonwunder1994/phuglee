@@ -357,8 +357,8 @@ module.exports = function createBackups(deps) {
 
   function backupTierForReason(reason = '') {
     if (reason === 'manual' || reason === 'load-backup') return 'manual';
+    // Only explicit operator/review/upload reasons — not promote_* or scan-batch heartbeats.
     if (MILESTONE_SAVE_REASONS.has(reason)) return 'milestone';
-    if (reason.startsWith('promote_') || reason.startsWith('scan-')) return 'milestone';
     return 'ephemeral';
   }
 
@@ -478,11 +478,9 @@ module.exports = function createBackups(deps) {
         delete toSave._mergedFromIncremental;
         try {
           writeLatestSessionFileForScope(activeScope, toSave);
-          if (shouldWriteRollingBackup(mergedResults)) {
-            writeRollingAutoBackup(toSave, `promote_${reason}`, 'milestone');
-            lastRollingBackupAt = Date.now();
-            if (safety?.safetyState) safety.safetyState.lastSnapshotResults = mergedResults;
-          }
+          // JSONL + LATEST are durable; skip 60MB milestone copy on every promote tick.
+          safety?.writeMirrorLatest(toSave);
+          safety?.writeSafetyStatus(toSave, { tag: `promote_${reason}`, tier: 'live' });
           if (safety?.safetyState) {
             safety.safetyState.lastPromoteAt = Date.now();
             safety.safetyState.lastPromoteResults = mergedResults;
@@ -546,7 +544,7 @@ module.exports = function createBackups(deps) {
       delete toSave._mergedFromIncremental;
       try {
         writeLatestSessionFileForScope(activeScope, toSave);
-        writeRollingAutoBackup(toSave, 'merge_on_read', 'milestone');
+        getSafety?.()?.writeMirrorLatest(toSave);
         console.log(`[Session] Promoted incremental recovery (${activeScope.storageKey}) — ${mergedResults} results`);
       } catch (err) {
         console.warn('[Session] Could not promote incremental recovery:', err.message);

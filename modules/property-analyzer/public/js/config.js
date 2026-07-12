@@ -1567,9 +1567,15 @@ R.apiProviderFromError = function apiProviderFromError(msg) {
   return 'gemini';
 }
 
+R.isDiskSpaceError = function isDiskSpaceError(msg) {
+  const m = String(msg || '').toLowerCase();
+  return /enospc|no space left on device|disk full|server disk full|not enough space/.test(m);
+}
+
 R.isTransientError = function isTransientError(msg) {
   if (isServerConnectionError(msg)) return false;
   if (isHardQuotaError(msg)) return false; // do not treat hard quota as "retry later"
+  if (isDiskSpaceError(msg)) return true; // disk full is infra — cleanup + retry, not halt
   const m = String(msg || '').toLowerCase();
   return /503|429|high demand|overloaded|rate limit|too many requests|try again later|temporarily unavailable|econnreset|socket hang up|image fetch failed|bad json|invalid json|unterminated|invalid score/.test(m);
 }
@@ -1606,9 +1612,11 @@ R.haltScanForQuota = function haltScanForQuota(provider, errMsg, opts = {}) {
   };
   const who = provider === 'maps' ? 'Google Maps / Street View' : 'Gemini';
   const detail = String(errMsg || 'API stopped working').slice(0, 280);
-  const title = opts.kind === 'outage'
-    ? `${who} stopped responding — scan paused`
-    : `${who} credits / quota / key issue — scan stopped`;
+  const title = opts.kind === 'disk'
+    ? 'Server disk full — scan paused after cleanup could not recover'
+    : opts.kind === 'outage'
+      ? `${who} stopped responding — scan paused`
+      : `${who} credits / quota / key issue — scan stopped`;
   const body =
     `${detail}\n\n` +
     `Progress is saved. The current property was NOT marked done — when APIs work again, click Start Scan to pick up where you left off.`;
@@ -1640,11 +1648,61 @@ R.haltScanForQuota = function haltScanForQuota(provider, errMsg, opts = {}) {
   updateScanReadyUi?.();
 }
 
+/** Ask server to free temp backups/logs when disk is full. */
+R.requestDiskCleanup = async function requestDiskCleanup() {
+  if (!USE_PROXY || typeof apiFetch !== 'function') return null;
+  const now = Date.now();
+  if (state._lastDiskCleanupAt && now - state._lastDiskCleanupAt < 30_000) {
+    return state._lastDiskCleanupResult || null;
+  }
+  try {
+    const res = await apiFetch('/api/disk-cleanup', { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    state._lastDiskCleanupAt = now;
+    state._lastDiskCleanupResult = data;
+    if (data?.files > 0) {
+      log?.(
+        `Server disk cleanup — removed ${Number(data.files).toLocaleString()} temp file(s)` +
+        (data.bytes ? ` (~${Math.round(data.bytes / 1e6)} MB)` : ''),
+        'warn'
+      );
+    }
+    return data;
+  } catch (e) {
+    console.warn('[disk-cleanup] request failed', e);
+    return null;
+  }
+}
+
+R.noteDiskSpaceError = function noteDiskSpaceError(errMsg) {
+  state.apiFailStreak = 0;
+  const pauseMs = 12_000 + Math.floor(Math.random() * 8000);
+  rateLimitUntil = Math.max(rateLimitUntil, Date.now() + pauseMs);
+  scaleDownWorkers?.('server disk full', { hard: true });
+  if (!state.diskSpaceWarned) {
+    state.diskSpaceWarned = true;
+    log(
+      'Server disk was full — cleaning temp backups and retrying (scan continues; address not marked done).',
+      'warn'
+    );
+    notifyScanIssue('disk_full', String(errMsg || 'Server disk full'), {
+      title: 'Disk full — auto-cleanup + retry',
+      dedupeKey: 'disk-full',
+      browserNotify: true
+    });
+  }
+  requestDiskCleanup?.();
+}
+
 /** Count consecutive non-transient API failures; soft 429/503 never halts the scan. */
 R.noteApiScanFailure = function noteApiScanFailure(errMsg, provider) {
   if (isHardQuotaError(errMsg)) {
     haltScanForQuota(provider || apiProviderFromError(errMsg), errMsg, { kind: 'quota' });
     return true;
+  }
+  if (isDiskSpaceError(errMsg)) {
+    noteDiskSpaceError(errMsg);
+    return false;
   }
   if (isDeferrableRateLimitError(errMsg)) {
     noteRateLimit({ message: errMsg });

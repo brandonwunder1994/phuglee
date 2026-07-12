@@ -1629,7 +1629,9 @@ R.runSaveBackupCheckpoint = async function runSaveBackupCheckpoint(source = 'men
     btn.textContent = 'Saving…';
   }
   try {
-    if (window.DistressPersistence?.saveBackupCheckpoint) {
+    if (window.DistressPersistence?.exportBackupNow) {
+      await DistressPersistence.exportBackupNow();
+    } else if (window.DistressPersistence?.saveBackupCheckpoint) {
       await DistressPersistence.saveBackupCheckpoint();
     } else {
       saveSession('manual');
@@ -1641,7 +1643,7 @@ R.runSaveBackupCheckpoint = async function runSaveBackupCheckpoint(source = 'men
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = prevLabel || '💾 Save Backup Now';
+      btn.textContent = prevLabel || 'Export backup now';
     }
   }
 }

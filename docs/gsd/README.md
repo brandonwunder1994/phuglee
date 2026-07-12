@@ -19,17 +19,19 @@ Get Shit Done tracking for shell integration, navigation, and cross-app design m
 | [M4](./milestones/M4-phuglee-signature-brand.md) | Phuglee Signature Brand (v1.3) | `complete` |
 | [M5](./milestones/M5-gritty-premium-surfaces.md) | Gritty Premium Surfaces (v1.4) | `implemented` |
 | [M6](./milestones/M6-territory-theater.md) | Territory Theater (v1.5) | `implemented` |
-| [M7](./milestones/M7-filter-superpower-brain.md) | Filter Superpower Brain (v1.6) | `planned` |
+| [M7](./milestones/M7-filter-superpower-brain.md) | Filter Superpower Brain (v1.6) | `shipped` (v1.6) |
+| [M8](./milestones/M8-filter-scrub-theater.md) | Filter Scrub Theater (v2.1) | `planned` |
 
-**Active milestone:** M7 — Filter Superpower Brain (v1.6) — **GSD pipeline complete** (map → roadmap → plan-phase checked); awaiting user **execute**  
-**Authoritative plans:** `.planning/phases/42-*-47-*/` (gsd-planner + gsd-plan-checker)  
-**Preview (after execute):** `http://127.0.0.1:3000/bridge` → process file → Train brain (admin)
+**Active milestone:** M8 — Filter Scrub Theater (v2.1) — **GSD pipeline complete** (map → requirements → roadmap → research → plan-phase checked); awaiting user **execute**  
+**Authoritative plans:** `.planning/phases/61-*-68-*/` (19 plans, all plan-checker PASS)  
+**Preview (after execute):** `http://127.0.0.1:3000/bridge` — scrub desk → live feed → kill-rate report → Train theater → shift inventory
 
 **Requirements:** `.planning/REQUIREMENTS.md`  
 **Roadmap:** `.planning/ROADMAP.md`  
-**Codebase map:** `.planning/codebase/`  
-**Design spec (ref):** `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md`  
+**Codebase map:** `.planning/codebase/` (+ `filter-page-ui-map.md`)  
+**Design bible (v2.1):** `.planning/v2.1-FILTER-SCRUB-THEATER.md`  
 **Style bible:** `.planning/v1.4-GRITTY-PREMIUM.md`  
+**Design spec (ref):** `docs/superpowers/specs/2026-07-09-filter-superpower-brain-design.md`  
 **Design spec (M5):** `docs/superpowers/specs/2026-07-09-gritty-premium-surfaces-design.md`  
 **Design spec (M6):** `docs/superpowers/specs/2026-07-09-territory-theater-design.md`  
 **Milestone init (M6):** `docs/gsd/plans/2026-07-09-m6-territory-theater.md`  

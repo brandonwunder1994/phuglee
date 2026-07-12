@@ -4,7 +4,8 @@
     "researcher": false,
     "plan_checker": false,
     "verifier": true,
-    "nyquist_validation": true
+    "nyquist_validation": true,
+    "_auto_chain_active": false
   },
   "planning": {
     "commit_docs": true,

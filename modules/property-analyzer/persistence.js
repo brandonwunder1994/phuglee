@@ -521,6 +521,74 @@
     el.textContent = extra || `Last saved ${ts} — server + download`;
   }
 
+  /**
+   * One-click backup: server reads full LATEST from disk (not partial browser state),
+   * writes manual checkpoint, then downloads JSON to the operator's machine.
+   */
+  async function exportBackupNow() {
+    const payload = config.getPayload();
+    const localN = (payload.results || []).length;
+    const localRecords = (payload.records || []).length;
+
+    if (!config.useProxy) {
+      if (!localN && !localRecords) {
+        showToast('Nothing to back up yet — load or scan data first', 'warn', 4000);
+        return { ok: false, error: 'empty' };
+      }
+      return saveBackupCheckpoint({ skipServerFirst: true });
+    }
+
+    const apiFetch = global.apiFetch || fetch;
+    const btn = $('exportBackupNowBtn');
+    const prevLabel = btn?.textContent;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+    }
+    showToast('Creating backup from server…', 'info', 2500);
+
+    try {
+      const res = await apiFetch('/api/manual-backup?fromServer=1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok || body?.ok === false) {
+        throw new Error(body?.error || `Server backup failed (${res.status})`);
+      }
+
+      const dlRes = await apiFetch('/api/session-backup', { cache: 'no-store' });
+      if (!dlRes.ok) {
+        throw new Error(`Download failed (${dlRes.status})`);
+      }
+      const json = await dlRes.text();
+      let parsed;
+      try {
+        parsed = JSON.parse(json);
+      } catch (_) {
+        throw new Error('Server returned invalid backup JSON');
+      }
+      const name = triggerDownload(json, parsed);
+      const n = Number(body.results) || (parsed.results || []).length;
+      const msg = body.file
+        ? `Backup saved — ${n.toLocaleString()} properties · server: ${body.file}`
+        : `Backup downloaded — ${n.toLocaleString()} properties`;
+      showToast(msg, 'success', 7000);
+      updateSettingsBackupHint(`Last backup ${formatTimestamp(Date.now())}`);
+      return { ok: true, file: name, serverFile: body.file, results: n };
+    } catch (e) {
+      console.warn('[Persistence] exportBackupNow failed', e);
+      showToast(`Backup failed: ${e.message}`, 'error', 6000);
+      return { ok: false, error: e.message };
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prevLabel || 'Export backup now';
+      }
+    }
+  }
+
   async function downloadBackupNow() {
     const payload = config.getPayload();
     const json = JSON.stringify(payload, null, 2);
@@ -555,7 +623,10 @@
     return name;
   }
 
-  async function saveBackupCheckpoint() {
+  async function saveBackupCheckpoint(opts = {}) {
+    if (config.useProxy && !opts.skipServerFirst) {
+      return exportBackupNow();
+    }
     const payload = config.getPayload();
     const n = (payload.results || []).length;
     const records = (payload.records || []).length;
@@ -606,7 +677,7 @@
         `${title}\n\n${detail}\n\nSave a backup file to your computer first? (Recommended)`
       );
       if (saveFirst) {
-        await downloadBackupNow();
+        await exportBackupNow();
       }
     }
 
@@ -640,8 +711,10 @@
   }
 
   function bindUi() {
-    $('saveBackupNowBtn')?.addEventListener('click', () => saveBackupCheckpoint());
-    $('emptySaveBackupBtn')?.addEventListener('click', () => saveBackupCheckpoint());
+    const runExport = () => exportBackupNow();
+    $('exportBackupNowBtn')?.addEventListener('click', runExport);
+    $('saveBackupNowBtn')?.addEventListener('click', runExport);
+    $('emptySaveBackupBtn')?.addEventListener('click', runExport);
 
     const loadInput = $('loadBackupInput');
     $('loadBackupBtn')?.addEventListener('click', () => loadInput?.click());
@@ -679,6 +752,7 @@
     resolveBestSession,
     notifyRestore,
     downloadBackupNow,
+    exportBackupNow,
     saveBackupCheckpoint,
     loadBackupFromFile,
     confirmDestructive,

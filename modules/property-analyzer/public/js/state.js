@@ -161,14 +161,51 @@ R.addressMatchKey = function addressMatchKey(r) {
   return [streetPart, city, state, zip].filter(Boolean).join('|');
 }
 
+/** Coarser key (street + city + state) when zip differs between lists. */
+R.addressMatchKeyLoose = function addressMatchKeyLoose(r) {
+  const full = addressMatchKey(r);
+  if (!full) return '';
+  const parts = full.split('|');
+  if (parts.length <= 3) return full;
+  return parts.slice(0, 3).join('|');
+}
+
+/**
+ * Build known address key sets from local results + optional server index payload.
+ * @returns {{ exact: Set, loose: Set }}
+ */
+R.buildKnownAddressSets = function buildKnownAddressSets(results = [], index = null) {
+  const exact = new Set();
+  const loose = new Set();
+  const addRow = (row) => {
+    const k = addressMatchKey(row);
+    if (k) exact.add(k);
+    const l = addressMatchKeyLoose(row);
+    if (l) loose.add(l);
+  };
+  for (const r of results || []) addRow(r);
+  if (index) {
+    for (const k of index.matchKeys || []) if (k) exact.add(k);
+    for (const k of index.matchKeysLoose || []) if (k) loose.add(k);
+    for (const k of index.addresses || []) if (k) exact.add(k);
+  }
+  return { exact, loose };
+}
+
+/** True when row matches a known scanned address (exact or loose-without-zip). */
+R.isRowAlreadyKnown = function isRowAlreadyKnown(row, known) {
+  const exact = known?.exact instanceof Set ? known.exact : new Set();
+  const loose = known?.loose instanceof Set ? known.loose : new Set();
+  const k = addressMatchKey(row);
+  if (k && exact.has(k)) return true;
+  const l = addressMatchKeyLoose(row);
+  if (l && loose.has(l) && !String(row.postal || row.zip || '').trim()) return true;
+  return false;
+}
+
 /** True if this lead already exists among scanned results (address-level). */
 R.isAlreadyScannedAddress = function isAlreadyScannedAddress(row, results) {
-  const k = addressMatchKey(row);
-  if (!k) return false;
-  for (const r of results || []) {
-    if (addressMatchKey(r) === k) return true;
-  }
-  return false;
+  return isRowAlreadyKnown(row, buildKnownAddressSets(results));
 }
 
 R.markRecordManuallyReviewed = function markRecordManuallyReviewed(r, via = 'manual') {
@@ -363,20 +400,35 @@ R.isSessionReadyForServerSave = function isSessionReadyForServerSave() {
 R.countPendingScanLeads = function countPendingScanLeads(records = state.records, results = state.results) {
   if (!Array.isArray(records) || !records.length) return 0;
   const existingKeys = new Set();
-  const existingAddr = new Set();
   for (const r of results || []) {
     if (typeof recordKey === 'function') existingKeys.add(recordKey(r));
-    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
-    if (ak) existingAddr.add(ak);
   }
+  const known = typeof buildKnownAddressSets === 'function'
+    ? buildKnownAddressSets(results, state._serverAddressIndex)
+    : { exact: new Set(), loose: new Set() };
   let n = 0;
   for (const r of records) {
     if (typeof recordKey === 'function' && existingKeys.has(recordKey(r))) continue;
-    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
-    if (ak && existingAddr.has(ak)) continue;
+    if (typeof isRowAlreadyKnown === 'function' && isRowAlreadyKnown(r, known)) continue;
     n += 1;
   }
   return n;
+};
+
+/** Fetch authoritative scanned-address index from server (full DB, not partial browser pages). */
+R.fetchServerAddressIndex = async function fetchServerAddressIndex() {
+  if (!USE_PROXY || typeof apiFetch !== 'function') return null;
+  try {
+    const res = await apiFetch('/api/import-address-index', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const idx = await res.json();
+    if (!idx?.ok) return null;
+    state._serverAddressIndex = idx;
+    return idx;
+  } catch (err) {
+    console.warn('[import] address index fetch failed', err);
+    return null;
+  }
 };
 
 /** Force a durable save of scan progress (stop, batch end, complete). */

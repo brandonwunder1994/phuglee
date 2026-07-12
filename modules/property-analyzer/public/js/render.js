@@ -1472,40 +1472,24 @@ R.handleFile = async function handleFile(file, opts = {}) {
     }));
 
     // Drop addresses already in the system (already scanned) so we never re-scan / burn credits.
-    // Source of truth = full results DB (local + server index when not fully hydrated).
-    // Also drop duplicates inside this same upload file.
-    const existingAddr = new Set();
-    if (keepResults && typeof addressMatchKey === 'function') {
-      for (const r of state.results || []) {
-        const k = addressMatchKey(r);
-        if (k) existingAddr.add(k);
+    // Source of truth = full results DB via server index (browser may only have a partial page loaded).
+    let serverIndex = null;
+    if (keepResults && typeof USE_PROXY !== 'undefined' && USE_PROXY && typeof fetchServerAddressIndex === 'function') {
+      setStatus('Checking against existing scanned database…');
+      serverIndex = await fetchServerAddressIndex();
+      if (serverIndex?.matchKeys?.length) {
+        log?.(
+          `Dedupe index: ${serverIndex.matchKeys.length.toLocaleString()} scanned addresses from server` +
+          (serverIndex.resultsCount != null
+            ? ` (${Number(serverIndex.resultsCount).toLocaleString()} results)`
+            : ''),
+          'info'
+        );
       }
     }
-    // Server has the full ~10k session even if the browser only loaded a page of results
-    if (keepResults && typeof USE_PROXY !== 'undefined' && USE_PROXY && typeof apiFetch === 'function') {
-      try {
-        setStatus('Checking against existing scanned database…');
-        const idxRes = await apiFetch('/api/import-address-index', { cache: 'no-store' });
-        if (idxRes.ok) {
-          const idx = await idxRes.json();
-          const matchKeys = Array.isArray(idx?.matchKeys) ? idx.matchKeys : [];
-          for (const k of matchKeys) {
-            if (k) existingAddr.add(k);
-          }
-          // Legacy normalizeAddress keys — match if we can map via addressMatchKey of stub
-          // matchKeys is authoritative for scan-desk dedupe
-          if (matchKeys.length) {
-            log?.(
-              `Dedupe index: ${matchKeys.length.toLocaleString()} scanned addresses from server` +
-              (idx.resultsCount != null ? ` (${Number(idx.resultsCount).toLocaleString()} results)` : ''),
-              'info'
-            );
-          }
-        }
-      } catch (idxErr) {
-        console.warn('[import] address index fetch failed — using local results only', idxErr);
-      }
-    }
+    const known = typeof buildKnownAddressSets === 'function'
+      ? buildKnownAddressSets(keepResults ? state.results : [], serverIndex)
+      : { exact: new Set(), loose: new Set() };
     let skippedAlreadyInSystem = 0;
     let skippedDupInFile = 0;
     const seenInFile = new Set();
@@ -1516,7 +1500,7 @@ R.handleFile = async function handleFile(file, opts = {}) {
         deduped.push(r);
         continue;
       }
-      if (existingAddr.has(k)) {
+      if (typeof isRowAlreadyKnown === 'function' && isRowAlreadyKnown(r, known)) {
         skippedAlreadyInSystem += 1;
         continue;
       }
@@ -1525,7 +1509,9 @@ R.handleFile = async function handleFile(file, opts = {}) {
         continue;
       }
       seenInFile.add(k);
-      existingAddr.add(k); // prevent double-add if later code re-walks
+      known.exact.add(k);
+      const l = typeof addressMatchKeyLoose === 'function' ? addressMatchKeyLoose(r) : '';
+      if (l) known.loose.add(l);
       deduped.push(r);
     }
     stamped = deduped;

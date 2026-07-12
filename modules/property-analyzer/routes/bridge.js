@@ -14,7 +14,13 @@ function register(ctx) {
       ok: true,
       count: index.count,
       sources: index.sources,
-      addresses: index.addresses
+      addresses: index.addresses,
+      // Authoritative scan-desk keys — must match browser addressMatchKey()
+      matchKeys: index.matchKeys,
+      matchKeysLoose: index.matchKeysLoose,
+      matchKeysWithQueue: index.matchKeysWithQueue,
+      resultsCount: index.resultsCount,
+      recordsCount: index.recordsCount
     });
     return true;
   });

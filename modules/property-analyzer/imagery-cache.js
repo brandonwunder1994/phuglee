@@ -9,6 +9,8 @@ const fs = require('fs');
 const path = require('path');
 const { writeFileAtomic } = require('./lib/fs-atomic');
 const { DATA_ROOT } = require('./lib/config');
+const config = require('./lib/config');
+const { freeSessionDiskSpace, isDiskSpaceError } = require('./lib/disk-cleanup');
 
 const IMAGERY_DIR = process.env.PDA_IMAGERY_ROOT
   ? path.resolve(process.env.PDA_IMAGERY_ROOT)
@@ -79,12 +81,43 @@ function loadIndex() {
   return indexCache;
 }
 
+function tryRecoverDiskSpace() {
+  try {
+    return freeSessionDiskSpace(fs, path, config, { aggressive: true });
+  } catch (_) {
+    return { files: 0, bytes: 0 };
+  }
+}
+
 function saveIndex() {
   ensureDirs();
   const idx = loadIndex();
-  writeFileAtomic(INDEX_FILE, JSON.stringify(idx, null, 2));
-  indexMapCache = null;
-  indexMapCacheMtime = 0;
+  const payload = JSON.stringify(idx, null, 2);
+  try {
+    writeFileAtomic(INDEX_FILE, payload);
+    indexMapCache = null;
+    indexMapCacheMtime = 0;
+    return true;
+  } catch (err) {
+    if (isDiskSpaceError(err)) {
+      const freed = tryRecoverDiskSpace();
+      logImagery(
+        `Index save ENOSPC — freed ${freed.files} file(s), retrying`,
+        'error'
+      );
+      try {
+        writeFileAtomic(INDEX_FILE, payload);
+        indexMapCache = null;
+        indexMapCacheMtime = 0;
+        return true;
+      } catch (retryErr) {
+        logImagery(`Index save failed after cleanup: ${retryErr.message}`, 'error');
+        return false;
+      }
+    }
+    logImagery(`Index save failed: ${err.message}`, 'error');
+    return false;
+  }
 }
 
 function indexKey(address, type) {
@@ -160,11 +193,28 @@ function saveImageryBuffer(address, type, buffer, mimeType, meta = {}) {
   const filePath = localFilePath(type, id, mime);
   const url = publicUrl(type, id, mime);
 
-  try {
+  const writeBuffer = () => {
     fs.writeFileSync(filePath, buffer);
+  };
+  try {
+    writeBuffer();
   } catch (err) {
-    logImagery(`Save failed ${address.slice(0, 50)}: ${err.message}`, 'error');
-    return { ok: false, error: err.message };
+    if (isDiskSpaceError(err)) {
+      const freed = tryRecoverDiskSpace();
+      logImagery(
+        `Imagery save ENOSPC for ${address.slice(0, 50)} — freed ${freed.files} file(s), retrying`,
+        'error'
+      );
+      try {
+        writeBuffer();
+      } catch (retryErr) {
+        logImagery(`Imagery save failed after cleanup: ${retryErr.message}`, 'error');
+        return { ok: false, error: retryErr.message, diskFull: true, cacheSkipped: true };
+      }
+    } else {
+      logImagery(`Save failed ${address.slice(0, 50)}: ${err.message}`, 'error');
+      return { ok: false, error: err.message };
+    }
   }
 
   const entry = {
@@ -182,7 +232,10 @@ function saveImageryBuffer(address, type, buffer, mimeType, meta = {}) {
 
   const idx = loadIndex();
   idx.entries[indexKey(address, type)] = entry;
-  saveIndex();
+  if (!saveIndex()) {
+    // Image file exists on disk; index update failed — scan can still use in-memory base64
+    return { ok: true, url, entry, indexStale: true };
+  }
 
   logImagery(`Cached ${type} for ${address.slice(0, 60)} (${buffer.length} bytes)`);
 
@@ -212,6 +265,8 @@ function markImageryUnavailable(address, type, reason = 'No imagery available') 
   logImagery(`Marked ${type} unavailable: ${address.slice(0, 60)} — ${reason}`);
   return { ok: true, unavailable: true, entry };
 }
+
+
 
 const HOT_CACHE_MAX = 800;
 const hotFileCache = new Map();

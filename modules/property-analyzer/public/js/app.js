@@ -983,7 +983,22 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
     return null;
   }
   if (lastErr) {
-    if (isDeferrableRateLimitError?.(lastErr.message) && deferQueue && !state.aborted) {
+    const deferDisk = isDiskSpaceError?.(lastErr.message) && deferQueue && !state.aborted;
+    const deferRate = isDeferrableRateLimitError?.(lastErr.message) && deferQueue && !state.aborted;
+    if (deferDisk) {
+      noteDiskSpaceError?.(lastErr.message);
+      deferQueue.push(record);
+      log(`⏸ ${label} — server disk full; cleanup + retry this run (not marked scanned)`, 'warn');
+      updateAgentSlot(workerNum, {
+        active: false,
+        status: 'Waiting — disk cleanup',
+        phase: 'idle',
+        address: ''
+      });
+      if (state.running) scheduleThrottledUi();
+      return null;
+    }
+    if (deferRate) {
       noteRateLimit(lastErr);
       deferQueue.push(record);
       log(`⏸ ${label} — Gemini/Google busy; will retry this run (not marked scanned)`, 'warn');
@@ -1207,8 +1222,12 @@ R.startScanAnalysis = async function startScanAnalysis() {
     state.serverStopAlertShown = false;
     state.satelliteWarnShown = false;
     state.rateLimitWarned = false;
+    state.diskSpaceWarned = false;
     state.quotaHaltShown = false;
     state.apiFailStreak = 0;
+    if (USE_PROXY && typeof requestDiskCleanup === 'function') {
+      requestDiskCleanup().catch(() => {});
+    }
     state.apiHaltReason = null;
     firstErrorShown = false;
     errorBanner?.classList.remove('visible');
@@ -1222,13 +1241,22 @@ R.startScanAnalysis = async function startScanAnalysis() {
     showScanStartedAlert();
     startServerStatusPolling();
     initAgentSlots(getEffectiveConcurrentLimit());
-    // Prefer address-level dedupe so different phone/email on same property still skip re-scan
-    const existingAddr = new Set();
+    // Prefer address-level dedupe — use full server index when browser only has partial results
+    const expectedTotal = Math.max(
+      Number(sessionLoadState?.total) || 0,
+      Number(sessionLoadState?.serverCanonical) || 0,
+      Number(state._tierCountsFromServer?.total) || 0
+    );
+    const resultsPartial = expectedTotal > 0 && (state.results || []).length < expectedTotal;
+    if (resultsPartial && typeof fetchServerAddressIndex === 'function') {
+      await fetchServerAddressIndex();
+    }
+    const known = typeof buildKnownAddressSets === 'function'
+      ? buildKnownAddressSets(state.results, state._serverAddressIndex)
+      : { exact: new Set(), loose: new Set() };
     const existingRecordKeys = new Set();
     for (const r of state.results || []) {
       existingRecordKeys.add(recordKey(r));
-      const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
-      if (ak) existingAddr.add(ak);
     }
     let skippedDupAtStart = 0;
     const pending = state.records.filter((r) => {
@@ -1236,8 +1264,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
         skippedDupAtStart += 1;
         return false;
       }
-      const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
-      if (ak && existingAddr.has(ak)) {
+      if (typeof isRowAlreadyKnown === 'function' && isRowAlreadyKnown(r, known)) {
         skippedDupAtStart += 1;
         return false;
       }
@@ -1507,7 +1534,7 @@ R.initAppShell = function initAppShell() {
     { label: 'Search leads', hint: 'Focus results search', keys: '/', run: () => resultSearch?.focus() },
     { label: 'API Keys', hint: 'Keys and workers', run: () => openSettingsModal() },
     { label: 'AI Brain', hint: 'Learned tier rules', run: () => openBrainModal() },
-    { label: 'Save backup now', hint: 'Server checkpoint + download JSON', run: () => $('saveBackupNowBtn')?.click() },
+    { label: 'Export backup now', hint: 'Full server checkpoint + download JSON', run: () => $('exportBackupNowBtn')?.click() },
     { label: 'Load backup JSON', hint: 'Restore session from file', run: () => $('loadBackupBtn')?.click() },
     { label: 'Download session backup', hint: 'Timestamped JSON export', run: () => sidebarSaveBackupBtn?.click(), when: () => !!sidebarSaveBackupBtn },
     { label: 'Distressed', hint: 'Quick tier review', run: () => openReviewMode('distressed'), when: () => sidebarReviewDistressedBtn && !sidebarReviewDistressedBtn.disabled },
