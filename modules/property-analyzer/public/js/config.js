@@ -7,8 +7,10 @@
   with (R) {
 
 R.BATCH_SIZE = 50;
-R.DEFAULT_CONCURRENT_LIMIT = 10;
-R.MAX_SAFE_CONCURRENT = 20;
+/** Operator band: always run 5–8 parallel workers (never drop to 2 under throttle). */
+R.MIN_CONCURRENT_LIMIT = 5;
+R.DEFAULT_CONCURRENT_LIMIT = 8;
+R.MAX_SAFE_CONCURRENT = 8;
 R.STREET_VIEW_SIZE = '640x480';
 R.CARD_THUMB_SIZE = '400x300';
 R.CARD_SAT_THUMB_SIZE = '400x400';
@@ -1403,30 +1405,38 @@ R.countFailedResults = function countFailedResults() {
   }).length;
 }
 
+R.clampWorkerCount = function clampWorkerCount(n) {
+  const min = Number(MIN_CONCURRENT_LIMIT) || 5;
+  const max = Number(MAX_SAFE_CONCURRENT) || 8;
+  const v = Math.round(Number(n) || DEFAULT_CONCURRENT_LIMIT);
+  return Math.max(min, Math.min(max, v));
+};
+
 R.getEffectiveConcurrentLimit = function getEffectiveConcurrentLimit() {
   const user = getConcurrentLimit();
-  const capped = Math.min(user, MAX_SAFE_CONCURRENT);
+  const capped = clampWorkerCount(Math.min(user, MAX_SAFE_CONCURRENT));
   if (adaptiveConcurrentCap == null) return capped;
-  return Math.max(1, Math.min(capped, adaptiveConcurrentCap));
-}
+  return clampWorkerCount(Math.min(capped, adaptiveConcurrentCap));
+};
 
 /**
- * Smart worker throttle: run at the operator max, drop when Gemini/Maps are capping out.
+ * Smart worker throttle within the 5–8 band.
+ * Drops toward 5 when Gemini/Maps cap out; climbs back toward 8 when batches look healthy.
  * Takes effect on the next batch (in-flight workers finish their current address).
  */
 R.scaleDownWorkers = function scaleDownWorkers(reason = 'rate_limit', opts = {}) {
-  const userMax = Math.min(getConcurrentLimit(), MAX_SAFE_CONCURRENT);
+  const floor = Number(MIN_CONCURRENT_LIMIT) || 5;
+  const userMax = clampWorkerCount(Math.min(getConcurrentLimit(), MAX_SAFE_CONCURRENT));
   const current = getEffectiveConcurrentLimit();
-  if (current <= 1) {
+  if (current <= floor) {
     adaptiveHealthyStreak = 0;
+    adaptiveConcurrentCap = floor;
     return false;
   }
-  // Prefer halving under hard pressure; step down by 2 under soft pressure.
+  // Step down by 1–2 within band (never below 5)
   const hard = opts.hard !== false;
-  let next = hard
-    ? Math.max(2, Math.floor(current / 2))
-    : Math.max(2, current - 2);
-  if (current <= 3) next = Math.max(1, current - 1);
+  let next = hard ? current - 2 : current - 1;
+  next = clampWorkerCount(next);
   if (next >= current) return false;
   if (adaptiveConcurrentCap != null && next >= adaptiveConcurrentCap) return false;
 
@@ -1438,21 +1448,21 @@ R.scaleDownWorkers = function scaleDownWorkers(reason = 'rate_limit', opts = {})
     try { updateLiveScanSectionUi?.(); } catch (_) {}
   }
   const why = String(reason || 'API pressure').slice(0, 80);
-  log(`Auto-throttled workers: ${current} → ${next} (${why}). Will climb back up when batches look healthy.`, 'warn');
+  log(`Auto-throttled workers: ${current} → ${next} (${why}). Floor is ${floor}; will climb back up when batches look healthy.`, 'warn');
   notifyScanIssue?.('throttle',
-    `Using ${next} of ${userMax} workers — ${why}. Workers auto-raise after clean batches.`,
+    `Using ${next} of ${userMax} workers — ${why}. Stays between ${floor}–${MAX_SAFE_CONCURRENT}; auto-raises after clean batches.`,
     { title: `Slowed to ${next} workers`, dedupeKey: `throttle-${next}` }
   );
   return true;
 };
 
-/** After clean batches while throttled, step workers back toward the operator max. */
+/** After clean batches while throttled, step workers back toward the operator max (≤ 8). */
 R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
   if (adaptiveConcurrentCap == null) {
     adaptiveHealthyStreak = 0;
     return false;
   }
-  const userMax = Math.min(getConcurrentLimit(), MAX_SAFE_CONCURRENT);
+  const userMax = clampWorkerCount(Math.min(getConcurrentLimit(), MAX_SAFE_CONCURRENT));
   if (adaptiveConcurrentCap >= userMax) {
     adaptiveConcurrentCap = null;
     adaptiveHealthyStreak = 0;
@@ -1463,19 +1473,20 @@ R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
   if (adaptiveHealthyStreak < 2) return false;
   adaptiveHealthyStreak = 0;
   const prev = adaptiveConcurrentCap;
-  let next = Math.min(userMax, adaptiveConcurrentCap + 2);
+  let next = clampWorkerCount(adaptiveConcurrentCap + 1);
   if (next >= userMax) {
     adaptiveConcurrentCap = null;
     next = userMax;
   } else {
     adaptiveConcurrentCap = next;
   }
+  if (next <= prev) return false;
   if (state.running) {
     try { initAgentSlots(getEffectiveConcurrentLimit()); } catch (_) {}
     try { updateWorkerActivityUi(lastServerApiStatus); } catch (_) {}
     try { updateLiveScanSectionUi?.(); } catch (_) {}
   }
-  log(`Auto-raised workers: ${prev} → ${next} (batches healthy). Cap is ${userMax}.`, 'success');
+  log(`Auto-raised workers: ${prev} → ${next} (batches healthy). Band is ${MIN_CONCURRENT_LIMIT}–${MAX_SAFE_CONCURRENT}.`, 'success');
   return true;
 };
 
@@ -1904,7 +1915,7 @@ try {
   savedPrefs = {};
 }
 R.getConcurrentLimit = function getConcurrentLimit() {
-  return Math.max(1, Math.min(MAX_SAFE_CONCURRENT, parseInt(concurrentLimitInput.value, 10) || DEFAULT_CONCURRENT_LIMIT));
+  return clampWorkerCount(parseInt(concurrentLimitInput?.value, 10) || DEFAULT_CONCURRENT_LIMIT);
 }
 
 R.savePrefs = function savePrefs() {
@@ -1976,9 +1987,13 @@ R.runStreetViewTest = async function runStreetViewTest() {
   testSvBtn.disabled = false;
 }
 
-R.savedWorkers = Math.max(1, Math.min(MAX_SAFE_CONCURRENT, parseInt(savedPrefs.concurrentLimit, 10) || DEFAULT_CONCURRENT_LIMIT));
-concurrentLimitInput.value = savedWorkers;
-concurrentLimitVal.textContent = String(savedWorkers);
+R.savedWorkers = clampWorkerCount(parseInt(savedPrefs.concurrentLimit, 10) || DEFAULT_CONCURRENT_LIMIT);
+if (concurrentLimitInput) {
+  concurrentLimitInput.min = String(MIN_CONCURRENT_LIMIT);
+  concurrentLimitInput.max = String(MAX_SAFE_CONCURRENT);
+  concurrentLimitInput.value = String(savedWorkers);
+}
+if (concurrentLimitVal) concurrentLimitVal.textContent = String(savedWorkers);
 savePrefs();
 fetchServerConfig();
 

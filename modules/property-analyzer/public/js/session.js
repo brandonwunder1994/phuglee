@@ -705,7 +705,9 @@ R.updateWorkerActivityUi = function updateWorkerActivityUi(serverSt = lastServer
 }
 
 R.initAgentSlots = function initAgentSlots(count = 8) {
-  const n = Math.max(1, Math.min(MAX_SAFE_CONCURRENT, count || 8));
+  const n = typeof clampWorkerCount === 'function'
+    ? clampWorkerCount(count || DEFAULT_CONCURRENT_LIMIT || 8)
+    : Math.max(5, Math.min(8, count || 8));
   state.agentSlots = Array.from({ length: n }, (_, i) => ({
     id: i + 1,
     active: false,
