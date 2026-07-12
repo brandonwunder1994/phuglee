@@ -26,6 +26,9 @@ data/bridge-brain/
 # Per-city Type-column format memory (runtime)
 data/bridge-city-formats/
 
+# Geocodio clean jobs + usage ledger (runtime)
+data/geocodio/
+
 # Property Analyzer runtime (modules/property-analyzer)
 modules/property-analyzer/node_modules/
 modules/property-analyzer/.env

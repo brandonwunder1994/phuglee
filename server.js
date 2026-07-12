@@ -1,6 +1,8 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+// Load local .env before config consumers read process.env (gitignored secrets).
+require('./lib/load-env').loadEnvFile();
 const config = require('./lib/config');
 const runtime = require('./lib/runtime');
 const { isForgeRequest, proxyToForge, checkForgeHealth } = require('./lib/forge-proxy');

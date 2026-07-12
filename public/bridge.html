@@ -473,10 +473,10 @@
         <div class="bridge-lists-details-body">
       <div class="bridge-lists-header">
         <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-batched-xlsx" title="One workbook: sheets of 5,000 leads each">Export batches (5k XLSX)</button>
-          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-csv" title="ZIP of CSV files, 5,000 leads each">Export batches (5k CSV zip)</button>
-          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-csv">Download all (CSV)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv" title="One CSV: Street Address, City, State, Postal Code — for Geocodio">Export all (CSV)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-xlsx" title="One workbook: sheets of 5,000 leads each">Export batches (5k XLSX)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-csv" title="ZIP of CSV files, 5,000 leads each">Export batches (5k CSV zip)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-delete-selected-lists" hidden>Delete selected</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
         </div>
@@ -510,11 +510,81 @@
       </details>
     </section>
 
+    <section class="bridge-panel phuglee-panel bridge-geocodio-panel" id="bridge-geocodio-panel" aria-labelledby="bridge-geocodio-heading" data-phuglee-reveal-child>
+      <div class="bridge-geocodio-head">
+        <div>
+          <h2 class="bridge-geocodio-title" id="bridge-geocodio-heading">Geocodio address clean</h2>
+          <p class="bridge-geocodio-lead">Upload a bulk address CSV (from Export all above). We geocode with rotated API keys (2,500 lookups each per day) and produce a clean sheet: Street Address, City, State, Zip Code — Geocodio fields only.</p>
+        </div>
+        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-geocodio-usage-btn">API key usage</button>
+      </div>
+      <div class="bridge-geocodio-upload-row">
+        <label class="bridge-geocodio-file-label">
+          <span class="bridge-geocodio-file-label-text">Choose CSV / Excel</span>
+          <input type="file" id="bridge-geocodio-file" accept=".csv,.tsv,.xlsx,.xls,.xlsm,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+        </label>
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-geocodio-start" disabled>Start Geocodio clean</button>
+      </div>
+      <p class="bridge-geocodio-file-name" id="bridge-geocodio-file-name" hidden></p>
+      <p class="bridge-geocodio-status" id="bridge-geocodio-status" role="status" aria-live="polite"></p>
+      <div class="bridge-geocodio-progress" id="bridge-geocodio-progress" hidden>
+        <div class="bridge-geocodio-progress-bar" id="bridge-geocodio-progress-bar"></div>
+      </div>
+      <h3 class="bridge-geocodio-downloads-title">Clean downloads</h3>
+      <p class="bridge-geocodio-downloads-empty" id="bridge-geocodio-downloads-empty">No cleaned files yet. Upload a list and start a job.</p>
+      <div class="bridge-geocodio-downloads-wrap" id="bridge-geocodio-downloads-wrap" hidden>
+        <table class="bridge-geocodio-table" id="bridge-geocodio-table">
+          <thead>
+            <tr>
+              <th scope="col">When</th>
+              <th scope="col">Source</th>
+              <th scope="col">Input</th>
+              <th scope="col">Kept</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bridge-geocodio-downloads-body"></tbody>
+        </table>
+      </div>
+    </section>
+
     <div class="bridge-error-wrap phuglee-error-wrap" id="bridge-error-wrap" hidden role="alert">
       <p class="bridge-error phuglee-error" id="bridge-error"></p>
       <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-retry" id="bridge-retry">Try again</button>
     </div>
   </main>
+
+  <dialog class="bridge-geocodio-usage-dialog" id="bridge-geocodio-usage-dialog" aria-labelledby="bridge-geocodio-usage-heading">
+    <div class="bridge-geocodio-usage-card phuglee-panel phuglee-modal-panel distress-glass--float">
+      <div class="bridge-geocodio-usage-head">
+        <div>
+          <h2 id="bridge-geocodio-usage-heading">Geocodio API usage</h2>
+          <p class="bridge-geocodio-usage-lead" id="bridge-geocodio-usage-lead">2,500 free lookups per account per day. Counts are from this app; Geocodio blocks update remaining to zero.</p>
+        </div>
+        <button type="button" class="bridge-geocodio-usage-close" id="bridge-geocodio-usage-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="bridge-geocodio-usage-toolbar">
+        <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-geocodio-usage-refresh">Refresh</button>
+        <p class="bridge-geocodio-usage-totals" id="bridge-geocodio-usage-totals"></p>
+      </div>
+      <div class="bridge-geocodio-usage-table-wrap">
+        <table class="bridge-geocodio-usage-table" id="bridge-geocodio-usage-table">
+          <thead>
+            <tr>
+              <th scope="col">Account</th>
+              <th scope="col">API key</th>
+              <th scope="col">Used</th>
+              <th scope="col">Remaining</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody id="bridge-geocodio-usage-body"></tbody>
+        </table>
+      </div>
+      <p class="bridge-geocodio-usage-note" id="bridge-geocodio-usage-note"></p>
+    </div>
+  </dialog>
 
   <dialog class="bridge-history-dialog" id="bridge-history-dialog" aria-labelledby="bridge-history-heading">
     <div class="bridge-history-dialog-card phuglee-panel phuglee-modal-panel distress-glass--float">

@@ -653,9 +653,12 @@ test('download-all and clear-all for saved lists', async () => {
   });
   assert.equal(all.status, 200);
   assert.match(String(all.headers['Content-Type'] || ''), /csv/i);
-  assert.match(all.body, /Bulk A/);
-  assert.match(all.body, /Bulk B/);
+  // Address-only enrichment CSV (no list names)
+  assert.match(all.body, /Street Address,City,State,Postal Code/);
   assert.match(all.body, /10 Bulk/);
+  assert.match(all.body, /20 Bulk/);
+  assert.match(all.body, /Alpha/);
+  assert.match(all.body, /Beta/);
 
   const cleared = await callBridge('DELETE', '/api/bridge/lists', {
     headers: { 'x-phuglee-user': 'bulk-tester' }
