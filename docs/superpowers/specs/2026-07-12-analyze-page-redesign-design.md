@@ -1,7 +1,7 @@
 # Design Spec — Analyze Page Full Redesign
 
 **Date:** 2026-07-12  
-**Status:** Draft for user review (shape brief confirmed)  
+**Status:** Implemented on branch `feat/analyze-page-redesign` (2026-07-12)  
 **Product:** Phuglee Distress OS — Analyze (`/analyzer/`)  
 **Surface:** `modules/property-analyzer/public/` + shell `public/css/distress-analyzer-os.css`  
 **Approach:** Unify in place (Approach 1)  
