@@ -57,3 +57,7 @@ scripts/prod-session-backup.json
 scripts/_cleaned-session-prod.json
 scripts/cheyenne-clear-work*.json
 scripts/seed-data/distressAnalyzerSession_LATEST.json.bak*
+
+# Superpowers / agent worktrees
+.worktrees/
+
