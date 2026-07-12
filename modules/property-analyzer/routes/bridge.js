@@ -117,7 +117,31 @@ function register(ctx) {
       lastRecordsUpdated: merged.recordsUpdated
     };
 
-    backups.writeLatestSessionFileForScope(scope, merged.session);
+    // Session rewrites need free disk (Railway volumes fill with rejected backups).
+    try {
+      const sessionRoutes = require('./session');
+      if (typeof sessionRoutes.freeSessionDiskSpace === 'function') {
+        sessionRoutes.freeSessionDiskSpace(require('fs'), require('path'), config);
+      }
+    } catch (_) {}
+
+    try {
+      backups.writeLatestSessionFileForScope(scope, merged.session);
+    } catch (err) {
+      if (err && (err.code === 'ENOSPC' || /no space left/i.test(String(err.message || '')))) {
+        try {
+          const sessionRoutes = require('./session');
+          if (typeof sessionRoutes.freeSessionDiskSpace === 'function') {
+            sessionRoutes.freeSessionDiskSpace(require('fs'), require('path'), config, {
+              aggressive: true
+            });
+          }
+        } catch (_) {}
+        backups.writeLatestSessionFileForScope(scope, merged.session);
+      } else {
+        throw err;
+      }
+    }
 
     sendJson(res, 200, {
       ok: true,

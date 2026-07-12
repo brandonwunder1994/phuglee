@@ -26,7 +26,9 @@ const SESSION_PATH = path.join(
 );
 const CSV_PATH = path.join(process.env.USERPROFILE || '', 'Desktop', '10k plus leads.csv');
 const PROD = process.env.PHUGLEE_PROD_URL || 'https://phuglee-production.up.railway.app';
-const CHUNK = Number(process.env.ENRICH_CHUNK || 100);
+const CHUNK = Number(process.env.ENRICH_CHUNK || 250);
+const MAX_RETRIES = Number(process.env.ENRICH_RETRIES || 6);
+const CHUNK_PAUSE_MS = Number(process.env.ENRICH_PAUSE_MS || 500);
 const REPORT_PATH = path.join(ROOT, 'scripts', '_push-profile-enrichment-report.json');
 
 const {
@@ -448,29 +450,72 @@ async function main() {
   let totalAlready = 0;
   const chunks = Math.ceil(patches.length / CHUNK);
 
-  for (let i = 0; i < patches.length; i += CHUNK) {
-    const chunk = patches.slice(i, i + CHUNK);
-    const n = Math.floor(i / CHUNK) + 1;
+  async function postChunk(chunk, n, offset) {
     const body = JSON.stringify({
       source: 'desktop-csv-profile-stack',
       patches: chunk
     });
-    const res = await fetchUrl(`${PROD}/analyzer/api/enrich-profiles`, {
-      method: 'POST',
-      headers,
-      body,
-      timeoutMs: 300000
-    });
-    let parsed = {};
-    try {
-      parsed = JSON.parse(res.text);
-    } catch (_) {
-      parsed = { raw: res.text.slice(0, 300) };
+    let lastErr = null;
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        const res = await fetchUrl(`${PROD}/analyzer/api/enrich-profiles`, {
+          method: 'POST',
+          headers,
+          body,
+          timeoutMs: 300000
+        });
+        let parsed = {};
+        try {
+          parsed = JSON.parse(res.text);
+        } catch (_) {
+          parsed = { raw: res.text.slice(0, 300) };
+        }
+        if (res.status >= 200 && res.status < 300 && parsed.ok) {
+          return parsed;
+        }
+        lastErr = new Error(
+          `HTTP ${res.status}: ${typeof parsed === 'object' ? JSON.stringify(parsed).slice(0, 200) : res.text.slice(0, 200)}`
+        );
+        // 502/503/ENOSPC-ish — free disk and retry
+        if (res.status === 502 || res.status === 503 || res.status === 500) {
+          console.warn(
+            `[enrich-push] chunk ${n} attempt ${attempt}/${MAX_RETRIES} ${res.status} — cleanup + retry`
+          );
+          try {
+            await fetchUrl(`${PROD}/analyzer/api/disk-cleanup`, {
+              method: 'POST',
+              headers,
+              body: '{}',
+              timeoutMs: 120000
+            });
+          } catch (_) {}
+          await new Promise((r) => setTimeout(r, 3000 * attempt));
+          continue;
+        }
+        throw lastErr;
+      } catch (err) {
+        lastErr = err;
+        console.warn(
+          `[enrich-push] chunk ${n} attempt ${attempt}/${MAX_RETRIES} error: ${err.message}`
+        );
+        try {
+          await fetchUrl(`${PROD}/analyzer/api/disk-cleanup`, {
+            method: 'POST',
+            headers,
+            body: '{}',
+            timeoutMs: 120000
+          });
+        } catch (_) {}
+        await new Promise((r) => setTimeout(r, 3000 * attempt));
+      }
     }
-    if (res.status < 200 || res.status >= 300 || !parsed.ok) {
-      console.error(`[enrich-push] chunk ${n}/${chunks} FAILED`, res.status, parsed);
-      throw new Error(`enrich chunk failed at offset ${i}`);
-    }
+    throw lastErr || new Error(`enrich chunk failed at offset ${offset}`);
+  }
+
+  for (let i = 0; i < patches.length; i += CHUNK) {
+    const chunk = patches.slice(i, i + CHUNK);
+    const n = Math.floor(i / CHUNK) + 1;
+    const parsed = await postChunk(chunk, n, i);
     totalResults += Number(parsed.resultsUpdated) || 0;
     totalRecords += Number(parsed.recordsUpdated) || 0;
     totalUnmatched += Number(parsed.unmatched) || 0;
@@ -479,6 +524,7 @@ async function main() {
       `[enrich-push] chunk ${n}/${chunks} res+${parsed.resultsUpdated} rec+${parsed.recordsUpdated} ` +
         `unmatched=${parsed.unmatched} already=${parsed.alreadyHad}`
     );
+    if (CHUNK_PAUSE_MS > 0) await new Promise((r) => setTimeout(r, CHUNK_PAUSE_MS));
   }
 
   report.apply = {
