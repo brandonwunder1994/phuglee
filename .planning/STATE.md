@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: Analyzer Scan Desk (Linear)
-status: in_progress
-stopped_at: Core linear desk shipped locally; prod deploy pending
-last_updated: "2026-07-12T07:20:00.000Z"
-last_activity: 2026-07-12 — Implemented 82–87 core + QA tests; verify-live green local
+status: complete
+stopped_at: Deployed 3a6352a to Railway; analyzer up
+last_updated: "2026-07-12T07:15:00.000Z"
+last_activity: 2026-07-12 — v3.1 live on production with dual-layer dedupe
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 7
-  completed_plans: 6
-  percent: 85
+  completed_plans: 7
+  percent: 100
 ---
 
 # State
