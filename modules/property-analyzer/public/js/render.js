@@ -879,11 +879,22 @@ R.log = function log(msg, type = '') {
   else write();
 }
 
+/** Normalize header labels so PropertyAddress / property_address / Property Address all match. */
+R.headerKey = function headerKey(h) {
+  return String(h || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+}
+
 R.findColumn = function findColumn(headers, names) {
-  const normalized = headers.map(h => ({ original: h, lower: h.trim().toLowerCase() }));
-  for (const name of names) {
-    const match = normalized.find(h => h.lower === name);
-    if (match) return match.original;
+  const map = new Map();
+  for (const h of headers || []) {
+    const key = headerKey(h);
+    if (key && !map.has(key)) map.set(key, h);
+  }
+  for (const name of names || []) {
+    const hit = map.get(headerKey(name));
+    if (hit) return hit;
   }
   return null;
 }
@@ -914,9 +925,10 @@ R.flag01 = function flag01(v) {
 /** Build optional property profile from skip-trace / New Analyzer Leads style columns. */
 R.buildImportProfile = function buildImportProfile(row, cols) {
   const g = (names) => {
+    const map = cols._byLower;
     for (const n of names) {
-      const c = cols._byLower?.get(n);
-      if (c && String(row[c] ?? '').trim()) return String(row[c]).trim();
+      const c = map?.get?.(headerKey(n));
+      if (c != null && String(row[c] ?? '').trim()) return String(row[c]).trim();
     }
     return '';
   };
@@ -1019,15 +1031,24 @@ R.buildImportProfile = function buildImportProfile(row, cols) {
 }
 
 R.parseSpreadsheet = function parseSpreadsheet(file, leadType = DEFAULT_LEAD_TYPE) {
-  const importLeadType = normalizeLeadType(leadType);
+  const importLeadType = normalizeLeadType(leadType || 'code_violation');
   return new Promise((resolve, reject) => {
+    if (typeof XLSX === 'undefined') {
+      reject(new Error('Spreadsheet library failed to load. Hard-refresh the page (Ctrl+Shift+R) and try again.'));
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+        if (!workbook.SheetNames?.length) {
+          reject(new Error('Workbook has no sheets'));
+          return;
+        }
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+        // raw:false keeps phones/zips as text (avoids 8.608e9 style numbers)
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
 
         if (!rows.length) {
           reject(new Error('Spreadsheet is empty'));
@@ -1035,67 +1056,84 @@ R.parseSpreadsheet = function parseSpreadsheet(file, leadType = DEFAULT_LEAD_TYP
         }
 
         const headers = Object.keys(rows[0]);
-        const byLower = new Map(headers.map((h) => [String(h).trim().toLowerCase(), h]));
-        const cols = {
-          firstName: findColumn(headers, [
-            'first name', 'firstname', 'first', 'owner first name', 'owner first'
-          ]),
-          lastName: findColumn(headers, [
-            'last name', 'lastname', 'last', 'owner last name', 'owner last'
-          ]),
-          phone: findColumn(headers, [
-            'phone', 'phone number', 'telephone', 'mobile', 'cell',
-            'contact1phone_1', 'contact1 phone 1', 'primary phone'
-          ]),
-          email: findColumn(headers, [
-            'email', 'email address', 'e-mail',
-            'contact1email_1', 'contact1 email 1', 'primary email'
-          ]),
-          street: findColumn(headers, [
-            'street address', 'street', 'address', 'property address', 'propertyaddress',
-            'site address', 'full address', 'situs address'
-          ]),
-          city: findColumn(headers, [
-            'city', 'property city', 'propertycity', 'situs city'
-          ]),
-          state: findColumn(headers, [
-            'state', 'property state', 'propertystate', 'st', 'situs state'
-          ]),
-          postal: findColumn(headers, [
-            'postal code', 'zip code', 'zip', 'postal',
-            'property postal code', 'propertypostalcode', 'property zip', 'situs zip'
-          ]),
-          _byLower: byLower
+        const byKey = new Map(headers.map((h) => [headerKey(h), h]));
+        const pick = (...names) => {
+          for (const n of names) {
+            const hit = byKey.get(headerKey(n));
+            if (hit) return hit;
+          }
+          return null;
         };
 
-        // Only address is required — New Analyzer Leads / skip-trace exports vary
+        const cols = {
+          firstName: pick('FirstName', 'First Name', 'first', 'Owner First Name', 'OwnerFirstName'),
+          lastName: pick('LastName', 'Last Name', 'last', 'Owner Last Name', 'OwnerLastName'),
+          phone: pick(
+            'Contact1Phone_1', 'Contact1 Phone 1', 'Phone', 'Phone Number', 'Mobile', 'Cell',
+            'Primary Phone', 'Owner Phone'
+          ),
+          email: pick(
+            'Contact1Email_1', 'Contact1 Email 1', 'Email', 'Email Address', 'E-mail', 'Primary Email'
+          ),
+          street: pick(
+            'PropertyAddress', 'Property Address', 'Street Address', 'Street', 'Address',
+            'Site Address', 'Full Address', 'Situs Address', 'Situs Street'
+          ),
+          city: pick('PropertyCity', 'Property City', 'City', 'Situs City'),
+          state: pick('PropertyState', 'Property State', 'State', 'ST', 'Situs State'),
+          postal: pick(
+            'PropertyPostalCode', 'Property Postal Code', 'Property Zip', 'Postal Code',
+            'Zip Code', 'Zip', 'Postal', 'Situs Zip'
+          ),
+          // for buildImportProfile lookups
+          _byLower: byKey
+        };
+
+        // Only street/address is required
         if (!cols.street) {
+          const preview = headers.slice(0, 12).join(', ');
           reject(new Error(
-            'Missing address column. Need one of: Street Address, Property Address, Address, Street.'
+            'Could not find an address column.\n\n' +
+            'Need one of: PropertyAddress, Street Address, Address, Street.\n\n' +
+            `Columns found: ${preview}${headers.length > 12 ? '…' : ''}`
           ));
           return;
         }
 
         const importedAt = Date.now();
-        const records = rows.map((r) => {
+        const records = [];
+        let skippedBlank = 0;
+
+        for (const r of rows) {
           const street = cellStr(r, cols.street);
+          if (!street) {
+            skippedBlank += 1;
+            continue;
+          }
           const city = cellStr(r, cols.city);
           const stateName = cellStr(r, cols.state);
-          const postal = cellStr(r, cols.postal);
+          // Zip may come in as "85140" or "85140.0"
+          let postal = cellStr(r, cols.postal).replace(/\.0$/, '');
+          if (/^\d+\.0+$/.test(postal)) postal = postal.replace(/\.0+$/, '');
+
           const firstName = cellStr(r, cols.firstName);
           const lastName = cellStr(r, cols.lastName);
           let phone = cellStr(r, cols.phone);
           let email = cellStr(r, cols.email);
-          // Fallbacks for New Analyzer Leads layout
           if (!phone) {
-            phone = cellStr(r, byLower.get('contact1phone_1'))
-              || cellStr(r, byLower.get('contact1phone_2'));
+            phone = cellStr(r, pick('Contact1Phone_2', 'Contact1 Phone 2'));
           }
           if (!email) {
-            email = cellStr(r, byLower.get('contact1email_1'))
-              || cellStr(r, byLower.get('contact1email_2'));
+            email = cellStr(r, pick('Contact1Email_2', 'Contact1 Email 2'));
           }
-          const profile = buildImportProfile(r, cols);
+          // Normalize phone to digits when it was a float-ish string
+          if (phone && /^\d+(\.\d+)?e\+/i.test(phone)) {
+            const n = Number(phone);
+            if (Number.isFinite(n)) phone = String(Math.round(n));
+          }
+          phone = phone.replace(/\.0$/, '');
+
+          const profile = buildImportProfile(r, { ...cols, _byLower: byKey });
           const rec = {
             firstName,
             lastName,
@@ -1110,28 +1148,65 @@ R.parseSpreadsheet = function parseSpreadsheet(file, leadType = DEFAULT_LEAD_TYP
             importedAt,
             sourceFile: file.name || ''
           };
+
+          // Light geo if present
+          const lat = cellStr(r, pick('Latitude', 'Lat'));
+          const lng = cellStr(r, pick('Longitude', 'Lng', 'Lon', 'Long'));
+          if (lat) rec.latitude = lat;
+          if (lng) rec.longitude = lng;
+
           if (profile) {
-            rec.profile = profile;
+            // Keep a lean profile for UI — enough for property cards, not huge payloads
+            rec.profile = {
+              _shaped: true,
+              propertyType: profile.propertyType || '',
+              beds: profile.beds || '',
+              baths: profile.baths || '',
+              squareFootage: profile.squareFootage || '',
+              yearBuilt: profile.yearBuilt || '',
+              ownerType: profile.ownerType || '',
+              county: profile.county || '',
+              marketValue: profile.marketValue || '',
+              avm: profile.avm || '',
+              wholesaleValue: profile.wholesaleValue || '',
+              taxAssessedValue: profile.taxAssessedValue || '',
+              taxAmount: profile.taxAmount || '',
+              ltv: profile.ltv || '',
+              estimatedMortgageBalance: profile.estimatedMortgageBalance || '',
+              lenderName: profile.lenderName || '',
+              mailingStreet: profile.mailingStreet || '',
+              mailingCity: profile.mailingCity || '',
+              mailingState: profile.mailingState || '',
+              mailingPostal: profile.mailingPostal || '',
+              contactName: profile.contactName || '',
+              contactType: profile.contactType || '',
+              phones: profile.phones || [],
+              emails: profile.emails || [],
+              flags: profile.flags || {}
+            };
             if (profile.marketValue) rec.marketValue = profile.marketValue;
             if (profile.avm) rec.avm = profile.avm;
             if (profile.ownerType) rec.ownerType = profile.ownerType;
             if (profile.county) rec.county = profile.county;
             if (profile.contactName) rec.ownerName = profile.contactName;
           }
-          return rec;
-        }).filter((r) => r.address.length > 0);
+          records.push(rec);
+        }
 
         if (!records.length) {
-          reject(new Error('No valid rows found in the spreadsheet (need at least an address)'));
+          reject(new Error(
+            `No valid address rows found (${skippedBlank} blank). ` +
+            `Check the address column in ${file.name || 'your file'}.`
+          ));
           return;
         }
 
         resolve(records);
       } catch (err) {
-        reject(err);
+        reject(new Error(err?.message || String(err) || 'Failed to parse spreadsheet'));
       }
     };
-    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.onerror = () => reject(new Error('Failed to read file from disk'));
     reader.readAsArrayBuffer(file);
   });
 }
@@ -1361,8 +1436,27 @@ R.handleFile = async function handleFile(file, opts = {}) {
 
     updateExportButtons();
     updateGauge(null);
-    saveSession('file-upload');
-    flushSaveSession({ sync: true, force: true, reason: 'file-upload' });
+
+    // Persist without failing the whole import if the big session push times out.
+    // Local first, then best-effort server save.
+    try {
+      saveSession('file-upload');
+      flushSaveSession({ sync: true, force: true, reason: 'file-upload', localOnly: true });
+    } catch (saveErr) {
+      console.warn('[import] local save warning', saveErr);
+    }
+    try {
+      // Non-blocking server push — large sessions can time out without blocking Start Scan
+      if (typeof requestServerSave === 'function') {
+        requestServerSave('file-upload');
+      } else {
+        flushSaveSession({ force: true, reason: 'file-upload' });
+      }
+    } catch (saveErr) {
+      console.warn('[import] server save warning', saveErr);
+      log('File loaded locally — server sync may retry in the background.', 'warn');
+    }
+
     log(
       `Loaded ${stamped.length.toLocaleString()} rows from ${file.name}` +
       (keepResults ? ` (kept ${(state.results || []).length.toLocaleString()} prior results)` : ''),
@@ -1375,13 +1469,17 @@ R.handleFile = async function handleFile(file, opts = {}) {
     updateStartButton();
     document.getElementById('scanImportDrop')?.classList.add('has-file');
     updateScanReadyUi?.();
+    setStatus(
+      `✓ ${stamped.length.toLocaleString()} leads ready — click Start Scan.`
+    );
   } catch (err) {
-    setStatus(err.message || 'Import failed');
+    const msg = err?.message || String(err) || 'Import failed';
+    setStatus(msg);
     fileInfo.textContent = '';
     fileInfo.classList.remove('visible');
     if (heroCount) heroCount.textContent = '—';
-    log(err.message, 'error');
-    alert(err.message);
+    log(msg, 'error');
+    alert(msg);
     updateStartButton();
     updateScanReadyUi?.();
   }
