@@ -228,19 +228,24 @@ R.wireCardThumb = function wireCardThumb(card, result) {
     }
     if (!hasImageryKey()) {
       fallbackEl.textContent = 'No photo — check API key in settings';
-    } else if (needsCache) {
-      fallbackEl.textContent = '';
+    } else {
+      // Always try live proxy + background disk cache — never tell operators to run migrate-imagery
+      fallbackEl.textContent = 'Loading photo…';
       fallbackEl?.classList.add('thumb-loading');
       scheduleImageryCacheForCard(result, card);
-    } else {
-      fallbackEl.textContent = 'No photo available';
+      const liveNow = buildLiveThumbUrl(result, { thumb: true });
+      if (liveNow) {
+        img.style.display = 'block';
+        fallbackEl?.classList.remove('visible');
+        scheduleThumbImageLoad(img, resolveImageryPublicUrl(liveNow), card);
+      }
     }
     return;
   }
   img.style.display = 'block';
   img.classList.remove('loaded');
-  fallbackEl?.classList.remove('visible');
-  fallbackEl.textContent = 'No photo — open property for imagery';
+  fallbackEl?.classList.remove('visible', 'thumb-loading');
+  fallbackEl.textContent = 'Loading photo…';
   if (labelEl) {
     labelEl.textContent = label || '';
     labelEl.style.display = label ? '' : 'none';
@@ -249,63 +254,120 @@ R.wireCardThumb = function wireCardThumb(card, result) {
   if (cachedEl) {
     cachedEl.textContent = label && /cached/i.test(label) ? 'CACHED' : '';
   }
-  if (fallback) img.dataset.fallback = fallback;
+  const resolvedPrimary = resolveImageryPublicUrl(primary);
+  const resolvedFallback = fallback ? resolveImageryPublicUrl(fallback) : '';
+  if (resolvedFallback) img.dataset.fallback = resolvedFallback;
   else delete img.dataset.fallback;
-  const liveUrls = hasImageryKey() && result?.address
-    ? getPropertyImageUrls(result.address, result, { thumb: true })
-    : null;
-  const livePrimary = liveUrls?.streetView || liveUrls?.satellite || '';
-  if (livePrimary && livePrimary !== primary && livePrimary !== fallback) {
+
+  // Always stash a live Street View / satellite URL for error recovery
+  const liveForced = hasImageryKey() && result?.address
+    ? buildLiveThumbUrl(result, { thumb: true })
+    : '';
+  const livePrimary = liveForced ? resolveImageryPublicUrl(liveForced) : '';
+  if (livePrimary && livePrimary !== resolvedPrimary && livePrimary !== resolvedFallback) {
     img.dataset.liveFallback = livePrimary;
   } else {
     delete img.dataset.liveFallback;
   }
+  // One more satellite-only recovery if SV is marked unavailable
+  if (hasImageryKey() && result?.address) {
+    const satOnly = buildSatelliteThumbUrl(
+      result.address,
+      getApiKeyForImagery(),
+      CARD_SAT_THUMB_SIZE,
+      result.viewMeta || null
+    );
+    if (satOnly) img.dataset.satFallback = resolveImageryPublicUrl(satOnly);
+  } else {
+    delete img.dataset.satFallback;
+  }
+
   img.onload = () => {
     img.classList.add('loaded');
     fallbackEl?.classList.remove('visible', 'thumb-loading');
   };
   img.onerror = () => {
-    const liveAlt = img.dataset.liveFallback;
-    if (liveAlt && img.src !== liveAlt) {
+    const setSrc = (next) => {
+      if (!next) return false;
+      const resolved = resolveImageryPublicUrl(next);
+      if (!resolved || img.getAttribute('src') === resolved) return false;
+      img.style.display = 'block';
+      fallbackEl?.classList.remove('visible');
+      fallbackEl?.classList.add('thumb-loading');
+      // Use queue for remote so recovery doesn't stampede Maps either
+      scheduleThumbImageLoad(img, resolved, card);
+      return true;
+    };
+
+    // 1) Live proxy fallback (most common when disk cache 404s)
+    if (img.dataset.liveFallback && setSrc(img.dataset.liveFallback)) {
       delete img.dataset.liveFallback;
-      img.src = liveAlt;
       if (labelEl) labelEl.textContent = '';
       return;
     }
-    if (hasImageryKey() && result?.address && isCachedThumbUrl(img.src)) {
-      const proxyUrl = buildStreetViewThumbUrl(result.address, getApiKeyForImagery(), CARD_THUMB_SIZE, result.viewMeta || null);
-      if (proxyUrl && img.src !== proxyUrl) {
-        img.src = proxyUrl;
+    // 2) Explicit live Street View rebuild (handles prefix / key timing)
+    if (hasImageryKey() && result?.address) {
+      const proxyUrl = buildStreetViewThumbUrl(
+        result.address,
+        getApiKeyForImagery(),
+        CARD_THUMB_SIZE,
+        result.viewMeta || null
+      );
+      if (proxyUrl && setSrc(proxyUrl)) {
         if (labelEl) labelEl.textContent = '';
         return;
       }
     }
-    const alt = img.dataset.fallback;
-    if (alt && img.src !== alt) {
+    // 3) Dataset satellite / satellite rebuild
+    if (img.dataset.fallback && setSrc(img.dataset.fallback)) {
       delete img.dataset.fallback;
-      img.src = alt;
       if (labelEl) labelEl.textContent = 'Satellite';
+      return;
+    }
+    if (img.dataset.satFallback && setSrc(img.dataset.satFallback)) {
+      delete img.dataset.satFallback;
+      if (labelEl) labelEl.textContent = 'Satellite';
+      return;
+    }
+    // 4) Background disk-cache attempt, then soft message (never migrate-imagery)
+    if (hasImageryKey() && result?.address) {
+      scheduleImageryCacheForCard(result, card);
+      img.style.display = 'none';
+      fallbackEl?.classList.add('visible', 'thumb-loading');
+      if (labelEl) labelEl.textContent = '';
+      if (fallbackEl) fallbackEl.textContent = 'Loading photo…';
+      // Retry live once more after a short delay (rate-limit recovery)
+      const retryKey = `thumbRetry:${recordKey(result)}`;
+      if (!img.dataset.thumbRetried) {
+        img.dataset.thumbRetried = '1';
+        setTimeout(() => {
+          if (!img.isConnected || thumbImageComplete(img)) return;
+          const again = buildLiveThumbUrl(result, { thumb: true });
+          if (again) setSrc(again);
+        }, 1200);
+      } else if (fallbackEl) {
+        fallbackEl.classList.remove('thumb-loading');
+        fallbackEl.textContent = 'Photo unavailable';
+      }
       return;
     }
     img.style.display = 'none';
     fallbackEl?.classList.add('visible');
+    fallbackEl?.classList.remove('thumb-loading');
     if (labelEl) labelEl.textContent = '';
     if (fallbackEl) {
-      const uncached = result && !getCachedImageryUrls(result).streetView && !getCachedImageryUrls(result).satellite;
-      fallbackEl.textContent = uncached && hasImageryKey()
-        ? 'Photo not cached yet — run migrate-imagery or rescan'
-        : hasImageryKey()
-          ? 'Photo unavailable — satellite fallback failed'
-          : 'No photo — paste Street View API key in settings';
+      fallbackEl.textContent = hasImageryKey()
+        ? 'Photo unavailable'
+        : 'No photo — check API key in settings';
     }
   };
-  if (img.getAttribute('src') === primary && img.complete && img.naturalWidth) {
+  if (img.getAttribute('src') === resolvedPrimary && img.complete && img.naturalWidth) {
     img.classList.add('loaded');
-    img.dataset.thumbSrc = primary;
+    img.dataset.thumbSrc = resolvedPrimary;
     img.dataset.thumbLoaded = '1';
     return;
   }
-  scheduleThumbImageLoad(img, primary, card);
+  scheduleThumbImageLoad(img, resolvedPrimary, card);
 }
 
 R.setPreviewImages = function setPreviewImages({ streetView = null, satellite = null } = {}, target = 'property') {

@@ -1292,42 +1292,50 @@ R.buildLiveThumbUrl = function buildLiveThumbUrl(result, opts = {}) {
 }
 
 R.getCardThumbUrls = function getCardThumbUrls(result) {
+  // Prefer confirmed disk cache, then live /api/sv-image (never leave primary empty when Maps is up)
+  resolveImageryForResult?.(result);
   const sessionCached = getCachedImageryUrls(result);
   const preferSatellite = recordUsedSatelliteOnly(result);
-  const live = hasImageryKey() && result?.address
-    ? getPropertyImageUrls(result.address, result, { thumb: true })
+  const viewMeta = result?.viewMeta || null;
+  const key = getApiKeyForImagery();
+  const canBuildLive = hasImageryKey() && !!result?.address;
+
+  const liveSv = canBuildLive && !streetViewUnavailableForRecord(result)
+    ? buildStreetViewThumbUrl(result.address, key, CARD_THUMB_SIZE, viewMeta)
+    : null;
+  const liveSat = canBuildLive
+    ? buildSatelliteThumbUrl(result.address, key, CARD_SAT_THUMB_SIZE, viewMeta)
     : null;
 
   const cachedSv = sessionCached.streetView || null;
   const cachedSat = sessionCached.satellite || null;
-  const liveSv = streetViewUnavailableForRecord(result) ? null : (live?.streetView || null);
-  const liveSat = live?.satellite || null;
 
   const finish = (primary, fallback, label, fromCache) => {
     let resolvedPrimary = primary || '';
     let resolvedFallback = fallback || '';
     if (!resolvedPrimary) {
-      const forcedLive = buildLiveThumbUrl(result, { thumb: true });
-      if (forcedLive) {
-        resolvedPrimary = forcedLive;
-        resolvedFallback = resolvedFallback || '';
-      }
+      const forcedLive = preferSatellite
+        ? (liveSat || liveSv || '')
+        : (liveSv || liveSat || '');
+      if (forcedLive) resolvedPrimary = forcedLive;
     }
-    const canLive = !!buildLiveThumbUrl(result, { thumb: true });
+    if (!resolvedFallback && liveSat && resolvedPrimary !== liveSat) {
+      // keep satellite as recovery path when primary is SV
+      if (!preferSatellite && liveSv && resolvedPrimary === liveSv) resolvedFallback = liveSat;
+    }
     return {
       primary: resolvedPrimary,
       fallback: resolvedFallback,
       label,
       fromCache,
       needsCache: !resolvedPrimary && !!result?.address && hasImageryKey()
-        && !canLive
         && !result?.imagery?.streetView?.unavailable
     };
   };
 
   if (preferSatellite) {
-    const primary = cachedSat || cachedSv || liveSat || liveSv || '';
-    const fallback = (cachedSv && cachedSat && cachedSv !== cachedSat)
+    const primary = cachedSat || liveSat || cachedSv || liveSv || '';
+    const fallback = (cachedSv && primary !== cachedSv)
       ? cachedSv
       : (liveSv && primary !== liveSv ? liveSv : '');
     return finish(
@@ -1338,30 +1346,33 @@ R.getCardThumbUrls = function getCardThumbUrls(result) {
     );
   }
 
+  // Prefer live SV when no confirmed cache — avoids dead /api/cached-imagery URLs on Load more
   const sv = cachedSv || liveSv || null;
   const sat = cachedSat || liveSat || null;
   const primary = sv || sat || '';
-  const fallback = sat && sv && sat !== sv ? sat : '';
+  const fallback = sat && sv && sat !== sv ? sat : (liveSat && primary === liveSv ? liveSat : '');
   return finish(
     primary,
     fallback,
-    (cachedSv || cachedSat) ? (sv ? 'Cached' : 'Cached satellite') : '',
+    (cachedSv || cachedSat) ? (sv === cachedSv ? 'Cached' : 'Cached satellite') : '',
     !!(cachedSv || cachedSat)
   );
 }
 
 R.thumbLoadsActive = 0;
 R.thumbLoadQueue = [];
-R.THUMB_LOAD_MAX_CACHED = 64;
-R.THUMB_LOAD_MAX_REMOTE = 16;
-R.THUMB_LOAD_TIMEOUT_MS = 12000;
-R.THUMB_LAZY_ROOT_MARGIN = '600px 0px';
+// Cached disk photos can load in parallel; live Google SV must stay capped or
+// "Load more" floods Maps and cards die with false "not cached" errors.
+R.THUMB_LOAD_MAX_CACHED = 48;
+R.THUMB_LOAD_MAX_REMOTE = 8;
+R.THUMB_LOAD_TIMEOUT_MS = 14000;
+R.THUMB_LAZY_ROOT_MARGIN = '800px 0px';
 R.thumbObserver = null;
 R.thumbObserved = new WeakSet();
 R.imageryCacheQueued = new Set();
 R.imageryCacheObserver = null;
 R.imageryCacheObserved = new WeakSet();
-R.IMAGERY_CACHE_ROOT_MARGIN = '400px 0px';
+R.IMAGERY_CACHE_ROOT_MARGIN = '500px 0px';
 
 R.isCachedThumbUrl = function isCachedThumbUrl(url) {
   return typeof url === 'string' && url.includes('/api/cached-imagery/');
@@ -1480,27 +1491,14 @@ R.startThumbImageLoad = function startThumbImageLoad(img, url) {
     img.dataset.thumbLoaded = '1';
     return;
   }
+  // Disk-cached photos: load immediately (cheap, local).
+  // Live Google/proxy photos: always concurrency-queue so Load more doesn't stampede Maps.
   if (isCachedThumbUrl(url)) {
-    img.dataset.thumbPending = '1';
-    const onDone = () => {
-      if (thumbImageComplete(img)) img.dataset.thumbLoaded = '1';
-      delete img.dataset.thumbPending;
-    };
-    img.addEventListener('load', onDone, { once: true });
-    img.addEventListener('error', onDone, { once: true });
-    img.src = url;
-    return;
-  }
-  const eagerVirtual = isAnalyzeLayout()
-    || !!(virtualScroll?.initialized && cardsVirtualWindow);
-  if (eagerVirtual) {
     img.dataset.thumbPending = '1';
     const onDone = () => {
       if (thumbImageComplete(img)) {
         img.dataset.thumbLoaded = '1';
         img.classList.add('loaded');
-      } else {
-        delete img.dataset.thumbLoaded;
       }
       delete img.dataset.thumbPending;
     };
@@ -1533,9 +1531,8 @@ R.scheduleThumbImageLoad = function scheduleThumbImageLoad(img, url, card) {
     delete img.dataset.thumbPending;
   }
   img.dataset.thumbSrc = url;
-  const eager = isAnalyzeLayout()
-    || !!(virtualScroll?.initialized && cardsVirtualWindow);
-  if (eager || isNearViewport(card, eager ? 1200 : 600)) {
+  // Near-viewport only — do not blast every card on Load more
+  if (isNearViewport(card, isCachedThumbUrl(url) ? 1400 : 900)) {
     startThumbImageLoad(img, url);
     return;
   }
@@ -1552,7 +1549,9 @@ R.preloadAnalyzeCardThumbs = function preloadAnalyzeCardThumbs() {
       if (thumbImageComplete(img)) img.classList.add('loaded');
       return;
     }
-    startThumbImageLoad(img, url);
+    // Only kick near-viewport cards; others stay on IntersectionObserver
+    if (card && isNearViewport(card, 900)) startThumbImageLoad(img, url);
+    else if (card) scheduleThumbImageLoad(img, url, card);
   });
 }
 

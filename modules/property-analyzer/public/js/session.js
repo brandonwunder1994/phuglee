@@ -1734,7 +1734,13 @@ resultsLoadMoreBtn?.addEventListener('click', async () => {
       await ensureSessionResultsLoaded();
     }
   }
+  // Attach any disk-cache hits from the imagery index for newly visible rows
+  if (typeof hydrateImageryFromServerIndex === 'function') {
+    try { await hydrateImageryFromServerIndex({ deferSave: true }); } catch (_) {}
+  }
   renderResults({ force: true });
+  // Kick near-viewport thumbs only (queued for live SV — no stampede)
+  requestAnimationFrame(() => preloadAnalyzeCardThumbs?.());
 });
 
 document.addEventListener('keydown', (e) => {

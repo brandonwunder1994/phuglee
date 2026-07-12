@@ -1357,6 +1357,12 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
       continue;
     }
     emptyStreak = 0;
+    // Link disk-cached photos onto newly hydrated results (index already in memory)
+    if (typeof resolveImageryForResult === 'function' && typeof imageryIndexMapCache !== 'undefined' && imageryIndexMapCache) {
+      for (const r of page.results) {
+        try { resolveImageryForResult(r); } catch (_) {}
+      }
+    }
     state.results.push(...page.results);
     offset += page.results.length;
     sessionLoadState.loaded = state.results.length;
