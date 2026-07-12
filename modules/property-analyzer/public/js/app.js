@@ -882,7 +882,13 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       noteApiScanSuccess?.();
       state.results.push(result);
       state.succeeded++;
-      state.processed++;
+      state.processed = state.results.length;
+      if (state.running && state.scanBatchTotal > 0) {
+        state.scanBatchDone = Math.min(
+          state.scanBatchTotal,
+          (Number(state.scanBatchDone) || 0) + 1
+        );
+      }
       pushIncrementalScanResult(result, state.processed);
       const tier = resultLeadTier(result);
       log(`✓ ${label} — ${leadTierLabel(tier)}`, 'success');
@@ -986,7 +992,13 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
   else if (cat === 'gemini') state.failGemini++;
   const reviewResult = buildNeedsReviewResult(record, lastErr);
   state.results.push(reviewResult);
-  state.processed++;
+  state.processed = state.results.length;
+  if (state.running && state.scanBatchTotal > 0) {
+    state.scanBatchDone = Math.min(
+      state.scanBatchTotal,
+      (Number(state.scanBatchDone) || 0) + 1
+    );
+  }
   pushIncrementalScanResult(reviewResult, state.processed);
   syncResultCounters();
   updateAgentSlot(workerNum, {
@@ -1052,6 +1064,10 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
     showPreview(batchPreview.address, batchPreview.status, batchPreview.streetViewUrl, batchPreview.satelliteUrl, batchPreview.score, false);
   }
   scheduleSaveSession('scan-batch');
+  // Mid-run durable checkpoint so stop/refresh keeps finished addresses
+  if (state.scanBatchDone > 0 && state.scanBatchDone % 10 === 0) {
+    persistScanProgressNow?.('scan-batch');
+  }
 }
 
 /**
@@ -1189,6 +1205,10 @@ R.startScanAnalysis = async function startScanAnalysis() {
       state._pendingUnscanned = pending.length;
     }
     const resumeCount = state.results.length;
+    // Track THIS sheet's progress separately from historical session totals
+    state.scanBaselineResults = resumeCount;
+    state.scanBatchTotal = pending.length;
+    state.scanBatchDone = 0;
 
     if (!pending.length) {
       log('All addresses already analyzed — open results to review', 'success');
@@ -1201,6 +1221,8 @@ R.startScanAnalysis = async function startScanAnalysis() {
           : 'No unscanned leads in the queue.\n\nImport a new spreadsheet, then click Start Scan.'
       );
       state.running = false;
+      state.scanBatchTotal = 0;
+      state.scanBatchDone = 0;
       stopScanSaveHeartbeat();
       updateStartButton();
       updateScanReadyUi?.();
@@ -1214,8 +1236,14 @@ R.startScanAnalysis = async function startScanAnalysis() {
       );
     }
 
+    // Session total scanned (for saves) — NOT used as "X of Y this sheet"
     state.processed = resumeCount;
     syncResultCounters();
+    log(
+      `This list: ${pending.length.toLocaleString()} to scan` +
+      (resumeCount ? ` · session already has ${resumeCount.toLocaleString()} saved` : ''),
+      'success'
+    );
     state.failStreetView = 0;
     state.failGemini = 0;
     state.selectedKey = null;
@@ -1348,14 +1376,24 @@ R.startScanAnalysis = async function startScanAnalysis() {
     }
     updateExportButtons();
     pushScanSessionMeta();
-    saveSession('scan-complete');
-    flushPendingServerSave('scan-complete');
-    flushSaveSession({ sync: true, force: true, reason: 'scan-complete' });
+    state.processed = (state.results || []).length;
+    const saveReason = state.aborted ? 'scan-stop' : 'scan-complete';
+    saveSession(saveReason);
+    flushPendingServerSave(saveReason);
+    flushSaveSession({ sync: true, force: true, reason: saveReason });
+    persistScanProgressNow?.(saveReason);
+    // Keep batch counters for UI until next start (shows what finished after stop)
+    if (!state.aborted) {
+      state.scanBatchDone = state.scanBatchTotal || state.scanBatchDone;
+    }
+    updateScanReadyUi?.();
+    updateLiveScanSectionUi?.();
   } catch (err) {
     console.error('[startScanAnalysis] failed', err);
     state.running = false;
     stopScanSaveHeartbeat?.();
     if (stopBtn) stopBtn.disabled = true;
+    persistScanProgressNow?.('scan-error');
     updateStartButton();
     updateScanReadyUi?.();
     alert(`Could not start scan: ${err?.message || err}\n\nHard-refresh (Ctrl+Shift+R) and try again.`);

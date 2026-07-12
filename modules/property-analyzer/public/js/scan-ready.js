@@ -12,15 +12,17 @@
       if (scanReadySection) scanReadySection.hidden = false;
 
       const hasRecords = (state.records || []).length > 0;
-      let pendingUnscanned = typeof recordKey === 'function'
-        ? (im()?.countUnscannedLeads(state.records, state.results, recordKey) || 0)
-        : 0;
-      if (!pendingUnscanned && hasRecords) {
-        pendingUnscanned = state.records.length;
-      }
-      if (!pendingUnscanned && Number(state._pendingUnscanned) > 0) {
+      // Accurate pending: address + record key (same as Start Scan). Never treat 0 as "unknown".
+      let pendingUnscanned = typeof countPendingScanLeads === 'function'
+        ? countPendingScanLeads(state.records, state.results)
+        : (typeof recordKey === 'function'
+          ? (im()?.countUnscannedLeads(state.records, state.results, recordKey) || 0)
+          : 0);
+      // Only fall back to server hint when we have no local records loaded yet
+      if (!hasRecords && Number(state._pendingUnscanned) > 0) {
         pendingUnscanned = Number(state._pendingUnscanned);
       }
+      state._pendingUnscanned = pendingUnscanned;
 
       const batches = ib()?.deriveRecentImport(state.importBatches, state.records);
       let sourceFile = String(state.fileName || batches?.sourceFile || '').trim();
@@ -47,9 +49,25 @@
           : 'Import leads to scan';
       }
       if (scanReadyCount) {
-        if (pendingUnscanned > 0) {
+        const sessionTotal = (state.results || []).length || 0;
+        const batchDone = Number(state.scanBatchDone) || 0;
+        const batchTotal = Number(state.scanBatchTotal) || 0;
+        if (state.running && batchTotal > 0) {
           scanReadyCount.textContent =
-            `${pendingUnscanned.toLocaleString()} lead${pendingUnscanned === 1 ? '' : 's'} ready to scan — hit Start Scan`;
+            `Scanning… ${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()} on this list saved` +
+            (sessionTotal ? ` · ${sessionTotal.toLocaleString()} total in session` : '') +
+            ` — Stop keeps finished ones.`;
+        } else if (pendingUnscanned > 0) {
+          const onList = (state.records || []).length;
+          const doneOnList = Math.max(0, onList - pendingUnscanned);
+          scanReadyCount.textContent =
+            `${pendingUnscanned.toLocaleString()} left to scan` +
+            (onList ? ` (${doneOnList.toLocaleString()} of ${onList.toLocaleString()} on this list already done)` : '') +
+            (sessionTotal ? ` · ${sessionTotal.toLocaleString()} saved total` : '') +
+            ` — hit Start Scan`;
+        } else if (sessionTotal > 0) {
+          scanReadyCount.textContent =
+            `All leads on this list are scanned (${sessionTotal.toLocaleString()} total saved). Drop another file or open Review Leads.`;
         } else {
           scanReadyCount.textContent =
             'Drop a file below, then start Street View + AI scan.';
@@ -80,11 +98,6 @@
       if (readyStop) {
         readyStop.hidden = !state.running;
         readyStop.disabled = !state.running || !!state.aborted;
-      }
-      if (scanReadyCount && state.running) {
-        const done = Number(state.processed) || (state.results || []).length || 0;
-        scanReadyCount.textContent =
-          `Scanning… ${done.toLocaleString()} done — progress auto-saves. Use Stop Scan to halt.`;
       }
       if (reviewLeadsBtn) reviewLeadsBtn.disabled = !(state.results || []).length;
     };

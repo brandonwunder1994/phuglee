@@ -15,8 +15,25 @@
       const readyStop = $('scanReadyStopBtn');
       if (liveStop) liveStop.disabled = true;
       if (readyStop) readyStop.disabled = true;
-      log?.('Stopping after current properties finish…');
+      // Immediate durable save so refresh keeps everything already finished
+      try {
+        state.processed = (state.results || []).length;
+        if (typeof persistScanProgressNow === 'function') {
+          persistScanProgressNow('scan-stop');
+        } else if (typeof flushSaveSession === 'function') {
+          sessionDirty = true;
+          flushSaveSession({ sync: true, force: true, reason: 'scan-stop' });
+        }
+      } catch (e) {
+        console.warn('[scan] stop save failed', e);
+      }
+      log?.(
+        `Stopping after current properties finish… ` +
+        `${Number(state.scanBatchDone) || 0} of ${Number(state.scanBatchTotal) || 0} this list saved ` +
+        `(${(state.results || []).length.toLocaleString()} total in session).`
+      );
       updateLiveScanSectionUi();
+      updateScanReadyUi?.();
     }
 
     R.requestStopScan = requestStopScan;
@@ -99,17 +116,24 @@
 
       if (!show) return;
 
-      const totalQueue = (state.records || []).length || 0;
-      const done = Number(state.processed) || (state.results || []).length || 0;
-      const scanTotal = Math.max(done, totalQueue);
+      // THIS list progress (not historical session total vs queue size)
+      const batchTotal = Number(state.scanBatchTotal) || 0;
+      const batchDone = Number(state.scanBatchDone) || 0;
+      const sessionTotal = (state.results || []).length || 0;
       if (liveScanProgress) {
-        liveScanProgress.textContent = `${done.toLocaleString()} / ${scanTotal.toLocaleString()}`;
+        if (batchTotal > 0) {
+          liveScanProgress.textContent =
+            `${batchDone.toLocaleString()} / ${batchTotal.toLocaleString()} this list` +
+            (sessionTotal ? ` · ${sessionTotal.toLocaleString()} saved total` : '');
+        } else {
+          liveScanProgress.textContent = `${sessionTotal.toLocaleString()} saved`;
+        }
       }
 
       // Live KPIs from current results (server snapshot cleared at scan start)
       let distressed = 0;
       let review = 0;
-      let scanned = (state.results || []).length || 0;
+      let scanned = sessionTotal;
       try {
         if (typeof getSummaryMetrics === 'function') {
           const m = getSummaryMetrics();
@@ -146,26 +170,24 @@
 
       const meta = $('liveScanMeta');
       if (meta) {
-        const parts = ['Progress auto-saves'];
+        const parts = [];
+        if (batchTotal > 0) {
+          parts.push(`${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()} on this list done (saved)`);
+        }
+        parts.push(`${sessionTotal.toLocaleString()} total in session`);
         if (state.aborted) {
           parts.push('stopping after current properties…');
         } else if (Date.now() < (rateLimitUntil || 0)) {
           const sec = Math.ceil((rateLimitUntil - Date.now()) / 1000);
           parts.push(`rate-limit pause ~${sec}s`);
         } else if (effective < configured) {
-          parts.push(`workers auto-throttled to ${effective} (climb back when healthy)`);
+          parts.push(`workers ${effective} (auto-throttled)`);
         } else {
-          parts.push(`${effective} workers · auto-adjust if APIs cap out`);
+          parts.push(`${effective} workers`);
         }
-        if (skippedHint()) parts.unshift(skippedHint());
         meta.textContent = parts.filter(Boolean).join(' · ');
       }
     };
-
-    function skippedHint() {
-      // Optional: not tracked globally; keep empty
-      return '';
-    }
 
     function wireLiveScanControls() {
       $('liveScanStopBtn')?.addEventListener('click', (e) => {

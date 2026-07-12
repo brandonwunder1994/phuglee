@@ -144,19 +144,26 @@ module.exports = function createBackups(deps) {
     const records = Array.isArray(session.records) ? session.records.length : 0;
     const processed = session.processed || 0;
     if (!results) return false;
-    if (records > 0 && processed >= records && results >= records) return true;
-    return processed >= results;
+    // records may be a *pending-only* re-import queue (far smaller than historical
+    // results). That pattern must NOT mean "session complete — skip incremental".
+    if (records > 0 && results > records * 2) return false;
+    if (records > 0 && processed >= records && results >= records && results <= records + 5) return true;
+    return processed >= results && results > 0 && records > 0 && results >= records;
   }
 
-  function shouldMergeIncrementalIntoSession(session) {
-    return !sessionLooksComplete(session);
+  /**
+   * Always attempt incremental merge. The merge is a no-op when nothing new is in
+   * the jsonl log. Skipping merge when session "looked complete" caused lost scans
+   * after stop/refresh (new addresses only in scan_results_*.jsonl).
+   */
+  function shouldMergeIncrementalIntoSession(_session) {
+    return true;
   }
 
   function mergeIncrementalIntoSession(session) {
     const base = session && typeof session === 'object'
       ? session
       : { records: [], results: [], processed: 0, savedAt: 0 };
-    if (!shouldMergeIncrementalIntoSession(base)) return base;
     const inc = readIncrementalScanResults();
     if (!inc.count) return base;
     const existing = new Map();

@@ -96,4 +96,41 @@ describe('mergePartialSessionSave', () => {
     assert.equal(merged.results[0].leadTier, 'distressed');
     assert.equal(merged.results[0].manualScore, true);
   });
+
+  it('appends newly scanned addresses from a partial client snapshot', () => {
+    // Server has 3 historical results; client only hydrated 1 + scanned 1 new address.
+    // Old merge dropped the new address because incoming.length < existing.length.
+    const existing = {
+      results: [
+        { email: 'a@t.com', phone: '1', address: '1 Main', leadTier: 'well_maintained', score: 8 },
+        { email: 'b@t.com', phone: '2', address: '2 Oak', leadTier: 'distressed', score: 3 },
+        { email: 'c@t.com', phone: '3', address: '3 Pine', leadTier: 'well_maintained', score: 7 }
+      ],
+      records: [
+        { email: 'a@t.com', phone: '1', address: '1 Main' },
+        { email: 'b@t.com', phone: '2', address: '2 Oak' },
+        { email: 'c@t.com', phone: '3', address: '3 Pine' }
+      ],
+      processed: 3,
+      savedAt: 1000
+    };
+    const incoming = {
+      results: [
+        { email: 'a@t.com', phone: '1', address: '1 Main', leadTier: 'well_maintained', score: 8 },
+        { email: 'd@t.com', phone: '4', address: '4 Elm', leadTier: 'distressed', score: 2, analyzedAt: 5000 }
+      ],
+      records: [
+        { email: 'd@t.com', phone: '4', address: '4 Elm' },
+        { email: 'e@t.com', phone: '5', address: '5 Cedar' }
+      ],
+      processed: 2,
+      savedAt: 5000
+    };
+    const merged = mergeSessionSave(existing, incoming);
+    assert.equal(merged.results.length, 4);
+    const keys = merged.results.map((r) => `${r.email}|${r.phone}|${r.address}`);
+    assert.ok(keys.includes('d@t.com|4|4 Elm'));
+    assert.ok(keys.includes('b@t.com|2|2 Oak'));
+    assert.equal(merged.processed, 4);
+  });
 });

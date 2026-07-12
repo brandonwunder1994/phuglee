@@ -498,6 +498,10 @@ R.state = {
   running: false,
   aborted: false,
   processed: 0,
+  /** Current-sheet scan progress (not total session history). */
+  scanBatchTotal: 0,
+  scanBatchDone: 0,
+  scanBaselineResults: 0,
   succeeded: 0,
   skipped: 0,
   failStreetView: 0,
@@ -1307,7 +1311,13 @@ R.updateScanIssuePanel = function updateScanIssuePanel() {
   const chips = [];
   if (failSv) chips.push(`<span class="fail-chip sv">${failSv} SV fail</span>`);
   if (failGem) chips.push(`<span class="fail-chip gem">${failGem} Gemini fail</span>`);
-  if (state.running) chips.push(`<span>${state.processed}/${state.records.length}</span>`);
+  if (state.running) {
+    const bt = Number(state.scanBatchTotal) || 0;
+    const bd = Number(state.scanBatchDone) || 0;
+    chips.push(bt > 0
+      ? `<span>${bd}/${bt} this list</span>`
+      : `<span>${(state.results || []).length} saved</span>`);
+  }
   const notifyHtml = `<button type="button" class="scan-issue-notify-btn${scanNotifyEnabled() ? ' enabled' : ''}" id="scanIssueNotifyBtn">${scanNotifyEnabled() ? 'Alerts on' : 'Notify me'}</button>`;
   scanIssueMeta.innerHTML = chips.join('') + notifyHtml;
   $('scanIssueNotifyBtn')?.addEventListener('click', () => ensureNotificationPermission());

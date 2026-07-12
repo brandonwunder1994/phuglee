@@ -147,18 +147,31 @@ function mergeSessionSave(existing, incoming) {
     if (!incoming?.partialReviewSync && !incomingReviewKeys && !incomingReviewProgress) return existing;
     return finalizeMergedSession(existing, incoming, existingResults);
   }
+  // Full client snapshot with more results wins (normal scan progress).
   if (incomingResults.length > existingResults.length) return incoming;
 
+  // Partial client (fewer total rows) can still carry NEW scanned addresses.
+  // Merge edits onto existing keys, then APPEND any incoming keys the server lacks.
   const incomingByKey = new Map();
   for (const r of incomingResults) {
-    incomingByKey.set(recordKeyFromResult(r), r);
+    const k = recordKeyFromResult(r);
+    if (k) incomingByKey.set(k, r);
   }
+  const seen = new Set();
   const mergedResults = existingResults.map((prev, i) => {
-    const inc = incomingByKey.get(recordKeyFromResult(prev))
+    const pk = recordKeyFromResult(prev);
+    if (pk) seen.add(pk);
+    const inc = incomingByKey.get(pk)
       || (incomingResults.length === existingResults.length ? incomingResults[i] : null);
     if (!inc) return prev;
     return shouldReplaceSessionResult(prev, inc) ? inc : prev;
   });
+  for (const r of incomingResults) {
+    const k = recordKeyFromResult(r);
+    if (!k || seen.has(k)) continue;
+    mergedResults.push(r);
+    seen.add(k);
+  }
   return finalizeMergedSession(existing, incoming, mergedResults);
 }
 

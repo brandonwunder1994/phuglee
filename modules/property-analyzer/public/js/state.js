@@ -347,11 +347,53 @@ R.expectedServerResultCount = function expectedServerResultCount() {
 }
 
 R.isSessionReadyForServerSave = function isSessionReadyForServerSave() {
+  // Mid-scan: always allow server saves so Stop + refresh keeps progress.
+  // Partial hydration only blocks idle saves (avoids clobbering server with a stub).
+  if (state.running) return true;
   if (sessionLoadState.loading) return false;
   const expected = expectedServerResultCount();
   if (expected > 0 && state.results.length < expected) return false;
   return true;
 }
+
+/**
+ * Pending leads on the current import queue that are not yet in results.
+ * Matches Start Scan dedupe: recordKey OR addressMatchKey.
+ */
+R.countPendingScanLeads = function countPendingScanLeads(records = state.records, results = state.results) {
+  if (!Array.isArray(records) || !records.length) return 0;
+  const existingKeys = new Set();
+  const existingAddr = new Set();
+  for (const r of results || []) {
+    if (typeof recordKey === 'function') existingKeys.add(recordKey(r));
+    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
+    if (ak) existingAddr.add(ak);
+  }
+  let n = 0;
+  for (const r of records) {
+    if (typeof recordKey === 'function' && existingKeys.has(recordKey(r))) continue;
+    const ak = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
+    if (ak && existingAddr.has(ak)) continue;
+    n += 1;
+  }
+  return n;
+};
+
+/** Force a durable save of scan progress (stop, batch end, complete). */
+R.persistScanProgressNow = function persistScanProgressNow(reason = 'scan-progress') {
+  try {
+    state.processed = (state.results || []).length;
+    sessionDirty = true;
+    if (typeof pushScanSessionMeta === 'function') pushScanSessionMeta();
+    if (typeof flushSaveSession === 'function') {
+      flushSaveSession({ sync: true, force: true, reason });
+    } else if (typeof requestServerSave === 'function') {
+      requestServerSave(reason);
+    }
+  } catch (e) {
+    console.warn('[scan] persistScanProgressNow failed', e);
+  }
+};
 
 R.requestServerSave = function requestServerSave(reason = 'deferred') {
   if (!isSessionReadyForServerSave()) {

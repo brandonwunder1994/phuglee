@@ -2013,21 +2013,34 @@ R.escapeHtml = function escapeHtml(str) {
 
 R.updateProgress = function updateProgress() {
   const write = () => {
-    const total = state.records.length;
-    const pct = total ? (state.processed / total) * 100 : 0;
+    const batchTotal = Number(state.scanBatchTotal) || 0;
+    const batchDone = Number(state.scanBatchDone) || 0;
+    const sessionTotal = (state.results || []).length || Number(state.processed) || 0;
+    // Prefer this-list progress during a run; fall back to session/records only when idle
+    const total = batchTotal > 0
+      ? batchTotal
+      : (state.records.length || sessionTotal);
+    const done = batchTotal > 0 ? batchDone : sessionTotal;
+    const pct = total ? Math.min(100, (done / total) * 100) : 0;
     if (progressBar) progressBar.style.width = `${pct}%`;
     if (liveScanProgress) {
-      liveScanProgress.textContent = `${(state.processed || 0).toLocaleString()} / ${total.toLocaleString()}`;
+      if (batchTotal > 0) {
+        liveScanProgress.textContent =
+          `${batchDone.toLocaleString()} / ${batchTotal.toLocaleString()} this list` +
+          (sessionTotal ? ` · ${sessionTotal.toLocaleString()} saved total` : '');
+      } else {
+        liveScanProgress.textContent = `${sessionTotal.toLocaleString()} saved`;
+      }
     }
     updateLiveScanSectionUi?.();
     const hudInstant = { instant: true };
     animateStatNumber($('progressPct'), Math.round(pct), { ...hudInstant, suffix: '%' });
-    const remaining = Math.max(0, total - state.processed);
-    animateStatNumber($('statDone'), state.processed, hudInstant);
+    const remaining = Math.max(0, total - done);
+    animateStatNumber($('statDone'), done, hudInstant);
     animateStatNumber($('statRemaining'), remaining, hudInstant);
-    $('statTotal').textContent = total.toLocaleString();
-    $('statSuccess').textContent = state.succeeded.toLocaleString();
-    $('statSkipped').textContent = state.skipped.toLocaleString();
+    if ($('statTotal')) $('statTotal').textContent = total.toLocaleString();
+    if ($('statSuccess')) $('statSuccess').textContent = state.succeeded.toLocaleString();
+    if ($('statSkipped')) $('statSkipped').textContent = state.skipped.toLocaleString();
     updateLiveScanDock();
     updateCommandBar();
   };
