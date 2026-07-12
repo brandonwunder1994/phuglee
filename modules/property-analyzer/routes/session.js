@@ -370,6 +370,112 @@ function register(ctx) {
   });
 
   /**
+   * Remove scan-queue records by importSource / sourceFile without touching results.
+   * Body: {
+   *   importSource?: "new_analyzer_leads_2026-07-11",
+   *   sourceFileIncludes?: "new analyzer leads",
+   *   recordsOnly?: true  // default true — never delete AI results
+   * }
+   */
+  router.post('/api/purge-import-source', async (req, res) => {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch (e) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
+      return true;
+    }
+    const importSource = String(body.importSource || '').trim();
+    const sourceFileIncludes = String(body.sourceFileIncludes || '').trim().toLowerCase();
+    const recordsOnly = body.recordsOnly !== false;
+    if (!importSource && !sourceFileIncludes) {
+      sendJson(res, 400, {
+        ok: false,
+        error: 'importSource or sourceFileIncludes is required'
+      });
+      return true;
+    }
+
+    function matchesRecord(row) {
+      if (importSource && row?.importSource === importSource) return true;
+      if (sourceFileIncludes) {
+        const src = String(row?.sourceFile || '').toLowerCase();
+        if (src.includes(sourceFileIncludes)) return true;
+      }
+      return false;
+    }
+
+    function matchesBatch(batch) {
+      const src = String(batch?.sourceFile || '').toLowerCase();
+      const id = String(batch?.id || '').toLowerCase();
+      if (sourceFileIncludes && src.includes(sourceFileIncludes)) return true;
+      if (importSource && id.includes(importSource.toLowerCase())) return true;
+      if (id.includes('new_analyzer_leads')) return true;
+      return false;
+    }
+
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const base = finalizeSession(session) || {};
+    const records = Array.isArray(base.records) ? base.records : [];
+    const results = Array.isArray(base.results) ? base.results : [];
+    const batches = Array.isArray(base.importBatches) ? base.importBatches : [];
+
+    const keptRecords = records.filter((r) => !matchesRecord(r));
+    const removedRecords = records.length - keptRecords.length;
+    const keptResults = recordsOnly ? results : results.filter((r) => !matchesRecord(r));
+    const removedResults = results.length - keptResults.length;
+    const keptBatches = batches.filter((b) => !matchesBatch(b));
+    const removedBatches = batches.length - keptBatches.length;
+
+    if (!removedRecords && !removedResults && !removedBatches) {
+      sendJson(res, 200, {
+        ok: true,
+        removedRecords: 0,
+        removedResults: 0,
+        removedBatches: 0,
+        records: records.length,
+        results: results.length,
+        scope: scope.kind,
+        storageKey: scope.storageKey,
+        message: 'No matching records found'
+      });
+      return true;
+    }
+
+    const next = {
+      ...base,
+      records: keptRecords,
+      results: keptResults,
+      importBatches: keptBatches,
+      savedAt: Date.now()
+    };
+    if (
+      String(next.fileName || '')
+        .toLowerCase()
+        .includes(sourceFileIncludes || 'new analyzer leads')
+    ) {
+      next.fileName = '';
+    }
+
+    backups.rememberActiveScope(req);
+    backups.writeLatestSessionFileForScope(scope, next);
+    backups.invalidateSessionCaches?.();
+
+    sendJson(res, 200, {
+      ok: true,
+      removedRecords,
+      removedResults,
+      removedBatches,
+      records: keptRecords.length,
+      results: keptResults.length,
+      importBatches: keptBatches.length,
+      scope: scope.kind,
+      storageKey: scope.storageKey
+    });
+    return true;
+  });
+
+  /**
    * Purge leads for a city/state from the Analyze session so Filter can re-import.
    * Body: { city: "Cheyenne", state: "WY" } (state optional but recommended)
    */
@@ -524,4 +630,4 @@ function register(ctx) {
   });
 }
 
-module.exports = { register };
+module.exports = { register, freeSessionDiskSpace };
