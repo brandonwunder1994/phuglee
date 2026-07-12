@@ -1,4 +1,4 @@
-// live-scan-feed.js — property-by-property live scan feed
+// live-scan-feed.js — property-by-property live scan feed + live KPIs / stop
 (function (global) {
   const PDA = global.PDA = global.PDA || {};
   PDA.env = PDA.env || {};
@@ -6,6 +6,20 @@
   with (R) {
     const MAX_FEED = 50;
     const feedItems = [];
+
+    function requestStopScan() {
+      if (!state.running) return;
+      state.aborted = true;
+      if (stopBtn) stopBtn.disabled = true;
+      const liveStop = $('liveScanStopBtn');
+      const readyStop = $('scanReadyStopBtn');
+      if (liveStop) liveStop.disabled = true;
+      if (readyStop) readyStop.disabled = true;
+      log?.('Stopping after current properties finish…');
+      updateLiveScanSectionUi();
+    }
+
+    R.requestStopScan = requestStopScan;
 
     R.resetLiveScanFeed = function resetLiveScanFeed() {
       feedItems.length = 0;
@@ -68,13 +82,101 @@
       if (liveScanSection) liveScanSection.hidden = !show;
       if (stopBtn) stopBtn.hidden = !show;
 
+      const liveStop = $('liveScanStopBtn');
+      const readyStop = $('scanReadyStopBtn');
+      const readyStart = scanReadyStartBtn || $('scanReadyStartBtn');
+      if (liveStop) {
+        liveStop.hidden = !show;
+        liveStop.disabled = !show || !!state.aborted;
+      }
+      if (readyStop) {
+        readyStop.hidden = !show;
+        readyStop.disabled = !show || !!state.aborted;
+      }
+      if (readyStart && show) {
+        readyStart.disabled = true;
+      }
+
       if (!show) return;
-      const total = state.records.length || 0;
-      const done = state.processed || 0;
+
+      const totalQueue = (state.records || []).length || 0;
+      const done = Number(state.processed) || (state.results || []).length || 0;
+      const scanTotal = Math.max(done, totalQueue);
       if (liveScanProgress) {
-        liveScanProgress.textContent = `${done.toLocaleString()} / ${total.toLocaleString()}`;
+        liveScanProgress.textContent = `${done.toLocaleString()} / ${scanTotal.toLocaleString()}`;
+      }
+
+      // Live KPIs from current results (server snapshot cleared at scan start)
+      let distressed = 0;
+      let review = 0;
+      let scanned = (state.results || []).length || 0;
+      try {
+        if (typeof getSummaryMetrics === 'function') {
+          const m = getSummaryMetrics();
+          distressed = Number(m?.counts?.distressed) || 0;
+          review = Number(m?.counts?.review) || 0;
+          scanned = Number(m?.total) || scanned;
+        } else if (typeof getTierCounts === 'function') {
+          const c = getTierCounts({ global: true });
+          distressed = Number(c?.distressed) || 0;
+          review = Number(c?.review) || 0;
+        }
+      } catch (_) {}
+
+      const elD = $('liveScanKpiDistressed');
+      const elR = $('liveScanKpiReview');
+      const elS = $('liveScanKpiScanned');
+      const elW = $('liveScanKpiWorkers');
+      if (elD) elD.textContent = distressed.toLocaleString();
+      if (elR) elR.textContent = review.toLocaleString();
+      if (elS) elS.textContent = scanned.toLocaleString();
+
+      const configured = typeof getConcurrentLimit === 'function' ? getConcurrentLimit() : 0;
+      const effective = typeof getEffectiveConcurrentLimit === 'function'
+        ? getEffectiveConcurrentLimit()
+        : configured;
+      const active = typeof countActiveWorkers === 'function' ? countActiveWorkers() : 0;
+      if (elW) {
+        elW.textContent = `${active}/${effective}`;
+        elW.title = configured !== effective
+          ? `Auto-throttled: ${configured} set → ${effective} effective`
+          : `${effective} parallel workers (max you set)`;
+        elW.parentElement?.classList.toggle('is-throttled', effective < configured);
+      }
+
+      const meta = $('liveScanMeta');
+      if (meta) {
+        const parts = ['Progress auto-saves'];
+        if (state.aborted) {
+          parts.push('stopping after current properties…');
+        } else if (Date.now() < (rateLimitUntil || 0)) {
+          const sec = Math.ceil((rateLimitUntil - Date.now()) / 1000);
+          parts.push(`rate-limit pause ~${sec}s`);
+        } else if (effective < configured) {
+          parts.push(`workers auto-throttled to ${effective} (climb back when healthy)`);
+        } else {
+          parts.push(`${effective} workers · auto-adjust if APIs cap out`);
+        }
+        if (skippedHint()) parts.unshift(skippedHint());
+        meta.textContent = parts.filter(Boolean).join(' · ');
       }
     };
+
+    function skippedHint() {
+      // Optional: not tracked globally; keep empty
+      return '';
+    }
+
+    function wireLiveScanControls() {
+      $('liveScanStopBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        requestStopScan();
+      });
+      $('scanReadyStopBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        requestStopScan();
+      });
+    }
 
     const origScanPreview = R.scanPreview;
     if (typeof origScanPreview === 'function') {
@@ -93,6 +195,20 @@
         updateScanReadyUi?.();
         if (!state.running) resetLiveScanFeed();
       };
+    }
+
+    const origFlush = R.flushThrottledUi;
+    if (typeof origFlush === 'function') {
+      R.flushThrottledUi = function flushThrottledUiWrapped(force) {
+        origFlush(force);
+        if (state.running) updateLiveScanSectionUi();
+      };
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', wireLiveScanControls);
+    } else {
+      wireLiveScanControls();
     }
   }
 })(typeof window !== 'undefined' ? window : globalThis);

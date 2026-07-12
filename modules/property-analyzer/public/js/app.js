@@ -1033,18 +1033,19 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
   );
 
   const batchFailed = countFailedResults() - failedBefore;
+  const failRatio = batch.length ? batchFailed / batch.length : 0;
   if (batch.length >= 4 && batchFailed >= Math.ceil(batch.length * 0.25)) {
-    const next = Math.max(2, Math.floor(concurrentLimit / 2));
-    if (adaptiveConcurrentCap == null || next < adaptiveConcurrentCap) {
-      adaptiveConcurrentCap = next;
-      initAgentSlots(getEffectiveConcurrentLimit());
-      updateWorkerActivityUi(lastServerApiStatus);
-      log(`Many skips this batch (${batchFailed}/${batch.length}) — slowing to ${next} parallel workers`, 'warn');
-      notifyScanIssue('throttle',
-        `${batchFailed}/${batch.length} failed this batch — now using ${next} parallel workers.`,
-        { title: `Slowed to ${next} workers`, dedupeKey: `throttle-${next}` }
-      );
-    }
+    // Batch-level failure pressure — hard step-down (also resets healthy streak)
+    scaleDownWorkers?.(
+      `${batchFailed}/${batch.length} failed this batch`,
+      { hard: true }
+    );
+  } else if (batch.length >= 4 && failRatio <= 0.1) {
+    // Clean-ish batch while throttled → climb back toward operator max
+    maybeScaleUpWorkers?.();
+  } else {
+    // Mixed batch: don't climb, don't punish
+    adaptiveHealthyStreak = 0;
   }
 
   if (batchPreview) {
@@ -1153,6 +1154,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
     errorBanner?.classList.remove('visible');
     rateLimitUntil = 0;
     adaptiveConcurrentCap = null;
+    adaptiveHealthyStreak = 0;
     resetScanIssueState();
     setHudStatus('ACTIVE', true);
     updateScanRunningUi();
@@ -1365,9 +1367,13 @@ startBtn?.addEventListener('click', () => {
 });
 
 stopBtn?.addEventListener('click', () => {
+  if (typeof requestStopScan === 'function') {
+    requestStopScan();
+    return;
+  }
   state.aborted = true;
   stopBtn.disabled = true;
-  log('Stopping after current batch completes…');
+  log('Stopping after current properties finish…');
 });
 
 

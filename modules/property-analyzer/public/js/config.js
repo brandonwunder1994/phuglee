@@ -1382,6 +1382,8 @@ R.isFatalError = function isFatalError() {
 
 R.rateLimitUntil = 0;
 R.adaptiveConcurrentCap = null;
+/** Consecutive healthy batches while auto-throttled — used to scale workers back up. */
+R.adaptiveHealthyStreak = 0;
 
 R.syncResultCounters = function syncResultCounters() {
   state.succeeded = state.results.length;
@@ -1407,6 +1409,75 @@ R.getEffectiveConcurrentLimit = function getEffectiveConcurrentLimit() {
   if (adaptiveConcurrentCap == null) return capped;
   return Math.max(1, Math.min(capped, adaptiveConcurrentCap));
 }
+
+/**
+ * Smart worker throttle: run at the operator max, drop when Gemini/Maps are capping out.
+ * Takes effect on the next batch (in-flight workers finish their current address).
+ */
+R.scaleDownWorkers = function scaleDownWorkers(reason = 'rate_limit', opts = {}) {
+  const userMax = Math.min(getConcurrentLimit(), MAX_SAFE_CONCURRENT);
+  const current = getEffectiveConcurrentLimit();
+  if (current <= 1) {
+    adaptiveHealthyStreak = 0;
+    return false;
+  }
+  // Prefer halving under hard pressure; step down by 2 under soft pressure.
+  const hard = opts.hard !== false;
+  let next = hard
+    ? Math.max(2, Math.floor(current / 2))
+    : Math.max(2, current - 2);
+  if (current <= 3) next = Math.max(1, current - 1);
+  if (next >= current) return false;
+  if (adaptiveConcurrentCap != null && next >= adaptiveConcurrentCap) return false;
+
+  adaptiveConcurrentCap = next;
+  adaptiveHealthyStreak = 0;
+  if (state.running) {
+    try { initAgentSlots(getEffectiveConcurrentLimit()); } catch (_) {}
+    try { updateWorkerActivityUi(lastServerApiStatus); } catch (_) {}
+    try { updateLiveScanSectionUi?.(); } catch (_) {}
+  }
+  const why = String(reason || 'API pressure').slice(0, 80);
+  log(`Auto-throttled workers: ${current} → ${next} (${why}). Will climb back up when batches look healthy.`, 'warn');
+  notifyScanIssue?.('throttle',
+    `Using ${next} of ${userMax} workers — ${why}. Workers auto-raise after clean batches.`,
+    { title: `Slowed to ${next} workers`, dedupeKey: `throttle-${next}` }
+  );
+  return true;
+};
+
+/** After clean batches while throttled, step workers back toward the operator max. */
+R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
+  if (adaptiveConcurrentCap == null) {
+    adaptiveHealthyStreak = 0;
+    return false;
+  }
+  const userMax = Math.min(getConcurrentLimit(), MAX_SAFE_CONCURRENT);
+  if (adaptiveConcurrentCap >= userMax) {
+    adaptiveConcurrentCap = null;
+    adaptiveHealthyStreak = 0;
+    return false;
+  }
+  adaptiveHealthyStreak = (adaptiveHealthyStreak || 0) + 1;
+  // Need two clean batches in a row before raising (avoid thrash).
+  if (adaptiveHealthyStreak < 2) return false;
+  adaptiveHealthyStreak = 0;
+  const prev = adaptiveConcurrentCap;
+  let next = Math.min(userMax, adaptiveConcurrentCap + 2);
+  if (next >= userMax) {
+    adaptiveConcurrentCap = null;
+    next = userMax;
+  } else {
+    adaptiveConcurrentCap = next;
+  }
+  if (state.running) {
+    try { initAgentSlots(getEffectiveConcurrentLimit()); } catch (_) {}
+    try { updateWorkerActivityUi(lastServerApiStatus); } catch (_) {}
+    try { updateLiveScanSectionUi?.(); } catch (_) {}
+  }
+  log(`Auto-raised workers: ${prev} → ${next} (batches healthy). Cap is ${userMax}.`, 'success');
+  return true;
+};
 
 R.waitForRateLimit = async function waitForRateLimit() {
   while (Date.now() < rateLimitUntil && !state.aborted) {
@@ -1564,13 +1635,16 @@ R.noteRateLimit = function noteRateLimit(err) {
     : 8000 + Math.floor(Math.random() * 4000);
   rateLimitUntil = Math.max(rateLimitUntil, Date.now() + pauseMs);
   const pauseSec = Math.ceil(pauseMs / 1000);
+  // Cap out → automatically drop parallel workers (next batch), then climb back up when healthy
+  scaleDownWorkers?.(/503|high demand|overloaded/.test(m) ? 'Gemini 503 / overload' : 'rate limit 429', { hard: true });
+  const effective = getEffectiveConcurrentLimit();
   notifyScanIssue('rate_limit',
-    `Pausing all workers ~${pauseSec}s, then retrying. Lower workers to 5–8 if this keeps happening.`,
+    `Pausing all workers ~${pauseSec}s, then retrying at ${effective} parallel worker${effective === 1 ? '' : 's'} (auto-adjust on).`,
     { dedupeKey: 'rate_limit', browserNotify: !state.rateLimitWarned }
   );
   if (!state.rateLimitWarned) {
     state.rateLimitWarned = true;
-    log(`Gemini/Google busy (503 or rate limit) — pausing ~${pauseSec}s and retrying. Try lowering parallel workers to 5–8.`, 'warn');
+    log(`Gemini/Google busy (503 or rate limit) — pausing ~${pauseSec}s, auto-lowering workers, then retrying.`, 'warn');
   }
 }
 

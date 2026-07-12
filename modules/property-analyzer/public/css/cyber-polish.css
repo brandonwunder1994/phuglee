@@ -12,11 +12,12 @@ body.cyber-theme .live-tier-alert-stack {
 body.cyber-theme .live-tier-alert-card {
   padding: 0.55rem 0.9rem;
   border-radius: 10px;
-  background: rgba(8, 12, 22, 0.92);
-  border: 1px solid rgba(0, 240, 255, 0.18);
-  box-shadow: 0 0 16px rgba(0, 240, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Solid plate — never transparent over the feed */
+  background: #0b1018;
+  border: 1px solid rgba(0, 240, 255, 0.28);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.1), 0 10px 28px rgba(0, 0, 0, 0.55);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 body.cyber-theme .live-tier-alert-addr {
@@ -28,23 +29,23 @@ body.cyber-theme .live-tier-alert-addr {
 
 body.cyber-theme .live-tier-alert-card[data-tier="distressed"] {
   border-color: var(--tier-distressed-border);
-  background: rgba(255, 77, 109, 0.1);
-  box-shadow: 0 0 14px var(--tier-distressed-glow);
+  background: #1a0c12;
+  box-shadow: 0 0 14px var(--tier-distressed-glow), 0 10px 28px rgba(0, 0, 0, 0.55);
 }
 
 body.cyber-theme .live-tier-alert-card[data-tier="well_maintained"] {
   border-color: var(--tier-well-border);
-  background: var(--tier-well-dim);
+  background: #0c1612;
 }
 
 body.cyber-theme .live-tier-alert-card[data-tier="vacant"] {
   border-color: var(--tier-land-border);
-  background: var(--tier-land-dim);
+  background: #12140c;
 }
 
 body.cyber-theme .live-tier-alert-card[data-tier="review"] {
   border-color: var(--review-border);
-  background: var(--review-dim);
+  background: #16120a;
 }
 
 /* ── Scan issue alert ── */
@@ -52,15 +53,15 @@ body.cyber-theme .scan-issue-alert {
   top: 3rem;
   left: calc(var(--sidebar-w) + 1.25rem);
   border-radius: 12px;
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: rgba(12, 10, 6, 0.92);
-  box-shadow: 0 0 24px rgba(251, 191, 36, 0.12), 0 12px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: #141008;
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.14), 0 14px 36px rgba(0, 0, 0, 0.55);
 }
 
 body.cyber-theme .scan-issue-alert[data-tier="error"] {
-  border-color: rgba(255, 77, 109, 0.45);
-  background: rgba(20, 8, 14, 0.94);
-  box-shadow: 0 0 20px var(--tier-distressed-glow);
+  border-color: rgba(255, 77, 109, 0.55);
+  background: #1a0a10;
+  box-shadow: 0 0 20px var(--tier-distressed-glow), 0 14px 36px rgba(0, 0, 0, 0.55);
 }
 
 body.cyber-theme .scan-issue-alert-dot {
@@ -106,12 +107,12 @@ body.cyber-theme .scan-issue-notify-btn.enabled {
 /* ── Error banner ── */
 body.cyber-theme .error-banner {
   border-radius: 12px;
-  border: 1px solid rgba(255, 77, 109, 0.4);
-  background: rgba(20, 8, 14, 0.9);
+  border: 1px solid rgba(255, 77, 109, 0.45);
+  background: #1a0a10;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: #ffc9cf;
-  box-shadow: 0 0 20px var(--tier-distressed-glow);
+  box-shadow: 0 0 20px var(--tier-distressed-glow), 0 10px 28px rgba(0, 0, 0, 0.5);
 }
 
 body.cyber-theme .error-banner strong {

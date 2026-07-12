@@ -226,6 +226,16 @@
       padding: 0.65rem 0.85rem 0.55rem;
       max-width: min(420px, 46vw);
       pointer-events: auto;
+      /* Solid fallback plate (theme layers may override color) */
+      background: #141008;
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+    }
+
+    .live-tier-alert-card {
+      background: #0b1018;
+      border: 1px solid rgba(0, 240, 255, 0.22);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
     }
     .scan-issue-alert.visible { display: flex; }
 

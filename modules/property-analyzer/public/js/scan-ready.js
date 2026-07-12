@@ -63,6 +63,7 @@
         && !!serverConfig?.hasGeminiKey;
       if (scanReadyStartBtn) {
         scanReadyStartBtn.disabled = !canStart;
+        scanReadyStartBtn.hidden = !!state.running;
         if (canStart) {
           scanReadyStartBtn.title = 'Start Street View + satellite AI scan';
         } else if (state.running) {
@@ -74,6 +75,16 @@
         } else {
           scanReadyStartBtn.title = startBtn?.title || 'Cannot start yet';
         }
+      }
+      const readyStop = $('scanReadyStopBtn');
+      if (readyStop) {
+        readyStop.hidden = !state.running;
+        readyStop.disabled = !state.running || !!state.aborted;
+      }
+      if (scanReadyCount && state.running) {
+        const done = Number(state.processed) || (state.results || []).length || 0;
+        scanReadyCount.textContent =
+          `Scanning… ${done.toLocaleString()} done — progress auto-saves. Use Stop Scan to halt.`;
       }
       if (reviewLeadsBtn) reviewLeadsBtn.disabled = !(state.results || []).length;
     };

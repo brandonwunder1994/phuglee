@@ -154,16 +154,17 @@ body.cyber-theme .cmd-toast-stack {
 body.cyber-theme .cmd-toast {
   padding: 0.55rem 0.95rem 0.55rem 0.85rem;
   border-radius: 10px;
-  border: 1px solid rgba(0, 240, 255, 0.18);
+  border: 1px solid rgba(0, 240, 255, 0.28);
   border-left: 3px solid var(--neon-cyan);
-  background: rgba(8, 12, 22, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Solid background so text is always readable over the page */
+  background: #0b1018;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: var(--foreground);
   font-family: var(--font-mono);
   font-size: 0.76rem;
   letter-spacing: 0.02em;
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.1), 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.12), 0 10px 28px rgba(0, 0, 0, 0.55);
   animation: cyber-toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 

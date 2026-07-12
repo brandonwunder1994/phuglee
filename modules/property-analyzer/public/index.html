@@ -17,18 +17,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tailwind.css">
   <link rel="stylesheet" href="/css/stateface.css">
-  <link rel="stylesheet" href="/css/app.css?v=20260712-drop-min">
+  <link rel="stylesheet" href="/css/app.css?v=20260712-scan-smart">
   <link rel="stylesheet" href="/css/cyber-theme.css">
   <link rel="stylesheet" href="/css/cyber-ultra.css">
   <link rel="stylesheet" href="/css/cyber-review.css">
   <link rel="stylesheet" href="/css/cyber-modals.css?v=2">
-  <link rel="stylesheet" href="/css/cyber-data.css">
-  <link rel="stylesheet" href="/css/cyber-polish.css">
+  <link rel="stylesheet" href="/css/cyber-data.css?v=20260712-scan-smart">
+  <link rel="stylesheet" href="/css/cyber-polish.css?v=20260712-scan-smart">
   <link rel="stylesheet" href="/css/heat-theme.css">
   <link rel="stylesheet" href="/css/premium-analyzer.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=11">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-scan-smart">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <link rel="stylesheet" href="/css/premium-motion.css">
   <script src="/js/phuglee-motion.js" defer></script>
@@ -154,6 +154,7 @@
 
       <div class="scan-ready-actions">
         <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Start Scan</button>
+        <button type="button" class="btn-secondary scan-ready-stop" id="scanReadyStopBtn" hidden>Stop Scan</button>
         <div class="review-leads-wrap" id="reviewLeadsWrap">
           <button type="button" class="btn-secondary review-leads-btn" id="reviewLeadsBtn" disabled aria-haspopup="true" aria-expanded="false" aria-controls="reviewLeadsMenu">Review Leads</button>
           <div class="review-leads-menu" id="reviewLeadsMenu" role="menu" hidden>
@@ -172,7 +173,27 @@
         <span class="live-scan-dot" aria-hidden="true"></span>
         <h2 class="analyze-panel-heading" id="scanProgressTitle">Live scan</h2>
         <span class="live-scan-progress" id="liveScanProgress">0 / 0</span>
+        <button type="button" class="btn-secondary live-scan-stop" id="liveScanStopBtn" title="Stop after the current properties finish">Stop Scan</button>
       </header>
+      <div class="live-scan-kpis" id="liveScanKpis" aria-label="Live scan KPIs">
+        <div class="live-scan-kpi live-scan-kpi--accent">
+          <span class="live-scan-kpi-value" id="liveScanKpiDistressed">0</span>
+          <span class="live-scan-kpi-label">Distressed</span>
+        </div>
+        <div class="live-scan-kpi">
+          <span class="live-scan-kpi-value" id="liveScanKpiReview">0</span>
+          <span class="live-scan-kpi-label">Needs Review</span>
+        </div>
+        <div class="live-scan-kpi">
+          <span class="live-scan-kpi-value" id="liveScanKpiScanned">0</span>
+          <span class="live-scan-kpi-label">Scanned</span>
+        </div>
+        <div class="live-scan-kpi">
+          <span class="live-scan-kpi-value" id="liveScanKpiWorkers">—</span>
+          <span class="live-scan-kpi-label">Workers</span>
+        </div>
+      </div>
+      <p class="live-scan-meta" id="liveScanMeta">Progress auto-saves · workers auto-adjust when APIs cap out</p>
       <ol class="live-scan-feed" id="liveScanFeed"></ol>
       <div class="analyze-scan-legacy" hidden aria-hidden="true">
         <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
@@ -685,17 +706,17 @@
   <script src="/lib/result-classify.js?v=20260704a" defer></script>
   <script src="/lib/review-training.js?v=20260630c" defer></script>
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
-  <script src="/js/config.js?v=20260712-svfix" defer></script>
-  <script src="/js/state.js?v=20260712-svfix" defer></script>
-  <script src="/js/imagery.js?v=20260712-svfix" defer></script>
-  <script src="/js/scan.js?v=20260712-svfix" defer></script>
-  <script src="/js/review.js?v=20260712-svfix" defer></script>
-  <script src="/js/render.js?v=20260712-svfix" defer></script>
-  <script src="/js/session.js?v=20260712-svfix" defer></script>
-  <script src="/js/premium-shell.js?v=20260712-svfix" defer></script>
-  <script src="/js/scan-ready.js?v=20260712-svfix" defer></script>
-  <script src="/js/live-scan-feed.js?v=20260712-svfix" defer></script>
-  <script src="/js/location-hub.js?v=20260712-svfix" defer></script>
-  <script src="/js/app.js?v=20260712-svfix" defer></script>
+  <script src="/js/config.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/state.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/imagery.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/scan.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/review.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/render.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/session.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/premium-shell.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/scan-ready.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/live-scan-feed.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/location-hub.js?v=20260712-scan-smart" defer></script>
+  <script src="/js/app.js?v=20260712-scan-smart" defer></script>
 </body>
 </html>
