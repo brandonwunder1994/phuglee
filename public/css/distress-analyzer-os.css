@@ -1,12 +1,19 @@
 /* Property Analyzer — Distress OS embedded (Hybrid C layout) */
 
-/* Legacy cyber off — phuglee-analyzer.css handles atmosphere */
-body.analyzer-embedded.cyber-theme .ambient-orb,
-body.analyzer-embedded.cyber-theme .scanlines,
-body.analyzer-embedded.cyber-theme .grain,
-body.analyzer-embedded.cyber-theme .vignette,
-body.analyzer-embedded.cyber-theme .cyber-grid {
+
+/* Legacy cyber off — atmosphere + HUD chrome purged for hybrid glass */
+body.analyzer-embedded .ambient-orb,
+body.analyzer-embedded .scanlines,
+body.analyzer-embedded .grain,
+body.analyzer-embedded .vignette,
+body.analyzer-embedded .cyber-grid,
+body.analyzer-embedded .rec-badge,
+body.analyzer-embedded .scan-line,
+body.analyzer-embedded .target-reticle,
+body.analyzer-embedded .preview-reticle {
   display: none !important;
+  animation: none !important;
+  pointer-events: none !important;
 }
 
 /* No internal sidebar — shell nav owns navigation */
@@ -126,12 +133,20 @@ body.analyzer-embedded .review-mode-overlay {
 }
 
 body.analyzer-embedded .tool-modal-dialog,
-body.analyzer-embedded .cyber-dialog {
+body.analyzer-embedded .cyber-dialog,
+body.analyzer-embedded .phuglee-dialog {
   background: var(--glass-fill-elevated) !important;
   border: 1px solid var(--glass-border-strong) !important;
   box-shadow: var(--glass-shadow-float) !important;
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
+}
+
+body.analyzer-embedded .tool-modal-dialog.cyber-dialog::before,
+body.analyzer-embedded .property-modal-dialog.cyber-dialog::before,
+body.analyzer-embedded .phuglee-dialog::before {
+  content: none !important;
+  display: none !important;
 }
 
 /* No shell footer or trust copy on Analyze — main nav is enough */

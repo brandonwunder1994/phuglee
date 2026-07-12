@@ -337,7 +337,9 @@ body.heat-theme.cyber-theme .score-edit-backdrop {
 }
 
 body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog,
+body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog,
 body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog,
+body.heat-theme.cyber-theme .property-modal-dialog.phuglee-dialog,
 body.heat-theme.cyber-theme .modal-content,
 body.heat-theme.cyber-theme .settings-panel,
 body.heat-theme.cyber-theme .upload-modal {
@@ -354,7 +356,9 @@ body.heat-theme.cyber-theme .upload-modal {
 }
 
 body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog::before,
-body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog::before {
+body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog::before,
+body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog::before,
+body.heat-theme.cyber-theme .property-modal-dialog.phuglee-dialog::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -366,16 +370,20 @@ body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog::before {
 }
 
 body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog > *,
-body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog > * {
+body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog > *,
+body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog > *,
+body.heat-theme.cyber-theme .property-modal-dialog.phuglee-dialog > * {
   position: relative;
   z-index: 1;
 }
 
-body.heat-theme.cyber-theme .cyber-dialog .field label {
+body.heat-theme.cyber-theme .cyber-dialog .field label,
+body.heat-theme.cyber-theme .phuglee-dialog .field label {
   color: var(--phuglee-orange);
 }
 
-body.heat-theme.cyber-theme .cyber-dialog .input-wrap input:focus {
+body.heat-theme.cyber-theme .cyber-dialog .input-wrap input:focus,
+body.heat-theme.cyber-theme .phuglee-dialog .input-wrap input:focus {
   border-color: rgba(229, 132, 53, 0.5);
   box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.15);
 }
@@ -592,6 +600,7 @@ body.heat-theme.cyber-theme .summary-kpi-value {
 
 @media (prefers-reduced-motion: reduce) {
   body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog,
+body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog,
   body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog {
     animation: none;
   }
@@ -753,13 +762,52 @@ body.location-gate-active #dashboard {
    Analyze — Hybrid Phuglee layout (hero editorial + full-width data zone)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Kill legacy cyber atmosphere */
+
+/* Kill legacy cyber atmosphere + HUD chrome (hybrid glass) */
 body.analyze-phuglee .ambient-orb,
 body.analyze-phuglee .scanlines,
 body.analyze-phuglee .grain,
 body.analyze-phuglee .vignette,
-body.analyze-phuglee .cyber-grid {
+body.analyze-phuglee .cyber-grid,
+body.analyze-phuglee .rec-badge,
+body.analyze-phuglee .scan-line,
+body.analyze-phuglee .target-reticle,
+body.analyze-phuglee .preview-reticle {
   display: none !important;
+  animation: none !important;
+  pointer-events: none !important;
+}
+
+/* Drop film-grain / neon modal pseudo-layers */
+body.analyze-phuglee .tool-modal-dialog.cyber-dialog::before,
+body.analyze-phuglee .property-modal-dialog.cyber-dialog::before,
+body.analyze-phuglee .phuglee-dialog::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* Dual dialog class: quieter hybrid glass surface */
+body.analyze-phuglee .phuglee-dialog,
+body.analyze-phuglee .tool-modal-dialog.phuglee-dialog,
+body.analyze-phuglee .property-modal-dialog.phuglee-dialog,
+body.analyze-phuglee .score-edit-dialog.phuglee-dialog,
+body.analyze-phuglee .review-tier-pick-dialog.phuglee-dialog {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--glass-border-strong, rgba(229, 132, 53, 0.32));
+  background: var(--glass-fill-elevated, rgba(18, 16, 13, 0.96));
+  box-shadow: var(--glass-shadow-float, 0 24px 64px rgba(0, 0, 0, 0.55));
+  backdrop-filter: blur(var(--glass-blur, 18px)) saturate(var(--glass-saturate, 140%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 18px)) saturate(var(--glass-saturate, 140%));
+}
+
+body.analyze-phuglee .preview-placeholder {
+  color: var(--phuglee-stone, #9c968a);
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  text-shadow: none;
 }
 
 body.analyze-phuglee.cyber-theme {

@@ -28,21 +28,14 @@
   <link rel="stylesheet" href="/css/premium-analyzer.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-distill">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-quieter">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <link rel="stylesheet" href="/css/premium-motion.css">
   <script src="/js/phuglee-motion.js" defer></script>
   <script src="/js/phuglee-states.js" defer></script>
 </head>
-<body class="cyber-theme heat-theme analyze-phuglee">
+<body class="analyze-phuglee cyber-theme heat-theme">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
-  <div class="ambient-orb ambient-orb-1" aria-hidden="true"></div>
-  <div class="ambient-orb ambient-orb-2" aria-hidden="true"></div>
-  <div class="ambient-orb ambient-orb-3" aria-hidden="true"></div>
-  <div class="cyber-grid" aria-hidden="true"></div>
-  <div class="scanlines" aria-hidden="true"></div>
-  <div class="grain" aria-hidden="true"></div>
-  <div class="vignette" aria-hidden="true"></div>
   <div class="app-shell">
     <aside class="app-sidebar analyze-sidebar" id="appSidebar" aria-label="Main navigation">
       <div class="sidebar-brand">
@@ -450,7 +443,7 @@
 
   <div class="tool-modal" id="settingsModal" aria-modal="true" role="dialog" aria-labelledby="settingsModalTitle">
     <div class="tool-modal-backdrop" id="settingsModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog cyber-dialog-wide">
+    <div class="tool-modal-dialog cyber-dialog phuglee-dialog cyber-dialog-wide">
       <div class="tool-modal-head">
         <h2 id="settingsModalTitle">API Keys &amp; Scan Settings</h2>
         <button type="button" class="tool-modal-close" id="settingsModalClose" title="Close (Esc)">×</button>
@@ -498,7 +491,7 @@
 
   <div class="tool-modal" id="uploadModal" aria-modal="true" role="dialog" aria-labelledby="uploadModalTitle">
     <div class="tool-modal-backdrop" id="uploadModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog">
+    <div class="tool-modal-dialog cyber-dialog phuglee-dialog">
       <div class="tool-modal-head">
         <h2 id="uploadModalTitle">Upload Spreadsheet</h2>
         <button type="button" class="tool-modal-close" id="uploadModalClose" title="Close (Esc)">×</button>
@@ -529,7 +522,7 @@
 
   <div class="tool-modal" id="brainModal" aria-modal="true" role="dialog" aria-labelledby="brainModalTitle">
     <div class="tool-modal-backdrop" id="brainModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog cyber-dialog-wide">
+    <div class="tool-modal-dialog cyber-dialog phuglee-dialog cyber-dialog-wide">
       <div class="tool-modal-head">
         <h2 id="brainModalTitle">AI Learned Rules</h2>
         <button type="button" class="tool-modal-close" id="brainModalClose" title="Close (Esc)">×</button>
@@ -552,7 +545,7 @@
 
   <div class="tool-modal" id="apiUsageModal" aria-modal="true" role="dialog" aria-labelledby="apiUsageModalTitle" hidden>
     <div class="tool-modal-backdrop" id="apiUsageModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog">
+    <div class="tool-modal-dialog cyber-dialog phuglee-dialog">
       <div class="tool-modal-head">
         <h2 id="apiUsageModalTitle">API usage and credits</h2>
         <button type="button" class="tool-modal-close" id="apiUsageModalClose" title="Close (Esc)">×</button>
@@ -584,7 +577,7 @@
 
   <div class="property-modal" id="propertyModal" hidden aria-modal="true" role="dialog" aria-labelledby="previewHeaderTitle">
     <div class="property-modal-backdrop" id="propertyModalBackdrop"></div>
-    <div class="property-modal-dialog cyber-dialog">
+    <div class="property-modal-dialog cyber-dialog phuglee-dialog">
       <div class="property-modal-header panel-chrome">
         <h2 class="property-modal-title" id="propertyModalTitle">
           <span class="live-dot idle" id="liveDot" hidden aria-hidden="true"></span>
@@ -603,20 +596,18 @@
         <div class="property-modal-media">
           <div class="preview-images inspector-images-primary" id="previewImages">
             <div class="preview-image-wrap preview-sat-pane satellite-target" id="previewSatWrap" hidden>
-              <span class="preview-pane-label">Satellite · D4D</span>
+              <span class="preview-pane-label">Satellite</span>
               <img id="previewSatImg" alt="Satellite view" style="display:none;">
-              <div class="target-reticle preview-reticle" aria-hidden="true"></div>
             </div>
             <div class="preview-image-wrap preview-sv-pane" id="previewWrap">
               <span class="preview-pane-label" id="previewPaneLabel">Street View</span>
-              <div class="rec-badge idle" id="recBadge"><span class="rec-dot"></span> REC</div>
-              <div class="scan-line"></div>
+              <div id="recBadge" class="idle" hidden aria-hidden="true"></div>
               <div class="preview-placeholder" id="previewPlaceholder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                NO SIGNAL
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                No Street View for this address
               </div>
               <img id="previewImg" alt="Street View preview" style="display:none;">
-              <div class="target-reticle preview-reticle" id="previewMainReticle" aria-hidden="true"></div>
+              <div id="previewMainReticle" hidden aria-hidden="true"></div>
             </div>
           </div>
         </div>
@@ -639,7 +630,7 @@
 
   <div class="score-edit-modal" id="scoreEditModal" hidden aria-modal="true" role="dialog" aria-labelledby="scoreEditTitle">
     <div class="score-edit-backdrop" id="scoreEditBackdrop"></div>
-    <div class="score-edit-dialog cyber-dialog">
+    <div class="score-edit-dialog cyber-dialog phuglee-dialog">
       <div class="score-edit-header">
         <h3 id="scoreEditTitle">Set Distress Level</h3>
         <button type="button" class="score-edit-close" id="scoreEditClose" title="Close (Esc)">×</button>
@@ -716,7 +707,7 @@
   </div>
 
   <div class="review-tier-pick-overlay" id="reviewTierPickOverlay" hidden aria-modal="true" role="dialog" aria-label="Choose home distress level">
-    <div class="review-tier-pick-dialog cyber-dialog">
+    <div class="review-tier-pick-dialog cyber-dialog phuglee-dialog">
       <h3>This is a home — pick distress level</h3>
       <p>Choose whether this property is distressed (work the lead) or well maintained (skip).</p>
       <div class="review-tier-pick-btns">
