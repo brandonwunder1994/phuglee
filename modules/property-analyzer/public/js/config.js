@@ -1606,6 +1606,7 @@ R.fetchApiUsage = async function fetchApiUsage() {
 R.wireApiUsageControls = function wireApiUsageControls() {
   if (R._apiUsageWired) return;
   R._apiUsageWired = true;
+  $('apiUsageOpenBtn')?.addEventListener('click', () => openApiUsageModal?.());
   $('apiUsageRefreshBtn')?.addEventListener('click', () => {
     fetchApiUsage();
     refreshServerStatusUi?.();

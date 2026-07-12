@@ -2112,13 +2112,22 @@ R.syncToolModalOverflow = function syncToolModalOverflow() {
   }
 }
 
+R.getToolModals = function getToolModals() {
+  return [settingsModal, uploadModal, brainModal, $('apiUsageModal')].filter(Boolean);
+}
+
 R.openToolModal = function openToolModal(modalEl) {
   if (!modalEl) return;
   if (modalEl.id === 'brainModal') renderLearnedRulesPanel();
-  for (const m of [settingsModal, uploadModal, brainModal]) {
+  if (modalEl.id === 'apiUsageModal') {
+    fetchApiUsage?.();
+    refreshServerStatusUi?.();
+  }
+  for (const m of getToolModals()) {
     if (m && m !== modalEl) m.classList.remove('open');
   }
   modalEl.classList.add('open');
+  modalEl.hidden = false;
   openToolModalId = modalEl.id;
   document.body.style.overflow = 'hidden';
 }
@@ -2126,13 +2135,17 @@ R.openToolModal = function openToolModal(modalEl) {
 R.closeToolModal = function closeToolModal(modalEl) {
   if (!modalEl) return;
   modalEl.classList.remove('open');
+  if (modalEl.id === 'apiUsageModal') modalEl.hidden = true;
   if (openToolModalId === modalEl.id) openToolModalId = null;
   syncToolModalOverflow();
 }
 
 R.closeAllToolModals = function closeAllToolModals() {
-  for (const m of [settingsModal, uploadModal, brainModal]) {
-    if (m) m.classList.remove('open');
+  for (const m of getToolModals()) {
+    if (m) {
+      m.classList.remove('open');
+      if (m.id === 'apiUsageModal') m.hidden = true;
+    }
   }
   openToolModalId = null;
   syncToolModalOverflow();
@@ -2141,6 +2154,7 @@ R.closeAllToolModals = function closeAllToolModals() {
 R.openUploadModal = function openUploadModal() { openToolModal(uploadModal); }
 R.openSettingsModal = function openSettingsModal() { openToolModal(settingsModal); }
 R.openBrainModal = function openBrainModal() { openToolModal(brainModal); }
+R.openApiUsageModal = function openApiUsageModal() { openToolModal($('apiUsageModal')); }
 
 R.buildImportHeaderCopy = function buildImportHeaderCopy() {
   const importMeta = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.importMeta) ? PDA.lib.importMeta : null;

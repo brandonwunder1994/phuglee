@@ -176,33 +176,7 @@
             <button type="button" class="review-leads-item" data-review-flow="review" role="menuitem">Manual Review</button>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="api-usage-section phuglee-panel analyze-panel" id="apiUsageSection" data-phuglee-reveal-child aria-live="polite">
-      <div class="api-usage-head">
-        <p class="analyze-panel-eyebrow">API usage &amp; credits</p>
-        <h2 class="analyze-panel-heading api-usage-title">Maps + Gemini balance</h2>
-        <p class="api-usage-note" id="apiUsageNote">Live usage tracked by this app. Google does not publish exact remaining credits for API keys.</p>
-      </div>
-      <div class="api-usage-grid">
-        <div class="api-usage-card" id="apiUsageGeminiCard">
-          <div class="api-usage-card-label">Gemini (AI scan)</div>
-          <div class="api-usage-card-main" id="apiUsageGeminiMain">—</div>
-          <div class="api-usage-card-sub" id="apiUsageGeminiSub">—</div>
-          <div class="api-usage-bar" aria-hidden="true"><span class="api-usage-bar-fill" id="apiUsageGeminiBar"></span></div>
-        </div>
-        <div class="api-usage-card" id="apiUsageMapsCard">
-          <div class="api-usage-card-label">Google Maps / Street View</div>
-          <div class="api-usage-card-main" id="apiUsageMapsMain">—</div>
-          <div class="api-usage-card-sub" id="apiUsageMapsSub">—</div>
-          <div class="api-usage-bar" aria-hidden="true"><span class="api-usage-bar-fill" id="apiUsageMapsBar"></span></div>
-        </div>
-      </div>
-      <div class="api-usage-status" id="apiUsageStatus">Checking usage…</div>
-      <div class="api-usage-actions">
-        <button type="button" class="btn-secondary btn-sm" id="apiUsageRefreshBtn">Refresh</button>
-        <button type="button" class="btn-secondary btn-sm" id="apiUsageClearQuotaBtn" hidden>Clear quota stop flag</button>
+        <button type="button" class="btn-secondary" id="apiUsageOpenBtn" title="View Maps and Gemini usage estimates">API usage and credits</button>
       </div>
     </section>
 
@@ -517,6 +491,38 @@
           </div>
         </div>
         <div id="learnedRulesList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-modal" id="apiUsageModal" aria-modal="true" role="dialog" aria-labelledby="apiUsageModalTitle" hidden>
+    <div class="tool-modal-backdrop" id="apiUsageModalBackdrop"></div>
+    <div class="tool-modal-dialog cyber-dialog">
+      <div class="tool-modal-head">
+        <h2 id="apiUsageModalTitle">API usage and credits</h2>
+        <button type="button" class="tool-modal-close" id="apiUsageModalClose" title="Close (Esc)">×</button>
+      </div>
+      <div class="api-usage-modal-body" id="apiUsageSection" aria-live="polite">
+        <p class="api-usage-note" id="apiUsageNote">Live usage tracked by this app. Google does not publish exact remaining credits for API keys.</p>
+        <div class="api-usage-grid">
+          <div class="api-usage-card" id="apiUsageGeminiCard">
+            <div class="api-usage-card-label">Gemini (AI scan)</div>
+            <div class="api-usage-card-main" id="apiUsageGeminiMain">—</div>
+            <div class="api-usage-card-sub" id="apiUsageGeminiSub">—</div>
+            <div class="api-usage-bar" aria-hidden="true"><span class="api-usage-bar-fill" id="apiUsageGeminiBar"></span></div>
+          </div>
+          <div class="api-usage-card" id="apiUsageMapsCard">
+            <div class="api-usage-card-label">Google Maps / Street View</div>
+            <div class="api-usage-card-main" id="apiUsageMapsMain">—</div>
+            <div class="api-usage-card-sub" id="apiUsageMapsSub">—</div>
+            <div class="api-usage-bar" aria-hidden="true"><span class="api-usage-bar-fill" id="apiUsageMapsBar"></span></div>
+          </div>
+        </div>
+        <div class="api-usage-status" id="apiUsageStatus">Checking usage…</div>
+        <div class="api-usage-actions">
+          <button type="button" class="btn-secondary btn-sm" id="apiUsageRefreshBtn">Refresh</button>
+          <button type="button" class="btn-secondary btn-sm" id="apiUsageClearQuotaBtn" hidden>Clear quota stop flag</button>
+        </div>
       </div>
     </div>
   </div>

@@ -5194,3 +5194,23 @@
   background: rgba(0,0,0,0.35);
   color: inherit;
 }
+
+/* API usage modal (panel content lives inside dialog) */
+.api-usage-modal-body {
+  padding: 0.15rem 0 0.35rem;
+}
+.api-usage-modal-body .api-usage-note {
+  margin-bottom: 0.85rem;
+}
+.api-usage-modal-body .api-usage-status {
+  margin-top: 0.85rem;
+}
+.scan-ready-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+}
+#apiUsageOpenBtn {
+  font-size: 0.84rem;
+}

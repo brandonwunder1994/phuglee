@@ -1355,6 +1355,9 @@ uploadModalClose?.addEventListener('click', () => closeToolModal(uploadModal));
 uploadModalBackdrop?.addEventListener('click', () => closeToolModal(uploadModal));
 brainModalClose?.addEventListener('click', () => closeToolModal(brainModal));
 brainModalBackdrop?.addEventListener('click', () => closeToolModal(brainModal));
+$('apiUsageOpenBtn')?.addEventListener('click', () => openApiUsageModal?.());
+$('apiUsageModalClose')?.addEventListener('click', () => closeToolModal($('apiUsageModal')));
+$('apiUsageModalBackdrop')?.addEventListener('click', () => closeToolModal($('apiUsageModal')));
 
 resetUploadBtn.addEventListener('click', async () => {
   if (state.running) {
