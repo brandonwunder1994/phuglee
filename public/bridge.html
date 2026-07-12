@@ -473,7 +473,9 @@
         <div class="bridge-lists-details-body">
       <div class="bridge-lists-header">
         <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv">Download all (CSV)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-batched-xlsx" title="One workbook: sheets of 5,000 leads each">Export batches (5k XLSX)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-csv" title="ZIP of CSV files, 5,000 leads each">Export batches (5k CSV zip)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-csv">Download all (CSV)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-delete-selected-lists" hidden>Delete selected</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
@@ -557,6 +559,6 @@
   <script src="/js/shell-nav.js?v=12"></script>
   <script src="/js/bridge-train.js?v=7"></script>
   <script src="/js/bridge-scrub-feed.js?v=1"></script>
-  <script src="/js/bridge.js?v=72"></script>
+  <script src="/js/bridge.js?v=73"></script>
 </body>
 </html>

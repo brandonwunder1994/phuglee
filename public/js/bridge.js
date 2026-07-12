@@ -71,6 +71,8 @@
   const listsToolbar = document.getElementById('bridge-lists-toolbar');
   const downloadAllCsvBtn = document.getElementById('bridge-download-all-csv');
   const downloadAllXlsxBtn = document.getElementById('bridge-download-all-xlsx');
+  const downloadBatchedXlsxBtn = document.getElementById('bridge-download-batched-xlsx');
+  const downloadBatchedCsvBtn = document.getElementById('bridge-download-batched-csv');
   const clearAllListsBtn = document.getElementById('bridge-clear-all-lists');
   const deleteSelectedListsBtn = document.getElementById('bridge-delete-selected-lists');
   /** Inventory type filter: '' | 'violation' | 'water' */
@@ -3274,6 +3276,18 @@
         : 'Download all (XLSX)';
       downloadAllXlsxBtn.disabled = n === 0;
     }
+    if (downloadBatchedXlsxBtn) {
+      downloadBatchedXlsxBtn.textContent = filtered
+        ? 'Export filtered batches (5k)'
+        : 'Export batches (5k XLSX)';
+      downloadBatchedXlsxBtn.disabled = n === 0;
+    }
+    if (downloadBatchedCsvBtn) {
+      downloadBatchedCsvBtn.textContent = filtered
+        ? 'Export filtered (5k CSV zip)'
+        : 'Export batches (5k CSV zip)';
+      downloadBatchedCsvBtn.disabled = n === 0;
+    }
     if (clearAllListsBtn) {
       clearAllListsBtn.textContent = filtered
         ? `Delete filtered (${n})`
@@ -3806,6 +3820,77 @@
       await loadSavedLists();
     } catch (err) {
       showError(err.message || 'Could not download lists.');
+    }
+  }
+
+  /**
+   * Bulk export all visible scan-history leads in batches of 5,000.
+   * XLSX → one workbook, one sheet per batch. CSV → zip of batch CSVs.
+   */
+  async function downloadAllSavedListsBatched(format) {
+    const visible = getVisibleSavedLists();
+    if (!visible.length) {
+      showError(
+        inventoryTypeFilter
+          ? 'No lists match the current filter.'
+          : 'No saved lists to export yet.'
+      );
+      return;
+    }
+    const total = visible.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0);
+    const batches = Math.max(1, Math.ceil(total / 5000));
+    const fmt = format === 'csv' ? 'csv' : 'xlsx';
+    const ids = visible.map((l) => l.id).filter(Boolean);
+    const qs = new URLSearchParams({ format: fmt, batchSize: '5000' });
+    if (inventoryTypeFilter || ids.length < savedLists.length) {
+      qs.set('ids', ids.join(','));
+    }
+    const btn = fmt === 'csv' ? downloadBatchedCsvBtn : downloadBatchedXlsxBtn;
+    const prevLabel = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = `Building ${batches} batch${batches === 1 ? '' : 'es'}…`;
+    }
+    try {
+      const res = await fetch(`/api/bridge/lists/download-all-batched?${qs.toString()}`, {
+        cache: 'no-store',
+        headers: bridgeHeaders()
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Batched export failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="?([^"]+)"?/i);
+      const ext = fmt === 'csv' ? 'zip' : 'xlsx';
+      const filename = match?.[1] || `filter-lists-batched.${ext}`;
+      const batchHdr = res.headers.get('X-Filter-Batch-Count');
+      const recHdr = res.headers.get('X-Filter-Record-Count');
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+      await loadSavedLists();
+      const batchN = batchHdr ? Number(batchHdr) : batches;
+      const recN = recHdr ? Number(recHdr) : total;
+      if (window.console && console.info) {
+        console.info(
+          `[Filter] Batched export: ${recN.toLocaleString()} leads → ${batchN} file/sheet(s) of up to 5,000`
+        );
+      }
+    } catch (err) {
+      showError(err.message || 'Could not export batched lists.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prevLabel || (fmt === 'csv'
+          ? 'Export batches (5k CSV zip)'
+          : 'Export batches (5k XLSX)');
+      }
+      syncInventoryToolbarLabels();
     }
   }
 
@@ -4944,6 +5029,12 @@
   });
   downloadAllXlsxBtn?.addEventListener('click', () => {
     downloadAllSavedLists('xlsx').catch((e) => showError(e.message));
+  });
+  downloadBatchedXlsxBtn?.addEventListener('click', () => {
+    downloadAllSavedListsBatched('xlsx').catch((e) => showError(e.message));
+  });
+  downloadBatchedCsvBtn?.addEventListener('click', () => {
+    downloadAllSavedListsBatched('csv').catch((e) => showError(e.message));
   });
   clearAllListsBtn?.addEventListener('click', () => {
     clearAllSavedLists().catch((e) => showError(e.message));

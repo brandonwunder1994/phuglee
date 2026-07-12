@@ -205,6 +205,13 @@ test('SHIFT-02: download-all + clear-all toolbar IDs preserved', () => {
   assert.match(html, /id=["']bridge-clear-all-lists["']/);
 });
 
+test('SHIFT-02: batched 5k export toolbar + client route', () => {
+  assert.match(html, /id=["']bridge-download-batched-xlsx["']/);
+  assert.match(html, /id=["']bridge-download-batched-csv["']/);
+  assert.match(js, /download-all-batched/);
+  assert.match(js, /downloadAllSavedListsBatched/);
+});
+
 test('SHIFT-02: no /api/bridge/shift route introduced', () => {
   assert.equal(
     /\/api\/bridge\/shift/.test(js),

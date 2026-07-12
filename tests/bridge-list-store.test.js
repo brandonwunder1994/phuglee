@@ -29,6 +29,9 @@ const {
   clearAllLists,
   buildDownload,
   buildDownloadAll,
+  buildDownloadAllBatched,
+  chunkRowsForExport,
+  EXPORT_BATCH_SIZE,
   markDownloaded,
   setListStatus,
   resetCitiesStatusToReady
@@ -222,6 +225,60 @@ test('buildDownloadAll combines rows with list name columns', () => {
   assert.match(text, /City B List/);
   assert.match(text, /1 A St/);
   assert.match(text, /2 B St/);
+});
+
+test('chunkRowsForExport splits 26000 into six 5k batches (last 1000)', () => {
+  assert.equal(EXPORT_BATCH_SIZE, 5000);
+  const rows = Array.from({ length: 26000 }, (_, i) => ({ i }));
+  const chunks = chunkRowsForExport(rows, 5000);
+  assert.equal(chunks.length, 6);
+  assert.deepEqual(
+    chunks.map((c) => c.rows.length),
+    [5000, 5000, 5000, 5000, 5000, 1000]
+  );
+});
+
+test('buildDownloadAllBatched xlsx uses one sheet per 5k batch', async () => {
+  const user = 'batch-xlsx-user';
+  const rows = Array.from({ length: 12005 }, (_, i) => ({
+    streetAddress: `${i} Main St`,
+    city: 'Commerce',
+    state: 'TX',
+    zip: '75428'
+  }));
+  saveList({
+    name: 'Commerce bulk',
+    rows,
+    city: 'Commerce',
+    state: 'TX',
+    uploadType: 'code_violation',
+    username: user
+  });
+  const dl = await buildDownloadAllBatched('xlsx', { username: user });
+  assert.equal(dl.recordCount, 12005);
+  assert.equal(dl.batchCount, 3);
+  assert.equal(dl.batchSize, 5000);
+  assert.match(dl.filename, /\.xlsx$/i);
+  assert.ok(Buffer.isBuffer(dl.buffer));
+  assert.ok(dl.buffer.length > 1000);
+});
+
+test('buildDownloadAllBatched csv returns a zip of batch files', async () => {
+  const user = 'batch-csv-user';
+  saveList({
+    name: 'Small batch list',
+    rows: Array.from({ length: 3 }, (_, i) => ({
+      streetAddress: `${i} Oak`,
+      city: 'Reno',
+      state: 'NV'
+    })),
+    username: user
+  });
+  const dl = await buildDownloadAllBatched('csv', { username: user }, { batchSize: 2 });
+  assert.equal(dl.recordCount, 3);
+  assert.equal(dl.batchCount, 2);
+  assert.match(dl.contentType, /zip/i);
+  assert.match(dl.filename, /\.zip$/i);
 });
 
 test('clearAllLists removes every list for the user', () => {
