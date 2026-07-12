@@ -1773,7 +1773,16 @@ R.getStartBlockReason = function getStartBlockReason() {
   if (USE_PROXY && serverOnline === false && serverOfflineStreak >= 2) {
     return 'Server not responding — double-click "Property Distress Analyzer" on your desktop, wait a few seconds, then refresh.';
   }
-  if (!state.records.length && !state.results.length) return 'Upload a spreadsheet first.';
+  const pendingHint = Number(state._pendingUnscanned) || 0;
+  if (!state.records.length && !state.results.length && !pendingHint) {
+    return 'Upload a spreadsheet first.';
+  }
+  if (!state.records.length && pendingHint > 0 && !state._recordsLoadComplete) {
+    return 'Loading leads for scan… wait a moment, then try again.';
+  }
+  if (!state.records.length && pendingHint > 0) {
+    return 'Scan queue still loading — click Start again in a few seconds.';
+  }
   if (!serverConfig.hasMapsKey) return 'Add MAPS_API_KEY to .env and restart the server.';
   if (!serverConfig.hasGeminiKey) return 'Add GEMINI_API_KEY to .env and restart the server.';
   return '';

@@ -1340,6 +1340,10 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   lastSessionSaveError = null;
   state.records = [];
   state.results = [];
+  // Large sessions load results in pages; records load separately so Start Scan still works.
+  state._expectedRecords = Number(summary.records) || 0;
+  state._pendingUnscanned = Number(summary.pendingUnscanned) || 0;
+  state._recordsLoadComplete = false;
   state.fileName = summary.fileName || '';
   state.processed = summary.processed || 0;
   state.filter = summary.filter || 'all';
@@ -1405,6 +1409,7 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   updateAppNav();
   updateCommandBar();
   updateStartButton();
+  updateScanReadyUi?.();
   invalidateTierCountsCache();
 
   const brainRestore = applyLearnedBrainFromSession(summary, { fromBackup: true });
@@ -1423,6 +1428,109 @@ R.applySessionSummary = async function applySessionSummary(summary) {
     }
   }
 }
+
+/**
+ * Load import/scan-queue records for large sessions (summary path clears state.records).
+ * mode=unscanned loads only leads not already analyzed — enough for Start Scan.
+ */
+R.loadSessionRecords = async function loadSessionRecords(opts = {}) {
+  if (!USE_PROXY) return { ok: false, loaded: 0 };
+  const mode = opts.mode || 'unscanned';
+  const pageSize = Math.min(1000, Math.max(100, Number(opts.pageSize) || 500));
+  const collected = [];
+  let offset = 0;
+  let total = null;
+  let fileName = state.fileName || '';
+  let importBatches = state.importBatches || [];
+
+  try {
+    while (true) {
+      const res = await apiFetch(
+        `/api/session-records?mode=${encodeURIComponent(mode)}&offset=${offset}&limit=${pageSize}`,
+        { cache: 'no-store' }
+      );
+      if (!res.ok) throw new Error(`session-records HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data?.ok) throw new Error(data?.error || 'session-records failed');
+      const page = Array.isArray(data.records) ? data.records : [];
+      total = Number(data.total) || total || 0;
+      if (data.fileName) fileName = data.fileName;
+      if (Array.isArray(data.importBatches) && data.importBatches.length) {
+        importBatches = data.importBatches;
+      }
+      collected.push(...page);
+      offset += page.length;
+      if (!page.length || !data.hasMore || (total != null && offset >= total)) break;
+      // Yield so UI stays responsive during multi-page load
+      await new Promise((r) => setTimeout(r, 0));
+    }
+
+    // Merge with any records already present (avoid wiping mid-import)
+    if (mode === 'unscanned' || mode === 'pending') {
+      // For scan queue: use unscanned set as authoritative pending list.
+      // Keep already-scanned rows out of records so Start Scan only walks pending.
+      const byKey = new Map();
+      for (const r of collected) {
+        const k = recordKey(r);
+        if (k) byKey.set(k, r);
+      }
+      // Preserve any local records that might be mid-session new imports
+      for (const r of state.records || []) {
+        const k = recordKey(r);
+        if (k && !byKey.has(k)) byKey.set(k, r);
+      }
+      state.records = [...byKey.values()];
+    } else if (!state.records.length) {
+      state.records = collected;
+    } else {
+      const byKey = new Map((state.records || []).map((r) => [recordKey(r), r]));
+      for (const r of collected) {
+        const k = recordKey(r);
+        if (k) byKey.set(k, r);
+      }
+      state.records = [...byKey.values()];
+    }
+
+    state.fileName = fileName || state.fileName;
+    if (importBatches?.length) state.importBatches = importBatches;
+    state._expectedRecords = Number(total) || state.records.length;
+    state._pendingUnscanned = state.records.length;
+    state._recordsLoadComplete = true;
+
+    if (state.records.length) {
+      if (heroCount) heroCount.textContent = state.records.length.toLocaleString();
+      fileInfo.textContent = state.fileName
+        ? `✓ ${state.fileName} — ${state.records.length.toLocaleString()} ready to scan`
+        : `✓ ${state.records.length.toLocaleString()} leads ready to scan`;
+      fileInfo.classList.add('visible');
+    }
+
+    updateStartButton();
+    updateScanReadyUi?.();
+    updateCommandBar?.();
+    log?.(
+      `Loaded ${state.records.length.toLocaleString()} unscanned lead${state.records.length === 1 ? '' : 's'} for scan`,
+      'success'
+    );
+    return { ok: true, loaded: state.records.length, total };
+  } catch (err) {
+    console.warn('[session-records] load failed', err);
+    state._recordsLoadComplete = false;
+    log?.(`Could not load scan queue: ${err.message}`, 'error');
+    return { ok: false, loaded: 0, error: err.message };
+  }
+};
+
+R.ensureScanRecordsLoaded = async function ensureScanRecordsLoaded() {
+  if ((state.records || []).length > 0) return true;
+  if (!USE_PROXY) return false;
+  const pending = Number(state._pendingUnscanned) || Number(state._expectedRecords) || 0;
+  if (!pending && state._recordsLoadComplete) return false;
+  setSessionRestoreBanner?.('Loading leads for scan…');
+  const res = await loadSessionRecords({ mode: 'unscanned' });
+  setSessionRestoreBanner?.('');
+  return !!(res?.ok && (state.records || []).length);
+};
 
 R.sessionDataRank = function sessionDataRank(data) {
   if (!data) return -1;
@@ -1799,6 +1907,14 @@ R.loadSession = async function loadSession() {
           requestServerSave('review-metadata-merge');
         }
       }
+      // Load unscanned import queue so Ready to scan / Start Scan work on large sessions
+      const pendingHint = Number(summary.pendingUnscanned) || Number(summary.records) || 0;
+      if (pendingHint > 0) {
+        setSessionRestoreBanner(
+          `Loading ${pendingHint.toLocaleString()} unscanned leads for scan…`
+        );
+        await loadSessionRecords({ mode: 'unscanned' });
+      }
       setSessionRestoreBanner(`Loaded ${summary.results.toLocaleString()} properties — loading results…`);
       await loadSessionResultsFirstPage(summary.results, firstPagePromise);
       loadSessionResultsBackground(summary.results);
@@ -1807,6 +1923,7 @@ R.loadSession = async function loadSession() {
       if (window.DistressPersistence) {
         DistressPersistence.saveNow('restore', { urgent: true, localOnly: true });
       }
+      updateScanReadyUi?.();
       return;
     }
     const best = window.DistressPersistence

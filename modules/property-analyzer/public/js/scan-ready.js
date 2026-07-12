@@ -8,12 +8,17 @@
     const im = () => PDA.lib?.importMeta;
 
     R.updateScanReadyUi = function updateScanReadyUi() {
-      const hasRecords = state.records.length > 0;
+      const hasRecords = (state.records || []).length > 0;
       // Total still waiting for Street View / satellite AI (not already in results)
-      const pendingUnscanned = typeof recordKey === 'function'
+      let pendingUnscanned = typeof recordKey === 'function'
         ? (im()?.countUnscannedLeads(state.records, state.results, recordKey) || 0)
         : 0;
-      const show = hasRecords && !state.running && pendingUnscanned > 0;
+      // Large-session summary path may not have loaded records yet — use server hint
+      if (!pendingUnscanned && Number(state._pendingUnscanned) > 0) {
+        pendingUnscanned = Number(state._pendingUnscanned);
+      }
+      const loadingRecords = !hasRecords && pendingUnscanned > 0 && !state._recordsLoadComplete;
+      const show = !state.running && (pendingUnscanned > 0 || loadingRecords);
       if (scanReadySection) scanReadySection.hidden = !show;
 
       if (!show) return;
@@ -58,11 +63,20 @@
 
       if (scanReadyLocation) scanReadyLocation.textContent = locationLabel;
       if (scanReadyCount) {
-        scanReadyCount.textContent = `${leadCount.toLocaleString()} lead${leadCount === 1 ? '' : 's'} ready to scan`;
+        scanReadyCount.textContent = loadingRecords
+          ? `Loading ${leadCount.toLocaleString()} lead${leadCount === 1 ? '' : 's'}…`
+          : `${leadCount.toLocaleString()} lead${leadCount === 1 ? '' : 's'} ready to scan`;
       }
 
-      const canStart = pendingUnscanned > 0 && !state.running && startBtn && !startBtn.disabled;
-      if (scanReadyStartBtn) scanReadyStartBtn.disabled = !canStart;
+      const canStart = hasRecords && pendingUnscanned > 0 && !state.running && startBtn && !startBtn.disabled;
+      if (scanReadyStartBtn) {
+        scanReadyStartBtn.disabled = !canStart;
+        scanReadyStartBtn.title = canStart
+          ? 'Start Street View + satellite AI scan'
+          : (loadingRecords
+            ? 'Loading leads…'
+            : (startBtn?.title || 'Waiting for leads or API keys'));
+      }
       if (reviewLeadsBtn) reviewLeadsBtn.disabled = !state.results.length;
     };
 

@@ -125,6 +125,47 @@ function register(ctx) {
     return true;
   });
 
+  /**
+   * Paginated import/scan queue (records). mode=unscanned returns only leads not yet in results
+   * so large analyzed sessions can still Start Scan without loading 10k+ finished results as records.
+   */
+  router.get('/api/session-records', async (req, res, url) => {
+    const { session } = backups.loadSessionForRequest(req);
+    const finalized = finalizeSession(session);
+    const allRecords = Array.isArray(finalized.records) ? finalized.records : [];
+    const results = Array.isArray(finalized.results) ? finalized.results : [];
+    const mode = String(url.searchParams.get('mode') || 'all').toLowerCase();
+    const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
+    const limit = Math.min(1000, Math.max(1, parseInt(url.searchParams.get('limit') || '500', 10) || 500));
+
+    let source = allRecords;
+    if (mode === 'unscanned' || mode === 'pending') {
+      const existing = new Set(
+        results.map((r) => `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`).filter(Boolean)
+      );
+      source = allRecords.filter((r) => {
+        const k = `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`;
+        return !k || !existing.has(k);
+      });
+    }
+
+    const slice = source.slice(offset, offset + limit);
+    sendJson(res, 200, {
+      ok: true,
+      mode: mode === 'unscanned' || mode === 'pending' ? 'unscanned' : 'all',
+      offset,
+      limit,
+      total: source.length,
+      recordsTotal: allRecords.length,
+      resultsTotal: results.length,
+      hasMore: offset + slice.length < source.length,
+      records: slice,
+      fileName: finalized.fileName || '',
+      importBatches: Array.isArray(finalized.importBatches) ? finalized.importBatches : []
+    });
+    return true;
+  });
+
   router.get('/api/session-backup', async (req, res, url) => {
     const { scope } = backups.loadSessionForRequest(req);
     const requested = url.searchParams.get('file') || SESSION_LATEST_FILE;

@@ -239,10 +239,29 @@ module.exports = function createBackups(deps) {
     pruneBackupsInDir(MANUAL_BACKUPS_DIR, MAX_MANUAL_BACKUPS);
   }
 
+  function recordKeyFromRow(r) {
+    if (!r) return '';
+    return `${r.email || ''}|${r.phone || ''}|${r.address || ''}`;
+  }
+
+  function countPendingUnscanned(session) {
+    const results = Array.isArray(session?.results) ? session.results : [];
+    const records = Array.isArray(session?.records) ? session.records : [];
+    if (!records.length) return 0;
+    const existing = new Set(results.map(recordKeyFromRow).filter(Boolean));
+    let pending = 0;
+    for (const r of records) {
+      const k = recordKeyFromRow(r);
+      if (!k || !existing.has(k)) pending += 1;
+    }
+    return pending;
+  }
+
   function buildSessionSummary(session, opts = {}) {
     const lite = !!opts.lite;
     const results = Array.isArray(session?.results) ? session.results : [];
     const records = Array.isArray(session?.records) ? session.records : [];
+    const pendingUnscanned = countPendingUnscanned(session);
     const summary = {
       ok: true,
       file: SESSION_LATEST_FILE,
@@ -250,6 +269,8 @@ module.exports = function createBackups(deps) {
       fileName: session?.fileName || '',
       records: records.length,
       results: results.length,
+      pendingUnscanned,
+      importBatches: Array.isArray(session?.importBatches) ? session.importBatches.length : 0,
       processed: session?.processed || 0,
       filter: session?.filter || 'all',
       leadTypeFilter: session?.leadTypeFilter || 'all',
@@ -294,9 +315,10 @@ module.exports = function createBackups(deps) {
 
   function sessionSummaryCacheKey(session, lite = false) {
     const results = Array.isArray(session?.results) ? session.results.length : 0;
+    const records = Array.isArray(session?.records) ? session.records.length : 0;
     const savedAt = Number(session?.savedAt) || 0;
     const mtimeMs = sessionFileCache.mtimeMs || 0;
-    return `${mtimeMs}|${savedAt}|${results}|${lite ? 'lite' : 'full'}`;
+    return `${mtimeMs}|${savedAt}|${results}|${records}|${lite ? 'lite' : 'full'}`;
   }
 
   function getSessionSummaryResponseBody(session, opts = {}) {
