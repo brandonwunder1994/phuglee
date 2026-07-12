@@ -66,12 +66,13 @@ R.tierCountsCacheKeyFromState = function tierCountsCacheKeyFromState(scope = 'ma
 }
 
 R.getTotalScannedCount = function getTotalScannedCount() {
+  // Scanned = analyzed results only (never inflate with pending import records)
   return Math.max(
     state.results.length,
     sessionLoadState.total || 0,
     sessionLoadState.serverCanonical || 0,
-    state.processed || 0,
-    state.records.length || 0
+    Number(state._tierCountsFromServer?.all) || 0,
+    state.processed || 0
   );
 }
 
@@ -123,12 +124,46 @@ R.getResultsForMarketTierCounts = function getResultsForMarketTierCounts() {
   });
 }
 
+/** Look up server-computed geo tier bucket for the active location filter. */
+R.getServerGeoTierBucket = function getServerGeoTierBucket(filter = state.locationFilter) {
+  const geo = state._geoFromServer;
+  if (!geo || !filter) return null;
+  if (filter.state === '__unknown__' || filter.state === (PDA.lib?.locationIndex?.UNKNOWN_STATE)) {
+    return geo.unknownTier || null;
+  }
+  const abbr = normalizeStateAbbr(filter.state) || filter.state;
+  const states = Array.isArray(geo.states) ? geo.states : [];
+  const st = states.find((s) => s.abbr === abbr);
+  if (!st) return null;
+  if (!filter.city) return st.tierCounts || null;
+  const cityName = String(filter.city).trim().toLowerCase();
+  const city = (st.cities || []).find((c) => String(c.name || '').trim().toLowerCase() === cityName);
+  return city?.tierCounts || null;
+};
+
 R.getTierCounts = function getTierCounts(opts = {}) {
   const useGlobal = opts.global === true || !state.locationFilter;
   const scope = useGlobal ? 'global' : 'market';
   const totalScanned = getTotalScannedCount();
-  if (useGlobal && !sessionLoadState.complete && state._tierCountsFromServer) {
+  // Prefer authoritative server KPIs until the full result set is hydrated
+  if (useGlobal && state._tierCountsFromServer && (!sessionLoadState.complete || !state.results.length)) {
     return normalizeTierCountsForDisplay(state._tierCountsFromServer, totalScanned);
+  }
+  if (!useGlobal && state._geoFromServer && !sessionLoadState.complete) {
+    // Server geo is full-market; skip when extra filters need client recompute
+    const hasDateFilter = (state.importDateFilter || []).length > 0;
+    const hasLeadType = state.leadTypeFilter && state.leadTypeFilter !== 'all';
+    if (!hasDateFilter && !hasLeadType) {
+      const bucket = getServerGeoTierBucket(state.locationFilter);
+      if (bucket) return normalizeTierCountsForDisplay(bucket, bucket.all);
+    }
+  }
+  // After full load (or no server snapshot): recompute from in-memory results
+  if (useGlobal && sessionLoadState.complete && state._tierCountsFromServer && state.results.length) {
+    // Keep server snapshot only as fallback if recompute would under-count mid-hydration race
+    if (state.results.length < (sessionLoadState.total || 0)) {
+      return normalizeTierCountsForDisplay(state._tierCountsFromServer, totalScanned);
+    }
   }
   const key = tierCountsCacheKeyFromState(scope);
   if (tierCountsCache && tierCountsCacheKey === key) return tierCountsCache;
@@ -157,7 +192,11 @@ R.invalidateFilteredResultsCache = function invalidateFilteredResultsCache() {
 
 R.notifyResultMutation = function notifyResultMutation(opts = {}) {
   resultMutationEpoch++;
-  delete state._tierCountsFromServer;
+  // Do NOT wipe server KPI snapshots on filter/location changes — only when results change.
+  if (opts.clearServerTierCounts) {
+    delete state._tierCountsFromServer;
+    delete state._geoFromServer;
+  }
   tierCountsCache = null;
   tierCountsCacheKey = '';
   invalidateFilteredResultsCache();
@@ -224,8 +263,13 @@ R.scanReviewFilterSnapshot = function scanReviewFilterSnapshot(filter) {
   return snap;
 }
 
-R.invalidateTierCountsCache = function invalidateTierCountsCache() {
-  notifyResultMutation();
+R.invalidateTierCountsCache = function invalidateTierCountsCache(opts = {}) {
+  tierCountsCache = null;
+  tierCountsCacheKey = '';
+  if (opts.clearServer) {
+    delete state._tierCountsFromServer;
+    delete state._geoFromServer;
+  }
 }
 
 R.getDisplayCap = function getDisplayCap() {
@@ -396,12 +440,15 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   if (state.reviewMode && !opts.force) return;
   const n = state.results.length;
   const metrics = getSummaryMetrics();
-  const { counts, callableHomes, distressedRate } = metrics;
+  const { counts } = metrics;
   const scanLight = opts.light || (state.running && !opts.full);
+  // Instant paint when server KPIs are ready — 900ms count-up made totals feel "slow to load"
+  const usingServerKpis = !!(state._tierCountsFromServer && !sessionLoadState.complete);
+  const instant = !!(opts.instant || scanLight || usingServerKpis || opts.full === false && usingServerKpis);
+  const animOpts = instant ? { instant: true } : { duration: 450 };
 
-  const animOpts = scanLight ? { instant: true } : { duration: 900 };
-
-  const hasData = n > 0 || state.records.length > 0;
+  const totalScanned = metrics.total || 0;
+  const hasData = totalScanned > 0 || n > 0 || state.records.length > 0;
   if (!hasData) {
     animateStatNumber($('sumReview'), 0, { instant: true });
     animateStatNumber($('sumDistressedKpi'), 0, { instant: true });
@@ -418,12 +465,18 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   summarySection?.classList.add('visible');
   updateScannedCountUi();
   animateStatNumber($('sumReview'), counts.review, animOpts);
-  animateStatNumber($('sumDistressedKpi'), counts.distressed, { ...animOpts, duration: scanLight ? 0 : 900 });
-  animateStatNumber($('sumScannedHero'), metrics.total, { ...animOpts, duration: scanLight ? 0 : 900 });
-  if (counts.distressed > 0 && typeof R.pulseDistressedKpi === 'function') R.pulseDistressedKpi(counts.distressed);
+  animateStatNumber($('sumDistressedKpi'), counts.distressed, animOpts);
+  animateStatNumber($('sumScannedHero'), metrics.total, animOpts);
+  if (counts.distressed > 0 && typeof R.pulseDistressedKpi === 'function' && !instant) {
+    R.pulseDistressedKpi(counts.distressed);
+  }
 
   const intro = $('summaryIntro');
-  if (intro) intro.textContent = n ? buildSummaryIntro(metrics) : 'Global totals — scan results will appear here.';
+  if (intro) {
+    intro.textContent = totalScanned
+      ? buildSummaryIntro(metrics)
+      : 'Global totals — scan results will appear here.';
+  }
 
   $('sumReviewCard')?.classList.toggle('has-items', counts.review > 0);
   if (!scanLight) updateFilterLabels();
@@ -1144,7 +1197,9 @@ R.repairReviewResolvedRecords = function repairReviewResolvedRecords() {
     changed++;
     return finalizeReviewClassification(r);
   });
-  if (changed && typeof notifyResultMutation === 'function') notifyResultMutation();
+  if (changed && typeof notifyResultMutation === 'function') {
+    notifyResultMutation({ clearServerTierCounts: true });
+  }
   return changed;
 }
 

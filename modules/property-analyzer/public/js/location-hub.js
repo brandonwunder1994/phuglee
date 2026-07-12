@@ -4,27 +4,64 @@
   PDA.env = PDA.env || {};
   const R = PDA.env;
   with (R) {
-    const li = PDA.lib?.locationIndex;
-    const ib = PDA.lib?.importBatches;
+    const li = () => PDA.lib?.locationIndex;
+    const ib = () => PDA.lib?.importBatches;
 
-    function allLeads() {
-      return [...(state.records || []), ...(state.results || [])];
+    /**
+     * Leads for location index: analyzed results only (deduped).
+     * Never double-count by merging records+results of the same address.
+     */
+    function leadsForLocationIndex() {
+      return state.results || [];
     }
 
     function buildHistoricalIndex() {
-      return li?.buildLocationIndex(allLeads(), normalizeStateAbbr) || { states: [], unknownTotal: 0 };
+      // Prefer server geo (full session) so state totals are accurate before hydration finishes
+      const geo = state._geoFromServer;
+      if (geo && Array.isArray(geo.states) && geo.states.length) {
+        return {
+          states: geo.states.map((s) => ({
+            abbr: s.abbr,
+            name: s.name || s.abbr,
+            total: s.total || s.tierCounts?.all || 0,
+            cities: (s.cities || []).map((c) => ({
+              name: c.name,
+              total: c.total || c.tierCounts?.all || 0
+            }))
+          })),
+          unknownTotal: Number(geo.unknownTotal) || 0
+        };
+      }
+      return li()?.buildLocationIndex(leadsForLocationIndex(), normalizeStateAbbr)
+        || { states: [], unknownTotal: 0 };
     }
 
     R.setLocationFilter = function setLocationFilter(filter) {
       state.locationFilter = filter;
       state.importDateFilter = [];
       resetDisplayLimit();
+      // Filter change must not wipe global session KPIs
+      tierCountsCache = null;
+      tierCountsCacheKey = '';
       invalidateFilteredResultsCache?.();
-      notifyResultMutation?.();
       updateLocationHubUi();
       updateFilterLabels?.();
       renderResults({ force: true });
+      updateLocalKpis();
       saveSession();
+      // Ensure full result set for accurate card list when hydration still running
+      if (sessionLoadState && !sessionLoadState.complete && typeof ensureSessionResultsLoaded === 'function') {
+        ensureSessionResultsLoaded().then(() => {
+          if (!state.locationFilter) return;
+          invalidateFilteredResultsCache?.();
+          tierCountsCache = null;
+          tierCountsCacheKey = '';
+          renderResults({ force: true });
+          updateLocalKpis();
+          updateFilterLabels?.();
+          updateLocationHubUi();
+        }).catch(() => {});
+      }
     };
 
     R.clearLocationFilter = function clearLocationFilter() {
@@ -35,11 +72,13 @@
         historicalCitySelect.innerHTML = '<option value="">Select city…</option>';
         historicalCitySelect.disabled = true;
       }
+      tierCountsCache = null;
+      tierCountsCacheKey = '';
       invalidateFilteredResultsCache?.();
-      notifyResultMutation?.();
       updateLocationHubUi();
       updateFilterLabels?.();
       renderResults({ force: true });
+      updateLocalKpis();
       saveSession();
     };
 
@@ -49,8 +88,9 @@
       if (idx >= 0) current.splice(idx, 1);
       else current.push(batchId);
       state.importDateFilter = current;
+      tierCountsCache = null;
+      tierCountsCacheKey = '';
       invalidateFilteredResultsCache?.();
-      notifyResultMutation?.();
       renderUploadDateChips();
       updateFilterLabels?.();
       renderResults({ force: true });
@@ -64,10 +104,11 @@
       const prev = historicalStateSelect.value;
       const options = ['<option value="">Select state…</option>'];
       for (const s of index.states) {
-        options.push(`<option value="${escapeHtml(s.abbr)}">${escapeHtml(s.name)} (${s.total})</option>`);
+        options.push(`<option value="${escapeHtml(s.abbr)}">${escapeHtml(s.name)} (${Number(s.total || 0).toLocaleString()})</option>`);
       }
       if (index.unknownTotal) {
-        options.push(`<option value="${li.UNKNOWN_STATE}">Unknown location (${index.unknownTotal})</option>`);
+        const unk = li()?.UNKNOWN_STATE || '__unknown__';
+        options.push(`<option value="${unk}">Unknown location (${Number(index.unknownTotal).toLocaleString()})</option>`);
       }
       historicalStateSelect.innerHTML = options.join('');
       historicalStateSelect.disabled = index.states.length === 0 && !index.unknownTotal;
@@ -85,15 +126,15 @@
       const stateEntry = index.states.find((s) => s.abbr === stateAbbr);
       const options = ['<option value="">All cities in state</option>'];
       for (const c of (stateEntry?.cities || [])) {
-        options.push(`<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${c.total})</option>`);
+        options.push(`<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${Number(c.total || 0).toLocaleString()})</option>`);
       }
       historicalCitySelect.innerHTML = options.join('');
       historicalCitySelect.disabled = !stateEntry;
     }
 
     R.renderUploadDateChips = function renderUploadDateChips() {
-      if (!uploadDateChips || !state.locationFilter || !ib) return;
-      const chips = ib.listUploadDatesForLocation(
+      if (!uploadDateChips || !state.locationFilter || !ib()) return;
+      const chips = ib().listUploadDatesForLocation(
         state.records,
         state.results,
         state.locationFilter,
@@ -113,29 +154,34 @@
       }).join('');
     };
 
+    /**
+     * Market KPIs must use location-scoped tier counts — NOT getFilteredResults()
+     * (which also applies distressed/review tier filter + search and under-counts).
+     */
     R.updateLocalKpis = function updateLocalKpis() {
       if (!localKpiSection) return;
       const picked = !!state.locationFilter;
       localKpiSection.hidden = !picked;
       if (!picked) return;
 
-      const list = getFilteredResults();
-      let distressed = 0;
-      let review = 0;
-      for (const r of list) {
-        if (computeNeedsReview(r)) review += 1;
-        else if (resultLeadTier(r) === 'distressed') distressed += 1;
-      }
-      if (localDistressed) localDistressed.textContent = distressed.toLocaleString();
-      if (localReview) localReview.textContent = review.toLocaleString();
-      if (localTotal) localTotal.textContent = list.length.toLocaleString();
+      const counts = typeof getTierCounts === 'function'
+        ? getTierCounts() // market-scoped when locationFilter is set
+        : { distressed: 0, review: 0, all: 0 };
+
+      if (localDistressed) localDistressed.textContent = Number(counts.distressed || 0).toLocaleString();
+      if (localReview) localReview.textContent = Number(counts.review || 0).toLocaleString();
+      if (localTotal) localTotal.textContent = Number(counts.all || 0).toLocaleString();
 
       const label = locationBreadcrumbLabel?.textContent || 'Selected market';
       if (localKpiTitle) localKpiTitle.textContent = label;
     };
 
     R.updateLocationHubUi = function updateLocationHubUi() {
-      const hasData = state.records.length > 0 || state.results.length > 0;
+      const hasData = (state.results?.length || 0) > 0
+        || (state.records?.length || 0) > 0
+        || Number(sessionLoadState?.total || 0) > 0
+        || Number(state._tierCountsFromServer?.all || 0) > 0
+        || !!(state._geoFromServer?.states?.length);
       const picked = !!state.locationFilter;
 
       if (locationHub) locationHub.hidden = !hasData;
@@ -146,7 +192,8 @@
 
       if (picked && locationBreadcrumbLabel) {
         const f = state.locationFilter;
-        if (f.state === li?.UNKNOWN_STATE) {
+        const unk = li()?.UNKNOWN_STATE || '__unknown__';
+        if (f.state === unk) {
           locationBreadcrumbLabel.textContent = 'Unknown location';
         } else if (f.city) {
           locationBreadcrumbLabel.textContent = `${f.city}, ${f.state}`;
@@ -171,9 +218,8 @@
           clearLocationFilter();
           return;
         }
-        if (historicalCitySelect && !historicalCitySelect.value) {
-          setLocationFilter({ state: abbr, city: null });
-        }
+        // Selecting a state immediately scopes market KPIs + results to that state
+        setLocationFilter({ state: abbr, city: null });
       });
 
       historicalCitySelect?.addEventListener('change', () => {

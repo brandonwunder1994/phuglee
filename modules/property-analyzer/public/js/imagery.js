@@ -433,8 +433,8 @@ R.showReviewComplete = function showReviewComplete() {
   if (typeof stashReviewProgress === 'function') stashReviewProgress(state.reviewFilter);
   flushLearnedBrainSave();
   flushReviewProgress();
-  if (typeof notifyResultMutation === 'function') notifyResultMutation();
-  else invalidateTierCountsCache();
+  if (typeof notifyResultMutation === 'function') notifyResultMutation({ clearServerTierCounts: true });
+  else invalidateTierCountsCache({ clearServer: true });
   updateSummaryStats({ force: true });
   reviewBody?.setAttribute('hidden', '');
   reviewShortcutsBar?.setAttribute('hidden', '');
@@ -629,7 +629,9 @@ R.reviewAdvance = function reviewAdvance(via = 'review_keep', opts = {}) {
       : state.results.findIndex(x => recordKey(x) === key);
     if (idx != null && idx >= 0) {
       state.results[idx] = finalizeReviewClassification(state.results[idx]);
-      if (typeof notifyResultMutation === 'function') notifyResultMutation({ keepReviewSnapshot: true });
+      if (typeof notifyResultMutation === 'function') {
+        notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: true });
+      }
     }
   }
   markReviewedKey(state.reviewFilter, key, via);
@@ -699,7 +701,9 @@ R.reviewLandKeep = function reviewLandKeep() {
       const landIdx = state.results.findIndex(x => recordKey(x) === recordKey(r));
       if (landIdx >= 0) {
         state.results[landIdx] = finalizeReviewClassification(state.results[landIdx]);
-        if (typeof notifyResultMutation === 'function') notifyResultMutation();
+        if (typeof notifyResultMutation === 'function') {
+          notifyResultMutation({ clearServerTierCounts: true });
+        }
       }
       state.reviewStats.changed++;
       scheduleLearnedBrainSave();
@@ -754,8 +758,8 @@ R.reviewApplyManualTier = function reviewApplyManualTier(tier) {
   const idx = state.results.findIndex(x => recordKey(x) === recordKey(r));
   if (idx >= 0) {
     state.results[idx] = finalizeReviewClassification(state.results[idx]);
-    if (typeof notifyResultMutation === 'function') notifyResultMutation();
-    else invalidateTierCountsCache();
+    if (typeof notifyResultMutation === 'function') notifyResultMutation({ clearServerTierCounts: true });
+    else invalidateTierCountsCache({ clearServer: true });
   }
   state.reviewStats.changed++;
   scheduleLearnedBrainSave();
@@ -1139,8 +1143,8 @@ R.closeReviewMode = function closeReviewMode() {
   hideReviewOverlay();
   updateReviewEntryButtons();
   delete state._tierCountsFromServer;
-  if (typeof notifyResultMutation === 'function') notifyResultMutation();
-  else invalidateTierCountsCache();
+  if (typeof notifyResultMutation === 'function') notifyResultMutation({ clearServerTierCounts: true });
+  else invalidateTierCountsCache({ clearServer: true });
   updateSummaryStats({ force: true });
   updateFilterLabels();
   renderResults({ force: true });

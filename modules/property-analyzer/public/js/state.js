@@ -1401,10 +1401,12 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
     }
   }
   updateSessionSaveStatus();
-  // Keep server tier counts for KPIs until user changes filters — avoid full O(n) recompute
-  if ((state.results?.length || 0) >= (sessionLoadState.total || 0)) {
-    invalidateTierCountsCache();
-    delete state._tierCountsFromServer;
+  // Full hydration done — recompute once from memory, then drop server snapshot
+  if ((state.results?.length || 0) >= (sessionLoadState.total || 0) && sessionLoadState.total > 0) {
+    invalidateTierCountsCache({ clearServer: true });
+    updateSummaryStats({ instant: true });
+    updateFilterLabels?.();
+    updateLocationHubUi?.();
   }
   if (isAnalyzeLayout() && resultsUiRendered) {
     updateResultCountLabel();
@@ -1460,6 +1462,8 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   state._tierCountsFromServer = summary.tierCounts
     ? normalizeTierCountsForDisplay(summary.tierCounts, summary.results || 0)
     : null;
+  // Geo KPIs (per-state / per-city) so Historical search totals are accurate before full load
+  state._geoFromServer = summary.geo && typeof summary.geo === 'object' ? summary.geo : null;
   sessionLoadState = {
     complete: false,
     loading: false,
@@ -1467,6 +1471,9 @@ R.applySessionSummary = async function applySessionSummary(summary) {
     total: summary.results || 0,
     serverCanonical: summary.results || sessionLoadState.serverCanonical || 0
   };
+  // Clear local tier cache only — never wipe server KPI snapshots here
+  tierCountsCache = null;
+  tierCountsCacheKey = '';
 
   const recordCount = Number(summary.records) || 0;
   if (recordCount) {
@@ -1483,7 +1490,9 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   initLeadTypeSelects();
   setViewMode(state.viewMode, false);
   updateProgress();
-  updateSummaryStats();
+  // Instant session totals from server tierCounts (no crawl-up from partial pages)
+  updateSummaryStats({ instant: true });
+  updateFilterLabels?.();
   updateExportButtons();
   summarySection.classList.add('visible');
   progressSection.classList.add('review-minimal');
@@ -1494,7 +1503,7 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   updateCommandBar();
   updateStartButton();
   updateScanReadyUi?.();
-  invalidateTierCountsCache();
+  updateLocationHubUi?.();
 
   const brainRestore = applyLearnedBrainFromSession(summary, { fromBackup: true });
   if (brainRestore.migrated && brainRestore.needsServerPush) {
@@ -1503,7 +1512,7 @@ R.applySessionSummary = async function applySessionSummary(summary) {
 
   if (summary.results) {
     mainWorkspace?.classList.add('visible');
-  if (cardsVirtualWindow && !cardsVirtualWindow.querySelector('.session-load-indicator')) {
+    if (cardsVirtualWindow && !cardsVirtualWindow.querySelector('.session-load-indicator')) {
       const indicator = document.createElement('div');
       indicator.className = 'session-load-indicator empty-state';
       indicator.style.gridColumn = '1 / -1';

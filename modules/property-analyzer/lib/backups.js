@@ -28,7 +28,7 @@ module.exports = function createBackups(deps) {
   } = config;
 
   const { writeFileAtomic } = require('./fs-atomic');
-  const { computeTierCounts } = require('./tier-counts');
+  const { computeTierCounts, computeGeoTierCounts } = require('./tier-counts');
   const backupLogic = require('./backup-logic');
   const {
     recordKeyFromResult,
@@ -283,7 +283,9 @@ module.exports = function createBackups(deps) {
       reviewStats: session?.reviewStats || { kept: 0, changed: 0, deferred: 0, blurred: 0 },
       sessionSchemaVersion: session?.sessionSchemaVersion || 1,
       progress: countSessionProgress(session),
-      tierCounts: computeTierCounts(results)
+      tierCounts: computeTierCounts(results),
+      // Accurate state/city KPIs without waiting for full client result hydration
+      geo: computeGeoTierCounts(results)
     };
     if (lite) {
       summary.lite = true;

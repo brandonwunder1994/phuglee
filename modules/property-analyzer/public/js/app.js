@@ -1123,6 +1123,11 @@ R.startScanAnalysis = async function startScanAnalysis() {
 
     abortSessionBackgroundLoad();
     state.running = true;
+    // Live scan must recompute KPIs from growing results, not stale server snapshot
+    delete state._tierCountsFromServer;
+    delete state._geoFromServer;
+    tierCountsCache = null;
+    tierCountsCacheKey = '';
     updateScanReadyUi?.();
     if (state.results.length >= 2500) {
       log(
