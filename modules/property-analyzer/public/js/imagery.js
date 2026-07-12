@@ -1,4 +1,4 @@
-﻿// imagery.js â€” PDA module (shared PDA.env runtime)
+// imagery.js — PDA module (shared PDA.env runtime)
 (function (global) {
   const PDA = global.PDA = global.PDA || {};
   if (typeof window !== 'undefined') window.PDA = PDA;
@@ -282,11 +282,17 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
   reviewModeInner?.classList.toggle('review-kind-land', land);
   reviewModeInner?.classList.toggle('review-kind-needs-review', needsReview);
 
+  const labelTier = (key) => {
+    if (typeof tierUiLabel === 'function') return tierUiLabel(key);
+    if (typeof R.tierUiLabel === 'function') return R.tierUiLabel(key);
+    return String(key || '');
+  };
+
   if (reviewModeBadge) {
-    if (land) reviewModeBadge.textContent = 'Land';
-    else if (needsReview) reviewModeBadge.textContent = 'Manual Review';
-    else if (distressed) reviewModeBadge.textContent = 'Distressed';
-    else reviewModeBadge.textContent = 'Well Maintained';
+    if (land) reviewModeBadge.textContent = labelTier('vacant');
+    else if (needsReview) reviewModeBadge.textContent = labelTier('review');
+    else if (distressed) reviewModeBadge.textContent = labelTier('distressed');
+    else reviewModeBadge.textContent = labelTier('well_maintained');
   }
 
   const tierMode = kind === 'tier';
@@ -294,11 +300,11 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
     reviewKeepBtn.classList.remove('keep', 'change-tier', 'to-distressed', 'to-well-maintained', 'home');
     if (land) {
       reviewKeepBtn.classList.add('keep');
-      reviewKeepBtn.innerHTML = `Keep Land <kbd>1</kbd>`;
+      reviewKeepBtn.innerHTML = `Keep ${labelTier('vacant')} <kbd>1</kbd>`;
       reviewKeepBtn.title = 'Confirm vacant lot / land (1)';
     } else if (needsReview) {
       reviewKeepBtn.classList.add('change-tier', 'to-distressed');
-      reviewKeepBtn.innerHTML = `Distressed <kbd>1</kbd>`;
+      reviewKeepBtn.innerHTML = `${labelTier('distressed')} <kbd>1</kbd>`;
       reviewKeepBtn.title = 'Mark as distressed home (1)';
     } else {
       reviewKeepBtn.classList.add('keep');
@@ -312,7 +318,7 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
     reviewChangeBtn.classList.remove('change-tier', 'home', 'to-well-maintained', 'to-distressed');
     if (tierMode) {
       const changeTier = getReviewChangeTier();
-      const changeLabel = changeTier === 'well_maintained' ? 'Well Maintained' : 'Distressed';
+      const changeLabel = labelTier(changeTier);
       reviewChangeBtn.classList.add('change-tier');
       reviewChangeBtn.classList.toggle('to-well-maintained', changeTier === 'well_maintained');
       reviewChangeBtn.classList.toggle('to-distressed', changeTier === 'distressed');
@@ -320,7 +326,7 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
       reviewChangeBtn.title = `Move to ${changeLabel} (2)`;
     } else if (needsReview) {
       reviewChangeBtn.classList.add('change-tier', 'to-well-maintained');
-      reviewChangeBtn.innerHTML = `Well Maintained <kbd>2</kbd>`;
+      reviewChangeBtn.innerHTML = `${labelTier('well_maintained')} <kbd>2</kbd>`;
       reviewChangeBtn.title = 'Mark as well maintained home (2)';
     } else {
       reviewChangeBtn.classList.add('home');
@@ -332,7 +338,7 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
   if (reviewLandBtn) {
     reviewLandBtn.hidden = !needsReview;
     if (needsReview) {
-      reviewLandBtn.innerHTML = `Land <kbd>3</kbd>`;
+      reviewLandBtn.innerHTML = `${labelTier('vacant')} <kbd>3</kbd>`;
       reviewLandBtn.title = 'Mark as vacant lot / land (3)';
     }
   }
@@ -341,16 +347,16 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
     reviewDeferBtn.hidden = !(tierMode || needsReview);
     if (tierMode) {
       reviewDeferBtn.innerHTML = `Later <kbd>4</kbd>`;
-      reviewDeferBtn.title = `Can't decide now — send to Needs Review queue (4)`;
+      reviewDeferBtn.title = "Can't decide now — send to Needs Review queue (4)";
     } else if (needsReview) {
       reviewDeferBtn.innerHTML = `Later <kbd>4</kbd>`;
-      reviewDeferBtn.title = `Decide later — keep in Needs Review queue (4)`;
+      reviewDeferBtn.title = 'Decide later — keep in Needs Review queue (4)';
     }
   }
 
   if (reviewBlurredBtn) {
     reviewBlurredBtn.hidden = false;
-    reviewBlurredBtn.innerHTML = `Blocked <kbd>5</kbd>`;
+    reviewBlurredBtn.innerHTML = `${labelTier('blurred')} <kbd>5</kbd>`;
     reviewBlurredBtn.title = 'Cannot see or assess the home — move to Blocked Image list only (5)';
   }
 
@@ -370,29 +376,29 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
   if (reviewShortcutChips) {
     if (land) {
       reviewShortcutChips.innerHTML = `
-        <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep Land</span>
+        <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep ${labelTier('vacant')}</span>
         <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> Home</span>
         <span class="review-shortcut-chip"><kbd>3</kbd> Undo</span>
-        <span class="review-shortcut-chip"><kbd>5</kbd> Blocked Image</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     } else if (needsReview) {
       reviewShortcutChips.innerHTML = `
-        <span class="review-shortcut-chip chip-distressed"><kbd>1</kbd> Distressed</span>
-        <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> Well Maintained</span>
-        <span class="review-shortcut-chip chip-vacant"><kbd>3</kbd> Land</span>
+        <span class="review-shortcut-chip chip-distressed"><kbd>1</kbd> ${labelTier('distressed')}</span>
+        <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> ${labelTier('well_maintained')}</span>
+        <span class="review-shortcut-chip chip-vacant"><kbd>3</kbd> ${labelTier('vacant')}</span>
         <span class="review-shortcut-chip chip-defer"><kbd>4</kbd> Later</span>
-        <span class="review-shortcut-chip"><kbd>5</kbd> Blocked</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
         <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     } else {
       const changeTier = getReviewChangeTier();
-      const changeLabel = changeTier === 'well_maintained' ? 'Well Maintained' : 'Distressed';
+      const changeLabel = labelTier(changeTier);
       const changeChipClass = changeTier === 'well_maintained' ? 'chip-well-maintained' : 'chip-distressed';
       reviewShortcutChips.innerHTML = `
         <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep</span>
         <span class="review-shortcut-chip ${changeChipClass}"><kbd>2</kbd> ${escapeHtml(changeLabel)}</span>
         <span class="review-shortcut-chip chip-defer"><kbd>4</kbd> Later</span>
-        <span class="review-shortcut-chip"><kbd>5</kbd> Blocked Image</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
         <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     }
@@ -447,7 +453,7 @@ R.showReviewComplete = function showReviewComplete() {
     if (blurred) extras.push(`${blurred} marked blocked image`);
     const extraNote = extras.length ? `, ${extras.join(', ')}` : '';
     reviewCompleteText.textContent =
-      `${state.reviewQueue.length} leads reviewed â€” ${kept} kept, ${changed} changed${extraNote}. Training signals saved for your next scan batch.`;
+      `${state.reviewQueue.length} leads reviewed — ${kept} kept, ${changed} changed${extraNote}. Training signals saved for your next scan batch.`;
   }
   if (reviewProgress) reviewProgress.textContent = 'Done';
 }
@@ -456,7 +462,7 @@ R.reviewProgressLabel = function reviewProgressLabel(pos, total) {
   const snap = reviewQueueStatsSnap;
   if (snap && snap.total > total) {
     const left = Math.max(0, snap.pendingAtStart - (pos - 1));
-    return `${pos} / ${total} queued · ${snap.total.toLocaleString()} total · ${left.toLocaleString()} left`;
+    return `${pos} / ${total} queued — ${snap.total.toLocaleString()} total — ${left.toLocaleString()} left`;
   }
   return `${pos} / ${total}`;
 }
@@ -470,7 +476,7 @@ R.renderReviewLeadDetails = function renderReviewLeadDetails(r, renderId, opts =
     const parts = [`${state.reviewStats.kept} kept`, `${state.reviewStats.changed} changed`];
     if (d) parts.push(`${d} deferred`);
     if (b) parts.push(`${b} blocked`);
-    reviewStatsEl.textContent = parts.join(' · ');
+    reviewStatsEl.textContent = parts.join(' — ');
   }
   if (typeof updateReviewCheckpointUi === 'function') updateReviewCheckpointUi();
   if (reviewMetaBadges) {
@@ -661,7 +667,7 @@ R.reviewDeferLater = function reviewDeferLater() {
     return;
   }
   if (r.needsReviewLater) {
-    log(`â³ Already in Needs Review â€” ${propertyStreetLine(r)}`, 'warn');
+    log(`⏳ Already in Needs Review — ${propertyStreetLine(r)}`, 'warn');
     reviewAdvance('review_defer');
     return;
   }
@@ -670,20 +676,20 @@ R.reviewDeferLater = function reviewDeferLater() {
     queueIndex: state.reviewIndex
   });
   const baseReason = String(state.results[idx].reason || '')
-    .replace(/ Flagged for Needs Review â€” decide later\./g, '')
+    .replace(/ Flagged for Needs Review — decide later\./g, '')
     .trim();
   const updated = markRecordManuallyReviewed({
     ...state.results[idx],
     needsReviewLater: true,
     reason: baseReason
-      ? `${baseReason} Flagged for Needs Review â€” decide later.`
-      : 'Flagged for Needs Review â€” decide later.'
+      ? `${baseReason} Flagged for Needs Review — decide later.`
+      : 'Flagged for Needs Review — decide later.'
   }, 'review_defer');
   updated.tierRationale = buildTierRationale(updated);
   state.results[idx] = updated;
   state.reviewStats.deferred = (state.reviewStats.deferred || 0) + 1;
 
-  log(`â³ Deferred â€” ${propertyStreetLine(r)} sent to Needs Review`, 'warn');
+  log(`⏳ Deferred — ${propertyStreetLine(r)} sent to Needs Review`, 'warn');
   reviewAdvance('review_defer');
 }
 
@@ -707,14 +713,14 @@ R.reviewLandKeep = function reviewLandKeep() {
       }
       state.reviewStats.changed++;
       scheduleLearnedBrainSave();
-      log(`â†’ Vacant Lot/Land â€” ${propertyStreetLine(r)}`, 'success');
+      log(`→ Vacant Lot/Land — ${propertyStreetLine(r)}`, 'success');
       reviewAdvance('review_change');
       return;
     }
   }
   state.reviewStats.kept++;
   scheduleLearnedBrainSave();
-  log(`âœ“ Kept as land â€” ${propertyStreetLine(r)}`, 'success');
+  log(`✓ Kept as land — ${propertyStreetLine(r)}`, 'success');
   reviewAdvance('review_keep');
 }
 
@@ -746,7 +752,7 @@ R.reviewApplyManualTier = function reviewApplyManualTier(tier) {
     reviewRecordAffirmation(r);
     state.reviewStats.kept++;
     scheduleLearnedBrainSave();
-    log(`✓ ${leadTierLabel(tier)} — ${propertyStreetLine(r)}`, 'success');
+    log(`? ${leadTierLabel(tier)} — ${propertyStreetLine(r)}`, 'success');
     reviewAdvance('review_keep');
     return;
   }
@@ -763,7 +769,7 @@ R.reviewApplyManualTier = function reviewApplyManualTier(tier) {
   }
   state.reviewStats.changed++;
   scheduleLearnedBrainSave();
-  log(`→ ${leadTierLabel(tier)} — ${propertyStreetLine(r)}`, 'success');
+  log(`? ${leadTierLabel(tier)} — ${propertyStreetLine(r)}`, 'success');
   reviewAdvance('review_change');
 }
 
@@ -783,7 +789,7 @@ R.reviewKeep = function reviewKeep() {
   state.reviewStats.kept++;
   if (trained) {
     scheduleLearnedBrainSave();
-    log(`âœ“ Kept ${leadTierLabel(resultLeadTier(r))} â€” brain training signal queued`, 'success');
+    log(`✓ Kept ${leadTierLabel(resultLeadTier(r))} — brain training signal queued`, 'success');
   }
   reviewAdvance('review_keep');
 }
@@ -805,7 +811,7 @@ R.reviewApplyHome = async function reviewApplyHome() {
     state.reviewStats.changed++;
     scheduleLearnedBrainSave();
   
-    log(`â†’ Home / ${leadTierLabel(tier)} â€” ${propertyStreetLine(r)}`, 'success');
+    log(`→ Home / ${leadTierLabel(tier)} — ${propertyStreetLine(r)}`, 'success');
     reviewAdvance('review_change');
     return;
   }
@@ -822,7 +828,7 @@ R.reviewApplyBlurred = function reviewApplyBlurred() {
   const cat = resultCategory(r);
   if (cat === 'blurred' || isBlurredImagery(r)) {
     state.reviewStats.kept++;
-    log(`⛔ Already in Blocked Image list — ${propertyStreetLine(r)}`, 'success');
+    log(`? Already in Blocked Image list — ${propertyStreetLine(r)}`, 'success');
     reviewAdvance('review_blurred');
     return;
   }
@@ -852,7 +858,7 @@ R.reviewApplyBlurred = function reviewApplyBlurred() {
   state.reviewStats.blurred = (state.reviewStats.blurred || 0) + 1;
 
   scheduleLearnedBrainSave();
-  log(`⛔ Blocked Image — ${propertyStreetLine(r)} moved to Blocked Image list (removed from Needs Review)`, 'warn');
+  log(`? Blocked Image — ${propertyStreetLine(r)} moved to Blocked Image list (removed from Needs Review)`, 'warn');
   reviewAdvance('review_blurred');
 }
 
@@ -963,7 +969,7 @@ R.reviewApplyChange = async function reviewApplyChange() {
     reviewRecordAffirmation(r);
     state.reviewStats.kept++;
     scheduleLearnedBrainSave();
-    log(`âœ“ Already ${leadTierLabel(beforeTier)} â€” brain training signal queued`, 'success');
+    log(`✓ Already ${leadTierLabel(beforeTier)} — brain training signal queued`, 'success');
     reviewAdvance('review_keep');
     return;
   }
@@ -982,12 +988,12 @@ R.reviewApplyChange = async function reviewApplyChange() {
     state.reviewStats.changed++;
     scheduleLearnedBrainSave();
   
-    log(`â†’ ${leadTierLabel(afterTier)} â€” brain training signal queued for future scans`, 'success');
+    log(`→ ${leadTierLabel(afterTier)} — brain training signal queued for future scans`, 'success');
     reviewAdvance('review_change');
     return;
   }
 
-  log(`Could not move ${propertyStreetLine(r)} to ${leadTierLabel(targetTier)} â€” kept current tier`, 'warn');
+  log(`Could not move ${propertyStreetLine(r)} to ${leadTierLabel(targetTier)} — kept current tier`, 'warn');
   state.reviewStats.kept++;
   reviewAdvance('review_keep');
 }
@@ -1040,7 +1046,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     }
   }
   if (!state.results.length) {
-    alert('No analyzed leads yet â€” run a scan or restore your saved session first.');
+    alert('No analyzed leads yet — run a scan or restore your saved session first.');
     return;
   }
   if (!REVIEW_MODE_FILTERS.includes(filter)) {
@@ -1053,7 +1059,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
 
   if (state.appView !== 'dashboard') setAppView('dashboard');
 
-  // Same review already open â€” just show overlay (do not reset progress)
+  // Same review already open — just show overlay (do not reset progress)
   if (!opts.restart && state.reviewMode && state.reviewFilter === filter) {
     showReviewOverlay();
     renderReviewLead();
@@ -1061,23 +1067,23 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     return;
   }
 
-  // Resume mid-session only (page refresh or overlay hidden â€” not after Exit)
+  // Resume mid-session only (page refresh or overlay hidden — not after Exit)
   if (!opts.restart && !state.reviewMode && hasActiveReviewProgress(filter)) {
     state.reviewMode = true;
     showReviewOverlay();
     renderReviewLead();
     warmReviewImagery();
-    log(`Resumed ${reviewFilterLabel(filter)} review â€” lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
+    log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
     return;
   }
 
-  // Resume stashed progress when switching between distressed â†” well maintained without exiting
+  // Resume stashed progress when switching between distressed ↔ well maintained without exiting
   if (!opts.restart && restoreReviewProgress(filter)) {
     state.reviewMode = true;
     showReviewOverlay();
     renderReviewLead();
     warmReviewImagery();
-    log(`Resumed ${reviewFilterLabel(filter)} review â€” lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
+    log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
     return;
   }
 
@@ -1151,7 +1157,7 @@ R.closeReviewMode = function closeReviewMode() {
   if (reviewedNow > 0 && filter && filter !== 'all') {
     const remaining = buildReviewQueue(filter).length;
     log(
-      `${reviewedNow.toLocaleString()} ${reviewFilterLabel(filter)} lead${reviewedNow === 1 ? '' : 's'} saved as reviewed â€” ${remaining.toLocaleString()} left for next session`,
+      `${reviewedNow.toLocaleString()} ${reviewFilterLabel(filter)} lead${reviewedNow === 1 ? '' : 's'} saved as reviewed — ${remaining.toLocaleString()} left for next session`,
       'success'
     );
   }
@@ -1180,7 +1186,7 @@ R.applyCategoryFields = function applyCategoryFields(updated, category) {
       if (updated.aiScore == null) updated.aiScore = 0;
     }
     updated.leadTier = computeLeadTier(updated.score, 'property');
-    updated.reason = `${baseReason} You changed category to home / property â€” distress score ${updated.score}/10.`;
+    updated.reason = `${baseReason} You changed category to home / property — distress score ${updated.score}/10.`;
   } else if (category === 'unavailable') {
     updated.score = 0;
     updated.indicators = [];
@@ -1204,8 +1210,8 @@ R.changeCategory = function changeCategory(r, category) {
   const name = contactName(r);
   const wasInReview = computeNeedsReview(r);
   const ok = confirm(
-    `Change category?\n\n${propertyLocationTitle(r)} â€” ${name}\n${r.address}\n\n` +
-    `${fromLabel} â†’ ${label}\n\n` +
+    `Change category?\n\n${propertyLocationTitle(r)} — ${name}\n${r.address}\n\n` +
+    `${fromLabel} → ${label}\n\n` +
     (wasInReview ? `This will remove it from Needs Review and save your change.` : `This will update filters, scores, and your export.`)
   );
   if (!ok) return;
@@ -1224,14 +1230,14 @@ R.changeCategory = function changeCategory(r, category) {
   saveSession();
   scheduleSaveSession();
   renderResults();
-  log(`Category changed: ${name} â€” ${fromLabel} â†’ ${label}`, 'success');
+  log(`Category changed: ${name} — ${fromLabel} → ${label}`, 'success');
 
   if (wasInReview) {
     const remaining = getReviewQueue();
     if (remaining.length) {
       const flash = document.createElement('div');
       flash.className = 'review-confirm-flash';
-      flash.textContent = `âœ“ Changed to ${label}. Loading next review (${remaining.length} left)â€¦`;
+      flash.textContent = `✓ Changed to ${label}. Loading next review (${remaining.length} left)…`;
       inspectorBody.prepend(flash);
       setTimeout(() => {
         const next = state.filter === 'review'
@@ -1352,7 +1358,7 @@ R.onCardsGridClick = function onCardsGridClick(e) {
     e.stopPropagation();
     const targetTier = quickMoveBtn.dataset.moveTier;
     if (targetTier && quickApplyTierFromCard(r, targetTier)) {
-      log(`â†’ ${leadTierLabel(targetTier)} â€” ${propertyStreetLine(r)}`, 'success');
+      log(`→ ${leadTierLabel(targetTier)} — ${propertyStreetLine(r)}`, 'success');
     }
     return;
   }
@@ -1432,7 +1438,7 @@ R.mutateTierOnRecord = function mutateTierOnRecord(r, tier, opts = {}) {
     .replace(/ You corrected distress score from \d+ to \d+\./g, '')
     .replace(/ You set distress level to [^.]+\./g, '')
     .replace(/ You bulk-set distress level to [^.]+\./g, '')
-    .replace(/ Flagged for Needs Review â€” decide later\./g, '')
+    .replace(/ Flagged for Needs Review — decide later\./g, '')
     .trim();
   updated.reason = `${baseReason} You bulk-set distress level to ${leadTierLabel(tier)}.`;
   invalidateTierCountsCache();
@@ -1460,11 +1466,11 @@ R.bulkApplyTier = function bulkApplyTier(tier) {
     return;
   }
   const label = leadTierLabel(tier);
-  const sample = indices.slice(0, 3).map(i => propertyStreetLine(state.results[i])).join('\nÂ· ');
-  const more = indices.length > 3 ? `\nâ€¦and ${indices.length - 3} more` : '';
+  const sample = indices.slice(0, 3).map(i => propertyStreetLine(state.results[i])).join('\n· ');
+  const more = indices.length > 3 ? `\n…and ${indices.length - 3} more` : '';
   if (!confirm(
     `Set distress level on ${indices.length.toLocaleString()} propert${indices.length === 1 ? 'y' : 'ies'}?\n\n` +
-    `â†’ ${label}\n\n${sample}${more}${skip ? `\n\n(${skip} skipped â€” not homes or already ${label})` : ''}`
+    `→ ${label}\n\n${sample}${more}${skip ? `\n\n(${skip} skipped — not homes or already ${label})` : ''}`
   )) return;
 
   const batchId = 'bulk-' + Date.now();
@@ -1491,7 +1497,7 @@ R.bulkApplyTier = function bulkApplyTier(tier) {
   scheduleSaveSession();
   updateSummaryStats();
   renderResults({ force: !state.running });
-  log(`Bulk update: ${changed.toLocaleString()} â†’ ${label} â€” training signal saved`, 'success');
+  log(`Bulk update: ${changed.toLocaleString()} → ${label} — training signal saved`, 'success');
   if (state.selectedKey && bulkSelectedKeys.has(state.selectedKey)) {
     const sel = state.results.find(r => recordKey(r) === state.selectedKey);
     if (sel && state.propertyModalOpen) showInspector(sel, { scrollList: false, scrollFeed: false });
@@ -1514,11 +1520,11 @@ R.bulkApplyCategory = function bulkApplyCategory(category) {
     return;
   }
   const label = categoryLabel(category);
-  const sample = indices.slice(0, 3).map(i => propertyStreetLine(state.results[i])).join('\nÂ· ');
-  const more = indices.length > 3 ? `\nâ€¦and ${indices.length - 3} more` : '';
+  const sample = indices.slice(0, 3).map(i => propertyStreetLine(state.results[i])).join('\n· ');
+  const more = indices.length > 3 ? `\n…and ${indices.length - 3} more` : '';
   if (!confirm(
     `Change category on ${indices.length.toLocaleString()} propert${indices.length === 1 ? 'y' : 'ies'}?\n\n` +
-    `â†’ ${label}\n\n${sample}${more}${skip ? `\n\n(${skip} already ${label})` : ''}`
+    `→ ${label}\n\n${sample}${more}${skip ? `\n\n(${skip} already ${label})` : ''}`
   )) return;
 
   let changed = 0;
@@ -1537,7 +1543,7 @@ R.bulkApplyCategory = function bulkApplyCategory(category) {
   scheduleSaveSession();
   updateSummaryStats();
   renderResults({ force: !state.running });
-  log(`Bulk category: ${changed.toLocaleString()} â†’ ${label}`, 'success');
+  log(`Bulk category: ${changed.toLocaleString()} → ${label}`, 'success');
 }
 
 R.formatAccuracyHtml = function formatAccuracyHtml(r) {
@@ -1556,7 +1562,7 @@ R.formatAccuracyHtml = function formatAccuracyHtml(r) {
   html += '</div>';
   if (conf != null) {
     const cls = conf >= 75 && !needs ? 'high' : 'low';
-    html += `<div class="confidence-row ${cls}">Confidence: ${conf}%${needs ? ' â€” verify before calling' : ''}</div>`;
+    html += `<div class="confidence-row ${cls}">Confidence: ${conf}%${needs ? ' — verify before calling' : ''}</div>`;
   }
   return html;
 }
@@ -1745,25 +1751,25 @@ R.inferCorrectionMeaning = function inferCorrectionMeaning(fromTier, toTier) {
   const from = normalizeLeadTier(fromTier);
   const to = normalizeLeadTier(toTier);
   const meanings = {
-    'distressedâ†’well_maintained':
-      'Moved to Well Maintained â€” home is manicured/good condition, not distress. AI likely over-scored grass wording or cosmetic cues.',
-    'well_maintainedâ†’distressed':
-      'Moved to Distressed â€” visible wear or neglect (grass-cut through heavy). AI missed or under-scored distress signals.'
+    'distressed→well_maintained':
+      'Moved to Well Maintained — home is manicured/good condition, not distress. AI likely over-scored grass wording or cosmetic cues.',
+    'well_maintained→distressed':
+      'Moved to Distressed — visible wear or neglect (grass-cut through heavy). AI missed or under-scored distress signals.'
   };
-  const key = `${from}â†’${to}`;
+  const key = `${from}→${to}`;
   if (meanings[key]) return meanings[key];
-  return `Moved ${leadTierLabel(from)} â†’ ${leadTierLabel(to)} â€” user's tier pick is ground truth for how this property should be classified.`;
+  return `Moved ${leadTierLabel(from)} → ${leadTierLabel(to)} — user's tier pick is ground truth for how this property should be classified.`;
 }
 
 R.inferAffirmationMeaning = function inferAffirmationMeaning(tier) {
   const t = normalizeLeadTier(tier);
   if (t === 'well_maintained') {
-    return 'Confirmed Well Maintained â€” AI tier correct; manicured/code-list home, not distress. Reinforce skip targets with matching signals.';
+    return 'Confirmed Well Maintained — AI tier correct; manicured/code-list home, not distress. Reinforce skip targets with matching signals.';
   }
   if (t === 'distressed') {
-    return 'Confirmed Distressed â€” AI tier correct; visible wear/neglect present. Reinforce work leads with matching signals.';
+    return 'Confirmed Distressed — AI tier correct; visible wear/neglect present. Reinforce work leads with matching signals.';
   }
-  return `Confirmed ${leadTierLabel(t)} â€” user verified AI tier during review.`;
+  return `Confirmed ${leadTierLabel(t)} — user verified AI tier during review.`;
 }
 
 

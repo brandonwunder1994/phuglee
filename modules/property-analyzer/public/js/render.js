@@ -1750,7 +1750,7 @@ R.buildPropCard = function buildPropCard(r, rankMap) {
   const bulkOn = isBulkSelected(key);
   const tierClass = tierBadgeClassForRecord(r);
   const card = document.createElement('div');
-  card.className = `prop-card card-cyber ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}${bulkOn ? ' bulk-selected' : ''}`;
+  card.className = `prop-card card-glass card-cyber ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}${bulkOn ? ' bulk-selected' : ''}`;
   card.dataset.key = key;
   card.innerHTML = `
     <div class="card-thumb">
@@ -1810,7 +1810,7 @@ R.buildResultRow = function buildResultRow(r) {
 
 R.syncPropCardSelection = function syncPropCardSelection(card, r, rankMap) {
   const key = recordKey(r);
-  card.className = `prop-card card-cyber ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}`;
+  card.className = `prop-card card-glass card-cyber ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}`;
   const addressEl = card.querySelector('.card-address');
   if (addressEl) addressEl.textContent = propertyStreetLine(r);
   const locationEl = card.querySelector('.card-location');

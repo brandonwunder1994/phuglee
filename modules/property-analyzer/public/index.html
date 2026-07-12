@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="/css/premium-analyzer.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-modal">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-review">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <link rel="stylesheet" href="/css/premium-motion.css">
   <script src="/js/phuglee-motion.js" defer></script>
@@ -68,7 +68,7 @@
         <button type="button" class="sidebar-submenu-btn review-distressed" id="sidebarReviewDistressedBtn" disabled>Distressed</button>
         <button type="button" class="sidebar-submenu-btn review-well-maintained" id="sidebarReviewWellMaintainedBtn" disabled>Well Maintained</button>
         <button type="button" class="sidebar-submenu-btn review-land" id="sidebarReviewLandBtn" disabled>Land</button>
-        <button type="button" class="sidebar-submenu-btn review-needs-review" id="sidebarReviewNeedsReviewBtn" disabled>Manual Review</button>
+        <button type="button" class="sidebar-submenu-btn review-needs-review" id="sidebarReviewNeedsReviewBtn" disabled>Needs Review</button>
       </div>
     </aside>
 
@@ -657,9 +657,9 @@
     </div>
   </div>
 
-  <div class="review-mode-overlay" id="reviewModeOverlay" hidden aria-modal="true" role="dialog" aria-label="Tier review mode">
-    <div class="review-mode-inner" id="reviewModeInner">
-      <header class="review-mode-header panel-chrome">
+  <div class="review-mode-overlay review-glass-overlay" id="reviewModeOverlay" hidden aria-modal="true" role="dialog" aria-label="Tier review mode">
+    <div class="review-mode-inner review-glass" id="reviewModeInner">
+      <header class="review-mode-header">
         <div class="review-mode-header-left">
           <span class="review-mode-badge" id="reviewModeBadge">Review</span>
           <span class="review-mode-filter">Filter: <strong id="reviewFilterTag">All</strong></span>
@@ -703,7 +703,7 @@
         <div class="review-shortcut-chips" id="reviewShortcutChips"></div>
       </div>
 
-      <footer class="review-action-bar" id="reviewActionBar">
+      <footer class="review-action-bar review-glass-bar" id="reviewActionBar">
         <button type="button" class="review-action keep" id="reviewKeepBtn" title="AI got it right — advance (1)">Keep <kbd>1</kbd></button>
         <button type="button" class="review-action change-tier" id="reviewChangeBtn" title="Change tier (2)">Well Maintained <kbd>2</kbd></button>
         <button type="button" class="review-action vacant" id="reviewLandBtn" title="Mark as land / vacant lot (3)" hidden>Land <kbd>3</kbd></button>
@@ -752,15 +752,15 @@
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
   <script src="/js/config.js?v=20260712-modal" defer></script>
   <script src="/js/state.js?v=20260712-visibility" defer></script>
-  <script src="/js/imagery.js?v=20260712-scan-accurate" defer></script>
+  <script src="/js/imagery.js?v=20260712-review" defer></script>
   <script src="/js/scan.js?v=20260712-scan-accurate" defer></script>
   <script src="/js/review.js?v=20260712-distill" defer></script>
-  <script src="/js/render.js?v=20260712-modal" defer></script>
-  <script src="/js/session.js?v=20260712-modal" defer></script>
+  <script src="/js/render.js?v=20260712-review" defer></script>
+  <script src="/js/session.js?v=20260712-review" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
   <script src="/js/scan-ready.js?v=20260712-distill" defer></script>
   <script src="/js/live-scan-feed.js?v=20260712-distill" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
-  <script src="/js/app.js?v=20260712-scan-accurate" defer></script>
+  <script src="/js/app.js?v=20260712-review" defer></script>
 </body>
 </html>
