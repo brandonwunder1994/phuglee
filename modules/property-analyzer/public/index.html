@@ -17,7 +17,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tailwind.css">
   <link rel="stylesheet" href="/css/stateface.css">
-  <link rel="stylesheet" href="/css/app.css?v=20260712-dropzone">
+  <link rel="stylesheet" href="/css/app.css?v=20260712-drop-min">
   <link rel="stylesheet" href="/css/cyber-theme.css">
   <link rel="stylesheet" href="/css/cyber-ultra.css">
   <link rel="stylesheet" href="/css/cyber-review.css">
@@ -143,22 +143,12 @@
       </div>
 
       <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import leads for scan">
-        <div class="scan-format-badges" aria-hidden="true">
-          <span>.xlsx</span><span>.csv</span><span>.xls</span>
-        </div>
-        <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-describedby="scanImportDropHint" aria-label="Drop a spreadsheet or press Enter to browse">
+        <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-label="Drop a spreadsheet or press Enter to browse">
           <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Browse for spreadsheet to scan">
           <div class="scan-import-drop-inner" id="scanImportDropInner">
-            <p class="scan-import-drop-title">Drop files here</p>
-            <p class="scan-import-drop-hint" id="scanImportDropHint"><button type="button" class="scan-import-browse-link" id="scanImportBrowseLabel">browse files</button></p>
+            <button type="button" class="scan-import-browse-link" id="scanImportBrowseLabel">browse files</button>
             <p class="scan-import-status" id="scanImportStatus" hidden></p>
           </div>
-        </div>
-        <div class="scan-import-options">
-          <label class="scan-import-option" for="scanImportLeadType">
-            <span>Lead type</span>
-            <select id="scanImportLeadType" aria-label="Lead type for this import"></select>
-          </label>
         </div>
       </div>
 
@@ -699,7 +689,7 @@
   <script src="/js/render.js?v=20260712-profile"></script>
   <script src="/js/session.js?v=20260708h"></script>
   <script src="/js/premium-shell.js?v=20260708e"></script>
-  <script src="/js/scan-ready.js?v=20260712-dropzone"></script>
+  <script src="/js/scan-ready.js?v=20260712-drop-min"></script>
   <script src="/js/live-scan-feed.js?v=20260708b"></script>
   <script src="/js/location-hub.js?v=20260708d"></script>
   <script src="/js/app.js?v=20260708g"></script>

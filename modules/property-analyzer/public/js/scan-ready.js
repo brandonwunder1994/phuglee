@@ -100,8 +100,6 @@
       const drop = $('scanImportDrop');
       const input = $('scanFileInput');
       const browseLabel = $('scanImportBrowseLabel');
-      initLeadTypeSelects?.();
-
       input?.addEventListener('change', async () => {
         const file = input.files?.[0];
         input.value = '';

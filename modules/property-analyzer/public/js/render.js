@@ -1284,9 +1284,9 @@ R.handleFile = async function handleFile(file, opts = {}) {
   try {
     setStatus(`Reading ${file.name}…`);
     const leadType = normalizeLeadType(
-      $('scanImportLeadType')?.value
-      || $('importLeadTypeSelect')?.value
+      $('importLeadTypeSelect')?.value
       || state.importLeadType
+      || 'code_violation'
     );
     state.importLeadType = leadType;
     const records = await parseSpreadsheet(file, leadType);

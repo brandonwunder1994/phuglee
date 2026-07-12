@@ -349,15 +349,10 @@ R.leadTypeBadgeHtml = function leadTypeBadgeHtml(r) {
 R.initLeadTypeSelects = function initLeadTypeSelects() {
   const typeOptions = LEAD_TYPES.map(t => `<option value="${t.id}">${escapeHtml(t.label)}</option>`).join('');
   const importLeadTypeSelect = $('importLeadTypeSelect');
-  const scanImportLeadType = $('scanImportLeadType');
   const leadTypeFilter = $('leadTypeFilter');
   if (importLeadTypeSelect) {
     importLeadTypeSelect.innerHTML = typeOptions;
     importLeadTypeSelect.value = normalizeLeadType(state.importLeadType);
-  }
-  if (scanImportLeadType) {
-    scanImportLeadType.innerHTML = typeOptions;
-    scanImportLeadType.value = normalizeLeadType(state.importLeadType);
   }
   if (leadTypeFilter) {
     leadTypeFilter.innerHTML = `<option value="all">All lead types</option>${typeOptions}`;
