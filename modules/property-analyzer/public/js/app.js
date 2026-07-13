@@ -1544,7 +1544,23 @@ R.runResortWellMaintainedFromUrl = function runResortWellMaintainedFromUrl() {
   if (params.get('resortWellMaintained') !== '1') return;
   history.replaceState({}, '', location.pathname);
   setTimeout(() => migrateLowDistressToWellMaintained(), 800);
-}
+};
+
+R.runVaultFocusFromUrl = function runVaultFocusFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const focus = String(params.get('focusAddress') || '').trim();
+  if (!focus) return;
+  history.replaceState({}, '', location.pathname);
+  const apply = () => {
+    if (!resultSearch) return;
+    resultSearch.value = focus;
+    state.searchQuery = focus;
+    resultSearch.dispatchEvent(new Event('input', { bubbles: true }));
+    resultSearch.focus();
+    mainWorkspace?.classList.add('visible');
+  };
+  setTimeout(apply, 400);
+};
 
 window.__distressAnalyzer = {
   resortWellMaintained: migrateLowDistressToWellMaintained,
@@ -1856,6 +1872,7 @@ R.bootstrapApp = async function bootstrapApp() {
     await loadSession();
     scheduleDeferredImageryHydrate();
     runResortWellMaintainedFromUrl();
+    runVaultFocusFromUrl();
     scheduleDeferredSessionMigration();
   } catch (e) {
     console.error('bootstrapApp failed', e);

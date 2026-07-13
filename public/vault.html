@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
-  <link rel="stylesheet" href="/css/vault.css?v=3">
+  <link rel="stylesheet" href="/css/vault.css?v=4">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -68,6 +68,7 @@
             <p class="vault-eyebrow">The Vault</p>
             <h1 class="vault-title vault-title--desk">Curated leads</h1>
             <p class="vault-hero-sub">Pipeline-scrubbed inventory · dial-ready</p>
+            <p id="vault-sync-status" class="vault-sync-status" hidden></p>
           </div>
           <div id="vault-kpis" class="vault-kpis" aria-live="polite"></div>
         </div>
@@ -116,6 +117,23 @@
               <option value="90d">Last 90 days</option>
             </select>
           </label>
+          <label class="vault-field vault-field--check">
+            <input type="checkbox" id="vault-favorites-only" class="vault-check">
+            <span class="vault-field-label">Favorites only</span>
+          </label>
+          <label class="vault-field vault-field--check">
+            <input type="checkbox" id="vault-has-phone" class="vault-check">
+            <span class="vault-field-label">Has phone</span>
+          </label>
+          <div class="vault-field">
+            <span class="vault-field-label">Saved presets</span>
+            <div class="vault-preset-row">
+              <select id="vault-presets" class="phuglee-select">
+                <option value="">Load preset…</option>
+              </select>
+              <button type="button" id="vault-save-preset" class="phuglee-btn phuglee-btn-ghost vault-preset-save">Save</button>
+            </div>
+          </div>
           <button type="button" id="vault-clear-filters" class="phuglee-btn phuglee-btn-ghost vault-clear-btn">Clear filters</button>
         </aside>
 
@@ -123,6 +141,10 @@
           <div id="vault-results-toolbar" class="vault-results-toolbar">
             <p id="vault-results-meta" class="vault-results-meta">Loading…</p>
             <div class="vault-results-actions">
+              <div class="vault-view-toggle" role="group" aria-label="View mode">
+                <button type="button" class="vault-view-btn is-active" data-view="table" aria-pressed="true">Table</button>
+                <button type="button" class="vault-view-btn" data-view="cards" aria-pressed="false">Cards</button>
+              </div>
               <button type="button" id="vault-export-btn" class="phuglee-btn phuglee-btn-secondary" disabled>Export selected</button>
             </div>
           </div>
@@ -131,6 +153,7 @@
               <thead>
                 <tr>
                   <th scope="col" class="vault-col-check"><input type="checkbox" id="vault-select-all" aria-label="Select all on page"></th>
+                  <th scope="col" class="vault-col-thumb">Photo</th>
                   <th scope="col"><button type="button" class="vault-sort-btn" data-sort="address">Address</button></th>
                   <th scope="col"><button type="button" class="vault-sort-btn" data-sort="city">City</button></th>
                   <th scope="col">Signal</th>
@@ -141,6 +164,8 @@
               </thead>
               <tbody id="vault-results-body"></tbody>
             </table>
+            <div id="vault-cards" class="vault-cards" hidden></div>
+            <div id="vault-skeleton" class="vault-skeleton" hidden aria-hidden="true"></div>
             <div id="vault-empty" class="phuglee-empty-state" hidden>
               <p class="phuglee-empty-title">No leads match</p>
               <p class="phuglee-empty-copy">Manually reviewed Distressed, Well Maintained, and Land leads sync from Analyze automatically. Finish reviewing leads in Analyze, then refresh.</p>
@@ -155,12 +180,30 @@
       <div class="vault-drawer-backdrop" id="vault-drawer-backdrop" tabindex="-1"></div>
       <div class="vault-drawer-panel distress-glass">
         <header class="vault-drawer-header">
+          <div class="vault-drawer-nav">
+            <button type="button" id="vault-drawer-prev" class="phuglee-btn phuglee-btn-ghost" aria-label="Previous lead">←</button>
+            <button type="button" id="vault-drawer-next" class="phuglee-btn phuglee-btn-ghost" aria-label="Next lead">→</button>
+          </div>
           <h2 id="vault-drawer-title" class="vault-drawer-title">Lead dossier</h2>
           <button type="button" id="vault-drawer-close" class="phuglee-btn phuglee-btn-ghost" aria-label="Close">Close</button>
         </header>
         <div id="vault-drawer-body" class="vault-drawer-body"></div>
       </div>
     </aside>
+
+    <div id="vault-bulk-bar" class="vault-bulk-bar distress-glass" hidden>
+      <span id="vault-bulk-count" class="vault-bulk-count">0 selected</span>
+      <div class="vault-bulk-actions">
+        <button type="button" id="vault-bulk-export" class="phuglee-btn phuglee-btn-secondary">Export</button>
+        <button type="button" id="vault-bulk-fav" class="phuglee-btn phuglee-btn-ghost">Favorite</button>
+        <button type="button" id="vault-bulk-clear" class="phuglee-btn phuglee-btn-ghost">Clear</button>
+      </div>
+    </div>
+
+    <div id="vault-lightbox" class="vault-lightbox" hidden role="dialog" aria-modal="true" aria-label="Property image">
+      <button type="button" id="vault-lightbox-close" class="vault-lightbox-close" aria-label="Close image">×</button>
+      <img id="vault-lightbox-img" class="vault-lightbox-img" alt="">
+    </div>
   </main>
 
   <div id="distress-os-footer-mount"></div>
@@ -170,6 +213,6 @@
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=14" defer></script>
-  <script src="/js/vault-app.js?v=1" defer></script>
+  <script src="/js/vault-app.js?v=2" defer></script>
 </body>
 </html>
