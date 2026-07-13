@@ -399,6 +399,10 @@ R.countPendingScanLeads = function countPendingScanLeads(records = state.records
     : { exact: new Set(), loose: new Set() };
   let n = 0;
   for (const r of records) {
+    if (r?.forceRescan) {
+      n += 1;
+      continue;
+    }
     if (typeof recordKey === 'function' && existingKeys.has(recordKey(r))) continue;
     if (typeof isRowAlreadyKnown === 'function' && isRowAlreadyKnown(r, known)) continue;
     n += 1;

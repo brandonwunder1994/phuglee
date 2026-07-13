@@ -68,10 +68,10 @@ test('prepare opens soft-reviewed New Analyzer leads and requeues unavailable', 
 
   assert.equal(stats.clearedSoft, 1);
   assert.equal(stats.requeuedUnavailable, 1);
-  assert.equal(next.results.length, 2); // WM kept + non-sheet
+  assert.equal(next.results.length, 3); // WM + unavailable kept + non-sheet
   const wm = next.results.find((r) => r.street === '100 Main');
   assert.ok(wm);
   assert.equal(!!wm.manuallyReviewed, false);
-  assert.ok(next.records.some((r) => r.street === '200 Oak'));
+  assert.ok(next.records.some((r) => r.street === '200 Oak' && r.forceRescan));
   assert.ok(!next.records.some((r) => r.street === '100 Main')); // already good result
 });

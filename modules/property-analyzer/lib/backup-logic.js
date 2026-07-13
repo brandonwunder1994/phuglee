@@ -4,11 +4,12 @@ function recordKeyFromResult(r) {
 }
 
 function isManuallyEditedResult(r) {
-  return !!(r && (
-    r.manualScore || r.manualOverride || r.tierLocked
-    || r.reviewResolved || r.manuallyReviewed
-    || r.manuallyReviewedVia
-  ));
+  if (!r) return false;
+  if (r.manualScore || r.manualOverride || r.tierLocked || r.reviewResolved) return true;
+  const via = String(r.manuallyReviewedVia || '');
+  // Soft vias are queue progress, not human edits — must not beat a cleared LATEST row.
+  if (via === 'review_session' || via === 'review_skip' || via === 'review_missing') return false;
+  return !!(r.manuallyReviewed || r.manuallyReviewedVia);
 }
 
 function resultEditTimestamp(r) {

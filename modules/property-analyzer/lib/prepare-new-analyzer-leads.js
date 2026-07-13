@@ -132,6 +132,9 @@ function clearSoftReview(r) {
   delete next.reviewResolved;
   delete next.needsReviewLater;
   if (next.autoWellMaintained) delete next.autoWellMaintained;
+  // Win vs soft-via JSONL rows on the next merge
+  next.manualEditedAt = Date.now();
+  next.reviewQueueOpenedAt = Date.now();
   return next;
 }
 
@@ -168,15 +171,24 @@ function prepareNewAnalyzerLeadsSession(session, opts = {}) {
     }
 
     if (requeueUnavailable && needsRescan(row)) {
-      const lean = leanRecordFromResult(row);
+      const lean = { ...leanRecordFromResult(row), forceRescan: true };
       const k = recordKey(lean);
       const gk = streetCityStateKey(lean);
-      if ((k && !existingRecordKeys.has(k)) || (gk && !existingGeoKeys.has(gk))) {
+      const alreadyQueued =
+        (k && existingRecordKeys.has(k)) || (gk && existingGeoKeys.has(gk));
+      if (!alreadyQueued) {
         if (k) existingRecordKeys.add(k);
         if (gk) existingGeoKeys.add(gk);
         requeueRecords.push(lean);
         requeued += 1;
+      } else {
+        // Ensure existing queue row is marked for forced rescan
+        const hit = records.find((rec) => recordKey(rec) === k || streetCityStateKey(rec) === gk);
+        if (hit) hit.forceRescan = true;
+        requeued += 1;
       }
+      // Keep the AI row so Review still has imagery; Start Scan honors forceRescan.
+      keptResults.push(row);
       continue;
     }
 
@@ -186,6 +198,7 @@ function prepareNewAnalyzerLeadsSession(session, opts = {}) {
   const keptResultKeys = new Set(keptResults.map(recordKey).filter(Boolean));
   const keptGeoKeys = new Set(keptResults.map(streetCityStateKey).filter(Boolean));
   const keptRecords = records.filter((rec) => {
+    if (rec.forceRescan) return true;
     if (!isNewAnalyzerLead(rec) && !isTargetLead(rec, keySets)) return true;
     const k = recordKey(rec);
     const gk = streetCityStateKey(rec);

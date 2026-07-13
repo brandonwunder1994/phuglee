@@ -1316,6 +1316,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
     }
     let skippedDupAtStart = 0;
     const pending = state.records.filter((r) => {
+      if (r?.forceRescan) return true;
       if (existingRecordKeys.has(recordKey(r))) {
         skippedDupAtStart += 1;
         return false;
@@ -1326,6 +1327,20 @@ R.startScanAnalysis = async function startScanAnalysis() {
       }
       return true;
     });
+    // Drop prior AI rows for forceRescan addresses so the new scan replaces them
+    if (pending.some((r) => r?.forceRescan)) {
+      const forceKeys = new Set(pending.filter((r) => r?.forceRescan).map((r) => recordKey(r)));
+      const forceLoose = typeof buildKnownAddressSets === 'function'
+        ? buildKnownAddressSets(pending.filter((r) => r?.forceRescan))
+        : null;
+      state.results = (state.results || []).filter((row) => {
+        if (forceKeys.has(recordKey(row))) return false;
+        if (forceLoose && typeof isRowAlreadyKnown === 'function' && isRowAlreadyKnown(row, forceLoose)) {
+          return false;
+        }
+        return true;
+      });
+    }
     // Keep scan queue clean for credits — remove skipped dups from records
     if (skippedDupAtStart > 0) {
       state.records = pending.slice();
