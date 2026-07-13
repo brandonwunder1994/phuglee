@@ -241,7 +241,8 @@ function prepareNewAnalyzerLeadsSession(session, opts = {}) {
       recordsBefore: records.length,
       recordsAfter: nextRecords.length,
       pendingUnscanned: nextRecords.length,
-      matchedNewAnalyzerKeys: keySets.recordKeys.size + keySets.geoKeys.size
+      matchedNewAnalyzerKeys: keySets.recordKeys.size + keySets.geoKeys.size,
+      forceRescanRecords: nextRecords.filter((r) => r.forceRescan).length
     }
   };
 }
