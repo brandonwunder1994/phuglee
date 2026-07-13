@@ -2241,6 +2241,276 @@ body.analyze-phuglee .property-profile-body .inspector-actions {
   }
 }
 
+/* ============================================================
+   Cinematic property profile — overflow model + chrome
+   Single-column: header → sticky media/actions → section nav
+   → score strip → sole scroll (#profileDossierScroll)
+   ============================================================ */
+
+/* Dialog column: one shell, children flex; sole outer overflow hidden */
+body.analyze-phuglee .property-modal-dialog.property-profile-cinematic {
+  display: flex;
+  flex-direction: column;
+  width: min(96vw, 1180px);
+  max-height: min(92vh, 920px);
+  overflow: hidden;
+}
+
+body.analyze-phuglee .property-profile-cinematic .property-modal-header {
+  flex-shrink: 0;
+}
+
+body.analyze-phuglee .property-profile-sticky-media {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+  background: #0a0908;
+}
+
+/* Kill two-column media-left border for cinematic single-column */
+body.analyze-phuglee .property-profile-cinematic .property-modal-media,
+body.analyze-phuglee .property-profile-cinematic .property-profile-hero {
+  border-right: none;
+  border-bottom: none;
+  min-height: 0;
+  overflow: hidden;
+  background: #0a0908;
+}
+
+body.analyze-phuglee .property-profile-hero .preview-images {
+  min-height: 0;
+  height: clamp(180px, 28vh, 320px);
+  aspect-ratio: auto;
+}
+
+body.analyze-phuglee .property-profile-hero .preview-image-wrap {
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+body.analyze-phuglee .property-profile-hero .preview-image-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Never show dual sat pane in cinematic profile */
+body.analyze-phuglee .property-profile-cinematic #previewSatWrap,
+body.analyze-phuglee .property-profile-cinematic .preview-images.dual #previewSatWrap {
+  display: none !important;
+}
+
+body.analyze-phuglee .property-profile-cinematic .preview-images.dual {
+  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: clamp(180px, 28vh, 320px);
+  aspect-ratio: auto;
+}
+
+body.analyze-phuglee .property-profile-cinematic .preview-images.dual .preview-sat-pane {
+  display: none !important;
+  flex: none;
+}
+
+body.analyze-phuglee .property-profile-cinematic .preview-images.dual .preview-sv-pane {
+  flex: 1;
+  min-height: 0;
+}
+
+body.analyze-phuglee .property-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.55rem 0.85rem 0.65rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(174, 163, 143, 0.1);
+}
+
+body.analyze-phuglee .profile-action-btn {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  background: rgba(0, 0, 0, 0.28);
+  color: var(--phuglee-cream, #f5f2e4);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+body.analyze-phuglee .profile-action-btn:hover {
+  border-color: rgba(229, 132, 53, 0.45);
+  color: var(--phuglee-orange, #e58435);
+}
+
+body.analyze-phuglee .profile-action-btn.profile-action-primary {
+  border-color: rgba(229, 132, 53, 0.5);
+  background: rgba(229, 132, 53, 0.14);
+  color: var(--phuglee-orange, #e58435);
+}
+
+body.analyze-phuglee .property-profile-section-nav {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding: 0.5rem 0.85rem;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+  background: rgba(0, 0, 0, 0.18);
+  scrollbar-width: thin;
+}
+
+body.analyze-phuglee .profile-section-chip {
+  flex-shrink: 0;
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  background: transparent;
+  color: var(--phuglee-stone, #9c968a);
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+body.analyze-phuglee .profile-section-chip:hover {
+  border-color: rgba(174, 163, 143, 0.35);
+  color: var(--phuglee-cream, #f5f2e4);
+}
+
+body.analyze-phuglee .profile-section-chip[aria-current="true"] {
+  border-color: rgba(229, 132, 53, 0.45);
+  color: var(--phuglee-cream, #f5f2e4);
+  background: rgba(229, 132, 53, 0.12);
+}
+
+/* Score strip: fixed between nav and dossier (always visible) */
+body.analyze-phuglee .property-profile-cinematic #inspectorGaugePanel,
+body.analyze-phuglee .property-profile-cinematic .property-distress {
+  flex-shrink: 0;
+  padding: 0.55rem 0.95rem 0.6rem;
+  gap: 0.4rem;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.12);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+body.analyze-phuglee .property-profile-cinematic #inspectorGaugePanel .property-distress-num,
+body.analyze-phuglee .property-profile-cinematic #inspectorGaugePanel .gauge-num {
+  font-size: 1.45rem;
+}
+
+/* Sole scroll owner — dossier only */
+body.analyze-phuglee .property-profile-dossier {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(229, 132, 53, 0.35) transparent;
+}
+
+/* Nested panels do not scroll — content flows inside dossier */
+body.analyze-phuglee .property-profile-cinematic .property-modal-details {
+  overflow: visible;
+  min-height: 0;
+  display: block;
+}
+
+body.analyze-phuglee .property-profile-cinematic .inspector-body,
+body.analyze-phuglee .property-profile-cinematic .property-modal-details .inspector-body {
+  overflow: visible;
+  flex: none;
+  padding: 0.85rem 1.15rem 1.5rem;
+}
+
+body.analyze-phuglee .profile-dossier-section {
+  scroll-margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  margin-top: 0.35rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.1);
+}
+
+body.analyze-phuglee .profile-dossier-section:first-child {
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+body.analyze-phuglee .profile-dossier-section-title {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 650;
+  color: var(--phuglee-cream, #f5f2e4);
+  margin: 0 0 0.55rem;
+  letter-spacing: 0.02em;
+}
+
+body.analyze-phuglee .profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem 0.85rem;
+}
+
+body.analyze-phuglee .profile-kv {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 38%) 1fr;
+  gap: 0.35rem;
+  align-items: start;
+}
+
+body.analyze-phuglee .profile-kv .lbl {
+  font-family: var(--font-body, 'Outfit', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--phuglee-stone, #9c968a);
+  letter-spacing: 0.02em;
+}
+
+body.analyze-phuglee .profile-kv .val {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  color: var(--phuglee-cream, #f5f2e4);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+  body.analyze-phuglee .property-profile-hero .preview-images,
+  body.analyze-phuglee .property-profile-cinematic .preview-images.dual {
+    height: clamp(140px, 22vh, 220px);
+  }
+
+  body.analyze-phuglee .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.analyze-phuglee .property-modal-dialog.property-profile-cinematic {
+    max-height: 96vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.analyze-phuglee .property-modal-dialog.property-profile-cinematic {
+    animation: none;
+  }
+
+  body.analyze-phuglee .profile-action-btn,
+  body.analyze-phuglee .profile-section-chip {
+    transition: none;
+  }
+}
+
 /* ── Task 7: Hybrid review overlay + glass property cards ── */
 
 body.analyze-phuglee .review-mode-overlay.review-glass-overlay,

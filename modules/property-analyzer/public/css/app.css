@@ -1051,6 +1051,87 @@
       }
     }
 
+    /* ── Cinematic profile: kill dual-pane / nested-scroll from base modal ── */
+    .property-modal-dialog.property-profile-cinematic {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      max-height: min(92vh, 920px);
+    }
+
+    .property-profile-cinematic .property-modal-media,
+    .property-profile-cinematic .property-profile-hero {
+      border-right: none;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .property-profile-cinematic .property-modal-media .preview-images,
+    .property-profile-cinematic .property-profile-hero .preview-images {
+      min-height: 0;
+      height: clamp(180px, 28vh, 320px);
+      aspect-ratio: auto;
+    }
+
+    .property-profile-cinematic .property-modal-media .preview-images.dual,
+    .property-profile-cinematic .preview-images.dual {
+      aspect-ratio: auto;
+      min-height: 0;
+      height: clamp(180px, 28vh, 320px);
+      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .property-profile-cinematic #previewSatWrap,
+    .property-profile-cinematic .preview-images.dual #previewSatWrap,
+    .property-profile-cinematic .preview-images.dual .preview-sat-pane {
+      display: none !important;
+    }
+
+    .property-profile-cinematic .property-modal-media .preview-image-wrap,
+    .property-profile-cinematic .property-profile-hero .preview-image-wrap {
+      min-height: 0;
+      height: 100%;
+      aspect-ratio: auto;
+    }
+
+    /* Sole scroll on #profileDossierScroll — no nested overflow on details/body */
+    .property-profile-cinematic .property-modal-details {
+      overflow: visible;
+      min-height: 0;
+      display: block;
+    }
+
+    .property-profile-cinematic .property-modal-details .inspector-body {
+      overflow: visible;
+      flex: none;
+    }
+
+    .property-profile-cinematic #inspectorGaugePanel {
+      flex-shrink: 0;
+    }
+
+    .property-profile-cinematic .property-profile-dossier {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+    }
+
+    @media (max-width: 900px) {
+      .property-profile-cinematic .property-modal-media .preview-images,
+      .property-profile-cinematic .property-profile-hero .preview-images,
+      .property-profile-cinematic .preview-images.dual {
+        height: clamp(140px, 22vh, 220px);
+      }
+
+      .property-modal-dialog.property-profile-cinematic {
+        max-height: 96vh;
+      }
+    }
+
     /* ── Live scan dock (property open while scan runs) ── */
     .live-scan-dock {
       display: none;
