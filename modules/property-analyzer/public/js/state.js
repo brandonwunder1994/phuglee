@@ -1235,6 +1235,10 @@ R.readAllBrowserSessionCandidates = async function readAllBrowserSessionCandidat
   }
   const hasSessionCandidate = (data) => {
     if (!data || typeof data !== 'object') return false;
+    // Stubs are KPI hints only — not restorable sessions.
+    if (data.serverAuthoritative === true && !(data.results || []).length) {
+      return false;
+    }
     const records = (data.records || []).length;
     const results = (data.results || []).length;
     const resultCount = Number(data.resultCount) || 0;
@@ -1887,8 +1891,14 @@ R.ensureSessionResultsLoaded = async function ensureSessionResultsLoaded() {
 
 R.sessionDataRank = function sessionDataRank(data) {
   if (!data) return -1;
-  const results = data.resultCount ?? (data.results || []).length;
-  const processed = data.processed || 0;
+  // Server-authoritative stubs store resultCount but empty results[] — never treat
+  // that count as real scan data or stubs beat the server after reload.
+  const stubEmpty =
+    data.serverAuthoritative === true && !(data.results || []).length;
+  const results = stubEmpty
+    ? 0
+    : (data.resultCount ?? (data.results || []).length);
+  const processed = stubEmpty ? 0 : (data.processed || 0);
   const savedAt = Number(data.savedAt) || 0;
   let manualEdits = 0;
   let reviewMarks = 0;
@@ -2244,6 +2254,14 @@ R.applyPayloadWithUi = async function applyPayloadWithUi(data, opts = {}) {
 R.loadSession = async function loadSession() {
   setSessionRestoreBanner('Loading your data…');
   try {
+    // Ensure Analyzer API headers match the shell login cookie before reading session.
+    if (USE_PROXY && window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
+      try {
+        await window.PhugleeSession.syncSessionFromServerCookie();
+      } catch (_) {
+        /* ignore */
+      }
+    }
     let summary = null;
     if (USE_PROXY) {
       summary = await fetchSessionSummary();

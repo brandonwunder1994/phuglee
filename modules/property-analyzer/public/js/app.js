@@ -1829,6 +1829,14 @@ R.bootstrapApp = async function bootstrapApp() {
     resetDisplayLimit();
   }
   resetBlockingUiOnLoad();
+  // Restore login username into sessionStorage before session APIs run.
+  if (USE_PROXY && window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
+    try {
+      await window.PhugleeSession.syncSessionFromServerCookie();
+    } catch (_) {
+      /* ignore */
+    }
+  }
   const primed = primeSessionFromLocalStorage();
   if (primed) {
     mainWorkspace?.classList.add('visible');
@@ -1877,6 +1885,25 @@ R.bootstrapApp = async function bootstrapApp() {
     }
   }
 };
+
+  // Flush scan progress when leaving / hiding the tab so Railway reload finds results.
+  if (typeof window !== 'undefined' && !window.__PDA_SCAN_FLUSH_BOUND__) {
+    window.__PDA_SCAN_FLUSH_BOUND__ = true;
+    const flushOnLeave = () => {
+      try {
+        if (typeof state !== 'undefined' && (state.scanning || (state.results || []).length)) {
+          persistScanProgressNow?.('pagehide');
+        }
+      } catch (_) {
+        /* ignore */
+      }
+    };
+    window.addEventListener('pagehide', flushOnLeave);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') flushOnLeave();
+    });
+  }
+
   R.syncAdminUi = function syncAdminUi() {
     const isAdmin = window.PhugleeSettings?.isAdmin?.() || (() => {
       try { return sessionStorage.getItem('phuglee_session') === 'admin'; } catch (_) { return false; }

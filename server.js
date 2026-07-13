@@ -262,6 +262,22 @@ async function handleRequest(req, res) {
     return;
   }
 
+  if (pathname === '/api/auth/me' && req.method === 'GET') {
+    const auth = require('./lib/phuglee-auth');
+    const session = auth.readSessionFromReq(req);
+    if (!session || !session.username) {
+      send(res, 401, JSON.stringify({ ok: false, authenticated: false }), 'application/json');
+      return;
+    }
+    send(res, 200, JSON.stringify({
+      ok: true,
+      authenticated: true,
+      username: session.username,
+      plan: session.plan || ''
+    }), 'application/json');
+    return;
+  }
+
   if (pathname.startsWith('/api/bridge')) {
     const handled = await getBridgeApi().handle(req, res, pathname, url);
     if (handled) return;

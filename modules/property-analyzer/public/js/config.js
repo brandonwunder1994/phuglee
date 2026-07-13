@@ -89,7 +89,12 @@ R.apiFetch = function apiFetch(url, opts = {}) {
   const headers = R.applyPhugleeSessionHeaders(opts.headers || {});
   const token = getAuthToken();
   if (token) headers['X-PDA-Token'] = token;
-  return fetch(R.resolveModuleApiUrl(url), { ...opts, headers });
+  // Keep shell login cookie on Analyzer API calls so save/load use the same user folder.
+  return fetch(R.resolveModuleApiUrl(url), {
+    credentials: 'same-origin',
+    ...opts,
+    headers
+  });
 }
 
 if (R.IS_EMBEDDED && typeof window !== 'undefined' && !window.__PDA_FETCH_PATCHED__) {

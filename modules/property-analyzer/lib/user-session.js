@@ -20,12 +20,32 @@ function sanitizePhugleePlan(plan) {
 }
 
 function readScopeFromRequest(req) {
-  const username = sanitizePhugleeUsername(
-    req?.headers?.['x-phuglee-user'] || req?.headers?.['X-Phuglee-User'] || ''
-  );
-  const plan = sanitizePhugleePlan(
-    req?.headers?.['x-phuglee-plan'] || req?.headers?.['X-Phuglee-Plan'] || ''
-  );
+  // Prefer verified shell login cookie when present (same user on save + reload).
+  // Headers alone can flip to _anonymous if sessionStorage is empty after refresh.
+  let username = '';
+  let plan = '';
+  try {
+    const authPath = path.join(__dirname, '..', '..', '..', 'lib', 'phuglee-auth.js');
+    // modules/property-analyzer/lib → repo lib/phuglee-auth.js
+    const { readSessionFromReq } = require(authPath);
+    const session = readSessionFromReq(req);
+    if (session && session.username) {
+      username = sanitizePhugleeUsername(session.username);
+      plan = sanitizePhugleePlan(session.plan || '');
+    }
+  } catch (_) {
+    /* standalone analyzer / auth module unavailable */
+  }
+  if (!username) {
+    username = sanitizePhugleeUsername(
+      req?.headers?.['x-phuglee-user'] || req?.headers?.['X-Phuglee-User'] || ''
+    );
+  }
+  if (!plan) {
+    plan = sanitizePhugleePlan(
+      req?.headers?.['x-phuglee-plan'] || req?.headers?.['X-Phuglee-Plan'] || ''
+    );
+  }
   return resolveSessionScope({ username, plan });
 }
 

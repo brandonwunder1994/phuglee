@@ -3,6 +3,7 @@
 
   var SESSION_KEY = 'phuglee_session';
   var LOGOUT_KEY = 'phuglee_logout';
+  var SIGN_OUT_URL = '/?signed_out=1&login=1';
 
   function getSessionUser() {
     try {
@@ -43,7 +44,24 @@
     }
   }
 
-  var SIGN_OUT_URL = '/?signed_out=1&login=1';
+  /** Restore sessionStorage from HttpOnly cookie after refresh (Analyzer headers need the username). */
+  function syncSessionFromServerCookie() {
+    if (window.__PHUGLEE_AUTH_DISABLED__) return Promise.resolve(null);
+    if (hasExplicitLogout()) return Promise.resolve(null);
+    return fetch('/api/auth/me', { credentials: 'same-origin', cache: 'no-store' })
+      .then(function (res) {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || !data.authenticated || !data.username) return null;
+        establishSession(data.username);
+        return data;
+      })
+      .catch(function () {
+        return null;
+      });
+  }
 
   function signOut() {
     try {
@@ -57,9 +75,20 @@
     if (window.__PHUGLEE_AUTH_DISABLED__) return;
     var path = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
     if (path === '/' || path === '/index.html') return;
-    if (hasExplicitLogout() || !getSessionUser()) {
+    if (hasExplicitLogout()) {
       window.location.replace(SIGN_OUT_URL);
+      return;
     }
+    if (getSessionUser()) return;
+    syncSessionFromServerCookie().then(function (data) {
+      if (!data || !data.username) {
+        window.location.replace(SIGN_OUT_URL);
+      }
+    });
+  }
+
+  if (!window.__PHUGLEE_AUTH_DISABLED__ && !hasExplicitLogout() && !getSessionUser()) {
+    syncSessionFromServerCookie();
   }
 
   if (typeof window.addEventListener === 'function') {
@@ -77,6 +106,7 @@
     isAuthenticated: isAuthenticated,
     clearSession: clearSession,
     establishSession: establishSession,
+    syncSessionFromServerCookie: syncSessionFromServerCookie,
     signOut: signOut,
     guardProtectedPage: guardProtectedPage
   };
