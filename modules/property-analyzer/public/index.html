@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee â€” Analyze</title>
-  <meta name="description" content="Import your bridged list. AI scans Street View, ranks visible distress, and exports dial-ready leads â€” you double-check every tier.">
-  <meta property="og:title" content="Phuglee â€” Analyze">
-  <meta property="og:description" content="Step 03 Â· Analyze â€” rank visible distress from Street View and export a dial-ready database.">
+  <title>Phuglee — Analyze</title>
+  <meta name="description" content="Import your bridged list. AI scans Street View, ranks visible distress, and exports dial-ready leads — you double-check every tier.">
+  <meta property="og:title" content="Phuglee — Analyze">
+  <meta property="og:description" content="Step 03 · Analyze — rank visible distress from Street View and export a dial-ready database.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -17,24 +17,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/tailwind.css">
   <link rel="stylesheet" href="/css/stateface.css">
-  <link rel="stylesheet" href="/css/app.css?v=20260712-scan-smart">
-  <link rel="stylesheet" href="/css/cyber-theme.css">
-  <link rel="stylesheet" href="/css/cyber-ultra.css">
-  <link rel="stylesheet" href="/css/cyber-review.css">
-  <link rel="stylesheet" href="/css/cyber-modals.css?v=2">
-  <link rel="stylesheet" href="/css/cyber-data.css?v=20260712-scan-smart">
-  <link rel="stylesheet" href="/css/cyber-polish.css?v=20260712-scan-smart">
+  <link rel="stylesheet" href="/css/app.css?v=20260713-ops">
   <link rel="stylesheet" href="/css/heat-theme.css">
-  <link rel="stylesheet" href="/css/premium-analyzer.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260712-cinematic-polish">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260713-ops">
+  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=3">
+  <link rel="stylesheet" href="/css/property-profile-v2.css?v=2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
-  <link rel="stylesheet" href="/css/premium-motion.css">
-  <script src="/js/phuglee-motion.js" defer></script>
-  <script src="/js/phuglee-states.js" defer></script>
 </head>
-<body class="analyze-phuglee cyber-theme heat-theme">
+<body class="analyze-phuglee heat-theme">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
   <div class="app-shell">
     <aside class="app-sidebar analyze-sidebar" id="appSidebar" aria-label="Main navigation">
@@ -114,9 +106,9 @@
 
     <div class="analyze-hero-zone" data-phuglee-reveal>
       <header class="analyze-page-hero">
-        <p class="analyze-step-label">Step 03 Â· Analyze</p>
+        <p class="analyze-step-label">Step 03 · Analyze</p>
         <h1 class="analyze-page-title">Scan desk</h1>
-        <p class="analyze-page-lead">Upload a list â†’ Start Scan â†’ Street View + AI sorts into Distressed, Well Maintained, Land, or Blocked â†’ Review those groups.</p>
+        <p class="analyze-page-lead">Upload a list → Start Scan → Street View + AI sorts into Distressed, Well Maintained, Land, or Blocked → Review those groups.</p>
       </header>
 
       <nav class="analyze-pipeline" id="analyzePipeline" aria-label="Analyze workflow">
@@ -128,7 +120,7 @@
         </ol>
       </nav>
 
-    <section class="scan-ready-section phuglee-panel phuglee-panel-featured analyze-panel" id="scanReadySection" data-phuglee-reveal-child>
+    <section class="scan-ready-section scan-desk-v2 phuglee-panel phuglee-panel-featured analyze-panel" id="scanReadySection" data-phuglee-reveal-child>
       <div class="scan-ready-meta">
         <p class="analyze-panel-eyebrow">Ready to scan</p>
         <h2 class="scan-ready-location" id="scanReadyLocation">Import leads to scan</h2>
@@ -164,7 +156,7 @@
         </div>
         <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
           <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
-            aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">Â·Â·Â·</button>
+            aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">···</button>
           <div class="scan-desk-overflow-menu" id="scanDeskOverflow" role="menu" hidden>
             <button type="button" class="scan-desk-overflow-item" id="exportBackupNowBtn" role="menuitem" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
             <button type="button" class="scan-desk-overflow-item" id="apiUsageOpenBtn" role="menuitem" title="View Maps and Gemini usage estimates">API usage and credits</button>
@@ -173,14 +165,17 @@
       </div>
     </section>
 
-    <section class="live-scan-section phuglee-panel analyze-panel" id="liveScanSection" hidden aria-live="polite" data-phuglee-reveal-child>
+    <section class="live-scan-section live-scan-v2 phuglee-panel analyze-panel" id="liveScanSection" hidden aria-live="polite" data-phuglee-reveal-child>
       <header class="live-scan-head">
         <span class="live-scan-dot" aria-hidden="true"></span>
         <h2 class="analyze-panel-heading" id="scanProgressTitle">Live scan</h2>
         <span class="live-scan-progress" id="liveScanProgress">0 / 0</span>
         <button type="button" class="btn-secondary live-scan-stop" id="liveScanStopBtn" title="Stop after the current properties finish">Stop Scan</button>
       </header>
-      <div class="live-scan-kpis" id="liveScanKpis" aria-label="Live scan KPIs">
+      <div class="live-scan-progress-track" aria-hidden="true">
+        <span class="live-scan-progress-fill" id="liveScanProgressFill"></span>
+      </div>
+      <div class="live-scan-kpis analyze-metric-strip" id="liveScanKpis" aria-label="Live scan KPIs">
         <div class="live-scan-kpi live-scan-kpi--accent">
           <span class="live-scan-kpi-value" id="liveScanKpiDistressed">0</span>
           <span class="live-scan-kpi-label">Distressed</span>
@@ -202,7 +197,7 @@
           <span class="live-scan-kpi-label">Scanned</span>
         </div>
         <div class="live-scan-kpi">
-          <span class="live-scan-kpi-value" id="liveScanKpiWorkers">â€”</span>
+          <span class="live-scan-kpi-value" id="liveScanKpiWorkers">—</span>
           <span class="live-scan-kpi-label">Workers</span>
         </div>
         <div class="live-scan-kpi live-scan-kpi--residual" id="liveScanKpiReviewWrap" hidden>
@@ -210,7 +205,7 @@
           <span class="live-scan-kpi-label">Needs Review</span>
         </div>
       </div>
-      <p class="live-scan-meta" id="liveScanMeta">Progress auto-saves Â· workers auto-adjust when APIs cap out</p>
+      <p class="live-scan-meta" id="liveScanMeta">Progress auto-saves · workers auto-adjust when APIs cap out</p>
       <ol class="live-scan-feed" id="liveScanFeed"></ol>
       <div class="analyze-scan-legacy" hidden aria-hidden="true">
         <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
@@ -230,12 +225,12 @@
       </div>
     </section>
 
-    <section class="summary-section phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" hidden data-phuglee-reveal-child>
+    <section class="summary-section analyze-bucket-board phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" hidden data-phuglee-reveal-child>
       <div class="summary-head">
         <h2 class="analyze-panel-heading">Session buckets</h2>
-        <p class="summary-intro analyze-panel-lead" id="summaryIntro">AI sorted every scanned property into these groups â€” open Review Leads when ready.</p>
+        <p class="summary-intro analyze-panel-lead" id="summaryIntro">AI sorted every scanned property into these groups — open Review Leads when ready.</p>
       </div>
-      <div class="bridge-kpi-grid bridge-kpi-grid--five" id="summaryHeroRow">
+      <div class="bridge-kpi-grid analyze-metric-strip" id="summaryHeroRow">
         <button type="button" class="bridge-kpi bridge-kpi--accent clickable" id="sumDistressedKpiCard" title="Filter distressed leads">
           <span class="bridge-kpi-value" id="sumDistressedKpi">0</span>
           <span class="bridge-kpi-label">Distressed</span>
@@ -275,56 +270,7 @@
     </div><!-- /analyze-hero-zone -->
 
     <div class="analyze-data-zone" data-phuglee-reveal>
-      <div class="analyze-zone-divider" aria-hidden="true"><span>Market &amp; results</span></div>
-
-    <details class="historical-search phuglee-panel analyze-panel historical-search--secondary" id="locationHub" hidden aria-label="Historical search" data-phuglee-reveal-child>
-      <summary class="historical-search-head">
-        <h2 class="analyze-panel-heading">Past markets <span class="historical-search-optional">(optional)</span></h2>
-        <p class="historical-search-sub analyze-panel-lead">Browse older scans by state/city â€” not required to upload or scan a new list.</p>
-      </summary>
-      <div class="historical-search-body">
-      <div class="historical-search-controls">
-        <label class="historical-field">State
-          <select id="historicalStateSelect" disabled><option value="">Select stateâ€¦</option></select>
-        </label>
-        <label class="historical-field">City
-          <select id="historicalCitySelect" disabled><option value="">Select cityâ€¦</option></select>
-        </label>
-      </div>
-      <div class="upload-date-filter" id="uploadDateFilter" hidden>
-        <span class="upload-date-filter-label">Upload dates</span>
-        <div class="upload-date-chips" id="uploadDateChips" role="group" aria-label="Filter by upload date"></div>
-      </div>
-      <p class="historical-search-hint" id="locationHubEmpty" hidden>Select a state and city to view results.</p>
-      <div class="location-hub-list" id="locationHubList" hidden aria-hidden="true"></div>
-      <input type="search" class="location-hub-search" id="locationHubSearch" hidden aria-hidden="true">
-      </div>
-    </details>
-
-    <section class="local-kpi-section phuglee-panel analyze-panel" id="localKpiSection" hidden data-phuglee-reveal-child>
-      <div class="summary-head">
-        <h2 class="analyze-panel-heading" id="localKpiTitle">Market results</h2>
-        <p class="summary-intro analyze-panel-lead" id="localKpiIntro">Totals for the selected market.</p>
-      </div>
-      <div class="bridge-kpi-grid bridge-kpi-grid--five" id="localKpiGrid">
-        <div class="bridge-kpi bridge-kpi--accent"><span class="bridge-kpi-value" id="localDistressed">0</span><span class="bridge-kpi-label">Distressed</span></div>
-        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localWellMaintained">0</span><span class="bridge-kpi-label">Well Maintained</span></div>
-        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localLand">0</span><span class="bridge-kpi-label">Land</span></div>
-        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localBlocked">0</span><span class="bridge-kpi-label">Blocked</span></div>
-        <div class="bridge-kpi"><span class="bridge-kpi-value" id="localTotal">0</span><span class="bridge-kpi-label">In view</span></div>
-      </div>
-      <div class="bridge-kpi bridge-kpi--residual" id="localReviewWrap" hidden>
-        <span class="bridge-kpi-value" id="localReview">0</span>
-        <span class="bridge-kpi-label">Needs Review</span>
-      </div>
-    </section>
-
-    <div class="location-breadcrumb-bar" id="locationBreadcrumb" hidden>
-      <nav class="location-breadcrumb" aria-label="Selected market">
-        <span id="locationBreadcrumbLabel">â€”</span>
-      </nav>
-      <button type="button" class="location-breadcrumb-change" id="locationBreadcrumbChange">Change location</button>
-    </div>
+      <div class="analyze-zone-divider" aria-hidden="true"><span>Results</span></div>
 
     <section class="dashboard analyze-dashboard" id="dashboard" hidden data-phuglee-reveal-child>
       <div class="results-wrap phuglee-panel analyze-panel analyze-results-panel" id="resultsWrap">
@@ -344,7 +290,6 @@
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                 </button>
               </div>
-              <button type="button" class="results-edit-toggle" id="bulkSelectToggleBtn" disabled title="Select multiple leads and change tier or category">Edit</button>
             </div>
           </div>
           <div class="results-search-row" id="resultsSearchRow">
@@ -366,20 +311,6 @@
           <select id="leadTypeFilter" class="lead-type-filter lead-type-filter-inline" title="Filter by lead source type" aria-label="Filter by lead type">
             <option value="all">All lead types</option>
           </select>
-        </div>
-        <div class="bulk-edit-bar" id="bulkEditBar" aria-label="Bulk edit actions">
-          <span class="bulk-edit-count" id="bulkEditCount">0 selected</span>
-          <div class="bulk-edit-actions">
-            <button type="button" class="bulk-edit-btn" id="bulkSelectAllBtn">Select all visible</button>
-            <button type="button" class="bulk-edit-btn" id="bulkClearBtn">Clear</button>
-            <span class="bulk-edit-label">Mark as</span>
-            <button type="button" class="bulk-edit-btn tier-distressed" id="bulkTierDistressedBtn" disabled>Distressed</button>
-            <button type="button" class="bulk-edit-btn tier-well-maintained" id="bulkTierWellMaintainedBtn" disabled>Well Maintained</button>
-            <button type="button" class="bulk-edit-btn" id="bulkCatVacantBtn" disabled>Vacant Lot</button>
-            <button type="button" class="bulk-edit-btn" id="bulkCatPropertyBtn" disabled>Home / Property</button>
-          </div>
-          <span class="bulk-edit-hint" id="bulkEditHint">Select leads, then mark tier or category</span>
-          <button type="button" class="bulk-edit-btn primary" id="bulkDoneBtn">Done</button>
         </div>
 
         <div class="cards-view active" id="cardsView">
@@ -429,7 +360,7 @@
     </div><!-- /app-shell-main -->
   </div><!-- /app-shell -->
 
-  <footer class="cyber-footer" id="cyberFooter" aria-live="polite">Last updated moments ago</footer>
+  <footer class="analyze-status-footer" id="cyberFooter" aria-live="polite">Last updated moments ago</footer>
 
   <div class="cmd-palette" id="cmdPalette" aria-modal="true" role="dialog" aria-label="Command palette" hidden>
     <div class="cmd-palette-backdrop" id="cmdPaletteBackdrop"></div>
@@ -445,7 +376,7 @@
 
   <div class="tool-modal" id="settingsModal" aria-modal="true" role="dialog" aria-labelledby="settingsModalTitle">
     <div class="tool-modal-backdrop" id="settingsModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog phuglee-dialog cyber-dialog-wide">
+    <div class="tool-modal-dialog phuglee-dialog phuglee-dialog-wide">
       <div class="tool-modal-head">
         <h2 id="settingsModalTitle">API Keys &amp; Scan Settings</h2>
         <button type="button" class="tool-modal-close" id="settingsModalClose" title="Close (Esc)">Ã—</button>
@@ -482,7 +413,7 @@
         <div id="geminiKeyHint" class="key-fingerprint"></div>
       </div>
       <div class="field" style="margin-top:1rem;">
-        <label for="concurrentLimit">Parallel workers <span id="concurrentLimitVal" class="cyber-mono-accent">8</span></label>
+        <label for="concurrentLimit">Parallel workers <span id="concurrentLimitVal" class="phuglee-mono-accent">8</span></label>
         <input type="range" id="concurrentLimit" min="5" max="8" value="8" style="width:100%;accent-color:var(--copper);">
         <p class="key-note" style="margin-top:0.35rem;">Always 5â€“8. Starts high; auto-throttles toward 5 on rate limits, then climbs back up.</p>
       </div>
@@ -493,7 +424,7 @@
 
   <div class="tool-modal" id="uploadModal" aria-modal="true" role="dialog" aria-labelledby="uploadModalTitle">
     <div class="tool-modal-backdrop" id="uploadModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog phuglee-dialog">
+    <div class="tool-modal-dialog phuglee-dialog">
       <div class="tool-modal-head">
         <h2 id="uploadModalTitle">Upload Spreadsheet</h2>
         <button type="button" class="tool-modal-close" id="uploadModalClose" title="Close (Esc)">Ã—</button>
@@ -524,7 +455,7 @@
 
   <div class="tool-modal" id="brainModal" aria-modal="true" role="dialog" aria-labelledby="brainModalTitle">
     <div class="tool-modal-backdrop" id="brainModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog phuglee-dialog cyber-dialog-wide">
+    <div class="tool-modal-dialog phuglee-dialog phuglee-dialog-wide">
       <div class="tool-modal-head">
         <h2 id="brainModalTitle">AI Learned Rules</h2>
         <button type="button" class="tool-modal-close" id="brainModalClose" title="Close (Esc)">Ã—</button>
@@ -547,7 +478,7 @@
 
   <div class="tool-modal" id="apiUsageModal" aria-modal="true" role="dialog" aria-labelledby="apiUsageModalTitle" hidden>
     <div class="tool-modal-backdrop" id="apiUsageModalBackdrop"></div>
-    <div class="tool-modal-dialog cyber-dialog phuglee-dialog">
+    <div class="tool-modal-dialog phuglee-dialog">
       <div class="tool-modal-head">
         <h2 id="apiUsageModalTitle">API usage and credits</h2>
         <button type="button" class="tool-modal-close" id="apiUsageModalClose" title="Close (Esc)">Ã—</button>
@@ -579,7 +510,7 @@
 
   <div class="property-modal" id="propertyModal" hidden aria-modal="true" role="dialog" aria-labelledby="previewHeaderTitle">
     <div class="property-modal-backdrop" id="propertyModalBackdrop"></div>
-    <div class="property-modal-dialog cyber-dialog phuglee-dialog property-profile-dialog property-profile-cinematic">
+    <div class="property-modal-dialog phuglee-dialog property-profile-dialog property-profile-cinematic property-profile-v2">
       <div class="property-modal-header">
         <div class="property-modal-heading">
           <h2 class="property-modal-title" id="propertyModalTitle">
@@ -598,55 +529,61 @@
         </div>
       </div>
 
-      <div class="property-profile-sticky-media">
-        <div class="property-modal-media property-profile-hero">
-          <div class="preview-images inspector-images-primary" id="previewImages">
-            <div class="preview-image-wrap preview-sat-pane satellite-target" id="previewSatWrap" hidden>
-              <span class="preview-pane-label">Satellite</span>
-              <img id="previewSatImg" alt="Satellite view" style="display:none;">
-            </div>
-            <div class="preview-image-wrap preview-sv-pane" id="previewWrap">
-              <span class="preview-pane-label" id="previewPaneLabel">Street View</span>
-              <div id="recBadge" class="idle" hidden aria-hidden="true"></div>
-              <div class="preview-placeholder" id="previewPlaceholder">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <span class="preview-placeholder-title">No Street View for this address</span>
-                <span class="preview-placeholder-hint">Satellite may still load when available</span>
+      <div class="property-profile-body-grid">
+        <aside class="property-profile-aside" aria-label="Property imagery">
+          <div class="property-profile-sticky-media">
+            <div class="property-modal-media property-profile-hero">
+              <div class="preview-images inspector-images-primary" id="previewImages">
+                <div class="preview-image-wrap preview-sat-pane satellite-target" id="previewSatWrap" hidden>
+                  <span class="preview-pane-label">Satellite</span>
+                  <img id="previewSatImg" alt="Satellite view" style="display:none;">
+                </div>
+                <div class="preview-image-wrap preview-sv-pane" id="previewWrap">
+                  <span class="preview-pane-label" id="previewPaneLabel">Street View</span>
+                  <div id="recBadge" class="idle" hidden aria-hidden="true"></div>
+                  <div class="preview-placeholder" id="previewPlaceholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <span class="preview-placeholder-title">No Street View for this address</span>
+                    <span class="preview-placeholder-hint">Satellite may still load when available</span>
+                  </div>
+                  <img id="previewImg" alt="Street View preview" style="display:none;">
+                  <div id="previewMainReticle" hidden aria-hidden="true"></div>
+                </div>
               </div>
-              <img id="previewImg" alt="Street View preview" style="display:none;">
-              <div id="previewMainReticle" hidden aria-hidden="true"></div>
+            </div>
+            <div class="property-profile-actions" id="profileActionStrip">
+              <button type="button" class="profile-action-btn" id="profileCopyPhoneBtn" hidden>Copy phone</button>
+              <button type="button" class="profile-action-btn" id="profileCopyEmailBtn" hidden>Copy email</button>
+              <a class="profile-action-btn profile-action-link" id="profileGoogleLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Search listings</a>
+              <button type="button" class="profile-action-btn" id="profileChangeLevelBtn" hidden>Change level</button>
+              <button type="button" class="profile-action-btn profile-action-sat" id="profileSatelliteBtn" hidden>Satellite</button>
             </div>
           </div>
-        </div>
-        <div class="property-profile-actions" id="profileActionStrip">
-          <button type="button" class="profile-action-btn" id="profileCopyPhoneBtn" hidden>Copy phone</button>
-          <button type="button" class="profile-action-btn" id="profileCopyEmailBtn" hidden>Copy email</button>
-          <a class="profile-action-btn profile-action-link" id="profileGoogleLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Search listings</a>
-          <button type="button" class="profile-action-btn" id="profileChangeLevelBtn" hidden>Change level</button>
-          <button type="button" class="profile-action-btn profile-action-sat" id="profileSatelliteBtn" hidden>Satellite</button>
-        </div>
-      </div>
+        </aside>
 
-      <nav class="property-profile-section-nav" id="profileSectionNav" aria-label="Profile sections"></nav>
+        <div class="property-profile-main">
+          <nav class="property-profile-section-nav" id="profileSectionNav" aria-label="Profile sections"></nav>
 
-      <div class="property-distress" id="inspectorGaugePanel">
-        <div class="property-distress-main">
-          <div class="property-distress-score">
-            <span class="gauge-num property-distress-num" id="gaugeNum">—</span>
-            <span class="property-distress-scale" id="propertyDistressScale">/ 10</span>
+          <div class="property-distress" id="inspectorGaugePanel">
+            <div class="property-distress-main">
+              <div class="property-distress-score">
+                <span class="gauge-num property-distress-num" id="gaugeNum">—</span>
+                <span class="property-distress-scale" id="propertyDistressScale">/ 10</span>
+              </div>
+              <div class="property-distress-lbl">Distress</div>
+            </div>
+            <div class="property-distress-meter" aria-hidden="true">
+              <div class="property-distress-meter-track">
+                <div class="gauge-fill property-distress-meter-fill" id="gaugeFill"></div>
+              </div>
+            </div>
           </div>
-          <div class="property-distress-lbl">Distress</div>
-        </div>
-        <div class="property-distress-meter" aria-hidden="true">
-          <div class="property-distress-meter-track">
-            <div class="gauge-fill property-distress-meter-fill" id="gaugeFill"></div>
-          </div>
-        </div>
-      </div>
 
-      <div class="property-profile-dossier" id="profileDossierScroll">
-        <div class="property-modal-details">
-          <div class="inspector-body empty" id="inspectorBody">Select a property card to open its profile</div>
+          <div class="property-profile-dossier" id="profileDossierScroll">
+            <div class="property-modal-details">
+              <div class="inspector-body empty" id="inspectorBody">Select a property card to open its profile</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -654,7 +591,7 @@
 
   <div class="score-edit-modal" id="scoreEditModal" hidden aria-modal="true" role="dialog" aria-labelledby="scoreEditTitle">
     <div class="score-edit-backdrop" id="scoreEditBackdrop"></div>
-    <div class="score-edit-dialog cyber-dialog phuglee-dialog">
+    <div class="score-edit-dialog phuglee-dialog">
       <div class="score-edit-header">
         <h3 id="scoreEditTitle">Set Distress Level</h3>
         <button type="button" class="score-edit-close" id="scoreEditClose" title="Close (Esc)">Ã—</button>
@@ -731,7 +668,7 @@
   </div>
 
   <div class="review-tier-pick-overlay" id="reviewTierPickOverlay" hidden aria-modal="true" role="dialog" aria-label="Choose home distress level">
-    <div class="review-tier-pick-dialog cyber-dialog phuglee-dialog">
+    <div class="review-tier-pick-dialog phuglee-dialog">
       <h3>This is a home â€” pick distress level</h3>
       <p>Choose whether this property is distressed (work the lead) or well maintained (skip).</p>
       <div class="review-tier-pick-btns">
@@ -753,31 +690,31 @@
   <!-- SheetJS loaded on-demand at import time (saves ~900KB off first paint) -->
   <script src="/persistence.js?v=20260630c" defer></script>
   <script src="/lib/gemini-json.js?v=20260630c" defer></script>
-  <script src="/lib/tier-engine.js?v=20260630c" defer></script>
-  <script src="/lib/imagery-routing.js?v=20260630c" defer></script>
+  <script src="/lib/tier-engine.js?v=20260713-accuracy" defer></script>
+  <script src="/lib/imagery-routing.js?v=20260713-accuracy" defer></script>
   <script src="/lib/imagery-urls.js?v=20260630c" defer></script>
   <script src="/lib/import-meta.js?v=20260708a" defer></script>
   <script src="/lib/import-batches.js?v=20260708b" defer></script>
   <script src="/lib/location-index.js?v=20260708c" defer></script>
   <script src="/lib/analyze-visibility.js?v=20260712-distill" defer></script>
   <script src="/lib/tier-labels.js?v=20260712a" defer></script>
-  <script src="/lib/property-profile-dossier.js?v=20260712-dossier" defer></script>
+  <script src="/lib/property-profile-dossier.js?v=20260713-tabs" defer></script>
   <script src="/lib/virtual-scroll.js?v=20260630c" defer></script>
-  <script src="/lib/classification-confidence.js?v=20260630i" defer></script>
-  <script src="/lib/result-classify.js?v=20260704a" defer></script>
+  <script src="/lib/classification-confidence.js?v=20260713-accuracy" defer></script>
+  <script src="/lib/result-classify.js?v=20260713-accuracy" defer></script>
   <script src="/lib/review-training.js?v=20260630c" defer></script>
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
-  <script src="/js/config.js?v=20260712-cinematic" defer></script>
+  <script src="/js/config.js?v=20260713-accuracy" defer></script>
   <script src="/js/state.js?v=20260712-visibility" defer></script>
-  <script src="/js/imagery.js?v=20260712-harden" defer></script>
+  <script src="/js/imagery.js?v=20260713-profile-click" defer></script>
   <script src="/js/scan.js?v=20260712-scan-accurate" defer></script>
   <script src="/js/review.js?v=20260712-distill" defer></script>
-  <script src="/js/render.js?v=20260712-cinematic-polish" defer></script>
+  <script src="/js/render.js?v=20260713-tabs" defer></script>
   <script src="/js/session.js?v=20260712-cinematic" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
   <script src="/js/scan-ready.js?v=20260712-distill" defer></script>
   <script src="/js/live-scan-feed.js?v=20260712-distill" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
-  <script src="/js/app.js?v=20260712-review" defer></script>
+  <script src="/js/app.js?v=20260713-accuracy" defer></script>
 </body>
 </html>

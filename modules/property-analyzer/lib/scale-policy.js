@@ -4,13 +4,14 @@
  * Cache-first imagery policy for 100k+ lead sessions (M4-09).
  *
  * 1. Street View imagery: fetch once per address, serve from property_imagery/ forever.
- * 2. Satellite imagery: fetch only when street analysis is unclear; cache on disk before any API call.
+ * 2. Satellite imagery: cache-first on every property/vacant scan (accuracy-first v2026-07).
  * 3. Satellite classification: reuse saved satelliteClassification when imagery is cache-hit on rescan.
  * 4. Re-tier / recalibrate: use saved indicators + satelliteClassification — never re-call Gemini.
  */
 const SCALE_POLICY = Object.freeze({
   streetViewFirst: true,
-  satelliteOnDemandOnly: true,
+  satelliteOnDemandOnly: false,
+  satelliteAlwaysForProperty: true,
   imageryCacheFirst: true,
   reuseSatelliteClassificationOnCacheHit: true,
   retierWithoutVision: true,
@@ -20,8 +21,8 @@ const SCALE_POLICY = Object.freeze({
 });
 
 const DEFAULT_ASSUMPTIONS = Object.freeze({
-  /** Share of properties where street analysis triggers satellite fallback */
-  satelliteFallbackRate: 0.25,
+  /** Share of property scans that fetch satellite (accuracy-first: ~100%) */
+  satelliteFallbackRate: 1.0,
   /** Share of satellite imagery served from disk cache (not Maps API) */
   satelliteImageryCacheHitRate: 0.6,
   /** Share of rescans that reuse saved satelliteClassification (no Gemini) */

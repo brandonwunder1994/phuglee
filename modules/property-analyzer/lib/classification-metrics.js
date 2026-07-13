@@ -25,12 +25,26 @@ function computeCorrectionMetrics(corrections = []) {
   const falsePositives = changes.filter(
     (c) => c.aiTier === 'distressed' && c.userTier === 'well_maintained'
   );
+  const landMixups = changes.filter(
+    (c) => (c.aiTier === 'property' || c.aiTier === 'well_maintained' || c.aiTier === 'distressed')
+      && c.userTier === 'vacant'
+  );
+  const landToHome = changes.filter(
+    (c) => c.aiTier === 'vacant' && (c.userTier === 'distressed' || c.userTier === 'well_maintained')
+  );
+  const blockedMixups = changes.filter(
+    (c) => (c.aiTier === 'blurred' && c.userTier !== 'blurred')
+      || (c.aiTier !== 'blurred' && c.userTier === 'blurred')
+  );
 
   const propertyCorrections = changes.filter(
     (c) => c.aiTier === 'well_maintained' || c.aiTier === 'distressed'
   );
 
   const denom = propertyCorrections.length || changes.length;
+  const judged = affirmations.length + changes.length;
+  const autoCorrect = judged ? affirmations.length / judged : 0;
+  const manualFix = judged ? changes.length / judged : 0;
 
   return {
     total: corrections.length,
@@ -38,8 +52,13 @@ function computeCorrectionMetrics(corrections = []) {
     corrections: changes.length,
     falseNegatives: falseNegatives.length,
     falsePositives: falsePositives.length,
+    landMixups: landMixups.length,
+    landToHome: landToHome.length,
+    blockedMixups: blockedMixups.length,
     falseNegativeRate: denom ? falseNegatives.length / denom : 0,
     falsePositiveRate: denom ? falsePositives.length / denom : 0,
+    autoCorrectRate: autoCorrect,
+    manualFixRate: manualFix,
     falseNegativeIds: falseNegatives.map((c, i) => c.entry.address || `fn-${i}`),
     falsePositiveIds: falsePositives.map((c, i) => c.entry.address || `fp-${i}`)
   };
@@ -51,8 +70,13 @@ function formatMetricsReport(metrics) {
     'Classification correction metrics',
     `  Total entries: ${metrics.total}`,
     `  Corrections: ${metrics.corrections} | Affirmations: ${metrics.affirmations}`,
+    `  Auto-correct (no change needed): ${pct(metrics.autoCorrectRate)}`,
+    `  Manual fix rate: ${pct(metrics.manualFixRate)}`,
     `  False negatives (WM→D): ${metrics.falseNegatives} (${pct(metrics.falseNegativeRate)})`,
-    `  False positives (D→WM): ${metrics.falsePositives} (${pct(metrics.falsePositiveRate)})`
+    `  False positives (D→WM): ${metrics.falsePositives} (${pct(metrics.falsePositiveRate)})`,
+    `  Land mix-ups (home→vacant): ${metrics.landMixups}`,
+    `  Land mix-ups (vacant→home): ${metrics.landToHome}`,
+    `  Blocked bucket mix-ups: ${metrics.blockedMixups}`
   ].join('\n');
 }
 

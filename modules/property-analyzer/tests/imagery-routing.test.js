@@ -2,11 +2,69 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const {
   streetAnalysisNeedsSatellite,
+  propertyScanNeedsSatellite,
+  scanNeedsSatellite,
   satelliteFallbackFailed
 } = require('../lib/imagery-routing');
 
+describe('propertyScanNeedsSatellite', () => {
+  it('returns true for clear property analysis (accuracy-first fusion)', () => {
+    assert.equal(propertyScanNeedsSatellite({
+      category: 'property',
+      confidence: 85,
+      reason: 'Mowed yard and intact facade on subject home.'
+    }), true);
+  });
+
+  it('returns false for privacy-blurred category', () => {
+    assert.equal(propertyScanNeedsSatellite({
+      category: 'blurred',
+      reason: 'Google privacy blur on facade.'
+    }), false);
+  });
+
+  it('returns true for vacant_lot', () => {
+    assert.equal(propertyScanNeedsSatellite({
+      category: 'vacant_lot',
+      reason: 'Open lot with no structure footprint.'
+    }), true);
+  });
+
+  it('returns true when structure_on_subject_lot is false', () => {
+    assert.equal(propertyScanNeedsSatellite({
+      category: 'property',
+      structureOnLot: false,
+      reason: 'Grass lot only.'
+    }), true);
+  });
+});
+
+describe('scanNeedsSatellite', () => {
+  it('returns true for clear property (always-on satellite path)', () => {
+    assert.equal(scanNeedsSatellite({
+      category: 'property',
+      confidence: 85,
+      reason: 'Maintained ranch home.'
+    }), true);
+  });
+
+  it('returns false for blurred category (no satellite)', () => {
+    assert.equal(scanNeedsSatellite({
+      category: 'blurred',
+      reason: 'Privacy blur.'
+    }), false);
+  });
+
+  it('returns true for unavailable street category', () => {
+    assert.equal(scanNeedsSatellite({
+      category: 'unavailable',
+      reason: 'Cannot see the home.'
+    }), true);
+  });
+});
+
 describe('streetAnalysisNeedsSatellite', () => {
-  it('returns false for clear property analysis', () => {
+  it('returns false for clear property analysis (fallback-only gate)', () => {
     assert.equal(streetAnalysisNeedsSatellite({
       category: 'property',
       confidence: 85,

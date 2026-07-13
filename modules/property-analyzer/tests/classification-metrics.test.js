@@ -17,11 +17,13 @@ describe('classification-metrics', () => {
     assert.equal(m.falsePositiveRate, 0.5);
   });
 
-  it('formats metrics report', () => {
+  it('formats metrics report with auto-correct rate', () => {
     const m = computeCorrectionMetrics(fixtures.sampleCorrections);
     const report = formatMetricsReport(m);
     assert.ok(report.includes('False negatives'));
-    assert.ok(report.includes('False positives'));
+    assert.ok(report.includes('Auto-correct'));
+    assert.ok(m.autoCorrectRate > 0);
+    assert.ok(m.manualFixRate > 0);
   });
 
   it('handles empty correction list', () => {

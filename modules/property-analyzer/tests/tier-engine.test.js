@@ -14,4 +14,5 @@ describe('computeLeadTier fixtures', () => {
 describe('normalizeLeadTier', () => {
   it('maps hot_lead to distressed', () => assert.equal(normalizeLeadTier('hot_lead'), 'distressed'));
   it('maps well-maintained hyphen', () => assert.equal(normalizeLeadTier('well-maintained'), 'well_maintained'));
+  it('maps unknown garbage to unavailable', () => assert.equal(normalizeLeadTier('banana_tier'), 'unavailable'));
 });

@@ -45,6 +45,13 @@ describe('inferImageryQuality', () => {
       reason: 'Trees block the home facade'
     }), IMAGERY_QUALITY.OBSTRUCTED);
   });
+
+  it('tree-blocked facade is obstructed not blurred', () => {
+    assert.equal(inferImageryQuality({
+      category: 'property',
+      reason: 'Facade blurred by trees — cannot assess siding.'
+    }), IMAGERY_QUALITY.OBSTRUCTED);
+  });
 });
 
 describe('computeClassificationConfidence', () => {

@@ -232,6 +232,7 @@
     const indicators = ctx?.indicators;
     const satellite = ctx?.satelliteClassification;
     const reason = ctx?.reason || '';
+    const conf = Math.round(Number(ctx?.confidence));
     const inds = normalizeIndicators(indicators);
 
     if (looksVisuallyDistressed(s, indicators, satellite, reason)) return 'distressed';
@@ -240,6 +241,10 @@
     if (hasModerateWithSupportingNeglect(inds, reason)) return 'distressed';
     if (qualifiesManicuredExemption(inds, normalizeCondition(satellite?.roofCondition), normalizeCondition(satellite?.yardCondition), reason)) return 'well_maintained';
     if (s >= DISTRESSED_MIN_SCORE && reasonSuggestsDumpHouse(reason) && (hasModerateWithSupportingNeglect(inds, reason) || countNeglectIndicators(inds) >= 2)) return 'distressed';
+    if (s >= DISTRESSED_MIN_SCORE && !isNaN(conf) && conf >= 70
+      && inds.some(i => MODERATE_INDICATORS.has(i)) && !qualifiesManicuredExemption(inds, normalizeCondition(satellite?.roofCondition), normalizeCondition(satellite?.yardCondition), reason)) {
+      return 'distressed';
+    }
     if (s >= DISTRESSED_MIN_SCORE && !looksVisuallyDistressed(s, indicators, satellite, reason)) {
       if (qualifiesManicuredExemption(inds, normalizeCondition(satellite?.roofCondition), normalizeCondition(satellite?.yardCondition), reason)) return 'well_maintained';
       if (s >= 7) return 'distressed';
@@ -259,7 +264,8 @@
     if (t === 'hot_lead' || t === 'heavy' || t === 'hot' || t === 'hotlead' || t === 'high' || t === 'critical' || t === 'severe' || t === 'cripsy') return 'distressed';
     if (t === 'medium' || t === 'warm' || t === 'fair' || t === 'worn') return 'distressed';
     if (t === 'very_light' || t === 'low' || t === 'cold' || t === 'verylight' || t === 'flagged') return 'distressed';
-    return 'distressed';
+    if (!t) return 'unavailable';
+    return 'unavailable';
   }
 
   return {

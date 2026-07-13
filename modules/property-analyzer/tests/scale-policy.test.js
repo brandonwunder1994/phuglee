@@ -13,7 +13,8 @@ const { retierRecordWithoutVision, retierResultsWithoutVision } = require('../li
 describe('scale-policy', () => {
   it('documents cache-first policy flags', () => {
     assert.equal(SCALE_POLICY.streetViewFirst, true);
-    assert.equal(SCALE_POLICY.satelliteOnDemandOnly, true);
+    assert.equal(SCALE_POLICY.satelliteOnDemandOnly, false);
+    assert.equal(SCALE_POLICY.satelliteAlwaysForProperty, true);
     assert.equal(SCALE_POLICY.imageryCacheFirst, true);
     assert.equal(SCALE_POLICY.retierWithoutVision, true);
   });
@@ -27,12 +28,14 @@ describe('scale-policy', () => {
     assert.equal(shouldReuseSatelliteClassification({}, { fromCache: true }), false);
   });
 
-  it('estimates API calls per 1k leads', () => {
+  it('estimates API calls per 1k leads with always-on satellite', () => {
     const est = estimateApiCallsPer1kLeads();
     assert.equal(est.leads, 1000);
     assert.ok(est.maps.streetView >= 1000);
+    assert.ok(est.maps.satellite >= 350);
     assert.ok(est.gemini.street >= 1000);
-    assert.ok(est.perLead.all > 1);
+    assert.ok(est.gemini.satellite >= 400);
+    assert.ok(est.perLead.all > 2);
     assert.ok(formatCostEstimate(est).includes('1000 leads'));
   });
 

@@ -25,6 +25,8 @@ if (te) {
 }
 if (ir) {
   R.streetAnalysisNeedsSatellite = ir.streetAnalysisNeedsSatellite;
+  R.propertyScanNeedsSatellite = ir.propertyScanNeedsSatellite;
+  R.scanNeedsSatellite = ir.scanNeedsSatellite;
   R.satelliteFallbackFailed = ir.satelliteFallbackFailed;
 }
 if (rc) {
@@ -236,7 +238,7 @@ R.imageryWasFetched = function imageryWasFetched(imagery) {
   return !!(imagery?.satellite?.ok || imagery?.streetView?.ok);
 }
 
-R.buildImageryConfirmedFallback = function buildImageryConfirmedFallback(address, { satelliteResult, satGeocoded, svPayload, err, partialScore } = {}) {
+R.buildImageryConfirmedFallback = function buildImageryConfirmedFallback(address, { satelliteResult, satGeocoded, svPayload, err, partialScore, partialIndicators } = {}) {
   if (satelliteResult?.category) {
     const result = buildResultFromSatelliteOnly(satelliteResult, satGeocoded, err?.message || 'street AI incomplete');
     if (svPayload?.view) {
@@ -245,18 +247,42 @@ R.buildImageryConfirmedFallback = function buildImageryConfirmedFallback(address
     }
     return attachTierRationale(result);
   }
+  const hasImagery = !!(svPayload?.view || imageryWasFetched(svPayload?.imagery));
   let score = Math.round(Number(partialScore));
-  if (isNaN(score) || score < 1 || score > 10) score = 2;
+  const hasPartialScore = !isNaN(score) && score >= 1 && score <= 10;
+  if (!hasPartialScore) score = 0;
+  const inds = normalizeIndicators(partialIndicators || []);
+  const strongPartialDistress = hasPartialScore && score >= DISTRESSED_MIN_SCORE
+    && (looksVisuallyDistressed(score, inds, null, '') || inds.some(i => HIGH_INDICATORS.has(i) || MODERATE_INDICATORS.has(i)));
+
+  if (hasImagery && !strongPartialDistress) {
+    return attachTierRationale({
+      score: hasPartialScore ? score : 0,
+      category: 'unavailable',
+      leadTier: 'unavailable',
+      structureOnLot: null,
+      indicators: inds,
+      confidence: 40,
+      needsReview: true,
+      reason: 'Street View imagery confirmed — AI response incomplete; needs manual review.',
+      viewMeta: svPayload?.view || null,
+      usedSatellite: false,
+      skippedStreetView: !svPayload,
+      qualityFlags: ['ai_response_incomplete']
+    });
+  }
+
+  if (!hasPartialScore) score = 2;
   return attachTierRationale({
     score,
     category: 'property',
-    leadTier: computeLeadTier(score, 'property'),
+    leadTier: computeLeadTier(score, 'property', { indicators: inds }),
     structureOnLot: true,
-    indicators: score >= DISTRESSED_MIN_SCORE ? ['deferred_maintenance'] : [],
+    indicators: score >= DISTRESSED_MIN_SCORE ? (inds.length ? inds : ['deferred_maintenance']) : inds,
     confidence: 45,
-    needsReview: false,
-    reason: score >= DISTRESSED_MIN_SCORE
-      ? 'Street View imagery confirmed — AI response was cut short; scored from partial analysis.'
+    needsReview: strongPartialDistress,
+    reason: strongPartialDistress
+      ? 'Street View imagery confirmed — partial AI analysis suggests distress; review recommended.'
       : 'Street View imagery confirmed — defaulting to Well Maintained (AI response incomplete).',
     viewMeta: svPayload?.view || null,
     usedSatellite: false,
@@ -287,6 +313,22 @@ R.parseGeminiResponse = function parseGeminiResponse(text) {
     || parsed.structure_on_subject_lot === 'true';
   let category = inferCategory(score, reason, normalizeCategory(parsed.category), structureOnLot);
   if (structureOnLot === false && category === 'property') category = 'vacant_lot';
+  if (category === 'blurred') {
+    return attachTierRationale({
+      score: 0,
+      reason,
+      category: 'blurred',
+      leadTier: 'blurred',
+      indicators: [],
+      structureOnLot: structureOnLot === false ? false : null,
+      confidence: (() => {
+        let c = Math.round(Number(parsed.confidence));
+        if (isNaN(c) || c < 0) return 0;
+        return Math.min(100, c);
+      })(),
+      needsReview: false
+    });
+  }
   if (category === 'vacant_lot' || category === 'unavailable') score = 0;
   if (category === 'vacant_lot') indicators = [];
   if (category === 'unavailable' && structureOnLot === true && score >= 1) {
@@ -309,7 +351,7 @@ R.parseGeminiResponse = function parseGeminiResponse(text) {
   if (category === 'vacant_lot') leadTier = 'vacant';
   else if (category === 'unavailable') leadTier = 'unavailable';
   else if (!leadTier || leadTier === 'unavailable' || leadTier === 'vacant') {
-    leadTier = computeLeadTier(score, category, { indicators, reason });
+    leadTier = computeLeadTier(score, category, { indicators, reason, confidence });
   } else if (category === 'property' && leadTier === 'well_maintained') {
     if (looksVisuallyDistressed(score, indicators, null, reason) || hasNeglectCombo(indicators, reason)) {
       leadTier = 'distressed';
@@ -329,7 +371,7 @@ R.parseGeminiResponse = function parseGeminiResponse(text) {
       score = clampScoreForTier(Math.max(score, DISTRESSED_MIN_SCORE), 'distressed', indicators, reason);
     }
   } else if (category === 'property') {
-    leadTier = computeLeadTier(score, category, { indicators, reason });
+    leadTier = computeLeadTier(score, category, { indicators, reason, confidence });
     score = clampScoreForTier(score, leadTier, indicators, reason);
   }
   if (category === 'property' && looksVisuallyDistressed(score, indicators, null, reason)) {
@@ -371,7 +413,8 @@ R.finalizePropertyDistress = function finalizePropertyDistress(analysis, satelli
   analysis.leadTier = computeLeadTier(analysis.score, 'property', {
     indicators: analysis.indicators,
     satelliteClassification: satelliteResult,
-    reason: combinedReason
+    reason: combinedReason,
+    confidence: analysis.confidence
   });
   if (looksVisuallyDistressed(analysis.score, analysis.indicators, satelliteResult, combinedReason)) {
     analysis.leadTier = 'distressed';
@@ -588,8 +631,15 @@ R.finalizeStreetAnalysis = async function finalizeStreetAnalysis(svPayload, svUr
     let usedSatellite = false;
     let satelliteFromCache = false;
 
-    if (typeof streetAnalysisNeedsSatellite === 'function' && streetAnalysisNeedsSatellite(analysis, view || {})) {
-      scanPreview(address, 'Street view unclear — checking satellite…', svUrl, null, null, true, workerNum);
+    const needsSatellite = typeof scanNeedsSatellite === 'function'
+      ? scanNeedsSatellite(analysis, view || {})
+      : (typeof streetAnalysisNeedsSatellite === 'function' && streetAnalysisNeedsSatellite(analysis, view || {}));
+
+    if (needsSatellite) {
+      const satLabel = propertyScanNeedsSatellite && propertyScanNeedsSatellite(analysis, view || {})
+        ? 'Checking satellite from above…'
+        : 'Street view unclear — checking satellite…';
+      scanPreview(address, satLabel, svUrl, null, null, true, workerNum);
       try {
         const satData = await fetchSatelliteImagery(address, svKey);
         if (satData.ok) {
@@ -616,7 +666,7 @@ R.finalizeStreetAnalysis = async function finalizeStreetAnalysis(svPayload, svUr
           } else if (satData.imagery) {
             svPayload.imagery = { ...(svPayload.imagery || {}), ...satData.imagery };
           }
-          qualityFlags.push(satelliteFromCache ? 'satellite_from_cache' : 'satellite_fallback');
+          qualityFlags.push(satelliteFromCache ? 'satellite_from_cache' : (propertyScanNeedsSatellite && propertyScanNeedsSatellite(analysis, view || {}) ? 'satellite_fusion' : 'satellite_fallback'));
           analysis = reconcileSatelliteWithStreetView(analysis, satelliteResult);
         } else if (typeof satelliteFallbackFailed === 'function' && satelliteFallbackFailed(analysis, null)) {
           analysis.category = 'unavailable';
@@ -659,7 +709,8 @@ R.finalizeStreetAnalysis = async function finalizeStreetAnalysis(svPayload, svUr
     const result = buildImageryConfirmedFallback(address, {
       svPayload,
       err: e,
-      partialScore: partial?.score
+      partialScore: partial?.score,
+      partialIndicators: partial?.indicators
     });
     result.qualityFlags = [...(result.qualityFlags || []), 'street_ai_failed'];
     const tierLabel = leadTierLabel(result.leadTier);

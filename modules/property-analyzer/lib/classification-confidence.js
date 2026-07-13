@@ -8,9 +8,10 @@
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function classificationConfidenceFactory(imageryRouting) {
   const OBSTRUCTED_REASON = imageryRouting?.OBSTRUCTED_REASON
-    || /cannot see (the |any )?(house|home|structure|building|facade)|house (not |is )?visible|home (not |is )?visible|blocked by|obscured|obstruction|privacy blur|blurred|too blurry|image blur|trees? block|fully blocked|cannot assess (the )?(house|home|facade)|unable to see (the )?(house|home)|no clear view of (the )?(house|home)/i;
+    || /cannot see (the |any )?(house|home|structure|building|facade)|house (not |is )?visible|home (not |is )?visible|blocked by|obscured|obstruction|trees? block|fully blocked|cannot assess (the )?(house|home|facade)|unable to see (the )?(house|home)|no clear view of (the )?(house|home)/i;
 
-  const BLUR_REASON = /privacy blur|blurred|too blurry|image blur|google blur/i;
+  const BLUR_REASON = imageryRouting?.BLUR_REASON
+    || /privacy blur|google blur|official blur|too blurry|image blur|street view blur/i;
   const TRANSIENT_REASON = /503|rate limit|overloaded|high demand|timeout|temporarily unavailable|try again/i;
 
   const MODERATE_INDICATORS = new Set([
@@ -52,7 +53,13 @@
     const flags = record.qualityFlags || [];
     const reason = String(record.reason || '');
 
-    if (cat === 'blurred' || BLUR_REASON.test(reason)) return IMAGERY_QUALITY.BLURRED;
+    if (cat === 'blurred') return IMAGERY_QUALITY.BLURRED;
+
+    if (record.landHomeConflict || record.satelliteConflict) return IMAGERY_QUALITY.DEGRADED;
+
+    if (OBSTRUCTED_REASON.test(reason) || flags.includes('obstructed')) return IMAGERY_QUALITY.OBSTRUCTED;
+
+    if (BLUR_REASON.test(reason)) return IMAGERY_QUALITY.BLURRED;
 
     if (flags.includes('street_ai_failed') || flags.includes('ai_response_incomplete')) {
       if (BLUR_REASON.test(reason)) return IMAGERY_QUALITY.BLURRED;
@@ -63,10 +70,6 @@
       if (record.errorType === 'transient' || TRANSIENT_REASON.test(reason)) return IMAGERY_QUALITY.RETRY;
       return IMAGERY_QUALITY.UNAVAILABLE;
     }
-
-    if (record.landHomeConflict || record.satelliteConflict) return IMAGERY_QUALITY.DEGRADED;
-
-    if (OBSTRUCTED_REASON.test(reason) || flags.includes('obstructed')) return IMAGERY_QUALITY.OBSTRUCTED;
 
     if (cat === 'unavailable') return IMAGERY_QUALITY.UNAVAILABLE;
 

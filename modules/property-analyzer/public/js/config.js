@@ -283,7 +283,8 @@ STEP 1 — Lot type (before any distress score):
   property = you see a home/structure on subject lot → continue to Steps 2-3
   vacant_lot = open land, no house footprint (weeds/junk on bare lot ≠ home)
   unavailable = ONLY if you truly cannot tell vacant land vs home (rare)
-  If you see a house: category=property. Score distress. Set lead_tier distressed or well_maintained.
+  blurred = Google privacy blur or uniform blur — you cannot assess the home at all
+  If you see a house clearly: category=property. Score distress. Set lead_tier distressed or well_maintained.
 
 STEP 2 — Street-level indicators on SUBJECT home only:
 boarded_windows, boarded_doors, code_violation_notice, structural_damage, fire_or_water_damage, overgrown_landscaping, roof_damage_or_tarp, peeling_paint, broken_windows, junk_or_hoarding_yard, damaged_driveway, broken_gutters, abandoned_vehicles, deferred_maintenance
@@ -300,6 +301,11 @@ TIER OUTPUT (mandatory when category=property):
   lead_tier "distressed" = score 6-10 — boarded/structural/fire-water, OR clear multi-signal neglect (junk+weeds, broken windows+overgrowth, abandoned car+junk, dump-house combos)
   lead_tier "vacant" = vacant_lot score 0
   lead_tier "unavailable" = cannot determine lot type
+  lead_tier "blurred" = privacy/uniform blur — cannot assess home
+
+If vacant_lot: score=0, indicators=[], lead_tier=vacant.
+If unavailable: score=0, indicators=[], lead_tier=unavailable.
+If blurred: score=0, indicators=[], lead_tier=blurred, structure_on_subject_lot=null.
 
 EXAMPLES — distressed (score 6-10, lead_tier distressed):
   • Yard full of junk piles + weeds + peeling dirty exterior → score 7, indicators: junk_or_hoarding_yard, overgrown_landscaping, peeling_paint
@@ -312,12 +318,9 @@ EXAMPLES — well maintained (score 1-5, lead_tier well_maintained):
   • One broken side window on otherwise maintained occupied home, no junk/overgrowth → score 4, well_maintained
   • Single junk pile near garage but manicured front yard and clean facade → score 4-5, well_maintained (not dump house)
 
-If vacant_lot: score=0, indicators=[], lead_tier=vacant.
-If unavailable: score=0, indicators=[], lead_tier=unavailable.
-
 confidence: 0-100. needs_review: false unless lot type truly ambiguous.
 Respond ONLY valid JSON. reason = one plain sentence (max 25 words).
-{"score":<0-10>,"category":"property"|"vacant_lot"|"unavailable","structure_on_subject_lot":true|false,"lead_tier":"distressed"|"well_maintained"|"vacant"|"unavailable","confidence":<0-100>,"needs_review":false,"indicators":["boarded_windows",...],"reason":"<short plain sentence, no quotes>"}`;
+{"score":<0-10>,"category":"property"|"vacant_lot"|"unavailable"|"blurred","structure_on_subject_lot":true|false|null,"lead_tier":"distressed"|"well_maintained"|"vacant"|"unavailable"|"blurred","confidence":<0-100>,"needs_review":false,"indicators":["boarded_windows",...],"reason":"<short plain sentence, no quotes>"}`;
 }
 
 R.QUALITY_FLAG_LABELS = {
@@ -786,6 +789,7 @@ R.reviewLeadsWrap = $('reviewLeadsWrap');
 R.liveScanSection = $('liveScanSection');
 R.liveScanFeed = $('liveScanFeed');
 R.liveScanProgress = $('liveScanProgress');
+R.liveScanProgressFill = $('liveScanProgressFill');
 R.historicalStateSelect = $('historicalStateSelect');
 R.historicalCitySelect = $('historicalCitySelect');
 R.uploadDateFilter = $('uploadDateFilter');
@@ -2147,6 +2151,8 @@ $('importLearnedFile')?.addEventListener('change', (e) => {
   const rc = PDA.lib && PDA.lib.resultClassify;
   if (ir) {
     R.streetAnalysisNeedsSatellite = ir.streetAnalysisNeedsSatellite;
+    R.propertyScanNeedsSatellite = ir.propertyScanNeedsSatellite;
+    R.scanNeedsSatellite = ir.scanNeedsSatellite;
     R.satelliteFallbackFailed = ir.satelliteFallbackFailed;
   }
   if (cc) {

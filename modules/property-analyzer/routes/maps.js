@@ -319,20 +319,22 @@ function buildStreetViewLookupStrategies(address, geocoded) {
 
 async function lookupStreetViewMetadata(address, geocoded, key) {
   const strategies = buildStreetViewLookupStrategies(address, geocoded);
-  let lastMeta = { status: 'ZERO_RESULTS' };
-
-  for (const strat of strategies) {
+  const lookups = await Promise.all(strategies.map(async (strat) => {
     const metaData = await fetchStreetViewMetadata(strat.location, key, { source: strat.source });
-    lastMeta = metaData;
-    if (metaData.status === 'OK' && metaData.location) {
-      return { metaData, strategy: strat };
-    }
+    return { metaData, strategy: strat };
+  }));
+
+  for (const { metaData, strategy } of lookups) {
     if (metaData.status === 'REQUEST_DENIED' || metaData.status === 'OVER_QUERY_LIMIT') {
-      return { metaData, strategy: strat, fatal: true };
+      return { metaData, strategy, fatal: true };
     }
   }
 
-  return { metaData: lastMeta, strategy: null };
+  const hit = lookups.find(({ metaData }) => metaData.status === 'OK' && metaData.location);
+  if (hit) return { metaData: hit.metaData, strategy: hit.strategy };
+
+  const last = lookups[lookups.length - 1];
+  return { metaData: last?.metaData || { status: 'ZERO_RESULTS' }, strategy: null };
 }
 
 function haversineMeters(lat1, lng1, lat2, lng2) {
