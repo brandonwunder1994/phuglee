@@ -246,6 +246,18 @@ function saveImageryBuffer(address, type, buffer, mimeType, meta = {}) {
   return { ok: true, url, entry };
 }
 
+function clearImageryUnavailable(address, type) {
+  if (!address || !TYPES.includes(type)) return { ok: false, cleared: false };
+  const idx = loadIndex();
+  const key = indexKey(address, type);
+  const entry = idx.entries[key];
+  if (!entry || entry.status !== 'unavailable') return { ok: true, cleared: false };
+  delete idx.entries[key];
+  saveIndex();
+  logImagery(`Cleared ${type} unavailable flag: ${address.slice(0, 60)}`);
+  return { ok: true, cleared: true };
+}
+
 function markImageryUnavailable(address, type, reason = 'No imagery available') {
   ensureDirs();
   const id = addressId(address);
@@ -454,6 +466,7 @@ module.exports = {
   buildImageryIndexMap,
   saveImageryBuffer,
   markImageryUnavailable,
+  clearImageryUnavailable,
   readCachedFile,
   readCachedByAddress,
   lookupEntryByFilename,

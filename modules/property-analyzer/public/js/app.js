@@ -852,7 +852,9 @@ R.processAddress = async function processAddress(address, svKey, gKey, workerNum
   const svUrl = buildStreetViewThumbUrl(address, svKey, STREET_VIEW_SIZE);
 
   scanPreview(address, 'Loading street imagery…', svUrl, null, null, true, workerNum);
-  const svData = await fetchStreetViewImagery(address, svKey);
+  const forceStreetRefresh = priorRecord?.skippedStreetView === true
+    || (priorRecord?.usedSatellite && !priorRecord?.viewMeta);
+  const svData = await fetchStreetViewImagery(address, svKey, { refresh: forceStreetRefresh });
 
   if (svData.ok) {
     const svPayload = {
@@ -1868,7 +1870,10 @@ R.bootstrapApp = async function bootstrapApp() {
       } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) renderVirtualCards();
       else refreshAllCardThumbs();
       preloadAnalyzeCardThumbs?.();
-      setTimeout(() => runImageryMigrationIfNeeded(), 2500);
+      setTimeout(() => {
+        runStreetViewRepairMigration();
+        runImageryMigrationIfNeeded();
+      }, 2500);
     }
   }
 };

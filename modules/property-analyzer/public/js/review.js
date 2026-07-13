@@ -1223,6 +1223,45 @@ R.scheduleDeferredImageryHydrate = function scheduleDeferredImageryHydrate() {
   }
 }
 
+R.runStreetViewRepairMigration = async function runStreetViewRepairMigration() {
+  if (!USE_PROXY || state.streetViewRepairRan) return;
+  state.streetViewRepairRan = true;
+  const fromMs = Date.parse('2026-07-12T00:00:00.000');
+  const toMs = Date.parse('2026-07-13T23:59:59.999');
+  try {
+    const res = await apiFetch('/api/repair-streetview-fallbacks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: '2026-07-12', to: '2026-07-13' })
+    });
+    const data = await res.json();
+    if (!data.ok || !data.removed) return;
+
+    const before = state.results?.length || 0;
+    state.results = (state.results || []).filter((r) => {
+      if (!r?.address) return true;
+      const satelliteOnly = r.skippedStreetView === true || (r.usedSatellite && !r.viewMeta);
+      if (!satelliteOnly) return true;
+      const t = Number(r.analyzedAt || r.scannedAt || 0);
+      if (!t || t < fromMs || t > toMs) return true;
+      return false;
+    });
+    state.processed = state.results.length;
+    const removed = before - state.results.length;
+    if (!removed) return;
+    syncResultCounters?.();
+    updateSummaryStats?.({ force: true });
+    updateFilterLabels?.();
+    log(
+      `Requeued ${removed} satellite-only scan${removed === 1 ? '' : 's'} from Jul 12–13 for Street View retry — start scan to re-run them`,
+      'success'
+    );
+    DistressPersistence?.scheduleSave?.('streetview-repair');
+  } catch (e) {
+    console.warn('[streetview-repair]', e);
+  }
+}
+
 R.runImageryMigrationIfNeeded = async function runImageryMigrationIfNeeded() {
   if (!USE_PROXY || imageryMigrationRunning || !state.results?.length) return;
   await hydrateImageryFromServerIndex();

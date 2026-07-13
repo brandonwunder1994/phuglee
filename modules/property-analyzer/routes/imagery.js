@@ -80,7 +80,11 @@ function register(ctx) {
       return true;
     }
 
-    if (imageryCache.hasCachedImagery(address, type)) {
+    if (body?.forceRefresh) {
+      imageryCache.clearImageryUnavailable(address, type);
+    }
+
+    if (imageryCache.hasCachedImagery(address, type) && !body?.forceRefresh) {
       sendJson(res, 200, {
         ok: true,
         alreadyCached: true,
@@ -91,7 +95,7 @@ function register(ctx) {
     }
 
     const entry = imageryCache.getEntry(address, type);
-    if (entry?.status === 'unavailable') {
+    if (entry?.status === 'unavailable' && !body?.forceRefresh) {
       sendJson(res, 200, {
         ok: false,
         unavailable: true,
@@ -157,7 +161,11 @@ function register(ctx) {
       }
     }
 
-    const sv = await fetchStreetViewPayload(address, key);
+    if (body?.forceRefresh) {
+      imageryCache.clearImageryUnavailable(address, type);
+    }
+
+    const sv = await fetchStreetViewPayload(address, key, { refresh: !!body?.forceRefresh });
     if (!sv.ok) {
       sendJson(res, 200, {
         ok: false,
@@ -172,6 +180,29 @@ function register(ctx) {
       ok: true,
       url: sv.cachedUrl,
       imagery: sv.imagery || imageryCache.buildImageryRecord(address)
+    });
+    return true;
+  });
+
+  router.post('/api/imagery/clear-unavailable', async (req, res) => {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req) || '{}');
+    } catch (e) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON' });
+      return true;
+    }
+    const address = body?.address;
+    const type = body?.type || 'streetview';
+    if (!address) {
+      sendJson(res, 400, { ok: false, error: 'Missing address' });
+      return true;
+    }
+    const cleared = imageryCache.clearImageryUnavailable(address, type);
+    sendJson(res, 200, {
+      ok: true,
+      cleared: !!cleared.cleared,
+      imagery: imageryCache.buildImageryRecord(address)
     });
     return true;
   });

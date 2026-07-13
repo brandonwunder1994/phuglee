@@ -2524,11 +2524,13 @@ R.fetchPropertyImagery = async function fetchPropertyImagery(address, apiKey) {
   return data;
 }
 
-R.fetchStreetViewImagery = async function fetchStreetViewImagery(address, apiKey) {
+R.fetchStreetViewImagery = async function fetchStreetViewImagery(address, apiKey, opts = {}) {
   if (!USE_PROXY) throw new Error('Open via launch-analyzer.bat (http://distressos.local:3456)');
+  const params = { address };
+  if (opts.refresh) params.refresh = '1';
   let res;
   try {
-    res = await fetch(proxyFetchUrl('/api/sv-base64', { address }, apiKey));
+    res = await fetch(proxyFetchUrl('/api/sv-base64', params, apiKey));
   } catch (e) {
     const detail = String(e?.message || e || 'network error').trim();
     throw new Error(`Street View request failed (${detail}). If this keeps happening, check that launch-analyzer.bat is still running.`);

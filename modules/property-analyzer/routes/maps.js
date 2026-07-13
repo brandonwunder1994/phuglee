@@ -3,7 +3,8 @@ const fs = require('fs');
 
 const SV_SIZE = '640x480';
 const SV_FOV = 65;
-const SV_RADIUS = 50;
+const SV_RADIUS = 100;
+const SV_RADIUS_EXPANDED = [100, 150, 200];
 const SAT_SIZE = '640x640';
 const SAT_ZOOM = 20;
 const MAPS_MAX_CONCURRENT = 12;
@@ -312,29 +313,57 @@ function buildStreetViewLookupStrategies(address, geocoded) {
   }
   if (geocoded) {
     add(`${geocoded.lat},${geocoded.lng}`, null, 'geocode_coords');
+    add(`${geocoded.lat},${geocoded.lng}`, 'outdoor', 'geocode_coords_outdoor');
   }
   add(address, 'outdoor', 'address_outdoor');
   return strategies;
 }
 
-async function lookupStreetViewMetadata(address, geocoded, key) {
+async function lookupStreetViewMetadataOnce(address, geocoded, key, radius = SV_RADIUS) {
   const strategies = buildStreetViewLookupStrategies(address, geocoded);
   const lookups = await Promise.all(strategies.map(async (strat) => {
-    const metaData = await fetchStreetViewMetadata(strat.location, key, { source: strat.source });
+    const metaData = await fetchStreetViewMetadata(strat.location, key, {
+      source: strat.source,
+      radius
+    });
     return { metaData, strategy: strat };
   }));
 
-  for (const { metaData, strategy } of lookups) {
-    if (metaData.status === 'REQUEST_DENIED' || metaData.status === 'OVER_QUERY_LIMIT') {
-      return { metaData, strategy, fatal: true };
-    }
+  // Prefer any successful panorama — one rate-limited strategy must not veto others.
+  const hit = lookups.find(({ metaData }) => metaData.status === 'OK' && metaData.location);
+  if (hit) return { metaData: hit.metaData, strategy: hit.strategy, radius };
+
+  const denied = lookups.find(({ metaData }) => metaData.status === 'REQUEST_DENIED');
+  if (denied) return { metaData: denied.metaData, strategy: denied.strategy, fatal: true, radius };
+
+  const rateLimited = lookups.find(({ metaData }) => metaData.status === 'OVER_QUERY_LIMIT');
+  if (rateLimited) {
+    return {
+      metaData: rateLimited.metaData,
+      strategy: rateLimited.strategy,
+      retryable: true,
+      radius
+    };
   }
 
-  const hit = lookups.find(({ metaData }) => metaData.status === 'OK' && metaData.location);
-  if (hit) return { metaData: hit.metaData, strategy: hit.strategy };
-
   const last = lookups[lookups.length - 1];
-  return { metaData: last?.metaData || { status: 'ZERO_RESULTS' }, strategy: null };
+  return {
+    metaData: last?.metaData || { status: 'ZERO_RESULTS' },
+    strategy: null,
+    radius
+  };
+}
+
+async function lookupStreetViewMetadata(address, geocoded, key) {
+  const radii = SV_RADIUS_EXPANDED;
+  let last = null;
+  for (const radius of radii) {
+    const attempt = await lookupStreetViewMetadataOnce(address, geocoded, key, radius);
+    last = attempt;
+    if (attempt.metaData?.status === 'OK' && attempt.metaData?.location) return attempt;
+    if (attempt.fatal || attempt.retryable) return attempt;
+  }
+  return last || { metaData: { status: 'ZERO_RESULTS' }, strategy: null, radius: radii[radii.length - 1] };
 }
 
 function haversineMeters(lat1, lng1, lat2, lng2) {
@@ -577,24 +606,41 @@ function createMapsHelpers(imageryCache) {
     };
   }
 
-  async function fetchStreetViewPayload(address, key) {
+  async function fetchStreetViewPayload(address, key, opts = {}) {
+    if (opts.refresh) {
+      imageryCache.clearImageryUnavailable(address, 'streetview');
+    }
+
     const geocoded = await geocodeAddress(address, key);
     const lookup = await lookupStreetViewMetadata(address, geocoded, key);
-    const { metaData, strategy, fatal } = lookup;
+    const { metaData, strategy, fatal, retryable } = lookup;
 
-    if (metaData.status === 'REQUEST_DENIED' || metaData.status === 'OVER_QUERY_LIMIT' || fatal) {
+    if (metaData.status === 'REQUEST_DENIED' || fatal) {
       const hint = streetViewHint(metaData, metaData.status === 'OVER_QUERY_LIMIT' ? 429 : 403);
       const googleErr = metaData.error_message || metaData.status;
       return {
         ok: false,
-        error: metaData.status === 'OVER_QUERY_LIMIT'
-          ? 'Street View rate limit — slow down workers and retry'
-          : `Street View HTTP 403: ${googleErr}`,
+        error: `Street View HTTP 403: ${googleErr}`,
         hint,
         googleError: googleErr,
         metaStatus: metaData.status,
         view: { geocoded: !!geocoded, targeting: 'denied', lookupStrategy: strategy?.label || null },
-        unavailable: false
+        unavailable: false,
+        retryable: false
+      };
+    }
+
+    if (retryable || metaData.status === 'OVER_QUERY_LIMIT') {
+      const googleErr = metaData.error_message || metaData.status;
+      return {
+        ok: false,
+        error: 'Street View rate limit — slow down workers and retry',
+        hint: streetViewHint(metaData, 429),
+        googleError: googleErr,
+        metaStatus: metaData.status,
+        view: { geocoded: !!geocoded, targeting: 'rate_limited', lookupStrategy: strategy?.label || null },
+        unavailable: false,
+        retryable: true
       };
     }
 
@@ -604,7 +650,7 @@ function createMapsHelpers(imageryCache) {
       return {
         ok: false,
         error: 'No Street View photo for this address',
-        hint: 'Google has no panorama within 50m of this address after multiple lookup methods.',
+        hint: 'Google has no panorama near this address after multiple lookup methods.',
         googleError: null,
         metaStatus: metaData.status,
         view: { geocoded: !!geocoded, targeting: 'not_found' },
@@ -861,9 +907,10 @@ function register(ctx) {
       return true;
     }
 
+    const refresh = url.searchParams.get('refresh') === '1';
     let sv;
     try {
-      sv = await helpers.fetchStreetViewPayload(address, key);
+      sv = await helpers.fetchStreetViewPayload(address, key, { refresh });
     } catch (err) {
       const { isDiskSpaceError, freeSessionDiskSpace } = require('../lib/disk-cleanup');
       if (isDiskSpaceError(err)) {
@@ -965,5 +1012,7 @@ module.exports = {
   loadServerMapsKey,
   mapsKeyStatus,
   getMapsQueueState,
-  MAPS_MAX_CONCURRENT
+  MAPS_MAX_CONCURRENT,
+  lookupStreetViewMetadata,
+  buildStreetViewLookupStrategies
 };

@@ -664,6 +664,55 @@ function register(ctx) {
     return true;
   });
 
+  /** Requeue satellite-only fallbacks so Street View can be retried after lookup fixes. */
+  router.post('/api/repair-streetview-fallbacks', async (req, res) => {
+    let body;
+    try {
+      body = JSON.parse(await readBody(req) || '{}');
+    } catch (e) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON' });
+      return true;
+    }
+    const imageryCache = require('../imagery-cache');
+    const {
+      collectStreetViewRepairCandidates,
+      requeueStreetViewRepairs
+    } = require('../lib/streetview-repair');
+    const from = body.from || '2026-07-12';
+    const to = body.to || '2026-07-13';
+    const dryRun = body.dryRun === true;
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const base = finalizeSession(session) || {};
+    const candidates = collectStreetViewRepairCandidates(base.results, { from, to });
+    let cacheCleared = 0;
+    for (const row of candidates) {
+      const cleared = imageryCache.clearImageryUnavailable(row.address, 'streetview');
+      if (cleared.cleared) cacheCleared += 1;
+    }
+    if (dryRun || !candidates.length) {
+      sendJson(res, 200, {
+        ok: true,
+        dryRun,
+        matched: candidates.length,
+        cacheCleared,
+        addresses: candidates.map((r) => r.address).slice(0, 50)
+      });
+      return true;
+    }
+    const repaired = requeueStreetViewRepairs(base, candidates);
+    backups.writeLatestSessionFileForScope(scope, repaired.session);
+    if (typeof backups.invalidateSessionCaches === 'function') backups.invalidateSessionCaches();
+    sendJson(res, 200, {
+      ok: true,
+      matched: candidates.length,
+      removed: repaired.removed,
+      cacheCleared,
+      addresses: repaired.addresses.slice(0, 50),
+      scope: scope.storageKey
+    });
+    return true;
+  });
+
   router.post('/api/manual-backup', async (req, res, url) => {
     const fromServer = url.searchParams.get('fromServer') === '1';
     let raw = await readBody(req);
