@@ -944,10 +944,13 @@ R.pushIncrementalScanResult = function pushIncrementalScanResult(result, process
 
 R.pushScanSessionMeta = function pushScanSessionMeta() {
   if (!USE_PROXY) return;
+  const processed = typeof getTotalScannedCount === 'function'
+    ? getTotalScannedCount()
+    : (state.results || []).length;
   const body = JSON.stringify({
     type: 'meta',
     records: state.records.length,
-    processed: state.processed,
+    processed,
     fileName: state.fileName || '',
     savedAt: Date.now()
   });
@@ -1716,7 +1719,8 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   state._serverPendingUnscanned = Number(summary.pendingUnscanned) || 0;
   state._recordsLoadComplete = false;
   state.fileName = summary.fileName || '';
-  state.processed = summary.processed || 0;
+  // processed tracks results.length on the server now — keep client in sync
+  state.processed = Number(summary.results) || Number(summary.processed) || 0;
   state.filter = summary.filter || 'all';
   state.leadTypeFilter = summary.leadTypeFilter || 'all';
   state.importLeadType = normalizeLeadType(summary.importLeadType);
@@ -1874,7 +1878,18 @@ R.loadSessionRecords = async function loadSessionRecords(opts = {}) {
     state.fileName = fileName || state.fileName;
     if (importBatches?.length) state.importBatches = importBatches;
     state._expectedRecords = Number(total) || state.records.length;
-    state._pendingUnscanned = state.records.length;
+    // Unscanned mode: API `total` is the authoritative pending count (full disk results).
+    if (mode === 'unscanned' || mode === 'pending') {
+      const pendingTotal = Number(total);
+      if (Number.isFinite(pendingTotal)) {
+        state._serverPendingUnscanned = pendingTotal;
+        state._pendingUnscanned = pendingTotal;
+      } else {
+        state._pendingUnscanned = state.records.length;
+      }
+    } else {
+      state._pendingUnscanned = state.records.length;
+    }
     state._recordsLoadComplete = true;
 
     if (state.records.length) {

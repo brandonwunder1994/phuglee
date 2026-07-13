@@ -168,14 +168,16 @@
       // THIS list progress (not historical session total vs queue size)
       const batchTotal = Number(state.scanBatchTotal) || 0;
       const batchDone = Number(state.scanBatchDone) || 0;
-      const sessionTotal = (state.results || []).length || 0;
+      const sessionTotal = typeof getTotalScannedCount === 'function'
+        ? getTotalScannedCount()
+        : ((state.results || []).length || 0);
       if (liveScanProgress) {
         if (batchTotal > 0) {
           liveScanProgress.textContent =
             `${batchDone.toLocaleString()} / ${batchTotal.toLocaleString()} this list` +
-            (sessionTotal ? ` · ${sessionTotal.toLocaleString()} saved total` : '');
+            ` · ${sessionTotal.toLocaleString()} total in session`;
         } else {
-          liveScanProgress.textContent = `${sessionTotal.toLocaleString()} saved`;
+          liveScanProgress.textContent = `${sessionTotal.toLocaleString()} total in session`;
         }
       }
       const progressFill = liveScanProgressFill || document.getElementById('liveScanProgressFill');

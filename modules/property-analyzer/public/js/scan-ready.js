@@ -82,26 +82,34 @@
       if (scanReadySection) scanReadySection.hidden = false;
 
       const hasRecords = (state.records || []).length > 0;
-      // Accurate pending: address + record key (same as Start Scan). Never treat 0 as "unknown".
-      let pendingUnscanned = typeof countPendingScanLeads === 'function'
-        ? countPendingScanLeads(state.records, state.results)
-        : (typeof recordKey === 'function'
-          ? (im()?.countUnscannedLeads(state.records, state.results, recordKey) || 0)
-          : 0);
-      // Partial browser results make every "missing" record look unscanned. Trust the server.
       const expectedTotal = Math.max(
         Number(sessionLoadState?.total) || 0,
         Number(sessionLoadState?.serverCanonical) || 0,
         Number(state._tierCountsFromServer?.total) || 0,
-        Number(state._tierCountsFromServer?.all) || 0
+        Number(state._tierCountsFromServer?.all) || 0,
+        Number(state._scanBaselineTierCounts?.all) || 0
       );
       const resultsPartial = expectedTotal > 0
         && (state.results || []).length < Math.floor(expectedTotal * 0.95);
       const serverPending = Number(state._serverPendingUnscanned);
-      if (resultsPartial && Number.isFinite(serverPending)) {
+      const batchDone = Number(state.scanBatchDone) || 0;
+      const batchTotal = Number(state.scanBatchTotal) || 0;
+
+      // Single display pending:
+      // - Mid-scan: remaining on THIS list = batchTotal - batchDone
+      // - Partial hydration: trust server pending
+      // - Otherwise: local countPendingScanLeads (same as Start Scan)
+      let pendingUnscanned = 0;
+      if (state.running && batchTotal > 0) {
+        pendingUnscanned = Math.max(0, batchTotal - batchDone);
+      } else if (resultsPartial && Number.isFinite(serverPending)) {
+        pendingUnscanned = Math.max(0, serverPending);
+      } else if (hasRecords && typeof countPendingScanLeads === 'function') {
+        pendingUnscanned = countPendingScanLeads(state.records, state.results);
+      } else if (!hasRecords && Number.isFinite(serverPending) && serverPending > 0) {
         pendingUnscanned = serverPending;
-      } else if (!hasRecords && Number(state._pendingUnscanned) > 0) {
-        pendingUnscanned = Number(state._pendingUnscanned);
+      } else {
+        pendingUnscanned = Math.max(0, Number(state._pendingUnscanned) || 0);
       }
       state._pendingUnscanned = pendingUnscanned;
 
@@ -125,34 +133,30 @@
         || 'Import leads to scan';
 
       if (scanReadyLocation) {
-        scanReadyLocation.textContent = hasRecords || pendingUnscanned
+        scanReadyLocation.textContent = hasRecords || pendingUnscanned || state.running
           ? locationLabel
           : 'Import leads to scan';
       }
       if (scanReadyCount) {
-        const sessionTotal = (state.results || []).length || 0;
-        const batchDone = Number(state.scanBatchDone) || 0;
-        const batchTotal = Number(state.scanBatchTotal) || 0;
+        const sessionSaved = typeof getTotalScannedCount === 'function'
+          ? getTotalScannedCount()
+          : Math.max((state.results || []).length || 0, expectedTotal);
         if (state.running && batchTotal > 0) {
           scanReadyCount.textContent =
-            `Scanning… ${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()} on this list saved` +
-            (sessionTotal ? ` · ${sessionTotal.toLocaleString()} total in session` : '') +
+            `Scanning… ${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()} on this list` +
+            ` · ${sessionSaved.toLocaleString()} total in session` +
             ` — Stop keeps finished ones.`;
         } else if (pendingUnscanned > 0) {
-          const onList = (state.records || []).length;
+          const onList = (state.records || []).length || (pendingUnscanned + Math.max(0, Number(state.scanBatchDone) || 0));
           const doneOnList = Math.max(0, onList - pendingUnscanned);
           scanReadyCount.textContent =
             `${pendingUnscanned.toLocaleString()} left to scan` +
             (onList ? ` (${doneOnList.toLocaleString()} of ${onList.toLocaleString()} on this list already done)` : '') +
-            (sessionTotal ? ` · ${sessionTotal.toLocaleString()} saved total` : '') +
-            (resultsPartial
-              ? ` — server says ${serverPending.toLocaleString()} pending (browser results still loading)`
-              : '') +
+            ` · ${sessionSaved.toLocaleString()} total in session` +
             ` — hit Start Scan`;
-        } else if (sessionTotal > 0 || expectedTotal > 0) {
-          const saved = Math.max(sessionTotal, expectedTotal);
+        } else if (sessionSaved > 0) {
           scanReadyCount.textContent =
-            `All leads on this list are scanned (${saved.toLocaleString()} total saved). Open Review Leads for Distressed / Well Maintained / Vacant.`;
+            `All leads on this list are scanned · ${sessionSaved.toLocaleString()} total in session. Open Review Leads for Distressed / Well Maintained / Vacant.`;
         } else {
           scanReadyCount.textContent =
             'Drop a file below, then start Street View + AI scan.';

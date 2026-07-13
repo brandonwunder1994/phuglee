@@ -257,22 +257,7 @@ module.exports = function createBackups(deps) {
     return `${r.email || ''}|${r.phone || ''}|${street}`;
   }
 
-  function countPendingUnscanned(session) {
-    const results = Array.isArray(session?.results) ? session.results : [];
-    const records = Array.isArray(session?.records) ? session.records : [];
-    if (!records.length) return 0;
-    const existing = new Set(results.map(recordKeyFromRow).filter(Boolean));
-    let pending = 0;
-    for (const r of records) {
-      if (r?.forceRescan) {
-        pending += 1;
-        continue;
-      }
-      const k = recordKeyFromRow(r);
-      if (!k || !existing.has(k)) pending += 1;
-    }
-    return pending;
-  }
+  const { countPendingUnscanned } = require('./pending-scan');
 
   function buildSessionSummary(session, opts = {}) {
     const lite = !!opts.lite;
@@ -288,7 +273,8 @@ module.exports = function createBackups(deps) {
       results: results.length,
       pendingUnscanned,
       importBatches: Array.isArray(session?.importBatches) ? session.importBatches.length : 0,
-      processed: session?.processed || 0,
+      // processed always equals results.length — never a stale high-water mark
+      processed: results.length,
       filter: session?.filter || 'all',
       leadTypeFilter: session?.leadTypeFilter || 'all',
       importLeadType: session?.importLeadType || null,
@@ -417,7 +403,13 @@ module.exports = function createBackups(deps) {
   function writeLatestSessionFileForScope(scope, session) {
     const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, scope);
     fs.mkdirSync(path.dirname(latestPath), { recursive: true });
-    writeFileAtomic(latestPath, JSON.stringify(session));
+    const results = Array.isArray(session?.results) ? session.results : [];
+    const normalized = {
+      ...(session && typeof session === 'object' ? session : {}),
+      results,
+      processed: results.length
+    };
+    writeFileAtomic(latestPath, JSON.stringify(normalized));
     invalidateSessionCaches();
     return latestPath;
   }

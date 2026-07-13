@@ -66,14 +66,24 @@ R.tierCountsCacheKeyFromState = function tierCountsCacheKeyFromState(scope = 'ma
 }
 
 R.getTotalScannedCount = function getTotalScannedCount() {
-  // Scanned = analyzed results only (never inflate with pending import records)
-  return Math.max(
-    state.results.length,
-    sessionLoadState.total || 0,
-    sessionLoadState.serverCanonical || 0,
+  // Session total = analyzed results only. Prefer server canonical while pages hydrate.
+  // Never use stale `processed` meta (historically a high-water mark after purges).
+  const canonical = Math.max(
+    Number(sessionLoadState?.serverCanonical) || 0,
+    Number(sessionLoadState?.total) || 0,
     Number(state._tierCountsFromServer?.all) || 0,
-    state.processed || 0
+    Number(state._scanBaselineTierCounts?.all) || 0
   );
+  const loaded = (state.results || []).length;
+  if (state.running) {
+    const baseline = Number(state.scanBaselineResults) || 0;
+    const batchDone = Number(state.scanBatchDone) || 0;
+    return Math.max(canonical, baseline + batchDone, loaded);
+  }
+  if (!sessionLoadState?.complete && canonical > 0) {
+    return Math.max(canonical, loaded);
+  }
+  return Math.max(loaded, canonical);
 }
 
 R.normalizeTierCountsForDisplay = function normalizeTierCountsForDisplay(counts, totalHint) {
@@ -150,6 +160,32 @@ R.getTierCounts = function getTierCounts(opts = {}) {
   const useGlobal = opts.global === true || !state.locationFilter;
   const scope = useGlobal ? 'global' : 'market';
   const totalScanned = getTotalScannedCount();
+
+  // Live scan: keep pre-scan server buckets + add only this-run results (partial pages lie).
+  if (
+    useGlobal
+    && state.running
+    && state._scanBaselineTierCounts
+    && Number(state.scanStartedAt) > 0
+  ) {
+    const baseline = state._scanBaselineTierCounts;
+    const startedAt = Number(state.scanStartedAt);
+    const batchNew = (state.results || []).filter(
+      (r) => Number(r.analyzedAt || r.savedAt || 0) >= startedAt - 60_000
+    );
+    const delta = countTierBuckets(batchNew, batchNew.length);
+    const merged = {
+      all: Math.max(Number(baseline.all) || 0, 0) + (Number(state.scanBatchDone) || batchNew.length),
+      distressed: (Number(baseline.distressed) || 0) + (Number(delta.distressed) || 0),
+      well_maintained: (Number(baseline.well_maintained) || 0) + (Number(delta.well_maintained) || 0),
+      vacant: (Number(baseline.vacant) || 0) + (Number(delta.vacant) || 0),
+      blurred: (Number(baseline.blurred) || 0) + (Number(delta.blurred) || 0),
+      review: (Number(baseline.review) || 0) + (Number(delta.review) || 0),
+      satellite_only: (Number(baseline.satellite_only) || 0) + (Number(delta.satellite_only) || 0)
+    };
+    return normalizeTierCountsForDisplay(merged, merged.all);
+  }
+
   // Prefer authoritative server KPIs until the full result set is hydrated
   if (useGlobal && state._tierCountsFromServer && (!sessionLoadState.complete || !state.results.length)) {
     return normalizeTierCountsForDisplay(state._tierCountsFromServer, totalScanned);

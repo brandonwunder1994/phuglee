@@ -1256,9 +1256,12 @@ R.startScanAnalysis = async function startScanAnalysis() {
     abortSessionBackgroundLoad();
     state.running = true;
     state.scanStartedAt = Date.now();
-    // Live scan must recompute KPIs from growing results, not stale server snapshot
-    delete state._tierCountsFromServer;
-    delete state._geoFromServer;
+    // Snapshot server/session buckets BEFORE the run so KPIs don't collapse to partial pages.
+    const baselineTiers = (typeof getTierCounts === 'function')
+      ? { ...(getTierCounts({ global: true }) || {}) }
+      : (state._tierCountsFromServer ? { ...state._tierCountsFromServer } : null);
+    state._scanBaselineTierCounts = baselineTiers;
+    // Keep _tierCountsFromServer as fallback; live getTierCounts merges baseline + this-run delta.
     tierCountsCache = null;
     tierCountsCacheKey = '';
     updateScanReadyUi?.();
@@ -1473,6 +1476,36 @@ R.startScanAnalysis = async function startScanAnalysis() {
     state.running = false;
     stopScanSaveHeartbeat();
     markSessionResultsReady();
+    delete state._scanBaselineTierCounts;
+    // Refresh server KPIs so buckets match disk after the run
+    if (USE_PROXY && typeof apiFetch === 'function') {
+      apiFetch('/api/session-summary?lite=1', { cache: 'no-store' })
+        .then(async (res) => {
+          if (!res.ok) return null;
+          return res.json();
+        })
+        .then((summary) => {
+          if (!summary?.ok) return;
+          if (summary.tierCounts) {
+            state._tierCountsFromServer = typeof normalizeTierCountsForDisplay === 'function'
+              ? normalizeTierCountsForDisplay(summary.tierCounts, summary.results || 0)
+              : summary.tierCounts;
+          }
+          if (summary.geo) state._geoFromServer = summary.geo;
+          state._serverPendingUnscanned = Number(summary.pendingUnscanned) || 0;
+          state._pendingUnscanned = state._serverPendingUnscanned;
+          if (Number(summary.results) > 0) {
+            sessionLoadState.total = Number(summary.results);
+            sessionLoadState.serverCanonical = Number(summary.results);
+          }
+          state.processed = Number(summary.results) || state.processed;
+          tierCountsCache = null;
+          updateSummaryStats?.();
+          updateScanReadyUi?.();
+          updateLiveScanSectionUi?.();
+        })
+        .catch(() => {});
+    }
     state.pinnedKey = null;
     state.pinnedLiveAddress = null;
     stopServerStatusPolling();

@@ -95,28 +95,8 @@ function register(ctx) {
 
     let source = allRecords;
     if (mode === 'unscanned' || mode === 'pending') {
-      const {
-        addressMatchKey,
-        addressMatchKeyLoose,
-        buildKnownAddressKeySet
-      } = require('../lib/address-match');
-      const recordKeyOf = (r) => `${r?.email || ''}|${r?.phone || ''}|${r?.address || ''}`;
-      const known = buildKnownAddressKeySet(results, []);
-      const existingRecordKeys = new Set();
-      for (const r of results) {
-        const rk = recordKeyOf(r);
-        if (rk && rk !== '||') existingRecordKeys.add(rk);
-      }
-      const isScanned = (r) => {
-        const rk = recordKeyOf(r);
-        if (rk && rk !== '||' && existingRecordKeys.has(rk)) return true;
-        const k = addressMatchKey(r);
-        if (k && known.exact.has(k)) return true;
-        const l = addressMatchKeyLoose(r);
-        if (l && known.loose.has(l) && !String(r.postal || r.zip || '').trim()) return true;
-        return false;
-      };
-      source = allRecords.filter((r) => !isScanned(r));
+      const { filterUnscannedRecords } = require('../lib/pending-scan');
+      source = filterUnscannedRecords(allRecords, results);
     }
 
     const slice = source.slice(offset, offset + limit);
