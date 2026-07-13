@@ -825,6 +825,55 @@ function register(ctx) {
     });
     return true;
   });
+
+  /**
+   * Admin: open New Analyzer Leads for manual review + requeue unavailable for Start Scan.
+   * Runs on the server volume (no giant client round-trip).
+   * Body: { requeueUnavailable?: true }
+   */
+  router.post('/api/prepare-new-analyzer-leads', async (req, res) => {
+    let body = {};
+    try {
+      const raw = await readBody(req);
+      if (String(raw || '').trim()) body = JSON.parse(raw);
+    } catch (e) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
+      return true;
+    }
+
+    const { prepareNewAnalyzerLeadsSession } = require('../lib/prepare-new-analyzer-leads');
+    const { scope, session } = backups.loadSessionForRequest(req);
+    const base = finalizeSession(session) || {};
+    const prepared = prepareNewAnalyzerLeadsSession(base, {
+      requeueUnavailable: body.requeueUnavailable !== false
+    });
+
+    backups.ensureArchiveDirs?.();
+    backups.writeLatestSessionFileForScope(scope, prepared.session);
+    backups.invalidateSessionCaches?.();
+    try {
+      backups.writeRollingAutoBackup(prepared.session, 'prepare_new_analyzer_leads', 'milestone');
+    } catch (_) {}
+    try {
+      safety.writeMirrorLatest(prepared.session);
+      safety.writeSafetyStatus(prepared.session, {
+        reason: 'prepare-new-analyzer-leads',
+        tier: 'milestone'
+      });
+    } catch (_) {}
+
+    sendJson(res, 200, {
+      ok: true,
+      scope: scope.kind,
+      storageKey: scope.storageKey,
+      ...prepared.stats,
+      message:
+        prepared.stats.requeuedUnavailable > 0
+          ? `Opened review for sheet leads. Re-queued ${prepared.stats.requeuedUnavailable} unavailable/failed for Start Scan.`
+          : 'Opened New Analyzer Leads for Distressed / Well Maintained / Vacant review. Nothing left that needs a full rescan.'
+    });
+    return true;
+  });
 }
 
 module.exports = { register, freeSessionDiskSpace, isDiskSpaceError };

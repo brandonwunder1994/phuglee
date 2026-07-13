@@ -88,8 +88,19 @@
         : (typeof recordKey === 'function'
           ? (im()?.countUnscannedLeads(state.records, state.results, recordKey) || 0)
           : 0);
-      // Only fall back to server hint when we have no local records loaded yet
-      if (!hasRecords && Number(state._pendingUnscanned) > 0) {
+      // Partial browser results make every "missing" record look unscanned. Trust the server.
+      const expectedTotal = Math.max(
+        Number(sessionLoadState?.total) || 0,
+        Number(sessionLoadState?.serverCanonical) || 0,
+        Number(state._tierCountsFromServer?.total) || 0,
+        Number(state._tierCountsFromServer?.all) || 0
+      );
+      const resultsPartial = expectedTotal > 0
+        && (state.results || []).length < Math.floor(expectedTotal * 0.95);
+      const serverPending = Number(state._serverPendingUnscanned);
+      if (resultsPartial && Number.isFinite(serverPending)) {
+        pendingUnscanned = serverPending;
+      } else if (!hasRecords && Number(state._pendingUnscanned) > 0) {
         pendingUnscanned = Number(state._pendingUnscanned);
       }
       state._pendingUnscanned = pendingUnscanned;
@@ -134,10 +145,14 @@
             `${pendingUnscanned.toLocaleString()} left to scan` +
             (onList ? ` (${doneOnList.toLocaleString()} of ${onList.toLocaleString()} on this list already done)` : '') +
             (sessionTotal ? ` · ${sessionTotal.toLocaleString()} saved total` : '') +
+            (resultsPartial
+              ? ` — server says ${serverPending.toLocaleString()} pending (browser results still loading)`
+              : '') +
             ` — hit Start Scan`;
-        } else if (sessionTotal > 0) {
+        } else if (sessionTotal > 0 || expectedTotal > 0) {
+          const saved = Math.max(sessionTotal, expectedTotal);
           scanReadyCount.textContent =
-            `All leads on this list are scanned (${sessionTotal.toLocaleString()} total saved). Drop another file or open Review Leads.`;
+            `All leads on this list are scanned (${saved.toLocaleString()} total saved). Open Review Leads for Distressed / Well Maintained / Vacant.`;
         } else {
           scanReadyCount.textContent =
             'Drop a file below, then start Street View + AI scan.';

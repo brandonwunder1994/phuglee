@@ -1705,6 +1705,7 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   // Large sessions load results in pages; records load separately so Start Scan still works.
   state._expectedRecords = Number(summary.records) || 0;
   state._pendingUnscanned = Number(summary.pendingUnscanned) || 0;
+  state._serverPendingUnscanned = Number(summary.pendingUnscanned) || 0;
   state._recordsLoadComplete = false;
   state.fileName = summary.fileName || '';
   state.processed = summary.processed || 0;

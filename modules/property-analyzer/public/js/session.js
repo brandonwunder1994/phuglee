@@ -1375,7 +1375,52 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review') {
     touchManuallyReviewedByKey(key, via);
   }
   sessionDirty = true;
+  const stamped = idx != null && idx >= 0 ? state.results[idx] : null;
+  if (stamped && typeof publishReviewedLeadToVault === 'function') {
+    try {
+      publishReviewedLeadToVault(stamped, via);
+    } catch (err) {
+      console.warn('[Vault] publish on review failed', err);
+    }
+  }
 }
+
+/** Push a Keep/Change decision into The Vault catalog (admin). */
+R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via = 'review_keep') {
+  if (!result) return;
+  const tier = String(result.leadTier || '').toLowerCase().replace(/-/g, '_');
+  if (!['distressed', 'well_maintained', 'vacant'].includes(tier)) return;
+  const payload = JSON.stringify({
+    result: {
+      ...result,
+      manuallyReviewed: true,
+      manuallyReviewedVia: via,
+      manuallyReviewedAt: result.manuallyReviewedAt || Date.now(),
+      reviewResolved: true,
+      needsReviewLater: false
+    },
+    storageKey: 'admin'
+  });
+  const headers = { 'Content-Type': 'application/json' };
+  // Prefer root Vault API (lives outside /analyzer); fall back to relative if proxied.
+  const urls = ['/api/leads/publish-from-analyzer'];
+  const token = typeof window !== 'undefined' && window.__PDA_AUTH_TOKEN__;
+  if (token) headers['X-PDA-Token'] = token;
+  headers['X-Phuglee-User'] = 'admin';
+  headers['X-Phuglee-Plan'] = 'max';
+  const send = (url) =>
+    fetch(url, { method: 'POST', headers, body: payload, credentials: 'same-origin' })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        return res.json().catch(() => ({ ok: true }));
+      });
+  send(urls[0]).catch((err) => {
+    console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
+  });
+};
 
 R.unmarkReviewedKey = function unmarkReviewedKey(filter, key) {
   if (!key || !state.reviewedKeysByFilter || !filter || filter === 'all') return;

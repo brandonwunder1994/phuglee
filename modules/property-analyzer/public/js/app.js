@@ -1295,14 +1295,16 @@ R.startScanAnalysis = async function startScanAnalysis() {
     showScanStartedAlert();
     startServerStatusPolling();
     initAgentSlots(getEffectiveConcurrentLimit());
-    // Prefer address-level dedupe — use full server index when browser only has partial results
+    // Prefer address-level dedupe — always sync full server index (partial browser pages lie)
     const expectedTotal = Math.max(
       Number(sessionLoadState?.total) || 0,
       Number(sessionLoadState?.serverCanonical) || 0,
       Number(state._tierCountsFromServer?.total) || 0
     );
     const resultsPartial = expectedTotal > 0 && (state.results || []).length < expectedTotal;
-    if (resultsPartial && typeof fetchServerAddressIndex === 'function') {
+    if (USE_PROXY && typeof fetchServerAddressIndex === 'function') {
+      await fetchServerAddressIndex();
+    } else if (resultsPartial && typeof fetchServerAddressIndex === 'function') {
       await fetchServerAddressIndex();
     }
     const known = typeof buildKnownAddressSets === 'function'
