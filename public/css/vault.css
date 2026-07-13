@@ -1,5 +1,17 @@
 /* The Vault — Max plan curated leads desk */
 
+/* [hidden] must win over display:flex on overlays (lightbox was blocking the page) */
+.vault-lightbox[hidden],
+.vault-drawer[hidden],
+.vault-bulk-bar[hidden],
+#vault-gate[hidden],
+#vault-app[hidden],
+#vault-skeleton[hidden],
+#vault-empty[hidden],
+.vault-cards[hidden] {
+  display: none !important;
+}
+
 .vault-page {
   --vault-gold: #c9a227;
   --vault-gold-dim: rgba(201, 162, 39, 0.35);
@@ -742,13 +754,16 @@
   flex-wrap: wrap;
 }
 
+.vault-lightbox:not([hidden]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .vault-lightbox {
   position: fixed;
   inset: 0;
   z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: rgba(0, 0, 0, 0.88);
   padding: 1rem;
 }
