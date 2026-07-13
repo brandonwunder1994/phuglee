@@ -40,6 +40,12 @@ function getBridgeApi() {
   return bridgeApiModule;
 }
 
+let leadsApiModule;
+function getLeadsApi() {
+  if (!leadsApiModule) leadsApiModule = require('./lib/leads-platform/api');
+  return leadsApiModule;
+}
+
 function send(res, status, body, type, extraHeaders = {}) {
   res.writeHead(status, {
     'Content-Type': type || 'text/plain; charset=utf-8',
@@ -280,6 +286,11 @@ async function handleRequest(req, res) {
 
   if (pathname.startsWith('/api/bridge')) {
     const handled = await getBridgeApi().handle(req, res, pathname, url);
+    if (handled) return;
+  }
+
+  if (pathname.startsWith('/api/leads')) {
+    const handled = await getLeadsApi().handle(req, res, pathname, url);
     if (handled) return;
   }
 

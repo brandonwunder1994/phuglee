@@ -35,7 +35,7 @@ test('GET /vault serves vault.html', async () => {
   await handleRequest({ method: 'GET', url: '/vault', headers: { host: '127.0.0.1:3000' } }, res);
   assert.equal(res.statusCode, 200);
   assert.match(res.headers['Content-Type'] || '', /text\/html/);
-  assert.match(res.body, /Max plan preview/i);
+  assert.match(res.body, /id="vault-app"/);
   assert.match(res.body, /The Vault/);
 });
 

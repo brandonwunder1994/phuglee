@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phuglee — The Vault</title>
-  <meta name="description" content="Pre-scrubbed distressed leads by city — skip the DIY pipeline and get straight to calling sellers. Max plan only.">
+  <meta name="description" content="Curated dial-ready leads for Max members — distressed, well-maintained, and land opportunities scrubbed by our pipeline.">
   <meta property="og:title" content="Phuglee — The Vault">
-  <meta property="og:description" content="Filter cities for leads already scrubbed by our team. Upgrade to Max and start dialing.">
+  <meta property="og:description" content="Browse, filter, and export curated leads — Max plan access.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Phuglee — The Vault">
-  <meta name="twitter:description" content="Pre-scrubbed distressed leads — Max plan access. Skip DIY, start calling sellers.">
+  <meta name="twitter:description" content="Curated leads database — Max plan.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
-  <link rel="stylesheet" href="/css/vault.css?v=2">
+  <link rel="stylesheet" href="/css/vault.css?v=3">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -28,138 +28,20 @@
 
   <div id="distress-os-nav-mount"></div>
 
-  <main id="main" class="vault-main">
-    <div class="vault-stage" aria-hidden="true">
-      <div class="vault-data-layer">
-        <header class="vault-mock-toolbar">
-          <div class="vault-mock-filters">
-            <span class="vault-mock-chip vault-mock-chip--active">All cities</span>
-            <span class="vault-mock-chip">Tax delinquent</span>
-            <span class="vault-mock-chip">Pre-foreclosure</span>
-            <span class="vault-mock-chip">Vacant</span>
-            <span class="vault-mock-chip">Code violation</span>
-          </div>
-          <div class="vault-mock-search">Search address, owner, or parcel…</div>
-        </header>
-
-        <div class="vault-mock-table">
-          <div class="vault-mock-row vault-mock-row--head">
-            <span>Address</span>
-            <span>City</span>
-            <span>Signal</span>
-            <span>Score</span>
-            <span>Owner</span>
-            <span>Phone</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>1842 Oakridge Dr</span>
-            <span>Memphis, TN</span>
-            <span class="vault-mock-signal vault-mock-signal--hot">Pre-foreclosure</span>
-            <span class="vault-mock-score">94</span>
-            <span>M. Henderson</span>
-            <span>(901) 555-0142</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>309 W Belmont Ave</span>
-            <span>Nashville, TN</span>
-            <span class="vault-mock-signal">Tax delinquent</span>
-            <span class="vault-mock-score">88</span>
-            <span>R. &amp; S. Patel</span>
-            <span>(615) 555-0198</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>7714 Cypress Ln</span>
-            <span>Birmingham, AL</span>
-            <span class="vault-mock-signal vault-mock-signal--hot">Vacant</span>
-            <span class="vault-mock-score">91</span>
-            <span>Estate of J. Cole</span>
-            <span>(205) 555-0133</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>5520 Magnolia Blvd</span>
-            <span>Jackson, MS</span>
-            <span class="vault-mock-signal">Code violation</span>
-            <span class="vault-mock-score">82</span>
-            <span>L. Washington</span>
-            <span>(601) 555-0177</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>118 Harbor View Ct</span>
-            <span>Mobile, AL</span>
-            <span class="vault-mock-signal vault-mock-signal--hot">Pre-foreclosure</span>
-            <span class="vault-mock-score">96</span>
-            <span>D. Nguyen</span>
-            <span>(251) 555-0164</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>9401 Ridgewood St</span>
-            <span>Little Rock, AR</span>
-            <span class="vault-mock-signal">Tax delinquent</span>
-            <span class="vault-mock-score">79</span>
-            <span>B. &amp; C. Morris</span>
-            <span>(501) 555-0129</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>2205 Peachtree Rd NE</span>
-            <span>Atlanta, GA</span>
-            <span class="vault-mock-signal vault-mock-signal--hot">Vacant</span>
-            <span class="vault-mock-score">93</span>
-            <span>Harbor Holdings LLC</span>
-            <span>(404) 555-0181</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>67 Sycamore Way</span>
-            <span>Chattanooga, TN</span>
-            <span class="vault-mock-signal">Code violation</span>
-            <span class="vault-mock-score">85</span>
-            <span>K. Simmons</span>
-            <span>(423) 555-0156</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>4410 Elmwood Park</span>
-            <span>Shreveport, LA</span>
-            <span class="vault-mock-signal vault-mock-signal--hot">Pre-foreclosure</span>
-            <span class="vault-mock-score">97</span>
-            <span>T. &amp; M. Brooks</span>
-            <span>(318) 555-0148</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>883 Lakeview Terrace</span>
-            <span>Montgomery, AL</span>
-            <span class="vault-mock-signal">Tax delinquent</span>
-            <span class="vault-mock-score">81</span>
-            <span>P. Alvarez</span>
-            <span>(334) 555-0192</span>
-          </div>
-          <div class="vault-mock-row">
-            <span>1590 Brookside Ave</span>
-            <span>Knoxville, TN</span>
-            <span class="vault-mock-signal vault-mock-signal--hot">Vacant</span>
-            <span class="vault-mock-score">90</span>
-            <span>S. Whitfield</span>
-            <span>(865) 555-0137</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="vault-frost"></div>
-      <div class="vault-scanlines" aria-hidden="true"></div>
-    </div>
-
-    <section class="vault-gate distress-glass" aria-labelledby="vault-gate-title" aria-describedby="vault-preview-note">
+  <main id="main" class="vault-main vault-main--app">
+    <section id="vault-gate" class="vault-gate distress-glass" hidden aria-labelledby="vault-gate-title">
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">The Vault · Coming soon</p>
-        <h1 id="vault-gate-title" class="vault-title">Max plan preview</h1>
+        <p class="vault-eyebrow">The Vault · Max plan</p>
+        <h1 id="vault-gate-title" class="vault-title">Upgrade to unlock curated leads</h1>
         <p class="vault-lead vault-lead--honest">
-          <strong>Preview only.</strong> The table behind this screen is sample data, not a live lead feed.
-          When The Vault ships on Max, you will filter cities and pull lists our team already collected and scrubbed.
+          <strong>Max plan only.</strong> The Vault is our done-for-you leads database — pre-scrubbed, scored, and ready to dial.
+          Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
         </p>
-        <p id="vault-preview-note" class="vault-preview-note">Sample addresses shown for layout preview — not real leads.</p>
         <ul class="vault-perks">
-          <li>Pre-scrubbed leads by city — no collect or filter step</li>
-          <li>Distress signals already tagged and scored</li>
-          <li>Owner contact info ready when available</li>
-          <li>Hours back every week — spend them on the phone</li>
+          <li>Distressed, well-maintained, and land leads in one desk</li>
+          <li>Stack motivation signals to surface top priorities</li>
+          <li>Owner contact and property context when available</li>
+          <li>Export selections for your dialer or CRM</li>
         </ul>
         <div class="vault-cta-row">
           <a
@@ -178,6 +60,107 @@
         </svg>
       </div>
     </section>
+
+    <div id="vault-app" class="vault-app" hidden>
+      <header id="vault-hero" class="vault-hero distress-glass">
+        <div class="vault-hero-top">
+          <div>
+            <p class="vault-eyebrow">The Vault</p>
+            <h1 class="vault-title vault-title--desk">Curated leads</h1>
+            <p class="vault-hero-sub">Pipeline-scrubbed inventory · dial-ready</p>
+          </div>
+          <div id="vault-kpis" class="vault-kpis" aria-live="polite"></div>
+        </div>
+        <div id="vault-type-tabs" class="vault-type-tabs" role="tablist" aria-label="Lead type">
+          <button type="button" class="vault-type-tab is-active" role="tab" aria-selected="true" data-type="all">All</button>
+          <button type="button" class="vault-type-tab" role="tab" aria-selected="false" data-type="distressed">Distressed</button>
+          <button type="button" class="vault-type-tab" role="tab" aria-selected="false" data-type="well_maintained">Well Maintained</button>
+          <button type="button" class="vault-type-tab" role="tab" aria-selected="false" data-type="land">Land</button>
+        </div>
+      </header>
+
+      <div class="vault-desk">
+        <aside id="vault-filters" class="vault-filters distress-glass">
+          <h2 class="vault-filters-title">Filters</h2>
+          <label class="vault-field">
+            <span class="vault-field-label">Search</span>
+            <input type="search" id="vault-search" class="phuglee-input" placeholder="Address, owner, phone…" autocomplete="off">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">State</span>
+            <select id="vault-state" class="phuglee-select">
+              <option value="">All states</option>
+            </select>
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">City</span>
+            <select id="vault-city" class="phuglee-select">
+              <option value="">All cities</option>
+            </select>
+          </label>
+          <div class="vault-field">
+            <span class="vault-field-label">Motivation signals <span class="vault-field-hint">(stack — match all)</span></span>
+            <div id="vault-signal-chips" class="vault-signal-chips"></div>
+          </div>
+          <label class="vault-field">
+            <span class="vault-field-label">Min score</span>
+            <input type="range" id="vault-min-score" class="vault-range" min="0" max="100" value="0">
+            <span id="vault-min-score-val" class="vault-range-val">0</span>
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Added</span>
+            <select id="vault-since" class="phuglee-select">
+              <option value="">All time</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+              <option value="90d">Last 90 days</option>
+            </select>
+          </label>
+          <button type="button" id="vault-clear-filters" class="phuglee-btn phuglee-btn-ghost vault-clear-btn">Clear filters</button>
+        </aside>
+
+        <section class="vault-results-wrap">
+          <div id="vault-results-toolbar" class="vault-results-toolbar">
+            <p id="vault-results-meta" class="vault-results-meta">Loading…</p>
+            <div class="vault-results-actions">
+              <button type="button" id="vault-export-btn" class="phuglee-btn phuglee-btn-secondary" disabled>Export selected</button>
+            </div>
+          </div>
+          <div id="vault-results" class="vault-results phuglee-table-wrap">
+            <table class="phuglee-table vault-table" id="vault-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="vault-col-check"><input type="checkbox" id="vault-select-all" aria-label="Select all on page"></th>
+                  <th scope="col"><button type="button" class="vault-sort-btn" data-sort="address">Address</button></th>
+                  <th scope="col"><button type="button" class="vault-sort-btn" data-sort="city">City</button></th>
+                  <th scope="col">Signal</th>
+                  <th scope="col"><button type="button" class="vault-sort-btn is-sorted" data-sort="priorityScore">Score</button></th>
+                  <th scope="col" class="vault-col-owner">Owner</th>
+                  <th scope="col" class="vault-col-phone">Phone</th>
+                </tr>
+              </thead>
+              <tbody id="vault-results-body"></tbody>
+            </table>
+            <div id="vault-empty" class="phuglee-empty-state" hidden>
+              <p class="phuglee-empty-title">No leads match</p>
+              <p class="phuglee-empty-copy">Try clearing filters or check back after the next catalog publish.</p>
+            </div>
+          </div>
+          <nav id="vault-pagination" class="vault-pagination" aria-label="Results pages"></nav>
+        </section>
+      </div>
+    </div>
+
+    <aside id="vault-drawer" class="vault-drawer" hidden aria-labelledby="vault-drawer-title" aria-modal="true" role="dialog">
+      <div class="vault-drawer-backdrop" id="vault-drawer-backdrop" tabindex="-1"></div>
+      <div class="vault-drawer-panel distress-glass">
+        <header class="vault-drawer-header">
+          <h2 id="vault-drawer-title" class="vault-drawer-title">Lead dossier</h2>
+          <button type="button" id="vault-drawer-close" class="phuglee-btn phuglee-btn-ghost" aria-label="Close">Close</button>
+        </header>
+        <div id="vault-drawer-body" class="vault-drawer-body"></div>
+      </div>
+    </aside>
   </main>
 
   <div id="distress-os-footer-mount"></div>
@@ -186,6 +169,7 @@
   <script src="/js/settings-menu.js" defer></script>
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
-  <script src="/js/shell-nav.js?v=13" defer></script>
+  <script src="/js/shell-nav.js?v=14" defer></script>
+  <script src="/js/vault-app.js?v=1" defer></script>
 </body>
 </html>

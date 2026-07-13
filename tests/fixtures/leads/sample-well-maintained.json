@@ -1,0 +1,20 @@
+{
+  "leadId": "wm01fixture00001",
+  "address": "2205 Peachtree Rd NE",
+  "city": "Atlanta",
+  "state": "GA",
+  "zip": "30309",
+  "leadType": "well_maintained",
+  "reviewStatus": "approved",
+  "priorityScore": 72,
+  "confidence": "high",
+  "signalTags": ["High equity", "Long ownership"],
+  "ownerName": "Harbor Holdings LLC",
+  "phones": ["(404) 555-0181"],
+  "entityType": "llc",
+  "estARV": 425000,
+  "estRepairs": 15000,
+  "publishedAt": "2026-07-11T08:00:00.000Z",
+  "sourceCity": "Atlanta, GA",
+  "pipelineVersion": "v4.0-fixture"
+}

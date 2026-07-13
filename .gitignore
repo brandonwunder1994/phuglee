@@ -29,6 +29,7 @@ data/bridge-city-formats/
 
 # Geocodio clean jobs + usage ledger (runtime)
 data/geocodio/
+data/leads-catalog/
 
 # Property Analyzer runtime (modules/property-analyzer)
 modules/property-analyzer/node_modules/

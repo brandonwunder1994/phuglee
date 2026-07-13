@@ -88,7 +88,7 @@
       <a href="/collect" class="shell-footer-link">Collect</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Analyze</a>
-      <a href="/vault" class="shell-footer-link">The Vault (soon)</a>
+      <a href="/vault" class="shell-footer-link">The Vault</a>
     </nav>
   </div>
   ${trustLine}
@@ -152,6 +152,7 @@
   function buildNav(pathname) {
     const current = activeId(pathname);
     const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
+    const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>The Vault</a>`;
     const propertiesHtml = buildPropertiesDropdown(current);
 
     const actionsHtml = isAuthenticated()
@@ -204,6 +205,7 @@
     </div>
     <div class="shell-links" id="shell-links">
       ${dashboardHtml}
+      ${vaultHtml}
       ${propertiesHtml}
       ${actionsHtml}
     </div>

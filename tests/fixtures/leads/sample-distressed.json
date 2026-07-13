@@ -1,0 +1,22 @@
+{
+  "leadId": "d4e8f1a2b3c4d5e6",
+  "address": "1842 Oakridge Dr",
+  "city": "Memphis",
+  "state": "TN",
+  "zip": "38117",
+  "leadType": "distressed",
+  "reviewStatus": "approved",
+  "priorityScore": 94,
+  "distressTier": 8,
+  "confidence": "high",
+  "signalTags": ["Pre-foreclosure", "Tax delinquent"],
+  "ownerName": "M. Henderson",
+  "phones": ["(901) 555-0142"],
+  "entityType": "individual",
+  "estARV": 185000,
+  "estRepairs": 42000,
+  "estEquity": 62000,
+  "publishedAt": "2026-07-10T12:00:00.000Z",
+  "sourceCity": "Memphis, TN",
+  "pipelineVersion": "v4.0-fixture"
+}

@@ -1,0 +1,18 @@
+{
+  "leadId": "land01fixture001",
+  "address": "Lot 14 Block C Maple Acres",
+  "city": "Shreveport",
+  "state": "LA",
+  "zip": "71106",
+  "leadType": "land",
+  "reviewStatus": "approved",
+  "priorityScore": 68,
+  "confidence": "medium",
+  "signalTags": ["Vacant"],
+  "ownerName": "T. Brooks",
+  "phones": ["(318) 555-0148"],
+  "entityType": "individual",
+  "publishedAt": "2026-07-12T15:30:00.000Z",
+  "sourceCity": "Shreveport, LA",
+  "pipelineVersion": "v4.0-fixture"
+}
