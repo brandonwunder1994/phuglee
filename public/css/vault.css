@@ -193,10 +193,10 @@
 }
 
 .vault-type-tab {
-  padding: 0.38rem 0.8rem;
-  font-size: 0.74rem;
+  padding: 0.38rem 0.7rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   color: var(--phuglee-stone);
   background: var(--vault-surface);
   border: 1px solid var(--vault-border);
