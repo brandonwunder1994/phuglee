@@ -253,7 +253,8 @@ module.exports = function createBackups(deps) {
 
   function recordKeyFromRow(r) {
     if (!r) return '';
-    return `${r.email || ''}|${r.phone || ''}|${r.address || ''}`;
+    const street = r.street || String(r.address || '').split(',')[0] || '';
+    return `${r.email || ''}|${r.phone || ''}|${street}`;
   }
 
   function countPendingUnscanned(session) {
@@ -263,6 +264,10 @@ module.exports = function createBackups(deps) {
     const existing = new Set(results.map(recordKeyFromRow).filter(Boolean));
     let pending = 0;
     for (const r of records) {
+      if (r?.forceRescan) {
+        pending += 1;
+        continue;
+      }
       const k = recordKeyFromRow(r);
       if (!k || !existing.has(k)) pending += 1;
     }
