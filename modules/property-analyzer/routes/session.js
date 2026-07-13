@@ -425,7 +425,37 @@ function register(ctx) {
       });
       return true;
     }
+    // Never silently wipe a large pending scan queue (credits/time at risk).
+    const confirmUnscannedPurge = url.searchParams.get('confirmUnscannedPurge') === '1';
+    const existingRecords = Array.isArray(existingSession?.records) ? existingSession.records.length : 0;
+    const incomingRecords = Array.isArray(session.records) ? session.records.length : 0;
+    if (
+      forceReplace &&
+      allowDowngrade &&
+      existingRecords - incomingRecords >= 100 &&
+      !confirmUnscannedPurge
+    ) {
+      sendJson(res, 409, {
+        ok: false,
+        rejected: true,
+        reason: 'unscanned_queue_purge_blocked',
+        keptRecords: existingRecords,
+        incomingRecords,
+        droppedRecords: existingRecords - incomingRecords,
+        message:
+          'Blocked: this save would drop 100+ leads from the scan queue. ' +
+          'If intentional, retry with confirmUnscannedPurge=1. Do not purge mid-scan.'
+      });
+      return true;
+    }
     backups.writeLatestSessionFileForScope(scope, session);
+    if (saveReason === 'scan-complete' || saveReason === 'scan-stop') {
+      try {
+        backups.promoteIncrementalToLatest(saveReason, scope);
+      } catch (err) {
+        console.warn('[Session] promote after scan save failed:', err.message);
+      }
+    }
     safety.lastMirrorContentHash = backups.sessionContentHash(session);
     const tier = backups.backupTierForReason(saveReason);
     if (tier === 'milestone' || tier === 'manual') {
@@ -510,6 +540,34 @@ function register(ctx) {
     const removedResults = results.length - keptResults.length;
     const keptBatches = batches.filter((b) => !matchesBatch(b));
     const removedBatches = batches.length - keptBatches.length;
+
+    // Block purging queue rows that were never scanned into results (unless explicitly confirmed).
+    if (removedRecords > 0 && body.confirmUnscannedPurge !== true) {
+      const resultKeys = new Set();
+      for (const r of results) {
+        const k = backups.recordKeyFromResult?.(r);
+        if (k) resultKeys.add(k);
+      }
+      let unscannedBeingPurged = 0;
+      for (const r of records) {
+        if (!matchesRecord(r)) continue;
+        const k = backups.recordKeyFromResult?.(r);
+        if (!k || !resultKeys.has(k)) unscannedBeingPurged += 1;
+      }
+      if (unscannedBeingPurged > 0) {
+        sendJson(res, 409, {
+          ok: false,
+          rejected: true,
+          reason: 'unscanned_purge_blocked',
+          removedRecordsWouldBe: removedRecords,
+          unscannedBeingPurged,
+          message:
+            'Blocked: this would delete unscanned leads from the queue before they land in Distressed / Well Maintained / Vacant. ' +
+            'Scan them first, or retry with confirmUnscannedPurge: true only if you intentionally want to discard them.'
+        });
+        return true;
+      }
+    }
 
     if (!removedRecords && !removedResults && !removedBatches) {
       sendJson(res, 200, {

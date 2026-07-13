@@ -2,7 +2,12 @@
  * Remove New Analyzer Leads from the Analyzer scan queue (records only).
  * Does NOT touch already-scanned results.
  *
- * Usage: node scripts/remove-new-analyzer-leads-from-queue.js
+ * SAFETY: refuses to purge rows that are still unscanned unless you pass both:
+ *   --force --allow-unscanned
+ *
+ * Usage (dry-run default):
+ *   node scripts/remove-new-analyzer-leads-from-queue.js
+ *   node scripts/remove-new-analyzer-leads-from-queue.js --force --allow-unscanned
  */
 'use strict';
 
@@ -23,6 +28,10 @@ const LOCAL_SESSION = path.join(
 const PROD = process.env.PHUGLEE_PROD_URL || 'https://phuglee-production.up.railway.app';
 const IMPORT_SOURCE = 'new_analyzer_leads_2026-07-11';
 const SOURCE_FILE = 'New Analyzer Leads.csv';
+
+const argv = new Set(process.argv.slice(2));
+const FORCE = argv.has('--force');
+const ALLOW_UNSCANNED = argv.has('--allow-unscanned');
 
 function fetchUrl(url, { method = 'GET', headers = {}, body = null, timeoutMs = 300000 } = {}) {
   return new Promise((resolve, reject) => {
@@ -71,17 +80,33 @@ async function extractToken() {
   return m[1];
 }
 
+function recordKey(r) {
+  return `${r?.email || ''}|${r?.phone || ''}|${r?.address || r?.street || ''}`;
+}
+
+function isNewLeadRecord(r) {
+  if (r?.importSource === IMPORT_SOURCE) return true;
+  const src = String(r?.sourceFile || '').toLowerCase();
+  return src.includes('new analyzer leads');
+}
+
+function countUnscannedNewLeads(session) {
+  const results = Array.isArray(session.results) ? session.results : [];
+  const resultKeys = new Set(results.map(recordKey));
+  let unscanned = 0;
+  for (const r of session.records || []) {
+    if (!isNewLeadRecord(r)) continue;
+    if (!resultKeys.has(recordKey(r))) unscanned += 1;
+  }
+  return unscanned;
+}
+
 function stripNewLeads(session) {
   const beforeRecords = (session.records || []).length;
   const beforeResults = (session.results || []).length;
   const beforeBatches = (session.importBatches || []).length;
 
-  const keptRecords = (session.records || []).filter((r) => {
-    if (r?.importSource === IMPORT_SOURCE) return false;
-    const src = String(r?.sourceFile || '').toLowerCase();
-    if (src.includes('new analyzer leads')) return false;
-    return true;
-  });
+  const keptRecords = (session.records || []).filter((r) => !isNewLeadRecord(r));
 
   const keptBatches = (session.importBatches || []).filter((b) => {
     const src = String(b?.sourceFile || '').toLowerCase();
@@ -99,10 +124,7 @@ function stripNewLeads(session) {
     savedAt: Date.now()
   };
 
-  // Clear fileName if it only referred to the removed import
   if (String(next.fileName || '').toLowerCase().includes('new analyzer leads')) {
-    next.fileName = keptRecords.length ? next.fileName : '';
-    // Prefer empty so Ready-to-scan looks clean for a fresh manual upload
     next.fileName = '';
   }
 
@@ -113,6 +135,24 @@ function stripNewLeads(session) {
     results: beforeResults,
     removedBatches: beforeBatches - keptBatches.length
   };
+}
+
+function assertSafeToPurge(label, session) {
+  const unscanned = countUnscannedNewLeads(session);
+  if (unscanned > 0 && !ALLOW_UNSCANNED) {
+    throw new Error(
+      `[${label}] Refusing to purge ${unscanned} UNSCANNED New Analyzer Leads. ` +
+        `Scan them into Distressed/WM/Vacant first, or pass --force --allow-unscanned if you really mean to discard the queue.`
+    );
+  }
+  if (!FORCE) {
+    throw new Error(
+      `[${label}] Dry-run only. Would remove New Analyzer Leads from the queue ` +
+        `(${unscanned} still unscanned). Re-run with --force` +
+        (unscanned ? ' --allow-unscanned' : '') +
+        ' to apply.'
+    );
+  }
 }
 
 async function main() {
@@ -136,9 +176,11 @@ async function main() {
   const before = {
     records: (session.records || []).length,
     results: (session.results || []).length,
-    newLeads: (session.records || []).filter((r) => r.importSource === IMPORT_SOURCE).length
+    newLeads: (session.records || []).filter((r) => r.importSource === IMPORT_SOURCE).length,
+    unscannedNewLeads: countUnscannedNewLeads(session)
   };
   console.log('[remove] before', before);
+  assertSafeToPurge('production', session);
 
   const { session: cleaned, removedRecords, keptRecords, results, removedBatches } =
     stripNewLeads(session);
@@ -151,7 +193,7 @@ async function main() {
     );
     const body = Buffer.from(JSON.stringify(cleaned));
     const postRes = await fetchUrl(
-      `${PROD}/analyzer/api/session-backup?allowDowngrade=1&forceReplace=1&reason=manual-remove-new-analyzer-leads-queue`,
+      `${PROD}/analyzer/api/session-backup?allowDowngrade=1&forceReplace=1&confirmUnscannedPurge=1&reason=manual-remove-new-analyzer-leads-queue`,
       {
         method: 'POST',
         headers: {
@@ -192,9 +234,10 @@ async function main() {
 
   // Local admin session (same treatment)
   if (fs.existsSync(LOCAL_SESSION)) {
+    const local = JSON.parse(fs.readFileSync(LOCAL_SESSION, 'utf8'));
+    assertSafeToPurge('local', local);
     const bak = `${LOCAL_SESSION}.bak-remove-new-leads-${Date.now()}`;
     fs.copyFileSync(LOCAL_SESSION, bak);
-    const local = JSON.parse(fs.readFileSync(LOCAL_SESSION, 'utf8'));
     const out = stripNewLeads(local);
     fs.writeFileSync(LOCAL_SESSION, JSON.stringify(out.session));
     console.log('[remove] local admin updated', {
@@ -206,10 +249,9 @@ async function main() {
   }
 
   console.log('[remove] done — scan queue cleared of New Analyzer Leads; results preserved.');
-  console.log('[remove] You can now upload the file yourself in Ready to scan.');
 }
 
 main().catch((err) => {
-  console.error('[remove] FATAL', err);
+  console.error('[remove] FATAL', err.message || err);
   process.exit(1);
 });

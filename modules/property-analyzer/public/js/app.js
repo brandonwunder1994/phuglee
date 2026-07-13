@@ -1255,6 +1255,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
 
     abortSessionBackgroundLoad();
     state.running = true;
+    state.scanStartedAt = Date.now();
     // Live scan must recompute KPIs from growing results, not stale server snapshot
     delete state._tierCountsFromServer;
     delete state._geoFromServer;
@@ -1506,6 +1507,66 @@ R.startScanAnalysis = async function startScanAnalysis() {
     flushPendingServerSave(saveReason);
     flushSaveSession({ sync: true, force: true, reason: saveReason });
     persistScanProgressNow?.(saveReason);
+
+    // Force JSONL → LATEST merge so Distressed / WM / Vacant see this run immediately.
+    let promoteOk = true;
+    if (USE_PROXY) {
+      try {
+        const res = await apiFetch('/api/recover-incremental', { method: 'POST' });
+        if (!res.ok) promoteOk = false;
+      } catch (_) {
+        promoteOk = false;
+      }
+    }
+
+    const startedAt = Number(state.scanStartedAt) || 0;
+    const baseline = Number(state.scanBaselineResults) || 0;
+    const growth = Math.max(0, (state.results || []).length - baseline);
+    const batchNew = (state.results || []).filter(
+      (r) => Number(r.analyzedAt || r.savedAt || 0) >= startedAt - 60_000
+    );
+    const tierTallies = {
+      distressed: 0,
+      well_maintained: 0,
+      vacant: 0,
+      review: 0,
+      other: 0
+    };
+    for (const r of batchNew) {
+      const t = String(r.leadTier || r.tier || 'other').toLowerCase().replace(/-/g, '_');
+      if (t in tierTallies) tierTallies[t] += 1;
+      else tierTallies.other += 1;
+    }
+    const expected = Number(state.scanBatchDone) || Number(state.succeeded) || 0;
+    const saved = Math.max(growth, batchNew.length);
+    const bucketLine =
+      `Distressed ${tierTallies.distressed.toLocaleString()} · ` +
+      `Well Maintained ${tierTallies.well_maintained.toLocaleString()} · ` +
+      `Vacant ${tierTallies.vacant.toLocaleString()}` +
+      (tierTallies.review || tierTallies.other
+        ? ` · Other ${(tierTallies.review + tierTallies.other).toLocaleString()}`
+        : '');
+
+    if (!failed && expected > 0) {
+      if (saved < Math.max(1, Math.floor(expected * 0.8))) {
+        const warn =
+          `Save check failed: scan reported ${expected.toLocaleString()} done, ` +
+          `but only ${saved.toLocaleString()} landed in the session.\n\n` +
+          `${bucketLine}\n\n` +
+          `Do NOT purge the queue. Hard-refresh, then tell me — we can recover from scan_results/*.jsonl.`;
+        log(warn, 'error');
+        alert(warn);
+      } else {
+        const okMsg =
+          `Scan saved (${saved.toLocaleString()} leads):\n${bucketLine}\n\n` +
+          `Open Review Leads → Distressed / Well Maintained / Vacant. ` +
+          `They need manual Keep/Change — they are not auto-approved.` +
+          (promoteOk ? '' : '\n\n(Promote merge had a hiccup — refresh if buckets look short.)');
+        log(`Saved into buckets — ${bucketLine}`, 'success');
+        if (!state.aborted) alert(okMsg);
+      }
+    }
+
     // Keep batch counters for UI until next start (shows what finished after stop)
     if (!state.aborted) {
       state.scanBatchDone = state.scanBatchTotal || state.scanBatchDone;
