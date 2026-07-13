@@ -7,10 +7,16 @@
   with (R) {
 
 R.BATCH_SIZE = 50;
-/** Operator band: always run 5–8 parallel workers (never drop to 2 under throttle). */
+/**
+ * Operator band: 5–10 parallel property workers.
+ * Soft API pressure can lower toward 5; clean batches climb back to the slider max.
+ * Never collapses to 1 — that used to happen when a global pause left one visible Gemini slot.
+ */
 R.MIN_CONCURRENT_LIMIT = 5;
-R.DEFAULT_CONCURRENT_LIMIT = 8;
-R.MAX_SAFE_CONCURRENT = 8;
+R.DEFAULT_CONCURRENT_LIMIT = 10;
+R.MAX_SAFE_CONCURRENT = 10;
+/** Cooldown so server status polls don’t keep hammering scale-down every 5s. */
+R.SCALE_DOWN_COOLDOWN_MS = 45000;
 R.STREET_VIEW_SIZE = '640x480';
 R.CARD_THUMB_SIZE = '400x300';
 R.CARD_SAT_THUMB_SIZE = '400x400';
@@ -1189,15 +1195,21 @@ R.refreshServerStatusUi = async function refreshServerStatusUi() {
       if (diagGemini) setDiag(diagGemini, 'fail', 'Gemini: ⚠ QUOTA / CREDITS EXHAUSTED');
       if (diagFull) setDiag(diagFull, 'fail', 'Full pipeline: ⚠ reload API credits before scanning');
     } else if (st.gemini?.rateLimited) {
-      if (state.running) {
-        scaleDownWorkers?.('Gemini rate limits (server)', { hard: true });
+      // Only throttle when the Gemini queue is actually backed up — recent429 alone
+      // stays true for 2 minutes and was hammering scale-down every poll.
+      const gemWaiting = Number(st.gemini.waiting) || 0;
+      const gemActive = Number(st.gemini.active) || 0;
+      const gemMax = Number(st.gemini.maxConcurrent) || 8;
+      const pressure = gemWaiting >= 2 || (gemActive >= gemMax && (Number(st.gemini.recent429) || 0) >= 5);
+      if (state.running && pressure) {
+        scaleDownWorkers?.('Gemini queue pressure (server)', { hard: false });
       }
       const eff = getEffectiveConcurrentLimit();
       const msg = `${st.gemini.recent429} Gemini rate limits in the last 2 min` +
         ` (${st.gemini.active}/${st.gemini.maxConcurrent} active, ${st.gemini.waiting} queued).` +
-        ` Workers at ${eff}; pausing briefly then retrying — scan does not stop for soft limits.`;
+        ` Workers at ${eff}; scan keeps rolling — soft limits do not stop the run.`;
       notifyScanIssue('rate_limit', msg, {
-        title: state.running ? `Gemini busy — slowed to ${eff} workers` : 'Gemini rate limited — wait before bulk scan',
+        title: state.running ? `Gemini busy — ${eff} workers` : 'Gemini rate limited — wait before bulk scan',
         dedupeKey: `srv-429-${st.gemini.recent429}`,
         browserNotify: !state.running
       });
@@ -1426,6 +1438,7 @@ R.rateLimitUntil = 0;
 R.adaptiveConcurrentCap = null;
 /** Consecutive healthy batches while auto-throttled — used to scale workers back up. */
 R.adaptiveHealthyStreak = 0;
+R.lastScaleDownAt = 0;
 
 R.syncResultCounters = function syncResultCounters() {
   state.succeeded = state.results.length;
@@ -1472,7 +1485,7 @@ R.countBatchPressureFailuresInSlice = function countBatchPressureFailuresInSlice
 
 R.clampWorkerCount = function clampWorkerCount(n) {
   const min = Number(MIN_CONCURRENT_LIMIT) || 5;
-  const max = Number(MAX_SAFE_CONCURRENT) || 8;
+  const max = Number(MAX_SAFE_CONCURRENT) || 10;
   const v = Math.round(Number(n) || DEFAULT_CONCURRENT_LIMIT);
   return Math.max(min, Math.min(max, v));
 };
@@ -1485,21 +1498,27 @@ R.getEffectiveConcurrentLimit = function getEffectiveConcurrentLimit() {
 };
 
 /**
- * Smart worker throttle within the 5–8 band.
- * Drops toward 5 when Gemini/Maps cap out; climbs back toward 8 when batches look healthy.
+ * Smart worker throttle within the 5–10 band.
+ * Soft API pressure drops toward 5; clean batches climb back to the operator max.
  * Takes effect on the next batch (in-flight workers finish their current address).
  */
 R.scaleDownWorkers = function scaleDownWorkers(reason = 'rate_limit', opts = {}) {
   const floor = Number(MIN_CONCURRENT_LIMIT) || 5;
   const userMax = clampWorkerCount(Math.min(getConcurrentLimit(), MAX_SAFE_CONCURRENT));
   const current = getEffectiveConcurrentLimit();
+  const now = Date.now();
+  const cooldown = Number(SCALE_DOWN_COOLDOWN_MS) || 45000;
+  // Status polls + repeat 429s used to call this every few seconds and keep the fleet pinned low.
+  if (!opts.force && lastScaleDownAt && (now - lastScaleDownAt) < cooldown) {
+    return false;
+  }
   if (current <= floor) {
     adaptiveHealthyStreak = 0;
     adaptiveConcurrentCap = floor;
     return false;
   }
-  // Step down by 1–2 within band (never below 5)
-  const hard = opts.hard !== false;
+  // Prefer soft −1; hard −2 only on sustained pressure.
+  const hard = opts.hard === true;
   let next = hard ? current - 2 : current - 1;
   next = clampWorkerCount(next);
   if (next >= current) return false;
@@ -1507,6 +1526,7 @@ R.scaleDownWorkers = function scaleDownWorkers(reason = 'rate_limit', opts = {})
 
   adaptiveConcurrentCap = next;
   adaptiveHealthyStreak = 0;
+  lastScaleDownAt = now;
   if (state.running) {
     try { initAgentSlots(getEffectiveConcurrentLimit()); } catch (_) {}
     try { updateWorkerActivityUi(lastServerApiStatus); } catch (_) {}
@@ -1521,7 +1541,7 @@ R.scaleDownWorkers = function scaleDownWorkers(reason = 'rate_limit', opts = {})
   return true;
 };
 
-/** After clean batches while throttled, step workers back toward the operator max (≤ 8). */
+/** After a clean batch while throttled, step workers back toward the operator max (≤ 10). */
 R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
   if (adaptiveConcurrentCap == null) {
     adaptiveHealthyStreak = 0;
@@ -1534,11 +1554,11 @@ R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
     return false;
   }
   adaptiveHealthyStreak = (adaptiveHealthyStreak || 0) + 1;
-  // Need two clean batches in a row before raising (avoid thrash).
-  if (adaptiveHealthyStreak < 2) return false;
+  // One clean batch is enough — recover throughput faster after soft limits.
+  if (adaptiveHealthyStreak < 1) return false;
   adaptiveHealthyStreak = 0;
   const prev = adaptiveConcurrentCap;
-  let next = clampWorkerCount(adaptiveConcurrentCap + 1);
+  let next = clampWorkerCount(adaptiveConcurrentCap + 2);
   if (next >= userMax) {
     adaptiveConcurrentCap = null;
     next = userMax;
@@ -1555,10 +1575,17 @@ R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
   return true;
 };
 
+/**
+ * Soft rate-limit wait: brief stagger only.
+ * A full-fleet freeze made the UI look like “1 worker” while everyone parked on rateLimitUntil.
+ */
 R.waitForRateLimit = async function waitForRateLimit() {
-  while (Date.now() < rateLimitUntil && !state.aborted) {
-    await sleep(400);
-  }
+  const until = rateLimitUntil || 0;
+  if (!until || Date.now() >= until || state.aborted) return;
+  const remaining = until - Date.now();
+  // Cap shared wait so one 429 can’t park the whole scan for tens of seconds.
+  const waitMs = Math.min(Math.max(remaining, 0), 2500);
+  if (waitMs > 0) await sleep(waitMs);
 }
 
 /** Hard quota / billing / free-tier exhausted — stop scan (not retry forever). */
@@ -1758,23 +1785,26 @@ R.noteRateLimit = function noteRateLimit(err) {
   }
   const m = raw.toLowerCase();
   if (isServerConnectionError(m) || !isTransientError(m)) return;
-  // Soft limits: throttle + pause only — never abort the scan.
+  // Soft limits: brief advisory pause + gentle throttle — never abort, never freeze the fleet.
   state.apiFailStreak = 0;
   const pauseMs = /503|high demand|overloaded/.test(m)
-    ? 12000 + Math.floor(Math.random() * 6000)
-    : 8000 + Math.floor(Math.random() * 4000);
+    ? 4000 + Math.floor(Math.random() * 2000)
+    : 2500 + Math.floor(Math.random() * 1500);
   rateLimitUntil = Math.max(rateLimitUntil, Date.now() + pauseMs);
   const pauseSec = Math.ceil(pauseMs / 1000);
-  // Cap out → automatically drop parallel workers (next batch), then climb back up when healthy
-  scaleDownWorkers?.(/503|high demand|overloaded/.test(m) ? 'Gemini 503 / overload' : 'rate limit 429', { hard: true });
+  const hard = /503|high demand|overloaded/.test(m);
+  scaleDownWorkers?.(
+    hard ? 'Gemini 503 / overload' : 'rate limit 429',
+    { hard }
+  );
   const effective = getEffectiveConcurrentLimit();
   notifyScanIssue('rate_limit',
-    `Pausing all workers ~${pauseSec}s, then retrying at ${effective} parallel worker${effective === 1 ? '' : 's'} (auto-adjust on).`,
+    `Brief API pause ~${pauseSec}s — keeping ${effective} parallel worker${effective === 1 ? '' : 's'} (auto-adjust on).`,
     { dedupeKey: 'rate_limit', browserNotify: !state.rateLimitWarned }
   );
   if (!state.rateLimitWarned) {
     state.rateLimitWarned = true;
-    log(`Gemini/Google busy (503 or rate limit) — pausing ~${pauseSec}s, auto-lowering workers, then retrying.`, 'warn');
+    log(`Gemini/Google busy (503 or rate limit) — short pause ~${pauseSec}s, gentle worker adjust, scan continues.`, 'warn');
   }
 }
 

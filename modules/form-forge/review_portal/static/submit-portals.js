@@ -560,7 +560,7 @@ async function loadQueue() {
   if (card) card.hidden = true;
 
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 45000);
+  const timeout = window.setTimeout(() => controller.abort(), 120000);
   let res;
   try {
     res = await fetch("/api/portal/pending-online-requests", { signal: controller.signal });

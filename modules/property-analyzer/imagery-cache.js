@@ -75,8 +75,35 @@ function loadIndex() {
     indexCache = JSON.parse(fs.readFileSync(INDEX_FILE, 'utf8'));
     if (!indexCache.entries) indexCache.entries = {};
   } catch (err) {
-    logImagery(`Index corrupt, rebuilding: ${err.message}`, 'error');
+    logImagery(`Index corrupt, rebuilding from disk: ${err.message}`, 'error');
     indexCache = { version: 1, entries: {} };
+    try {
+      for (const type of TYPES) {
+        const dir = path.join(IMAGERY_DIR, type);
+        if (!fs.existsSync(dir)) continue;
+        for (const file of fs.readdirSync(dir)) {
+          const m = file.match(/^([a-f0-9]{16})\.(jpe?g|png|webp)$/i);
+          if (!m) continue;
+          const id = m[1].toLowerCase();
+          const ext = `.${m[2].toLowerCase().replace('jpeg', 'jpg')}`;
+          const mime = ext === '.png' ? 'image/png' : (ext === '.webp' ? 'image/webp' : 'image/jpeg');
+          const key = `${id}:${type}`;
+          indexCache.entries[key] = {
+            id,
+            type,
+            mime,
+            path: path.join(type, `${id}${ext}`),
+            url: publicUrl(type, id, mime),
+            recovered: true,
+            recoveredAt: Date.now()
+          };
+        }
+      }
+      saveIndex();
+      logImagery(`Rebuilt imagery index with ${Object.keys(indexCache.entries).length} entries from disk`);
+    } catch (rebuildErr) {
+      logImagery(`Index rebuild failed: ${rebuildErr.message}`, 'error');
+    }
   }
   return indexCache;
 }

@@ -37,14 +37,34 @@ function readScopeFromRequest(req) {
     /* standalone analyzer / auth module unavailable */
   }
   if (!username) {
-    username = sanitizePhugleeUsername(
-      req?.headers?.['x-phuglee-user'] || req?.headers?.['X-Phuglee-User'] || ''
-    );
+    let allowHeaders = true;
+    try {
+      const authPath = path.join(__dirname, '..', '..', '..', 'lib', 'phuglee-auth.js');
+      const { allowHeaderIdentityFallback } = require(authPath);
+      allowHeaders = allowHeaderIdentityFallback();
+    } catch (_) {
+      /* standalone / auth unavailable — keep legacy header fallback */
+    }
+    if (allowHeaders) {
+      username = sanitizePhugleeUsername(
+        req?.headers?.['x-phuglee-user'] || req?.headers?.['X-Phuglee-User'] || ''
+      );
+    }
   }
   if (!plan) {
-    plan = sanitizePhugleePlan(
-      req?.headers?.['x-phuglee-plan'] || req?.headers?.['X-Phuglee-Plan'] || ''
-    );
+    let allowHeaders = true;
+    try {
+      const authPath = path.join(__dirname, '..', '..', '..', 'lib', 'phuglee-auth.js');
+      const { allowHeaderIdentityFallback } = require(authPath);
+      allowHeaders = allowHeaderIdentityFallback();
+    } catch (_) {
+      /* standalone / auth unavailable */
+    }
+    if (allowHeaders) {
+      plan = sanitizePhugleePlan(
+        req?.headers?.['x-phuglee-plan'] || req?.headers?.['X-Phuglee-Plan'] || ''
+      );
+    }
   }
   return resolveSessionScope({ username, plan });
 }
@@ -62,11 +82,13 @@ function resolveSessionScope({ username = '', plan = '' } = {}) {
     };
   }
 
+  // Max users get isolated storage by username (Filter lists + Analyze sessions).
+  // Fall back to shared _vault only when username is missing.
   if (tier === 'max') {
     return {
       kind: 'vault',
       username: user || 'max',
-      storageKey: VAULT_STORAGE_KEY,
+      storageKey: user || VAULT_STORAGE_KEY,
       plan: 'max'
     };
   }

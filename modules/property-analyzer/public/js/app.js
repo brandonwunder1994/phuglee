@@ -1115,12 +1115,13 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
   const scanOpts = { deferQueue };
 
   async function worker(workerNum) {
-    await sleep(workerNum * 80);
+    await sleep(workerNum * 40);
     while (idx < batch.length && !state.aborted) {
       const i = idx++;
       const preview = await processOneRecord(batch[i], svKey, gKey, workerNum, scanOpts);
       if (preview) batchPreview = preview;
-      await sleep(200);
+      // Tiny yield so the UI stays responsive — was 200ms and stacked across workers.
+      await sleep(40);
     }
   }
 
@@ -1135,15 +1136,18 @@ R.processBatch = async function processBatch(batch, batchNum, svKey, gKey, concu
     const round = deferQueue.splice(0, deferQueue.length);
     log(`Retrying ${round.length} address(es) after API pause (round ${deferRound})…`, 'warn');
     await waitForRateLimit();
-    await sleep(3000 + deferRound * 2000);
-    const retryWorkers = Math.min(2, getEffectiveConcurrentLimit(), round.length);
+    await sleep(1500 + deferRound * 1000);
+    const retryWorkers = Math.max(
+      2,
+      Math.min(getEffectiveConcurrentLimit(), round.length)
+    );
     let ridx = 0;
     async function deferWorker(wNum) {
       while (ridx < round.length && !state.aborted) {
         const ri = ridx++;
         const preview = await processOneRecord(round[ri], svKey, gKey, wNum, scanOpts);
         if (preview) batchPreview = preview;
-        await sleep(400);
+        await sleep(150);
       }
     }
     await Promise.all(
@@ -1290,6 +1294,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
     errorBanner?.classList.remove('visible');
     rateLimitUntil = 0;
     adaptiveConcurrentCap = null;
+    lastScaleDownAt = 0;
     adaptiveHealthyStreak = 0;
     resetScanIssueState();
     setHudStatus('ACTIVE', true);

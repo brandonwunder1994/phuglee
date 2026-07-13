@@ -162,21 +162,66 @@
     });
   }
 
-  function establishServerSession(username, plan) {
-    if (window.__PHUGLEE_AUTH_DISABLED__) return Promise.resolve();
+  function establishServerSession(username, plan, password) {
+    if (window.__PHUGLEE_AUTH_DISABLED__) {
+      return fetch('/api/auth/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: username,
+          plan: plan || '',
+          password: password || ''
+        })
+      }).then(function (res) {
+        if (!res.ok) throw new Error('Session cookie failed');
+        return res.json().catch(function () { return { ok: true }; });
+      }).catch(function () {
+        return { ok: true };
+      });
+    }
     return fetch('/api/auth/login', {
       method: 'POST',
       credentials: 'same-origin',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         username: username,
-        plan: plan || ''
+        plan: plan || '',
+        password: password || ''
       })
     }).then(function (res) {
-      if (!res.ok) throw new Error('Session cookie failed');
-      return res.json().catch(function () { return {}; });
-    }).catch(function () {
-      /* Cookie session is best-effort; client sessionStorage still works. */
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (!res.ok || body.ok === false) {
+          var err = new Error((body && body.error) || 'Sign-in failed');
+          err.code = body && body.code;
+          throw err;
+        }
+        return body;
+      });
+    });
+  }
+
+  function registerServerAccount(data) {
+    return fetch('/api/auth/register', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: data.username,
+        password: data.password,
+        plan: data.plan,
+        email: data.email,
+        fullName: data.fullName
+      })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (body) {
+        if (!res.ok || body.ok === false) {
+          var err = new Error((body && body.error) || 'Could not create account');
+          err.code = body && body.code;
+          throw err;
+        }
+        return body;
+      });
     });
   }
 
@@ -189,44 +234,26 @@
 
   var BOOTSTRAP_ADMIN = {
     username: 'admin',
-    password: '',
     fullName: 'Administrator',
     email: 'admin@phuglee.com',
     plan: 'pro'
   };
 
-  function bootstrapAdminPassword() {
-    var fromConfig =
-      typeof window.__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__ === 'string'
-        ? window.__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__
-        : '';
-    return String(fromConfig || '').trim();
-  }
-
   function seedAdmin() {
+    /* Bootstrap admin is server-verified; keep a local placeholder without password. */
     try {
       var users = readUsers();
       var existing = users.admin || {};
-      var pw = bootstrapAdminPassword();
       users.admin = {
         username: 'admin',
-        password: pw || existing.password || '',
+        password: existing.password || '',
         fullName: existing.fullName || BOOTSTRAP_ADMIN.fullName,
         email: existing.email || BOOTSTRAP_ADMIN.email,
         plan: existing.plan || BOOTSTRAP_ADMIN.plan,
         createdAt: existing.createdAt || Date.now()
       };
       writeUsers(users);
-    } catch (_) {
-      /* localStorage blocked — login() still accepts bootstrap admin */
-    }
-  }
-
-  function isBootstrapAdmin(username, password) {
-    var key = (username || '').trim().toLowerCase();
-    var expected = bootstrapAdminPassword();
-    if (!expected) return false;
-    return (key === 'admin' || key === 'admin@phuglee.com') && password === expected;
+    } catch (_) {}
   }
 
   function isAuthenticated() {
@@ -297,49 +324,54 @@
   }
 
   function login(username, password) {
-    var key = username.trim().toLowerCase();
-
-    if (isBootstrapAdmin(username, password)) {
-      if (!setSession('admin')) {
-        return Promise.resolve({
-          ok: false,
-          error: 'Could not save login session. Allow cookies/storage for this site and try again.'
-        });
-      }
-      try { seedAdmin(); } catch (_) {}
-      return migrateUserPasswordIfNeeded('admin', password, (readUsers().admin || {}).password)
-        .catch(function () {})
-        .then(function () {
-          return establishServerSession('admin', BOOTSTRAP_ADMIN.plan).then(function () {
-            return { ok: true, user: Object.assign({}, BOOTSTRAP_ADMIN) };
-          });
-        });
+    var key = String(username || '').trim().toLowerCase();
+    if (!key) {
+      return Promise.resolve({ ok: false, error: 'Enter your username.' });
+    }
+    if (!password) {
+      return Promise.resolve({ ok: false, error: 'Enter your password.' });
     }
 
-    var users = readUsers();
-    var user = users[key];
-    if (!user) {
-      return Promise.resolve({ ok: false, error: 'Invalid username or password.' });
-    }
-
-    return verifyPassword(password, user.password).then(function (match) {
-      if (!match) {
-        return { ok: false, error: 'Invalid username or password.' };
-      }
-      if (!setSession(key)) {
+    return establishServerSession(key, '', password)
+      .then(function (body) {
+        var sessionUser = (body && body.username) || key;
+        var plan = (body && body.plan) || '';
+        if (!setSession(sessionUser)) {
+          return {
+            ok: false,
+            error: 'Could not save login session. Allow cookies/storage for this site and try again.'
+          };
+        }
+        try {
+          var users = readUsers();
+          var existing = users[sessionUser] || {};
+          users[sessionUser] = {
+            username: sessionUser,
+            password: existing.password || '',
+            fullName: existing.fullName || (sessionUser === 'admin' ? BOOTSTRAP_ADMIN.fullName : ''),
+            email: existing.email || (sessionUser === 'admin' ? BOOTSTRAP_ADMIN.email : ''),
+            plan: plan || existing.plan || (sessionUser === 'admin' ? BOOTSTRAP_ADMIN.plan : 'lite'),
+            createdAt: existing.createdAt || Date.now()
+          };
+          writeUsers(users);
+          if (sessionUser === 'admin') seedAdmin();
+        } catch (_) {}
+        return {
+          ok: true,
+          user: {
+            username: sessionUser,
+            plan: plan || (readUsers()[sessionUser] || {}).plan || '',
+            fullName: (readUsers()[sessionUser] || {}).fullName || '',
+            email: (readUsers()[sessionUser] || {}).email || ''
+          }
+        };
+      })
+      .catch(function (err) {
         return {
           ok: false,
-          error: 'Could not save login session. Allow cookies/storage for this site and try again.'
+          error: (err && err.message) || 'Invalid username or password.'
         };
-      }
-      return migrateUserPasswordIfNeeded(key, password, user.password)
-        .catch(function () {})
-        .then(function () {
-          return establishServerSession(key, user.plan).then(function () {
-            return { ok: true, user: user };
-          });
-        });
-    });
+      });
   }
 
   function signup(data) {
@@ -373,34 +405,50 @@
       return Promise.resolve({ ok: false, error: 'Select a plan to continue.' });
     }
 
-    var users = readUsers();
-    if (users[username]) {
-      return Promise.resolve({ ok: false, error: 'That username is already taken.' });
-    }
-
-    var takenEmail = Object.keys(users).some(function (k) {
-      return users[k].email === email;
-    });
-    if (takenEmail) {
-      return Promise.resolve({ ok: false, error: 'An account with this contact already exists.' });
-    }
-
-    return hashPassword(password)
-      .catch(function () {
-        /* Fallback only if Web Crypto blocked — still better than silent fail. */
-        return password;
+    return registerServerAccount({
+      username: username,
+      password: password,
+      plan: plan,
+      email: email,
+      fullName: fullName
+    })
+      .then(function (body) {
+        var sessionUser = (body && body.username) || username;
+        var sessionPlan = (body && body.plan) || plan;
+        return hashPassword(password)
+          .catch(function () { return ''; })
+          .then(function (storedPassword) {
+            try {
+              var users = readUsers();
+              users[sessionUser] = {
+                username: sessionUser,
+                password: storedPassword || '',
+                fullName: fullName,
+                email: email,
+                plan: sessionPlan,
+                createdAt: Date.now()
+              };
+              writeUsers(users);
+            } catch (_) {}
+            if (!setSession(sessionUser)) {
+              return {
+                ok: false,
+                error: 'Account created but session could not be saved. Sign in manually.'
+              };
+            }
+            return {
+              ok: true,
+              username: sessionUser,
+              plan: sessionPlan,
+              autoLogin: true
+            };
+          });
       })
-      .then(function (storedPassword) {
-        users[username] = {
-          username: username,
-          password: storedPassword,
-          fullName: fullName,
-          email: email,
-          plan: plan,
-          createdAt: Date.now()
+      .catch(function (err) {
+        return {
+          ok: false,
+          error: (err && err.message) || 'Could not create account. Try again.'
         };
-        writeUsers(users);
-        return { ok: true, username: username };
       });
   }
 
@@ -729,27 +777,12 @@
     state.pendingUsername = username;
     var success = $('#auth-success');
     if (success) success.hidden = false;
-
+    setRememberedUsername(username);
     setTimeout(function () {
       if (success) success.hidden = true;
-      state.selectedPlan = null;
-      document.querySelectorAll('.auth-pricing-card').forEach(function (btn) {
-        btn.classList.remove('is-selected');
-        btn.setAttribute('aria-pressed', 'false');
-      });
-      var signupForm = $('#auth-signup-form');
-      if (signupForm) signupForm.reset();
-      showError($('#auth-signup-error'), '');
-      showView('login');
-      prefillLoginUsername(username);
-      setRememberedUsername(username);
-      var pwd = $('#auth-login-password');
-      if (pwd) {
-        pwd.value = '';
-        setTimeout(function () { pwd.focus(); }, 300);
-      }
       state.pendingUsername = null;
-    }, 2200);
+      handleLoginSuccess(username);
+    }, 900);
   }
 
   function bindEvents() {

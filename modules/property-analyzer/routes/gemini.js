@@ -7,7 +7,7 @@ const GEMINI_MODELS = [
   'gemini-2.5-flash',
   'gemini-1.5-flash'
 ];
-const GEMINI_MAX_CONCURRENT = 8;
+const GEMINI_MAX_CONCURRENT = 10;
 
 let serverGeminiKey = '';
 let geminiActive = 0;
@@ -44,7 +44,7 @@ function getGeminiQueueState() {
   return { active: geminiActive, waiting: geminiWaiters.length, maxConcurrent: GEMINI_MAX_CONCURRENT };
 }
 
-function httpsPost(url, body, headers = {}) {
+function httpsPost(url, body, headers = {}, timeoutMs = 60000) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
     const data = Buffer.from(body);
@@ -64,6 +64,10 @@ function httpsPost(url, body, headers = {}) {
         status: res.statusCode,
         body: Buffer.concat(chunks).toString('utf8')
       }));
+    });
+    req.setTimeout(timeoutMs, () => {
+      req.destroy();
+      reject(new Error(`Gemini request timed out after ${Math.round(timeoutMs / 1000)}s`));
     });
     req.on('error', reject);
     req.write(data);

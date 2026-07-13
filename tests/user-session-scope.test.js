@@ -32,6 +32,13 @@ test('resolveSessionScope maps users to isolated storage keys', () => {
   assert.deepEqual(resolveSessionScope({ username: 'team1', plan: 'max' }), {
     kind: 'vault',
     username: 'team1',
+    storageKey: 'team1',
+    plan: 'max'
+  });
+
+  assert.deepEqual(resolveSessionScope({ username: '', plan: 'max' }), {
+    kind: 'vault',
+    username: 'max',
     storageKey: '_vault',
     plan: 'max'
   });
@@ -72,7 +79,7 @@ test('resolveIndexScope matches analyzer session routing', () => {
   assert.equal(lite.storageKey, 'newbie');
 
   const max = resolveIndexScope({ username: 'buyer', plan: 'max' });
-  assert.equal(max.storageKey, '_vault');
+  assert.equal(max.storageKey, 'buyer');
 });
 
 test('empty scoped sessions have no importable addresses', () => {

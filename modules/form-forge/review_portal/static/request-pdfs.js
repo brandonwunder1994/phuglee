@@ -436,7 +436,7 @@ async function loadQueue() {
   $("#request-card").hidden = true;
 
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), 45000);
+  const timeout = window.setTimeout(() => controller.abort(), 120000);
   let res;
   try {
     res = await fetch("/api/portal/pending-pdf-requests", { signal: controller.signal });

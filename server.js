@@ -235,6 +235,7 @@ async function handleRequest(req, res) {
 
   if (pathname === '/api/auth/login' && req.method === 'POST') {
     const auth = require('./lib/phuglee-auth');
+    const credentials = require('./lib/phuglee-credentials');
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
     let body = {};
@@ -245,16 +246,90 @@ async function handleRequest(req, res) {
       return;
     }
     const username = String(body.username || '').trim();
-    const plan = String(body.plan || '').trim();
+    const password = String(body.password || '');
+    const planHint = String(body.plan || '').trim();
     try {
-      const token = auth.createSessionToken({ username, plan });
-      send(res, 200, JSON.stringify({ ok: true, username: auth.verifySessionToken(token).username }), 'application/json', {
+      let sessionUser = username;
+      let sessionPlan = planHint;
+
+      if (config.AUTH_DISABLED) {
+        // Local convenience: mint session without password, but still sanitize.
+        if (!sessionUser) {
+          send(res, 400, JSON.stringify({ error: 'Username required', code: 'USERNAME_REQUIRED' }), 'application/json');
+          return;
+        }
+      } else {
+        const verified = credentials.authenticateUser(username, password);
+        if (!verified.ok) {
+          send(res, 401, JSON.stringify({
+            ok: false,
+            error: verified.error,
+            code: verified.code
+          }), 'application/json');
+          return;
+        }
+        sessionUser = verified.username;
+        sessionPlan = verified.plan || planHint;
+      }
+
+      const token = auth.createSessionToken({ username: sessionUser, plan: sessionPlan });
+      const session = auth.verifySessionToken(token);
+      send(res, 200, JSON.stringify({
+        ok: true,
+        username: session.username,
+        plan: session.plan || ''
+      }), 'application/json', {
         'Set-Cookie': auth.buildSessionCookieHeader(token, req)
       });
     } catch (err) {
       send(res, 400, JSON.stringify({
         error: err.message || 'Login failed',
         code: err.code || 'LOGIN_FAILED'
+      }), 'application/json');
+    }
+    return;
+  }
+
+  if (pathname === '/api/auth/register' && req.method === 'POST') {
+    const auth = require('./lib/phuglee-auth');
+    const credentials = require('./lib/phuglee-credentials');
+    const chunks = [];
+    for await (const chunk of req) chunks.push(chunk);
+    let body = {};
+    try {
+      body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+    } catch {
+      send(res, 400, JSON.stringify({ error: 'Invalid JSON', code: 'INVALID_JSON' }), 'application/json');
+      return;
+    }
+    const registered = credentials.registerUser({
+      username: body.username,
+      password: body.password,
+      plan: body.plan,
+      email: body.email,
+      fullName: body.fullName
+    });
+    if (!registered.ok) {
+      send(res, 400, JSON.stringify(registered), 'application/json');
+      return;
+    }
+    try {
+      const token = auth.createSessionToken({
+        username: registered.username,
+        plan: registered.plan
+      });
+      const session = auth.verifySessionToken(token);
+      send(res, 200, JSON.stringify({
+        ok: true,
+        username: session.username,
+        plan: session.plan || registered.plan
+      }), 'application/json', {
+        'Set-Cookie': auth.buildSessionCookieHeader(token, req)
+      });
+    } catch (err) {
+      send(res, 400, JSON.stringify({
+        error: err.message || 'Register failed',
+        code: err.code || 'REGISTER_FAILED'
       }), 'application/json');
     }
     return;
@@ -322,15 +397,11 @@ async function handleRequest(req, res) {
   }
 
   if (pathname === '/js/auth-config.js' && (req.method === 'GET' || req.method === 'HEAD')) {
-    // When auth is required, only export the flag. Never auto-login as admin.
-    // Bootstrap admin password comes from env — never hardcode in public/js/auth.js.
-    const bootstrapPw = String(process.env.PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD || '').trim();
-    const pwLiteral = JSON.stringify(bootstrapPw);
+    // Never ship bootstrap passwords to the browser. Auth is server-verified.
     const body = config.AUTH_DISABLED
       ? [
           '(function () {',
           '  window.__PHUGLEE_AUTH_DISABLED__ = true;',
-          `  window.__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__ = ${pwLiteral};`,
           "  try {",
           "    sessionStorage.removeItem('phuglee_logout');",
           "    sessionStorage.setItem('phuglee_session', 'admin');",
@@ -341,7 +412,6 @@ async function handleRequest(req, res) {
       : [
           '(function () {',
           '  window.__PHUGLEE_AUTH_DISABLED__ = false;',
-          `  window.__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__ = ${pwLiteral};`,
           '})();',
           ''
         ].join('\n');

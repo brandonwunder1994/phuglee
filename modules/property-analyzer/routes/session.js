@@ -6,6 +6,23 @@ const { freeSessionDiskSpace, pruneRejectedQuarantine, isDiskSpaceError } = requ
 function register(ctx) {
   const { router, sendJson, readBody, backups, safety, config, fs, path } = ctx;
   const { DATA_ROOT, SESSION_BACKUP_FILES, SESSION_LATEST_FILE, ARCHIVE_REJECTED_DIR } = config;
+  const { readScopeFromRequest } = require('../lib/user-session');
+
+  function rejectAnonymousWrite(req, res) {
+    try {
+      const authPath = require('path').join(__dirname, '..', '..', '..', 'lib', 'phuglee-auth.js');
+      const { isAuthRequired } = require(authPath);
+      if (!isAuthRequired()) return false;
+    } catch (_) {
+      return false;
+    }
+    const scope = readScopeFromRequest(req);
+    if (scope.kind === 'anonymous') {
+      sendJson(res, 401, { ok: false, error: 'Authentication required', code: 'AUTH_REQUIRED' });
+      return true;
+    }
+    return false;
+  }
 
   function finalizeSession(session) {
     return backups.promoteMergedSessionIfBetter(session);
@@ -162,6 +179,7 @@ function register(ctx) {
   });
 
   router.post('/api/scan-result', async (req, res, url) => {
+    if (rejectAnonymousWrite(req, res)) return true;
     backups.rememberActiveScope(req);
     let raw = await readBody(req);
     let body;
@@ -245,6 +263,7 @@ function register(ctx) {
    * Body: { replaceQueue?: true, records: [], importBatches?: [], fileName?: string }
    */
   router.post('/api/session-scan-queue', async (req, res, url) => {
+    if (rejectAnonymousWrite(req, res)) return true;
     let body;
     try {
       body = JSON.parse(await readBody(req));
@@ -327,6 +346,7 @@ function register(ctx) {
   });
 
   router.post('/api/session-backup', async (req, res, url) => {
+    if (rejectAnonymousWrite(req, res)) return true;
     const { scope } = backups.loadSessionForRequest(req);
     let raw = await readBody(req);
     let session;

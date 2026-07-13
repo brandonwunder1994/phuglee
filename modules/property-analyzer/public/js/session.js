@@ -1440,15 +1440,21 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
       reviewResolved: true,
       needsReviewLater: false
     },
-    storageKey: 'admin'
+    storageKey: (typeof getSessionUser === 'function' && getSessionUser()) || 'admin'
   });
   const headers = { 'Content-Type': 'application/json' };
-  // Prefer root Vault API (lives outside /analyzer); fall back to relative if proxied.
   const urls = ['/api/leads/publish-from-analyzer'];
   const token = typeof window !== 'undefined' && window.__PDA_AUTH_TOKEN__;
   if (token) headers['X-PDA-Token'] = token;
-  headers['X-Phuglee-User'] = 'admin';
-  headers['X-Phuglee-Plan'] = 'max';
+  try {
+    const user = sessionStorage.getItem('phuglee_session') || 'admin';
+    headers['X-Phuglee-User'] = user;
+    const plan = sessionStorage.getItem('phuglee_plan') || (user === 'admin' ? 'pro' : 'max');
+    headers['X-Phuglee-Plan'] = plan;
+  } catch (_) {
+    headers['X-Phuglee-User'] = 'admin';
+    headers['X-Phuglee-Plan'] = 'max';
+  }
   const send = (url) =>
     fetch(url, { method: 'POST', headers, body: payload, credentials: 'same-origin' })
       .then(async (res) => {
@@ -1460,6 +1466,9 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
       });
   send(urls[0]).catch((err) => {
     console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
+    try {
+      DistressPersistence?.showToast?.('Vault publish failed — lead saved locally', 'error', 5000);
+    } catch (_) {}
   });
 };
 

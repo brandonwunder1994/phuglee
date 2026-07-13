@@ -6307,5 +6307,5 @@
   });
 
   loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));
-  loadSavedLists().catch(() => {});
+  loadSavedLists().catch((err) => showError(err.message || 'Could not load saved Filter lists. Check login and try refresh.'));
 })();

@@ -5,13 +5,26 @@ const path = require('path');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-test('auth.js does not hardcode bootstrap admin password', () => {
+test('auth.js does not hardcode or ship bootstrap admin password', () => {
   const src = fs.readFileSync(
     path.join(__dirname, '../public/js/auth.js'),
     'utf8'
   );
   assert.equal(src.includes('wunderhaus'), false);
-  assert.match(src, /__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__/);
+  assert.equal(src.includes('__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__'), false);
+  assert.match(src, /\/api\/auth\/login/);
+  assert.match(src, /password:\s*password/);
+});
+
+test('auth-config.js never embeds bootstrap password', () => {
+  const src = fs.readFileSync(path.join(__dirname, '../server.js'), 'utf8');
+  const block = src.slice(
+    src.indexOf("pathname === '/js/auth-config.js'"),
+    src.indexOf("pathname === '/js/bridge-schema.js'")
+  );
+  assert.ok(block.length > 50);
+  assert.equal(block.includes('__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__'), false);
+  assert.equal(block.includes('PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD'), false);
 });
 
 test('analyzer landing links to /analyzer/', () => {

@@ -31,6 +31,9 @@ data/bridge-city-formats/
 data/geocodio/
 data/leads-catalog/
 
+# Server-side auth credential store (never commit)
+data/auth/
+
 # Property Analyzer runtime (modules/property-analyzer)
 modules/property-analyzer/node_modules/
 modules/property-analyzer/.env

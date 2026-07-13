@@ -2,7 +2,7 @@
   if (window.__PHUGLEE_AUTH_DISABLED__) return;
 
   var path = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
-  if (path === '/' || path === '/index.html') return;
+  if (path === '/' || path === '/index.html' || path === '/heat') return;
 
   var signOutUrl = (window.PhugleeSession && window.PhugleeSession.SIGN_OUT_URL)
     || '/?signed_out=1&login=1';

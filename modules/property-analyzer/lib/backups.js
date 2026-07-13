@@ -44,6 +44,7 @@ module.exports = function createBackups(deps) {
   let scanResultsSincePromote = 0;
   let promoteInFlight = false;
   let promoteQueued = false;
+  let promoteQueuedScope = null;
   let lastRollingBackupAt = 0;
   const sessionFileCache = { path: '', mtimeMs: 0, parsed: null };
   let sessionBackupResponseCache = { key: '', body: '' };
@@ -465,6 +466,7 @@ module.exports = function createBackups(deps) {
     const activeScope = scope || lastActiveScope || { storageKey: '_anonymous' };
     if (promoteInFlight) {
       promoteQueued = true;
+      promoteQueuedScope = activeScope;
       return { promoted: false, queued: true, results: safety?.safetyState?.lastPromoteResults || 0 };
     }
     promoteInFlight = true;
@@ -499,7 +501,9 @@ module.exports = function createBackups(deps) {
       promoteInFlight = false;
       if (promoteQueued) {
         promoteQueued = false;
-        setTimeout(() => promoteIncrementalToLatest('queued'), 8000);
+        const queuedScope = promoteQueuedScope || activeScope;
+        promoteQueuedScope = null;
+        setTimeout(() => promoteIncrementalToLatest('queued', queuedScope), 8000);
       }
     }
   }
@@ -510,7 +514,8 @@ module.exports = function createBackups(deps) {
   }
 
   function schedulePromoteAfterScanResult(req) {
-    rememberActiveScope(req);
+    const scope = rememberActiveScope(req);
+    const promoteScope = scope || lastActiveScope;
     scanResultsSincePromote++;
     if (scanResultsSincePromote >= PROMOTE_BATCH_MIN) {
       scanResultsSincePromote = 0;
@@ -519,8 +524,8 @@ module.exports = function createBackups(deps) {
         scanPromoteTimer = null;
       }
       setTimeout(() => {
-        const result = promoteIncrementalToLatest('scan-batch');
-        maybeRollingBackupAfterPromote(result);
+        const result = promoteIncrementalToLatest('scan-batch', promoteScope);
+        maybeRollingBackupAfterPromote(result, promoteScope);
       }, 100);
       return;
     }
@@ -528,12 +533,12 @@ module.exports = function createBackups(deps) {
     scanPromoteTimer = setTimeout(() => {
       scanPromoteTimer = null;
       scanResultsSincePromote = 0;
-      const result = promoteIncrementalToLatest('scan-debounce');
-      maybeRollingBackupAfterPromote(result);
+      const result = promoteIncrementalToLatest('scan-debounce', promoteScope);
+      maybeRollingBackupAfterPromote(result, promoteScope);
     }, PROMOTE_DEBOUNCE_MS);
   }
 
-  function maybeRollingBackupAfterPromote(promoteResult) {
+  function maybeRollingBackupAfterPromote(promoteResult, scope = lastActiveScope) {
     const results = Number(promoteResult?.results) || 0;
     if (!results) return;
     const now = Date.now();
@@ -543,8 +548,8 @@ module.exports = function createBackups(deps) {
         results % ROLLING_BACKUP_MIN_NEW_RESULTS === 0)
     ) {
       try {
-        const scope = lastActiveScope || { storageKey: '_anonymous' };
-        const session = readLatestSessionFileForScope(scope);
+        const activeScope = scope || lastActiveScope || { storageKey: '_anonymous' };
+        const session = readLatestSessionFileForScope(activeScope);
         if ((session.results || []).length) {
           writeRollingAutoBackup(session, 'scan_milestone', 'milestone');
           lastRollingBackupAt = now;
