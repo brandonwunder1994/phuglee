@@ -11,14 +11,17 @@ function register(ctx) {
     const file = imageryCache.readCachedFile(type, filename);
     if (!file) {
       const entry = imageryCache.lookupEntryByFilename(type, filename);
-      if (entry?.address && type === 'streetview') {
+      const fallbackAddress = String(
+        entry?.address || url.searchParams.get('address') || url.searchParams.get('fallbackAddress') || ''
+      ).trim();
+      if (fallbackAddress && type === 'streetview') {
         const q = new URLSearchParams({
-          address: entry.address,
+          address: fallbackAddress,
           fast: '1',
-          size: '400x300'
+          size: '640x640'
         });
-        if (entry.viewMeta?.panoId) q.set('pano', entry.viewMeta.panoId);
-        if (entry.viewMeta?.heading != null) q.set('heading', String(entry.viewMeta.heading));
+        if (entry?.viewMeta?.panoId) q.set('pano', entry.viewMeta.panoId);
+        if (entry?.viewMeta?.heading != null) q.set('heading', String(entry.viewMeta.heading));
         // Absolute /api path — module proxy rewrites Location to /analyzer/api/...
         res.writeHead(302, { Location: `/api/sv-image?${q.toString()}` });
         res.end();

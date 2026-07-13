@@ -194,3 +194,61 @@ test('analyzer sync skips unreviewed distressed leads', () => {
   };
   assert.equal(shouldPublishAnalyzerResult(pending), false);
 });
+
+test('mapAnalyzerResultToVaultLead rebuilds Street View URL from viewMeta pano', () => {
+  const {
+    mapAnalyzerResultToVaultLead
+  } = require('../lib/leads-platform/analyzer-sync');
+  const lead = mapAnalyzerResultToVaultLead({
+    address: '500 Recovery Ave',
+    street: '500 Recovery Ave',
+    city: 'Tyler',
+    state: 'TX',
+    score: 7,
+    leadTier: 'distressed',
+    category: 'property',
+    manuallyReviewed: true,
+    manuallyReviewedAt: Date.now(),
+    viewMeta: {
+      panoId: 'TEST_PANO_123',
+      heading: 90,
+      fov: 65,
+      panoLat: 32.3,
+      panoLng: -95.3
+    }
+  }, { storageKey: 'test' });
+
+  assert.ok(lead);
+  assert.match(lead.streetViewUrl, /^\/analyzer\/api\/sv-image\?/);
+  assert.match(lead.streetViewUrl, /pano=TEST_PANO_123/);
+  assert.match(lead.streetViewUrl, /heading=90/);
+  assert.ok(lead.photos.includes(lead.streetViewUrl));
+});
+
+test('mapAnalyzerResultToVaultLead carries distress findings and code violation type', () => {
+  const {
+    mapAnalyzerResultToVaultLead
+  } = require('../lib/leads-platform/analyzer-sync');
+  const lead = mapAnalyzerResultToVaultLead({
+    street: '12 Oak St',
+    city: 'Tyler',
+    state: 'TX',
+    score: 8,
+    leadTier: 'distressed',
+    category: 'property',
+    leadType: 'code_violation',
+    indicators: ['roof_damage_or_tarp', 'overgrown_landscaping'],
+    reason: 'Roof tarp and tall grass — deferred maintenance.',
+    tierRationale: 'Distressed: visible roof damage.',
+    manuallyReviewed: true,
+    manuallyReviewedAt: Date.now()
+  }, { storageKey: 'test' });
+
+  assert.ok(lead.distress);
+  assert.equal(lead.distress.score, 8);
+  assert.ok(lead.distress.indicators.includes('Roof Damage Or Tarp'));
+  assert.match(lead.distress.summary, /Roof tarp/);
+  assert.ok(lead.codeViolation);
+  assert.equal(lead.codeViolation.type, 'Code violation');
+  assert.ok(lead.signalTags.includes('Code violation'));
+});
