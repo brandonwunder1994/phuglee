@@ -44,6 +44,107 @@ function pruneRejectedQuarantine(fs, path, config, opts = {}) {
 }
 
 /**
+ * Drop gemini audit JSONL files older than retention (keeps newest N regardless).
+ */
+function pruneGeminiAudit(fs, path, config, opts = {}) {
+  const dir = config.GEMINI_AUDIT_DIR;
+  const maxAgeMs = Number(opts.maxAgeMs ?? config.GEMINI_AUDIT_MAX_AGE_MS) || 7 * 24 * 60 * 60 * 1000;
+  const keepMin = Number(opts.keepMin ?? config.GEMINI_AUDIT_KEEP_MIN) || 1;
+  const cutoff = Date.now() - maxAgeMs;
+  let files = 0;
+  let bytes = 0;
+  if (!dir || !fs.existsSync(dir)) return { files, bytes };
+
+  let entries = [];
+  try {
+    entries = fs.readdirSync(dir)
+      .filter((n) => /^gemini_audit_.*\.jsonl$/i.test(n))
+      .map((name) => {
+        const full = path.join(dir, name);
+        try {
+          const st = fs.statSync(full);
+          return { full, mtimeMs: st.mtimeMs, size: st.size || 0 };
+        } catch (_) {
+          return null;
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+  } catch (_) {
+    return { files, bytes };
+  }
+
+  for (let i = 0; i < entries.length; i += 1) {
+    const entry = entries[i];
+    if (i < keepMin) continue;
+    if (entry.mtimeMs >= cutoff) continue;
+    try {
+      fs.unlinkSync(entry.full);
+      files += 1;
+      bytes += entry.size;
+    } catch (_) {}
+  }
+  return { files, bytes };
+}
+
+function pruneBackupsToLimits(fs, path, config) {
+  const specs = [
+    [config.AUTO_BACKUPS_DIR, config.MAX_EPHEMERAL_BACKUPS, new Set(['SAFETY_STATUS.json', 'MIRROR_LATEST.json'])],
+    [config.MILESTONE_BACKUPS_DIR, config.MAX_MILESTONE_BACKUPS, new Set()],
+    [config.MANUAL_BACKUPS_DIR, config.MAX_MANUAL_BACKUPS, new Set()]
+  ];
+  let files = 0;
+  let bytes = 0;
+
+  for (const [dir, maxFiles, protectedNames] of specs) {
+    if (!dir || !fs.existsSync(dir)) continue;
+    let entries = [];
+    try {
+      entries = fs.readdirSync(dir)
+        .filter((f) => f.endsWith('.json') && !protectedNames.has(f))
+        .map((f) => {
+          const full = path.join(dir, f);
+          try {
+            const st = fs.statSync(full);
+            return { full, mtimeMs: st.mtimeMs, size: st.size || 0 };
+          } catch (_) {
+            return null;
+          }
+        })
+        .filter(Boolean)
+        .sort((a, b) => b.mtimeMs - a.mtimeMs);
+    } catch (_) {
+      continue;
+    }
+    for (let i = maxFiles; i < entries.length; i += 1) {
+      try {
+        fs.unlinkSync(entries[i].full);
+        files += 1;
+        bytes += entries[i].size;
+      } catch (_) {}
+    }
+  }
+  return { files, bytes };
+}
+
+/**
+ * Startup pass: enforce backup caps, prune old Gemini audit, clear temp/quarantine files.
+ * Never deletes live session or cached property_imagery JPEGs.
+ */
+function runStartupVolumeMaintenance(fs, path, config) {
+  const backupPrune = pruneBackupsToLimits(fs, path, config);
+  const auditPrune = pruneGeminiAudit(fs, path, config);
+  const cleanup = freeSessionDiskSpace(fs, path, config, { aggressive: false });
+  return {
+    files: backupPrune.files + auditPrune.files + cleanup.files,
+    bytes: backupPrune.bytes + auditPrune.bytes + cleanup.bytes,
+    backupPrune,
+    auditPrune,
+    cleanup
+  };
+}
+
+/**
  * Free disk space for session saves, imagery cache, and scan logs.
  * Never deletes live distressAnalyzerSession_LATEST.json files.
  */
@@ -52,15 +153,15 @@ function freeSessionDiskSpace(fs, path, config, { aggressive = false } = {}) {
     config.AUTO_BACKUPS_DIR,
     config.ARCHIVE_DIR
   ];
-  if (aggressive) {
-    dirs.push(
-      config.MILESTONE_BACKUPS_DIR,
-      config.MANUAL_BACKUPS_DIR,
-      config.GEMINI_AUDIT_DIR
-    );
-  }
   let files = 0;
   let bytes = 0;
+
+  if (aggressive) {
+    const backupPrune = pruneBackupsToLimits(fs, path, config);
+    const auditPrune = pruneGeminiAudit(fs, path, config);
+    files += backupPrune.files + auditPrune.files;
+    bytes += backupPrune.bytes + auditPrune.bytes;
+  }
 
   function rmFile(full) {
     try {
@@ -184,4 +285,11 @@ function isDiskSpaceError(err) {
   return code === 'ENOSPC' || /no space left on device|disk full|not enough space/.test(msg);
 }
 
-module.exports = { freeSessionDiskSpace, pruneRejectedQuarantine, isDiskSpaceError };
+module.exports = {
+  freeSessionDiskSpace,
+  pruneRejectedQuarantine,
+  pruneGeminiAudit,
+  pruneBackupsToLimits,
+  runStartupVolumeMaintenance,
+  isDiskSpaceError
+};

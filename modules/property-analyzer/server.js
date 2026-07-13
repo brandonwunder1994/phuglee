@@ -6,6 +6,7 @@ const imageryCache = require('./imagery-cache');
 const config = require('./lib/config');
 const { sendJson, readBody, corsPreflight } = require('./lib/http');
 const { createRouter } = require('./lib/router');
+const { runStartupVolumeMaintenance } = require('./lib/disk-cleanup');
 const createBackups = require('./lib/backups');
 const createSafety = require('./lib/safety');
 const { ensureSeededSession } = require('./lib/seed-session');
@@ -350,6 +351,16 @@ function bootStandaloneServer() {
     console.log('');
 
     setImmediate(() => {
+      try {
+        const volume = runStartupVolumeMaintenance(fs, path, config);
+        if (volume.files > 0) {
+          console.log(
+            `[Volume] Startup maintenance freed ${volume.files} file(s), ~${Math.round(volume.bytes / 1024)} KB`
+          );
+        }
+      } catch (err) {
+        console.warn('[Volume] Startup maintenance failed:', err?.message || err);
+      }
       try {
         const promoteResult = backups.promoteIncrementalToLatest('startup');
         safety.safetyState.lastStartupPromote = {

@@ -6,6 +6,13 @@ const DATA_ROOT = process.env.PDA_DATA_ROOT
   ? path.resolve(process.env.PDA_DATA_ROOT)
   : ROOT;
 
+function intEnv(name, fallback) {
+  const n = Number(process.env[name]);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+const GEMINI_AUDIT_MAX_AGE_DAYS = intEnv('PDA_GEMINI_AUDIT_MAX_AGE_DAYS', 7);
+
 function ensureDir(dir) {
   try {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
@@ -54,10 +61,12 @@ module.exports = {
   AUTH_TOKEN_FILE: path.join(DATA_ROOT, 'logs', 'pda-auth.token'),
   MAPS_KEY_FILE: path.join(DATA_ROOT, 'maps-api-key.txt'),
   OFFSITE_MIN_INTERVAL_MS: 5 * 60 * 1000,
-  MAX_EPHEMERAL_BACKUPS: 12,
-  /** Full-session checkpoints (~60MB each). 12 ≈ 720MB cap — enough for recovery without 4GB bloat. */
-  MAX_MILESTONE_BACKUPS: 12,
-  MAX_MANUAL_BACKUPS: 10,
+  /** Railway 500MB volumes: keep few full-session copies (override via PDA_MAX_* env). */
+  MAX_EPHEMERAL_BACKUPS: intEnv('PDA_MAX_EPHEMERAL_BACKUPS', 4),
+  MAX_MILESTONE_BACKUPS: intEnv('PDA_MAX_MILESTONE_BACKUPS', 2),
+  MAX_MANUAL_BACKUPS: intEnv('PDA_MAX_MANUAL_BACKUPS', 3),
+  GEMINI_AUDIT_MAX_AGE_MS: GEMINI_AUDIT_MAX_AGE_DAYS * 24 * 60 * 60 * 1000,
+  GEMINI_AUDIT_KEEP_MIN: intEnv('PDA_GEMINI_AUDIT_KEEP_MIN', 1),
   MAX_REJECTED_QUARANTINE: 8,
   REJECTED_QUARANTINE_MAX_AGE_MS: 7 * 24 * 60 * 60 * 1000,
   AUTO_SAFETY_TICK_MS: 60 * 1000,
