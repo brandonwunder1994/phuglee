@@ -252,6 +252,7 @@ R.setReviewImages = function setReviewImages({ streetView = null, satellite = nu
 R.getReviewKind = function getReviewKind(filter = state.reviewFilter) {
   if (filter === 'vacant') return 'land';
   if (filter === 'review') return 'needs_review';
+  if (filter === 'satellite_only') return 'satellite_only';
   return 'tier';
 }
 
@@ -277,10 +278,12 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
   const well = state.reviewFilter === 'well_maintained';
   const land = kind === 'land';
   const needsReview = kind === 'needs_review';
+  const satelliteOnly = kind === 'satellite_only';
   reviewModeInner?.classList.toggle('review-kind-distressed', distressed);
   reviewModeInner?.classList.toggle('review-kind-well-maintained', well);
   reviewModeInner?.classList.toggle('review-kind-land', land);
   reviewModeInner?.classList.toggle('review-kind-needs-review', needsReview);
+  reviewModeInner?.classList.toggle('review-kind-satellite-only', satelliteOnly);
 
   const labelTier = (key) => {
     if (typeof tierUiLabel === 'function') return tierUiLabel(key);
@@ -289,7 +292,8 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
   };
 
   if (reviewModeBadge) {
-    if (land) reviewModeBadge.textContent = labelTier('vacant');
+    if (satelliteOnly) reviewModeBadge.textContent = labelTier('satellite_only');
+    else if (land) reviewModeBadge.textContent = labelTier('vacant');
     else if (needsReview) reviewModeBadge.textContent = labelTier('review');
     else if (distressed) reviewModeBadge.textContent = labelTier('distressed');
     else reviewModeBadge.textContent = labelTier('well_maintained');
@@ -298,7 +302,11 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
   const tierMode = kind === 'tier';
   if (reviewKeepBtn) {
     reviewKeepBtn.classList.remove('keep', 'change-tier', 'to-distressed', 'to-well-maintained', 'home');
-    if (land) {
+    if (satelliteOnly) {
+      reviewKeepBtn.classList.add('keep');
+      reviewKeepBtn.innerHTML = `Keep ${labelTier('satellite_only')} <kbd>1</kbd>`;
+      reviewKeepBtn.title = 'Keep parked for satellite-only re-scan (1)';
+    } else if (land) {
       reviewKeepBtn.classList.add('keep');
       reviewKeepBtn.innerHTML = `Keep ${labelTier('vacant')} <kbd>1</kbd>`;
       reviewKeepBtn.title = 'Confirm vacant lot / land (1)';
@@ -316,7 +324,11 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
   if (reviewChangeBtn) {
     reviewChangeBtn.hidden = false;
     reviewChangeBtn.classList.remove('change-tier', 'home', 'to-well-maintained', 'to-distressed');
-    if (tierMode) {
+    if (satelliteOnly) {
+      reviewChangeBtn.classList.add('home');
+      reviewChangeBtn.innerHTML = `Home <kbd>2</kbd>`;
+      reviewChangeBtn.title = 'Clear Satellite Only — mark as home (2)';
+    } else if (tierMode) {
       const changeTier = getReviewChangeTier();
       const changeLabel = labelTier(changeTier);
       reviewChangeBtn.classList.add('change-tier');
@@ -360,8 +372,17 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
     reviewBlurredBtn.title = 'Cannot see or assess the home — move to Blocked Image list only (5)';
   }
 
+  if (typeof reviewSatelliteOnlyBtn !== 'undefined' && reviewSatelliteOnlyBtn) {
+    reviewSatelliteOnlyBtn.hidden = false;
+    reviewSatelliteOnlyBtn.classList.toggle('is-current', satelliteOnly);
+    reviewSatelliteOnlyBtn.innerHTML = `${labelTier('satellite_only')} <kbd>7</kbd>`;
+    reviewSatelliteOnlyBtn.title = satelliteOnly
+      ? 'Already in Satellite Only — use Keep to confirm (7)'
+      : 'Park for satellite-only re-scan later (7)';
+  }
+
   if (reviewUndoBtn) {
-    if (tierMode || needsReview) {
+    if (tierMode || needsReview || satelliteOnly) {
       reviewUndoBtn.innerHTML = `Undo <kbd>6</kbd>`;
       reviewUndoBtn.title = 'Undo last change (6)';
     } else if (land) {
@@ -380,6 +401,7 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
         <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> Home</span>
         <span class="review-shortcut-chip"><kbd>3</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
+        <span class="review-shortcut-chip"><kbd>7</kbd> ${labelTier('satellite_only')}</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     } else if (needsReview) {
       reviewShortcutChips.innerHTML = `
@@ -387,6 +409,14 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
         <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> ${labelTier('well_maintained')}</span>
         <span class="review-shortcut-chip chip-vacant"><kbd>3</kbd> ${labelTier('vacant')}</span>
         <span class="review-shortcut-chip chip-defer"><kbd>4</kbd> Later</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
+        <span class="review-shortcut-chip"><kbd>7</kbd> ${labelTier('satellite_only')}</span>
+        <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
+        <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
+    } else if (satelliteOnly) {
+      reviewShortcutChips.innerHTML = `
+        <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep ${labelTier('satellite_only')}</span>
+        <span class="review-shortcut-chip"><kbd>2</kbd> Home</span>
         <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
         <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
@@ -399,6 +429,7 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
         <span class="review-shortcut-chip ${changeChipClass}"><kbd>2</kbd> ${escapeHtml(changeLabel)}</span>
         <span class="review-shortcut-chip chip-defer"><kbd>4</kbd> Later</span>
         <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
+        <span class="review-shortcut-chip"><kbd>7</kbd> ${labelTier('satellite_only')}</span>
         <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     }
@@ -486,6 +517,7 @@ R.renderReviewLeadDetails = function renderReviewLeadDetails(r, renderId, opts =
       ${r.manualScore ? '<span class="score-corrected-badge">You adjusted</span>' : ''}
       ${r.manualOverride ? '<span class="category-corrected-badge">Category changed</span>' : ''}
       ${r.needsReviewLater ? '<span class="category-corrected-badge needs-review-badge">Needs Review</span>' : ''}
+      ${r.satelliteOnly ? '<span class="category-corrected-badge satellite-only-badge">Satellite Only</span>' : ''}
       ${manuallyReviewedBadgeHtml(r)}`;
   }
   if (reviewMetaAnalysis) {
@@ -693,6 +725,60 @@ R.reviewDeferLater = function reviewDeferLater() {
   reviewAdvance('review_defer');
 }
 
+R.reviewApplySatelliteOnly = function reviewApplySatelliteOnly() {
+  if (state.reviewIndex >= state.reviewQueue.length) return;
+  const r = getReviewRecord();
+  if (!r) {
+    reviewAdvance('review_satellite_only');
+    return;
+  }
+  const idx = state.results.findIndex(x => recordKey(x) === recordKey(r));
+  if (idx < 0) {
+    reviewAdvance('review_satellite_only');
+    return;
+  }
+  if (r.satelliteOnly && state.reviewFilter === 'satellite_only') {
+    state.reviewStats.kept++;
+    log(`✓ Kept Satellite Only — ${propertyStreetLine(r)}`, 'success');
+    reviewAdvance('review_keep');
+    return;
+  }
+  if (r.satelliteOnly) {
+    log(`🛰️ Already Satellite Only — ${propertyStreetLine(r)}`, 'warn');
+    reviewAdvance('review_satellite_only');
+    return;
+  }
+  pushReviewUndo(recordKey(r), snapshotRecordForUndo(state.results[idx]), {
+    action: 'satellite_only',
+    queueIndex: state.reviewIndex
+  });
+  const baseReason = String(state.results[idx].reason || '')
+    .replace(/ Flagged for Needs Review — decide later\./g, '')
+    .replace(/ Flagged Satellite Only — re-scan later\./g, '')
+    .trim();
+  const updated = markRecordManuallyReviewed({
+    ...state.results[idx],
+    satelliteOnly: true,
+    needsReview: false,
+    needsReviewLater: false,
+    reviewResolved: false,
+    reason: baseReason
+      ? `${baseReason} Flagged Satellite Only — re-scan later.`
+      : 'Flagged Satellite Only — re-scan later.'
+  }, 'review_satellite_only');
+  updated.tierRationale = buildTierRationale(updated);
+  state.results[idx] = updated;
+  state.reviewStats.changed = (state.reviewStats.changed || 0) + 1;
+  state.reviewStats.satelliteOnly = (state.reviewStats.satelliteOnly || 0) + 1;
+  if (typeof notifyResultMutation === 'function') {
+    notifyResultMutation({ clearServerTierCounts: true });
+  } else {
+    invalidateTierCountsCache({ clearServer: true });
+  }
+  log(`🛰️ Satellite Only — ${propertyStreetLine(r)} parked for later re-scan`, 'warn');
+  reviewAdvance('review_satellite_only');
+}
+
 R.reviewLandKeep = function reviewLandKeep() {
   if (state.reviewIndex >= state.reviewQueue.length) return;
   const r = getReviewRecord();
@@ -730,6 +816,7 @@ R.finalizeReviewClassification = function finalizeReviewClassification(record) {
     ...record,
     needsReview: false,
     needsReviewLater: false,
+    satelliteOnly: false,
     reviewResolved: true,
     landHomeConflict: false,
     satelliteConflict: false
@@ -782,6 +869,17 @@ R.reviewKeep = function reviewKeep() {
   }
   if (kind === 'needs_review') {
     reviewApplyManualTier('distressed');
+    return;
+  }
+  if (kind === 'satellite_only') {
+    const r = getReviewRecord();
+    if (r?.satelliteOnly) {
+      state.reviewStats.kept++;
+      log(`✓ Kept Satellite Only — ${propertyStreetLine(r)}`, 'success');
+      reviewAdvance('review_keep');
+      return;
+    }
+    reviewApplySatelliteOnly();
     return;
   }
   const r = getReviewRecord();
@@ -930,12 +1028,16 @@ R.reviewApplyPropertyWithTier = function reviewApplyPropertyWithTier(r, tier) {
   if (resultLeadTier(working) !== tier) {
     const tiered = mutateTierOnRecord(working, tier, { source: 'review_mode', autoApprove: true, deferTraining: true });
     if (tiered) {
-      const baseReason = (tiered.reason || '').replace(/ You bulk-set distress level to [^.]+\./g, '');
-      tiered.reason = `${baseReason} You set distress level to ${leadTierLabel(tier)}.`;
+      const baseReason = (tiered.reason || '')
+        .replace(/ Flagged Satellite Only — re-scan later\./g, '')
+        .replace(/ You bulk-set distress level to [^.]+\./g, '');
+      tiered.reason = `${baseReason} You set distress level to ${leadTierLabel(tier)}.`.trim();
       tiered.tierRationale = buildTierRationale(tiered);
       working = tiered;
     }
   }
+  working.satelliteOnly = false;
+  working.needsReviewLater = false;
   state.results[idx] = working;
   return working;
 }
@@ -947,7 +1049,7 @@ R.reviewApplyChange = async function reviewApplyChange() {
     reviewApplyManualTier('well_maintained');
     return;
   }
-  if (kind === 'land') {
+  if (kind === 'land' || kind === 'satellite_only') {
     await reviewApplyHome();
     return;
   }
@@ -1022,6 +1124,9 @@ R.reviewUndo = function reviewUndo() {
     state.reviewStats.deferred = Math.max(0, (state.reviewStats.deferred || 0) - 1);
   } else if (action === 'blurred') {
     state.reviewStats.blurred = Math.max(0, (state.reviewStats.blurred || 0) - 1);
+    state.reviewStats.changed = Math.max(0, (state.reviewStats.changed || 0) - 1);
+  } else if (action === 'satellite_only') {
+    state.reviewStats.satelliteOnly = Math.max(0, (state.reviewStats.satelliteOnly || 0) - 1);
     state.reviewStats.changed = Math.max(0, (state.reviewStats.changed || 0) - 1);
   } else if (action === 'change') {
     state.reviewStats.changed = Math.max(0, (state.reviewStats.changed || 0) - 1);
@@ -1108,7 +1213,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   state.reviewQueue = queue;
   state.reviewIndex = 0;
   state.reviewUndoStack = [];
-  state.reviewStats = { kept: 0, changed: 0, deferred: 0, blurred: 0 };
+  state.reviewStats = { kept: 0, changed: 0, deferred: 0, blurred: 0, satelliteOnly: 0 };
   reviewChromeKey = '';
   reviewQueueStatsSnap = {
     total: totalInFilter,
@@ -1142,7 +1247,7 @@ R.closeReviewMode = function closeReviewMode() {
   state.reviewQueue = [];
   state.reviewIndex = 0;
   state.reviewUndoStack = [];
-  state.reviewStats = { kept: 0, changed: 0, deferred: 0, blurred: 0 };
+  state.reviewStats = { kept: 0, changed: 0, deferred: 0, blurred: 0, satelliteOnly: 0 };
   reviewChromeKey = '';
   reviewQueueStatsSnap = null;
   if (typeof resetReviewTrainingBuffer === 'function') resetReviewTrainingBuffer();
@@ -1168,12 +1273,17 @@ R.applyCategoryFields = function applyCategoryFields(updated, category) {
   updated.category = category;
   updated.structureOnLot = category === 'property';
   updated.needsReview = false;
+  updated.needsReviewLater = false;
+  updated.satelliteOnly = false;
   updated.reviewResolved = true;
   stampManualEdit(updated);
   updated = markRecordManuallyReviewed(updated, 'category_change');
   updated.satelliteConflict = false;
   updated.landHomeConflict = false;
-  const baseReason = (updated.reason || '').replace(/ You (changed category|confirmed).*$/i, '').trim();
+  const baseReason = (updated.reason || '')
+    .replace(/ Flagged Satellite Only — re-scan later\./g, '')
+    .replace(/ You (changed category|confirmed).*$/i, '')
+    .trim();
 
   if (category === 'vacant_lot') {
     updated.score = 0;
@@ -1249,6 +1359,43 @@ R.changeCategory = function changeCategory(r, category) {
     }
     if (state.filter === 'review') setFilter('all');
   }
+  showInspector(updated, { scrollList: true });
+}
+
+R.markResultSatelliteOnly = function markResultSatelliteOnly(r) {
+  if (!r || r.satelliteOnly) return;
+  const name = contactName(r);
+  const ok = confirm(
+    `Mark Satellite Only?\n\n${propertyLocationTitle(r)} — ${name}\n${r.address}\n\n` +
+    `Parks this lead for a later satellite re-scan. It leaves Distressed / Well Maintained / Needs Review until you clear it.`
+  );
+  if (!ok) return;
+  const idx = state.results.findIndex(x => recordKey(x) === recordKey(r));
+  if (idx < 0) return;
+  const prev = state.results[idx];
+  const baseReason = String(prev.reason || '')
+    .replace(/ Flagged for Needs Review — decide later\./g, '')
+    .replace(/ Flagged Satellite Only — re-scan later\./g, '')
+    .trim();
+  const updated = markRecordManuallyReviewed({
+    ...prev,
+    satelliteOnly: true,
+    needsReview: false,
+    needsReviewLater: false,
+    reviewResolved: false,
+    reason: baseReason
+      ? `${baseReason} Flagged Satellite Only — re-scan later.`
+      : 'Flagged Satellite Only — re-scan later.'
+  }, 'profile_satellite_only');
+  updated.tierRationale = buildTierRationale(updated);
+  state.results[idx] = updated;
+  if (typeof notifyResultMutation === 'function') notifyResultMutation({ clearServerTierCounts: true });
+  else invalidateTierCountsCache({ clearServer: true });
+  saveSession();
+  scheduleSaveSession();
+  renderResults();
+  updateFilterLabels?.();
+  log(`🛰️ Satellite Only — ${name}`, 'warn');
   showInspector(updated, { scrollList: true });
 }
 

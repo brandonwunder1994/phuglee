@@ -565,7 +565,7 @@ R.countReviewedKeysInPayload = function countReviewedKeysInPayload(buckets) {
 R.buildReviewMetadataPayload = function buildReviewMetadataPayload() {
   const patches = [];
   for (const r of state.results) {
-    if (!r.manuallyReviewed && !r.reviewResolved && !r.manualOverride && !r.manualScore && !r.needsReviewLater) continue;
+    if (!r.manuallyReviewed && !r.reviewResolved && !r.manualOverride && !r.manualScore && !r.needsReviewLater && !r.satelliteOnly) continue;
     patches.push({
       email: r.email,
       phone: r.phone,
@@ -576,6 +576,7 @@ R.buildReviewMetadataPayload = function buildReviewMetadataPayload() {
       reviewResolved: r.reviewResolved,
       needsReview: r.needsReview,
       needsReviewLater: r.needsReviewLater,
+      satelliteOnly: !!r.satelliteOnly,
       landHomeConflict: r.landHomeConflict,
       satelliteConflict: r.satelliteConflict,
       manualOverride: r.manualOverride,
@@ -1444,7 +1445,9 @@ R.applySessionReviewMeta = function applySessionReviewMeta(meta) {
       well_maintained: Array.isArray(meta.reviewedKeysByFilter.well_maintained) ? meta.reviewedKeysByFilter.well_maintained : [],
       vacant: Array.isArray(meta.reviewedKeysByFilter.vacant) ? meta.reviewedKeysByFilter.vacant : [],
       review: Array.isArray(meta.reviewedKeysByFilter.review) ? meta.reviewedKeysByFilter.review : [],
-      low_confidence: Array.isArray(meta.reviewedKeysByFilter.low_confidence) ? meta.reviewedKeysByFilter.low_confidence : []
+      low_confidence: Array.isArray(meta.reviewedKeysByFilter.low_confidence) ? meta.reviewedKeysByFilter.low_confidence : [],
+      blurred: Array.isArray(meta.reviewedKeysByFilter.blurred) ? meta.reviewedKeysByFilter.blurred : [],
+      satellite_only: Array.isArray(meta.reviewedKeysByFilter.satellite_only) ? meta.reviewedKeysByFilter.satellite_only : []
     };
     changed = true;
   }
@@ -1736,7 +1739,9 @@ R.applySessionSummary = async function applySessionSummary(summary) {
     well_maintained: Array.isArray(summary.reviewedKeysByFilter?.well_maintained) ? summary.reviewedKeysByFilter.well_maintained : [],
     vacant: Array.isArray(summary.reviewedKeysByFilter?.vacant) ? summary.reviewedKeysByFilter.vacant : [],
     review: Array.isArray(summary.reviewedKeysByFilter?.review) ? summary.reviewedKeysByFilter.review : [],
-    low_confidence: Array.isArray(summary.reviewedKeysByFilter?.low_confidence) ? summary.reviewedKeysByFilter.low_confidence : []
+    low_confidence: Array.isArray(summary.reviewedKeysByFilter?.low_confidence) ? summary.reviewedKeysByFilter.low_confidence : [],
+    blurred: Array.isArray(summary.reviewedKeysByFilter?.blurred) ? summary.reviewedKeysByFilter.blurred : [],
+    satellite_only: Array.isArray(summary.reviewedKeysByFilter?.satellite_only) ? summary.reviewedKeysByFilter.satellite_only : []
   };
   state._summarySavedAt = Number(summary.savedAt) || 0;
   state.reviewActionsSinceCheckpoint = Math.max(0, Number(summary.reviewActionsSinceCheckpoint) || 0);
@@ -2093,7 +2098,9 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
     well_maintained: Array.isArray(data.reviewedKeysByFilter?.well_maintained) ? data.reviewedKeysByFilter.well_maintained : [],
     vacant: Array.isArray(data.reviewedKeysByFilter?.vacant) ? data.reviewedKeysByFilter.vacant : [],
     review: Array.isArray(data.reviewedKeysByFilter?.review) ? data.reviewedKeysByFilter.review : [],
-    low_confidence: Array.isArray(data.reviewedKeysByFilter?.low_confidence) ? data.reviewedKeysByFilter.low_confidence : []
+    low_confidence: Array.isArray(data.reviewedKeysByFilter?.low_confidence) ? data.reviewedKeysByFilter.low_confidence : [],
+    blurred: Array.isArray(data.reviewedKeysByFilter?.blurred) ? data.reviewedKeysByFilter.blurred : [],
+    satellite_only: Array.isArray(data.reviewedKeysByFilter?.satellite_only) ? data.reviewedKeysByFilter.satellite_only : []
   };
   state.reviewActionsSinceCheckpoint = Math.max(0, Number(data.reviewActionsSinceCheckpoint) || 0);
   state.lastReviewCheckpointAt = Number(data.lastReviewCheckpointAt) || 0;
@@ -2488,7 +2495,7 @@ R.clearSession = function clearSession() {
   state.reviewUndoStack = [];
   state.reviewStats = { kept: 0, changed: 0, deferred: 0 };
   state.reviewProgressByFilter = {};
-  state.reviewedKeysByFilter = { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [] };
+  state.reviewedKeysByFilter = { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [], blurred: [], satellite_only: [] };
   state.reviewActionsSinceCheckpoint = 0;
   state.lastReviewCheckpointAt = 0;
   state.totalReviewCheckpoints = 0;

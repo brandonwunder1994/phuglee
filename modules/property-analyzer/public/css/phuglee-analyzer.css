@@ -315,6 +315,22 @@ body.analyze-phuglee .review-action.blurred {
   color: var(--tier-blurred);
 }
 
+body.analyze-phuglee .review-action.satellite-only {
+  background: color-mix(in srgb, #1e3a5f 55%, transparent);
+  border-color: color-mix(in srgb, #7eb6ff 45%, transparent);
+  color: #c9e2ff;
+}
+
+body.analyze-phuglee .review-action.satellite-only.is-current {
+  outline: 1px solid color-mix(in srgb, #7eb6ff 70%, transparent);
+}
+
+body.analyze-phuglee .satellite-only-badge {
+  background: color-mix(in srgb, #1e3a5f 70%, transparent);
+  border: 1px solid color-mix(in srgb, #7eb6ff 40%, transparent);
+  color: #c9e2ff;
+}
+
 body.analyze-phuglee .review-shortcut-chip kbd {
   font-family: var(--font-mono);
   border-color: rgba(174, 163, 143, 0.25);

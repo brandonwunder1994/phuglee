@@ -14,6 +14,7 @@
     vacant: 'Land',
     blurred: 'Blocked',
     review: 'Needs Review',
+    satellite_only: 'Satellite Only',
     land: 'Land',
     blocked: 'Blocked'
   });

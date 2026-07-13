@@ -1444,14 +1444,15 @@ R.formatCategoryChangeHtml = function formatCategoryChangeHtml(r) {
   const isUnavailable = cat === 'unavailable';
   return `<div class="category-change-panel">
     <div class="category-change-title">Change category</div>
-    <div class="category-change-current">Currently: <strong>${escapeHtml(categoryLabel(cat))}</strong>${r.manualOverride ? ' <span class="category-corrected-badge">Changed by you</span>' : ''}</div>
+    <div class="category-change-current">Currently: <strong>${escapeHtml(categoryLabel(cat))}</strong>${r.manualOverride ? ' <span class="category-corrected-badge">Changed by you</span>' : ''}${r.satelliteOnly ? ' <span class="category-corrected-badge satellite-only-badge">Satellite Only</span>' : ''}</div>
     <div class="category-change-btns">
-      <button type="button" class="category-change-btn property${isProperty ? ' is-current' : ''}" data-change-cat="property"${isProperty ? ' disabled' : ''}>→ Home / Property</button>
-      <button type="button" class="category-change-btn vacant${isVacant ? ' is-current' : ''}" data-change-cat="vacant_lot"${isVacant ? ' disabled' : ''}>→ Vacant Lot / Land</button>
-      <button type="button" class="category-change-btn blurred${isBlurred ? ' is-current' : ''}" data-change-cat="blurred"${isBlurred ? ' disabled' : ''}>→ Blocked Image</button>
+      <button type="button" class="category-change-btn property${isProperty && !r.satelliteOnly ? ' is-current' : ''}" data-change-cat="property"${isProperty && !r.satelliteOnly ? ' disabled' : ''}>→ Home / Property</button>
+      <button type="button" class="category-change-btn vacant${isVacant && !r.satelliteOnly ? ' is-current' : ''}" data-change-cat="vacant_lot"${isVacant && !r.satelliteOnly ? ' disabled' : ''}>→ Vacant Lot / Land</button>
+      <button type="button" class="category-change-btn blurred${isBlurred && !r.satelliteOnly ? ' is-current' : ''}" data-change-cat="blurred"${isBlurred && !r.satelliteOnly ? ' disabled' : ''}>→ Blocked Image</button>
+      <button type="button" class="category-change-btn satellite-only${r.satelliteOnly ? ' is-current' : ''}" data-mark-satellite-only="1"${r.satelliteOnly ? ' disabled' : ''}>→ Satellite Only</button>
       ${isUnavailable ? '<button type="button" class="category-change-btn" data-change-cat="unavailable" disabled>→ Unavailable (current)</button>' : ''}
     </div>
-    <div class="category-change-hint">${computeNeedsReview(r) ? 'Pick land vs home to clear Needs Review, or choose Blocked Image when you cannot see or assess the home.' : 'Wrong call? Switch category — Blocked Image goes to the Blocked Image list, not Needs Review.'}</div>
+    <div class="category-change-hint">${computeNeedsReview(r) ? 'Pick land vs home to clear Needs Review, or choose Blocked Image / Satellite Only when Street View is not enough.' : 'Wrong call? Switch category — Satellite Only parks the lead for a later re-scan.'}</div>
   </div>`;
 }
 

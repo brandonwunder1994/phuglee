@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="/css/heat-theme.css">
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260713-ops">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260713-satonly">
   <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=3">
   <link rel="stylesheet" href="/css/property-profile-v2.css?v=2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
@@ -150,6 +150,7 @@
               <button type="button" class="review-leads-item" data-review-flow="vacant" role="menuitem">Land</button>
               <button type="button" class="review-leads-item" data-review-flow="blurred" role="menuitem">Blocked</button>
               <button type="button" class="review-leads-item" data-review-flow="review" role="menuitem">Needs Review</button>
+              <button type="button" class="review-leads-item" data-review-flow="satellite_only" role="menuitem">Satellite Only</button>
             </div>
           </div>
           <button type="button" class="btn-secondary scan-ready-work-results" id="openResultsWorkbenchBtn" hidden>Work results</button>
@@ -307,6 +308,7 @@
             <button class="filter-btn filter-segment-btn well-maintained-filter" data-filter="well_maintained" type="button">Well Maintained</button>
             <button class="filter-btn filter-segment-btn vacant-filter" data-filter="vacant" type="button">Land</button>
             <button class="filter-btn filter-segment-btn blurred-filter" data-filter="blurred" type="button">Blocked</button>
+            <button class="filter-btn filter-segment-btn satellite-only-filter" data-filter="satellite_only" type="button">Satellite Only</button>
           </div>
           <select id="leadTypeFilter" class="lead-type-filter lead-type-filter-inline" title="Filter by lead source type" aria-label="Filter by lead type">
             <option value="all">All lead types</option>
@@ -662,6 +664,7 @@
         <button type="button" class="review-action vacant" id="reviewLandBtn" title="Mark as land / vacant lot (3)" hidden>Land <kbd>3</kbd></button>
         <button type="button" class="review-action defer-later" id="reviewDeferBtn" title="Can't decide now — send to Needs Review queue (4)">Later <kbd>4</kbd></button>
         <button type="button" class="review-action blurred" id="reviewBlurredBtn" title="Move to Blocked Image list only — not Needs Review (5)">Blocked <kbd>5</kbd></button>
+        <button type="button" class="review-action satellite-only" id="reviewSatelliteOnlyBtn" title="Park for satellite-only re-scan later (7)">Satellite Only <kbd>7</kbd></button>
         <button type="button" class="review-action undo" id="reviewUndoBtn" title="Undo last change (6)" disabled>Undo <kbd>6</kbd></button>
       </footer>
     </div>
@@ -697,20 +700,20 @@
   <script src="/lib/import-batches.js?v=20260708b" defer></script>
   <script src="/lib/location-index.js?v=20260708c" defer></script>
   <script src="/lib/analyze-visibility.js?v=20260712-distill" defer></script>
-  <script src="/lib/tier-labels.js?v=20260712a" defer></script>
+  <script src="/lib/tier-labels.js?v=20260713-satonly" defer></script>
   <script src="/lib/property-profile-dossier.js?v=20260713-tabs" defer></script>
   <script src="/lib/virtual-scroll.js?v=20260630c" defer></script>
   <script src="/lib/classification-confidence.js?v=20260713-accuracy" defer></script>
   <script src="/lib/result-classify.js?v=20260713-accuracy" defer></script>
   <script src="/lib/review-training.js?v=20260630c" defer></script>
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
-  <script src="/js/config.js?v=20260713-fastload" defer></script>
-  <script src="/js/state.js?v=20260713-fastload" defer></script>
-  <script src="/js/imagery.js?v=20260713-profile-click" defer></script>
-  <script src="/js/scan.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/review.js?v=20260713-svfix" defer></script>
-  <script src="/js/render.js?v=20260713-fastload" defer></script>
-  <script src="/js/session.js?v=20260712-cinematic" defer></script>
+  <script src="/js/config.js?v=20260713-satonly" defer></script>
+  <script src="/js/state.js?v=20260713-satonly" defer></script>
+  <script src="/js/imagery.js?v=20260713-satonly" defer></script>
+  <script src="/js/scan.js?v=20260713-satonly" defer></script>
+  <script src="/js/review.js?v=20260713-satonly" defer></script>
+  <script src="/js/render.js?v=20260713-satonly" defer></script>
+  <script src="/js/session.js?v=20260713-satonly" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
   <script src="/js/scan-ready.js?v=20260713-fastload" defer></script>
   <script src="/js/live-scan-feed.js?v=20260712-distill" defer></script>

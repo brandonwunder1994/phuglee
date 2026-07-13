@@ -9,6 +9,7 @@ describe('tierUiLabel', () => {
     assert.equal(tierUiLabel('vacant'), 'Land');
     assert.equal(tierUiLabel('blurred'), 'Blocked');
     assert.equal(tierUiLabel('review'), 'Needs Review');
+    assert.equal(tierUiLabel('satellite_only'), 'Satellite Only');
   });
 
   it('aliases land and blocked', () => {

@@ -284,7 +284,8 @@ R.FILTER_LABELS = {
   well_maintained: 'Well Maintained',
   vacant: 'Land',
   blurred: 'Blocked',
-  review: 'Needs Review'
+  review: 'Needs Review',
+  satellite_only: 'Satellite Only'
 };
 
 R.REVIEW_FILTER_LABELS = {
@@ -292,7 +293,8 @@ R.REVIEW_FILTER_LABELS = {
   well_maintained: 'Well Maintained',
   vacant: 'Land',
   blurred: 'Blocked',
-  review: 'Needs Review'
+  review: 'Needs Review',
+  satellite_only: 'Satellite Only'
 };
 
 R.LEAD_TYPES = [
@@ -545,6 +547,8 @@ R.resultMatchesLeadTypeFilter = function resultMatchesLeadTypeFilter(r) {
 R.resultMatchesCurrentFilter = function resultMatchesCurrentFilter(r) {
   if (!resultMatchesLeadTypeFilter(r)) return false;
   if (state.filter === 'all') return true;
+  if (state.filter === 'satellite_only') return !!r.satelliteOnly;
+  if (r.satelliteOnly) return false;
   if (state.filter === 'review') return computeNeedsReview(r);
   if (state.filter === 'vacant') return resultCategory(r) === 'vacant_lot';
   if (state.filter === 'blurred') return isBlurredImagery(r);
@@ -868,6 +872,12 @@ R.getFilteredResults = function getFilteredResults() {
       list.push(r);
       continue;
     }
+    if (state.filter === 'satellite_only') {
+      if (!r.satelliteOnly) continue;
+      list.push(r);
+      continue;
+    }
+    if (r.satelliteOnly) continue;
     if (state.filter === 'review') {
       if (!computeNeedsReview(r)) continue;
       list.push(r);

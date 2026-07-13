@@ -893,6 +893,7 @@ R.sidebarReviewWellMaintainedBtn = $('sidebarReviewWellMaintainedBtn');
 R.sidebarReviewLandBtn = $('sidebarReviewLandBtn');
 R.sidebarReviewNeedsReviewBtn = $('sidebarReviewNeedsReviewBtn');
 R.reviewBlurredBtn = $('reviewBlurredBtn');
+R.reviewSatelliteOnlyBtn = $('reviewSatelliteOnlyBtn');
 R.reviewTierPickOverlay = $('reviewTierPickOverlay');
 R.reviewTierPickCancel = $('reviewTierPickCancel');
 R.REVIEW_ENTRY_BTNS = [
@@ -901,7 +902,7 @@ R.REVIEW_ENTRY_BTNS = [
   sidebarReviewLandBtn,
   sidebarReviewNeedsReviewBtn
 ];
-R.REVIEW_MODE_FILTERS = ['distressed', 'well_maintained', 'vacant', 'blurred', 'review'];
+R.REVIEW_MODE_FILTERS = ['distressed', 'well_maintained', 'vacant', 'blurred', 'review', 'satellite_only'];
 R.reviewTierPickResolver = null;
 R.inspectorBody = $('inspectorBody');
 R.inspectorPos = $('inspectorPos');

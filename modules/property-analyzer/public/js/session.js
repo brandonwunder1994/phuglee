@@ -91,7 +91,12 @@ R.countTierBuckets = function countTierBuckets(results, totalHint) {
   let vacant = 0;
   let blurred = 0;
   let review = 0;
+  let satellite_only = 0;
   for (const r of list) {
+    if (r?.satelliteOnly) {
+      satellite_only++;
+      continue;
+    }
     if (computeNeedsReview(r)) review++;
     if (isBlurredImagery(r)) blurred++;
     if (!isClassifiedResult(r)) continue;
@@ -106,7 +111,7 @@ R.countTierBuckets = function countTierBuckets(results, totalHint) {
     if (tier === 'distressed') distressed++;
     else if (tier === 'well_maintained') well_maintained++;
   }
-  return { all, distressed, well_maintained, vacant, blurred, review };
+  return { all, distressed, well_maintained, vacant, blurred, review, satellite_only };
 }
 
 R.getResultsForMarketTierCounts = function getResultsForMarketTierCounts() {
@@ -629,6 +634,7 @@ R.isVacantLot = function isVacantLot(r) {
 R.finalizeBlurredLead = function finalizeBlurredLead(record, reasonSuffix = 'You marked as Blocked Image — cannot see or assess the home.') {
   const baseReason = String(record.reason || '')
     .replace(/ Flagged for Needs Review — decide later\./g, '')
+    .replace(/ Flagged Satellite Only — re-scan later\./g, '')
     .replace(/ You (changed category|confirmed|marked).*$/i, '')
     .trim();
   return attachTierRationale({
@@ -641,6 +647,7 @@ R.finalizeBlurredLead = function finalizeBlurredLead(record, reasonSuffix = 'You
     leadTier: 'blurred',
     needsReview: false,
     needsReviewLater: false,
+    satelliteOnly: false,
     landHomeConflict: false,
     satelliteConflict: false,
     reviewResolved: true,
@@ -1115,6 +1122,7 @@ R.snapshotRecordForUndo = function snapshotRecordForUndo(r) {
     structureOnLot: r.structureOnLot,
     needsReview: r.needsReview,
     needsReviewLater: r.needsReviewLater,
+    satelliteOnly: r.satelliteOnly,
     reviewResolved: r.reviewResolved,
     manuallyReviewed: r.manuallyReviewed,
     manuallyReviewedAt: r.manuallyReviewedAt,
@@ -1165,6 +1173,8 @@ R.reviewFilterLabel = function reviewFilterLabel(filter = state.reviewFilter) {
 
 R.matchesReviewFilter = function matchesReviewFilter(r, filter) {
   if (!r || !filter || filter === 'all') return !!r;
+  if (r.satelliteOnly) return filter === 'satellite_only';
+  if (filter === 'satellite_only') return false;
   if (filter === 'review') return computeNeedsReview(r);
   if (filter === 'vacant') {
     if (r.category === 'vacant_lot' || r.category === 'vacant' || r.category === 'land') return true;
@@ -1210,7 +1220,7 @@ R.getReviewedKeySet = function getReviewedKeySet(filter) {
   return new Set(state.reviewedKeysByFilter?.[filter] || []);
 }
 
-R.REVIEW_FILTER_BUCKETS = ['distressed', 'well_maintained', 'vacant', 'review', 'low_confidence'];
+R.REVIEW_FILTER_BUCKETS = ['distressed', 'well_maintained', 'vacant', 'review', 'low_confidence', 'blurred', 'satellite_only'];
 
 R.getAllReviewedKeySet = function getAllReviewedKeySet() {
   const all = new Set();
@@ -1224,6 +1234,10 @@ R.getAllReviewedKeySet = function getAllReviewedKeySet() {
 /** Lead already handled in this review queue (or globally finalized). */
 R.isExcludedFromAllReviewQueues = function isExcludedFromAllReviewQueues(r, key = r ? recordKey(r) : '', filter = null) {
   if (!r) return true;
+  if (r.satelliteOnly && filter === 'satellite_only') {
+    return getReviewedKeySet('satellite_only').has(key);
+  }
+  if (r.satelliteOnly) return true;
   if (r.needsReviewLater && filter === 'review') return false;
   if (r.reviewResolved) return true;
   if (r.manuallyReviewed) return true;
@@ -1267,7 +1281,7 @@ R.repairReviewResolvedRecords = function repairReviewResolvedRecords() {
 
 R.backfillReviewedKeysFromResults = function backfillReviewedKeysFromResults() {
   if (!state.reviewedKeysByFilter) {
-    state.reviewedKeysByFilter = { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [] };
+    state.reviewedKeysByFilter = { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [], blurred: [], satellite_only: [] };
   }
   let changed = 0;
   for (const r of state.results) {
@@ -1334,7 +1348,7 @@ R.updateReviewCheckpointUi = function updateReviewCheckpointUi() {
 R.ensureReviewedKeyInFilterBucket = function ensureReviewedKeyInFilterBucket(filter, key) {
   if (!filter || filter === 'all' || !key) return;
   if (!state.reviewedKeysByFilter) {
-    state.reviewedKeysByFilter = { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [] };
+    state.reviewedKeysByFilter = { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [], blurred: [], satellite_only: [] };
   }
   const bucket = state.reviewedKeysByFilter[filter] || [];
   if (!bucket.includes(key)) bucket.push(key);
@@ -1734,6 +1748,7 @@ reviewChangeBtn?.addEventListener('click', () => reviewApplyChange());
 reviewDeferBtn?.addEventListener('click', () => reviewDeferLater());
 reviewLandBtn?.addEventListener('click', () => reviewLandKeep());
 reviewBlurredBtn?.addEventListener('click', () => reviewApplyBlurred());
+reviewSatelliteOnlyBtn?.addEventListener('click', () => reviewApplySatelliteOnly());
 reviewUndoBtn?.addEventListener('click', () => reviewUndo());
 reviewImages?.addEventListener('click', (e) => {
   const img = e.target.closest('img');
@@ -1856,7 +1871,12 @@ document.addEventListener('keydown', (e) => {
     }
     if (e.key === '6') {
       e.preventDefault();
-      if (kind === 'tier' || kind === 'needs_review') reviewUndo();
+      if (kind === 'tier' || kind === 'needs_review' || kind === 'satellite_only') reviewUndo();
+      return;
+    }
+    if (e.key === '7') {
+      e.preventDefault();
+      reviewApplySatelliteOnly();
       return;
     }
     return;

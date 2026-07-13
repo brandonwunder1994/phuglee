@@ -932,6 +932,12 @@ R.showInspector = function showInspector(r, opts = {}) {
       if (!btn.disabled) changeCategory(r, btn.dataset.changeCat);
     });
   });
+  inspectorBody.querySelectorAll('[data-mark-satellite-only]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!btn.disabled) markResultSatelliteOnly(r);
+    });
+  });
 
   const changeScoreBtn = inspectorBody.querySelector('#changeScoreBtn');
   changeScoreBtn?.addEventListener('click', (e) => {
