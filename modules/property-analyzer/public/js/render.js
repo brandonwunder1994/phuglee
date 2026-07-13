@@ -564,7 +564,9 @@ R.wireProfileScrollSpy = function wireProfileScrollSpy() {
     if (!visible) return;
     const id = visible.target.getAttribute('data-profile-section');
     profileSectionNav.querySelectorAll('[data-profile-section]').forEach((c) => {
-      c.toggleAttribute('aria-current', c.getAttribute('data-profile-section') === id);
+      const on = c.getAttribute('data-profile-section') === id;
+      if (on) c.setAttribute('aria-current', 'true');
+      else c.removeAttribute('aria-current');
     });
   }, { root, threshold: [0.2, 0.45, 0.7] });
   sections.forEach((s) => obs.observe(s));
@@ -704,7 +706,7 @@ R.showInspector = function showInspector(r, opts = {}) {
       e.stopPropagation();
       if (cat !== 'property') return;
       state.scoreEditKey = recordKey(r);
-      showInspector(r, { scrollList: false, scrollFeed: false });
+      showInspector(r, { scrollList: false, scrollFeed: false, keepDossierScroll: true });
     };
   }
   if (profileSatelliteBtn) {
@@ -813,7 +815,8 @@ R.showInspector = function showInspector(r, opts = {}) {
           block: 'start'
         });
         profileSectionNav.querySelectorAll('[data-profile-section]').forEach((c) => {
-          c.toggleAttribute('aria-current', c === chip);
+          if (c === chip) c.setAttribute('aria-current', 'true');
+          else c.removeAttribute('aria-current');
         });
       });
     });
@@ -846,7 +849,7 @@ R.showInspector = function showInspector(r, opts = {}) {
   changeScoreBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     state.scoreEditKey = recordKey(r);
-    showInspector(r, { scrollList: false, scrollFeed: false });
+    showInspector(r, { scrollList: false, scrollFeed: false, keepDossierScroll: true });
   });
 
   let inspectorSelectedTier = tier;
