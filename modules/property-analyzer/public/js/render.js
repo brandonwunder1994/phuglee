@@ -568,21 +568,54 @@ R.wireProfileScrollSpy = function wireProfileScrollSpy() {
   const sections = inspectorBody.querySelectorAll('.profile-dossier-section[data-profile-section]');
   if (!sections.length) return;
   state._profileSpyIgnoreUntil = 0;
-  const obs = new IntersectionObserver((entries) => {
-    if (Date.now() < (state._profileSpyIgnoreUntil || 0)) return;
-    const visible = entries
-      .filter((e) => e.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    const id = visible.target.getAttribute('data-profile-section');
+
+  const setCurrentSection = (id) => {
+    if (!id) return;
     profileSectionNav.querySelectorAll('[data-profile-section]').forEach((c) => {
       const on = c.getAttribute('data-profile-section') === id;
       if (on) c.setAttribute('aria-current', 'true');
       else c.removeAttribute('aria-current');
     });
-  }, { root, threshold: [0.2, 0.45, 0.7] });
+  };
+
+  /** Short/last sections: pin last chip when scrolled to bottom of dossier. */
+  const forceLastIfNearBottom = () => {
+    if (Date.now() < (state._profileSpyIgnoreUntil || 0)) return false;
+    if (root.scrollTop + root.clientHeight >= root.scrollHeight - 4) {
+      const last = sections[sections.length - 1];
+      const id = last?.getAttribute('data-profile-section');
+      if (id) setCurrentSection(id);
+      return true;
+    }
+    return false;
+  };
+
+  const obs = new IntersectionObserver((entries) => {
+    if (Date.now() < (state._profileSpyIgnoreUntil || 0)) return;
+    if (forceLastIfNearBottom()) return;
+    const visible = entries
+      .filter((e) => e.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    const id = visible.target.getAttribute('data-profile-section');
+    setCurrentSection(id);
+  }, {
+    root,
+    // Bias active section toward upper viewport so short/last sections can win
+    rootMargin: '0px 0px -40% 0px',
+    threshold: [0.2, 0.45, 0.7]
+  });
   sections.forEach((s) => obs.observe(s));
-  state._profileSpy = obs;
+
+  const onScroll = () => { forceLastIfNearBottom(); };
+  root.addEventListener('scroll', onScroll, { passive: true });
+  // Wrap disconnect so scroll listener is cleaned with the observer
+  state._profileSpy = {
+    disconnect() {
+      obs.disconnect();
+      root.removeEventListener('scroll', onScroll);
+    }
+  };
 };
 
 R.updateScanPinUi = function updateScanPinUi() {
@@ -686,9 +719,11 @@ R.showInspector = function showInspector(r, opts = {}) {
   });
   const satUrl = cached.satellite || urls.satellite || '';
 
-  // Action strip
+  // Action strip — phone is the primary contact heat when present
   if (profileCopyPhoneBtn) {
-    profileCopyPhoneBtn.hidden = !r.phone;
+    const hasPhone = !!r.phone;
+    profileCopyPhoneBtn.hidden = !hasPhone;
+    profileCopyPhoneBtn.classList.toggle('profile-action-primary', hasPhone);
     profileCopyPhoneBtn.onclick = (e) => {
       e.stopPropagation();
       if (r.phone) copyText(r.phone, profileCopyPhoneBtn);
@@ -887,7 +922,7 @@ R.showInspector = function showInspector(r, opts = {}) {
   cancelScoreBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     state.scoreEditKey = null;
-    showInspector(r, { scrollList: false, scrollFeed: false });
+    showInspector(r, { scrollList: false, scrollFeed: false, keepDossierScroll: true });
   });
 
   wireProfileScrollSpy();
