@@ -22,7 +22,26 @@ const IMPORT_SOURCE = 'new_analyzer_leads_2026-07-11';
 
 function recordKey(r) {
   if (!r) return '';
-  return `${r.email || ''}|${r.phone || ''}|${r.address || r.street || ''}`;
+  const street = r.street || String(r.address || '').split(',')[0] || '';
+  return `${r.email || ''}|${r.phone || ''}|${street}`;
+}
+
+function streetCityStateKey(r) {
+  if (!r) return '';
+  const street = String(r.street || String(r.address || '').split(',')[0] || '')
+    .toLowerCase()
+    .replace(/[#.,]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const city = String(r.city || '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+  const state = String(r.state || '')
+    .toLowerCase()
+    .trim()
+    .slice(0, 2);
+  return `${street}|${city}|${state}`;
 }
 
 function isNewAnalyzerLead(r) {
@@ -32,6 +51,34 @@ function isNewAnalyzerLead(r) {
   if (src.includes('new analyzer leads')) return true;
   const batch = String(r.importBatchId || '').toLowerCase();
   return batch.includes('new_analyzer_leads');
+}
+
+function buildNewAnalyzerKeySets(session) {
+  const recordKeys = new Set();
+  const geoKeys = new Set();
+  for (const r of session.records || []) {
+    if (!isNewAnalyzerLead(r)) continue;
+    const rk = recordKey(r);
+    const gk = streetCityStateKey(r);
+    if (rk) recordKeys.add(rk);
+    if (gk) geoKeys.add(gk);
+  }
+  for (const r of session.results || []) {
+    if (!isNewAnalyzerLead(r)) continue;
+    const rk = recordKey(r);
+    const gk = streetCityStateKey(r);
+    if (rk) recordKeys.add(rk);
+    if (gk) geoKeys.add(gk);
+  }
+  return { recordKeys, geoKeys };
+}
+
+function isTargetLead(r, keySets) {
+  if (isNewAnalyzerLead(r)) return true;
+  if (!keySets) return false;
+  const rk = recordKey(r);
+  const gk = streetCityStateKey(r);
+  return (rk && keySets.recordKeys.has(rk)) || (gk && keySets.geoKeys.has(gk));
 }
 
 function hasRealManualReview(r) {
@@ -96,6 +143,7 @@ function prepareNewAnalyzerLeadsSession(session, opts = {}) {
   const requeueUnavailable = opts.requeueUnavailable !== false;
   const results = Array.isArray(session.results) ? session.results : [];
   const records = Array.isArray(session.records) ? session.records : [];
+  const keySets = buildNewAnalyzerKeySets(session);
 
   let clearedSoft = 0;
   let openedForReview = 0;
@@ -103,9 +151,10 @@ function prepareNewAnalyzerLeadsSession(session, opts = {}) {
   const keptResults = [];
   const requeueRecords = [];
   const existingRecordKeys = new Set(records.map(recordKey).filter(Boolean));
+  const existingGeoKeys = new Set(records.map(streetCityStateKey).filter(Boolean));
 
   for (const r of results) {
-    if (!isNewAnalyzerLead(r)) {
+    if (!isTargetLead(r, keySets)) {
       keptResults.push(r);
       continue;
     }
@@ -121,38 +170,38 @@ function prepareNewAnalyzerLeadsSession(session, opts = {}) {
     if (requeueUnavailable && needsRescan(row)) {
       const lean = leanRecordFromResult(row);
       const k = recordKey(lean);
-      if (k && !existingRecordKeys.has(k)) {
-        existingRecordKeys.add(k);
+      const gk = streetCityStateKey(lean);
+      if ((k && !existingRecordKeys.has(k)) || (gk && !existingGeoKeys.has(gk))) {
+        if (k) existingRecordKeys.add(k);
+        if (gk) existingGeoKeys.add(gk);
         requeueRecords.push(lean);
         requeued += 1;
       }
-      // Drop failed/unavailable row from results so Start Scan will run it again
       continue;
     }
 
     keptResults.push(row);
   }
 
-  // Strip New Analyzer queue rows that are already solid (kept in results) to avoid
-  // false "left to scan" when the client has full records + partial results.
   const keptResultKeys = new Set(keptResults.map(recordKey).filter(Boolean));
+  const keptGeoKeys = new Set(keptResults.map(streetCityStateKey).filter(Boolean));
   const keptRecords = records.filter((rec) => {
-    if (!isNewAnalyzerLead(rec)) return true;
+    if (!isNewAnalyzerLead(rec) && !isTargetLead(rec, keySets)) return true;
     const k = recordKey(rec);
-    // Keep only if still needed for rescan (not already a kept result)
-    return k && !keptResultKeys.has(k);
+    const gk = streetCityStateKey(rec);
+    const alreadyScanned =
+      (k && keptResultKeys.has(k)) || (gk && keptGeoKeys.has(gk));
+    return !alreadyScanned;
   });
 
   const nextRecords = [...keptRecords, ...requeueRecords];
 
-  // Clear soft keys from reviewedKeysByFilter
   const reviewedKeysByFilter = { ...(session.reviewedKeysByFilter || {}) };
   for (const filter of Object.keys(reviewedKeysByFilter)) {
     const bucket = Array.isArray(reviewedKeysByFilter[filter])
       ? reviewedKeysByFilter[filter]
       : [];
     reviewedKeysByFilter[filter] = bucket.filter((key) => {
-      // Keep keys for leads that still have real review on kept results
       const hit = keptResults.find((r) => recordKey(r) === key);
       return hit ? hasRealManualReview(hit) : false;
     });
@@ -178,7 +227,8 @@ function prepareNewAnalyzerLeadsSession(session, opts = {}) {
       resultsAfter: keptResults.length,
       recordsBefore: records.length,
       recordsAfter: nextRecords.length,
-      pendingUnscanned: requeued
+      pendingUnscanned: nextRecords.length,
+      matchedNewAnalyzerKeys: keySets.recordKeys.size + keySets.geoKeys.size
     }
   };
 }
@@ -189,5 +239,8 @@ module.exports = {
   isNewAnalyzerLead,
   hasRealManualReview,
   needsRescan,
-  recordKey
+  recordKey,
+  streetCityStateKey,
+  buildNewAnalyzerKeySets,
+  isTargetLead
 };
