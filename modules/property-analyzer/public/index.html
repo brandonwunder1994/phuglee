@@ -579,7 +579,7 @@
 
   <div class="property-modal" id="propertyModal" hidden aria-modal="true" role="dialog" aria-labelledby="previewHeaderTitle">
     <div class="property-modal-backdrop" id="propertyModalBackdrop"></div>
-    <div class="property-modal-dialog cyber-dialog phuglee-dialog property-profile-dialog">
+    <div class="property-modal-dialog cyber-dialog phuglee-dialog property-profile-dialog property-profile-cinematic">
       <div class="property-modal-header">
         <div class="property-modal-heading">
           <h2 class="property-modal-title" id="propertyModalTitle">
@@ -590,15 +590,16 @@
         </div>
         <div class="property-modal-header-actions">
           <div class="inspector-nav" id="inspectorNav">
-            <button type="button" class="inspector-nav-btn" id="prevPropBtn" title="Previous property (â†‘ or K)">â† Prev</button>
-            <span class="inspector-pos" id="inspectorPos">â€”</span>
-            <button type="button" class="inspector-nav-btn" id="nextPropBtn" title="Next property (â†“ or J)">Next â†’</button>
+            <button type="button" class="inspector-nav-btn" id="prevPropBtn" title="Previous property (↑ or K)">← Prev</button>
+            <span class="inspector-pos" id="inspectorPos">—</span>
+            <button type="button" class="inspector-nav-btn" id="nextPropBtn" title="Next property (↓ or J)">Next →</button>
           </div>
-          <button type="button" class="property-modal-close" id="closePropertyBtn" title="Close (Esc)" aria-label="Close property">Ã—</button>
+          <button type="button" class="property-modal-close" id="closePropertyBtn" title="Close (Esc)" aria-label="Close property">×</button>
         </div>
       </div>
-      <div class="property-modal-grid property-profile-grid">
-        <div class="property-modal-media">
+
+      <div class="property-profile-sticky-media">
+        <div class="property-modal-media property-profile-hero">
           <div class="preview-images inspector-images-primary" id="previewImages">
             <div class="preview-image-wrap preview-sat-pane satellite-target" id="previewSatWrap" hidden>
               <span class="preview-pane-label">Satellite</span>
@@ -617,21 +618,34 @@
             </div>
           </div>
         </div>
-        <div class="property-modal-details">
-          <div class="property-distress" id="inspectorGaugePanel">
-            <div class="property-distress-main">
-              <div class="property-distress-score">
-                <span class="gauge-num property-distress-num" id="gaugeNum">â€”</span>
-                <span class="property-distress-scale" id="propertyDistressScale">/ 10</span>
-              </div>
-              <div class="property-distress-lbl">Distress</div>
-            </div>
-            <div class="property-distress-meter" aria-hidden="true">
-              <div class="property-distress-meter-track">
-                <div class="gauge-fill property-distress-meter-fill" id="gaugeFill"></div>
-              </div>
-            </div>
+        <div class="property-profile-actions" id="profileActionStrip">
+          <button type="button" class="profile-action-btn" id="profileCopyPhoneBtn" hidden>Copy phone</button>
+          <button type="button" class="profile-action-btn" id="profileCopyEmailBtn" hidden>Copy email</button>
+          <a class="profile-action-btn profile-action-link" id="profileGoogleLink" href="#" target="_blank" rel="noopener noreferrer" hidden>Search listings</a>
+          <button type="button" class="profile-action-btn" id="profileChangeLevelBtn" hidden>Change level</button>
+          <button type="button" class="profile-action-btn profile-action-sat" id="profileSatelliteBtn" hidden>Satellite</button>
+        </div>
+      </div>
+
+      <nav class="property-profile-section-nav" id="profileSectionNav" aria-label="Profile sections"></nav>
+
+      <div class="property-distress" id="inspectorGaugePanel">
+        <div class="property-distress-main">
+          <div class="property-distress-score">
+            <span class="gauge-num property-distress-num" id="gaugeNum">—</span>
+            <span class="property-distress-scale" id="propertyDistressScale">/ 10</span>
           </div>
+          <div class="property-distress-lbl">Distress</div>
+        </div>
+        <div class="property-distress-meter" aria-hidden="true">
+          <div class="property-distress-meter-track">
+            <div class="gauge-fill property-distress-meter-fill" id="gaugeFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="property-profile-dossier" id="profileDossierScroll">
+        <div class="property-modal-details">
           <div class="inspector-body empty" id="inspectorBody">Select a property card to open its profile</div>
         </div>
       </div>
@@ -747,6 +761,7 @@
   <script src="/lib/location-index.js?v=20260708c" defer></script>
   <script src="/lib/analyze-visibility.js?v=20260712-distill" defer></script>
   <script src="/lib/tier-labels.js?v=20260712a" defer></script>
+  <script src="/lib/property-profile-dossier.js?v=20260712-dossier" defer></script>
   <script src="/lib/virtual-scroll.js?v=20260630c" defer></script>
   <script src="/lib/classification-confidence.js?v=20260630i" defer></script>
   <script src="/lib/result-classify.js?v=20260704a" defer></script>
