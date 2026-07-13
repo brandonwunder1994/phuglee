@@ -955,6 +955,14 @@ R.gaugeNum = $('gaugeNum');
 R.propertyModalTierPill = $('propertyModalTierPill');
 R.propertyDistressScale = $('propertyDistressScale');
 R.inspectorGaugePanel = $('inspectorGaugePanel');
+R.profileActionStrip = $('profileActionStrip');
+R.profileCopyPhoneBtn = $('profileCopyPhoneBtn');
+R.profileCopyEmailBtn = $('profileCopyEmailBtn');
+R.profileGoogleLink = $('profileGoogleLink');
+R.profileChangeLevelBtn = $('profileChangeLevelBtn');
+R.profileSatelliteBtn = $('profileSatelliteBtn');
+R.profileSectionNav = $('profileSectionNav');
+R.profileDossierScroll = $('profileDossierScroll');
 
 R.recBadge = $('recBadge');
 

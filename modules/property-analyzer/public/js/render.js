@@ -49,10 +49,36 @@ R.formatProfileFlagChips = function formatProfileFlagChips(flags) {
   return chips.length ? `<div class="profile-flags">${chips.join('')}</div>` : '';
 };
 
-R.formatPropertyProfileHtml = function formatPropertyProfileHtml(r) {
-  const p = r && r.profile;
-  if (!p || typeof p !== 'object') return '';
+R.profileSectionWrap = function profileSectionWrap(id, title, innerHtml) {
+  if (!innerHtml) return '';
+  return `<section class="profile-dossier-section" id="profile-section-${id}" data-profile-section="${id}">
+    <h3 class="profile-dossier-section-title">${escapeHtml(title)}</h3>
+    ${innerHtml}
+  </section>`;
+};
 
+/** Structured dossier parts for cinematic profile (sectioned HTML + presence flags). */
+R.buildProfileDossierParts = function buildProfileDossierParts(r) {
+  const empty = {
+    flags: {
+      hasOverview: true,
+      hasContact: false,
+      hasViolations: false,
+      hasValues: false,
+      hasProperty: false,
+      hasFlags: false
+    },
+    sectionsHtml: {
+      contact: '',
+      violations: '',
+      values: '',
+      property: '',
+      flags: ''
+    }
+  };
+  if (!r) return empty;
+
+  const p = r.profile && typeof r.profile === 'object' ? r.profile : {};
   const row = (label, value) => {
     const v = profileField(value);
     if (!v) return '';
@@ -89,6 +115,37 @@ R.formatPropertyProfileHtml = function formatPropertyProfileHtml(r) {
       </div>`;
     }).join('')
     : '';
+
+  const name = (typeof contactName === 'function' ? contactName(r) : '') || profileField(p.contactName) || '';
+  const hasPrimaryContact = !!(r.phone || r.email || name);
+  const hasProfileContact = !!(phoneRows || emailRows || profileField(p.contactName) || profileField(p.contactType) || showMailing);
+  const hasContact = hasPrimaryContact || hasProfileContact;
+
+  let contactInner = '';
+  if (hasContact) {
+    contactInner = `
+      <div class="inspector-contacts">
+        <div class="contact-chip">
+          <span class="lbl">Contact</span>
+          <span class="val">${escapeHtml(name || '—')}</span>
+        </div>
+        <div class="contact-chip">
+          <span class="lbl">Phone</span>
+          <span class="val">${escapeHtml(r.phone || '—')}</span>
+          ${r.phone ? '<button type="button" class="copy-btn copy-phone">Copy</button>' : ''}
+        </div>
+        <div class="contact-chip">
+          <span class="lbl">Email</span>
+          <span class="val">${escapeHtml(r.email || '—')}</span>
+          ${r.email ? '<button type="button" class="copy-btn copy-email">Copy</button>' : ''}
+        </div>
+      </div>
+      ${row('Contact name', p.contactName)}
+      ${row('Contact type', p.contactType)}
+      ${phoneRows}${emailRows}
+      ${showMailing ? `<div class="profile-kv"><span class="lbl">Mail to</span><span class="val">${escapeHtml(mailingLine)}</span></div>` : ''}
+    `;
+  }
 
   const facts = [
     row('Type', p.propertyType),
@@ -171,45 +228,58 @@ R.formatPropertyProfileHtml = function formatPropertyProfileHtml(r) {
     ].join('');
   }
 
-  const sections = [];
+  let violationsInner = '';
   if (violationHtml) {
     const count = violList.length || (primaryCat || primaryDesc ? 1 : 0);
-    sections.push(`<div class="profile-section profile-section-violations"><div class="profile-section-title">Code violation history${count > 1 ? ` (${count})` : ''}</div>
+    violationsInner = `
       <div class="profile-grid">${violationHtml}</div>
-      <div class="profile-meta" style="margin-top:0.35rem;">From Filter SCAN HISTORY</div></div>`);
-  }
-  if (showMailing) {
-    sections.push(`<div class="profile-section"><div class="profile-section-title">Mailing address</div>
-      <div class="profile-kv"><span class="lbl">Mail to</span><span class="val">${escapeHtml(mailingLine)}</span></div></div>`);
-  }
-  if (phoneRows || emailRows || profileField(p.contactName) || profileField(p.contactType)) {
-    sections.push(`<div class="profile-section"><div class="profile-section-title">Contact stack</div>
-      ${row('Contact name', p.contactName)}
-      ${row('Contact type', p.contactType)}
-      ${phoneRows}${emailRows}</div>`);
-  }
-  if (flagHtml || distressExtra) {
-    sections.push(`<div class="profile-section"><div class="profile-section-title">Distress / motivation</div>
-      ${flagHtml}${distressExtra}</div>`);
-  }
-  if (money) {
-    sections.push(`<div class="profile-section"><div class="profile-section-title">Value & equity</div>
-      <div class="profile-grid">${money}</div></div>`);
-  }
-  if (facts) {
-    sections.push(`<div class="profile-section"><div class="profile-section-title">Property facts</div>
-      <div class="profile-grid">${facts}</div></div>`);
-  }
-  if (amenities) {
-    sections.push(`<div class="profile-section"><div class="profile-section-title">Features & HOA</div>
-      <div class="profile-grid">${amenities}</div></div>`);
+      <div class="profile-meta" style="margin-top:0.35rem;">From Filter SCAN HISTORY${count > 1 ? ` · ${count} records` : ''}</div>
+    `;
   }
 
-  if (!sections.length) return '';
-  return `<div class="inspector-profile">
-    <div class="inspector-profile-title">Property profile</div>
-    ${sections.join('')}
-  </div>`;
+  let propertyInner = '';
+  if (facts || amenities) {
+    propertyInner = `
+      ${facts ? `<div class="profile-grid">${facts}</div>` : ''}
+      ${amenities ? `${facts ? '<div class="profile-subsection-title" style="margin-top:0.75rem;font-weight:600;">Features &amp; HOA</div>' : ''}<div class="profile-grid">${amenities}</div>` : ''}
+    `;
+  }
+
+  const hasViolations = !!violationsInner;
+  const hasValues = !!money;
+  const hasProperty = !!propertyInner;
+  const hasFlags = !!(flagHtml || distressExtra);
+
+  return {
+    flags: {
+      hasOverview: true,
+      hasContact,
+      hasViolations,
+      hasValues,
+      hasProperty,
+      hasFlags
+    },
+    sectionsHtml: {
+      contact: profileSectionWrap('contact', 'Contact', contactInner),
+      violations: profileSectionWrap('violations', 'Violations', violationsInner),
+      values: profileSectionWrap('values', 'Values', money ? `<div class="profile-grid">${money}</div>` : ''),
+      property: profileSectionWrap('property', 'Property', propertyInner),
+      flags: profileSectionWrap('flags', 'Flags', (flagHtml || distressExtra) ? `${flagHtml || ''}${distressExtra || ''}` : '')
+    }
+  };
+};
+
+/** Legacy join of dossier sections (kept for any external callers). */
+R.formatPropertyProfileHtml = function formatPropertyProfileHtml(r) {
+  const parts = buildProfileDossierParts(r);
+  const html = [
+    parts.sectionsHtml.contact,
+    parts.sectionsHtml.violations,
+    parts.sectionsHtml.values,
+    parts.sectionsHtml.property,
+    parts.sectionsHtml.flags
+  ].filter(Boolean).join('');
+  return html;
 };
 
 R.wireCardThumb = function wireCardThumb(card, result) {
@@ -371,6 +441,56 @@ R.wireCardThumb = function wireCardThumb(card, result) {
 }
 
 R.setPreviewImages = function setPreviewImages({ streetView = null, satellite = null } = {}, target = 'property') {
+  // Property cinematic profile: Street View only in hero.
+  // Satellite is offered via action button + lightbox, not dual pane.
+  if (target === 'property') {
+    const imagesEl = previewImages;
+    const satWrap = previewSatWrap;
+    const satImg = previewSatImg;
+    const mainImg = previewImg;
+    const placeholder = previewPlaceholder;
+    const wrap = previewWrap;
+    const paneLabel = previewPaneLabel;
+    const mainReticle = previewMainReticle;
+    if (!imagesEl) return;
+
+    imagesEl.classList.remove('dual');
+    if (satWrap) satWrap.hidden = true;
+
+    const setPreviewImg = typeof setReviewImgSrc === 'function' ? setReviewImgSrc : setImgSrc;
+    // Prefer Street View for hero; do not put satellite in main hero
+    if (streetView) {
+      setPreviewImg(mainImg, streetView);
+      if (satImg) {
+        satImg.style.display = 'none';
+        // stash sat URL for lightbox button if provided
+        if (satellite) satImg.dataset.satSrc = satellite;
+        else delete satImg.dataset.satSrc;
+      }
+      if (placeholder) placeholder.style.display = 'none';
+      if (wrap) wrap.classList.remove('satellite-target');
+      if (paneLabel) paneLabel.textContent = 'Street View';
+      if (mainReticle) mainReticle.style.display = 'none';
+    } else {
+      // No SV: calm empty (even if sat exists — sat is button/lightbox only)
+      if (mainImg) {
+        mainImg.style.display = 'none';
+        mainImg.removeAttribute('src');
+      }
+      if (satImg) {
+        satImg.style.display = 'none';
+        if (satellite) satImg.dataset.satSrc = satellite;
+        else delete satImg.dataset.satSrc;
+      }
+      if (placeholder) placeholder.style.display = 'block';
+      if (wrap) wrap.classList.remove('satellite-target');
+      if (paneLabel) paneLabel.textContent = 'Street View';
+      if (mainReticle) mainReticle.style.display = 'none';
+    }
+    return;
+  }
+
+  // existing dual logic for target === 'scan' unchanged below
   const imagesEl = target === 'scan' ? scanFeedImages : previewImages;
   const satWrap = target === 'scan' ? scanFeedSatWrap : previewSatWrap;
   const satImg = target === 'scan' ? scanFeedSatImg : previewSatImg;
@@ -417,6 +537,39 @@ R.setPreviewImages = function setPreviewImages({ streetView = null, satellite = 
     mainReticle.style.display = 'none';
   }
 }
+
+R.prefersProfileReducedMotion = function prefersProfileReducedMotion() {
+  try {
+    return typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  } catch (_) {
+    return false;
+  }
+};
+
+R.wireProfileScrollSpy = function wireProfileScrollSpy() {
+  const root = profileDossierScroll;
+  if (!root || !profileSectionNav || !inspectorBody) return;
+  if (state._profileSpy) {
+    state._profileSpy.disconnect();
+    state._profileSpy = null;
+  }
+  const sections = inspectorBody.querySelectorAll('.profile-dossier-section[data-profile-section]');
+  if (!sections.length) return;
+  state._profileSpyIgnoreUntil = 0;
+  const obs = new IntersectionObserver((entries) => {
+    if (Date.now() < (state._profileSpyIgnoreUntil || 0)) return;
+    const visible = entries
+      .filter((e) => e.isIntersecting)
+      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!visible) return;
+    const id = visible.target.getAttribute('data-profile-section');
+    profileSectionNav.querySelectorAll('[data-profile-section]').forEach((c) => {
+      c.toggleAttribute('aria-current', c.getAttribute('data-profile-section') === id);
+    });
+  }, { root, threshold: [0.2, 0.45, 0.7] });
+  sections.forEach((s) => obs.observe(s));
+  state._profileSpy = obs;
+};
 
 R.updateScanPinUi = function updateScanPinUi() {
   updateAppNav();
@@ -485,6 +638,11 @@ R.showInspector = function showInspector(r, opts = {}) {
   const tier = resultLeadTier(r);
   const score = resultScore(r);
 
+  const dossierApi = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.propertyProfileDossier) || {};
+  const propertyHasSatelliteMedia = dossierApi.propertyHasSatelliteMedia || (() => false);
+  const getPresentProfileSections = dossierApi.getPresentProfileSections || (() => ['overview']);
+  const buildProfileSectionNavHtml = dossierApi.buildProfileSectionNavHtml || (() => '');
+
   state.selectedKey = recordKey(r);
   if (state.scoreEditKey && state.scoreEditKey !== recordKey(r)) state.scoreEditKey = null;
   if (previewHeaderTitle) previewHeaderTitle.textContent = propertyLocationTitle(r);
@@ -493,18 +651,73 @@ R.showInspector = function showInspector(r, opts = {}) {
     propertyModalTierPill.className = 'property-modal-tier-pill tier-badge ' + tierBadgeClassForRecord(r);
     propertyModalTierPill.textContent = tierBadgeLabelForRecord(r);
   }
+
   const urls = getPropertyImageUrls(r.address, r);
-  const { satellite, streetView, preferSatellite } = urls;
-  if (preferSatellite) {
-    setPreviewImages({ streetView: null, satellite: satellite || streetView }, 'property');
-  } else {
-    setPreviewImages({ streetView, satellite }, 'property');
-  }
+  const { streetView, preferSatellite } = urls;
+  // Hero: Street View only — never preferSatellite hero swap
+  setPreviewImages({ streetView: urls.streetView, satellite: urls.satellite }, 'property');
   if (!urls.fromCache && USE_PROXY && r.address) {
     cachePropertyImageryBackground(r, {
       includeSatellite: preferSatellite || r.usedSatellite || r.skippedStreetView
     });
   }
+
+  const cached = typeof getCachedImageryUrls === 'function' ? getCachedImageryUrls(r) : {};
+  const satAvailable = propertyHasSatelliteMedia({
+    hasSatelliteUrl: !!(urls.satellite || cached.satellite),
+    hasCachedSatellite: !!cached.satellite,
+    usedSatellite: !!r.usedSatellite,
+    skippedStreetView: !!r.skippedStreetView,
+    preferSatellite: !!urls.preferSatellite
+  });
+  const satUrl = cached.satellite || urls.satellite || '';
+
+  // Action strip
+  if (profileCopyPhoneBtn) {
+    profileCopyPhoneBtn.hidden = !r.phone;
+    profileCopyPhoneBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (r.phone) copyText(r.phone, profileCopyPhoneBtn);
+    };
+  }
+  if (profileCopyEmailBtn) {
+    profileCopyEmailBtn.hidden = !r.email;
+    profileCopyEmailBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (r.email) copyText(r.email, profileCopyEmailBtn);
+    };
+  }
+  if (profileGoogleLink) {
+    const gUrl = typeof getGoogleSearchUrl === 'function' ? getGoogleSearchUrl(r.address) : '';
+    if (gUrl) {
+      profileGoogleLink.hidden = false;
+      profileGoogleLink.href = gUrl;
+      profileGoogleLink.onclick = (e) => e.stopPropagation();
+    } else {
+      profileGoogleLink.hidden = true;
+      profileGoogleLink.removeAttribute('href');
+    }
+  }
+  if (profileChangeLevelBtn) {
+    profileChangeLevelBtn.hidden = cat !== 'property';
+    profileChangeLevelBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (cat !== 'property') return;
+      state.scoreEditKey = recordKey(r);
+      showInspector(r, { scrollList: false, scrollFeed: false });
+    };
+  }
+  if (profileSatelliteBtn) {
+    profileSatelliteBtn.hidden = !satAvailable;
+    profileSatelliteBtn.onclick = (e) => {
+      e.stopPropagation();
+      const url = satUrl || (previewSatImg && previewSatImg.dataset.satSrc) || '';
+      if (url && typeof openLightbox === 'function') {
+        openLightbox(url, `Satellite — ${propertyLocationTitle(r)}`);
+      }
+    };
+  }
+
   updateGauge(cat === 'property' ? score : null, opts.animateGauge !== false, 'property', {
     category: cat,
     leadTier: tier
@@ -513,70 +726,99 @@ R.showInspector = function showInspector(r, opts = {}) {
   previewWrap.classList.remove('scanning');
   recBadge.classList.add('idle');
 
+  const parts = buildProfileDossierParts(r);
+  const sectionFlags = {
+    ...parts.flags,
+    hasOverview: true,
+    hasContact: parts.flags.hasContact || !!(r.phone || r.email || contactName(r))
+  };
+  // If contact flag is true but parts lacked section HTML (edge case), rebuild contact via parts only —
+  // buildProfileDossierParts already includes r.phone/email. Ensure contact section exists when flagged.
+  if (sectionFlags.hasContact && !parts.sectionsHtml.contact) {
+    parts.sectionsHtml.contact = profileSectionWrap(
+      'contact',
+      'Contact',
+      `<div class="inspector-contacts">
+        <div class="contact-chip"><span class="lbl">Contact</span><span class="val">${escapeHtml(contactName(r) || '—')}</span></div>
+        <div class="contact-chip"><span class="lbl">Phone</span><span class="val">${escapeHtml(r.phone || '—')}</span>${r.phone ? '<button type="button" class="copy-btn copy-phone">Copy</button>' : ''}</div>
+        <div class="contact-chip"><span class="lbl">Email</span><span class="val">${escapeHtml(r.email || '—')}</span>${r.email ? '<button type="button" class="copy-btn copy-email">Copy</button>' : ''}</div>
+      </div>`
+    );
+  }
+  const sectionIds = getPresentProfileSections(sectionFlags);
+
   inspectorBody.className = 'inspector-body inspector-body-calm property-profile-body';
   inspectorBody.innerHTML = `
-    <div class="inspector-identity">
-      <div class="inspector-address-primary">${escapeHtml(propertyStreetLine(r))}</div>
-      <div class="inspector-name-secondary">${propertyTitleHtml(r)}</div>
-      ${leadUploadedHtml(r, 'detail')}
-    </div>
-    <div class="inspector-badges">
-      <span class="category-badge ${categoryBadgeClass(cat)}">${categoryLabel(cat)}</span>
-      ${leadTypeBadgeHtml(r)}
-      ${r.usedSatellite && urls.streetView ? '<span class="category-badge property">Satellite + Street View</span>' : ''}
-      ${r.skippedStreetView ? '<span class="category-badge vacant">No Street View at address</span>' : ''}
-      ${r.manualScore ? '<span class="score-corrected-badge">Level adjusted by you</span>' : ''}
-      ${r.manualOverride ? '<span class="category-corrected-badge">Category changed by you</span>' : ''}
-      ${manuallyReviewedBadgeHtml(r)}
-      ${exportedBadgeHtml(r)}
-    </div>
-    ${cat === 'property' ? (state.scoreEditKey === recordKey(r) ? `
-    <div class="score-adjust-panel">
-      <div class="score-adjust-title">Set distress level</div>
-      ${r.aiScore != null && r.aiScore !== r.score ? `<div class="score-ai-note">AI picked <strong>${leadTierLabel(tierFromScore(r.aiScore, 'property'))}</strong> — current <strong>${leadTierLabel(tier)}</strong></div>` : r.aiScore != null ? `<div class="score-ai-note">AI picked <strong>${leadTierLabel(tierFromScore(r.aiScore, 'property'))}</strong></div>` : ''}
-      <div class="tier-picker" id="inspectorTierPicker">${buildTierPickerHtml(tier, 'inspectorPick')}</div>
-      <div class="score-adjust-actions">
-        <button type="button" class="score-save-btn" id="saveScoreBtn">Save Level</button>
-        <button type="button" class="score-cancel-btn" id="cancelScoreBtn">Cancel</button>
+    <section class="profile-dossier-section" id="profile-section-overview" data-profile-section="overview">
+      <h3 class="profile-dossier-section-title">Overview</h3>
+      <div class="inspector-identity">
+        <div class="inspector-address-primary">${escapeHtml(propertyStreetLine(r))}</div>
+        <div class="inspector-name-secondary">${propertyTitleHtml(r)}</div>
+        ${leadUploadedHtml(r, 'detail')}
       </div>
-      <div class="score-adjust-hint">${scoreCorrections.length ? `${scoreCorrections.length} past level picks saved — future scans calibrate from these.` : 'Your level picks save locally and help calibrate future scans.'}</div>
-    </div>` : `
-    <div class="score-display-row">
-      <div class="score-display-current">
-        <span class="score-display-label">Distress level</span>
-        <span class="score-display-val score-display-tier">${escapeHtml(leadTierLabel(tier))}</span>
-        ${r.aiScore != null && r.aiScore !== r.score ? `<span class="score-ai-note" style="margin:0;">AI: ${escapeHtml(leadTierLabel(tierFromScore(r.aiScore, 'property')))}</span>` : ''}
+      <div class="inspector-badges">
+        <span class="category-badge ${categoryBadgeClass(cat)}">${categoryLabel(cat)}</span>
+        ${leadTypeBadgeHtml(r)}
+        ${r.usedSatellite && streetView ? '<span class="category-badge property">Satellite + Street View</span>' : ''}
+        ${r.skippedStreetView ? '<span class="category-badge vacant">No Street View at address</span>' : ''}
+        ${r.manualScore ? '<span class="score-corrected-badge">Level adjusted by you</span>' : ''}
+        ${r.manualOverride ? '<span class="category-corrected-badge">Category changed by you</span>' : ''}
+        ${manuallyReviewedBadgeHtml(r)}
+        ${exportedBadgeHtml(r)}
       </div>
-      <button type="button" class="score-change-btn" id="changeScoreBtn">Change Level</button>
-    </div>`) : ''}
-    ${formatSimpleAnalysisHtml(r)}
-    <div class="inspector-actions">
-      <a class="google-search-btn" href="${escapeHtml(getGoogleSearchUrl(r.address))}" target="_blank" rel="noopener noreferrer">Search Google Listings</a>
-    </div>
-    ${computeNeedsReview(r) ? `<div class="review-queue-panel" style="margin-bottom:0.5rem;">
-      <div class="review-queue-title">Needs your review</div>
-      <p class="review-queue-hint">Use Change category below to fix this classification.</p>
-    </div>` : ''}
-    ${formatCategoryChangeHtml(r)}
-    <div class="inspector-contacts">
-      <div class="contact-chip">
-        <span class="lbl">Contact</span>
-        <span class="val">${escapeHtml(contactName(r))}</span>
-      </div>
-      <div class="contact-chip">
-        <span class="lbl">Phone</span>
-        <span class="val">${escapeHtml(r.phone || '—')}</span>
-        ${r.phone ? '<button type="button" class="copy-btn copy-phone">Copy</button>' : ''}
-      </div>
-      <div class="contact-chip">
-        <span class="lbl">Email</span>
-        <span class="val">${escapeHtml(r.email || '—')}</span>
-        ${r.email ? '<button type="button" class="copy-btn copy-email">Copy</button>' : ''}
-      </div>
-    </div>
-    ${formatPropertyProfileHtml(r)}
+      ${cat === 'property' ? (state.scoreEditKey === recordKey(r) ? `
+      <div class="score-adjust-panel">
+        <div class="score-adjust-title">Set distress level</div>
+        ${r.aiScore != null && r.aiScore !== r.score ? `<div class="score-ai-note">AI picked <strong>${leadTierLabel(tierFromScore(r.aiScore, 'property'))}</strong> — current <strong>${leadTierLabel(tier)}</strong></div>` : r.aiScore != null ? `<div class="score-ai-note">AI picked <strong>${leadTierLabel(tierFromScore(r.aiScore, 'property'))}</strong></div>` : ''}
+        <div class="tier-picker" id="inspectorTierPicker">${buildTierPickerHtml(tier, 'inspectorPick')}</div>
+        <div class="score-adjust-actions">
+          <button type="button" class="score-save-btn" id="saveScoreBtn">Save Level</button>
+          <button type="button" class="score-cancel-btn" id="cancelScoreBtn">Cancel</button>
+        </div>
+        <div class="score-adjust-hint">${scoreCorrections.length ? `${scoreCorrections.length} past level picks saved — future scans calibrate from these.` : 'Your level picks save locally and help calibrate future scans.'}</div>
+      </div>` : `
+      <div class="score-display-row">
+        <div class="score-display-current">
+          <span class="score-display-label">Distress level</span>
+          <span class="score-display-val score-display-tier">${escapeHtml(leadTierLabel(tier))}</span>
+          ${r.aiScore != null && r.aiScore !== r.score ? `<span class="score-ai-note" style="margin:0;">AI: ${escapeHtml(leadTierLabel(tierFromScore(r.aiScore, 'property')))}</span>` : ''}
+        </div>
+        <button type="button" class="score-change-btn" id="changeScoreBtn">Change Level</button>
+      </div>`) : ''}
+      ${formatSimpleAnalysisHtml(r)}
+      ${computeNeedsReview(r) ? `<div class="review-queue-panel" style="margin-bottom:0.5rem;">
+        <div class="review-queue-title">Needs your review</div>
+        <p class="review-queue-hint">Use Change category below to fix this classification.</p>
+      </div>` : ''}
+      ${formatCategoryChangeHtml(r)}
+    </section>
+    ${parts.sectionsHtml.contact || ''}
+    ${parts.sectionsHtml.violations || ''}
+    ${parts.sectionsHtml.values || ''}
+    ${parts.sectionsHtml.property || ''}
+    ${parts.sectionsHtml.flags || ''}
     <div class="inspector-hint">↑↓ or J/K to move between leads · Esc to close</div>
   `;
+
+  if (profileSectionNav) {
+    profileSectionNav.innerHTML = buildProfileSectionNavHtml(sectionIds);
+    profileSectionNav.querySelectorAll('[data-profile-section]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const id = chip.getAttribute('data-profile-section');
+        state._profileSpyIgnoreUntil = Date.now() + 400;
+        const el = inspectorBody.querySelector(`#profile-section-${id}`) ||
+          profileDossierScroll?.querySelector(`#profile-section-${id}`);
+        el?.scrollIntoView({
+          behavior: prefersProfileReducedMotion() ? 'auto' : 'smooth',
+          block: 'start'
+        });
+        profileSectionNav.querySelectorAll('[data-profile-section]').forEach((c) => {
+          c.toggleAttribute('aria-current', c === chip);
+        });
+      });
+    });
+  }
+
   const phoneBtn = inspectorBody.querySelector('.copy-phone');
   const emailBtn = inspectorBody.querySelector('.copy-email');
   if (phoneBtn) phoneBtn.addEventListener('click', (e) => { e.stopPropagation(); copyText(r.phone, phoneBtn); });
@@ -599,7 +841,6 @@ R.showInspector = function showInspector(r, opts = {}) {
       if (!btn.disabled) changeCategory(r, btn.dataset.changeCat);
     });
   });
-  inspectorBody.querySelector('.google-search-btn')?.addEventListener('click', (e) => e.stopPropagation());
 
   const changeScoreBtn = inspectorBody.querySelector('#changeScoreBtn');
   changeScoreBtn?.addEventListener('click', (e) => {
@@ -622,6 +863,11 @@ R.showInspector = function showInspector(r, opts = {}) {
     state.scoreEditKey = null;
     showInspector(r, { scrollList: false, scrollFeed: false });
   });
+
+  wireProfileScrollSpy();
+  if (profileDossierScroll && !opts.keepDossierScroll) {
+    profileDossierScroll.scrollTop = 0;
+  }
 
   const pos = idx >= 0 ? idx + 1 : '?';
   inspectorPos.textContent = list.length ? `${pos} / ${list.length}` : '—';

@@ -595,6 +595,10 @@ R.closePropertyModal = function closePropertyModal(opts = {}) {
   if (!imageLightbox.classList.contains('open')) {
     document.body.style.overflow = '';
   }
+  if (state._profileSpy) {
+    try { state._profileSpy.disconnect(); } catch (_) { /* ignore */ }
+    state._profileSpy = null;
+  }
   state.propertyModalOpen = false;
   state.selectedKey = null;
   state.scoreEditKey = null;
