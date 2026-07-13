@@ -772,8 +772,11 @@ body.analyze-phuglee .cyber-grid,
 body.analyze-phuglee .rec-badge,
 body.analyze-phuglee .scan-line,
 body.analyze-phuglee .target-reticle,
-body.analyze-phuglee .preview-reticle {
+body.analyze-phuglee .preview-reticle,
+body.analyze-phuglee #recBadge,
+body.analyze-phuglee #previewMainReticle {
   display: none !important;
+  visibility: hidden !important;
   animation: none !important;
   pointer-events: none !important;
 }
@@ -2043,7 +2046,8 @@ body.analyze-phuglee .property-modal-details .inspector-body {
   font-family: var(--font-body, 'Outfit', sans-serif);
   font-size: 0.86rem;
   color: var(--phuglee-cream, #f5f2e4);
-  scrollbar-color: rgba(229, 132, 53, 0.35) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(174, 163, 143, 0.38) transparent;
 }
 
 body.analyze-phuglee .property-modal-details .inspector-body.empty {
@@ -2348,15 +2352,23 @@ body.analyze-phuglee .profile-action-btn {
   transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
+/* Secondary actions: stone hover (less orange heat) */
 body.analyze-phuglee .profile-action-btn:hover {
-  border-color: rgba(229, 132, 53, 0.45);
-  color: var(--phuglee-orange, #e58435);
+  border-color: rgba(174, 163, 143, 0.42);
+  color: var(--phuglee-cream, #f5f2e4);
+  background: rgba(255, 255, 255, 0.045);
 }
 
 body.analyze-phuglee .profile-action-btn.profile-action-primary {
   border-color: rgba(229, 132, 53, 0.5);
   background: rgba(229, 132, 53, 0.14);
   color: var(--phuglee-orange, #e58435);
+}
+
+body.analyze-phuglee .profile-action-btn.profile-action-primary:hover {
+  border-color: rgba(229, 132, 53, 0.58);
+  color: var(--phuglee-orange, #e58435);
+  background: rgba(229, 132, 53, 0.2);
 }
 
 body.analyze-phuglee .property-profile-section-nav {
@@ -2417,7 +2429,8 @@ body.analyze-phuglee .property-profile-dossier {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  scrollbar-color: rgba(229, 132, 53, 0.35) transparent;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(174, 163, 143, 0.38) transparent;
 }
 
 /* Nested panels do not scroll — content flows inside dossier */
@@ -2447,13 +2460,17 @@ body.analyze-phuglee .profile-dossier-section:first-child {
   padding-top: 0;
 }
 
-body.analyze-phuglee .profile-dossier-section-title {
+/* Outfit only on dossier titles — no Anton / display face */
+body.analyze-phuglee .profile-dossier-section-title,
+body.analyze-phuglee .property-profile-cinematic .profile-dossier-section-title,
+body.analyze-phuglee .property-profile-cinematic .profile-section-title {
   font-family: var(--font-body, 'Outfit', sans-serif);
   font-size: 0.8rem;
   font-weight: 650;
   color: var(--phuglee-cream, #f5f2e4);
   margin: 0 0 0.55rem;
   letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 body.analyze-phuglee .profile-grid {

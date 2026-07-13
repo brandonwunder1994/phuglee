@@ -470,7 +470,11 @@ R.setPreviewImages = function setPreviewImages({ streetView = null, satellite = 
       if (placeholder) placeholder.style.display = 'none';
       if (wrap) wrap.classList.remove('satellite-target');
       if (paneLabel) paneLabel.textContent = 'Street View';
-      if (mainReticle) mainReticle.style.display = 'none';
+      if (mainReticle) {
+        mainReticle.style.display = 'none';
+        mainReticle.hidden = true;
+        mainReticle.setAttribute('aria-hidden', 'true');
+      }
     } else {
       // No SV: calm empty (even if sat exists — sat is button/lightbox only)
       if (mainImg) {
@@ -482,10 +486,18 @@ R.setPreviewImages = function setPreviewImages({ streetView = null, satellite = 
         if (satellite) satImg.dataset.satSrc = satellite;
         else delete satImg.dataset.satSrc;
       }
-      if (placeholder) placeholder.style.display = 'block';
+      if (placeholder) {
+        placeholder.style.display = 'flex';
+        const titleEl = placeholder.querySelector('.preview-placeholder-title');
+        if (titleEl) titleEl.textContent = 'No Street View for this address';
+      }
       if (wrap) wrap.classList.remove('satellite-target');
       if (paneLabel) paneLabel.textContent = 'Street View';
-      if (mainReticle) mainReticle.style.display = 'none';
+      if (mainReticle) {
+        mainReticle.style.display = 'none';
+        mainReticle.hidden = true;
+        mainReticle.setAttribute('aria-hidden', 'true');
+      }
     }
     return;
   }
@@ -726,7 +738,18 @@ R.showInspector = function showInspector(r, opts = {}) {
   });
   liveDot.classList.add('idle');
   previewWrap.classList.remove('scanning');
-  recBadge.classList.add('idle');
+  // Property cinematic: never show REC badge / reticle HUD cosplay
+  if (recBadge) {
+    recBadge.classList.add('idle');
+    recBadge.hidden = true;
+    recBadge.setAttribute('aria-hidden', 'true');
+    recBadge.style.display = 'none';
+  }
+  if (previewMainReticle) {
+    previewMainReticle.hidden = true;
+    previewMainReticle.setAttribute('aria-hidden', 'true');
+    previewMainReticle.style.display = 'none';
+  }
 
   const parts = buildProfileDossierParts(r);
   const sectionFlags = {
