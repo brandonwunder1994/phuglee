@@ -145,20 +145,22 @@
       }
 
       const canStart = pendingUnscanned > 0
-        && hasRecords
         && !state.running
         && !!serverConfig?.hasMapsKey
-        && !!serverConfig?.hasGeminiKey;
+        && !!serverConfig?.hasGeminiKey
+        && (hasRecords || !!USE_PROXY);
       if (scanReadyStartBtn) {
         scanReadyStartBtn.disabled = !canStart;
         scanReadyStartBtn.hidden = !!state.running;
         if (canStart) {
-          scanReadyStartBtn.title = 'Start Street View + satellite AI scan';
+          scanReadyStartBtn.title = hasRecords
+            ? 'Start Street View + satellite AI scan'
+            : 'Load queue, then start Street View + satellite AI scan';
         } else if (state.running) {
           scanReadyStartBtn.title = 'Scan already running';
         } else if (!serverConfig?.hasMapsKey || !serverConfig?.hasGeminiKey) {
           scanReadyStartBtn.title = 'Maps or Gemini API key missing on server';
-        } else if (!hasRecords) {
+        } else if (!hasRecords && pendingUnscanned <= 0) {
           scanReadyStartBtn.title = 'Import a spreadsheet first';
         } else {
           scanReadyStartBtn.title = startBtn?.title || 'Cannot start yet';

@@ -1829,7 +1829,7 @@ R.bootstrapApp = async function bootstrapApp() {
     resetDisplayLimit();
   }
   resetBlockingUiOnLoad();
-  // Restore login username into sessionStorage before session APIs run.
+  // Restore login username into sessionStorage before session APIs run (once — loadSession does not re-sync).
   if (USE_PROXY && window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
     try {
       await window.PhugleeSession.syncSessionFromServerCookie();
@@ -1843,8 +1843,12 @@ R.bootstrapApp = async function bootstrapApp() {
     updateSummaryStats();
   }
   try {
+    // Config already kicked at config.js parse; do not block first paint on /api/config.
     if (USE_PROXY && typeof fetchServerConfig === 'function') {
-      try { await fetchServerConfig(); } catch (_) { /* proceed; thumbs refresh when config loads */ }
+      fetchServerConfig().then(() => {
+        updateStartButton?.();
+        updateScanReadyUi?.();
+      }).catch(() => {});
     }
     if (USE_PROXY && typeof fetchImageryIndexMap === 'function') {
       fetchImageryIndexMap().catch(() => {});
@@ -1859,10 +1863,6 @@ R.bootstrapApp = async function bootstrapApp() {
   } finally {
     resetBlockingUiOnLoad();
     updateCommandBar();
-    startServerStatusPolling();
-    startAlwaysOnSafetyPolling();
-    fetchApiUsage?.();
-    wireApiUsageControls?.();
     updateStartButton();
     syncAdminUi?.();
     updateScanReadyUi?.();
@@ -1877,11 +1877,27 @@ R.bootstrapApp = async function bootstrapApp() {
         else await renderResultsProgressive();
       } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) renderVirtualCards();
       else refreshAllCardThumbs();
-      preloadAnalyzeCardThumbs?.();
-      setTimeout(() => {
-        runStreetViewRepairMigration();
-        runImageryMigrationIfNeeded();
-      }, 2500);
+      // Thumbs + status polls after first paint so cards stay interactive sooner.
+      requestAnimationFrame(() => {
+        preloadAnalyzeCardThumbs?.();
+      });
+    }
+    const deferSecondary = () => {
+      startServerStatusPolling();
+      startAlwaysOnSafetyPolling();
+      fetchApiUsage?.();
+      wireApiUsageControls?.();
+      if (state.results.length) {
+        setTimeout(() => {
+          runStreetViewRepairMigration();
+          runImageryMigrationIfNeeded();
+        }, 2500);
+      }
+    };
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(deferSecondary, { timeout: 2500 });
+    } else {
+      setTimeout(deferSecondary, 0);
     }
   }
 };

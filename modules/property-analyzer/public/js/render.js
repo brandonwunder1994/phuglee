@@ -2092,7 +2092,7 @@ R.buildPropCard = function buildPropCard(r, rankMap) {
       <span class="card-badge-overlay tier-badge ${tierClass}">${tierBadgeLabelForRecord(r)}</span>
       <span class="card-score-pill">${escapeHtml(scoreDisplayForRecord(r))}</span>
       <label class="bulk-check-wrap" onclick="event.stopPropagation()"><input type="checkbox" class="bulk-row-check" aria-label="Select property"${bulkOn ? ' checked' : ''}></label>
-      <img alt="" loading="${isAnalyzeLayout() ? 'eager' : 'lazy'}" decoding="async" style="display:none">
+      <img alt="" loading="lazy" decoding="async" style="display:none">
       <div class="card-thumb-gradient"></div>
       <div class="card-thumb-overlay">
         <div class="card-address">${escapeHtml(propertyStreetLine(r))}</div>

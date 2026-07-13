@@ -595,7 +595,8 @@ R.shouldUseVirtualScroll = function shouldUseVirtualScroll(itemCount) {
   return n > VIRTUAL_SCROLL_THRESHOLD;
 };
 R.SESSION_PAGE_SIZE = 1000;
-R.ANALYZE_SESSION_FIRST_PAGE = 100;
+/** First network page for Analyze — keep small so cards appear before full hydrate. */
+R.ANALYZE_SESSION_FIRST_PAGE = 40;
 
 R.getSessionFirstPageSize = function getSessionFirstPageSize() {
   return document.body.classList.contains('analyze-phuglee')

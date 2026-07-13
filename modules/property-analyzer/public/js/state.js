@@ -2289,36 +2289,31 @@ R.applyPayloadWithUi = async function applyPayloadWithUi(data, opts = {}) {
 R.loadSession = async function loadSession() {
   setSessionRestoreBanner('Loading your data…');
   try {
-    // Ensure Analyzer API headers match the shell login cookie before reading session.
-    if (USE_PROXY && window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
-      try {
-        await window.PhugleeSession.syncSessionFromServerCookie();
-      } catch (_) {
-        /* ignore */
-      }
-    }
+    // Cookie sync runs once in bootstrapApp — do not await it again here.
     let summary = null;
     if (USE_PROXY) {
-      // If scan JSONL has rows but LATEST is empty (reload mid-scan), force merge first.
-      try {
-        const statsRes = await apiFetch('/api/scan-results/stats', { cache: 'no-store' });
-        if (statsRes.ok) {
-          const stats = await statsRes.json();
-          const incCount = Number(stats.count) || 0;
-          if (incCount > 0) {
-            const recoverRes = await apiFetch('/api/recover-incremental', { method: 'POST' });
-            if (recoverRes.ok) {
-              const recovered = await recoverRes.json();
-              if (recovered?.results > 0) {
-                console.log('[Session] Recovered incremental scan rows:', recovered);
-              }
+      // Summary + incremental stats in parallel. Recover only when JSONL is ahead of LATEST.
+      const statsPromise = apiFetch('/api/scan-results/stats', { cache: 'no-store' })
+        .then(async (res) => (res.ok ? res.json() : null))
+        .catch(() => null);
+      summary = await fetchSessionSummary();
+      const stats = await statsPromise;
+      const incCount = Number(stats?.count) || 0;
+      const summaryResults = Number(summary?.results) || 0;
+      if (incCount > summaryResults) {
+        try {
+          const recoverRes = await apiFetch('/api/recover-incremental', { method: 'POST' });
+          if (recoverRes.ok) {
+            const recovered = await recoverRes.json();
+            if (recovered?.results > 0) {
+              console.log('[Session] Recovered incremental scan rows:', recovered);
+              summary = await fetchSessionSummary();
             }
           }
+        } catch (e) {
+          console.warn('Incremental recovery check failed', e);
         }
-      } catch (e) {
-        console.warn('Incremental recovery check failed', e);
       }
-      summary = await fetchSessionSummary();
       if (summary?.results) {
         sessionLoadState.serverCanonical = summary.results;
       }
@@ -2326,49 +2321,68 @@ R.loadSession = async function loadSession() {
     if (summary?.results) {
       const firstPagePromise = fetchSessionResultsPage(0, getSessionFirstPageSize());
       await applySessionSummary(summary);
-      const browserCandidates = await readAllBrowserSessionCandidates();
-      const browserBest = browserCandidates[0] || null;
-      if (browserBest?.data && mergeBrowserReviewMetadata(browserBest.data)) {
-        sessionDirty = true;
-        if (typeof pushReviewMetadataToServer === 'function') {
-          pushReviewMetadataToServer('review-metadata-merge', { immediate: true });
-        } else {
-          requestServerSave('review-metadata-merge');
-        }
-      }
-      // Load unscanned import queue so Ready to scan / Start Scan work on large sessions.
-      // Only block paint when there is a real pending queue (not the full 10k records count).
-      const pendingHint = Number(summary.pendingUnscanned) || 0;
-      if (pendingHint > 0) {
-        setSessionRestoreBanner(
-          pendingHint > 200
-            ? `Loading ${pendingHint.toLocaleString()} unscanned leads…`
-            : `Loading unscanned leads…`
-        );
-        await loadSessionRecords({ mode: 'unscanned' });
-      } else {
-        // Defer full records fetch — Start Scan will call ensureScanRecordsLoaded if needed
-        state._pendingUnscanned = 0;
-        state._expectedRecords = Number(summary.records) || 0;
-        state._recordsLoadComplete = true;
-      }
       setSessionRestoreBanner(
         summary.results > 500
           ? `Loaded ${summary.results.toLocaleString()} properties — showing first page…`
           : `Loaded ${summary.results.toLocaleString()} properties — loading results…`
       );
+      // Paint cards before IndexedDB merge / unscanned queue — biggest perceived-load win.
       await loadSessionResultsFirstPage(summary.results, firstPagePromise);
-      // Idle-deferred hydration so first paint / Start Scan stay snappy on 10k sessions
+      setSessionRestoreBanner('');
+      updateScanReadyUi?.();
+      updateStartButton?.();
+
       loadSessionResultsBackground(summary.results, { deferIdle: true });
       hydrateSessionReviewMeta().catch((e) => console.warn('Review meta hydrate failed', e));
+
+      const pendingHint = Number(summary.pendingUnscanned) || 0;
+      if (pendingHint > 0) {
+        // Keep _pendingUnscanned from applySessionSummary; Start Scan uses ensureScanRecordsLoaded.
+        const loadRecordsIdle = () => {
+          loadSessionRecords({ mode: 'unscanned' })
+            .then(() => {
+              updateScanReadyUi?.();
+              updateStartButton?.();
+            })
+            .catch((e) => console.warn('Deferred unscanned records load failed', e));
+        };
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(loadRecordsIdle, { timeout: 2000 });
+        } else {
+          setTimeout(loadRecordsIdle, 0);
+        }
+      } else {
+        state._pendingUnscanned = 0;
+        state._expectedRecords = Number(summary.records) || 0;
+        state._recordsLoadComplete = true;
+      }
+
+      const mergeBrowserMetaIdle = () => {
+        readAllBrowserSessionCandidates()
+          .then((browserCandidates) => {
+            const browserBest = browserCandidates[0] || null;
+            if (browserBest?.data && mergeBrowserReviewMetadata(browserBest.data)) {
+              sessionDirty = true;
+              if (typeof pushReviewMetadataToServer === 'function') {
+                pushReviewMetadataToServer('review-metadata-merge', { immediate: true });
+              } else {
+                requestServerSave('review-metadata-merge');
+              }
+            }
+          })
+          .catch((e) => console.warn('Deferred browser session merge failed', e));
+      };
+      if (typeof requestIdleCallback === 'function') {
+        requestIdleCallback(mergeBrowserMetaIdle, { timeout: 4000 });
+      } else {
+        setTimeout(mergeBrowserMetaIdle, 0);
+      }
+
       if (!sessionDirty) sessionDirty = false;
       // Skip urgent local full-session write for large restores (can freeze tab for seconds)
       if (window.DistressPersistence && (summary.results || 0) <= 400) {
         DistressPersistence.saveNow('restore', { urgent: true, localOnly: true });
       }
-      setSessionRestoreBanner('');
-      updateScanReadyUi?.();
-      updateStartButton?.();
       return;
     }
     const best = window.DistressPersistence
