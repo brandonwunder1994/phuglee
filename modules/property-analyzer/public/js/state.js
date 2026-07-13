@@ -902,12 +902,45 @@ R.pushIncrementalScanResult = function pushIncrementalScanResult(result, process
     processed: processed ?? state.processed,
     savedAt: Date.now()
   });
-  apiFetch('/api/scan-result', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body,
-    keepalive: true
-  }).catch((e) => console.warn('Incremental scan result log failed', e));
+  const attempt = (tryNumber) =>
+    apiFetch('/api/scan-result', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          throw new Error(text || `HTTP ${res.status}`);
+        }
+        lastSessionSaveAt = Date.now();
+        lastSessionSaveError = null;
+        updateSessionSaveStatus?.();
+        return res;
+      })
+      .catch((e) => {
+        console.warn('Incremental scan result log failed', e);
+        if (tryNumber < 2) {
+          return new Promise((resolve) => setTimeout(resolve, 400)).then(() => attempt(tryNumber + 1));
+        }
+        lastSessionSaveError = e?.message || 'Scan save failed';
+        updateSessionSaveStatus?.();
+        if (typeof notifyScanIssue === 'function') {
+          notifyScanIssue(
+            'fatal',
+            'Scan results are not saving to the server. Stop and check your connection before continuing — Gemini/Maps credits may be wasted.',
+            {
+              title: 'Save failed — results at risk',
+              tier: 'error',
+              browserNotify: true,
+              dedupeKey: 'scan-result-save-failed'
+            }
+          );
+        }
+        throw e;
+      });
+  return attempt(1);
 }
 
 R.pushScanSessionMeta = function pushScanSessionMeta() {
@@ -924,7 +957,9 @@ R.pushScanSessionMeta = function pushScanSessionMeta() {
     headers: { 'Content-Type': 'application/json' },
     body,
     keepalive: true
-  }).catch(() => {});
+  }).catch((e) => {
+    console.warn('Scan meta save failed', e);
+  });
 }
 
 /**
@@ -2264,6 +2299,25 @@ R.loadSession = async function loadSession() {
     }
     let summary = null;
     if (USE_PROXY) {
+      // If scan JSONL has rows but LATEST is empty (reload mid-scan), force merge first.
+      try {
+        const statsRes = await apiFetch('/api/scan-results/stats', { cache: 'no-store' });
+        if (statsRes.ok) {
+          const stats = await statsRes.json();
+          const incCount = Number(stats.count) || 0;
+          if (incCount > 0) {
+            const recoverRes = await apiFetch('/api/recover-incremental', { method: 'POST' });
+            if (recoverRes.ok) {
+              const recovered = await recoverRes.json();
+              if (recovered?.results > 0) {
+                console.log('[Session] Recovered incremental scan rows:', recovered);
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Incremental recovery check failed', e);
+      }
       summary = await fetchSessionSummary();
       if (summary?.results) {
         sessionLoadState.serverCanonical = summary.results;

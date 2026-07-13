@@ -191,30 +191,54 @@ function register(ctx) {
       sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
       return true;
     }
-    if (body?.type === 'meta') {
-      backups.appendScanResult({
-        type: 'meta',
-        records: body.records || 0,
+    try {
+      if (body?.type === 'meta') {
+        await backups.appendScanResult({
+          type: 'meta',
+          records: body.records || 0,
+          processed: body.processed || 0,
+          fileName: body.fileName || '',
+          savedAt: body.savedAt || Date.now()
+        });
+        sendJson(res, 200, { ok: true, type: 'meta', durable: true });
+        return true;
+      }
+      const key = body?.key || backups.recordKeyFromResult(body?.result);
+      if (!key || !body?.result) {
+        sendJson(res, 400, { ok: false, error: 'Missing result key' });
+        return true;
+      }
+      await backups.appendScanResult({
+        key,
+        result: body.result,
         processed: body.processed || 0,
-        fileName: body.fileName || '',
         savedAt: body.savedAt || Date.now()
       });
-      sendJson(res, 200, { ok: true, type: 'meta' });
+      backups.schedulePromoteAfterScanResult(req);
+      sendJson(res, 200, { ok: true, key, durable: true });
+      return true;
+    } catch (err) {
+      console.error('[Scan result] durable write failed:', err.message);
+      sendJson(res, 500, {
+        ok: false,
+        error: 'Failed to save scan result to disk: ' + (err.message || 'write error'),
+        code: 'SCAN_RESULT_WRITE_FAILED'
+      });
       return true;
     }
-    const key = body?.key || backups.recordKeyFromResult(body?.result);
-    if (!key || !body?.result) {
-      sendJson(res, 400, { ok: false, error: 'Missing result key' });
-      return true;
-    }
-    backups.appendScanResult({
-      key,
-      result: body.result,
-      processed: body.processed || 0,
-      savedAt: body.savedAt || Date.now()
-    });
-    backups.schedulePromoteAfterScanResult(req);
-    sendJson(res, 200, { ok: true, key });
+  });
+
+  router.get('/api/persistence-status', async (req, res) => {
+    const { scope } = backups.loadSessionForRequest(req);
+    sendJson(res, 200, backups.getPersistenceStatus(scope));
+    return true;
+  });
+
+  /** Force-merge scan JSONL into this user's LATEST (reload recovery). */
+  router.post('/api/recover-incremental', async (req, res) => {
+    const { scope } = backups.loadSessionForRequest(req);
+    const result = backups.recoverIncrementalIntoScope(scope);
+    sendJson(res, 200, { ok: true, ...result, scope: scope.storageKey });
     return true;
   });
 

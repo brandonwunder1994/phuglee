@@ -66,9 +66,14 @@ module.exports = function createBackups(deps) {
     ensureScanResultsDir();
     const line = JSON.stringify({ ts: Date.now(), ...entry }) + '\n';
     const file = scanResultsLogPath();
+    const writePromise = fs.promises.appendFile(file, line, 'utf8');
     scanResultWriteChain = scanResultWriteChain
-      .then(() => fs.promises.appendFile(file, line, 'utf8'))
-      .catch((err) => console.warn('[Scan result log] write failed:', err.message));
+      .then(() => writePromise)
+      .catch((err) => {
+        console.warn('[Scan result log] write failed:', err.message);
+        throw err;
+      });
+    return scanResultWriteChain.then(() => ({ ok: true, file }));
   }
 
   function readIncrementalScanResults() {
@@ -516,15 +521,107 @@ module.exports = function createBackups(deps) {
         clearTimeout(scanPromoteTimer);
         scanPromoteTimer = null;
       }
-      setTimeout(() => promoteIncrementalToLatest('scan-batch'), 250);
+      setTimeout(() => {
+        const result = promoteIncrementalToLatest('scan-batch');
+        maybeRollingBackupAfterPromote(result);
+      }, 100);
       return;
     }
     if (scanPromoteTimer) return;
     scanPromoteTimer = setTimeout(() => {
       scanPromoteTimer = null;
       scanResultsSincePromote = 0;
-      promoteIncrementalToLatest('scan-debounce');
+      const result = promoteIncrementalToLatest('scan-debounce');
+      maybeRollingBackupAfterPromote(result);
     }, PROMOTE_DEBOUNCE_MS);
+  }
+
+  function maybeRollingBackupAfterPromote(promoteResult) {
+    const results = Number(promoteResult?.results) || 0;
+    if (!results) return;
+    const now = Date.now();
+    if (
+      results > 0 &&
+      (now - lastRollingBackupAt >= ROLLING_BACKUP_MIN_MS ||
+        results % ROLLING_BACKUP_MIN_NEW_RESULTS === 0)
+    ) {
+      try {
+        const scope = lastActiveScope || { storageKey: '_anonymous' };
+        const session = readLatestSessionFileForScope(scope);
+        if ((session.results || []).length) {
+          writeRollingAutoBackup(session, 'scan_milestone', 'milestone');
+          lastRollingBackupAt = now;
+        }
+      } catch (err) {
+        console.warn('[Safety] Rolling milestone backup failed:', err.message);
+      }
+    }
+  }
+
+  /**
+   * If LATEST is empty/thin but JSONL has scan rows, promote into the active scope.
+   * Recovers mid-scan reloads when debounce never flushed LATEST.
+   */
+  function recoverIncrementalIntoScope(scope) {
+    const activeScope = scope || lastActiveScope || { storageKey: '_anonymous' };
+    lastActiveScope = activeScope;
+    const inc = readIncrementalScanResults();
+    if (!inc.count) {
+      return { recovered: false, results: 0, incremental: 0 };
+    }
+    const before = readLatestSessionFileForScope(activeScope);
+    const beforeCount = Array.isArray(before.results) ? before.results.length : 0;
+    const promoted = promoteIncrementalToLatest('recover-reload', activeScope);
+    const after = readLatestSessionFileForScope(activeScope);
+    const afterCount = Array.isArray(after.results) ? after.results.length : 0;
+    return {
+      recovered: afterCount > beforeCount,
+      results: afterCount,
+      incremental: inc.count,
+      promoted: !!promoted?.promoted
+    };
+  }
+
+  function getPersistenceStatus(scope) {
+    const activeScope = scope || lastActiveScope || { storageKey: '_anonymous' };
+    const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, activeScope);
+    const inc = readIncrementalScanResults();
+    let latestResults = 0;
+    let latestExists = false;
+    let writable = false;
+    try {
+      fs.accessSync(DATA_ROOT, fs.constants.W_OK);
+      writable = true;
+    } catch (_) {
+      writable = false;
+    }
+    try {
+      if (fs.existsSync(latestPath)) {
+        latestExists = true;
+        const parsed = JSON.parse(fs.readFileSync(latestPath, 'utf8'));
+        latestResults = Array.isArray(parsed.results) ? parsed.results.length : 0;
+      }
+    } catch (_) {}
+    const looksEphemeral =
+      !String(DATA_ROOT || '').includes('pda-data') &&
+      !String(process.env.PDA_DATA_ROOT || '').trim();
+    return {
+      ok: true,
+      dataRoot: DATA_ROOT,
+      writable,
+      scope: activeScope.storageKey || '_anonymous',
+      latestExists,
+      latestResults,
+      incrementalCount: inc.count,
+      looksEphemeral,
+      warning: !writable
+        ? 'Data folder is not writable — scans may not save.'
+        : looksEphemeral
+          ? 'PDA_DATA_ROOT may not be a Railway volume — redeploys can wipe scans.'
+          : (inc.count > latestResults + 5
+            ? 'Scan log has more rows than LATEST — reload recovery will merge them.'
+            : null)
+    };
   }
 
   function promoteMergedSessionIfBetter(session) {
@@ -570,6 +667,8 @@ module.exports = function createBackups(deps) {
     mergeIncrementalIntoSession,
     promoteIncrementalToLatest,
     promoteMergedSessionIfBetter,
+    recoverIncrementalIntoScope,
+    getPersistenceStatus,
     readIncrementalScanResults,
     readLatestSessionFile,
     readLatestSessionFileForScope,

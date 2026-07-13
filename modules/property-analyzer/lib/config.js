@@ -71,10 +71,11 @@ module.exports = {
   REJECTED_QUARANTINE_MAX_AGE_MS: 7 * 24 * 60 * 60 * 1000,
   AUTO_SAFETY_TICK_MS: 60 * 1000,
   AUTO_SNAPSHOT_MIN_MS: 5 * 60 * 1000,
-  PROMOTE_BATCH_MIN: 45,
-  PROMOTE_DEBOUNCE_MS: 35000,
-  ROLLING_BACKUP_MIN_MS: 120000,
-  ROLLING_BACKUP_MIN_NEW_RESULTS: 60,
+  PROMOTE_BATCH_MIN: 5,
+  /** Flush LATEST more often — API credits are expensive to re-run. */
+  PROMOTE_DEBOUNCE_MS: 5000,
+  ROLLING_BACKUP_MIN_MS: 60000,
+  ROLLING_BACKUP_MIN_NEW_RESULTS: 25,
   MILESTONE_SAVE_REASONS: new Set([
     'manual', 'load-backup', 'file-upload', 'scan-complete', 'scan-stop', 'restore',
     'review-change', 'review-exit', 'review-blurred', 'review-action', 'review-undo',

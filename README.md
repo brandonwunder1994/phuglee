@@ -165,14 +165,19 @@ Use **Railway** (or Render) instead — one deploy, one URL, full app:
 1. Push repo: https://github.com/brandonwunder1994/phuglee
 2. [railway.app](https://railway.app) → New Project → Deploy from GitHub → select `phuglee`
 3. Railway detects `Dockerfile` automatically
-4. Add environment variables in Railway → **Variables** (required for full functionality):
+4. **Mount a durable volume** (required — otherwise redeploys wipe Analyze scans and Filter lists):
+   - Volume mount path: `/app/pda-data`
+   - Set `PDA_DATA_ROOT=/app/pda-data` (Docker entrypoint defaults this; keep it pointed at the volume)
+   - Without this volume, Gemini/Maps scan results live on ephemeral disk and **vanish on every redeploy**
+5. Add environment variables in Railway → **Variables** (required for full functionality):
    - `MAPS_API_KEY` — Google Maps (Analyzer Street View + satellite imagery)
    - `GEMINI_API_KEY` — Gemini (AI distress scan)
    - `PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD` — admin login
    - `PHUGLEE_SESSION_SECRET` — HMAC cookie secret (recommended)
+   - `PDA_DATA_ROOT=/app/pda-data` — must match the volume mount above
    Without Maps/Gemini keys, Property Analyzer loads but cannot scan leads.
-5. Deploy → open the generated URL (e.g. `https://phuglee-production.up.railway.app`)
-6. After deploy, confirm shallow health `/api/health` (always 200 for Railway) and optionally `/api/health/deep` for module status.
+6. Deploy → open the generated URL (e.g. `https://phuglee-production.up.railway.app`)
+7. After deploy, confirm shallow health `/api/health` (always 200 for Railway) and optionally `/api/health/deep` for module status. Check `/api/persistence-status` — `writable` should be true and `looksEphemeral` should be false.
 
 ## Deployment (local production)
 
