@@ -530,10 +530,11 @@
     const stateSel = $('vault-state');
     const citySel = $('vault-city');
     if (!stateSel || !citySel || !state.meta) return;
-    const states = state.meta.states || [];
-    const cities = state.state && state.meta.citiesByState?.[state.state]
+    const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
+    const states = [...(state.meta.states || [])].sort(byName);
+    const cities = [...(state.state && state.meta.citiesByState?.[state.state]
       ? state.meta.citiesByState[state.state]
-      : (state.meta.cities || []);
+      : (state.meta.cities || []))].sort(byName);
     const prevState = state.state;
     const prevCity = state.city;
     stateSel.innerHTML = '<option value="">All states</option>' + states.map((st) =>
