@@ -221,7 +221,11 @@ R.markRecordManuallyReviewed = function markRecordManuallyReviewed(r, via = 'man
 
 R.isManuallyReviewed = function isManuallyReviewed(r) {
   if (!r) return false;
-  return !!(r.manuallyReviewed || r.manualScore || r.manualOverride || r.reviewResolved);
+  if (r.manualScore || r.manualOverride || r.reviewResolved) return true;
+  if (!r.manuallyReviewed) return false;
+  const via = String(r.manuallyReviewedVia || '');
+  if (via === 'review_session' || via === 'review_skip' || via === 'review_missing') return false;
+  return true;
 }
 
 R.manuallyReviewedBadgeHtml = function manuallyReviewedBadgeHtml(r) {

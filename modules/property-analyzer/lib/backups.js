@@ -629,6 +629,84 @@ module.exports = function createBackups(deps) {
     };
   }
 
+  /**
+   * Remove keys from scan_results_*.jsonl so a purged LATEST cannot be revived by merge.
+   * @param {{ recordKeys?: Iterable<string>, geoKeys?: Iterable<string> }} opts
+   */
+  function scrubIncrementalScanResults(opts = {}) {
+    ensureScanResultsDir();
+    const recordKeys = new Set(opts.recordKeys || []);
+    const geoKeys = new Set(opts.geoKeys || []);
+    if (!recordKeys.size && !geoKeys.size) {
+      return { files: 0, removed: 0, kept: 0 };
+    }
+
+    function resultGeoKey(r) {
+      if (!r) return '';
+      const street = String(r.street || String(r.address || '').split(',')[0] || '')
+        .toLowerCase()
+        .replace(/[#.,]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      const city = String(r.city || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      const state = String(r.state || '').toLowerCase().trim().slice(0, 2);
+      return `${street}|${city}|${state}`;
+    }
+
+    let files = 0;
+    let removed = 0;
+    let kept = 0;
+    let listing = [];
+    try {
+      listing = fs.readdirSync(SCAN_RESULTS_DIR)
+        .filter((f) => f.startsWith('scan_results_') && f.endsWith('.jsonl'));
+    } catch (_) {
+      return { files: 0, removed: 0, kept: 0 };
+    }
+
+    for (const file of listing) {
+      const full = path.join(SCAN_RESULTS_DIR, file);
+      let raw = '';
+      try {
+        raw = fs.readFileSync(full, 'utf8');
+      } catch (_) {
+        continue;
+      }
+      const lines = raw.split('\n');
+      const out = [];
+      let fileChanged = false;
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        try {
+          const row = JSON.parse(line);
+          if (row.type === 'meta') {
+            out.push(line);
+            kept += 1;
+            continue;
+          }
+          const result = row.result || row;
+          const key = row.key || recordKeyFromResult(result);
+          const gk = resultGeoKey(result);
+          if ((key && recordKeys.has(key)) || (gk && geoKeys.has(gk))) {
+            removed += 1;
+            fileChanged = true;
+            continue;
+          }
+          out.push(line);
+          kept += 1;
+        } catch (_) {
+          out.push(line);
+          kept += 1;
+        }
+      }
+      if (fileChanged) {
+        writeFileAtomic(full, out.length ? `${out.join('\n')}\n` : '');
+        files += 1;
+      }
+    }
+    return { files, removed, kept };
+  }
+
   function promoteMergedSessionIfBetter(session) {
     if (!session?._mergedFromIncremental) return session;
     const activeScope = lastActiveScope || { storageKey: '_anonymous' };
@@ -665,6 +743,7 @@ module.exports = function createBackups(deps) {
     getSessionSummaryResponseBody,
     getSessionReviewMetaResponseBody,
     computeTierCounts,
+    countPendingUnscanned,
     countSessionProgress,
     ensureArchiveDirs,
     ensureAutoBackupsDir,
@@ -683,6 +762,7 @@ module.exports = function createBackups(deps) {
     readSessionBackupFromDisk,
     recordKeyFromResult,
     schedulePromoteAfterScanResult,
+    scrubIncrementalScanResults,
     sessionContentHash,
     sessionPayloadBytes,
     shouldMergeIncrementalIntoSession,

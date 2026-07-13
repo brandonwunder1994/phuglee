@@ -827,6 +827,94 @@ function register(ctx) {
   });
 
   /**
+   * Admin: hard-reset New Analyzer Leads — remove from results + records, scrub JSONL,
+   * optionally inject fresh unscanned queue rows from CSV.
+   * Body: {
+   *   confirmReset: true,
+   *   geoKeys?: string[],
+   *   freshRecords?: object[],
+   *   importBatches?: object[],
+   *   fileName?: string
+   * }
+   */
+  router.post('/api/reset-new-analyzer-leads', async (req, res) => {
+    let body = {};
+    try {
+      const raw = await readBody(req);
+      if (String(raw || '').trim()) body = JSON.parse(raw);
+    } catch (e) {
+      sendJson(res, 400, { ok: false, error: 'Invalid JSON: ' + e.message });
+      return true;
+    }
+    if (body.confirmReset !== true) {
+      sendJson(res, 400, {
+        ok: false,
+        error: 'confirmReset: true is required — this permanently removes New Analyzer Leads scan results'
+      });
+      return true;
+    }
+
+    const { resetNewAnalyzerLeadsSession } = require('../lib/reset-new-analyzer-leads');
+    const { scope, session } = backups.loadSessionForRequest(req);
+    // Do NOT finalize/merge JSONL first — we are about to scrub those keys.
+    const base = session && typeof session === 'object' ? session : {};
+    const hasFresh = Array.isArray(body.freshRecords) && body.freshRecords.length > 0;
+    const prepared = resetNewAnalyzerLeadsSession(base, {
+      geoKeys: body.geoKeys || [],
+      freshRecords: hasFresh ? body.freshRecords : [],
+      importBatches: hasFresh ? (body.importBatches || []) : [],
+      // Purge-only: clear the sheet filename so Ready-to-scan waits for a fresh upload.
+      fileName: hasFresh
+        ? (body.fileName || 'New Analyzer Leads.csv')
+        : (body.fileName != null ? String(body.fileName) : '')
+    });
+
+    let scrub = { files: 0, removed: 0, kept: 0 };
+    try {
+      scrub = backups.scrubIncrementalScanResults({
+        recordKeys: prepared.stats.scrubRecordKeys,
+        geoKeys: prepared.stats.scrubGeoKeys
+      });
+    } catch (err) {
+      console.warn('[Reset] JSONL scrub failed:', err.message);
+    }
+
+    backups.ensureArchiveDirs?.();
+    try {
+      backups.writeRollingAutoBackup(prepared.session, 'reset_new_analyzer_leads', 'milestone');
+    } catch (_) {}
+
+    backups.writeLatestSessionFileForScope(scope, prepared.session);
+    backups.invalidateSessionCaches?.();
+    try {
+      safety.writeMirrorLatest(prepared.session);
+      safety.writeSafetyStatus(prepared.session, {
+        reason: 'reset-new-analyzer-leads',
+        tier: 'milestone'
+      });
+    } catch (_) {}
+
+    // Count pending against results (fresh rows should all be pending)
+    const pending = backups.countPendingUnscanned
+      ? backups.countPendingUnscanned(prepared.session)
+      : prepared.stats.addedFresh;
+
+    sendJson(res, 200, {
+      ok: true,
+      scope: scope.kind,
+      storageKey: scope.storageKey,
+      ...prepared.stats,
+      pendingUnscanned: pending,
+      jsonlScrub: scrub,
+      message:
+        `Removed ${prepared.stats.removedResults} scanned New Analyzer Leads. ` +
+        `Queued ${prepared.stats.addedFresh} fresh leads for Start Scan. ` +
+        `Older inventory kept (${prepared.stats.resultsAfter} results).`
+    });
+    return true;
+  });
+
+  /**
    * Admin: open New Analyzer Leads for manual review + requeue unavailable for Start Scan.
    * Runs on the server volume (no giant client round-trip).
    * Body: { requeueUnavailable?: true }

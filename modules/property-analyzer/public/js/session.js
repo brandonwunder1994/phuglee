@@ -1240,7 +1240,12 @@ R.isExcludedFromAllReviewQueues = function isExcludedFromAllReviewQueues(r, key 
   if (r.satelliteOnly) return true;
   if (r.needsReviewLater && filter === 'review') return false;
   if (r.reviewResolved) return true;
-  if (r.manuallyReviewed) return true;
+  if (r.manuallyReviewed) {
+    const via = String(r.manuallyReviewedVia || '');
+    // Soft vias are queue progress — never hide a lead from Distressed / WM / Vacant.
+    if (via === 'review_session' || via === 'review_skip' || via === 'review_missing') return false;
+    return true;
+  }
   return false;
 }
 
