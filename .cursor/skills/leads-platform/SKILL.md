@@ -40,11 +40,10 @@ Customer-facing name: **The Vault**. Engineering codename: **Leads Platform**. R
 ## Architecture
 
 ```
-Filter scrub → Analyze scan → QA → publishLead() → data/leads-catalog/
-                                              ↓
-                                    GET /api/leads → vault-app.js
+Analyze scan → manual review → analyzer-sync → data/leads-catalog/ → GET /api/leads → vault-app.js
 ```
 
+- **Sync:** `lib/leads-platform/analyzer-sync.js` — reads `PDA_DATA_ROOT/users/*/distressAnalyzerSession_LATEST.json`
 - **Store:** `lib/leads-platform/store.js` — disk JSON (like bridge-list-store)
 - **API:** `lib/leads-platform/api.js` — mounted in `server.js`
 - **Client:** `public/js/vault-app.js` — vanilla, Phuglee design system
@@ -87,6 +86,7 @@ Signal chips use **AND** logic — lead must have all selected tags. Combine wit
 ## Testing
 
 ```bash
+node scripts/sync-vault-from-analyzer.js --force
 node --test tests/leads-platform.test.js
 npm test
 powershell -File scripts/verify-live.ps1

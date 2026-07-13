@@ -1,0 +1,62 @@
+{
+  "results": [
+    {
+      "address": "901 Elm St",
+      "street": "901 Elm St",
+      "city": "Memphis",
+      "state": "TN",
+      "postal": "38104",
+      "phone": "(901) 555-1001",
+      "firstName": "James",
+      "lastName": "Carter",
+      "leadType": "pre_foreclosure",
+      "score": 8,
+      "leadTier": "distressed",
+      "category": "property",
+      "indicators": ["boarded_windows", "junk_or_hoarding_yard"],
+      "manuallyReviewed": true,
+      "manuallyReviewedAt": 1719792000000,
+      "manuallyReviewedVia": "review_keep",
+      "classificationConfidence": "high"
+    },
+    {
+      "address": "220 Peachtree Rd NE",
+      "street": "220 Peachtree Rd NE",
+      "city": "Atlanta",
+      "state": "GA",
+      "postal": "30309",
+      "phone": "(404) 555-2002",
+      "leadType": "code_violation",
+      "score": 4,
+      "leadTier": "well_maintained",
+      "category": "property",
+      "reviewResolved": true,
+      "manuallyReviewedVia": "review_keep",
+      "classificationConfidence": "high"
+    },
+    {
+      "address": "Lot 14 Maple Acres",
+      "street": "Lot 14 Maple Acres",
+      "city": "Shreveport",
+      "state": "LA",
+      "postal": "71106",
+      "category": "vacant_lot",
+      "leadTier": "vacant",
+      "manuallyReviewed": true,
+      "manuallyReviewedAt": 1719878400000,
+      "manuallyReviewedVia": "review_keep"
+    },
+    {
+      "address": "500 Pending Review Ave",
+      "street": "500 Pending Review Ave",
+      "city": "Nashville",
+      "state": "TN",
+      "score": 7,
+      "leadTier": "distressed",
+      "category": "property",
+      "needsReviewLater": true
+    }
+  ],
+  "processed": 4,
+  "savedAt": 1719900000000
+}
