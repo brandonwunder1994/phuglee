@@ -5,7 +5,48 @@
   const R = PDA.env;
   with (R) {
     const MAX_FEED = 50;
+    const KPI_THROTTLE_MS = 500;
+    const FEED_THROTTLE_MS = 400;
     const feedItems = [];
+    let kpiThrottleTimer = null;
+    let feedThrottleTimer = null;
+    let feedRenderPending = false;
+
+    function scheduleLiveScanKpiUpdate(force = false) {
+      if (force) {
+        if (kpiThrottleTimer) {
+          clearTimeout(kpiThrottleTimer);
+          kpiThrottleTimer = null;
+        }
+        updateLiveScanSectionUi();
+        return;
+      }
+      if (kpiThrottleTimer) return;
+      kpiThrottleTimer = setTimeout(() => {
+        kpiThrottleTimer = null;
+        updateLiveScanSectionUi();
+      }, KPI_THROTTLE_MS);
+    }
+
+    function scheduleLiveScanFeedRender(force = false) {
+      if (force) {
+        if (feedThrottleTimer) {
+          clearTimeout(feedThrottleTimer);
+          feedThrottleTimer = null;
+        }
+        feedRenderPending = false;
+        renderLiveScanFeed();
+        return;
+      }
+      feedRenderPending = true;
+      if (feedThrottleTimer) return;
+      feedThrottleTimer = setTimeout(() => {
+        feedThrottleTimer = null;
+        if (!feedRenderPending) return;
+        feedRenderPending = false;
+        renderLiveScanFeed();
+      }, FEED_THROTTLE_MS);
+    }
 
     function requestStopScan() {
       if (!state.running) return;
@@ -32,7 +73,7 @@
         `${Number(state.scanBatchDone) || 0} of ${Number(state.scanBatchTotal) || 0} this list saved ` +
         `(${(state.results || []).length.toLocaleString()} total in session).`
       );
-      updateLiveScanSectionUi();
+      scheduleLiveScanKpiUpdate(true);
       updateScanReadyUi?.();
     }
 
@@ -41,7 +82,8 @@
     R.resetLiveScanFeed = function resetLiveScanFeed() {
       feedItems.length = 0;
       if (liveScanFeed) liveScanFeed.innerHTML = '';
-      updateLiveScanSectionUi();
+      scheduleLiveScanFeedRender(true);
+      scheduleLiveScanKpiUpdate(true);
     };
 
     R.pushLiveScanFeedItem = function pushLiveScanFeedItem({ address, status, tier, phase }) {
@@ -51,7 +93,7 @@
         existing.status = status || existing.status;
         existing.tier = tier || existing.tier;
         existing.phase = phase || existing.phase;
-        renderLiveScanFeed();
+        scheduleLiveScanFeedRender();
         return;
       }
 
@@ -62,7 +104,7 @@
         phase: phase || 'working'
       });
       while (feedItems.length > MAX_FEED) feedItems.pop();
-      renderLiveScanFeed();
+      scheduleLiveScanFeedRender();
     };
 
     R.completeLiveScanFeedItem = function completeLiveScanFeedItem(address, patch = {}) {
@@ -70,10 +112,11 @@
       let item = feedItems.find((row) => row.address === addr);
       if (!item) {
         pushLiveScanFeedItem({ address: addr, status: patch.status || 'Done', tier: patch.tier, phase: 'done' });
+        scheduleLiveScanFeedRender(true);
         return;
       }
       Object.assign(item, patch, { phase: patch.phase || 'done' });
-      renderLiveScanFeed();
+      scheduleLiveScanFeedRender(true);
     };
 
     function renderLiveScanFeed() {
@@ -133,6 +176,14 @@
             (sessionTotal ? ` · ${sessionTotal.toLocaleString()} saved total` : '');
         } else {
           liveScanProgress.textContent = `${sessionTotal.toLocaleString()} saved`;
+        }
+      }
+      const progressFill = liveScanProgressFill || document.getElementById('liveScanProgressFill');
+      if (progressFill) {
+        if (batchTotal > 0) {
+          progressFill.style.width = `${Math.min(100, Math.round((batchDone / batchTotal) * 100))}%`;
+        } else {
+          progressFill.style.width = sessionTotal > 0 ? '100%' : '0%';
         }
       }
 
@@ -228,7 +279,7 @@
       R.scanPreview = function scanPreview(address, status, streetViewUrl, satelliteUrl, score, animateGauge, workerNum) {
         origScanPreview(address, status, streetViewUrl, satelliteUrl, score, animateGauge, workerNum);
         pushLiveScanFeedItem({ address, status: status || 'Analyzing…', phase: 'working' });
-        updateLiveScanSectionUi();
+        scheduleLiveScanKpiUpdate();
       };
     }
 
@@ -236,7 +287,7 @@
     if (typeof origUpdateScanRunningUi === 'function') {
       R.updateScanRunningUi = function updateScanRunningUiWrapped() {
         origUpdateScanRunningUi();
-        updateLiveScanSectionUi();
+        scheduleLiveScanKpiUpdate(true);
         updateScanReadyUi?.();
         if (!state.running) resetLiveScanFeed();
       };
@@ -246,7 +297,7 @@
     if (typeof origFlush === 'function') {
       R.flushThrottledUi = function flushThrottledUiWrapped(force) {
         origFlush(force);
-        if (state.running) updateLiveScanSectionUi();
+        if (state.running) scheduleLiveScanKpiUpdate(!!force);
       };
     }
 

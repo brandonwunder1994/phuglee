@@ -1439,6 +1439,59 @@ R.fetchSessionResultsPage = async function fetchSessionResultsPage(offset, limit
   }
 }
 
+/**
+ * Lazy-load full profile for one result. Disk stays complete; list pages omit profile.
+ * Merges into state.results so later saves keep the profile in memory once opened.
+ */
+R.ensureResultProfile = async function ensureResultProfile(r) {
+  if (!r) return r;
+  if (r.profile && typeof r.profile === 'object' && !r.profileDeferred) return r;
+  if (!r.profileDeferred && r.profile) return r;
+  if (!USE_PROXY || typeof apiFetch !== 'function') {
+    delete r.profileDeferred;
+    return r;
+  }
+  const key = typeof recordKey === 'function' ? recordKey(r) : `${r.email || ''}|${r.phone || ''}|${r.address || ''}`;
+  if (!key || key === '||') {
+    delete r.profileDeferred;
+    return r;
+  }
+  if (!state._profileFetchInflight) state._profileFetchInflight = new Map();
+  if (state._profileFetchInflight.has(key)) {
+    try { return await state._profileFetchInflight.get(key); } catch (_) { return r; }
+  }
+  const pending = (async () => {
+    try {
+      const res = await apiFetch(`/api/session-result-profile?key=${encodeURIComponent(key)}`);
+      const data = await res.json();
+      if (!data?.ok) {
+        delete r.profileDeferred;
+        return r;
+      }
+      if (data.profile && typeof data.profile === 'object') r.profile = data.profile;
+      for (const field of ['marketValue', 'avm', 'wholesaleValue', 'county', 'ownerType', 'ownerName']) {
+        if (data[field] != null && data[field] !== '' && (r[field] == null || r[field] === '')) {
+          r[field] = data[field];
+        }
+      }
+      delete r.profileDeferred;
+      const idx = (state.results || []).findIndex((row) => recordKey(row) === key);
+      if (idx >= 0) {
+        state.results[idx] = r;
+      }
+      return r;
+    } catch (e) {
+      console.warn('[profile] ensureResultProfile failed', e);
+      delete r.profileDeferred;
+      return r;
+    } finally {
+      state._profileFetchInflight?.delete(key);
+    }
+  })();
+  state._profileFetchInflight.set(key, pending);
+  return pending;
+}
+
 R.paintSessionResultsShell = function paintSessionResultsShell() {
   mainWorkspace?.classList.add('visible');
   if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {

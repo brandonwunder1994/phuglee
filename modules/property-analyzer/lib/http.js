@@ -1,3 +1,5 @@
+const MAX_BODY_BYTES = 80 * 1024 * 1024; // 80 MB — covers large sessions with headroom
+
 function sendJson(res, status, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(status, {
@@ -7,9 +9,20 @@ function sendJson(res, status, obj) {
   res.end(body);
 }
 
-async function readBody(req) {
+async function readBody(req, { maxBytes = MAX_BODY_BYTES } = {}) {
   let raw = '';
-  for await (const chunk of req) raw += chunk;
+  let size = 0;
+  for await (const chunk of req) {
+    size += Buffer.byteLength(chunk);
+    if (size > maxBytes) {
+      const err = new Error('Request body too large');
+      err.code = 'BODY_TOO_LARGE';
+      err.statusCode = 413;
+      try { req.destroy(); } catch (_) {}
+      throw err;
+    }
+    raw += chunk;
+  }
   return raw;
 }
 
@@ -22,4 +35,4 @@ function corsPreflight(res) {
   res.end();
 }
 
-module.exports = { sendJson, readBody, corsPreflight };
+module.exports = { sendJson, readBody, corsPreflight, MAX_BODY_BYTES };

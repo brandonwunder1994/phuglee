@@ -272,7 +272,33 @@
       });
     }
 
+    function positionScanDeskDropdown(menu, anchor) {
+      if (!menu || !anchor) return;
+      menu.style.position = 'fixed';
+      menu.style.zIndex = '6000';
+      const rect = anchor.getBoundingClientRect();
+      const menuW = menu.offsetWidth || (menu.classList.contains('review-leads-menu') ? 184 : 216);
+      const left = Math.min(Math.max(8, rect.right - menuW), window.innerWidth - menuW - 8);
+      menu.style.top = `${rect.bottom + 6}px`;
+      menu.style.left = `${left}px`;
+      menu.style.right = 'auto';
+    }
+
     function wireScanReady() {
+      const overflowToggle = document.getElementById('scanDeskOverflowToggle');
+      const overflowMenu = document.getElementById('scanDeskOverflow');
+      const overflowWrap = document.getElementById('scanDeskOverflowWrap');
+
+      function closeScanDeskOverflow() {
+        if (overflowMenu) overflowMenu.hidden = true;
+        overflowToggle?.setAttribute('aria-expanded', 'false');
+      }
+
+      function closeReviewLeadsMenu() {
+        if (reviewLeadsMenu) reviewLeadsMenu.hidden = true;
+        reviewLeadsBtn?.setAttribute('aria-expanded', 'false');
+      }
+
       // Call startScanAnalysis directly — do not rely on hidden startBtn.click()
       // (disabled buttons suppress programmatic clicks; missing DOM nodes used to abort silently).
       scanReadyStartBtn?.addEventListener('click', (e) => {
@@ -290,9 +316,11 @@
       reviewLeadsBtn?.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!reviewLeadsMenu) return;
-        const open = !reviewLeadsMenu.hidden;
-        reviewLeadsMenu.hidden = open;
-        reviewLeadsBtn.setAttribute('aria-expanded', open ? 'false' : 'true');
+        closeScanDeskOverflow();
+        const willOpen = reviewLeadsMenu.hidden;
+        reviewLeadsMenu.hidden = !willOpen;
+        reviewLeadsBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        if (willOpen) positionScanDeskDropdown(reviewLeadsMenu, reviewLeadsBtn);
       });
 
       reviewLeadsMenu?.addEventListener('click', (e) => {
@@ -305,8 +333,7 @@
 
       document.addEventListener('click', (e) => {
         if (!reviewLeadsWrap?.contains(e.target)) {
-          if (reviewLeadsMenu) reviewLeadsMenu.hidden = true;
-          reviewLeadsBtn?.setAttribute('aria-expanded', 'false');
+          closeReviewLeadsMenu();
         }
       });
 
@@ -319,25 +346,29 @@
         dashboard?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       });
 
-      const overflowToggle = document.getElementById('scanDeskOverflowToggle');
-      const overflowMenu = document.getElementById('scanDeskOverflow');
-      const overflowWrap = document.getElementById('scanDeskOverflowWrap');
-      function closeScanDeskOverflow() {
-        if (overflowMenu) overflowMenu.hidden = true;
-        overflowToggle?.setAttribute('aria-expanded', 'false');
-      }
       overflowToggle?.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!overflowMenu) return;
-        const open = overflowMenu.hidden;
-        overflowMenu.hidden = !open;
-        overflowToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        closeReviewLeadsMenu();
+        const willOpen = overflowMenu.hidden;
+        overflowMenu.hidden = !willOpen;
+        overflowToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        if (willOpen) positionScanDeskDropdown(overflowMenu, overflowToggle);
       });
       document.addEventListener('click', (e) => {
         if (!overflowWrap?.contains(e.target)) closeScanDeskOverflow();
       });
       overflowMenu?.addEventListener('click', () => {
         closeScanDeskOverflow();
+      });
+
+      window.addEventListener('resize', () => {
+        if (reviewLeadsMenu && !reviewLeadsMenu.hidden) {
+          positionScanDeskDropdown(reviewLeadsMenu, reviewLeadsBtn);
+        }
+        if (overflowMenu && !overflowMenu.hidden) {
+          positionScanDeskDropdown(overflowMenu, overflowToggle);
+        }
       });
 
       applyTierUiLabelsToChrome?.();

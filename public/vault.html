@@ -16,37 +16,24 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/tokens.css?v=glass3">
-  <link rel="stylesheet" href="/css/distress-glass.css?v=glass3">
-  <link rel="stylesheet" href="/css/heat-base.css">
-  <link rel="stylesheet" href="/css/heat-atmosphere.css">
-  <link rel="stylesheet" href="/css/premium-atmosphere.css?v=distress3">
-  <link rel="stylesheet" href="/css/premium-components.css">
+  <link rel="stylesheet" href="/css/tokens.css?v=shell1">
+  <link rel="stylesheet" href="/css/distress-glass.css?v=shell1">
+  <link rel="stylesheet" href="/css/phuglee-components.css?v=shell1">
+  <link rel="stylesheet" href="/css/phuglee-shell.css?v=1">
   <link rel="stylesheet" href="/css/shell.css">
   <link rel="stylesheet" href="/css/shell-nav.css?v=9">
   <link rel="stylesheet" href="/css/settings-menu.css">
   <link rel="stylesheet" href="/css/command-palette.css">
   <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/vault.css?v=1">
-  <link rel="stylesheet" href="/css/phuglee-components.css?v=glass3">
+  <link rel="stylesheet" href="/css/vault.css?v=2">
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
 </head>
-<body class="has-premium-bg vault-page">
+<body class="phuglee-app has-premium-bg vault-page">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
-  <div class="premium-bg premium-bg--subtle" aria-hidden="true">
-    <div class="premium-bg-photo"></div>
-    <div class="premium-bg-grain"></div>
-    <div class="premium-bg-wear"></div>
-  </div>
-  <div class="heat-field" aria-hidden="true">
-    <div class="heat-glow heat-glow-a"></div>
-    <div class="heat-glow heat-glow-b"></div>
-    <div class="heat-grid"></div>
-    <div class="heat-noise"></div>
-  </div>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
 
   <div id="distress-os-nav-mount"></div>
 
@@ -168,15 +155,15 @@
       <div class="vault-scanlines" aria-hidden="true"></div>
     </div>
 
-    <section class="vault-gate distress-glass" aria-labelledby="vault-gate-title">
+    <section class="vault-gate distress-glass" aria-labelledby="vault-gate-title" aria-describedby="vault-preview-note">
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">The Vault</p>
-        <h1 id="vault-gate-title" class="vault-title">MAX PLAN ONLY</h1>
-        <p class="vault-lead">
-          Upgrade to the Max plan and skip the DIY process entirely. Filter through cities and pull leads
-          our team has already collected, scrubbed, and ranked — so you can get right into calling sellers
-          instead of wrestling with portals and spreadsheets.
+        <p class="vault-eyebrow">The Vault · Coming soon</p>
+        <h1 id="vault-gate-title" class="vault-title">Max plan preview</h1>
+        <p class="vault-lead vault-lead--honest">
+          <strong>Preview only.</strong> The table behind this screen is sample data, not a live lead feed.
+          When The Vault ships on Max, you will filter cities and pull lists our team already collected and scrubbed.
         </p>
+        <p id="vault-preview-note" class="vault-preview-note">Sample addresses shown for layout preview — not real leads.</p>
         <ul class="vault-perks">
           <li>Pre-scrubbed leads by city — no collect or filter step</li>
           <li>Distress signals already tagged and scored</li>

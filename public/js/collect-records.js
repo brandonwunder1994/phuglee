@@ -162,22 +162,40 @@
     }
 
     try {
-      const res = await fetch(FORGE + '/api/portal/cities/summary', { cache: 'no-store' });
-      if (!res.ok) throw new Error('Could not load cities');
-      const data = await res.json();
-      allCities = (data.items || []).slice().sort(function (a, b) {
+      let items = null;
+      let usedBackup = false;
+
+      try {
+        const res = await fetch(FORGE + '/api/portal/cities/summary', { cache: 'no-store' });
+        if (!res.ok) throw new Error('Could not load cities');
+        const data = await res.json();
+        items = data.items || [];
+      } catch (_) {
+        // Form Forge may be down — use the same backup list Filter uses
+        const fallback = await fetch('/api/bridge/cities?all=1', { cache: 'no-store' });
+        if (!fallback.ok) throw new Error('Could not load cities');
+        const data = await fallback.json();
+        items = data.cities || [];
+        usedBackup = true;
+      }
+
+      allCities = (items || []).slice().sort(function (a, b) {
         if (a.state !== b.state) {
           return a.state.localeCompare(b.state, 'en', { sensitivity: 'base' });
         }
         return a.city.localeCompare(b.city, 'en', { sensitivity: 'base' });
       });
-      setCityStatus('');
+      setCityStatus(
+        usedBackup
+          ? 'Showing backup city list (Form Forge offline). You can still pick cities.'
+          : ''
+      );
       renderCityList();
     } catch (err) {
       allCities = [];
       if (cityListEl) {
         cityListEl.innerHTML =
-          '<p class="collect-city-empty">Could not load cities. Make sure Form Forge is running.</p>';
+          '<p class="collect-city-empty">Could not load cities. Make sure Distress OS is running.</p>';
       }
       setCityStatus(err.message || 'Failed to load cities', 'err');
       updateSelectionLabel();

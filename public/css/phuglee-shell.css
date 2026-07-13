@@ -1,0 +1,97 @@
+/* Phuglee app shell — unified ops war room chrome (Phase 3 Wave 1) */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body.phuglee-app,
+body.command-page,
+body.bridge-page,
+body.collect-page,
+body.vault-page,
+body.has-premium-bg {
+  font-family: var(--font-body);
+  background: var(--phuglee-black);
+  color: var(--phuglee-cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.distress-os-embedded {
+  padding-top: 0;
+}
+
+/* Single atmosphere layer — replaces premium-bg + heat-field stack */
+.phuglee-shell-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--phuglee-black);
+}
+
+.phuglee-shell-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: var(--shell-photo-opacity, 0.22);
+  background: url('/images/home-hero-distressed.jpg') center 42% / cover no-repeat;
+  filter: grayscale(28%) contrast(1.12) brightness(0.48) saturate(0.7);
+}
+
+.phuglee-shell-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -8%, rgba(229, 132, 53, 0.14) 0%, transparent 58%),
+    radial-gradient(ellipse 45% 38% at 92% 88%, rgba(172, 107, 50, 0.08) 0%, transparent 52%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 18%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.phuglee-shell-bg--subtle {
+  --shell-photo-opacity: 0.12;
+}
+
+.phuglee-shell-bg--medium {
+  --shell-photo-opacity: 0.2;
+}
+
+.phuglee-shell-bg--strong {
+  --shell-photo-opacity: 0.28;
+}
+
+.phuglee-shell-main,
+.shell-main,
+.command-main,
+.bridge-main,
+.collect-main,
+.vault-main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Legacy hooks — keep class names working if markup not yet migrated */
+.has-premium-bg .premium-bg,
+.has-premium-bg .heat-field {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

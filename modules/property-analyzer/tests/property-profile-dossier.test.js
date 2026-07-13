@@ -77,12 +77,18 @@ describe('getPresentProfileSections', () => {
 });
 
 describe('buildProfileSectionNavHtml', () => {
-  it('renders buttons with data-profile-section', () => {
+  it('renders tab buttons with data-profile-section and aria-selected', () => {
     const html = buildProfileSectionNavHtml(['overview', 'values']);
     assert.match(html, /data-profile-section="overview"/);
     assert.match(html, /data-profile-section="values"/);
+    assert.match(html, /aria-selected="true"/);
     assert.match(html, /Overview/);
     assert.match(html, /Values/);
     assert.doesNotMatch(html, /Violations/);
+  });
+  it('marks requested section as selected', () => {
+    const html = buildProfileSectionNavHtml(['overview', 'contact', 'values'], 'values');
+    assert.match(html, /data-profile-section="values"[^>]*aria-selected="true"/);
+    assert.match(html, /data-profile-section="overview"[^>]*aria-selected="false"/);
   });
 });

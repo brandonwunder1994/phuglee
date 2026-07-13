@@ -87,6 +87,8 @@ const SESSION_GET_API = [
   '/api/session-summary',
   '/api/session-review-meta',
   '/api/session-results',
+  '/api/session-result-profile',
+  '/api/session-records',
   '/api/session-backup',
   '/api/import-address-index'
 ];
@@ -255,7 +257,8 @@ async function handleAnalyzerRequest(req, res) {
       res.end('Not found');
     }
   } catch (err) {
-    sendJson(res, 500, { ok: false, error: err.message });
+    const status = Number(err?.statusCode) || 500;
+    sendJson(res, status, { ok: false, error: err.message, code: err.code || undefined });
   }
 }
 

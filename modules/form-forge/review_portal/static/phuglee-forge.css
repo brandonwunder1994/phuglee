@@ -1,4 +1,15 @@
-/* Form Forge — Phuglee signature brand layer (v1.4 / M4 Phase 30) */
+/* Phase 3 — ops war room shell alignment */
+body.stamp-theme {
+  background: var(--phuglee-black);
+  color: var(--phuglee-cream);
+}
+
+body.stamp-theme .topbar,
+body.stamp-theme .portal-topbar {
+  border-bottom: 1px solid rgba(174, 163, 143, 0.14);
+  background: rgba(13, 13, 13, 0.92);
+}
+
 
 :root {
   --phuglee-black: #0d0d0d;

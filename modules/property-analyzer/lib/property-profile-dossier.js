@@ -46,12 +46,13 @@
       .replace(/</g, '&lt;');
   }
 
-  function buildProfileSectionNavHtml(sectionIds) {
+  function buildProfileSectionNavHtml(sectionIds, activeId) {
     const ids = Array.isArray(sectionIds) ? sectionIds : [];
-    return ids.map((id, i) => {
+    const active = activeId && ids.includes(activeId) ? activeId : ids[0];
+    return ids.map((id) => {
       const label = PROFILE_SECTION_LABELS[id] || id;
-      const current = i === 0 ? ' aria-current="true"' : '';
-      return `<button type="button" class="profile-section-chip" data-profile-section="${escapeAttr(id)}"${current}>${escapeAttr(label)}</button>`;
+      const selected = id === active;
+      return `<button type="button" role="tab" class="profile-section-chip" id="profile-tab-${escapeAttr(id)}" data-profile-section="${escapeAttr(id)}" aria-controls="profile-section-${escapeAttr(id)}" aria-selected="${selected ? 'true' : 'false'}" tabindex="${selected ? '0' : '-1'}">${escapeAttr(label)}</button>`;
     }).join('');
   }
 

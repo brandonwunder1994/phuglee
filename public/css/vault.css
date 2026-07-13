@@ -34,7 +34,18 @@
   transform: scale(1.02);
 }
 
-.vault-mock-toolbar {
+.vault-preview-note {
+  margin: 0 0 1rem;
+  font-size: 0.82rem;
+  color: var(--phuglee-meta-text);
+  font-style: italic;
+}
+
+.vault-lead--honest strong {
+  color: var(--phuglee-gold);
+  font-weight: 600;
+}
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;

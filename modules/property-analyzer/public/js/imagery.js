@@ -1347,8 +1347,8 @@ R.onCardsGridClick = function onCardsGridClick(e) {
     return;
   }
 
-  if (e.target.closest('.card-score-float')) {
-    if (canEditScore(r)) openScoreEditModal(r);
+  if (e.target.closest('.card-score-float, .card-score-pill')) {
+    showResultInPreview(r);
     return;
   }
 
@@ -1360,12 +1360,6 @@ R.onCardsGridClick = function onCardsGridClick(e) {
     if (targetTier && quickApplyTierFromCard(r, targetTier)) {
       log(`→ ${leadTierLabel(targetTier)} — ${propertyStreetLine(r)}`, 'success');
     }
-    return;
-  }
-
-  if (e.target.closest('.card-thumb img')) {
-    const img = e.target.closest('.card-thumb img');
-    if (img?.src) openLightbox(img.src, r.address);
     return;
   }
 

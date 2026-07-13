@@ -25,7 +25,7 @@
   --shadow-glow-orange: 0 0 48px rgba(229, 132, 53, 0.25);
 }
 
-body.heat-theme.cyber-theme::before,
+body.analyze-phuglee::before,
 body.heat-theme::before {
   background:
     radial-gradient(ellipse 90% 60% at 50% -10%, rgba(229, 132, 53, 0.12) 0%, transparent 55%),
@@ -33,7 +33,7 @@ body.heat-theme::before {
     var(--background);
 }
 
-body.heat-theme.cyber-theme .cyber-grid {
+body.analyze-phuglee .cyber-grid {
   opacity: 0.08;
   background-image:
     linear-gradient(rgba(229, 132, 53, 0.04) 1px, transparent 1px),
@@ -41,7 +41,7 @@ body.heat-theme.cyber-theme .cyber-grid {
 }
 
 /* ── Sidebar — charcoal glass, orange active rail, cream labels ── */
-body.heat-theme.cyber-theme .app-sidebar {
+body.analyze-phuglee .app-sidebar {
   background: rgba(13, 13, 13, 0.94);
   border-right: 1px solid rgba(229, 132, 53, 0.18);
   backdrop-filter: blur(18px) saturate(120%);
@@ -49,37 +49,34 @@ body.heat-theme.cyber-theme .app-sidebar {
   box-shadow: 4px 0 28px rgba(0, 0, 0, 0.45);
 }
 
-body.heat-theme.cyber-theme .sidebar-title {
-  background: linear-gradient(180deg, var(--phuglee-cream) 20%, var(--phuglee-orange) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+body.analyze-phuglee .sidebar-title {
+  color: var(--phuglee-cream);
 }
 
-body.heat-theme.cyber-theme .sidebar-tagline,
-body.heat-theme.cyber-theme .sidebar-sub {
+body.analyze-phuglee .sidebar-tagline,
+body.analyze-phuglee .sidebar-sub {
   color: var(--phuglee-stone);
 }
 
-body.heat-theme.cyber-theme .sidebar-logo {
+body.analyze-phuglee .sidebar-logo {
   color: var(--phuglee-orange);
   background: rgba(229, 132, 53, 0.1);
   border: 1px solid rgba(229, 132, 53, 0.35);
   box-shadow: 0 0 14px rgba(229, 132, 53, 0.15);
 }
 
-body.heat-theme.cyber-theme .sidebar-nav-btn {
+body.analyze-phuglee .sidebar-nav-btn {
   color: var(--phuglee-stone);
   border-left: 2px solid transparent;
 }
 
-body.heat-theme.cyber-theme .sidebar-nav-btn:hover {
+body.analyze-phuglee .sidebar-nav-btn:hover {
   background: rgba(174, 163, 143, 0.08);
   border-color: rgba(174, 163, 143, 0.16);
   color: var(--phuglee-cream);
 }
 
-body.heat-theme.cyber-theme .sidebar-nav-btn.active {
+body.analyze-phuglee .sidebar-nav-btn.active {
   background: rgba(229, 132, 53, 0.12);
   border-left: 3px solid var(--phuglee-orange);
   box-shadow: inset 0 0 20px rgba(229, 132, 53, 0.06);
@@ -87,18 +84,18 @@ body.heat-theme.cyber-theme .sidebar-nav-btn.active {
   text-shadow: none;
 }
 
-body.heat-theme.cyber-theme .sidebar-nav-btn.active .nav-icon {
+body.analyze-phuglee .sidebar-nav-btn.active .nav-icon {
   color: var(--phuglee-orange);
   filter: drop-shadow(0 0 6px rgba(229, 132, 53, 0.35));
 }
 
-body.heat-theme.cyber-theme .sidebar-submenu-btn.review-distressed { color: var(--tier-distressed-bright); }
-body.heat-theme.cyber-theme .sidebar-submenu-btn.review-well-maintained { color: var(--tier-well-bright); }
-body.heat-theme.cyber-theme .sidebar-submenu-btn.review-land { color: var(--tier-land-bright); }
-body.heat-theme.cyber-theme .sidebar-submenu-btn.review-needs-review { color: var(--review-bright); }
+body.analyze-phuglee .sidebar-submenu-btn.review-distressed { color: var(--tier-distressed-bright); }
+body.analyze-phuglee .sidebar-submenu-btn.review-well-maintained { color: var(--tier-well-bright); }
+body.analyze-phuglee .sidebar-submenu-btn.review-land { color: var(--tier-land-bright); }
+body.analyze-phuglee .sidebar-submenu-btn.review-needs-review { color: var(--review-bright); }
 
 /* ── Command bar — orange upload CTA ── */
-body.heat-theme.cyber-theme .command-bar {
+body.analyze-phuglee .command-bar {
   background: rgba(13, 13, 13, 0.9);
   border: 1px solid rgba(229, 132, 53, 0.28);
   box-shadow:
@@ -106,36 +103,33 @@ body.heat-theme.cyber-theme .command-bar {
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-body.heat-theme.cyber-theme .command-title {
-  background: linear-gradient(180deg, var(--phuglee-cream) 25%, var(--phuglee-orange) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+body.analyze-phuglee .command-title {
+  color: var(--phuglee-cream);
   text-shadow: none;
 }
 
-body.heat-theme.cyber-theme .command-tagline,
-body.heat-theme.cyber-theme .command-bar-status {
+body.analyze-phuglee .command-tagline,
+body.analyze-phuglee .command-bar-status {
   color: var(--phuglee-stone);
   font-family: var(--font-mono);
 }
 
-body.heat-theme.cyber-theme .command-status-dot {
+body.analyze-phuglee .command-status-dot {
   background: var(--phuglee-orange);
   box-shadow: 0 0 8px rgba(229, 132, 53, 0.6), 0 0 16px rgba(229, 132, 53, 0.25);
 }
 
-body.heat-theme.cyber-theme .command-status-dot.scanning {
+body.analyze-phuglee .command-status-dot.scanning {
   background: var(--phuglee-gold);
   box-shadow: 0 0 8px rgba(238, 183, 70, 0.6);
 }
 
-body.heat-theme.cyber-theme .command-hero-count {
+body.analyze-phuglee .command-hero-count {
   color: var(--phuglee-orange);
 }
 
-body.heat-theme.cyber-theme .command-bar-actions .btn-primary,
-body.heat-theme.cyber-theme .command-btn.btn-primary {
+body.analyze-phuglee .command-bar-actions .btn-primary,
+body.analyze-phuglee .command-btn.btn-primary {
   color: var(--phuglee-black) !important;
   background: linear-gradient(
     135deg,
@@ -148,28 +142,28 @@ body.heat-theme.cyber-theme .command-btn.btn-primary {
   animation: none !important;
 }
 
-body.heat-theme.cyber-theme .command-bar-actions .btn-primary:hover:not(:disabled),
-body.heat-theme.cyber-theme .command-btn.btn-primary:hover:not(:disabled) {
+body.analyze-phuglee .command-bar-actions .btn-primary:hover:not(:disabled),
+body.analyze-phuglee .command-btn.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-cta), var(--shadow-glow-orange) !important;
   filter: none !important;
 }
 
 /* ── KPIs — Anton numbers, gold deltas ── */
-body.heat-theme.cyber-theme .summary-kpi-card,
-body.heat-theme.cyber-theme .glass,
-body.heat-theme.cyber-theme .summary-section,
-body.heat-theme.cyber-theme .results-wrap,
-body.heat-theme.cyber-theme .agent-grid-panel,
-body.heat-theme.cyber-theme .empty-workspace {
+body.analyze-phuglee .summary-kpi-card,
+body.analyze-phuglee .glass,
+body.analyze-phuglee .summary-section,
+body.analyze-phuglee .results-wrap,
+body.analyze-phuglee .agent-grid-panel,
+body.analyze-phuglee .empty-workspace {
   background: rgba(18, 16, 13, 0.82);
   border: 1px solid rgba(174, 163, 143, 0.16);
 }
 
-body.heat-theme.cyber-theme .summary-kpi-card::after,
-body.heat-theme.cyber-theme .glass::after,
-body.heat-theme.cyber-theme .prop-card.card-cyber::after,
-body.heat-theme.cyber-theme .empty-workspace::after {
+body.analyze-phuglee .summary-kpi-card::after,
+body.analyze-phuglee .glass::after,
+body.analyze-phuglee .prop-card.card-cyber::after,
+body.analyze-phuglee .empty-workspace::after {
   background: linear-gradient(
     90deg,
     transparent,
@@ -181,56 +175,56 @@ body.heat-theme.cyber-theme .empty-workspace::after {
   opacity: 0.75;
 }
 
-body.heat-theme.cyber-theme .summary-kpi-card:hover {
+body.analyze-phuglee .summary-kpi-card:hover {
   border-color: rgba(229, 132, 53, 0.35);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), var(--shadow-glow-orange);
 }
 
-body.heat-theme.cyber-theme .summary-kpi-card .summary-val,
-body.heat-theme.cyber-theme .summary-hero-kpi .summary-val,
-body.heat-theme.cyber-theme .command-kpi-num {
+body.analyze-phuglee .summary-kpi-card .summary-val,
+body.analyze-phuglee .summary-hero-kpi .summary-val,
+body.analyze-phuglee .command-kpi-num {
   font-family: var(--font-display);
   font-weight: 400;
   letter-spacing: 0.02em;
 }
 
-body.heat-theme.cyber-theme .command-kpi-pct {
+body.analyze-phuglee .command-kpi-pct {
   color: var(--phuglee-gold);
   font-family: var(--font-mono);
   font-weight: 600;
   font-size: 0.82rem;
 }
 
-body.heat-theme.cyber-theme .summary-hint {
+body.analyze-phuglee .summary-hint {
   color: var(--phuglee-stone);
 }
 
 /* Tier KPI values keep semantic colors */
-body.heat-theme.cyber-theme .summary-kpi-card.distressed-kpi .summary-val,
-body.heat-theme.cyber-theme .summary-kpi-card.distressed-kpi .command-kpi-num {
+body.analyze-phuglee .summary-kpi-card.distressed-kpi .summary-val,
+body.analyze-phuglee .summary-kpi-card.distressed-kpi .command-kpi-num {
   color: var(--tier-distressed-bright);
   text-shadow: 0 0 16px var(--tier-distressed-glow);
 }
 
-body.heat-theme.cyber-theme .summary-kpi-card.well-maintained .summary-val {
+body.analyze-phuglee .summary-kpi-card.well-maintained .summary-val {
   color: var(--tier-well-bright);
 }
 
-body.heat-theme.cyber-theme .summary-kpi-card.vacant .summary-val {
+body.analyze-phuglee .summary-kpi-card.vacant .summary-val {
   color: var(--tier-land-bright);
 }
 
-body.heat-theme.cyber-theme .summary-kpi-card.review-kpi .summary-val {
+body.analyze-phuglee .summary-kpi-card.review-kpi .summary-val {
   color: var(--review-bright);
 }
 
-body.heat-theme.cyber-theme .command-kpi-icon.distressed { color: var(--tier-distressed-bright); }
-body.heat-theme.cyber-theme .command-kpi-icon.well-maintained { color: var(--tier-well-bright); }
-body.heat-theme.cyber-theme .command-kpi-icon.vacant { color: var(--tier-land-bright); }
-body.heat-theme.cyber-theme .command-kpi-icon.review { color: var(--review-bright); }
+body.analyze-phuglee .command-kpi-icon.distressed { color: var(--tier-distressed-bright); }
+body.analyze-phuglee .command-kpi-icon.well-maintained { color: var(--tier-well-bright); }
+body.analyze-phuglee .command-kpi-icon.vacant { color: var(--tier-land-bright); }
+body.analyze-phuglee .command-kpi-icon.review { color: var(--review-bright); }
 
 /* ── Property cards — phuglee panel chrome; tier colors preserved ── */
-body.heat-theme.cyber-theme .prop-card.card-cyber {
+body.analyze-phuglee .prop-card.card-cyber {
   background:
     linear-gradient(165deg, rgba(229, 132, 53, 0.05) 0%, transparent 42%),
     rgba(10, 14, 26, 0.78);
@@ -239,18 +233,18 @@ body.heat-theme.cyber-theme .prop-card.card-cyber {
   -webkit-backdrop-filter: blur(12px);
 }
 
-body.heat-theme.cyber-theme .prop-card.card-cyber:hover {
+body.analyze-phuglee .prop-card.card-cyber:hover {
   border-color: rgba(229, 132, 53, 0.38);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), var(--shadow-glow-orange);
   transform: translateY(-3px);
 }
 
-body.heat-theme.cyber-theme .prop-card.card-cyber .card-address {
+body.analyze-phuglee .prop-card.card-cyber .card-address {
   color: var(--phuglee-cream);
 }
 
-body.heat-theme.cyber-theme .prop-card.card-cyber .card-location,
-body.heat-theme.cyber-theme .prop-card.card-cyber .card-meta-cyber {
+body.analyze-phuglee .prop-card.card-cyber .card-location,
+body.analyze-phuglee .prop-card.card-cyber .card-meta-cyber {
   color: var(--phuglee-stone);
   font-family: var(--font-mono);
 }
@@ -258,13 +252,13 @@ body.heat-theme.cyber-theme .prop-card.card-cyber .card-meta-cyber {
 /* Badge overlays keep tier semantic colors (unchanged) */
 
 /* ── Review overlay — dark blur, signal-pill tier buttons ── */
-body.heat-theme.cyber-theme .review-mode-overlay {
+body.analyze-phuglee .review-mode-overlay {
   background: rgba(13, 13, 13, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
-body.heat-theme.cyber-theme .review-action-bar {
+body.analyze-phuglee .review-action-bar {
   background: linear-gradient(180deg, rgba(13, 13, 13, 0.88), rgba(8, 6, 5, 0.98));
   border: 1px solid rgba(229, 132, 53, 0.28);
   box-shadow:
@@ -272,8 +266,8 @@ body.heat-theme.cyber-theme .review-action-bar {
     var(--shadow-glow-orange);
 }
 
-body.heat-theme.cyber-theme .review-action,
-body.heat-theme.cyber-theme .tier-btn {
+body.analyze-phuglee .review-action,
+body.analyze-phuglee .tier-btn {
   border-radius: 999px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -281,68 +275,68 @@ body.heat-theme.cyber-theme .tier-btn {
   font-size: 0.78rem;
 }
 
-body.heat-theme.cyber-theme .review-action {
+body.analyze-phuglee .review-action {
   border: 1px solid rgba(174, 163, 143, 0.2);
   background: rgba(0, 0, 0, 0.35);
   color: var(--phuglee-cream);
 }
 
-body.heat-theme.cyber-theme .review-action.keep,
-body.heat-theme.cyber-theme .review-action.change-tier.to-distressed,
-body.heat-theme.cyber-theme .review-action.distressed {
+body.analyze-phuglee .review-action.keep,
+body.analyze-phuglee .review-action.change-tier.to-distressed,
+body.analyze-phuglee .review-action.distressed {
   background: var(--tier-distressed-dim);
   border-color: var(--tier-distressed-border);
   color: var(--tier-distressed-bright);
 }
 
-body.heat-theme.cyber-theme .review-action.well-maintained,
-body.heat-theme.cyber-theme .review-action.home,
-body.heat-theme.cyber-theme .review-action.change-tier.to-well-maintained {
+body.analyze-phuglee .review-action.well-maintained,
+body.analyze-phuglee .review-action.home,
+body.analyze-phuglee .review-action.change-tier.to-well-maintained {
   background: var(--tier-well-dim);
   border-color: var(--tier-well-border);
   color: var(--tier-well-bright);
 }
 
-body.heat-theme.cyber-theme .review-action.vacant {
+body.analyze-phuglee .review-action.vacant {
   background: var(--tier-land-dim);
   border-color: var(--tier-land-border);
   color: var(--tier-land-bright);
 }
 
-body.heat-theme.cyber-theme .review-action.defer-later {
+body.analyze-phuglee .review-action.defer-later {
   background: var(--review-dim);
   border-color: var(--review-border);
   color: var(--review-bright);
 }
 
-body.heat-theme.cyber-theme .review-action.blurred {
+body.analyze-phuglee .review-action.blurred {
   background: var(--tier-blurred-dim);
   border-color: var(--tier-blurred-border);
   color: var(--tier-blurred);
 }
 
-body.heat-theme.cyber-theme .review-shortcut-chip kbd {
+body.analyze-phuglee .review-shortcut-chip kbd {
   font-family: var(--font-mono);
   border-color: rgba(174, 163, 143, 0.25);
   color: var(--phuglee-taupe);
 }
 
 /* ── Modals — panel rise + grain ── */
-body.heat-theme.cyber-theme .tool-modal-backdrop,
-body.heat-theme.cyber-theme .property-modal-backdrop,
-body.heat-theme.cyber-theme .score-edit-backdrop {
+body.analyze-phuglee .tool-modal-backdrop,
+body.analyze-phuglee .property-modal-backdrop,
+body.analyze-phuglee .score-edit-backdrop {
   background: rgba(13, 13, 13, 0.9);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
-body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog,
-body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog,
-body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog,
-body.heat-theme.cyber-theme .property-modal-dialog.phuglee-dialog,
-body.heat-theme.cyber-theme .modal-content,
-body.heat-theme.cyber-theme .settings-panel,
-body.heat-theme.cyber-theme .upload-modal {
+body.analyze-phuglee .tool-modal-dialog.cyber-dialog,
+body.analyze-phuglee .tool-modal-dialog.phuglee-dialog,
+body.analyze-phuglee .property-modal-dialog.cyber-dialog,
+body.analyze-phuglee .property-modal-dialog.phuglee-dialog,
+body.analyze-phuglee .modal-content,
+body.analyze-phuglee .settings-panel,
+body.analyze-phuglee .upload-modal {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(229, 132, 53, 0.35);
@@ -355,10 +349,10 @@ body.heat-theme.cyber-theme .upload-modal {
   animation: phuglee-modal-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog::before,
-body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog::before,
-body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog::before,
-body.heat-theme.cyber-theme .property-modal-dialog.phuglee-dialog::before {
+body.analyze-phuglee .tool-modal-dialog.cyber-dialog::before,
+body.analyze-phuglee .tool-modal-dialog.phuglee-dialog::before,
+body.analyze-phuglee .property-modal-dialog.cyber-dialog::before,
+body.analyze-phuglee .property-modal-dialog.phuglee-dialog::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -369,21 +363,21 @@ body.heat-theme.cyber-theme .property-modal-dialog.phuglee-dialog::before {
   z-index: 0;
 }
 
-body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog > *,
-body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog > *,
-body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog > *,
-body.heat-theme.cyber-theme .property-modal-dialog.phuglee-dialog > * {
+body.analyze-phuglee .tool-modal-dialog.cyber-dialog > *,
+body.analyze-phuglee .tool-modal-dialog.phuglee-dialog > *,
+body.analyze-phuglee .property-modal-dialog.cyber-dialog > *,
+body.analyze-phuglee .property-modal-dialog.phuglee-dialog > * {
   position: relative;
   z-index: 1;
 }
 
-body.heat-theme.cyber-theme .cyber-dialog .field label,
-body.heat-theme.cyber-theme .phuglee-dialog .field label {
+body.analyze-phuglee .cyber-dialog .field label,
+body.analyze-phuglee .phuglee-dialog .field label {
   color: var(--phuglee-orange);
 }
 
-body.heat-theme.cyber-theme .cyber-dialog .input-wrap input:focus,
-body.heat-theme.cyber-theme .phuglee-dialog .input-wrap input:focus {
+body.analyze-phuglee .cyber-dialog .input-wrap input:focus,
+body.analyze-phuglee .phuglee-dialog .input-wrap input:focus {
   border-color: rgba(229, 132, 53, 0.5);
   box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.15);
 }
@@ -400,47 +394,47 @@ body.heat-theme.cyber-theme .phuglee-dialog .input-wrap input:focus {
 }
 
 /* ── Filters & search ── */
-body.heat-theme.cyber-theme .results-search-primary {
+body.analyze-phuglee .results-search-primary {
   border-color: rgba(174, 163, 143, 0.2);
 }
 
-body.heat-theme.cyber-theme .results-search-primary:focus {
+body.analyze-phuglee .results-search-primary:focus {
   border-color: var(--phuglee-orange);
   box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.15);
 }
 
-body.heat-theme.cyber-theme .filter-segment-btn.active {
+body.analyze-phuglee .filter-segment-btn.active {
   background: rgba(229, 132, 53, 0.12);
   color: var(--phuglee-orange);
   box-shadow: var(--shadow-glow-orange);
 }
 
-body.heat-theme.cyber-theme .filter-segment-btn.active.distressed-filter {
+body.analyze-phuglee .filter-segment-btn.active.distressed-filter {
   background: var(--tier-distressed-dim);
   color: var(--tier-distressed-bright);
   box-shadow: 0 0 14px var(--tier-distressed-glow);
 }
 
-body.heat-theme.cyber-theme .filter-segment-btn.active.well-maintained-filter {
+body.analyze-phuglee .filter-segment-btn.active.well-maintained-filter {
   background: var(--tier-well-dim);
   color: var(--tier-well-bright);
   box-shadow: 0 0 14px var(--tier-well-glow);
 }
 
 /* ── HUD / scan log — JetBrains Mono retained ── */
-body.heat-theme.cyber-theme .hud-scan-header,
-body.heat-theme.cyber-theme .scan-log,
-body.heat-theme.cyber-theme .command-bar-status,
-body.heat-theme.cyber-theme .command-tagline {
+body.analyze-phuglee .hud-scan-header,
+body.analyze-phuglee .scan-log,
+body.analyze-phuglee .command-bar-status,
+body.analyze-phuglee .command-tagline {
   font-family: var(--font-mono);
 }
 
 /* ── Phase 29: loading / empty / error states ── */
-body.heat-theme.cyber-theme .empty-workspace.phuglee-empty-state {
+body.analyze-phuglee .empty-workspace.phuglee-empty-state {
   border: 1px dashed rgba(229, 132, 53, 0.28);
 }
 
-body.heat-theme.cyber-theme .empty-workspace.phuglee-empty-state::before {
+body.analyze-phuglee .empty-workspace.phuglee-empty-state::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -456,32 +450,32 @@ body.heat-theme.cyber-theme .empty-workspace.phuglee-empty-state::before {
   background-position: center;
 }
 
-body.heat-theme.cyber-theme .empty-workspace.phuglee-empty-state h2 {
+body.analyze-phuglee .empty-workspace.phuglee-empty-state h2 {
   color: var(--phuglee-cream);
 }
 
-body.heat-theme.cyber-theme .scan-progress-slim .progress-bar {
+body.analyze-phuglee .scan-progress-slim .progress-bar {
   background: linear-gradient(90deg, var(--phuglee-terracotta), var(--phuglee-orange));
 }
 
-body.heat-theme.cyber-theme .scan-progress-slim .progress-bar-wrap {
+body.analyze-phuglee .scan-progress-slim .progress-bar-wrap {
   background: rgba(0, 0, 0, 0.45);
   border: 1px solid rgba(174, 163, 143, 0.16);
 }
 
-body.heat-theme.cyber-theme .scan-progress-header h2 {
+body.analyze-phuglee .scan-progress-header h2 {
   font-family: var(--font-display);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--phuglee-cream);
 }
 
-body.heat-theme.cyber-theme .scan-progress-slim .progress-pct {
+body.analyze-phuglee .scan-progress-slim .progress-pct {
   color: var(--phuglee-gold);
   font-family: var(--font-mono);
 }
 
-body.heat-theme.cyber-theme .scan-issue-alert {
+body.analyze-phuglee .scan-issue-alert {
   border-color: rgba(172, 107, 50, 0.55);
   background: #1c140c;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
@@ -574,39 +568,39 @@ body.analyzer-embedded .app-shell .app {
 }
 
 /* Distress OS — tone down cyber chrome, terminal density */
-body.heat-theme.cyber-theme .scanlines,
-body.heat-theme.cyber-theme .ambient-orb {
+body.analyze-phuglee .scanlines,
+body.analyze-phuglee .ambient-orb {
   opacity: 0.35;
 }
 
-body.heat-theme.cyber-theme .cyber-grid {
+body.analyze-phuglee .cyber-grid {
   opacity: 0.05;
 }
 
-body.heat-theme.cyber-theme .prop-card.card-cyber {
+body.analyze-phuglee .prop-card.card-cyber {
   border-radius: var(--radius-lg);
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-body.heat-theme.cyber-theme .prop-card.card-cyber:hover {
+body.analyze-phuglee .prop-card.card-cyber:hover {
   transform: translateY(-3px);
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(229, 132, 53, 0.12);
 }
 
-body.heat-theme.cyber-theme .summary-kpi-value {
+body.analyze-phuglee .summary-kpi-value {
   font-family: 'JetBrains Mono', monospace;
   color: var(--phuglee-orange);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.heat-theme.cyber-theme .tool-modal-dialog.cyber-dialog,
-body.heat-theme.cyber-theme .tool-modal-dialog.phuglee-dialog,
-  body.heat-theme.cyber-theme .property-modal-dialog.cyber-dialog {
+  body.analyze-phuglee .tool-modal-dialog.cyber-dialog,
+body.analyze-phuglee .tool-modal-dialog.phuglee-dialog,
+  body.analyze-phuglee .property-modal-dialog.cyber-dialog {
     animation: none;
   }
 
-  body.heat-theme.cyber-theme .command-bar-actions .btn-primary:hover,
-  body.heat-theme.cyber-theme .prop-card.card-cyber:hover {
+  body.analyze-phuglee .command-bar-actions .btn-primary:hover,
+  body.analyze-phuglee .prop-card.card-cyber:hover {
     transform: none;
   }
 
@@ -2401,10 +2395,23 @@ body.analyze-phuglee .profile-section-chip:hover {
   color: var(--phuglee-cream, #f5f2e4);
 }
 
+body.analyze-phuglee .profile-section-chip[aria-selected="true"],
 body.analyze-phuglee .profile-section-chip[aria-current="true"] {
   border-color: rgba(229, 132, 53, 0.45);
   color: var(--phuglee-cream, #f5f2e4);
   background: rgba(229, 132, 53, 0.12);
+}
+
+body.analyze-phuglee .profile-dossier-section[hidden],
+body.analyze-phuglee .profile-dossier-section:not(.is-active) {
+  display: none !important;
+}
+
+body.analyze-phuglee .profile-dossier-section.is-active {
+  display: block;
+  border-top: none;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 /* Score strip: fixed between nav and dossier (always visible) */
@@ -2422,7 +2429,7 @@ body.analyze-phuglee .property-profile-cinematic #inspectorGaugePanel .gauge-num
   font-size: 1.45rem;
 }
 
-/* Sole scroll owner — dossier only */
+/* Tab panels — one visible section; dossier scrolls only if content is tall */
 body.analyze-phuglee .property-profile-dossier {
   flex: 1 1 auto;
   min-height: 0;
@@ -2448,10 +2455,9 @@ body.analyze-phuglee .property-profile-cinematic .property-modal-details .inspec
 }
 
 body.analyze-phuglee .profile-dossier-section {
-  scroll-margin-top: 0.5rem;
-  padding-top: 0.75rem;
-  margin-top: 0.35rem;
-  border-top: 1px solid rgba(174, 163, 143, 0.1);
+  padding-top: 0;
+  margin-top: 0;
+  border-top: none;
 }
 
 body.analyze-phuglee .profile-dossier-section:first-child {
@@ -2752,4 +2758,30 @@ body.analyze-phuglee .scan-import-hint {
   line-height: 1.35;
   max-width: 36rem;
   text-align: center;
+}
+
+body.analyze-phuglee .analyze-status-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  padding: 0.35rem 1rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-meta-text);
+  background: rgba(13, 13, 13, 0.88);
+  border-top: 1px solid rgba(174, 163, 143, 0.12);
+  text-align: center;
+}
+
+body.analyze-phuglee .phuglee-mono-accent {
+  font-family: var(--font-mono);
+  color: var(--phuglee-orange);
+  font-weight: 600;
+}
+
+body.analyze-phuglee .tool-modal-dialog.phuglee-dialog-wide {
+  max-width: min(860px, calc(100vw - 2rem));
 }

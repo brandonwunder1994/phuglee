@@ -2,7 +2,7 @@
   const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
 
   const PROPERTIES_LINKS = [
-    { id: 'collect', label: 'Request Instead', href: '/collect', emoji: '📬' },
+    { id: 'collect', label: 'Collect', href: '/collect', emoji: '📬' },
     { id: 'bridge', label: 'Filter', href: '/bridge', emoji: '🧹' },
     { id: 'analyzer', label: 'Analyze', href: '/analyzer/', emoji: '🔥' }
   ];

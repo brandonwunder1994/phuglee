@@ -34,19 +34,48 @@ function register(ctx) {
   });
 
   router.get('/api/session-results', async (req, res, url) => {
+    const { leanResultsForList } = require('../lib/result-lean');
     const { session } = backups.loadSessionForRequest(req);
     const finalized = finalizeSession(session);
     const results = Array.isArray(finalized.results) ? finalized.results : [];
     const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
     const limit = Math.min(1000, Math.max(1, parseInt(url.searchParams.get('limit') || '500', 10) || 500));
     const slice = results.slice(offset, offset + limit);
+    // Lean list: omit nested profile blobs — full profile loads on property open.
+    // Disk session is unchanged.
     sendJson(res, 200, {
       ok: true,
       offset,
       limit,
       total: results.length,
       hasMore: offset + slice.length < results.length,
-      results: slice
+      lean: true,
+      results: leanResultsForList(slice)
+    });
+    return true;
+  });
+
+  /** On-demand full profile for one property (read-only; does not alter disk). */
+  router.get('/api/session-result-profile', async (req, res, url) => {
+    const { recordKeyFromResult } = require('../lib/backup-logic');
+    const { profilePayloadFromResult } = require('../lib/result-lean');
+    const key = String(url.searchParams.get('key') || '').trim();
+    if (!key || key === '||') {
+      sendJson(res, 400, { ok: false, error: 'key required' });
+      return true;
+    }
+    const { session } = backups.loadSessionForRequest(req);
+    const finalized = finalizeSession(session);
+    const results = Array.isArray(finalized.results) ? finalized.results : [];
+    const match = results.find((r) => recordKeyFromResult(r) === key);
+    if (!match) {
+      sendJson(res, 404, { ok: false, error: 'result not found', key });
+      return true;
+    }
+    sendJson(res, 200, {
+      ok: true,
+      key,
+      ...profilePayloadFromResult(match)
     });
     return true;
   });

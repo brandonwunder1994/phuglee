@@ -558,62 +558,79 @@ R.prefersProfileReducedMotion = function prefersProfileReducedMotion() {
   }
 };
 
-R.wireProfileScrollSpy = function wireProfileScrollSpy() {
-  const root = profileDossierScroll;
-  if (!root || !profileSectionNav || !inspectorBody) return;
+R.setProfileActiveSection = function setProfileActiveSection(sectionId) {
+  if (!profileSectionNav || !inspectorBody || !sectionId) return;
+  const sections = inspectorBody.querySelectorAll('.profile-dossier-section[data-profile-section]');
+  sections.forEach((sec) => {
+    const id = sec.getAttribute('data-profile-section');
+    const active = id === sectionId;
+    sec.classList.toggle('is-active', active);
+    sec.hidden = !active;
+    sec.setAttribute('aria-hidden', active ? 'false' : 'true');
+  });
+  profileSectionNav.querySelectorAll('[data-profile-section]').forEach((chip) => {
+    const id = chip.getAttribute('data-profile-section');
+    const selected = id === sectionId;
+    chip.setAttribute('aria-selected', selected ? 'true' : 'false');
+    chip.tabIndex = selected ? 0 : -1;
+  });
+  state._profileActiveSection = sectionId;
+  if (profileDossierScroll) profileDossierScroll.scrollTop = 0;
+};
+
+R.wireProfileTabPanels = function wireProfileTabPanels(sectionIds, activeSectionId) {
   if (state._profileSpy) {
     state._profileSpy.disconnect();
     state._profileSpy = null;
   }
-  const sections = inspectorBody.querySelectorAll('.profile-dossier-section[data-profile-section]');
-  if (!sections.length) return;
-  state._profileSpyIgnoreUntil = 0;
-
-  const setCurrentSection = (id) => {
-    if (!id) return;
-    profileSectionNav.querySelectorAll('[data-profile-section]').forEach((c) => {
-      const on = c.getAttribute('data-profile-section') === id;
-      if (on) c.setAttribute('aria-current', 'true');
-      else c.removeAttribute('aria-current');
-    });
-  };
-
-  /** Short/last sections: pin last chip when scrolled to bottom of dossier. */
-  const forceLastIfNearBottom = () => {
-    if (Date.now() < (state._profileSpyIgnoreUntil || 0)) return false;
-    if (root.scrollTop + root.clientHeight >= root.scrollHeight - 4) {
-      const last = sections[sections.length - 1];
-      const id = last?.getAttribute('data-profile-section');
-      if (id) setCurrentSection(id);
-      return true;
-    }
-    return false;
-  };
-
-  const obs = new IntersectionObserver((entries) => {
-    if (Date.now() < (state._profileSpyIgnoreUntil || 0)) return;
-    if (forceLastIfNearBottom()) return;
-    const visible = entries
-      .filter((e) => e.isIntersecting)
-      .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) return;
-    const id = visible.target.getAttribute('data-profile-section');
-    setCurrentSection(id);
-  }, {
-    root,
-    // Bias active section toward upper viewport so short/last sections can win
-    rootMargin: '0px 0px -40% 0px',
-    threshold: [0.2, 0.45, 0.7]
+  if (!profileSectionNav || !inspectorBody) return;
+  const ids = Array.isArray(sectionIds) ? sectionIds : [];
+  const fallback = ids[0] || 'overview';
+  const active = activeSectionId && ids.includes(activeSectionId) ? activeSectionId : fallback;
+  profileSectionNav.setAttribute('role', 'tablist');
+  inspectorBody.querySelectorAll('.profile-dossier-section[data-profile-section]').forEach((sec) => {
+    const id = sec.getAttribute('data-profile-section');
+    sec.setAttribute('role', 'tabpanel');
+    sec.setAttribute('aria-labelledby', `profile-tab-${id}`);
   });
-  sections.forEach((s) => obs.observe(s));
+  setProfileActiveSection(active);
 
-  const onScroll = () => { forceLastIfNearBottom(); };
-  root.addEventListener('scroll', onScroll, { passive: true });
-  // Wrap disconnect so scroll listener is cleaned with the observer
+  const onKeydown = (e) => {
+    const chips = [...profileSectionNav.querySelectorAll('[data-profile-section]')];
+    if (!chips.length) return;
+    const idx = chips.findIndex((c) => c.getAttribute('aria-selected') === 'true');
+    let next = idx;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      next = (idx + 1) % chips.length;
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      next = (idx - 1 + chips.length) % chips.length;
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      next = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      next = chips.length - 1;
+    } else {
+      return;
+    }
+    const id = chips[next]?.getAttribute('data-profile-section');
+    if (id) {
+      setProfileActiveSection(id);
+      chips[next]?.focus();
+    }
+  };
+
+  if (state._profileTabKeyHandler) {
+    profileSectionNav.removeEventListener('keydown', state._profileTabKeyHandler);
+  }
+  state._profileTabKeyHandler = onKeydown;
+  profileSectionNav.addEventListener('keydown', onKeydown);
   state._profileSpy = {
     disconnect() {
-      obs.disconnect();
-      root.removeEventListener('scroll', onScroll);
+      profileSectionNav.removeEventListener('keydown', onKeydown);
+      if (state._profileTabKeyHandler === onKeydown) state._profileTabKeyHandler = null;
     }
   };
 };
@@ -678,6 +695,27 @@ R.showInspector = function showInspector(r, opts = {}) {
     closePropertyModal({ save: false });
     return;
   }
+
+  // Phase 2: list pages omit nested profile — fetch once when opening the property.
+  if (r.profileDeferred && !opts.profileLoaded && typeof ensureResultProfile === 'function') {
+    const pendingKey = recordKey(r);
+    state.selectedKey = pendingKey;
+    if (previewHeaderTitle) previewHeaderTitle.textContent = propertyLocationTitle(r);
+    openPropertyModal();
+    if (inspectorBody) {
+      inspectorBody.className = 'inspector-body inspector-body-calm property-profile-body';
+      inspectorBody.innerHTML = '<p class="profile-loading" style="padding:1.25rem;opacity:.75">Loading property details…</p>';
+    }
+    ensureResultProfile(r).then((full) => {
+      if (state.selectedKey !== pendingKey) return;
+      showInspector(full || r, { ...opts, profileLoaded: true });
+    }).catch(() => {
+      if (state.selectedKey !== pendingKey) return;
+      showInspector(r, { ...opts, profileLoaded: true });
+    });
+    return;
+  }
+
   const prevSelectedKey = state.selectedKey;
   const list = getFilteredResults();
   const idx = list.findIndex(x => recordKey(x) === recordKey(r));
@@ -811,12 +849,7 @@ R.showInspector = function showInspector(r, opts = {}) {
   inspectorBody.innerHTML = `
     <section class="profile-dossier-section" id="profile-section-overview" data-profile-section="overview">
       <h3 class="profile-dossier-section-title">Overview</h3>
-      <div class="inspector-identity">
-        <div class="inspector-address-primary">${escapeHtml(propertyStreetLine(r))}</div>
-        <div class="inspector-name-secondary">${propertyTitleHtml(r)}</div>
-        ${leadUploadedHtml(r, 'detail')}
-      </div>
-      <div class="inspector-badges">
+      <div class="profile-badge-row inspector-badges">
         <span class="category-badge ${categoryBadgeClass(cat)}">${categoryLabel(cat)}</span>
         ${leadTypeBadgeHtml(r)}
         ${r.usedSatellite && streetView ? '<span class="category-badge property">Satellite + Street View</span>' : ''}
@@ -826,6 +859,7 @@ R.showInspector = function showInspector(r, opts = {}) {
         ${manuallyReviewedBadgeHtml(r)}
         ${exportedBadgeHtml(r)}
       </div>
+      ${leadUploadedHtml(r, 'detail')}
       ${cat === 'property' ? (state.scoreEditKey === recordKey(r) ? `
       <div class="score-adjust-panel">
         <div class="score-adjust-title">Set distress level</div>
@@ -857,25 +891,21 @@ R.showInspector = function showInspector(r, opts = {}) {
     ${parts.sectionsHtml.values || ''}
     ${parts.sectionsHtml.property || ''}
     ${parts.sectionsHtml.flags || ''}
-    <div class="inspector-hint">↑↓ or J/K to move between leads · Esc to close</div>
   `;
 
+  const preferredSection = opts.keepDossierScroll && state._profileActiveSection
+    ? state._profileActiveSection
+    : (state._profileActiveSection && sectionIds.includes(state._profileActiveSection)
+      ? state._profileActiveSection
+      : 'overview');
+  const initialSection = sectionIds.includes(preferredSection) ? preferredSection : sectionIds[0];
+
   if (profileSectionNav) {
-    profileSectionNav.innerHTML = buildProfileSectionNavHtml(sectionIds);
+    profileSectionNav.innerHTML = buildProfileSectionNavHtml(sectionIds, initialSection);
     profileSectionNav.querySelectorAll('[data-profile-section]').forEach((chip) => {
       chip.addEventListener('click', () => {
         const id = chip.getAttribute('data-profile-section');
-        state._profileSpyIgnoreUntil = Date.now() + 400;
-        const el = inspectorBody.querySelector(`#profile-section-${id}`) ||
-          profileDossierScroll?.querySelector(`#profile-section-${id}`);
-        el?.scrollIntoView({
-          behavior: prefersProfileReducedMotion() ? 'auto' : 'smooth',
-          block: 'start'
-        });
-        profileSectionNav.querySelectorAll('[data-profile-section]').forEach((c) => {
-          if (c === chip) c.setAttribute('aria-current', 'true');
-          else c.removeAttribute('aria-current');
-        });
+        if (id) setProfileActiveSection(id);
       });
     });
   }
@@ -925,10 +955,8 @@ R.showInspector = function showInspector(r, opts = {}) {
     showInspector(r, { scrollList: false, scrollFeed: false, keepDossierScroll: true });
   });
 
-  wireProfileScrollSpy();
-  if (profileDossierScroll && !opts.keepDossierScroll) {
-    profileDossierScroll.scrollTop = 0;
-  }
+  wireProfileTabPanels(sectionIds, initialSection);
+  if (profileDossierScroll) profileDossierScroll.scrollTop = 0;
 
   const pos = idx >= 0 ? idx + 1 : '?';
   inspectorPos.textContent = list.length ? `${pos} / ${list.length}` : '—';
@@ -2057,7 +2085,7 @@ R.buildPropCard = function buildPropCard(r, rankMap) {
   const bulkOn = isBulkSelected(key);
   const tierClass = tierBadgeClassForRecord(r);
   const card = document.createElement('div');
-  card.className = `prop-card card-glass card-cyber ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}${bulkOn ? ' bulk-selected' : ''}`;
+  card.className = `prop-card card-ops ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}${bulkOn ? ' bulk-selected' : ''}`;
   card.dataset.key = key;
   card.innerHTML = `
     <div class="card-thumb">
@@ -2070,15 +2098,11 @@ R.buildPropCard = function buildPropCard(r, rankMap) {
         <div class="card-address">${escapeHtml(propertyStreetLine(r))}</div>
         <div class="card-location">${propertyTitleHtml(r)}</div>
       </div>
-      <div class="card-hover-actions">
-        <span class="card-action-btn">View Details</span>
-      </div>
       <span class="card-thumb-source"></span>
       <div class="card-thumb-fallback">No photo — open property for imagery</div>
     </div>
-    <div class="card-meta-cyber">
-      <span class="card-cached" data-cached-label></span>
-      ${isLeadExported(r) ? `<span class="card-exported-tag">Exported</span>` : ''}
+    <div class="card-footer">
+      ${isLeadExported(r) ? '<span class="card-exported-tag">Exported</span>' : ''}
       <span class="card-timestamp">${escapeHtml(formatLeadUploadedAt(r))}</span>
     </div>`;
   wireBulkCheckbox(card, key);
@@ -2117,7 +2141,8 @@ R.buildResultRow = function buildResultRow(r) {
 
 R.syncPropCardSelection = function syncPropCardSelection(card, r, rankMap) {
   const key = recordKey(r);
-  card.className = `prop-card card-glass card-cyber ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}`;
+  const bulkOn = isBulkSelected(key);
+  card.className = `prop-card card-ops ${heatClassForRecord(r)}${computeNeedsReview(r) ? ' needs-review' : ''}${state.selectedKey === key ? ' selected' : ''}${bulkOn ? ' bulk-selected' : ''}`;
   const addressEl = card.querySelector('.card-address');
   if (addressEl) addressEl.textContent = propertyStreetLine(r);
   const locationEl = card.querySelector('.card-location');
@@ -2131,7 +2156,21 @@ R.syncPropCardSelection = function syncPropCardSelection(card, r, rankMap) {
     tierEl.className = `card-badge-overlay tier-badge ${tierBadgeClassForRecord(r)}`;
     tierEl.textContent = tierBadgeLabelForRecord(r);
   }
-  const bulkOn = isBulkSelected(key);
+  const footer = card.querySelector('.card-footer');
+  if (footer) {
+    const exported = isLeadExported(r);
+    let tag = footer.querySelector('.card-exported-tag');
+    if (exported) {
+      if (!tag) {
+        tag = document.createElement('span');
+        tag.className = 'card-exported-tag';
+        tag.textContent = 'Exported';
+        footer.insertBefore(tag, footer.firstChild);
+      }
+    } else if (tag) {
+      tag.remove();
+    }
+  }
   card.classList.toggle('bulk-selected', bulkOn);
   const cb = card.querySelector('.bulk-row-check');
   if (cb) cb.checked = bulkOn;

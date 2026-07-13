@@ -412,20 +412,13 @@ body.home-page.logo-page .landing-actions {
   line-height: 1.02;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  background: linear-gradient(180deg, var(--phuglee-cream) 15%, var(--phuglee-orange) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--phuglee-cream);
   margin: 0 0 0.85rem;
 }
 
 .home-chapter-title--sm {
   font-size: clamp(1.25rem, 3.5vw, 1.65rem);
-  /* Same cream → orange gradient as full chapter titles */
-  background: linear-gradient(180deg, var(--phuglee-cream) 15%, var(--phuglee-orange) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--phuglee-cream);
 }
 
 .home-chapter-lead {

@@ -16,6 +16,41 @@ function resultEditTimestamp(r) {
   return Number(r.manualEditedAt) || Number(r.analyzedAt) || 0;
 }
 
+function resultHasUsefulProfile(r) {
+  if (!r || typeof r !== 'object') return false;
+  const p = r.profile;
+  if (p && typeof p === 'object') {
+    if (
+      p.marketValue || p.avm || p.wholesaleValue || p.beds || p.squareFootage
+      || p.yearBuilt || p.mailingStreet || p.county || p.propertyType
+      || (Array.isArray(p.phones) && p.phones.length)
+      || (Array.isArray(p.emails) && p.emails.length)
+    ) return true;
+  }
+  return !!(r.marketValue || r.avm || r.wholesaleValue);
+}
+
+/** When client sends lean rows (no profile), keep server profile so saves never wipe enrichment. */
+function preserveProfileFromPrevious(prev, incoming) {
+  if (!incoming) return prev;
+  if (!prev) return incoming;
+  if (resultHasUsefulProfile(incoming)) {
+    const out = { ...incoming };
+    delete out.profileDeferred;
+    return out;
+  }
+  if (!resultHasUsefulProfile(prev)) return incoming;
+  const out = { ...incoming };
+  if (prev.profile) out.profile = prev.profile;
+  for (const key of ['marketValue', 'avm', 'wholesaleValue', 'county', 'ownerType', 'ownerName']) {
+    if ((out[key] == null || out[key] === '') && prev[key] != null && prev[key] !== '') {
+      out[key] = prev[key];
+    }
+  }
+  delete out.profileDeferred;
+  return out;
+}
+
 /** Prefer session records the user edited over stale incremental scan snapshots. */
 function shouldReplaceSessionResult(prev, incoming) {
   if (!incoming) return false;
@@ -25,6 +60,25 @@ function shouldReplaceSessionResult(prev, incoming) {
   if (prevManual && !incManual) return false;
   if (!prevManual && incManual) return true;
   return resultEditTimestamp(incoming) >= resultEditTimestamp(prev);
+}
+
+function applyIncomingResult(prev, incoming) {
+  if (!shouldReplaceSessionResult(prev, incoming)) return prev;
+  return preserveProfileFromPrevious(prev, incoming);
+}
+
+function mergeIncomingPreservingProfiles(existingResults, incomingResults) {
+  const existingByKey = new Map();
+  for (const r of existingResults) {
+    const k = recordKeyFromResult(r);
+    if (k) existingByKey.set(k, r);
+  }
+  return incomingResults.map((r) => {
+    const k = recordKeyFromResult(r);
+    const prev = k ? existingByKey.get(k) : null;
+    if (!prev) return r;
+    return preserveProfileFromPrevious(prev, r);
+  });
 }
 
 const REVIEW_KEY_BUCKETS = ['distressed', 'well_maintained', 'vacant', 'review', 'low_confidence'];
@@ -147,8 +201,15 @@ function mergeSessionSave(existing, incoming) {
     if (!incoming?.partialReviewSync && !incomingReviewKeys && !incomingReviewProgress) return existing;
     return finalizeMergedSession(existing, incoming, existingResults);
   }
-  // Full client snapshot with more results wins (normal scan progress).
-  if (incomingResults.length > existingResults.length) return incoming;
+  // Full client snapshot with more results wins (normal scan progress),
+  // but never let lean client rows erase server profiles.
+  if (incomingResults.length > existingResults.length) {
+    return finalizeMergedSession(
+      existing,
+      incoming,
+      mergeIncomingPreservingProfiles(existingResults, incomingResults)
+    );
+  }
 
   // Partial client (fewer total rows) can still carry NEW scanned addresses.
   // Merge edits onto existing keys, then APPEND any incoming keys the server lacks.
@@ -164,7 +225,7 @@ function mergeSessionSave(existing, incoming) {
     const inc = incomingByKey.get(pk)
       || (incomingResults.length === existingResults.length ? incomingResults[i] : null);
     if (!inc) return prev;
-    return shouldReplaceSessionResult(prev, inc) ? inc : prev;
+    return applyIncomingResult(prev, inc);
   });
   for (const r of incomingResults) {
     const k = recordKeyFromResult(r);
@@ -210,6 +271,8 @@ module.exports = {
   isManuallyEditedResult,
   resultEditTimestamp,
   shouldReplaceSessionResult,
+  resultHasUsefulProfile,
+  preserveProfileFromPrevious,
   mergeReviewedKeysByFilter,
   mergeReviewProgressByFilter,
   countReviewedKeys,

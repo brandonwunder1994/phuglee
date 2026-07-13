@@ -747,6 +747,15 @@ R.trimExcessLiveCards = function trimExcessLiveCards(maxCards) {
   }
 }
 
+R.trimExcessLiveTableRows = function trimExcessLiveTableRows(maxRows) {
+  if (!resultsBody) return;
+  let rows = resultsBody.querySelectorAll('tr[data-key]');
+  while (rows.length > maxRows) {
+    rows[rows.length - 1]?.remove();
+    rows = resultsBody.querySelectorAll('tr[data-key]');
+  }
+}
+
 R.appendScanResult = function appendScanResult(r) {
   if (!resultMatchesCurrentFilter(r)) {
     updateResultCountLabel();
@@ -769,6 +778,7 @@ R.appendScanResult = function appendScanResult(r) {
     if (emptyRow) emptyRow.remove();
     if (!resultsBody.querySelector(`tr[data-key="${CSS.escape(key)}"]`)) {
       resultsBody.prepend(buildResultRow(r));
+      trimExcessLiveTableRows(MAX_LIVE_DOM_CARDS);
     }
   }
 
@@ -903,7 +913,7 @@ R.setFilter = function setFilter(filter) {
   updateExportButtons();
   updateFilterLabels();
   updateSummaryStats({ force: true });
-  saveSession();
+  scheduleSaveSession('filter-change');
   applyFilterOverflowUi();
 }
 

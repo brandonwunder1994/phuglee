@@ -1553,7 +1553,7 @@ $('leadTypeFilter')?.addEventListener('change', (e) => {
   updateAppNav();
   updateExportButtons();
   updateFilterLabels();
-  saveSession();
+  scheduleSaveSession('lead-type-filter');
 });
 
 $('importLeadTypeSelect')?.addEventListener('change', (e) => {
@@ -1775,12 +1775,8 @@ scanFeedImages?.addEventListener('click', (e) => {
   pinLiveScan();
 });
 previewImages?.addEventListener('click', (e) => {
-  const img = e.target.closest('img');
-  if (!img?.src) return;
-  const sel = state.results.find(r => recordKey(r) === state.selectedKey);
-  const addr = sel?.address || '';
-  const view = img.id === 'previewSatImg' ? 'Satellite' : (previewWrap.classList.contains('satellite-target') ? 'Satellite' : 'Street View');
-  openLightbox(img.src, addr ? `${view} — ${addr}` : view);
+  // Profile hero stays in the dossier — use Satellite button for lightbox zoom.
+  e.preventDefault();
 });
 lightboxClose?.addEventListener('click', closeLightbox);
 lightboxBackdrop?.addEventListener('click', closeLightbox);

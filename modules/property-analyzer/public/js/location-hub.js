@@ -50,7 +50,7 @@
       updateFilterLabels?.();
       renderResults({ force: true });
       updateLocalKpis();
-      saveSession();
+      scheduleSaveSession('location-filter');
       // Ensure full result set for accurate card list when hydration still running
       if (sessionLoadState && !sessionLoadState.complete && typeof ensureSessionResultsLoaded === 'function') {
         ensureSessionResultsLoaded().then(() => {
@@ -81,7 +81,7 @@
       updateFilterLabels?.();
       renderResults({ force: true });
       updateLocalKpis();
-      saveSession();
+      scheduleSaveSession('location-clear');
     };
 
     R.toggleImportDateChip = function toggleImportDateChip(batchId) {
@@ -97,7 +97,7 @@
       updateFilterLabels?.();
       renderResults({ force: true });
       updateLocalKpis();
-      saveSession();
+      scheduleSaveSession('import-date-filter');
     };
 
     function populateStateSelect() {
