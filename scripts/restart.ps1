@@ -42,11 +42,11 @@ function Get-ListenerPid {
 }
 
 function Register-KeepAliveTask {
-    # Pure VBS keep-alive — NEVER powershell.exe (Task Scheduler still flashes a
+    # Pure VBS keep-alive - NEVER powershell.exe (Task Scheduler still flashes a
     # console for Hidden PowerShell every 2 minutes). wscript //B is silent.
     $ensureVbs = Join-Path $root "scripts\ensure-server-hidden.vbs"
     if (-not (Test-Path $ensureVbs)) {
-        Write-Host "Missing $ensureVbs — keep-alive not registered" -ForegroundColor DarkYellow
+        Write-Host "Missing $ensureVbs - keep-alive not registered" -ForegroundColor DarkYellow
         return $false
     }
     $tr = "wscript.exe //B //Nologo `"$ensureVbs`""
@@ -95,8 +95,8 @@ if (-not (Test-Path $vbs)) {
 }
 
 # Launch OUTSIDE this process tree / Job Object via wscript only.
-# NEVER Win32_Process.Create(cmd.exe) — that flashes a black terminal.
-# NEVER bare powershell keep-alive — Task Scheduler flashes those too.
+# NEVER Win32_Process.Create(cmd.exe) - that flashes a black terminal.
+# NEVER bare powershell keep-alive - Task Scheduler flashes those too.
 function Start-DetachedNode {
     if (-not (Test-Path $vbs)) {
         Write-Host "Missing $vbs" -ForegroundColor Red
