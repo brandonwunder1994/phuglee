@@ -763,16 +763,19 @@
           <button type="button" class="vault-hero-toggle-btn${mode === 'satellite' ? ' is-active' : ''}" data-img-mode="satellite">Satellite</button>
         </div>`
       : '';
+    const captionAddr = [l.address, l.city, l.state].filter(Boolean).join(', ');
     if (!url) {
       return `<div class="vault-hero-media vault-hero-media--empty">
         <p>No property imagery yet</p>
         <span class="vault-hero-hint">This lead was reviewed without a Street View scan — run Analyze on this address to add a photo</span>
+        ${captionAddr ? `<p class="vault-hero-caption vault-hero-caption--empty">${esc(captionAddr)}</p>` : ''}
       </div>`;
     }
     return `<div class="vault-hero-media">
       ${toggle}
       <button type="button" class="vault-hero-img-btn" id="vault-hero-img" aria-label="Expand property photo">
         <img class="vault-hero-img" src="${esc(url)}" alt="${esc(l.address || 'Property')}" loading="eager" decoding="async" data-fallback-src="${esc(liveSvUrlForLead(l))}">
+        ${captionAddr ? `<span class="vault-hero-caption">${esc(captionAddr)}</span>` : ''}
       </button>
     </div>`;
   }
