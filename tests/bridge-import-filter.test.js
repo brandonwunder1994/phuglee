@@ -59,3 +59,21 @@ test('filterAlreadyImported keeps addresses not in analyzer', () => {
   assert.equal(result.rows.length, 2);
   assert.equal(result.removedCount, 0);
 });
+
+test('filterAlreadyImported does not fuzzy-drop short street near-misses (Bay vs Day)', () => {
+  // similarityScore("15 Bay St","15 Day St") ≈ 0.923 — above default 0.92 threshold
+  // but short street cores differ; must not hard-drop as already_imported
+  const imported = new Set([normalizeAddressKey('15 Bay St')]);
+  const result = filterAlreadyImported([row('15 Day St')], imported);
+  assert.equal(result.removedCount, 0);
+  assert.equal(result.rows.length, 1);
+  assert.equal(result.rows[0].streetAddress, '15 Day St');
+});
+
+test('filterAlreadyImported still fuzzy-matches abbreviation variants on longer streets', () => {
+  const imported = new Set([
+    normalizeAddressKey('123 Maple Street, Marana, Arizona, 85704')
+  ]);
+  const result = filterAlreadyImported([row('123 Maple St')], imported);
+  assert.equal(result.removedCount, 1);
+});

@@ -471,7 +471,6 @@ function register(ctx) {
       const id = String(batch?.id || '').toLowerCase();
       if (sourceFileIncludes && src.includes(sourceFileIncludes)) return true;
       if (importSource && id.includes(importSource.toLowerCase())) return true;
-      if (id.includes('new_analyzer_leads')) return true;
       return false;
     }
 

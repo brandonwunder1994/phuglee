@@ -2,6 +2,9 @@
   const forgePill = document.getElementById('status-forge');
   const analyzerPill = document.getElementById('status-analyzer');
 
+  // No-op when status pills are not on the page (shell pages use distress-status instead).
+  if (!forgePill && !analyzerPill) return;
+
   function setPill(el, up, label) {
     if (!el) return;
     el.classList.toggle('up', up);

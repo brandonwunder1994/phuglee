@@ -78,6 +78,81 @@
   min-width: 9.5rem;
 }
 
+/* First-run checklist — dismissible, localStorage */
+.command-checklist {
+  margin: 0 0 1.35rem;
+  padding: 1rem 1.15rem 1.15rem;
+  border: 1px solid rgba(201, 162, 39, 0.28);
+  background:
+    linear-gradient(135deg, rgba(229, 132, 53, 0.08) 0%, transparent 55%),
+    rgba(28, 24, 20, 0.55);
+}
+
+.command-checklist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.command-checklist-kicker {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange, #e58435);
+}
+
+.command-checklist-dismiss {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--phuglee-taupe-mid, #a89f90);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  padding: 0.2rem 0.15rem;
+}
+
+.command-checklist-dismiss:hover,
+.command-checklist-dismiss:focus-visible {
+  color: var(--phuglee-cream, #f3ecdf);
+}
+
+.command-checklist-title {
+  margin: 0 0 0.65rem;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream, #f3ecdf);
+}
+
+.command-checklist-steps {
+  margin: 0 0 1rem;
+  padding-left: 1.2rem;
+  color: var(--phuglee-taupe-mid, #a89f90);
+  line-height: 1.55;
+}
+
+.command-checklist-steps a {
+  color: var(--phuglee-cream, #f3ecdf);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.command-checklist-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+/* Mission */
+
 /* Mission board: focus + status */
 .command-mission {
   display: grid;

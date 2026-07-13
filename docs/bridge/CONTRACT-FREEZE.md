@@ -296,7 +296,7 @@ These are cinema/theater structural contracts. Visual phases must not reorder or
 
 3. **Victory strip slogans + IDs**  
    - `#bridge-victory-strip`, `#bridge-victory-download`, `#bridge-victory-next`  
-   - Required copy: `DELETE THE JUNK`, `Filter Data`, `Scrub next city`  
+   - Required copy: `List staged`, `Filter Data`, `Scrub next city`  
    - Victory download: `data-action="flash-download"` + `data-format="csv"`
 
 4. **Type chips radio contract**  

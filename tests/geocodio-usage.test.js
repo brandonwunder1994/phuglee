@@ -59,12 +59,13 @@ describe('geocodio-usage', () => {
     assert.equal(remainingForKey('k0', opts), 0);
   });
 
-  it('getUsageForModal includes full keys and totals', () => {
+  it('getUsageForModal masks keys and includes totals', () => {
     const opts = { root: tmp, env };
     recordLookups('k0', 500, opts);
     const modal = getUsageForModal(opts);
     assert.equal(modal.accounts.length, 2);
-    assert.equal(modal.accounts[0].apiKey, 'keyone111');
+    assert.equal(modal.accounts[0].apiKey, undefined);
+    assert.equal(modal.accounts[0].apiKeyMasked, '••••e111');
     assert.equal(modal.accounts[0].remaining, 2000);
     assert.equal(modal.totalRemaining, 4500);
     assert.ok(modal.note);

@@ -102,6 +102,104 @@ body.has-shell-chrome .shell-footer {
   margin-left: auto;
 }
 
+.shell-nav-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.shell-nav-palette-btn,
+.shell-nav-menu-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.shell-nav-palette-btn:hover,
+.shell-nav-menu-btn:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(174, 163, 143, 0.22);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.shell-nav-palette-btn:focus-visible,
+.shell-nav-menu-btn:focus-visible {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
+}
+
+.shell-nav-palette-label {
+  display: none;
+}
+
+.shell-nav-menu-btn {
+  display: none;
+  width: 2.4rem;
+  height: 2.4rem;
+  padding: 0;
+}
+
+.shell-nav-menu-bars,
+.shell-nav-menu-bars::before,
+.shell-nav-menu-bars::after {
+  display: block;
+  width: 1.05rem;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.shell-nav-menu-bars {
+  position: relative;
+}
+
+.shell-nav-menu-bars::before,
+.shell-nav-menu-bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.shell-nav-menu-bars::before {
+  top: -5px;
+}
+
+.shell-nav-menu-bars::after {
+  top: 5px;
+}
+
+.shell-nav-wrap.is-nav-open .shell-nav-menu-bars {
+  background: transparent;
+}
+
+.shell-nav-wrap.is-nav-open .shell-nav-menu-bars::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.shell-nav-wrap.is-nav-open .shell-nav-menu-bars::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
 .shell-link {
   position: relative;
   padding: 0.48rem 0.85rem;
@@ -470,18 +568,99 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
   .shell-nav {
     flex-wrap: wrap;
     padding-bottom: 0.65rem;
+    gap: 0.5rem;
+  }
+
+  .shell-nav-toolbar {
+    margin-left: auto;
+  }
+
+  .shell-nav-menu-btn {
+    display: inline-flex;
+  }
+
+  .shell-nav-palette-label {
+    display: none;
   }
 
   .shell-links {
+    display: none;
     order: 3;
     width: 100%;
-    justify-content: flex-end;
-    overflow-x: auto;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    padding: 0.35rem 0 0.15rem;
+    border-top: 1px solid rgba(174, 163, 143, 0.12);
+  }
+
+  .shell-nav-wrap.is-nav-open .shell-links {
+    display: flex;
+  }
+
+  .shell-links .shell-link,
+  .shell-links .shell-nav-dropdown {
+    width: 100%;
+  }
+
+  .shell-links .shell-nav-dropdown-trigger,
+  .shell-links .shell-link {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .shell-nav-dropdown-menu {
+    position: static;
+    min-width: 0;
+    width: 100%;
+    margin-top: 0.25rem;
+    box-shadow: none;
+    animation: none;
   }
 
   .shell-status {
     margin-left: auto;
   }
+}
+
+@media (min-width: 769px) {
+  .shell-nav-palette-label {
+    display: inline;
+  }
+
+  /* Brand | Jump + links (right cluster) */
+  .shell-nav-toolbar {
+    order: 2;
+    margin-left: 0.15rem;
+  }
+
+  .shell-links {
+    order: 1;
+    margin-left: auto;
+  }
+}
+
+/* Soft home → app enter (shared chrome cue) */
+@keyframes shell-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+body.has-shell-chrome > main,
+body.has-shell-chrome .bridge-main,
+body.has-shell-chrome .collect-landing,
+body.has-shell-chrome .command-main,
+body.has-shell-chrome .app-shell-main,
+body.has-shell-chrome .vault-main,
+body.has-shell-chrome .hub-main {
+  animation: shell-page-enter 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -500,5 +679,15 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
 
   .shell-nav-dropdown-chevron {
     transition: none;
+  }
+
+  body.has-shell-chrome > main,
+  body.has-shell-chrome .bridge-main,
+  body.has-shell-chrome .collect-landing,
+  body.has-shell-chrome .command-main,
+  body.has-shell-chrome .app-shell-main,
+  body.has-shell-chrome .vault-main,
+  body.has-shell-chrome .hub-main {
+    animation: none;
   }
 }

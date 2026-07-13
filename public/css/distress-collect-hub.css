@@ -473,8 +473,7 @@
 }
 
 .collect-choice-icon {
-  display: inline-block;
-  margin-right: 0.35rem;
+  display: none;
 }
 
 @media (max-width: 900px) {

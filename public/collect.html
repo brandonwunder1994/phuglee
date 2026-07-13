@@ -16,18 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/tokens.css?v=shell1">
-  <link rel="stylesheet" href="/css/distress-glass.css?v=shell1">
-  <link rel="stylesheet" href="/css/phuglee-components.css?v=shell1">
-  <link rel="stylesheet" href="/css/phuglee-shell.css?v=1">
-  <link rel="stylesheet" href="/css/shell.css">
-  <link rel="stylesheet" href="/css/shell-nav.css?v=9">
-  <link rel="stylesheet" href="/css/settings-menu.css">
-  <link rel="stylesheet" href="/css/command-palette.css">
-  <link rel="stylesheet" href="/css/distress-status.css">
-  <link rel="stylesheet" href="/css/collect-records.css?v=6">
-  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=7">
-  <link rel="stylesheet" href="/css/phuglee-a11y.css">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
+  <link rel="stylesheet" href="/css/collect-records.css?v=7">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=8">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -86,6 +77,7 @@
       </div>
 
       <div class="collect-wizard-step" id="collect-step-cities" data-wizard-step="cities">
+        <p class="collect-wizard-crumb" aria-label="Wizard progress"><strong>Cities</strong> → Workflow → Confirm</p>
         <p class="collect-dialog-lead">Select which cities you want to request records from. Next you'll pick how each batch gets sent.</p>
         <div class="collect-city-toolbar">
           <label class="collect-city-search-wrap">
@@ -93,8 +85,8 @@
             <input type="search" class="collect-city-search" id="collect-city-search" placeholder="Search city or state…" autocomplete="off" />
           </label>
           <div class="collect-city-toolbar-actions">
-            <button type="button" class="collect-city-toolbar-btn" id="collect-city-select-all">Select all</button>
-            <button type="button" class="collect-city-toolbar-btn" id="collect-city-clear">Clear</button>
+            <button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm collect-city-toolbar-btn" id="collect-city-select-all">Select all</button>
+            <button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm collect-city-toolbar-btn" id="collect-city-clear">Clear</button>
           </div>
         </div>
         <p class="collect-city-count" id="collect-city-count-label" aria-live="polite">Loading cities…</p>
@@ -109,26 +101,27 @@
       </div>
 
       <div class="collect-wizard-step" id="collect-step-workflow" data-wizard-step="workflow" hidden>
+        <p class="collect-wizard-crumb" aria-label="Wizard progress">Cities → <strong>Workflow</strong> → Confirm</p>
         <p class="collect-dialog-lead">Pick the workflow that matches how your selected cities accept public records requests.</p>
         <div class="collect-choice-grid" role="radiogroup" aria-label="Request workflow">
           <label class="collect-choice">
             <input type="radio" name="request-workflow" value="/forge/portal/request-pdfs" checked />
             <span class="collect-choice-body distress-glass-card">
-              <span class="collect-choice-title"><span class="collect-choice-icon">📄</span>Send PDF Emails</span>
+              <span class="collect-choice-title">Send PDF Emails</span>
               <span class="collect-choice-desc">Email a completed FOIA PDF attachment to the city clerk. Best when the city wants a signed form on file.</span>
             </span>
           </label>
           <label class="collect-choice">
             <input type="radio" name="request-workflow" value="/forge/portal/email-only" />
             <span class="collect-choice-body distress-glass-card">
-              <span class="collect-choice-title"><span class="collect-choice-icon">✉</span>Emails Only</span>
+              <span class="collect-choice-title">Emails Only</span>
               <span class="collect-choice-desc">Send a plain email request with no PDF. Use this for cities that accept email-only FOIA without a form.</span>
             </span>
           </label>
           <label class="collect-choice">
             <input type="radio" name="request-workflow" value="/forge/portal/submit-portals" />
             <span class="collect-choice-body distress-glass-card">
-              <span class="collect-choice-title"><span class="collect-choice-icon">🌐</span>Online Portals</span>
+              <span class="collect-choice-title">Online Portals</span>
               <span class="collect-choice-desc">Submit through the city&apos;s web portal. We track each submission and walk you through the online form.</span>
             </span>
           </label>
@@ -136,7 +129,31 @@
         <div class="collect-dialog-actions">
           <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" id="btn-collect-step-back">Back</button>
           <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-confirm-workflow">
-            <span class="btn-heat-label">Start requesting</span>
+            <span class="btn-heat-label">Continue</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="collect-wizard-step" id="collect-step-confirm" data-wizard-step="confirm" hidden>
+        <p class="collect-wizard-crumb" aria-label="Wizard progress">Cities → Workflow → <strong>Confirm</strong></p>
+        <p class="collect-dialog-lead">Review your batch, then open Form Forge. Nothing sends until you confirm there.</p>
+        <dl class="collect-confirm-summary" id="collect-confirm-summary">
+          <div class="collect-confirm-row">
+            <dt>Cities</dt>
+            <dd id="collect-confirm-cities">—</dd>
+          </div>
+          <div class="collect-confirm-row">
+            <dt>Workflow</dt>
+            <dd id="collect-confirm-workflow">—</dd>
+          </div>
+        </dl>
+        <p class="collect-confirm-back-note">
+          Form Forge keeps a <strong>← Collect</strong> link at the top so you can return here anytime.
+        </p>
+        <div class="collect-dialog-actions">
+          <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" id="btn-collect-confirm-back">Back</button>
+          <button type="button" class="btn-heat sm phuglee-btn phuglee-btn-primary" id="btn-collect-launch">
+            <span class="btn-heat-label">Open Form Forge</span>
           </button>
         </div>
       </div>
@@ -144,12 +161,12 @@
   </dialog>
 
   <div id="distress-os-footer-mount"></div>
-  <script src="/js/phuglee-motion.js"></script>
-  <script src="/js/phuglee-states.js"></script>
-  <script src="/js/settings-menu.js"></script>
-  <script src="/js/command-palette.js"></script>
-  <script src="/js/distress-status.js"></script>
-  <script src="/js/shell-nav.js?v=12"></script>
-  <script src="/js/collect-records.js?v=4"></script>
+  <script src="/js/phuglee-motion.js" defer></script>
+  <script src="/js/phuglee-states.js" defer></script>
+  <script src="/js/settings-menu.js" defer></script>
+  <script src="/js/command-palette.js" defer></script>
+  <script src="/js/distress-status.js" defer></script>
+  <script src="/js/shell-nav.js?v=13" defer></script>
+  <script src="/js/collect-records.js?v=5" defer></script>
 </body>
 </html>

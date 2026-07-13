@@ -139,8 +139,34 @@
     }
   }
 
+  var CHECKLIST_KEY = 'phuglee_command_checklist_dismissed';
+
+  function initFirstRunChecklist() {
+    var card = document.getElementById('command-first-run');
+    var dismiss = document.getElementById('command-checklist-dismiss');
+    if (!card) return;
+    var dismissed = false;
+    try {
+      dismissed = localStorage.getItem(CHECKLIST_KEY) === '1';
+    } catch (_) {}
+    if (dismissed) {
+      card.hidden = true;
+      return;
+    }
+    card.hidden = false;
+    if (dismiss) {
+      dismiss.addEventListener('click', function () {
+        try {
+          localStorage.setItem(CHECKLIST_KEY, '1');
+        } catch (_) {}
+        card.hidden = true;
+      });
+    }
+  }
+
   function init() {
     hideShellLoading();
+    initFirstRunChecklist();
     updateMissionFocus();
     watchCoverageCounts();
     pollHealth();

@@ -35,6 +35,14 @@ test('GET /vault serves vault.html', async () => {
   await handleRequest({ method: 'GET', url: '/vault', headers: { host: '127.0.0.1:3000' } }, res);
   assert.equal(res.statusCode, 200);
   assert.match(res.headers['Content-Type'] || '', /text\/html/);
-  assert.match(res.body, /MAX PLAN ONLY/);
+  assert.match(res.body, /Max plan preview/i);
   assert.match(res.body, /The Vault/);
+});
+
+test('GET /filter serves Filter desk', async () => {
+  const res = mockRes();
+  await handleRequest({ method: 'GET', url: '/filter', headers: { host: '127.0.0.1:3000' } }, res);
+  assert.equal(res.statusCode, 200);
+  assert.match(res.headers['Content-Type'] || '', /text\/html/);
+  assert.match(res.body, /Filter/i);
 });

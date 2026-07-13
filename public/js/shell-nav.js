@@ -2,9 +2,10 @@
   const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
 
   const PROPERTIES_LINKS = [
-    { id: 'collect', label: 'Collect', href: '/collect', emoji: '📬' },
-    { id: 'bridge', label: 'Filter', href: '/bridge', emoji: '🧹' },
-    { id: 'analyzer', label: 'Analyze', href: '/analyzer/', emoji: '🔥' }
+    { id: 'collect', label: 'Collect', href: '/collect' },
+    { id: 'bridge', label: 'Filter', href: '/filter' },
+    { id: 'analyzer', label: 'Analyze', href: '/analyzer/' },
+    { id: 'forge-portal', label: 'City Tracker', href: '/forge/portal' }
   ];
 
   const FORGE_LINKS = [
@@ -16,8 +17,6 @@
     { id: 'forge-email', label: 'Email-only', href: '/forge/portal/email-only' },
     { id: 'forge-errors', label: 'Portal Errors', href: '/forge/portal/portal-errors' }
   ];
-
-  const VAULT_LINK = { id: 'vault', label: 'The Vault', href: '/vault' };
 
   function normalizePath(pathname) {
     if (!pathname) return '/';
@@ -35,6 +34,10 @@
     if (h === '/analyzer' || h === '/analyzer/') {
       return p === '/analyzer' || p === '/analyzer/index.html';
     }
+    // Filter page: /filter is canonical; /bridge remains a legacy alias.
+    if (h === '/filter' || h === '/bridge') {
+      return p === '/filter' || p === '/bridge';
+    }
     return p === h || p.startsWith(h + '/');
   }
 
@@ -42,6 +45,7 @@
     const p = normalizePath(path);
     if (p === '/command') return 'command';
     if (p === '/vault') return 'vault';
+    if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
@@ -82,9 +86,9 @@
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Collect</a>
-      <a href="/bridge" class="shell-footer-link">Filter</a>
+      <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Analyze</a>
-      <a href="/vault" class="shell-footer-link">The Vault</a>
+      <a href="/vault" class="shell-footer-link">The Vault (soon)</a>
     </nav>
   </div>
   ${trustLine}
@@ -149,7 +153,6 @@
     const current = activeId(pathname);
     const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
     const propertiesHtml = buildPropertiesDropdown(current);
-    const vaultClass = linkClass(VAULT_LINK.id, current);
 
     const actionsHtml = isAuthenticated()
       ? `<div class="shell-nav-actions">
@@ -174,10 +177,34 @@
         decoding="async"
       >
     </a>
-    <div class="shell-links">
+    <div class="shell-nav-toolbar">
+      <button
+        type="button"
+        class="shell-nav-palette-btn"
+        id="shell-cmd-palette-btn"
+        aria-label="Open command palette"
+        title="Jump anywhere (Ctrl+K)"
+      >
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
+          <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10.5 10.5 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="shell-nav-palette-label">Jump</span>
+      </button>
+      <button
+        type="button"
+        class="shell-nav-menu-btn"
+        id="shell-nav-menu-btn"
+        aria-expanded="false"
+        aria-controls="shell-links"
+        aria-label="Open menu"
+      >
+        <span class="shell-nav-menu-bars" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="shell-links" id="shell-links">
       ${dashboardHtml}
       ${propertiesHtml}
-      <a href="${VAULT_LINK.href}" class="${vaultClass}"${current === VAULT_LINK.id ? ' aria-current="page"' : ''}>${VAULT_LINK.label}</a>
       ${actionsHtml}
     </div>
   </nav>
@@ -263,6 +290,53 @@
     });
   }
 
+  function closeMobileNav() {
+    const wrap = document.getElementById('distress-os-nav');
+    const btn = document.getElementById('shell-nav-menu-btn');
+    wrap?.classList.remove('is-nav-open');
+    if (btn) {
+      btn.setAttribute('aria-expanded', 'false');
+      btn.setAttribute('aria-label', 'Open menu');
+    }
+  }
+
+  function toggleMobileNav() {
+    const wrap = document.getElementById('distress-os-nav');
+    const btn = document.getElementById('shell-nav-menu-btn');
+    if (!wrap || !btn) return;
+    const open = !wrap.classList.contains('is-nav-open');
+    wrap.classList.toggle('is-nav-open', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+
+  function bindMobileChrome(root) {
+    if (!root || root.dataset.mobileBound === '1') return;
+    root.dataset.mobileBound = '1';
+
+    const menuBtn = root.querySelector('#shell-nav-menu-btn');
+    menuBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMobileNav();
+    });
+
+    const paletteBtn = root.querySelector('#shell-cmd-palette-btn');
+    paletteBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (window.PhugleeCommandPalette && typeof window.PhugleeCommandPalette.open === 'function') {
+        window.PhugleeCommandPalette.open();
+      }
+    });
+
+    root.querySelectorAll('.shell-links a[href]').forEach((link) => {
+      link.addEventListener('click', () => closeMobileNav());
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMobileNav();
+    });
+  }
+
   function mount() {
     const path = window.location.pathname;
     if (normalizePath(path) === '/') return;
@@ -292,6 +366,7 @@
       }
       guardNavLinks(wrap);
       bindPropertiesDropdown(wrap);
+      bindMobileChrome(wrap);
     }
 
     if (path.startsWith('/forge')) {

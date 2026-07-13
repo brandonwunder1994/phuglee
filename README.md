@@ -141,6 +141,20 @@ npm test
 | `PROPERTY_ANALYZER_PORT` | `3456` | Analyzer upstream |
 | `FORM_FORGE_PATH` | `modules/form-forge` | Form Forge root |
 | `PROPERTY_ANALYZER_PATH` | `modules/property-analyzer` | Analyzer root |
+| `PHUGLEE_AUTH_DISABLED` | off (local: set `1` to skip login) | Skip shell login locally. Production always requires login unless `PHUGLEE_AUTH_OPEN=1`. |
+| `PHUGLEE_AUTH_OPEN` | `0` | Temporary open staging (production only escape hatch). |
+| `PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD` | _(empty)_ | Bootstrap `admin` password injected via `/js/auth-config.js`. |
+| `PHUGLEE_SESSION_SECRET` | derived / local fallback | HMAC secret for HttpOnly `phuglee_session` cookie (`POST /api/auth/login`). Set explicitly in production. |
+
+**Auth session (interim):** Successful login also calls `POST /api/auth/login`, which sets an HttpOnly signed cookie. Bridge scope prefers that cookie over spoofable `X-Phuglee-User` when present. Local `PHUGLEE_AUTH_DISABLED=1` keeps header-only behavior.
+
+**Health:** `GET /api/health` always returns 200 (Railway shallow check). `GET /api/health/deep` returns non-200 if Form Forge or Property Analyzer are down. Optional: `scripts\verify-live.ps1 -Deep` (or `VERIFY_DEEP=1`).
+
+**Docker OCR:** Production image installs `tesseract-ocr` for scanned PDF OCR. Dockerfile defaults `PHUGLEE_AUTH_DISABLED=0`; for local docker without login use `-e NODE_ENV=development -e PHUGLEE_AUTH_DISABLED=1`.
+
+Login on the site: set `PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD` in your environment (injected via `/js/auth-config.js`). Username: `admin`.
+
+Locally, `npm start` already launches everything as **one command** (shell auto-starts Forge + Analyzer on internal ports; browser only uses `:3000`).
 
 ## Share with someone (public URL)
 
@@ -154,13 +168,11 @@ Use **Railway** (or Render) instead — one deploy, one URL, full app:
 4. Add environment variables in Railway → **Variables** (required for full functionality):
    - `MAPS_API_KEY` — Google Maps (Analyzer Street View + satellite imagery)
    - `GEMINI_API_KEY` — Gemini (AI distress scan)
-   Without these, Property Analyzer loads but cannot scan leads.
+   - `PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD` — admin login
+   - `PHUGLEE_SESSION_SECRET` — HMAC cookie secret (recommended)
+   Without Maps/Gemini keys, Property Analyzer loads but cannot scan leads.
 5. Deploy → open the generated URL (e.g. `https://phuglee-production.up.railway.app`)
-6. After deploy, confirm health: `/api/health` should show `formForge: up` and `propertyAnalyzer: up`.
-
-Login on the site: `admin` / `wunderhaus`
-
-Locally, `npm start` already launches everything as **one command** (shell auto-starts Forge + Analyzer on internal ports; browser only uses `:3000`).
+6. After deploy, confirm shallow health `/api/health` (always 200 for Railway) and optionally `/api/health/deep` for module status.
 
 ## Deployment (local production)
 

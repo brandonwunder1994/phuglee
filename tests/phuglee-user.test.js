@@ -23,6 +23,11 @@ test('readPhugleeUser reads request header', () => {
   assert.equal(readPhugleeUser({ headers: { 'x-phuglee-user': 'Brandon' } }), 'brandon');
 });
 
+test('readHeaderUser ignores cookies and reads header only', () => {
+  const { readHeaderUser } = require('../lib/phuglee-user');
+  assert.equal(readHeaderUser({ headers: { 'x-phuglee-user': 'Eve' } }), 'eve');
+});
+
 test('readPhugleePlan reads request header', () => {
   assert.equal(readPhugleePlan({ headers: { 'x-phuglee-plan': 'lite' } }), 'lite');
 });

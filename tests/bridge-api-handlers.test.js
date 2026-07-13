@@ -498,6 +498,51 @@ test('POST /api/bridge/attach succeeds with valid payload', async () => {
   assert.equal(json.ok, true);
   assert.match(json.version.csv_download_url, /^\/forge\/api\/file\//);
   assert.equal(json.turnaroundDays, 5);
+  assert.equal(json.attachRevalidated, true);
+});
+
+test('POST /api/bridge/attach drops rows without usable street before Forge', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/attach', {
+    headers: { 'Content-Type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      cityId: 'arizona-marana',
+      uploadType: 'code_violation',
+      responseReceivedAt: '2026-07-04T09:42:00.000-07:00',
+      originalFilename: 'violations.csv',
+      stats: { kept: 2, discarded: 0 },
+      rows: [
+        { streetAddress: '', city: 'Marana', state: 'Arizona' },
+        { streetAddress: '   ', city: 'Marana', state: 'Arizona' }
+      ]
+    }))
+  });
+  assert.equal(status, 400);
+  assert.equal(json.code, 'ATTACH_ROWS_INVALID');
+});
+
+test('POST /api/bridge/attach re-tags valid rows before Forge', async () => {
+  const { status, json } = await callBridge('POST', '/api/bridge/attach', {
+    headers: { 'Content-Type': 'application/json' },
+    body: Buffer.from(JSON.stringify({
+      cityId: 'arizona-marana',
+      uploadType: 'code_violation',
+      responseReceivedAt: '2026-07-04T09:42:00.000-07:00',
+      originalFilename: 'violations.csv',
+      stats: { kept: 1, discarded: 0 },
+      rows: [
+        {
+          streetAddress: '123 Main St',
+          city: 'Marana',
+          state: 'Arizona',
+          descriptionNotes: 'Overgrown weeds exceeding 12 inches'
+        }
+      ]
+    }))
+  });
+  assert.equal(status, 200);
+  assert.equal(json.ok, true);
+  assert.equal(json.attachRevalidated, true);
+  assert.equal(json.kept, 1);
 });
 
 test('GET /api/bridge/history returns datasets with download URLs', async () => {

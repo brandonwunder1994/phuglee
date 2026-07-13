@@ -16,7 +16,15 @@ body.analyzer-embedded .preview-reticle {
   pointer-events: none !important;
 }
 
-/* No internal sidebar — shell nav owns navigation */
+/* Hide leftover analyzer chrome when Distress OS shell owns nav */
+body.analyzer-embedded .topbar,
+body.analyzer-embedded .cyber-topbar,
+body.analyzer-embedded .app-topbar {
+  display: none !important;
+}
+
+/* Sidebar already purged; keep any residual layout offset flat */
+body.analyzer-embedded .app-sidebar,
 body.analyzer-embedded .analyze-sidebar {
   display: none !important;
 }
@@ -25,7 +33,7 @@ body.analyzer-embedded .app-shell-main {
   margin-left: 0 !important;
   width: 100% !important;
   max-width: none !important;
-  padding-top: calc(var(--distress-nav-offset, 108px) + 1.75rem);
+  padding-top: calc(var(--distress-nav-offset, 56px) + 1.25rem);
   min-height: 0;
 }
 

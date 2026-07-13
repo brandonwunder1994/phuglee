@@ -46,6 +46,9 @@
   var SIGN_OUT_URL = '/?signed_out=1&login=1';
 
   function signOut() {
+    try {
+      fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).catch(function () {});
+    } catch (_) {}
     clearSession();
     window.location.replace(SIGN_OUT_URL);
   }

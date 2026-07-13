@@ -211,6 +211,7 @@
       ['home-chip-states', stateLabel],
       ['hub-city-count', cityLabel],
       ['collect-city-count', cityLabel],
+      ['collect-city-count-label', cityLabel],
       ['collect-state-count', stateLabel],
       ['command-city-count', cityLabel],
       ['command-state-count', stateLabel]

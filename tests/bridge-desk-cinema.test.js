@@ -29,12 +29,13 @@ test('DESK-69: scrub stage shell present', () => {
 
 test('DESK-69: city pick reveals type + upload together', () => {
   assert.match(js, /setHidden\(typePanel, false\)/);
-  assert.match(js, /setHidden\(uploadPanel, false\)/);
+  // Upload panel uses setUploadPanelHidden wrapper (lock-hint sync)
+  assert.match(js, /setUploadPanelHidden\(\s*false\s*\)|setHidden\(uploadPanel,\s*false\)/);
   // City change must open upload without waiting for type
   const onCity = js.indexOf('function onCityChange');
   assert.ok(onCity >= 0);
   const body = js.slice(onCity, onCity + 1200);
-  assert.match(body, /setHidden\(uploadPanel,\s*false\)/);
+  assert.match(body, /setUploadPanelHidden\(\s*false\s*\)|setHidden\(uploadPanel,\s*false\)/);
   assert.match(body, /setHidden\(typePanel,\s*false\)/);
 });
 
@@ -100,8 +101,8 @@ test('VICTORY-73: strip mount + actions', () => {
   assert.match(html, /id="bridge-victory-strip"/);
   assert.match(html, /id="bridge-victory-download"/);
   assert.match(html, /id="bridge-victory-next"/);
-  assert.match(html, /DELETE THE JUNK/);
-  assert.match(html, /TAKE OUT ANY LEADS THAT ARE A WASTE OF TIME/);
+  assert.match(html, /List staged/);
+  assert.match(html, /Kept leads are ready/);
   assert.match(html, /Filter Data/);
   assert.match(html, /Scrub next city/);
   assert.equal(html.includes('Shift advanced'), false);

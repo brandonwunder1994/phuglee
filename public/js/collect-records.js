@@ -4,15 +4,24 @@
   const FORGE = '/forge';
   const SELECTION_KEY = 'phuglee-collect-selected-cities';
 
+  const WORKFLOW_LABELS = {
+    '/forge/portal/request-pdfs': 'Send PDF Emails',
+    '/forge/portal/email-only': 'Emails Only',
+    '/forge/portal/submit-portals': 'Online Portals'
+  };
+
   const startDialog = document.getElementById('start-requests-dialog');
   const stepCities = document.getElementById('collect-step-cities');
   const stepWorkflow = document.getElementById('collect-step-workflow');
+  const stepConfirm = document.getElementById('collect-step-confirm');
   const cityListEl = document.getElementById('collect-city-list');
   const citySearchEl = document.getElementById('collect-city-search');
   const cityCountLabel = document.getElementById('collect-city-count-label');
   const cityStatusEl = document.getElementById('collect-city-status');
   const titleEl = document.getElementById('start-requests-title');
   const btnCitiesContinue = document.getElementById('btn-collect-step-cities');
+  const confirmCitiesEl = document.getElementById('collect-confirm-cities');
+  const confirmWorkflowEl = document.getElementById('collect-confirm-workflow');
 
   let allCities = [];
   let selectedIds = new Set();
@@ -147,11 +156,46 @@
   }
 
   function showWizardStep(step) {
-    const isCities = step === 'cities';
-    if (stepCities) stepCities.hidden = !isCities;
-    if (stepWorkflow) stepWorkflow.hidden = isCities;
+    if (stepCities) stepCities.hidden = step !== 'cities';
+    if (stepWorkflow) stepWorkflow.hidden = step !== 'workflow';
+    if (stepConfirm) stepConfirm.hidden = step !== 'confirm';
     if (titleEl) {
-      titleEl.textContent = isCities ? 'Choose your cities' : 'Pick your workflow';
+      if (step === 'cities') titleEl.textContent = 'Choose your cities';
+      else if (step === 'workflow') titleEl.textContent = 'Pick your workflow';
+      else titleEl.textContent = 'Confirm and open Form Forge';
+    }
+  }
+
+  function selectedWorkflowHref() {
+    const picked = document.querySelector('input[name="request-workflow"]:checked');
+    return picked ? picked.value : '/forge/portal/request-pdfs';
+  }
+
+  function selectedCityNames() {
+    return allCities
+      .filter(function (city) {
+        return selectedIds.has(city.id);
+      })
+      .map(function (city) {
+        return city.city + ', ' + city.state;
+      });
+  }
+
+  function fillConfirmSummary() {
+    const names = selectedCityNames();
+    const href = selectedWorkflowHref();
+    if (confirmCitiesEl) {
+      if (!names.length) {
+        confirmCitiesEl.textContent = 'None selected';
+      } else if (names.length <= 4) {
+        confirmCitiesEl.textContent = names.join(' · ');
+      } else {
+        confirmCitiesEl.textContent =
+          names.slice(0, 3).join(' · ') + ' · +' + (names.length - 3) + ' more (' + names.length + ' total)';
+      }
+    }
+    if (confirmWorkflowEl) {
+      confirmWorkflowEl.textContent = WORKFLOW_LABELS[href] || href;
     }
   }
 
@@ -211,17 +255,20 @@
     loadCities();
   }
 
-  function selectedWorkflowHref() {
-    const picked = document.querySelector('input[name="request-workflow"]:checked');
-    return picked ? picked.value : '/forge/portal/request-pdfs';
-  }
-
   function persistSelection() {
     try {
       sessionStorage.setItem(SELECTION_KEY, JSON.stringify([...selectedIds]));
     } catch (_) {
       /* ignore quota errors */
     }
+  }
+
+  function launchFormForge() {
+    if (!selectedIds.size) return;
+    persistSelection();
+    const href = selectedWorkflowHref();
+    closeDialog(startDialog);
+    window.location.href = href;
   }
 
   document.getElementById('btn-start-requests')?.addEventListener('click', openStartRequestsDialog);
@@ -237,11 +284,15 @@
 
   document.getElementById('btn-confirm-workflow')?.addEventListener('click', function () {
     if (!selectedIds.size) return;
-    persistSelection();
-    const href = selectedWorkflowHref();
-    closeDialog(startDialog);
-    window.location.href = href;
+    fillConfirmSummary();
+    showWizardStep('confirm');
   });
+
+  document.getElementById('btn-collect-confirm-back')?.addEventListener('click', function () {
+    showWizardStep('workflow');
+  });
+
+  document.getElementById('btn-collect-launch')?.addEventListener('click', launchFormForge);
 
   citySearchEl?.addEventListener('input', function () {
     searchQuery = citySearchEl.value || '';

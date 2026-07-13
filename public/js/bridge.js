@@ -1,3 +1,13 @@
+/**
+ * Filter desk UI (bridge.html).
+ *
+ * Module boundaries (prefer extracting these before further growth — do not
+ * dump more unrelated helpers into this file):
+ * - public/js/bridge-train.js — Train theater pure helpers / BridgeTrain
+ * - public/js/bridge-scrub-feed.js — scrub activity feed rendering
+ * - This file — upload/process, lists inventory, save climax, mode tabs,
+ *   and orchestration that wires the modules above
+ */
 (function () {
   const ACCEPTED_EXT = /\.(xlsx|xls|xlsm|csv|tsv|txt|pdf|docx|jpg|jpeg|png)$/i;
   const PAGE_SIZE = 50;
@@ -35,6 +45,10 @@
   const stateSelect = document.getElementById('bridge-state');
   const citySelect = document.getElementById('bridge-city');
   const cityActions = document.getElementById('bridge-city-actions');
+  const registryBanner = document.getElementById('bridge-registry-banner');
+  const clearCityFormatBtn = document.getElementById('bridge-clear-city-format');
+  const adminFormatHelp = document.getElementById('bridge-admin-format-help');
+  const skipAlreadyImportedEl = document.getElementById('bridge-skip-already-imported');
   const cityDossier = document.getElementById('bridge-city-dossier');
   const dossierEmptyEl = document.getElementById('bridge-dossier-empty');
   const dossierLastScrubBody = document.getElementById('bridge-dossier-last-scrub-body');
@@ -52,6 +66,8 @@
   const uploadPanel = document.getElementById('bridge-upload-panel');
   const loadingPanel = document.getElementById('bridge-loading-panel');
   const loadingCopy = document.getElementById('bridge-loading-copy');
+  const loadingEta = document.getElementById('bridge-loading-eta');
+  const cancelProcessBtn = document.getElementById('bridge-cancel-process');
   const resultsPanel = document.getElementById('bridge-results-panel');
   const resultsMeta = document.getElementById('bridge-results-meta');
   const kpiGrid = document.getElementById('bridge-kpi-grid');
@@ -98,6 +114,7 @@
   const geocodioUsageNote = document.getElementById('bridge-geocodio-usage-note');
   let geocodioPollTimer = null;
   let geocodioSelectedFile = null;
+  let geocodioWatchedJobId = null;
   /** Inventory type filter: '' | 'violation' | 'water' */
   let inventoryTypeFilter = '';
   /** Selected list ids for bulk delete (visible rows only) */
@@ -311,6 +328,18 @@
 
   function setHidden(el, hidden) {
     if (el) el.hidden = hidden;
+  }
+
+  /** Show helper when upload desk is locked (city + type required). */
+  function syncUploadLockHint() {
+    if (!uploadLockHint) return;
+    const uploadLocked = !uploadPanel || uploadPanel.hidden;
+    uploadLockHint.hidden = !uploadLocked;
+  }
+
+  function setUploadPanelHidden(hidden) {
+    setHidden(uploadPanel, hidden);
+    syncUploadLockHint();
   }
 
   // --- BridgeTrain pure helpers (also on window.BridgeTrain via bridge-train.js) ---
@@ -1480,13 +1509,84 @@
     }
   }
 
+  let currentPipelineStep = 'location';
+
   function setPipelineStep(step) {
     const order = ['location', 'type', 'upload', 'results'];
     const activeIndex = order.indexOf(step);
+    if (activeIndex < 0) return;
+    currentPipelineStep = step;
     pipeline?.querySelectorAll('.bridge-pipeline-step').forEach((el, index) => {
-      el.classList.toggle('is-active', index === activeIndex);
-      el.classList.toggle('is-complete', index < activeIndex);
+      const isActive = index === activeIndex;
+      const isComplete = index < activeIndex;
+      const stepId = el.getAttribute('data-step');
+      // Back-nav: completed + current always; Results only when a scrub is on screen
+      const canClick =
+        isActive ||
+        isComplete ||
+        (stepId === 'results' && !!lastResult) ||
+        ((stepId === 'type' || stepId === 'upload') && !!selectedCity);
+      el.classList.toggle('is-active', isActive);
+      el.classList.toggle('is-complete', isComplete);
+      el.classList.toggle('is-clickable', canClick);
+      if (isActive) el.setAttribute('aria-current', 'step');
+      else el.removeAttribute('aria-current');
+      if (canClick) {
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('aria-disabled', 'false');
+      } else {
+        el.setAttribute('tabindex', '-1');
+        el.setAttribute('aria-disabled', 'true');
+      }
     });
+  }
+
+  /** Soft back-nav: jump to a prior/unlocked step without wiping desk state. */
+  function navigatePipelineStep(step) {
+    const order = ['location', 'type', 'upload', 'results'];
+    if (order.indexOf(step) < 0) return;
+
+    const el = pipeline?.querySelector(`.bridge-pipeline-step[data-step="${step}"]`);
+    if (el && el.getAttribute('aria-disabled') === 'true') return;
+
+    if (step === 'results') {
+      if (!lastResult) return;
+      setHidden(resultsPanel, false);
+      setPipelineStep('results');
+      try {
+        resultsPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (_) { /* ignore */ }
+      return;
+    }
+
+    if (step === 'location') {
+      setPipelineStep('location');
+      try {
+        document.getElementById('bridge-scrub-stage')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.getElementById('bridge-city-search')?.focus();
+      } catch (_) { /* ignore */ }
+      return;
+    }
+
+    if (step === 'type') {
+      if (!selectedCity) return;
+      setHidden(typePanel, false);
+      setPipelineStep('type');
+      try {
+        typePanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (_) { /* ignore */ }
+      return;
+    }
+
+    if (step === 'upload') {
+      if (!selectedCity) return;
+      setUploadPanelHidden(false);
+      setPipelineStep('upload');
+      try {
+        uploadPanel?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        dropzone?.focus();
+      } catch (_) { /* ignore */ }
+    }
   }
 
   function bridgeHeaders(extra) {
@@ -1509,6 +1609,15 @@
     try {
       res = await fetch(url, { cache: 'no-store', ...options, headers });
     } catch (netErr) {
+      if (
+        (netErr && netErr.name === 'AbortError') ||
+        (options && options.signal && options.signal.aborted)
+      ) {
+        const err = new Error('Aborted');
+        err.name = 'AbortError';
+        err.code = 'ABORTED';
+        throw err;
+      }
       const err = new Error(
         (netErr && netErr.message)
           ? `Network error: ${netErr.message}`
@@ -1520,7 +1629,11 @@
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       if (data.code === 'OCR_UNAVAILABLE' || res.status === 503) {
-        throw new Error(data.error || 'OCR is unavailable. Upload Excel, CSV, or a text-based PDF.');
+        const maxPages = data.maxOcrPages || 12;
+        throw new Error(
+          data.error ||
+            `OCR is unavailable. Upload Excel, CSV, or a text-based PDF. Scanned PDFs are OCR’d up to ${maxPages} pages.`
+        );
       }
       if (data.code === 'NO_USABLE_ROWS') {
         const stats = data.stats || {};
@@ -1581,7 +1694,7 @@
       hideCityDossierUi();
       resetCityOutcomeUi();
       setHidden(typePanel, true);
-      setHidden(uploadPanel, true);
+      setUploadPanelHidden(true);
       setHidden(resultsPanel, true);
       clearFileUi();
       applyDefaultUploadType();
@@ -1592,18 +1705,18 @@
       lastResult = null;
       // Phase 69: desk stays open once a city is chosen — type + upload co-visible
       setHidden(typePanel, !selectedCity);
-      setHidden(uploadPanel, !selectedCity);
+      setUploadPanelHidden(!selectedCity);
       setHidden(resultsPanel, true);
       clearFileUi();
       // Keep Code violation selected by default (operator default for DOE lists)
       applyDefaultUploadType();
       setPipelineStep(selectedCity ? 'upload' : 'location');
-      setHidden(cityActions, !selectedCity);
+      syncAdminFormatControls();
     }
     if (from === 'type') {
       selectedFiles = [];
       // Phase 69: keep upload stage open; type is meta, not a gate that hides the desk
-      setHidden(uploadPanel, false);
+      setUploadPanelHidden(false);
       setHidden(resultsPanel, true);
       lastResult = null;
       clearFileUi();
@@ -1834,14 +1947,61 @@
     selectedUploadType = 'code_violation';
     if (selectedCity) {
       setHidden(typePanel, false);
-      setHidden(uploadPanel, false);
+      setUploadPanelHidden(false);
       setPipelineStep(selectedFiles.length ? 'upload' : 'type');
+    }
+  }
+
+  function noteRegistryFallback(data) {
+    const stale = data && (data.registryStale === true || data.bundledFallback === true);
+    if (registryBanner) {
+      setHidden(registryBanner, !stale);
+    }
+  }
+
+  function syncAdminFormatControls() {
+    const admin = isBridgeAdmin();
+    const hasCity = Boolean(selectedCity && selectedCity.id);
+    setHidden(cityActions, !(admin && hasCity));
+    setHidden(clearCityFormatBtn, !(admin && hasCity));
+    setHidden(adminFormatHelp, !(admin && hasCity));
+  }
+
+  async function clearCityFormatMemory() {
+    if (!isBridgeAdmin()) {
+      showError('Admin required to clear Type-column memory.');
+      return;
+    }
+    if (!selectedCity || !selectedCity.id) {
+      showError('Select a city first.');
+      return;
+    }
+    const uploadType = selectedUploadType || 'code_violation';
+    const cityLabel = [selectedCity.city, selectedCity.state].filter(Boolean).join(', ') || selectedCity.id;
+    const ok = window.confirm(
+      `Clear saved Type-column memory for ${cityLabel} (${uploadType})?\n\n` +
+        'The next upload for this city format will ask an admin to confirm the Type column again.'
+    );
+    if (!ok) return;
+    try {
+      const data = await fetchJson(
+        `/api/bridge/city-format/${encodeURIComponent(selectedCity.id)}/${encodeURIComponent(uploadType)}`,
+        { method: 'DELETE' }
+      );
+      if (data && data.removed) {
+        showError(`Cleared Type-column memory for ${cityLabel}. Re-upload to confirm again.`);
+      } else {
+        showError(`No saved Type-column memory found for ${cityLabel} (${uploadType}).`);
+      }
+    } catch (err) {
+      showError(err.message || 'Could not clear Type-column memory.');
     }
   }
 
   async function loadStates() {
     lastFailedAction = 'loadStates';
     const data = await fetchJson('/api/bridge/states');
+    noteRegistryFallback(data);
     states = data.states || [];
     stateSelect.innerHTML = '<option value="">Select a state…</option>';
     states.forEach((state) => {
@@ -1860,6 +2020,7 @@
   async function loadCitySearchIndex() {
     try {
       const data = await fetchJson('/api/bridge/cities?all=1');
+      noteRegistryFallback(data);
       citySearchIndex = Array.isArray(data.cities) ? data.cities : [];
     } catch (err) {
       console.warn('[Filter] City search index failed:', err && err.message);
@@ -1881,6 +2042,7 @@
     citySelect.disabled = true;
     citySelect.innerHTML = '<option value="">Loading cities…</option>';
     const data = await fetchJson(`/api/bridge/cities?state=${encodeURIComponent(state)}`);
+    noteRegistryFallback(data);
     cities = data.cities || [];
     citySelect.innerHTML = cities.length
       ? '<option value="">Select a city…</option>'
@@ -2568,7 +2730,7 @@
       const id = citySelect.value;
       if (!id) {
         selectedCity = null;
-        setHidden(cityActions, true);
+        syncAdminFormatControls();
         hideCityDossierUi();
         resetCityOutcomeUi();
         return;
@@ -2578,8 +2740,8 @@
 
       // Phase 69: one scrub desk — type chips + dropzone open together after city
       setHidden(typePanel, false);
-      setHidden(uploadPanel, false);
-      setHidden(cityActions, false);
+      setUploadPanelHidden(false);
+      syncAdminFormatControls();
       applyDefaultUploadType();
       setPipelineStep('upload');
       hideVictoryStrip();
@@ -2609,8 +2771,9 @@
     selectedUploadType = checked ? checked.value : '';
     resetDownstream('type');
     showError('');
+    syncAdminFormatControls();
     // Phase 69: upload stage already open with city; type only advances pipeline
-    setHidden(uploadPanel, false);
+    setUploadPanelHidden(false);
     if (!selectedUploadType) {
       setPipelineStep('type');
       return;
@@ -2623,6 +2786,16 @@
     loadingStartedAt = Date.now();
     // HTTP wait: slogans + real elapsed seconds (so long Process does not feel stuck)
     clearScrubFeedUi();
+    if (loadingEta) {
+      const hasPdf = (selectedFiles || []).some((f) =>
+        /\.pdf$/i.test((f && f.name) || '')
+      );
+      loadingEta.textContent = hasPdf
+        ? 'This can take 30-90s for PDFs; Excel/CSV is usually faster.'
+        : 'Usually under 30s for Excel/CSV. PDFs and scans can take 30-90s.';
+      loadingEta.hidden = false;
+    }
+    if (cancelProcessBtn) cancelProcessBtn.disabled = false;
     const paintStep = () => {
       const elapsedSec = Math.max(0, Math.floor((Date.now() - loadingStartedAt) / 1000));
       const slogan = LOADING_STEPS[index % LOADING_STEPS.length];
@@ -2661,6 +2834,17 @@
     loadingTimer = null;
     // Always clear feed interval with slogan timer (confirm/error/finally safety)
     clearScrubFeedPlay();
+    if (cancelProcessBtn) cancelProcessBtn.disabled = true;
+  }
+
+  function abortProcessUpload() {
+    if (!processUploadInFlight) return;
+    processUploadCancelled = true;
+    if (processAbortController) {
+      try {
+        processAbortController.abort();
+      } catch (_) { /* ignore */ }
+    }
   }
 
   /**
@@ -3188,7 +3372,7 @@
     const place = [cityName, state].filter(Boolean).join(', ');
     const { listCount, recordTotal, cityCount } = computeIdleProof(savedLists);
     if (titleEl) {
-      titleEl.textContent = 'DELETE THE JUNK';
+      titleEl.textContent = 'List staged';
     }
     if (metaEl) {
       metaEl.textContent =
@@ -3637,8 +3821,8 @@
         `<div class="bridge-lists-pager" id="bridge-lists-pager" role="navigation" aria-label="Saved lists pages">` +
         `<span class="bridge-lists-pager-meta">Lists page ${inventoryPage} of ${listPages} · showing ${pageLists.length} of ${visible.length}</span>` +
         `<div class="bridge-lists-pager-actions">` +
-        `<button type="button" class="bridge-pagination-btn" data-lists-page="prev" ${inventoryPage <= 1 ? 'disabled' : ''}>Previous</button>` +
-        `<button type="button" class="bridge-pagination-btn" data-lists-page="next" ${inventoryPage >= listPages ? 'disabled' : ''}>Next</button>` +
+        `<button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm bridge-pagination-btn" data-lists-page="prev" ${inventoryPage <= 1 ? 'disabled' : ''}>Previous</button>` +
+        `<button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm bridge-pagination-btn" data-lists-page="next" ${inventoryPage >= listPages ? 'disabled' : ''}>Next</button>` +
         `</div></div>`;
     }
     const existingPager = document.getElementById('bridge-lists-pager');
@@ -3787,7 +3971,7 @@
     setHidden(cityActions, true);
     hideCityDossierUi();
     setHidden(typePanel, true);
-    setHidden(uploadPanel, true);
+    setUploadPanelHidden(true);
 
     // --- Results / save / attach / train chrome ---
     setHidden(resultsPanel, true);
@@ -4617,6 +4801,10 @@
     for (const file of selectedFiles) {
       form.append('file', file, file.name);
     }
+    // Opt-in only — never default-checked (IND-04)
+    if (skipAlreadyImportedEl && skipAlreadyImportedEl.checked) {
+      form.append('applyAlreadyImportedFilter', 'true');
+    }
     if (confirmOpts && Object.prototype.hasOwnProperty.call(confirmOpts, 'confirmedTypeHeader')) {
       const raw = confirmOpts.confirmedTypeHeader;
       form.append(
@@ -5006,10 +5194,12 @@
   }
 
   let processUploadInFlight = false;
+  let processUploadCancelled = false;
+  let processAbortController = null;
 
   async function processUpload() {
     if (processUploadInFlight) {
-      showError('Process is already running — wait for it to finish.');
+      showError('A scrub is already running — cancel it first, or wait for it to finish.');
       return;
     }
     if (!selectedCity) {
@@ -5053,6 +5243,9 @@
     startLoadingAnimation();
     lastFailedAction = 'process';
     processUploadInFlight = true;
+    processUploadCancelled = false;
+    processAbortController =
+      typeof AbortController !== 'undefined' ? new AbortController() : null;
 
     try {
       let data = null;
@@ -5088,10 +5281,18 @@
           }
           data = await fetchJson('/api/bridge/process', {
             method: 'POST',
-            body: buildProcessFormData(resumeOpts)
+            body: buildProcessFormData(resumeOpts),
+            signal: processAbortController ? processAbortController.signal : undefined
           });
           break; // success
         } catch (err) {
+          if (
+            processUploadCancelled ||
+            (err && err.name === 'AbortError') ||
+            (err && err.code === 'ABORTED')
+          ) {
+            throw Object.assign(new Error('Scrub cancelled.'), { code: 'PROCESS_CANCELLED' });
+          }
           if (!err || err.code !== 'TYPE_COLUMN_CONFIRM_REQUIRED') {
             throw err;
           }
@@ -5190,13 +5391,19 @@
       } catch (_) { /* ignore */ }
     } catch (err) {
       clearScrubFeedUi();
-      const msg = (err && err.message) || 'Could not process upload.';
-      showError(msg);
-      try {
-        console.error('[Filter] processUpload failed', err);
-      } catch (_) { /* ignore */ }
+      if (err && (err.code === 'PROCESS_CANCELLED' || processUploadCancelled)) {
+        showError('Scrub cancelled — nothing was saved. Click Process to try again.');
+      } else {
+        const msg = (err && err.message) || 'Could not process upload.';
+        showError(msg);
+        try {
+          console.error('[Filter] processUpload failed', err);
+        } catch (_) { /* ignore */ }
+      }
     } finally {
       processUploadInFlight = false;
+      processUploadCancelled = false;
+      processAbortController = null;
       stopLoadingAnimation();
       clearScrubFeedUi();
       setHidden(loadingPanel, true);
@@ -5448,7 +5655,7 @@
         <td>${esc(job.sourceFilename || '—')}</td>
         <td>${Number(job.inputRows) || 0}</td>
         <td>${Number(job.kept) || 0}</td>
-        <td>${geocodioStatusPill(job.status)}</td>
+        <td>${geocodioStatusPill(job.status, job.error || job.message)}</td>
         <td><div class="bridge-geocodio-actions">${actions.join('')}</div></td>
       </tr>`;
     }).join('');
@@ -5458,10 +5665,12 @@
     try {
       const data = await fetchJson('/api/bridge/geocodio/jobs');
       renderGeocodioJobs(data.jobs || []);
-      const active = (data.jobs || []).find(
+      const jobs = data.jobs || [];
+      const active = jobs.find(
         (j) => j.status === 'running' || j.status === 'queued'
       );
       if (active) {
+        geocodioWatchedJobId = active.id || geocodioWatchedJobId;
         const pct = active.inputRows
           ? Math.min(100, Math.round((100 * (active.processed || 0)) / active.inputRows))
           : 0;
@@ -5483,6 +5692,30 @@
         stopGeocodioPoll();
         if (geocodioProgressEl) setHidden(geocodioProgressEl, true);
         if (geocodioProgressBar) geocodioProgressBar.style.width = '0%';
+
+        // Only announce terminal state for the job we were polling
+        if (geocodioWatchedJobId) {
+          const watched = jobs.find((j) => j.id === geocodioWatchedJobId);
+          if (watched && watched.status === 'failed') {
+            const failMsg =
+              watched.message ||
+              watched.error ||
+              'Geocodio job failed. Check API key usage or try again.';
+            setGeocodioStatus(failMsg, 'error');
+            try {
+              geocodioStatusEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (_) { /* ignore */ }
+          } else if (watched && (watched.status === 'complete' || watched.status === 'partial')) {
+            setGeocodioStatus(
+              watched.message ||
+                (watched.status === 'partial'
+                  ? 'Finished with remaining quota — download the partial clean file.'
+                  : 'Geocodio clean finished.'),
+              'success'
+            );
+          }
+          geocodioWatchedJobId = null;
+        }
       }
       return data;
     } catch (err) {
@@ -5513,10 +5746,14 @@
       if (!res.ok) {
         throw new Error(data.error || `Upload failed (${res.status})`);
       }
+      geocodioWatchedJobId = data.job?.id || null;
       setGeocodioStatus(data.job?.message || 'Job started — geocoding…');
       await refreshGeocodioJobs();
     } catch (err) {
       setGeocodioStatus(err.message || 'Could not start Geocodio job', 'error');
+      try {
+        geocodioStatusEl?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (_) { /* ignore */ }
       if (geocodioProgressEl) setHidden(geocodioProgressEl, true);
     } finally {
       if (geocodioStartBtn) geocodioStartBtn.disabled = !geocodioSelectedFile;
@@ -5601,7 +5838,7 @@
             const statusCls = a.exhausted ? 'is-exhausted' : 'is-ok';
             return `<tr>
           <td>${esc(a.email || '')}</td>
-          <td class="bridge-geocodio-usage-key">${esc(a.apiKey || '')}</td>
+          <td class="bridge-geocodio-usage-key">${esc(a.apiKeyMasked || a.apiKey || '')}</td>
           <td>${Number(a.used) || 0} / ${Number(a.dailyLimit) || 2500}</td>
           <td><strong>${Number(a.remaining) || 0}</strong></td>
           <td><span class="bridge-geocodio-status-pill ${statusCls}">${esc(a.status || '')}</span></td>
@@ -5797,6 +6034,9 @@
 
   stateSelect?.addEventListener('change', () => { onStateChange().catch((e) => showError(e.message)); });
   citySelect?.addEventListener('change', onCityChange);
+  clearCityFormatBtn?.addEventListener('click', () => {
+    clearCityFormatMemory().catch((e) => showError(e.message || 'Could not clear Type-column memory.'));
+  });
   outcomeDrawerToggle?.addEventListener('click', () => {
     const open = outcomeDrawerToggle.getAttribute('aria-expanded') !== 'true';
     setOutcomeDrawerOpen(open);
@@ -5811,6 +6051,10 @@
     input.addEventListener('change', onUploadTypeChange);
   });
   processBtn?.addEventListener('click', () => { processUpload().catch((e) => showError(e.message)); });
+  cancelProcessBtn?.addEventListener('click', () => {
+    abortProcessUpload();
+    if (cancelProcessBtn) cancelProcessBtn.disabled = true;
+  });
   retryBtn?.addEventListener('click', () => { onRetry().catch((e) => showError(e.message)); });
   historyOpenBtn?.addEventListener('click', openHistoryDialog);
   historyCloseBtn?.addEventListener('click', closeHistoryDialog);
@@ -6046,6 +6290,7 @@
 
   // Code violation pre-selected in HTML; keep JS state in sync
   applyDefaultUploadType();
+  syncUploadLockHint();
   wireCitySearch();
 
   // SHIFT-01: restore this sitting's sticky queue before inventory load

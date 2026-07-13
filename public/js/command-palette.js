@@ -5,8 +5,8 @@
     { group: 'Navigate', label: 'Dashboard', href: '/command', meta: 'Pipeline dashboard' },
     { group: 'Navigate', label: 'Collect', href: '/collect', meta: 'Hit up the city' },
     { group: 'Navigate', label: 'Coverage Map', href: '/forge/map', meta: 'Map' },
-    { group: 'Navigate', label: 'How It Works', action: 'guide', meta: 'Guide' },
-    { group: 'Navigate', label: 'Filter', href: '/bridge', meta: 'Scrub & tag' },
+    { group: 'Navigate', label: 'How It Works', href: '/heat', meta: 'Guide' },
+    { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },
     { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
     { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
@@ -138,15 +138,6 @@
   function navigate(cmd) {
     close();
     if (!cmd) return;
-
-    if (cmd.action === 'guide') {
-      if (window.PhugleeGuide && typeof window.PhugleeGuide.open === 'function') {
-        window.PhugleeGuide.open();
-        return;
-      }
-      window.location.href = '/command#how-it-works';
-      return;
-    }
 
     var href = cmd.href;
     if (!href) return;

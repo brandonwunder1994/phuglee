@@ -257,6 +257,72 @@ body.collect-page .collect-hub-grid {
 .collect-choice-desc {
   display: block;
   font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.collect-wizard-crumb {
+  margin: 0 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.collect-wizard-crumb strong {
+  color: var(--phuglee-orange);
+  font-weight: 700;
+}
+
+.collect-confirm-summary {
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius, 14px);
+  background: var(--glass-fill);
+}
+
+.collect-confirm-row {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 0.65rem;
+  align-items: start;
+}
+
+.collect-confirm-row + .collect-confirm-row {
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.collect-confirm-row dt {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.collect-confirm-row dd {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: var(--phuglee-cream);
+}
+
+.collect-confirm-back-note {
+  margin: 0 0 1.15rem;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.collect-confirm-back-note strong {
+  color: var(--phuglee-orange);
+  font-weight: 600;
+}
   line-height: 1.5;
   color: var(--text-muted);
 }

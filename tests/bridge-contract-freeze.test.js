@@ -79,7 +79,7 @@ test('DESK-05: data-mode kept|train|brain on mode tabs', () => {
 test('DESK-05: victory flash-download + slogans; data-format csv', () => {
   assert.match(html, /id="bridge-victory-download"[^>]*data-action="flash-download"/);
   assert.match(html, /id="bridge-victory-download"[^>]*data-format="csv"/);
-  assert.match(html, /DELETE THE JUNK/);
+  assert.match(html, /List staged/);
   assert.match(html, /Filter Data/);
   assert.match(html, /Scrub next city/);
   assert.match(html, /id="bridge-victory-next"/);

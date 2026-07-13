@@ -1,6 +1,6 @@
 /* Home — Heat Chronicle redesign (below hero) */
 
-/* Smooth handoff into readable scroll zone (strength tuned in home-premium.css) */
+/* Smooth handoff into readable scroll zone (hero → chronicle) */
 .home-below-hero::before {
   background:
     linear-gradient(

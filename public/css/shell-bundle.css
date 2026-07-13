@@ -1,0 +1,11 @@
+/* Shared shell CSS — one round trip for app chrome (tokens → a11y). */
+@import url('/css/tokens.css?v=shell1');
+@import url('/css/distress-glass.css?v=shell1');
+@import url('/css/phuglee-components.css?v=shell1');
+@import url('/css/phuglee-shell.css?v=1');
+@import url('/css/shell.css');
+@import url('/css/shell-nav.css?v=10');
+@import url('/css/settings-menu.css');
+@import url('/css/command-palette.css');
+@import url('/css/distress-status.css');
+@import url('/css/phuglee-a11y.css');

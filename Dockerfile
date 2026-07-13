@@ -3,11 +3,16 @@
 
 FROM node:20-bookworm-slim
 
+# System deps: Python for Form Forge; tesseract-ocr for production scanned-PDF OCR
+# (tesseract.js may also use WASM — system package helps native path).
+# Local docker without login: -e NODE_ENV=development -e PHUGLEE_AUTH_DISABLED=1
+# (entrypoint forces auth when NODE_ENV=production unless PHUGLEE_AUTH_OPEN=1).
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     python-is-python3 \
+    tesseract-ocr \
     libglib2.0-0 \
     libgomp1 \
     libjpeg62-turbo \
@@ -35,7 +40,9 @@ RUN python3 -c "import sys; sys.path.insert(0,'modules/form-forge'); from review
   && python3 -c "from waitress import serve; print('waitress ok')"
 
 ENV NODE_ENV=production
-ENV PHUGLEE_AUTH_DISABLED=1
+# Default off — entrypoint forces PHUGLEE_AUTH_DISABLED=0 in production anyway.
+# For local docker without login: docker run -e PHUGLEE_AUTH_DISABLED=1 -e NODE_ENV=development …
+ENV PHUGLEE_AUTH_DISABLED=0
 ENV DISTRESS_OS_HOST=0.0.0.0
 ENV FORM_FORGE_HOST=0.0.0.0
 ENV PROPERTY_ANALYZER_HOST=0.0.0.0

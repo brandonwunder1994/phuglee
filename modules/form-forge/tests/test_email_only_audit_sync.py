@@ -44,15 +44,37 @@ class EmailOnlyAuditSyncTests(unittest.TestCase):
 
     @patch("review_portal.submission_tracker.load_registry")
     def test_pending_queue_includes_audit_cities(self, mock_load_registry) -> None:
-        from review_portal.submission_tracker import build_pending_email_only_request_queue
+        from review_portal.submission_tracker import (
+            build_pending_email_only_request_queue,
+            emailed_email_only_this_month,
+            emailed_this_month,
+        )
 
         registry = load_registry()
         mock_load_registry.return_value = registry
         queue = build_pending_email_only_request_queue()
         ids = {item["id"] for item in queue["items"]}
-        self.assertIn("texas-cedar-park", ids)
-        self.assertIn("ohio-akron", ids)
-        self.assertGreaterEqual(queue["total_pending"], 19)
+
+        # Audit cities must remain email_only; pending excludes those emailed this month.
+        # texas-cedar-park / ohio-akron were bulk-sent 2026-07-06 — absent from pending while
+        # that calendar month is current is correct (already_sent), not a registry regression.
+        for city_id in ("texas-cedar-park", "ohio-akron"):
+            from review_portal.portal_registry import find_city
+
+            reg = find_city(registry, city_id)
+            self.assertIsNotNone(reg, f"missing registry city {city_id}")
+            self.assertTrue(is_email_only_city(reg), f"{city_id} should be email_only")
+            if city_id not in ids:
+                self.assertTrue(
+                    emailed_email_only_this_month(reg) or emailed_this_month(reg),
+                    f"{city_id} missing from pending but not emailed this month",
+                )
+
+        self.assertGreaterEqual(
+            queue["total_pending"] + queue["total_sent_this_month"] + queue.get("total_blocked_on_hold", 0),
+            19,
+            "audit email_only cities should remain eligible (pending, sent, or blocked-on-hold)",
+        )
 
 
 if __name__ == "__main__":

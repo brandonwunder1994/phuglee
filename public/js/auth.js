@@ -92,21 +92,125 @@
     localStorage.setItem(STORAGE_USERS, JSON.stringify(users));
   }
 
+  function toHex(buffer) {
+    return Array.prototype.map
+      .call(new Uint8Array(buffer), function (b) {
+        return ('0' + b.toString(16)).slice(-2);
+      })
+      .join('');
+  }
+
+  function fromHex(hex) {
+    var out = new Uint8Array(Math.floor(String(hex || '').length / 2));
+    for (var i = 0; i < out.length; i++) {
+      out[i] = parseInt(hex.substr(i * 2, 2), 16);
+    }
+    return out;
+  }
+
+  function looksHashedPassword(stored) {
+    return /^sha256\$[0-9a-f]+\$[0-9a-f]+$/i.test(String(stored || ''));
+  }
+
+  function hashPassword(password) {
+    var subtle = window.crypto && window.crypto.subtle;
+    if (!subtle) {
+      return Promise.reject(new Error('Web Crypto unavailable'));
+    }
+    var salt = window.crypto.getRandomValues(new Uint8Array(16));
+    var enc = new TextEncoder();
+    var pwdBytes = enc.encode(String(password || ''));
+    var combined = new Uint8Array(salt.length + pwdBytes.length);
+    combined.set(salt, 0);
+    combined.set(pwdBytes, salt.length);
+    return subtle.digest('SHA-256', combined).then(function (digest) {
+      return 'sha256$' + toHex(salt) + '$' + toHex(digest);
+    });
+  }
+
+  function verifyPassword(password, stored) {
+    var value = String(stored || '');
+    if (!looksHashedPassword(value)) {
+      return Promise.resolve(password === value);
+    }
+    var subtle = window.crypto && window.crypto.subtle;
+    if (!subtle) return Promise.resolve(false);
+    var parts = value.split('$');
+    var salt = fromHex(parts[1]);
+    var expectedHex = parts[2].toLowerCase();
+    var enc = new TextEncoder();
+    var pwdBytes = enc.encode(String(password || ''));
+    var combined = new Uint8Array(salt.length + pwdBytes.length);
+    combined.set(salt, 0);
+    combined.set(pwdBytes, salt.length);
+    return subtle.digest('SHA-256', combined).then(function (digest) {
+      return toHex(digest) === expectedHex;
+    });
+  }
+
+  function migrateUserPasswordIfNeeded(username, password, stored) {
+    if (looksHashedPassword(stored)) return Promise.resolve();
+    return hashPassword(password).then(function (hashed) {
+      try {
+        var users = readUsers();
+        var key = String(username || '').trim().toLowerCase();
+        if (users[key]) {
+          users[key].password = hashed;
+          writeUsers(users);
+        }
+      } catch (_) {}
+    });
+  }
+
+  function establishServerSession(username, plan) {
+    if (window.__PHUGLEE_AUTH_DISABLED__) return Promise.resolve();
+    return fetch('/api/auth/login', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: username,
+        plan: plan || ''
+      })
+    }).then(function (res) {
+      if (!res.ok) throw new Error('Session cookie failed');
+      return res.json().catch(function () { return {}; });
+    }).catch(function () {
+      /* Cookie session is best-effort; client sessionStorage still works. */
+    });
+  }
+
+  function clearServerSession() {
+    return fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'same-origin'
+    }).catch(function () {});
+  }
+
   var BOOTSTRAP_ADMIN = {
     username: 'admin',
-    password: 'wunderhaus',
+    password: '',
     fullName: 'Administrator',
     email: 'admin@phuglee.com',
     plan: 'pro'
   };
 
+  function bootstrapAdminPassword() {
+    var fromConfig =
+      typeof window.__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__ === 'string'
+        ? window.__PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD__
+        : '';
+    return String(fromConfig || '').trim();
+  }
+
   function seedAdmin() {
     try {
       var users = readUsers();
       var existing = users.admin || {};
+      var pw = bootstrapAdminPassword();
       users.admin = {
         username: 'admin',
-        password: 'wunderhaus',
+        password: pw || existing.password || '',
         fullName: existing.fullName || BOOTSTRAP_ADMIN.fullName,
         email: existing.email || BOOTSTRAP_ADMIN.email,
         plan: existing.plan || BOOTSTRAP_ADMIN.plan,
@@ -120,7 +224,9 @@
 
   function isBootstrapAdmin(username, password) {
     var key = (username || '').trim().toLowerCase();
-    return (key === 'admin' || key === 'admin@phuglee.com') && password === 'wunderhaus';
+    var expected = bootstrapAdminPassword();
+    if (!expected) return false;
+    return (key === 'admin' || key === 'admin@phuglee.com') && password === expected;
   }
 
   function isAuthenticated() {
@@ -195,21 +301,45 @@
 
     if (isBootstrapAdmin(username, password)) {
       if (!setSession('admin')) {
-        return { ok: false, error: 'Could not save login session. Allow cookies/storage for this site and try again.' };
+        return Promise.resolve({
+          ok: false,
+          error: 'Could not save login session. Allow cookies/storage for this site and try again.'
+        });
       }
       try { seedAdmin(); } catch (_) {}
-      return { ok: true, user: Object.assign({}, BOOTSTRAP_ADMIN) };
+      return migrateUserPasswordIfNeeded('admin', password, (readUsers().admin || {}).password)
+        .catch(function () {})
+        .then(function () {
+          return establishServerSession('admin', BOOTSTRAP_ADMIN.plan).then(function () {
+            return { ok: true, user: Object.assign({}, BOOTSTRAP_ADMIN) };
+          });
+        });
     }
 
     var users = readUsers();
     var user = users[key];
-    if (!user || user.password !== password) {
-      return { ok: false, error: 'Invalid username or password.' };
+    if (!user) {
+      return Promise.resolve({ ok: false, error: 'Invalid username or password.' });
     }
-    if (!setSession(key)) {
-      return { ok: false, error: 'Could not save login session. Allow cookies/storage for this site and try again.' };
-    }
-    return { ok: true, user: user };
+
+    return verifyPassword(password, user.password).then(function (match) {
+      if (!match) {
+        return { ok: false, error: 'Invalid username or password.' };
+      }
+      if (!setSession(key)) {
+        return {
+          ok: false,
+          error: 'Could not save login session. Allow cookies/storage for this site and try again.'
+        };
+      }
+      return migrateUserPasswordIfNeeded(key, password, user.password)
+        .catch(function () {})
+        .then(function () {
+          return establishServerSession(key, user.plan).then(function () {
+            return { ok: true, user: user };
+          });
+        });
+    });
   }
 
   function signup(data) {
@@ -220,48 +350,58 @@
     var confirm = data.confirmPassword || '';
     var plan = data.plan;
 
-    if (!fullName) return { ok: false, error: 'Full name is required.' };
+    if (!fullName) return Promise.resolve({ ok: false, error: 'Full name is required.' });
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return { ok: false, error: 'Enter a valid contact address.' };
+      return Promise.resolve({ ok: false, error: 'Enter a valid contact address.' });
     }
     if (!username || username.length < 3) {
-      return { ok: false, error: 'Username must be at least 3 characters.' };
+      return Promise.resolve({ ok: false, error: 'Username must be at least 3 characters.' });
     }
     if (!/^[a-z0-9_]+$/.test(username)) {
-      return { ok: false, error: 'Username can only contain letters, numbers, and underscores.' };
+      return Promise.resolve({
+        ok: false,
+        error: 'Username can only contain letters, numbers, and underscores.'
+      });
     }
     if (!password || password.length < 6) {
-      return { ok: false, error: 'Password must be at least 6 characters.' };
+      return Promise.resolve({ ok: false, error: 'Password must be at least 6 characters.' });
     }
     if (password !== confirm) {
-      return { ok: false, error: 'Passwords do not match.' };
+      return Promise.resolve({ ok: false, error: 'Passwords do not match.' });
     }
     if (!plan || !PLANS[plan]) {
-      return { ok: false, error: 'Select a plan to continue.' };
+      return Promise.resolve({ ok: false, error: 'Select a plan to continue.' });
     }
 
     var users = readUsers();
     if (users[username]) {
-      return { ok: false, error: 'That username is already taken.' };
+      return Promise.resolve({ ok: false, error: 'That username is already taken.' });
     }
 
     var takenEmail = Object.keys(users).some(function (k) {
       return users[k].email === email;
     });
     if (takenEmail) {
-      return { ok: false, error: 'An account with this contact already exists.' };
+      return Promise.resolve({ ok: false, error: 'An account with this contact already exists.' });
     }
 
-    users[username] = {
-      username: username,
-      password: password,
-      fullName: fullName,
-      email: email,
-      plan: plan,
-      createdAt: Date.now()
-    };
-    writeUsers(users);
-    return { ok: true, username: username };
+    return hashPassword(password)
+      .catch(function () {
+        /* Fallback only if Web Crypto blocked — still better than silent fail. */
+        return password;
+      })
+      .then(function (storedPassword) {
+        users[username] = {
+          username: username,
+          password: storedPassword,
+          fullName: fullName,
+          email: email,
+          plan: plan,
+          createdAt: Date.now()
+        };
+        writeUsers(users);
+        return { ok: true, username: username };
+      });
   }
 
   function buildPricingCards() {
@@ -312,7 +452,7 @@
               '<section class="auth-view is-active" id="auth-view-login" role="tabpanel" aria-labelledby="auth-tab-login" data-auth-view="login">' +
                 '<div class="auth-face-header auth-face-header--compact">' +
                   '<h2 id="auth-login-title" class="auth-title">Welcome back</h2>' +
-                  '<p class="auth-subtitle">Sign in to run the full collect → bridge → analyze pipeline.</p>' +
+                  '<p class="auth-subtitle">Sign in to run the full collect → filter → analyze pipeline.</p>' +
                 '</div>' +
                 '<form class="auth-form" id="auth-login-form" novalidate>' +
                   '<div class="auth-field">' +
@@ -454,6 +594,34 @@
     showView('login');
   }
 
+  function returnLabel(url) {
+    try {
+      var path = (String(url || '').split('?')[0].split('#')[0] || '').replace(/\/+$/, '') || '/';
+      if (path === '/filter' || path === '/bridge') return 'Filter';
+      if (path === '/collect') return 'Collect';
+      if (path === '/command') return 'Dashboard';
+      if (path.indexOf('/analyzer') === 0) return 'Analyze';
+      if (path.indexOf('/forge') === 0) return 'City Tracker';
+      if (path === '/vault') return 'The Vault';
+      return path;
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function applyReturnCopy() {
+    var subtitle = $('#auth-view-login .auth-subtitle');
+    if (!subtitle) return;
+    var label = returnLabel(state.returnUrl);
+    if (state.returnUrl && label === 'Dashboard') {
+      subtitle.textContent = 'Sign in to open your dashboard.';
+    } else if (state.returnUrl && label) {
+      subtitle.textContent = 'Sign in to continue to ' + label + '.';
+    } else {
+      subtitle.textContent = 'Sign in to run the full collect → filter → analyze pipeline.';
+    }
+  }
+
   function openModal(preferredView) {
     if (window.PhugleeGuide && typeof window.PhugleeGuide.close === 'function') {
       window.PhugleeGuide.close();
@@ -463,6 +631,7 @@
     overlay.hidden = false;
     overlay.setAttribute('aria-hidden', 'false');
     document.body.classList.add('auth-modal-open');
+    applyReturnCopy();
 
     if (preferredView === 'tiers' || preferredView === 'signup') {
       if (preferredView === 'tiers') {
@@ -475,6 +644,7 @@
       showView(preferredView === 'signup' && state.selectedPlan ? 'signup' : 'tiers');
     } else {
       resetModalState();
+      applyReturnCopy();
     }
   }
 
@@ -547,6 +717,12 @@
   function handleLoginSuccess(username) {
     closeModal();
     window.location.href = resolvePostLoginDest();
+  }
+
+  function setAuthBusy(form, busy) {
+    if (!form) return;
+    var btn = form.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = !!busy;
   }
 
   function handleSignupSuccess(username) {
@@ -649,19 +825,28 @@
           if (byEmail) resolvedUsername = byEmail;
         }
 
-        var result = login(resolvedUsername || lookupKey, password);
-        if (!result.ok) {
-          showError($('#auth-login-error'), result.error);
-          return;
-        }
+        setAuthBusy(loginForm, true);
+        Promise.resolve(login(resolvedUsername || lookupKey, password))
+          .then(function (result) {
+            if (!result.ok) {
+              showError($('#auth-login-error'), result.error);
+              return;
+            }
 
-        if (remember) {
-          setRememberedUsername(result.user.username);
-        } else {
-          setRememberedUsername('');
-        }
+            if (remember) {
+              setRememberedUsername(result.user.username);
+            } else {
+              setRememberedUsername('');
+            }
 
-        handleLoginSuccess(result.user.username);
+            handleLoginSuccess(result.user.username);
+          })
+          .catch(function () {
+            showError($('#auth-login-error'), 'Sign-in failed. Try again.');
+          })
+          .finally(function () {
+            setAuthBusy(loginForm, false);
+          });
       });
     }
 
@@ -671,21 +856,30 @@
         e.preventDefault();
         showError($('#auth-signup-error'), '');
 
-        var result = signup({
-          fullName: ($('#auth-signup-name') || {}).value,
-          email: ($('#auth-signup-email') || {}).value,
-          username: ($('#auth-signup-username') || {}).value,
-          password: ($('#auth-signup-password') || {}).value,
-          confirmPassword: ($('#auth-signup-confirm') || {}).value,
-          plan: state.selectedPlan
-        });
-
-        if (!result.ok) {
-          showError($('#auth-signup-error'), result.error);
-          return;
-        }
-
-        handleSignupSuccess(result.username);
+        setAuthBusy(signupForm, true);
+        Promise.resolve(
+          signup({
+            fullName: ($('#auth-signup-name') || {}).value,
+            email: ($('#auth-signup-email') || {}).value,
+            username: ($('#auth-signup-username') || {}).value,
+            password: ($('#auth-signup-password') || {}).value,
+            confirmPassword: ($('#auth-signup-confirm') || {}).value,
+            plan: state.selectedPlan
+          })
+        )
+          .then(function (result) {
+            if (!result.ok) {
+              showError($('#auth-signup-error'), result.error);
+              return;
+            }
+            handleSignupSuccess(result.username);
+          })
+          .catch(function () {
+            showError($('#auth-signup-error'), 'Could not create account. Try again.');
+          })
+          .finally(function () {
+            setAuthBusy(signupForm, false);
+          });
       });
     }
   }
@@ -700,14 +894,16 @@
     var wantsLogin = params.get('login') === '1';
 
     if (signedOut) {
+      clearServerSession();
       clearSession();
       updateHomeAuthChrome(false);
+      updateHomePrimaryCta(false);
     } else if (isAuthenticated()) {
       updateHomeAuthChrome(true);
-      window.location.replace(resolvePostLoginDest());
-      return;
+      updateHomePrimaryCta(true);
     } else {
       updateHomeAuthChrome(false);
+      updateHomePrimaryCta(false);
     }
 
     var mount = document.createElement('div');
@@ -729,7 +925,7 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         if (isAuthenticated()) {
-          window.location.href = resolvePostLoginDest();
+          window.location.href = '/command';
         } else {
           openModal();
         }
@@ -779,18 +975,28 @@
     if (signOutBtn) signOutBtn.hidden = !loggedIn;
   }
 
+  function updateHomePrimaryCta(loggedIn) {
+    var labels = loggedIn ? 'Open Dashboard' : 'Enter the Platform';
+    ['btn-heat', 'btn-heat-footer'].forEach(function (id) {
+      var btn = document.getElementById(id);
+      if (btn) btn.textContent = labels;
+    });
+  }
+
   window.PhugleeAuth = {
     isAuthenticated: isAuthenticated,
     getSessionUser: getSessionUser,
     logout: function () {
-      if (window.PhugleeSession && typeof window.PhugleeSession.signOut === 'function') {
-        window.PhugleeSession.signOut();
-        return;
-      }
-      clearSession();
-      window.location.replace(
-        (window.PhugleeSession && window.PhugleeSession.SIGN_OUT_URL) || '/?signed_out=1&login=1'
-      );
+      clearServerSession().finally(function () {
+        if (window.PhugleeSession && typeof window.PhugleeSession.signOut === 'function') {
+          window.PhugleeSession.signOut();
+          return;
+        }
+        clearSession();
+        window.location.replace(
+          (window.PhugleeSession && window.PhugleeSession.SIGN_OUT_URL) || '/?signed_out=1&login=1'
+        );
+      });
     },
     openLogin: openModal,
     openSignup: openSignup,

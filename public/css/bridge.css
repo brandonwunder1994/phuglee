@@ -187,6 +187,26 @@ body {
   margin-bottom: 0;
 }
 
+.bridge-upload-lock-hint {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px dashed color-mix(in srgb, var(--phuglee-orange) 45%, var(--glass-border));
+  border-radius: var(--radius-md, 12px);
+  background: color-mix(in srgb, var(--phuglee-orange) 8%, var(--glass-bg));
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.bridge-upload-lock-hint[hidden] {
+  display: none !important;
+}
+
+.bridge-upload-lock-hint strong {
+  color: var(--phuglee-cream);
+  font-weight: 600;
+}
+
 /* Meta step — elevated family, quieter than import stage */
 .bridge-panel--meta {
   padding-top: 0.85rem;
@@ -624,6 +644,25 @@ body {
   background: color-mix(in srgb, var(--phuglee-orange) 12%, transparent);
 }
 
+.bridge-pipeline-step.is-clickable {
+  cursor: pointer;
+}
+
+.bridge-pipeline-step.is-clickable:hover {
+  color: var(--phuglee-cream);
+  border-color: color-mix(in srgb, var(--phuglee-orange) 35%, var(--glass-border-chrome));
+}
+
+.bridge-pipeline-step.is-clickable:focus-visible {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
+}
+
+.bridge-pipeline-step[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.72;
+}
+
 /* Selected city context */
 .bridge-context {
   display: flex;
@@ -639,7 +678,9 @@ body {
 
 .bridge-city-actions {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
   margin-top: 0.85rem;
 }
 
@@ -1270,6 +1311,77 @@ body {
   min-height: 44px;
 }
 
+/* ACC 3.1 — loud opt-in for Analyze duplicate skip (default off) */
+.bridge-opt-skip-imported {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.85rem;
+  border: 2px solid color-mix(in srgb, var(--phuglee-accent, #e58435) 55%, transparent);
+  border-radius: var(--radius-sm, 10px);
+  background: color-mix(in srgb, var(--phuglee-accent, #e58435) 10%, transparent);
+  cursor: pointer;
+}
+
+.bridge-opt-skip-imported input {
+  margin-top: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+  accent-color: var(--phuglee-accent, #e58435);
+}
+
+.bridge-opt-skip-imported-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.bridge-opt-skip-imported-copy strong {
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+}
+
+.bridge-opt-skip-imported-desc {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  opacity: 0.85;
+}
+
+.bridge-ocr-cap-hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0.72;
+}
+
+.bridge-registry-banner {
+  margin-top: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--radius-sm, 10px);
+  border: 1px solid color-mix(in srgb, var(--status-warning-fg, #c9a227) 40%, transparent);
+  background: color-mix(in srgb, var(--status-warning-fg, #c9a227) 12%, transparent);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.bridge-admin-format-help {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0.8;
+  max-width: 36rem;
+}
+
+.bridge-type-confirm-recovery {
+  margin: 0.45rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+
 /* Loading shell densify — shared .phuglee-loading-* paint owns the bar (STATES-02) */
 .bridge-loading.phuglee-loading-state {
   padding: 1.5rem 1rem;
@@ -1285,6 +1397,24 @@ body {
 .bridge-loading.phuglee-loading-state .phuglee-loading-copy {
   color: var(--phuglee-cream, #f3ecdf);
   text-align: center;
+}
+
+.bridge-loading-eta {
+  margin: 0;
+  text-align: center;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--phuglee-taupe-mid, #a89f90);
+}
+
+.bridge-loading-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.35rem;
+}
+
+.bridge-loading-actions .phuglee-btn {
+  min-width: 7.5rem;
 }
 
 /* Never force-show loading/feed while JS keeps hidden */
@@ -2101,6 +2231,7 @@ body {
 
 /* Phase 79-02 DESK-03 — dark-glass ops tables (kept + inventory language) */
 .bridge-table-wrap {
+  position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--glass-border-chrome, rgba(174, 163, 143, 0.16));
@@ -2109,6 +2240,40 @@ body {
     linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 40%),
     var(--glass-bg, rgba(16, 14, 12, 0.42));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Mobile scroll affordance — edge fade + swipe cue */
+@media (max-width: 720px) {
+  .bridge-table-wrap::after {
+    content: '';
+    position: sticky;
+    right: 0;
+    top: 0;
+    float: right;
+    width: 2.25rem;
+    height: 100%;
+    min-height: 3rem;
+    margin-left: -2.25rem;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(13, 13, 13, 0.72)
+    );
+    z-index: 3;
+  }
+
+  .bridge-table-wrap::before {
+    content: 'Swipe for more →';
+    display: block;
+    padding: 0.35rem 0.6rem 0.15rem;
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--phuglee-taupe);
+    opacity: 0.9;
+  }
 }
 
 .bridge-results-table {
