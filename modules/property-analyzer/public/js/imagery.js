@@ -562,7 +562,7 @@ R.renderReviewLead = function renderReviewLead() {
       && !isExcludedFromAllReviewQueues(r, key, state.reviewFilter)
       && !isReviewedInFilter(state.reviewFilter, key);
     if (stillPending) break;
-    markReviewedKey(state.reviewFilter, key, r ? 'review_skip' : 'review_missing');
+    // Advance past stale queue entries without stamping them reviewed.
     state.reviewIndex++;
     skipped++;
   }

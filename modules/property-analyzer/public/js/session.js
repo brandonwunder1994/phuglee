@@ -1262,13 +1262,12 @@ R.mergeReviewedKeysByFilter = function mergeReviewedKeysByFilter(existing = {}, 
 R.repairReviewResolvedRecords = function repairReviewResolvedRecords() {
   if (typeof finalizeReviewClassification !== 'function') return 0;
   let changed = 0;
-  const reviewedKeys = getAllReviewedKeySet();
   state.results = state.results.map((r) => {
     if (r.needsReviewLater) return r;
-    const key = recordKey(r);
-    const touchedInReview = r.manuallyReviewed || r.reviewResolved || r.manualOverride || r.manualScore || r.tierLocked
-      || reviewedKeys.has(key);
-    if (!touchedInReview) return r;
+    // Only promote true human / manual classification signals — never AI locks or
+    // ghost bucket keys alone (those falsely empties Distressed / WM review queues).
+    const humanReviewed = !!(r.manuallyReviewed || r.manualOverride || r.manualScore);
+    if (!humanReviewed && !r.reviewResolved) return r;
     if (r.reviewResolved && !computeNeedsReview(r)) return r;
     changed++;
     return finalizeReviewClassification(r);
@@ -1357,13 +1356,22 @@ R.ensureReviewedKeyInFilterBucket = function ensureReviewedKeyInFilterBucket(fil
 
 R.markReviewedKey = function markReviewedKey(filter, key, via = 'review') {
   if (!filter || filter === 'all' || !key) return;
+  // Soft vias only track queue progress / ghost buckets — they must NEVER stamp a lead
+  // as manually reviewed or overwrite a real Keep/Change/Defer decision.
+  const softVia = via === 'review_session' || via === 'review_skip' || via === 'review_missing';
+  if (softVia) {
+    sessionDirty = true;
+    return;
+  }
   ensureReviewedKeyInFilterBucket(filter, key);
   const idx = typeof ensureResultKeyIndex === 'function'
     ? ensureResultKeyIndex().get(key)
     : state.results.findIndex(r => recordKey(r) === key);
   const existing = idx != null && idx >= 0 ? state.results[idx] : null;
-  const genericVia = via === 'review' || via === 'review_skip' || via === 'review_missing';
-  if (!existing?.manuallyReviewed || !genericVia) {
+  const softExisting = existing?.manuallyReviewedVia === 'review_session'
+    || existing?.manuallyReviewedVia === 'review_skip'
+    || existing?.manuallyReviewedVia === 'review_missing';
+  if (!existing?.manuallyReviewed || softExisting) {
     touchManuallyReviewedByKey(key, via);
   }
   sessionDirty = true;
@@ -1374,11 +1382,9 @@ R.unmarkReviewedKey = function unmarkReviewedKey(filter, key) {
   state.reviewedKeysByFilter[filter] = (state.reviewedKeysByFilter[filter] || []).filter(k => k !== key);
 }
 
+/** Persist review position only — do not bulk-mark leads as reviewed when leaving a queue. */
 R.commitReviewedThroughIndex = function commitReviewedThroughIndex(filter = state.reviewFilter) {
   if (!filter || filter === 'all') return;
-  for (let i = 0; i < state.reviewIndex; i++) {
-    markReviewedKey(filter, state.reviewQueue[i], 'review_session');
-  }
   sessionDirty = true;
 }
 

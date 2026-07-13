@@ -255,24 +255,14 @@ R.touchManuallyReviewedByKey = function touchManuallyReviewedByKey(key, via = 'r
 R.migrateManuallyReviewedFlags = function migrateManuallyReviewedFlags() {
   try {
     let changed = 0;
-    const reviewedKeys = new Set();
-    const buckets = typeof REVIEW_FILTER_BUCKETS !== 'undefined'
-      ? REVIEW_FILTER_BUCKETS
-      : ['distressed', 'well_maintained', 'vacant', 'review', 'low_confidence'];
-    for (const filter of buckets) {
-      for (const key of state.reviewedKeysByFilter?.[filter] || []) reviewedKeys.add(key);
-    }
+    // Do NOT promote reviewedKeysByFilter → manuallyReviewed. Bucket keys are progress
+    // markers and historically caused entire review queues to look "already checked".
     state.results = state.results.map((r) => {
-      const key = recordKey(r);
       if (r.manuallyReviewed) return r;
       if (r.manualScore || r.manualOverride || r.reviewResolved) {
         changed++;
         const via = r.manualScore ? 'tier_edit' : 'category_change';
         return markRecordManuallyReviewed(r, via);
-      }
-      if (reviewedKeys.has(key)) {
-        changed++;
-        return markRecordManuallyReviewed(r, 'review_session');
       }
       return r;
     });

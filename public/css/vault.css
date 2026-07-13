@@ -899,24 +899,94 @@
   color: var(--phuglee-stone);
 }
 
-/* Sticky action strip — Call primary */
+/* Sticky action strip + section tabs */
 .vault-action-strip {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.75rem 0;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid var(--vault-border);
+  padding: 0.65rem 0 0.55rem;
   background: var(--vault-surface);
   position: sticky;
   top: 0;
-  z-index: 2;
+  z-index: 3;
 }
 
-.vault-action-strip .vault-call-btn,
-.vault-action-strip .phuglee-btn-primary {
-  font-weight: 700;
+.vault-section-nav {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  overflow-x: auto;
+  padding: 0.35rem 0 0.65rem;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid var(--vault-border);
+  background: var(--vault-surface);
+  position: sticky;
+  top: 2.85rem;
+  z-index: 2;
+  scrollbar-width: thin;
+}
+
+.vault-section-tab {
+  flex: 0 0 auto;
+  padding: 0.38rem 0.72rem;
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  color: var(--phuglee-stone);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    color var(--vault-transition),
+    border-color var(--vault-transition),
+    background var(--vault-transition);
+}
+
+.vault-section-tab:hover {
+  color: var(--phuglee-cream);
+  border-color: var(--vault-border);
+}
+
+.vault-section-tab.is-active,
+.vault-section-tab[aria-selected='true'] {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.4);
+  background: rgba(229, 132, 53, 0.12);
+}
+
+.vault-section-panels {
+  min-height: 8rem;
+  padding-bottom: 1rem;
+}
+
+.vault-section-panel {
+  animation: vault-panel-in 0.16s ease;
+}
+
+.vault-section-panel[hidden] {
+  display: none !important;
+}
+
+.vault-panel-block {
+  margin-bottom: 0.85rem;
+}
+
+.vault-panel-block .vault-dl,
+.vault-panel-block .vault-deal-math {
+  margin-top: 0.25rem;
+}
+
+@keyframes vault-panel-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vault-section-panel {
+    animation: none;
+  }
 }
 
 /* Drawer hero imagery */

@@ -38,6 +38,7 @@
     totalPages: 1,
     activeLeadId: null,
     drawerImageMode: 'street',
+    drawerSection: 'owner',
     loading: false,
     loadingMore: false,
     searchTimer: null,
@@ -625,12 +626,8 @@
   function renderCard(row) {
     const signal = primarySignal(row);
     const phone = (row.phones && row.phones[0]) || '';
-    const digits = phone.replace(/\D/g, '');
     const checked = state.selected.has(row.leadId) ? ' checked' : '';
     const scoreCls = scoreHeatClass(row.priorityScore);
-    const callBtn = phone && digits.length >= 10
-      ? `<a href="tel:${esc(digits)}" class="vault-card-call" data-no-open="1">Call ${esc(phone)}</a>`
-      : '';
     return `<article class="vault-card${row.favorite ? ' vault-card--fav' : ''}" data-lead-id="${esc(row.leadId)}" tabindex="0">
       <div class="vault-card-media">${thumbHtml(row.thumbUrl, row)}</div>
       <div class="vault-card-body">
@@ -638,8 +635,7 @@
         <h3 class="vault-card-address">${esc(row.address)}</h3>
         <p class="vault-card-meta">${esc(row.city)}, ${esc(row.state)} · <span class="vault-score${scoreCls}">${esc(row.priorityScore)}</span></p>
         <p class="vault-card-signal${hotSignalClass(signal)}">${esc(signal)}</p>
-        <p class="vault-card-phone">${formatPhone(phone)}</p>
-        ${callBtn}
+        ${phone ? `<p class="vault-card-phone">${formatPhone(phone)}</p>` : ''}
       </div>
     </article>`;
   }
@@ -795,17 +791,71 @@
   }
 
   function renderActionStrip(l, favorite) {
-    const phoneRaw = (l.phones && l.phones[0]) || '';
-    const digits = phoneRaw.replace(/\D/g, '');
     return `<div class="vault-action-strip">
-      ${phoneRaw && digits.length >= 10
-        ? `<a href="tel:${esc(digits)}" class="phuglee-btn phuglee-btn-primary vault-call-btn">Call</a>`
-        : ''}
       <a href="${esc(mapsUrl(l))}" class="phuglee-btn phuglee-btn-secondary" target="_blank" rel="noopener noreferrer">Maps</a>
       <a href="${esc(analyzeUrl(l))}" class="phuglee-btn phuglee-btn-ghost" target="_blank" rel="noopener noreferrer">Analyze</a>
       <button type="button" id="vault-copy-addr" class="phuglee-btn phuglee-btn-ghost">Copy address</button>
       <button type="button" id="vault-fav-btn" class="phuglee-btn phuglee-btn-ghost" data-fav="${favorite ? '1' : '0'}">${favorite ? '★ Saved' : '☆ Favorite'}</button>
     </div>`;
+  }
+
+  function stripSectionShell(html) {
+    return String(html || '')
+      .replace(/<section class="vault-dossier-section">/g, '<div class="vault-panel-block">')
+      .replace(/<\/section>/g, '</div>')
+      .replace(/<h3>[^<]*<\/h3>/g, '');
+  }
+
+  function buildDrawerSections(l, data) {
+    const dealBody = [renderDealMath(l), renderOfferBand(l)].filter(Boolean).join('');
+    const distressBody = [renderDistressSection(l), renderCodeViolationSection(l)].filter(Boolean).join('');
+    const propertyBody = renderPropertySection(l);
+    const mortgageBody = renderMortgageTaxSection(l);
+    const compsBody = renderComps(l.comps);
+    const notesBody = `
+      <div class="vault-panel-block">
+        ${renderDispositionChips(data.disposition || '')}
+        <textarea id="vault-note-input" class="phuglee-textarea" rows="4" placeholder="Your notes…">${esc(data.note || '')}</textarea>
+        <button type="button" id="vault-save-note" class="phuglee-btn phuglee-btn-secondary">Save note</button>
+      </div>`;
+
+    const sections = [
+      { id: 'owner', label: 'Owner', html: renderDialBrief(l) },
+      { id: 'deal', label: 'Deal', html: stripSectionShell(dealBody) },
+      { id: 'distress', label: 'Distress', html: stripSectionShell(distressBody) },
+      { id: 'property', label: 'Property', html: stripSectionShell(propertyBody) },
+      { id: 'mortgage', label: 'Mortgage', html: stripSectionShell(mortgageBody) },
+      { id: 'comps', label: 'Comps', html: stripSectionShell(compsBody) },
+      { id: 'notes', label: 'Notes', html: notesBody }
+    ].filter((s) => String(s.html || '').trim());
+
+    if (!sections.length) {
+      sections.push({ id: 'owner', label: 'Owner', html: '<p class="vault-drawer-loading">No details for this lead yet.</p>' });
+    }
+
+    const activeId = sections.some((s) => s.id === state.drawerSection)
+      ? state.drawerSection
+      : sections[0].id;
+    state.drawerSection = activeId;
+
+    const tabs = sections.map((s) => {
+      const on = s.id === activeId;
+      return `<button type="button" class="vault-section-tab${on ? ' is-active' : ''}" role="tab" id="vault-section-tab-${esc(s.id)}" aria-selected="${on}" aria-controls="vault-section-panel-${esc(s.id)}" data-section="${esc(s.id)}">${esc(s.label)}</button>`;
+    }).join('');
+
+    const panels = sections.map((s) => {
+      const on = s.id === activeId;
+      return `<div class="vault-section-panel${on ? ' is-active' : ''}" role="tabpanel" id="vault-section-panel-${esc(s.id)}" aria-labelledby="vault-section-tab-${esc(s.id)}" ${on ? '' : 'hidden'}>${s.html}</div>`;
+    }).join('');
+
+    return `
+      <div class="vault-section-nav" role="tablist" aria-label="Property details">
+        ${tabs}
+      </div>
+      <div class="vault-section-panels">
+        ${panels}
+      </div>
+    `;
   }
 
   function renderDialBrief(l) {
@@ -1070,8 +1120,10 @@
       state.focusRestoreEl = document.activeElement;
     }
 
+    const switchingLead = state.activeLeadId !== leadId;
     state.activeLeadId = leadId;
-    state.drawerImageMode = 'street';
+    state.drawerImageMode = state.drawerImageMode || 'street';
+    if (switchingLead) state.drawerSection = 'owner';
     drawer.hidden = false;
     body.innerHTML = '<p class="vault-drawer-loading">Loading…</p>';
     updateDrawerNav();
@@ -1085,20 +1137,7 @@
         ${renderDrawerHero(l)}
         <div class="vault-dossier">
           ${renderActionStrip(l, data.favorite)}
-          ${renderDialBrief(l)}
-          ${renderDealMath(l)}
-          ${renderOfferBand(l)}
-          ${renderDistressSection(l)}
-          ${renderCodeViolationSection(l)}
-          ${renderPropertySection(l)}
-          ${renderMortgageTaxSection(l)}
-          ${renderComps(l.comps)}
-          <section class="vault-dossier-section">
-            <h3>Notes &amp; disposition</h3>
-            ${renderDispositionChips(data.disposition || '')}
-            <textarea id="vault-note-input" class="phuglee-textarea" rows="3" placeholder="Your notes…">${esc(data.note || '')}</textarea>
-            <button type="button" id="vault-save-note" class="phuglee-btn phuglee-btn-secondary">Save note</button>
-          </section>
+          ${buildDrawerSections(l, data)}
         </div>
       `;
 
@@ -1111,6 +1150,23 @@
   }
 
   function bindDrawerEvents(l, leadId, disposition) {
+    document.querySelectorAll('.vault-section-tab[data-section]').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const id = tab.dataset.section || 'owner';
+        state.drawerSection = id;
+        document.querySelectorAll('.vault-section-tab[data-section]').forEach((t) => {
+          const on = t.dataset.section === id;
+          t.classList.toggle('is-active', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        document.querySelectorAll('.vault-section-panel').forEach((panel) => {
+          const on = panel.id === `vault-section-panel-${id}`;
+          panel.classList.toggle('is-active', on);
+          panel.hidden = !on;
+        });
+      });
+    });
+
     $('vault-save-note')?.addEventListener('click', async () => {
       try {
         const note = $('vault-note-input')?.value || '';
