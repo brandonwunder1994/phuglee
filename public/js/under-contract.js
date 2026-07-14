@@ -471,9 +471,25 @@
     }
   }
 
-  function renderTeamMessages() {
+  const TEAM_REACTIONS = [
+    { key: 'like', emoji: '👍', label: 'Like' },
+    { key: 'dislike', emoji: '👎', label: 'Dislike' },
+    { key: 'laugh', emoji: '😂', label: 'Laugh' },
+    { key: 'explain', emoji: '❗', label: 'Important' },
+    { key: 'fire', emoji: '🔥', label: 'Fire' },
+    { key: 'hundred', emoji: '💯', label: '100' }
+  ];
+
+  function reactionCount(reactions, key) {
+    const r = reactions?.[key] || {};
+    return (r.admin ? 1 : 0) + (r.brad ? 1 : 0);
+  }
+
+  function renderTeamMessages(opts = {}) {
     const box = $('uc-team-thread');
     if (!box) return;
+    const keepScroll = opts.keepScroll === true;
+    const prevScroll = box.scrollTop;
     const msgs = state.teamMessages || [];
     if (!msgs.length) {
       box.innerHTML = '<p class="uc-convo-empty">No internal messages yet. Message Brandon or Brad here.</p>';
@@ -483,12 +499,44 @@
     box.innerHTML = msgs.map((m) => {
       const mine = m.fromUser === me;
       const when = m.createdAt ? new Date(m.createdAt).toLocaleString() : '';
-      return `<div class="uc-bubble ${mine ? 'uc-bubble--out' : 'uc-bubble--in'}">
+      const reactions = m.reactions || {};
+      const reactionHtml = TEAM_REACTIONS.map((r) => {
+        const count = reactionCount(reactions, r.key);
+        const mineOn = !!(reactions[r.key] && reactions[r.key][me]);
+        const countLabel = count > 0 ? `<span class="uc-react-count">${count}</span>` : '';
+        return `<button type="button" class="uc-react-btn${mineOn ? ' is-on' : ''}" data-action="team-react" data-msg-id="${esc(m.id)}" data-emoji="${esc(r.key)}" title="${esc(r.label)}" aria-label="${esc(r.label)}" aria-pressed="${mineOn ? 'true' : 'false'}">${r.emoji}${countLabel}</button>`;
+      }).join('');
+      return `<div class="uc-bubble ${mine ? 'uc-bubble--out' : 'uc-bubble--in'}" data-team-msg-id="${esc(m.id)}">
         <div class="uc-bubble-body">${esc(m.body)}</div>
         <div class="uc-bubble-meta">${esc(teamDisplayName(m.fromUser))}${when ? ' · ' + esc(when) : ''}</div>
+        <div class="uc-react-row" role="group" aria-label="Reactions">${reactionHtml}</div>
       </div>`;
     }).join('');
-    box.scrollTop = box.scrollHeight;
+    if (keepScroll) box.scrollTop = prevScroll;
+    else box.scrollTop = box.scrollHeight;
+  }
+
+  async function toggleTeamReaction(messageId, emojiKey) {
+    const dealId = state.activeDealId;
+    if (!dealId || !messageId || !emojiKey) return;
+    try {
+      const data = await api(
+        `/api/leads/admin/contracts/${encodeURIComponent(dealId)}/team-messages/${encodeURIComponent(messageId)}/reactions`,
+        {
+          method: 'POST',
+          body: JSON.stringify({ emoji: emojiKey })
+        }
+      );
+      if (data.deal) {
+        state.teamMessages = data.deal.teamMessages || [];
+        state.profile = { ...(state.profile || {}), ...data.deal };
+        const idx = state.deals.findIndex((d) => d.dealId === dealId);
+        if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...data.deal };
+        renderTeamMessages({ keepScroll: true });
+      }
+    } catch (err) {
+      showToast(err.message || 'Could not save reaction');
+    }
   }
 
   async function markTeamMessagesRead(dealId) {
@@ -1241,6 +1289,12 @@
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
     $('uc-photo-cost-save')?.addEventListener('click', () => { savePhotoCost(); });
     $('uc-team-send')?.addEventListener('click', () => { sendTeamMessage(); });
+    $('uc-team-thread')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-action="team-react"]');
+      if (!btn) return;
+      ev.preventDefault();
+      toggleTeamReaction(btn.getAttribute('data-msg-id'), btn.getAttribute('data-emoji'));
+    });
     $('uc-team-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();

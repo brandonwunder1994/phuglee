@@ -252,6 +252,11 @@ test('team messages + unread list for other user', () => {
   const unreadAfter = contracts.listUnreadTeamForUser('admin');
   assert.ok(!unreadAfter.some((u) => u.dealId === deal.dealId));
 
+  const reacted = contracts.toggleTeamMessageReaction(deal.dealId, message.id, 'fire', 'admin');
+  assert.ok(reacted.message.reactions.fire.admin);
+  const unreacted = contracts.toggleTeamMessageReaction(deal.dealId, message.id, 'fire', 'admin');
+  assert.equal(unreacted.message.reactions.fire.admin, null);
+
   const desk = contracts.isDeskReady({
     accessType: 'lockbox',
     vacancy: 'vacant',
