@@ -346,6 +346,45 @@
   color: #2f6f3e;
 }
 
+.oc-card-provider {
+  display: block;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8a867c);
+  margin: -0.15rem 0 0.35rem;
+}
+
+.oc-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.55rem;
+}
+
+.oc-billing-link {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.oc-billing-link:hover {
+  opacity: 0.75;
+}
+
+.oc-billing-link--secondary {
+  color: var(--text-muted, #8a867c);
+}
+
+.oc-billing-link--inline {
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
 .oc-pickup {
   margin: 0 0 1.5rem;
   padding: 0.9rem 1.05rem;

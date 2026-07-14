@@ -77,6 +77,19 @@
     return 'oc-badge oc-badge--error';
   }
 
+  function billingLinksHtml(billing) {
+    if (!billing || !billing.href) return '';
+    let html =
+      `<div class="oc-card-links">` +
+      `<a class="oc-billing-link" href="${esc(billing.href)}" target="_blank" rel="noopener noreferrer">${esc(billing.label || 'Open billing')}</a>`;
+    if (billing.secondary?.href) {
+      html +=
+        `<a class="oc-billing-link oc-billing-link--secondary" href="${esc(billing.secondary.href)}" target="_blank" rel="noopener noreferrer">${esc(billing.secondary.label || 'More')}</a>`;
+    }
+    html += `</div>`;
+    return html;
+  }
+
   function renderCards(services) {
     const root = $('oc-cards');
     if (!root) return;
@@ -85,14 +98,20 @@
       .map((id) => {
         const s = services[id];
         if (!s) return '';
+        const provider =
+          s.provider
+            ? `<span class="oc-card-provider">${esc(s.provider)}</span>`
+            : '';
         return (
           `<article class="oc-card" data-service="${esc(id)}">` +
           `<div class="oc-card-label">` +
           `<span class="oc-card-name">${esc(s.label)}</span>` +
           `<span class="${badgeClass(s.status)}">${esc(s.status)}</span>` +
           `</div>` +
+          provider +
           `<p class="oc-card-amount">${money(s.amountUsd)}</p>` +
           `<p class="oc-card-detail">${esc(s.detail || '')}</p>` +
+          billingLinksHtml(s.billing) +
           `</article>`
         );
       })
@@ -146,11 +165,16 @@
         const pct = Math.max(0, Math.min(100, Number(row.sharePct) || 0));
         const label = row.label || row.category || row.id;
         const blurb = row.blurb ? `<span class="oc-bar-blurb">${esc(row.blurb)}</span>` : '';
+        const link =
+          row.billing?.href
+            ? `<a class="oc-billing-link oc-billing-link--inline" href="${esc(row.billing.href)}" target="_blank" rel="noopener noreferrer">${esc(row.billing.label || 'Open')}</a>`
+            : '';
         return (
           `<div class="oc-bar-row">` +
           `<div class="oc-bar-meta">` +
           `<span class="oc-bar-label">${esc(label)}</span>` +
           blurb +
+          link +
           `</div>` +
           `<div class="oc-bar-track" aria-hidden="true"><div class="oc-bar-fill" style="width:${pct}%"></div></div>` +
           `<div class="oc-bar-nums"><strong>${money(row.amountUsd ?? row.totalUsd)}</strong><span>${pct}%</span></div>` +
