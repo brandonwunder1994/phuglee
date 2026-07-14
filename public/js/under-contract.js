@@ -2,18 +2,33 @@
   'use strict';
 
   const ADMIN = 'admin';
+  const DISPOS = 'brad';
   const STAGE_LABELS = {
     under_contract: 'Under contract',
     buyer_found: 'Buyer found',
     closing: 'Closing',
     funded: 'Funded'
   };
+  const DOC_LABELS = {
+    purchase_contract: 'Purchase contract',
+    addendum: 'Addendum',
+    jv: 'JV agreement',
+    other: 'Other'
+  };
+  const POLL_MS = 12000;
 
   const state = {
     deals: [],
     totals: null,
     ghlConfigured: false,
-    editingId: null
+    editingId: null,
+    activeDealId: null,
+    profile: null,
+    contact: null,
+    messages: [],
+    fromNumber: null,
+    toNumber: null,
+    pollTimer: null
   };
 
   function $(id) {
@@ -22,12 +37,12 @@
 
   function sessionUser() {
     try {
-      if (window.PhugleeAuthSession && typeof window.PhugleeAuthSession.getUser === 'function') {
-        return window.PhugleeAuthSession.getUser();
+      if (window.PhugleeSession && typeof window.PhugleeSession.getSessionUser === 'function') {
+        return window.PhugleeSession.getSessionUser() || '';
       }
     } catch (_) { /* ignore */ }
     try {
-      return localStorage.getItem('phuglee_session') || '';
+      return sessionStorage.getItem('phuglee_session') || '';
     } catch (_) {
       return '';
     }
@@ -38,6 +53,21 @@
       return window.PhugleeSettings.isAdmin() === true;
     }
     return sessionUser() === ADMIN;
+  }
+
+  function isContractDesk() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function') {
+      return window.PhugleeSettings.isContractDesk() === true;
+    }
+    const user = sessionUser();
+    return user === ADMIN || user === DISPOS;
+  }
+
+  function applyAdminOnlyUi() {
+    if (isAdmin()) return;
+    document.querySelectorAll('[data-admin-only]').forEach((el) => {
+      el.hidden = true;
+    });
   }
 
   function showToast(msg) {
@@ -85,15 +115,28 @@
     return data;
   }
 
+  function thumbHtml(d, sizeClass) {
+    const url = d.thumbUrl || d.streetViewUrl || d.satelliteUrl || '';
+    if (url) {
+      return `<img class="${sizeClass}" src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'${sizeClass} uc-thumb--empty',textContent:'SV'}))">`;
+    }
+    return `<div class="${sizeClass} uc-thumb--empty" aria-hidden="true">SV</div>`;
+  }
+
   function renderKpis(totals) {
     const t = totals || {};
     const by = t.byStage || {};
     $('uc-kpi-uc').textContent = String(by.under_contract || t.underContract || 0);
     $('uc-kpi-buyer').textContent = String(by.buyer_found || t.buyerFound || 0);
     $('uc-kpi-closing').textContent = String(by.closing || t.closing || 0);
-    $('uc-kpi-funded').textContent = String(by.funded || t.funded || 0);
-    $('uc-kpi-fees').textContent = money(t.totalAssignmentFees || 0);
-    $('uc-kpi-profit').textContent = money(t.totalProfit || 0);
+    if ($('uc-kpi-open-fees')) {
+      $('uc-kpi-open-fees').textContent = money(t.openAssignmentFees || 0);
+    }
+    $('uc-kpi-funded').textContent = String(by.funded || t.funded || t.closedCount || 0);
+    $('uc-kpi-fees').textContent = money(t.closedAssignmentFees ?? t.totalAssignmentFees ?? 0);
+    if ($('uc-kpi-tc')) $('uc-kpi-tc').textContent = money(t.closedTcPay ?? t.totalTcPay ?? 0);
+    if ($('uc-kpi-acq')) $('uc-kpi-acq').textContent = money(t.closedAcqPay ?? t.totalAcqPay ?? 0);
+    if ($('uc-kpi-dispo')) $('uc-kpi-dispo').textContent = money(t.closedDispoPay ?? t.totalDispoPay ?? 0);
   }
 
   function renderTable(deals) {
@@ -116,33 +159,61 @@
     count.textContent = `${deals.length} deal${deals.length === 1 ? '' : 's'}`;
 
     tbody.innerHTML = deals.map((d) => {
-      const loc = [d.city, d.state, d.zip].filter(Boolean).join(', ');
+      const { street, cityLine } = propertyLines(d);
       const stage = STAGE_LABELS[d.stage] || d.stage || '—';
-      const ghlLink = d.ghlContactId
-        ? `<a class="phuglee-btn phuglee-btn-ghost" href="https://app.gohighlevel.com/" target="_blank" rel="noopener noreferrer" title="Open GHL">GHL</a>`
+      const releaseBtn = isAdmin()
+        ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
         : '';
-      return `<tr data-deal-id="${esc(d.dealId)}">
-        <td>
-          <span class="uc-addr">${esc(d.address || '—')}</span>
-          <span class="uc-addr-meta">${esc(loc)}${d.ownerName ? ' · ' + esc(d.ownerName) : ''}</span>
-          ${d.ghlStageName ? `<span class="uc-addr-meta">GHL: ${esc(d.ghlStageName)}</span>` : ''}
+      return `<tr data-deal-id="${esc(d.dealId)}" class="uc-row-clickable">
+        <td class="uc-property-cell">
+          <div class="uc-property-block">
+            <button type="button" class="uc-property-btn" data-action="open">
+              ${thumbHtml(d, 'uc-thumb')}
+              <span class="uc-property-text">
+                <span class="uc-addr">${esc(street)}</span>
+                <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+              </span>
+            </button>
+            <div class="uc-property-quick">
+              <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
+              <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
+            </div>
+          </div>
         </td>
         <td><span class="uc-stage" data-stage="${esc(d.stage)}">${esc(stage)}</span></td>
         <td class="uc-money">${esc(money(d.purchasePrice))}</td>
+        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.titleOpened || '')}">${esc(d.titleOpenedLabel || '—')}</span></td>
+        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.sellerEmdSubmitted || '')}">${esc(d.sellerEmdLabel || '—')}</span></td>
+        <td><span class="uc-pill uc-pill--access" data-access="${esc(d.accessType || '')}">${esc(d.accessDisplay || d.accessLabel || '—')}</span></td>
+        <td><span class="uc-pill uc-pill--vacancy" data-vacancy="${esc(d.vacancy || '')}">${esc(d.vacancyLabel || '—')}</span></td>
+        <td>${esc(d.closingDisplay || d.closingDate || '—')}</td>
+        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerEmdSubmitted || '')}">${esc(d.buyerEmdLabel || '—')}</span></td>
         <td class="uc-money">${esc(money(d.assignmentFee))}</td>
-        <td class="uc-money">${esc(money(d.profit))}</td>
-        <td>${esc(d.cashBuyerName || '—')}</td>
-        <td>${esc(d.closingDate || '—')}</td>
-        <td>${esc(d.source || '—')}</td>
+        <td class="uc-money">${esc(money(d.tcPay))}</td>
+        <td class="uc-money">${esc(money(d.acqPay))}</td>
+        <td class="uc-money">${esc(money(d.dispoPay))}</td>
         <td>
           <div class="uc-row-actions">
-            <button type="button" class="phuglee-btn phuglee-btn-secondary" data-action="edit">Edit</button>
-            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="release">Release</button>
-            ${ghlLink}
+            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="edit">Edit</button>
+            ${releaseBtn}
           </div>
         </td>
       </tr>`;
     }).join('');
+  }
+
+  /** Street on line 1; city, state zip on line 2 — never stack the full one-line address. */
+  function propertyLines(deal) {
+    const city = String(deal.city || '').trim();
+    const state = String(deal.state || '').trim();
+    const zip = String(deal.zip || deal.postalCode || '').trim();
+    const cityLine = [city, [state, zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+    let street = String(deal.address || '').trim();
+    if (street && city && street.toLowerCase().includes(city.toLowerCase())) {
+      const cut = street.toLowerCase().lastIndexOf(city.toLowerCase());
+      if (cut > 0) street = street.slice(0, cut).replace(/[,\s]+$/, '');
+    }
+    return { street: street || '—', cityLine };
   }
 
   async function loadDeals() {
@@ -163,10 +234,323 @@
       } else {
         status.hidden = false;
         status.classList.remove('is-warn');
-        status.textContent = 'GHL connected · Sync pulls DTS Seller Signed → Funded.';
+        status.textContent = 'GHL connected · Sync pulls DTS Seller Signed → Funded · Open a deal to text from the last outbound line.';
       }
     }
     if (syncBtn) syncBtn.disabled = false;
+  }
+
+  function stopPoll() {
+    if (state.pollTimer) {
+      clearInterval(state.pollTimer);
+      state.pollTimer = null;
+    }
+  }
+
+  function startPoll() {
+    stopPoll();
+    state.pollTimer = setInterval(() => {
+      if (state.activeDealId) loadMessages(state.activeDealId, { silent: true }).catch(() => {});
+    }, POLL_MS);
+  }
+
+  function renderMessages() {
+    const box = $('uc-convo-thread');
+    if (!box) return;
+    if (!state.messages.length) {
+      box.innerHTML = '<p class="uc-convo-empty">No SMS yet. Send the first message below.</p>';
+      return;
+    }
+    box.innerHTML = state.messages.map((m) => {
+      const outbound = m.direction === 'outbound' || m.direction === 'out';
+      const when = m.dateAdded ? new Date(m.dateAdded).toLocaleString() : '';
+      return `<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
+        <div class="uc-bubble-body">${esc(m.body)}</div>
+        <div class="uc-bubble-meta">${outbound ? 'You' : 'Them'}${when ? ' · ' + esc(when) : ''}</div>
+      </div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function loadMessages(dealId, opts = {}) {
+    const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`);
+    state.messages = data.messages || [];
+    state.fromNumber = data.fromNumber || null;
+    state.toNumber = data.toNumber || null;
+    const meta = $('uc-convo-meta');
+    if (meta) {
+      meta.textContent = state.fromNumber && state.toNumber
+        ? `From ${state.fromNumber} → ${state.toNumber}`
+        : (data.warning || 'SMS numbers resolving…');
+    }
+    renderMessages();
+    if (!opts.silent) showToast(`Loaded ${state.messages.length} messages`);
+  }
+
+  function renderProfile(deal, contact) {
+    state.profile = deal;
+    state.contact = contact;
+    const drawer = $('uc-drawer');
+    const backdrop = $('uc-drawer-backdrop');
+    if (!drawer) return;
+    drawer.hidden = false;
+    if (backdrop) backdrop.hidden = false;
+    document.body.classList.add('uc-drawer-open');
+
+    $('uc-drawer-title').textContent = deal.address || 'Contract profile';
+    $('uc-drawer-hero').innerHTML = thumbHtml(deal, 'uc-profile-hero') +
+      `<div class="uc-profile-hero-copy">
+        <p class="uc-stage" data-stage="${esc(deal.stage)}">${esc(STAGE_LABELS[deal.stage] || deal.stage)}</p>
+        <h2>${esc(deal.address || '—')}</h2>
+        <p>${esc([deal.city, deal.state, deal.zip].filter(Boolean).join(', '))}</p>
+      </div>`;
+
+    const rows = [
+      ['Owner / seller', deal.ownerName || contact?.sellersName || contact?.name || '—'],
+      ['Phone', deal.phone || contact?.phone || '—'],
+      ['Email', deal.email || contact?.email || '—'],
+      ['Purchase price', money(deal.purchasePrice)],
+      ['Assignment fee', money(deal.assignmentFee)],
+      ['TC Pay', money(deal.tcPay)],
+      ['Acq Pay', money(deal.acqPay)],
+      ['Dispo Pay', money(deal.dispoPay)],
+      ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
+      ['Closing', deal.closingDate || contact?.closingDate || '—'],
+      ['EMD Submitted?', deal.sellerEmdLabel || '—'],
+      ['Buyer EMD?', deal.buyerEmdLabel || '—'],
+      ['Access', deal.accessDisplay || deal.accessLabel || '—'],
+      ['Vacancy', deal.vacancyLabel || '—'],
+      ['Notes', deal.notes || '—']
+    ];
+    $('uc-drawer-facts').innerHTML = rows.map(([k, v]) =>
+      `<div class="uc-fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`
+    ).join('');
+
+    renderDocuments(deal.documents || []);
+    closeDocViewer();
+    $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
+    $('uc-sms-input').value = '';
+  }
+
+  function renderDocuments(docs) {
+    const box = $('uc-docs-list');
+    if (!box) return;
+    if (!docs.length) {
+      box.innerHTML = '<p class="uc-docs-empty">No documents yet. Sync from GHL pulls the signed PSA; upload addendums or JV PDFs below.</p>';
+      return;
+    }
+    box.innerHTML = docs.map((d) => {
+      const kind = DOC_LABELS[d.kind] || d.label || d.kind || 'Document';
+      return `<div class="uc-doc-row" data-doc-id="${esc(d.id)}">
+        <div class="uc-doc-row-main">
+          <span class="uc-doc-kind">${esc(kind)}</span>
+        </div>
+        <div class="uc-doc-row-actions">
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" data-doc-action="view">View</button>
+          ${d.source !== 'ghl' ? '<button type="button" class="phuglee-btn phuglee-btn-ghost" data-doc-action="delete">Remove</button>' : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function closeDocViewer() {
+    const viewer = $('uc-doc-viewer');
+    const frame = $('uc-doc-frame');
+    if (viewer) viewer.hidden = true;
+    if (frame) frame.removeAttribute('src');
+  }
+
+  function openDocViewer(doc) {
+    const viewer = $('uc-doc-viewer');
+    const frame = $('uc-doc-frame');
+    const title = $('uc-doc-viewer-title');
+    const openTab = $('uc-doc-open-tab');
+    if (!viewer || !frame || !doc?.viewUrl) return;
+    title.textContent = doc.name || 'Document';
+    openTab.href = doc.viewUrl;
+    frame.src = doc.viewUrl;
+    viewer.hidden = false;
+    viewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function uploadDocument() {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    const fileInput = $('uc-doc-file');
+    const kind = $('uc-doc-kind')?.value || 'other';
+    const file = fileInput?.files?.[0];
+    if (!file) {
+      showToast('Choose a PDF first');
+      return;
+    }
+    if (file.size > 18 * 1024 * 1024) {
+      showToast('File too large (max 18MB)');
+      return;
+    }
+    const btn = $('uc-doc-upload');
+    if (btn) btn.disabled = true;
+    try {
+      const contentBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result || ''));
+        reader.onerror = () => reject(new Error('Could not read file'));
+        reader.readAsDataURL(file);
+      });
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/documents`, {
+        method: 'POST',
+        body: JSON.stringify({
+          kind,
+          name: file.name,
+          mimeType: file.type || 'application/pdf',
+          contentBase64
+        })
+      });
+      if (fileInput) fileInput.value = '';
+      if (data.deal) {
+        state.profile = data.deal;
+        renderDocuments(data.deal.documents || []);
+      }
+      showToast('Document added');
+      if (data.document) openDocViewer(data.document);
+    } catch (err) {
+      showToast(err.message || 'Upload failed');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function deleteDocument(docId) {
+    const dealId = state.activeDealId;
+    if (!dealId || !docId) return;
+    if (!window.confirm('Remove this document from the profile?')) return;
+    try {
+      const data = await api(
+        `/api/leads/admin/contracts/${encodeURIComponent(dealId)}/documents/${encodeURIComponent(docId)}`,
+        { method: 'DELETE' }
+      );
+      if (data.deal) {
+        state.profile = data.deal;
+        renderDocuments(data.deal.documents || []);
+      }
+      closeDocViewer();
+      showToast('Document removed');
+    } catch (err) {
+      showToast(err.message || 'Remove failed');
+    }
+  }
+
+  async function openProfile(dealId) {
+    state.activeDealId = dealId;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`);
+      renderProfile(data.deal, data.contact);
+      await loadMessages(dealId, { silent: true });
+      startPoll();
+    } catch (err) {
+      showToast(err.message || 'Could not open profile');
+    }
+  }
+
+  function closeProfile() {
+    stopPoll();
+    state.activeDealId = null;
+    closeDocViewer();
+    const drawer = $('uc-drawer');
+    const backdrop = $('uc-drawer-backdrop');
+    if (drawer) drawer.hidden = true;
+    if (backdrop) backdrop.hidden = true;
+    document.body.classList.remove('uc-drawer-open');
+  }
+
+  function openBuyerFound(deal) {
+    $('uc-buyer-deal-id').value = deal.dealId;
+    $('uc-buyer-title').textContent = deal.address ? `Buyer found — ${deal.address}` : 'Buyer found';
+    $('uc-buyer-entity').value = deal.cashBuyerName || deal.buyerAssignment?.buyerEntity || '';
+    $('uc-buyer-contact').value = deal.buyerAssignment?.buyerContactName || '';
+    $('uc-buyer-email').value = deal.buyerAssignment?.buyerEmail || '';
+    $('uc-buyer-phone').value = deal.buyerAssignment?.buyerPhone || '';
+    $('uc-buyer-fee').value = deal.assignmentFee ?? '';
+    $('uc-buyer-closing').value = deal.closingDate || '';
+    $('uc-buyer-emd').value = deal.buyerAssignment?.buyerEmd ?? '';
+    $('uc-buyer-notes').value = '';
+    $('uc-buyer-dialog').showModal();
+  }
+
+  const JV_PARTIES = {
+    sales: {
+      name: 'Brandon Wunder',
+      company: 'Wunderhaus Group LLC',
+      email: 'brandon@wunderhausgroup.com'
+    },
+    dispos: {
+      name: 'Brad Lewis',
+      company: 'Green Oasis Solutions',
+      email: 'buyhomes995@gmail.com'
+    }
+  };
+
+  function openSendJv(deal) {
+    $('uc-jv-deal-id').value = deal.dealId;
+    $('uc-jv-title').textContent = deal.address ? `Send JV — ${deal.address}` : 'Send JV agreement';
+    $('uc-jv-dialog').showModal();
+  }
+
+  async function submitBuyerFound(ev) {
+    ev.preventDefault();
+    const id = $('uc-buyer-deal-id').value;
+    const body = {
+      buyerEntity: $('uc-buyer-entity').value.trim(),
+      buyerContactName: $('uc-buyer-contact').value.trim(),
+      buyerEmail: $('uc-buyer-email').value.trim(),
+      buyerPhone: $('uc-buyer-phone').value.trim(),
+      assignmentFee: $('uc-buyer-fee').value === '' ? null : Number($('uc-buyer-fee').value),
+      closingDate: $('uc-buyer-closing').value.trim(),
+      buyerEmd: $('uc-buyer-emd').value === '' ? null : Number($('uc-buyer-emd').value),
+      notes: $('uc-buyer-notes').value.trim()
+    };
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/buyer-found`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      $('uc-buyer-dialog').close();
+      showToast(data.aoc?.message || 'AOC SignNow pending template');
+      await loadDeals();
+      if (state.activeDealId === id && data.deal) {
+        renderProfile(data.deal, state.contact);
+      }
+    } catch (err) {
+      showToast(err.message || 'Buyer found failed');
+    }
+  }
+
+  async function submitSendJv(ev) {
+    ev.preventDefault();
+    const id = $('uc-jv-deal-id').value;
+    const body = {
+      salesPartner: 'brandon',
+      disposPartner: 'brad',
+      salesName: JV_PARTIES.sales.name,
+      salesCompany: JV_PARTIES.sales.company,
+      salesEmail: JV_PARTIES.sales.email,
+      disposName: JV_PARTIES.dispos.name,
+      disposCompany: JV_PARTIES.dispos.company,
+      disposEmail: JV_PARTIES.dispos.email
+    };
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/send-jv`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      $('uc-jv-dialog').close();
+      showToast(data.jv?.message || 'JV confirmed for Brandon + Brad');
+      await loadDeals();
+      if (state.activeDealId === id && data.deal) {
+        renderProfile(data.deal, state.contact);
+      }
+    } catch (err) {
+      showToast(err.message || 'Send JV failed');
+    }
   }
 
   function openEdit(deal) {
@@ -175,9 +559,13 @@
     $('uc-edit-stage').value = deal.stage || 'under_contract';
     $('uc-edit-purchase').value = deal.purchasePrice ?? '';
     $('uc-edit-fee').value = deal.assignmentFee ?? '';
-    $('uc-edit-profit').value = deal.profitOverride ?? '';
     $('uc-edit-buyer').value = deal.cashBuyerName || '';
     $('uc-edit-closing').value = deal.closingDate || '';
+    $('uc-edit-access').value = deal.accessType || '';
+    $('uc-edit-access-detail').value = deal.accessDetail || '';
+    $('uc-edit-vacancy').value = deal.vacancy || '';
+    $('uc-edit-seller-emd').value = deal.sellerEmdSubmitted || '';
+    $('uc-edit-buyer-emd').value = deal.buyerEmdSubmitted || '';
     $('uc-edit-notes').value = deal.notes || '';
     $('uc-edit-title').textContent = deal.address || 'Edit deal';
     $('uc-edit-dialog').showModal();
@@ -195,9 +583,13 @@
       stage: $('uc-edit-stage').value,
       purchasePrice: $('uc-edit-purchase').value === '' ? null : Number($('uc-edit-purchase').value),
       assignmentFee: $('uc-edit-fee').value === '' ? null : Number($('uc-edit-fee').value),
-      profitOverride: $('uc-edit-profit').value === '' ? null : Number($('uc-edit-profit').value),
       cashBuyerName: $('uc-edit-buyer').value.trim(),
       closingDate: $('uc-edit-closing').value.trim(),
+      accessType: $('uc-edit-access').value,
+      accessDetail: $('uc-edit-access-detail').value.trim(),
+      vacancy: $('uc-edit-vacancy').value,
+      sellerEmdSubmitted: $('uc-edit-seller-emd').value,
+      buyerEmdSubmitted: $('uc-edit-buyer-emd').value,
       notes: $('uc-edit-notes').value.trim()
     };
     try {
@@ -208,18 +600,61 @@
       $('uc-edit-dialog').close();
       showToast('Deal updated');
       await loadDeals();
+      if (state.activeDealId === id) await openProfile(id);
     } catch (err) {
       showToast(err.message || 'Save failed');
     }
   }
 
   async function releaseDeal(dealId, address) {
-    if (!window.confirm(`Release ${address || 'this deal'} back to The Vault?`)) return;
+    if (!isAdmin()) {
+      showToast('Release is admin only');
+      return;
+    }
+    openReleaseConfirm(dealId, address);
+  }
+
+  function openReleaseConfirm(dealId, address) {
+    const dialog = $('uc-release-dialog');
+    if (!dialog) return;
+    $('uc-release-deal-id').value = dealId;
+    $('uc-release-address').textContent = address || 'this lead';
+    $('uc-release-confirm-input').value = '';
+    $('uc-release-confirm-btn').disabled = true;
+    dialog.showModal();
+    setTimeout(() => $('uc-release-confirm-input')?.focus(), 50);
+  }
+
+  function closeReleaseConfirm() {
+    $('uc-release-dialog')?.close();
+  }
+
+  function onReleaseConfirmInput() {
+    const val = String($('uc-release-confirm-input')?.value || '').trim().toLowerCase();
+    const btn = $('uc-release-confirm-btn');
+    if (btn) btn.disabled = val !== 'confirm';
+  }
+
+  async function submitReleaseConfirm(ev) {
+    ev.preventDefault();
+    if (!isAdmin()) {
+      showToast('Release is admin only');
+      closeReleaseConfirm();
+      return;
+    }
+    const typed = String($('uc-release-confirm-input')?.value || '').trim().toLowerCase();
+    if (typed !== 'confirm') {
+      showToast('Type confirm to release');
+      return;
+    }
+    const dealId = $('uc-release-deal-id').value;
     try {
       await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/release`, {
         method: 'POST',
         body: '{}'
       });
+      closeReleaseConfirm();
+      if (state.activeDealId === dealId) closeProfile();
       showToast('Released to Vault');
       await loadDeals();
     } catch (err) {
@@ -254,32 +689,136 @@
     }
   }
 
+  async function sendSms() {
+    const dealId = state.activeDealId;
+    const input = $('uc-sms-input');
+    const text = (input?.value || '').trim();
+    if (!dealId || !text) return;
+    const btn = $('uc-sms-send');
+    if (btn) btn.disabled = true;
+    try {
+      await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          message: text,
+          fromNumber: state.fromNumber,
+          toNumber: state.toNumber
+        })
+      });
+      input.value = '';
+      showToast('SMS sent');
+      await loadMessages(dealId, { silent: true });
+    } catch (err) {
+      showToast(err.message || 'Send failed');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   function bind() {
+    $('uc-buyer-form')?.addEventListener('submit', submitBuyerFound);
+    $('uc-jv-form')?.addEventListener('submit', submitSendJv);
+    $('uc-buyer-cancel')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
+    $('uc-buyer-close')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
+    $('uc-jv-cancel')?.addEventListener('click', () => $('uc-jv-dialog')?.close());
+    $('uc-jv-close')?.addEventListener('click', () => $('uc-jv-dialog')?.close());
+    $('uc-release-form')?.addEventListener('submit', submitReleaseConfirm);
+    $('uc-release-confirm-input')?.addEventListener('input', onReleaseConfirmInput);
+    $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
+    $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
+    $('uc-drawer-buyer-found')?.addEventListener('click', () => {
+      if (state.profile) openBuyerFound(state.profile);
+    });
+    $('uc-drawer-send-jv')?.addEventListener('click', () => {
+      if (state.profile) openSendJv(state.profile);
+    });
     $('uc-sync-ghl')?.addEventListener('click', () => { syncGhl(); });
     $('uc-edit-form')?.addEventListener('submit', saveEdit);
+    $('uc-drawer-close')?.addEventListener('click', closeProfile);
+    $('uc-drawer-backdrop')?.addEventListener('click', closeProfile);
+    $('uc-sms-send')?.addEventListener('click', () => { sendSms(); });
+    $('uc-sms-refresh')?.addEventListener('click', () => {
+      if (state.activeDealId) loadMessages(state.activeDealId).catch((e) => showToast(e.message));
+    });
+    $('uc-sms-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendSms();
+      }
+    });
+    $('uc-doc-upload')?.addEventListener('click', () => { uploadDocument(); });
+    $('uc-doc-close-viewer')?.addEventListener('click', closeDocViewer);
+    $('uc-docs-list')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-doc-action]');
+      const row = ev.target.closest('[data-doc-id]');
+      if (!btn || !row) return;
+      const docId = row.getAttribute('data-doc-id');
+      const doc = (state.profile?.documents || []).find((d) => d.id === docId);
+      if (btn.dataset.docAction === 'view' && doc) openDocViewer(doc);
+      if (btn.dataset.docAction === 'delete') deleteDocument(docId);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape' || !state.activeDealId) return;
+      if ($('uc-release-dialog')?.open) return;
+      if ($('uc-buyer-dialog')?.open) return;
+      if ($('uc-jv-dialog')?.open) return;
+      if ($('uc-edit-dialog')?.open) return;
+      closeProfile();
+    });
+
+    window.addEventListener('phuglee-payouts-updated', (ev) => {
+      const detail = ev.detail || {};
+      if (detail.deals) {
+        state.deals = detail.deals;
+        state.totals = detail.totals || state.totals;
+        renderKpis(state.totals);
+        renderTable(state.deals);
+        showToast('Payout settings updated');
+        if (state.activeDealId) {
+          openProfile(state.activeDealId).catch(() => {});
+        }
+        return;
+      }
+      loadDeals().then(() => showToast('Payout settings updated')).catch(() => {});
+    });
+
     $('uc-tbody')?.addEventListener('click', (ev) => {
       const btn = ev.target.closest('[data-action]');
-      if (!btn) return;
-      const row = btn.closest('tr[data-deal-id]');
+      const row = ev.target.closest('tr[data-deal-id]');
       if (!row) return;
       const dealId = row.getAttribute('data-deal-id');
       const deal = state.deals.find((d) => d.dealId === dealId);
       if (!deal) return;
-      if (btn.dataset.action === 'edit') openEdit(deal);
-      if (btn.dataset.action === 'release') releaseDeal(deal.dealId, deal.address);
+      const action = btn?.dataset.action || 'open';
+      if (action === 'open') openProfile(dealId);
+      if (action === 'edit') openEdit(deal);
+      if (action === 'buyer-found') openBuyerFound(deal);
+      if (action === 'send-jv') openSendJv(deal);
+      if (action === 'release' && isAdmin()) releaseDeal(deal.dealId, deal.address);
     });
+  }
+
+  async function allowContractDesk() {
+    if (isContractDesk()) return true;
+    if (window.PhugleeSession?.syncSessionFromServerCookie) {
+      const data = await window.PhugleeSession.syncSessionFromServerCookie();
+      if (data?.username === ADMIN || data?.username === DISPOS) return true;
+    }
+    return false;
   }
 
   async function init() {
     const gate = $('uc-gate');
     const app = $('uc-app');
-    if (!isAdmin()) {
+    const allowed = await allowContractDesk();
+    if (!allowed) {
       if (gate) gate.hidden = false;
       if (app) app.hidden = true;
       return;
     }
     if (gate) gate.hidden = true;
     if (app) app.hidden = false;
+    applyAdminOnlyUi();
     bind();
     try {
       await loadDeals();

@@ -183,8 +183,19 @@
       if (!isAdmin) {
         try { isAdmin = sessionStorage.getItem('phuglee_session') === 'admin'; } catch (_) {}
       }
+      var isContractDesk = window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function'
+        ? window.PhugleeSettings.isContractDesk()
+        : isAdmin;
+      if (!isContractDesk) {
+        try {
+          var user = sessionStorage.getItem('phuglee_session');
+          isContractDesk = user === 'admin' || user === 'brad';
+        } catch (_) {}
+      }
       document.querySelectorAll('[data-admin-only]').forEach(function (el) {
-        el.hidden = !isAdmin;
+        var href = el.getAttribute('href') || '';
+        var showForDesk = isContractDesk && href.indexOf('/under-contract') >= 0;
+        el.hidden = !(isAdmin || showForDesk);
       });
     }
     show();

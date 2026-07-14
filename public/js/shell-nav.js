@@ -23,7 +23,26 @@
     }
   }
 
+  function isDisposUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isDispos === 'function') {
+      return window.PhugleeSettings.isDispos() === true;
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') === 'brad';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isContractDeskUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function') {
+      return window.PhugleeSettings.isContractDesk() === true;
+    }
+    return isAdminUser() || isDisposUser();
+  }
+
   function propertiesLinks() {
+    if (isDisposUser()) return [];
     if (!isAdminUser()) return PROPERTIES_LINKS.slice();
     return PROPERTIES_LINKS.concat(ADMIN_PROPERTIES_LINKS);
   }
@@ -172,9 +191,17 @@
 
   function buildNav(pathname) {
     const current = activeId(pathname);
-    const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
     const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>The Vault</a>`;
-    const propertiesHtml = buildPropertiesDropdown(current);
+    const contractHtml = `<a href="/under-contract" class="${linkClass('under-contract', current)}"${current === 'under-contract' ? ' aria-current="page"' : ''}>Contract Tracker</a>`;
+
+    let linksHtml;
+    if (isDisposUser()) {
+      linksHtml = vaultHtml + contractHtml;
+    } else {
+      const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
+      const propertiesHtml = buildPropertiesDropdown(current);
+      linksHtml = dashboardHtml + vaultHtml + propertiesHtml;
+    }
 
     const actionsHtml = isAuthenticated()
       ? `<div class="shell-nav-actions">
@@ -225,9 +252,7 @@
       </button>
     </div>
     <div class="shell-links" id="shell-links">
-      ${dashboardHtml}
-      ${vaultHtml}
-      ${propertiesHtml}
+      ${linksHtml}
       ${actionsHtml}
     </div>
   </nav>
@@ -429,7 +454,10 @@
     buildFooter,
     activeId,
     PROPERTIES_LINKS,
-    isPropertiesSectionActive
+    isPropertiesSectionActive,
+    isAdminUser,
+    isDisposUser,
+    isContractDeskUser
   };
   mount();
 })();

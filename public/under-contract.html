@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
   <link rel="stylesheet" href="/css/vault.css?v=12">
-  <link rel="stylesheet" href="/css/under-contract.css?v=1">
+  <link rel="stylesheet" href="/css/under-contract.css?v=13">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -25,9 +25,9 @@
   <main id="main" class="vault-main vault-main--app uc-main">
     <section id="uc-gate" class="vault-gate" hidden>
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">Admin only</p>
+        <p class="vault-eyebrow">Contract desk</p>
         <h1 class="vault-title">Under Contract</h1>
-        <p class="vault-lead">Sign in as admin to track contracts, hide them from The Vault, and prove the pipeline pays.</p>
+        <p class="vault-lead">Sign in as admin or disposition partner to track contracts and assignment fees.</p>
         <a href="/" class="phuglee-btn phuglee-btn-primary">Back home</a>
       </div>
     </section>
@@ -40,20 +40,33 @@
           <p class="vault-hero-sub">Deal board · Vault kill switch · GHL DTS sync</p>
         </div>
         <div class="uc-hero-actions">
-          <button type="button" id="uc-sync-ghl" class="phuglee-btn phuglee-btn-primary">Sync from GHL</button>
-          <a href="/vault" class="phuglee-btn phuglee-btn-ghost">Open Vault</a>
+          <button type="button" id="uc-sync-ghl" class="phuglee-btn phuglee-btn-primary" data-admin-only>Sync from GHL</button>
+          <a href="/vault" class="phuglee-btn phuglee-btn-ghost" data-admin-only>Open Vault</a>
         </div>
       </header>
 
-      <p id="uc-ghl-status" class="uc-ghl-status" hidden></p>
+      <p id="uc-ghl-status" class="uc-ghl-status" hidden data-admin-only></p>
 
-      <section class="uc-kpi-strip" aria-label="Proof totals">
-        <article class="uc-kpi"><span class="uc-kpi-label">Under contract</span><strong id="uc-kpi-uc" class="uc-kpi-value">0</strong></article>
-        <article class="uc-kpi"><span class="uc-kpi-label">Buyer found</span><strong id="uc-kpi-buyer" class="uc-kpi-value">0</strong></article>
-        <article class="uc-kpi"><span class="uc-kpi-label">Closing</span><strong id="uc-kpi-closing" class="uc-kpi-value">0</strong></article>
-        <article class="uc-kpi"><span class="uc-kpi-label">Funded</span><strong id="uc-kpi-funded" class="uc-kpi-value">0</strong></article>
-        <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Assignment fees</span><strong id="uc-kpi-fees" class="uc-kpi-value">$0</strong></article>
-        <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Total profit</span><strong id="uc-kpi-profit" class="uc-kpi-value">$0</strong></article>
+      <section class="uc-kpi-strip" aria-label="Pipeline and closings">
+        <div class="uc-kpi-group">
+          <p class="uc-kpi-group-label">Current under contract</p>
+          <div class="uc-kpi-row">
+            <article class="uc-kpi"><span class="uc-kpi-label">Under contract</span><strong id="uc-kpi-uc" class="uc-kpi-value">0</strong></article>
+            <article class="uc-kpi"><span class="uc-kpi-label">Buyer found</span><strong id="uc-kpi-buyer" class="uc-kpi-value">0</strong></article>
+            <article class="uc-kpi"><span class="uc-kpi-label">Closing</span><strong id="uc-kpi-closing" class="uc-kpi-value">0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Current Assignments</span><strong id="uc-kpi-open-fees" class="uc-kpi-value">$0</strong></article>
+          </div>
+        </div>
+        <div class="uc-kpi-group uc-kpi-group--closings">
+          <p class="uc-kpi-group-label">Overall closings</p>
+          <div class="uc-kpi-row">
+            <article class="uc-kpi"><span class="uc-kpi-label">Funded</span><strong id="uc-kpi-funded" class="uc-kpi-value">0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Assignments Total</span><strong id="uc-kpi-fees" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">TC Pay</span><strong id="uc-kpi-tc" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Acq Pay</span><strong id="uc-kpi-acq" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Dispo Pay</span><strong id="uc-kpi-dispo" class="uc-kpi-value">$0</strong></article>
+          </div>
+        </div>
       </section>
 
       <section class="uc-board" aria-labelledby="uc-board-title">
@@ -71,11 +84,16 @@
                 <th>Property</th>
                 <th>Stage</th>
                 <th>Purchase</th>
-                <th>Assignment fee</th>
-                <th>Profit</th>
-                <th>Buyer</th>
+                <th>Title Opened?</th>
+                <th>EMD Submitted?</th>
+                <th>Access</th>
+                <th>Vacancy</th>
                 <th>Closing</th>
-                <th>Source</th>
+                <th>Buyer EMD?</th>
+                <th>Assignment fee</th>
+                <th>TC Pay</th>
+                <th>Acq Pay</th>
+                <th>Dispo Pay</th>
                 <th></th>
               </tr>
             </thead>
@@ -108,16 +126,36 @@
         <input type="number" id="uc-edit-fee" class="phuglee-input" step="1" min="0">
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Profit override (optional)</span>
-        <input type="number" id="uc-edit-profit" class="phuglee-input" step="1">
-      </label>
-      <label class="vault-field">
         <span class="vault-field-label">Cash buyer</span>
         <input type="text" id="uc-edit-buyer" class="phuglee-input">
       </label>
       <label class="vault-field">
         <span class="vault-field-label">Closing date</span>
-        <input type="text" id="uc-edit-closing" class="phuglee-input" placeholder="YYYY-MM-DD">
+        <input type="text" id="uc-edit-closing" class="phuglee-input" placeholder="M/D/YY">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Title Opened?</span>
+        <select id="uc-edit-title-opened" class="phuglee-select">
+          <option value="">—</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">EMD Submitted? (our seller PSA)</span>
+        <select id="uc-edit-seller-emd" class="phuglee-select">
+          <option value="">—</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Buyer EMD?</span>
+        <select id="uc-edit-buyer-emd" class="phuglee-select">
+          <option value="">—</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
       </label>
       <label class="vault-field">
         <span class="vault-field-label">Notes</span>
@@ -130,9 +168,171 @@
     </form>
   </dialog>
 
-  <script src="/js/settings-menu.js?v=3" defer></script>
-  <script src="/js/shell-nav.js?v=14" defer></script>
+  <div id="uc-drawer-backdrop" class="uc-drawer-backdrop" hidden></div>
+  <aside id="uc-drawer" class="uc-drawer" hidden aria-label="Contract profile">
+    <div class="uc-drawer-head">
+      <h2 id="uc-drawer-title">Contract profile</h2>
+      <div class="uc-drawer-head-actions">
+        <button type="button" id="uc-drawer-buyer-found" class="phuglee-btn phuglee-btn-secondary">Buyer Found</button>
+        <button type="button" id="uc-drawer-send-jv" class="phuglee-btn phuglee-btn-secondary">Send JV</button>
+        <button type="button" id="uc-drawer-close" class="phuglee-btn phuglee-btn-ghost">Close</button>
+      </div>
+    </div>
+    <div class="uc-drawer-body">
+      <div id="uc-drawer-hero" class="uc-drawer-hero"></div>
+      <dl id="uc-drawer-facts" class="uc-facts"></dl>
+      <section class="uc-docs" aria-label="Contract documents">
+        <div class="uc-docs-head">
+          <div>
+            <h3>Documents</h3>
+            <p class="uc-docs-meta">Purchase contract, addendums, JV agreements</p>
+          </div>
+        </div>
+        <div id="uc-docs-list" class="uc-docs-list"></div>
+        <div id="uc-doc-viewer" class="uc-doc-viewer" hidden>
+          <div class="uc-doc-viewer-bar">
+            <strong id="uc-doc-viewer-title">Document</strong>
+            <div class="uc-doc-viewer-actions">
+              <a id="uc-doc-open-tab" class="phuglee-btn phuglee-btn-ghost" href="#" target="_blank" rel="noopener">Open tab</a>
+              <button type="button" id="uc-doc-close-viewer" class="phuglee-btn phuglee-btn-ghost">Close preview</button>
+            </div>
+          </div>
+          <iframe id="uc-doc-frame" class="uc-doc-frame" title="Document preview"></iframe>
+        </div>
+        <div class="uc-docs-upload">
+          <label class="vault-field uc-docs-kind">
+            <span class="vault-field-label">Type</span>
+            <select id="uc-doc-kind" class="phuglee-select">
+              <option value="purchase_contract">Purchase contract</option>
+              <option value="addendum">Addendum</option>
+              <option value="jv">JV agreement</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="vault-field uc-docs-file">
+            <span class="vault-field-label">Upload PDF</span>
+            <input type="file" id="uc-doc-file" class="phuglee-input" accept=".pdf,application/pdf,image/*">
+          </label>
+          <button type="button" id="uc-doc-upload" class="phuglee-btn phuglee-btn-secondary">Add document</button>
+        </div>
+      </section>
+      <section class="uc-convo" aria-label="SMS conversation">
+        <div class="uc-convo-head">
+          <div>
+            <h3>Texts</h3>
+            <p id="uc-convo-meta" class="uc-convo-meta"></p>
+          </div>
+          <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
+        </div>
+        <div id="uc-convo-thread" class="uc-convo-thread"></div>
+        <div class="uc-convo-compose">
+          <textarea id="uc-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the seller…"></textarea>
+          <button type="button" id="uc-sms-send" class="phuglee-btn phuglee-btn-primary">Send</button>
+        </div>
+      </section>
+    </div>
+  </aside>
+
+  <dialog id="uc-buyer-dialog" class="uc-dialog">
+    <form method="dialog" id="uc-buyer-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-buyer-title">Buyer found</h3>
+        <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <input type="hidden" id="uc-buyer-deal-id" value="">
+      <label class="vault-field">
+        <span class="vault-field-label">Buyer entity</span>
+        <input type="text" id="uc-buyer-entity" class="phuglee-input" required>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Contact name</span>
+        <input type="text" id="uc-buyer-contact" class="phuglee-input">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Email</span>
+        <input type="email" id="uc-buyer-email" class="phuglee-input">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Phone</span>
+        <input type="tel" id="uc-buyer-phone" class="phuglee-input">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Assignment fee</span>
+        <input type="number" id="uc-buyer-fee" class="phuglee-input" step="1" min="0">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Closing date</span>
+        <input type="text" id="uc-buyer-closing" class="phuglee-input" placeholder="YYYY-MM-DD">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Buyer EMD</span>
+        <input type="number" id="uc-buyer-emd" class="phuglee-input" step="1" min="0">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Notes</span>
+        <textarea id="uc-buyer-notes" class="phuglee-textarea" rows="3"></textarea>
+      </label>
+      <div class="uc-edit-actions">
+        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Save = Send AOC</button>
+        <button type="button" id="uc-buyer-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="uc-jv-dialog" class="uc-dialog">
+    <form method="dialog" id="uc-jv-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-jv-title">Send JV agreement</h3>
+        <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <input type="hidden" id="uc-jv-deal-id" value="">
+      <p class="uc-jv-lead">Confirm these two parties will sign the JV. Details are fixed — no edits needed.</p>
+      <div id="uc-jv-parties" class="uc-jv-parties" aria-label="JV signers">
+        <article class="uc-jv-party">
+          <p class="uc-jv-party-role">Party A · Sales</p>
+          <strong>Brandon Wunder</strong>
+          <span>Wunderhaus Group LLC</span>
+          <span>brandon@wunderhausgroup.com</span>
+        </article>
+        <article class="uc-jv-party">
+          <p class="uc-jv-party-role">Party B · Disposition</p>
+          <strong>Brad Lewis</strong>
+          <span>Green Oasis Solutions</span>
+          <span>buyhomes995@gmail.com</span>
+        </article>
+      </div>
+      <div class="uc-edit-actions">
+        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Confirm &amp; Send JV</button>
+        <button type="button" id="uc-jv-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="uc-release-dialog" class="uc-dialog uc-dialog--warn">
+    <form method="dialog" id="uc-release-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3>Release to Vault</h3>
+        <button type="button" id="uc-release-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <input type="hidden" id="uc-release-deal-id" value="">
+      <p class="uc-release-warn">
+        Warning: you are releasing <strong id="uc-release-address">this lead</strong> from Under Contract
+        back to The Vault. It will leave this board and become callable again.
+      </p>
+      <label class="vault-field">
+        <span class="vault-field-label">Type <code>confirm</code> to continue</span>
+        <input type="text" id="uc-release-confirm-input" class="phuglee-input" autocomplete="off" spellcheck="false" placeholder="confirm">
+      </label>
+      <div class="uc-edit-actions">
+        <button type="submit" id="uc-release-confirm-btn" value="save" class="phuglee-btn phuglee-btn-primary" disabled>Release lead</button>
+        <button type="button" id="uc-release-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/settings-menu.js?v=5" defer></script>
+  <script src="/js/shell-nav.js?v=15" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=2" defer></script>
+  <script src="/js/under-contract.js?v=16" defer></script>
 </body>
 </html>

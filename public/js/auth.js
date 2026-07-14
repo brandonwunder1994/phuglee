@@ -750,15 +750,22 @@
   }
 
   function resolvePostLoginDest() {
-    var dest = state.returnUrl || '/command';
+    var user = '';
+    try {
+      user = sessionStorage.getItem(SESSION_KEY) || '';
+    } catch (_) {}
+    var dest = state.returnUrl || (user === 'brad' ? '/vault' : '/command');
     try {
       var path = (dest.split('?')[0].split('#')[0] || '/').replace(/\/+$/, '') || '/';
       if (path === '/' || path === '/index.html' || path === '/heat') {
-        return '/command';
+        return user === 'brad' ? '/vault' : '/command';
+      }
+      if (user === 'brad' && path !== '/vault' && path !== '/under-contract') {
+        return '/vault';
       }
       return dest;
     } catch (_) {
-      return '/command';
+      return user === 'brad' ? '/vault' : '/command';
     }
   }
 

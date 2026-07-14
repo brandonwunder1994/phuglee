@@ -29,6 +29,27 @@
     window.location.replace('/?login=1&return=' + encodeURIComponent(returnUrl));
   }
 
+  function normalizePath(pathname) {
+    var p = (pathname || '/').replace(/\/+$/, '') || '/';
+    if (p === '/index.html') return '/';
+    return p;
+  }
+
+  var DISPOS_USER = 'brad';
+  var DISPOS_PATHS = { '/vault': true, '/under-contract': true };
+
+  function isDisposUser(user) {
+    return user === DISPOS_USER;
+  }
+
+  function enforceDisposPath(user) {
+    if (!isDisposUser(user)) return;
+    var path = normalizePath(window.location.pathname);
+    if (!DISPOS_PATHS[path]) {
+      window.location.replace('/vault');
+    }
+  }
+
   if (!isLoggedIn()) {
     try {
       if (sessionStorage.getItem('phuglee_logout') === '1') {
@@ -38,6 +59,26 @@
     } catch (_) {}
     redirectToSignIn();
     return;
+  }
+
+  var sessionUser = (function () {
+    var api = sessionApi();
+    if (api && typeof api.getSessionUser === 'function') {
+      return api.getSessionUser() || '';
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') || '';
+    } catch (_) {
+      return '';
+    }
+  })();
+
+  if (sessionUser) {
+    enforceDisposPath(sessionUser);
+  } else if (sessionApi() && typeof sessionApi().syncSessionFromServerCookie === 'function') {
+    sessionApi().syncSessionFromServerCookie().then(function (data) {
+      if (data && data.username) enforceDisposPath(data.username);
+    });
   }
 
   if (sessionApi() && typeof sessionApi().guardProtectedPage === 'function') {

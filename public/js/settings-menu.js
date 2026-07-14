@@ -4,6 +4,7 @@
   var SESSION_KEY = 'phuglee_session';
   var USERS_KEY = 'phuglee_users';
   var ADMIN_USER = 'admin';
+  var DISPOS_USER = 'brad';
 
   function sessionApi() {
     return window.PhugleeSession || null;
@@ -40,6 +41,14 @@
     return getSessionUser() === ADMIN_USER;
   }
 
+  function isDispos() {
+    return getSessionUser() === DISPOS_USER;
+  }
+
+  function isContractDesk() {
+    return isAdmin() || isDispos();
+  }
+
   function readUserRecord() {
     var username = getSessionUser();
     if (!username) return null;
@@ -72,6 +81,18 @@
     }).join('');
   }
 
+  function contractDeskSectionHtml() {
+    if (!isContractDesk() || isAdmin()) return '';
+    return (
+      '<div class="shell-settings-section">' +
+        '<div class="shell-settings-section-label">Contract desk</div>' +
+        '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
+          '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
+        '</a>' +
+      '</div>'
+    );
+  }
+
   function adminSectionHtml() {
     if (!isAdmin()) return '';
     var onAnalyzer = window.location.pathname.indexOf('/analyzer') === 0;
@@ -90,6 +111,9 @@
         '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
         '</a>' +
+        '<button type="button" class="shell-settings-item" id="shell-settings-payouts" role="menuitem">' +
+          '<span class="shell-settings-item-icon">$</span> Payouts' +
+        '</button>' +
         '<a href="/collect?open=pdf-filler" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">📄</span> PDF Filler' +
         '</a>' +
@@ -127,6 +151,7 @@
             '<div class="shell-theme-toggle" role="group" aria-label="Theme">' + themeButtonsHtml() + '</div>' +
           '</div>' +
           adminSectionHtml() +
+          contractDeskSectionHtml() +
           '<div class="shell-settings-section">' +
             '<button type="button" class="shell-settings-item danger" id="shell-settings-signout" role="menuitem">' +
               '<span class="shell-settings-item-icon">⏻</span> Sign Out' +
@@ -168,6 +193,133 @@
     });
   }
 
+  function ensurePayoutsDialog() {
+    var existing = document.getElementById('shell-payouts-dialog');
+    if (existing) return existing;
+    var dialog = document.createElement('dialog');
+    dialog.id = 'shell-payouts-dialog';
+    dialog.className = 'uc-dialog shell-payouts-dialog';
+    dialog.innerHTML =
+      '<form method="dialog" id="shell-payouts-form" class="uc-edit-form">' +
+        '<h3>Payouts</h3>' +
+        '<p class="shell-payouts-help">TC fee comes off the assignment fee first, then Acq / Dispo split the remainder.</p>' +
+        '<label class="vault-field">' +
+          '<span class="vault-field-label">TC fee ($)</span>' +
+          '<input type="number" id="shell-payout-tc" class="phuglee-input" step="1" min="0" required>' +
+        '</label>' +
+        '<label class="vault-field">' +
+          '<span class="vault-field-label">Acq percent</span>' +
+          '<input type="number" id="shell-payout-acq" class="phuglee-input" step="1" min="0" max="100" required>' +
+        '</label>' +
+        '<label class="vault-field">' +
+          '<span class="vault-field-label">Dispo percent</span>' +
+          '<input type="number" id="shell-payout-dispo" class="phuglee-input" step="1" min="0" max="100" required>' +
+        '</label>' +
+        '<p id="shell-payouts-error" class="shell-payouts-error" hidden></p>' +
+        '<div class="uc-edit-actions">' +
+          '<button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Save</button>' +
+          '<button type="submit" value="cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>' +
+        '</div>' +
+      '</form>';
+    document.body.appendChild(dialog);
+
+    var style = document.getElementById('shell-payouts-style');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'shell-payouts-style';
+      style.textContent =
+        '.shell-payouts-dialog{max-width:22rem;padding:1.1rem 1.2rem;border:1px solid rgba(255,255,255,.12);' +
+        'border-radius:12px;background:#161616;color:inherit}' +
+        '.shell-payouts-dialog::backdrop{background:rgba(0,0,0,.55)}' +
+        '.shell-payouts-help{margin:0 0 .75rem;font-size:.82rem;opacity:.75;line-height:1.35}' +
+        '.shell-payouts-error{margin:.35rem 0 0;color:#e08080;font-size:.82rem}' +
+        '.shell-payouts-dialog .uc-edit-form{display:grid;gap:.65rem}' +
+        '.shell-payouts-dialog .uc-edit-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.35rem}';
+      document.head.appendChild(style);
+    }
+
+    dialog.querySelector('#shell-payouts-form').addEventListener('submit', function (ev) {
+      var submitter = ev.submitter;
+      if (submitter && submitter.value === 'cancel') {
+        dialog.close();
+        return;
+      }
+      ev.preventDefault();
+      savePayouts(dialog);
+    });
+    return dialog;
+  }
+
+  function showPayoutsError(dialog, msg) {
+    var el = dialog.querySelector('#shell-payouts-error');
+    if (!el) return;
+    if (!msg) {
+      el.hidden = true;
+      el.textContent = '';
+      return;
+    }
+    el.hidden = false;
+    el.textContent = msg;
+  }
+
+  function openPayoutsDialog() {
+    if (!isAdmin()) return;
+    var dialog = ensurePayoutsDialog();
+    showPayoutsError(dialog, '');
+    fetch('/api/leads/admin/contracts/payout-settings', {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store'
+    })
+      .then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
+      .then(function (out) {
+        if (!out.res.ok) throw new Error((out.data && out.data.error) || 'Could not load payouts');
+        var s = out.data.settings || {};
+        dialog.querySelector('#shell-payout-tc').value = s.tcFee != null ? s.tcFee : 250;
+        dialog.querySelector('#shell-payout-acq').value = s.acqPercent != null ? s.acqPercent : 70;
+        dialog.querySelector('#shell-payout-dispo').value = s.dispoPercent != null ? s.dispoPercent : 30;
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+      })
+      .catch(function (err) {
+        showPayoutsError(dialog, err.message || 'Could not load payouts');
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+      });
+  }
+
+  function savePayouts(dialog) {
+    var tc = Number(dialog.querySelector('#shell-payout-tc').value);
+    var acq = Number(dialog.querySelector('#shell-payout-acq').value);
+    var dispo = Number(dialog.querySelector('#shell-payout-dispo').value);
+    if (!Number.isFinite(tc) || tc < 0) {
+      showPayoutsError(dialog, 'Enter a valid TC fee');
+      return;
+    }
+    if (!Number.isFinite(acq) || !Number.isFinite(dispo) || acq < 0 || dispo < 0) {
+      showPayoutsError(dialog, 'Enter valid Acq / Dispo percents');
+      return;
+    }
+    if (Math.abs(acq + dispo - 100) > 0.05) {
+      showPayoutsError(dialog, 'Acq + Dispo must equal 100%');
+      return;
+    }
+    showPayoutsError(dialog, '');
+    fetch('/api/leads/admin/contracts/payout-settings', {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tcFee: tc, acqPercent: acq, dispoPercent: dispo })
+    })
+      .then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
+      .then(function (out) {
+        if (!out.res.ok) throw new Error((out.data && out.data.error) || 'Save failed');
+        dialog.close();
+        window.dispatchEvent(new CustomEvent('phuglee-payouts-updated', { detail: out.data }));
+      })
+      .catch(function (err) {
+        showPayoutsError(dialog, err.message || 'Save failed');
+      });
+  }
+
   function bind(root) {
     if (!root) return;
     if (root.dataset.settingsBound === '1') return;
@@ -175,11 +327,21 @@
 
     var trigger = root.querySelector('#shell-settings-trigger');
     var signOut = root.querySelector('#shell-settings-signout');
+    var payoutsBtn = root.querySelector('#shell-settings-payouts');
 
     if (trigger) {
       trigger.addEventListener('click', function (e) {
         e.stopPropagation();
         toggleDropdown();
+      });
+    }
+
+    if (payoutsBtn) {
+      payoutsBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        closeDropdown();
+        openPayoutsDialog();
       });
     }
 
@@ -252,5 +414,11 @@
     bind(slot);
   }
 
-  window.PhugleeSettings = { mount: mount, buildDropdown: buildDropdown, isAdmin: isAdmin };
+  window.PhugleeSettings = {
+    mount: mount,
+    buildDropdown: buildDropdown,
+    isAdmin: isAdmin,
+    isDispos: isDispos,
+    isContractDesk: isContractDesk
+  };
 })();

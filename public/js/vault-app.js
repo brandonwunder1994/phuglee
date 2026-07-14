@@ -81,7 +81,12 @@
   }
 
   function isMaxPlan(me) {
-    return me && (me.plan === 'max' || me.username === 'admin');
+    if (!me) return false;
+    if (me.plan === 'max' || me.username === 'admin' || me.username === 'brad') return true;
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function') {
+      return window.PhugleeSettings.isContractDesk() === true;
+    }
+    return false;
   }
 
   function leadTypeLabel(type) {

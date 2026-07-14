@@ -9,7 +9,7 @@
     { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },
     { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
     { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
-    { group: 'Admin', label: 'Contract Tracker', href: '/under-contract', meta: 'Under contract · proof desk', adminOnly: true },
+    { group: 'Admin', label: 'Contract Tracker', href: '/under-contract', meta: 'Under contract · proof desk', contractDeskOnly: true },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
     { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
     { group: 'Workflows', label: 'Email-only Requests', href: '/forge/portal/email-only', meta: 'Plain email' },
@@ -96,9 +96,32 @@
     }
   }
 
+  function isDisposUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isDispos === 'function') {
+      return window.PhugleeSettings.isDispos() === true;
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') === 'brad';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isContractDeskUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function') {
+      return window.PhugleeSettings.isContractDesk() === true;
+    }
+    return isAdminUser() || isDisposUser();
+  }
+
   function visibleCommands() {
     return COMMANDS.filter(function (cmd) {
-      return !cmd.adminOnly || isAdminUser();
+      if (cmd.adminOnly && !isAdminUser()) return false;
+      if (cmd.contractDeskOnly && !isContractDeskUser()) return false;
+      if (isDisposUser()) {
+        return cmd.href === '/vault' || cmd.href === '/under-contract';
+      }
+      return true;
     });
   }
 
