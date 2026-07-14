@@ -102,6 +102,10 @@
           s.provider
             ? `<span class="oc-card-provider">${esc(s.provider)}</span>`
             : '';
+        const usageNote =
+          id === 'maps' && s.usageUsd != null && s.coveredByCredit
+            ? `<p class="oc-card-usage">Credit burn ~${money(s.usageUsd)}</p>`
+            : '';
         return (
           `<article class="oc-card" data-service="${esc(id)}">` +
           `<div class="oc-card-label">` +
@@ -110,12 +114,40 @@
           `</div>` +
           provider +
           `<p class="oc-card-amount">${money(s.amountUsd)}</p>` +
+          usageNote +
           `<p class="oc-card-detail">${esc(s.detail || '')}</p>` +
           billingLinksHtml(s.billing) +
           `</article>`
         );
       })
       .join('');
+  }
+
+  function renderGcpCredit(credit) {
+    const grantedEl = $('oc-gcp-granted');
+    const remainingEl = $('oc-gcp-remaining');
+    const usedEl = $('oc-gcp-used');
+    const burnEl = $('oc-gcp-maps-burn');
+    const linksEl = $('oc-gcp-credit-links');
+    if (!grantedEl || !remainingEl || !usedEl || !burnEl) return;
+
+    const hasGranted = credit && credit.grantedUsd != null;
+    const hasRemaining = credit && credit.remainingUsd != null;
+    grantedEl.textContent = hasGranted ? money(credit.grantedUsd) : 'Not set';
+    remainingEl.textContent = hasRemaining ? money(credit.remainingUsd) : 'Not set';
+    usedEl.textContent =
+      credit && credit.usedUsd != null ? money(credit.usedUsd) : hasGranted && hasRemaining ? money(0) : '—';
+    burnEl.textContent =
+      credit && credit.mapsBurnUsdThisMonth != null ? money(credit.mapsBurnUsdThisMonth) : '—';
+
+    if (linksEl) {
+      linksEl.innerHTML = billingLinksHtml(
+        credit?.billing || {
+          label: 'Open Google Cloud billing',
+          href: 'https://console.cloud.google.com/billing'
+        }
+      );
+    }
   }
 
   function renderPickup(wm) {
@@ -202,10 +234,23 @@
     const ghlUsd = $('oc-ghl-usd');
     const snName = $('oc-sn-name');
     const snUsd = $('oc-sn-usd');
+    const gcpGranted = $('oc-gcp-granted-input');
+    const gcpRemaining = $('oc-gcp-remaining-input');
     if (ghlName) ghlName.value = rc.ghlPlanName || '';
     if (ghlUsd) ghlUsd.value = rc.ghlPlanMonthlyUsd ?? '';
     if (snName) snName.value = rc.signnowPlanName || '';
     if (snUsd) snUsd.value = rc.signnowPlanMonthlyUsd ?? '';
+    if (gcpGranted) gcpGranted.value = rc.gcpPromoCreditGrantedUsd ?? '';
+    if (gcpRemaining) gcpRemaining.value = rc.gcpPromoCreditRemainingUsd ?? '';
+  }
+
+  function optionalUsdInput(id) {
+    const el = $(id);
+    if (!el) return undefined;
+    const raw = String(el.value ?? '').trim();
+    if (raw === '') return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
   }
 
   function renderBreakdown(byCategory, charges) {
@@ -304,6 +349,7 @@
         .filter(Boolean)
         .join(' · ');
       renderCards(snap.services || {});
+      renderGcpCredit(snap.googleCloudCredit);
       renderPickup(snap.ghlWatermark);
       renderWatermark(snap.ghlWatermark);
       renderTeamBrief(snap.teamBrief);
@@ -327,7 +373,9 @@
         ghlPlanName: $('oc-ghl-name')?.value,
         ghlPlanMonthlyUsd: Number($('oc-ghl-usd')?.value),
         signnowPlanName: $('oc-sn-name')?.value,
-        signnowPlanMonthlyUsd: Number($('oc-sn-usd')?.value)
+        signnowPlanMonthlyUsd: Number($('oc-sn-usd')?.value),
+        gcpPromoCreditGrantedUsd: optionalUsdInput('oc-gcp-granted-input'),
+        gcpPromoCreditRemainingUsd: optionalUsdInput('oc-gcp-remaining-input')
       };
       await fetchJson('/api/admin/operating-costs/rate-card', {
         method: 'PATCH',

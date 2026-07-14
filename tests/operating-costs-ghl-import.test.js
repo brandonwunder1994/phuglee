@@ -89,3 +89,28 @@ test('PDF text rows flow through parseGhlExport charge builder', async () => {
   assert.equal(parsed.document.kind, 'invoice');
   assert.ok(parsed.charges.some((c) => c.amountCents === 9700));
 });
+
+test('HighLevel Wallet Sales Tax PDF imports Total Charged', async () => {
+  const fs = require('fs');
+  const path = require('path');
+  const fixture = path.join(
+    __dirname,
+    'fixtures',
+    'operating-costs',
+    'wallet-sales-tax-invoice.pdf'
+  );
+  assert.ok(fs.existsSync(fixture), 'fixture PDF missing');
+
+  const { parseGhlExport } = require('../lib/operating-costs/ghl-export-parse');
+  const parsed = await parseGhlExport(
+    fs.readFileSync(fixture),
+    'WALLET_SALES_TAX-invoice-6a460b371221b92e2b09f264-2026-07-04.pdf'
+  );
+
+  assert.equal(parsed.parser, 'pdf-hl-tax-invoice');
+  assert.equal(parsed.charges.length, 1);
+  assert.equal(parsed.charges[0].amountCents, 3085);
+  assert.equal(parsed.charges[0].date, '2026-07-02');
+  assert.equal(parsed.charges[0].category, 'tax');
+  assert.match(parsed.charges[0].description, /Wallet Sales Tax/i);
+});
