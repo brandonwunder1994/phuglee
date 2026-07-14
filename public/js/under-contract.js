@@ -279,6 +279,25 @@
     state.goalTickTimer = setInterval(tickGoalCountdown, 1000);
   }
 
+  function formatSellerSmsWhen(iso) {
+    const t = Date.parse(iso);
+    if (!Number.isFinite(t)) return '';
+    return new Date(t).toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
+  function sellerSmsHoverTitle(deal) {
+    const when = formatSellerSmsWhen(deal?.sellerSmsAt || deal?.sellerSms?.lastInboundAt);
+    if (when) return `Last seller text — ${when}`;
+    return 'Seller replied — open chat';
+  }
+
   function renderTable(deals) {
     const tbody = $('uc-tbody');
     const table = $('uc-table');
