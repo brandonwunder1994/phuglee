@@ -1470,6 +1470,7 @@
     });
     $('uc-funded-close')?.addEventListener('click', closeFundedView);
     $('uc-funded-done')?.addEventListener('click', closeFundedView);
+    $('uc-goal-restart')?.addEventListener('click', () => { restartGoal(); });
     $('uc-rehab-view-close')?.addEventListener('click', closeRehabView);
     $('uc-rehab-view-done')?.addEventListener('click', closeRehabView);
     $('uc-drawer-buyer-found')?.addEventListener('click', () => {
