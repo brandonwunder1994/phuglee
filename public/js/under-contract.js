@@ -661,16 +661,26 @@
       const mine = m.fromUser === me;
       const when = m.createdAt ? new Date(m.createdAt).toLocaleString() : '';
       const reactions = m.reactions || {};
-      const reactionHtml = TEAM_REACTIONS.map((r) => {
+      const appliedHtml = TEAM_REACTIONS.map((r) => {
         const count = reactionCount(reactions, r.key);
+        if (!count) return '';
         const mineOn = !!(reactions[r.key] && reactions[r.key][me]);
-        const countLabel = count > 0 ? `<span class="uc-react-count">${count}</span>` : '';
-        return `<button type="button" class="uc-react-btn${mineOn ? ' is-on' : ''}" data-action="team-react" data-msg-id="${esc(m.id)}" data-emoji="${esc(r.key)}" title="${esc(r.label)}" aria-label="${esc(r.label)}" aria-pressed="${mineOn ? 'true' : 'false'}">${r.emoji}${countLabel}</button>`;
+        return `<button type="button" class="uc-react-chip${mineOn ? ' is-on' : ''}" data-action="team-react" data-msg-id="${esc(m.id)}" data-emoji="${esc(r.key)}" title="${esc(r.label)}" aria-label="${esc(r.label)}" aria-pressed="${mineOn ? 'true' : 'false'}">${r.emoji}<span class="uc-react-count">${count}</span></button>`;
+      }).join('');
+      const pickerHtml = TEAM_REACTIONS.map((r) => {
+        const mineOn = !!(reactions[r.key] && reactions[r.key][me]);
+        return `<button type="button" class="uc-react-btn${mineOn ? ' is-on' : ''}" data-action="team-react" data-msg-id="${esc(m.id)}" data-emoji="${esc(r.key)}" title="${esc(r.label)}" aria-label="${esc(r.label)}" aria-pressed="${mineOn ? 'true' : 'false'}">${r.emoji}</button>`;
       }).join('');
       return `<div class="uc-bubble ${mine ? 'uc-bubble--out' : 'uc-bubble--in'}" data-team-msg-id="${esc(m.id)}">
         <div class="uc-bubble-body">${esc(m.body)}</div>
         <div class="uc-bubble-meta">${esc(teamDisplayName(m.fromUser))}${when ? ' · ' + esc(when) : ''}</div>
-        <div class="uc-react-row" role="group" aria-label="Reactions">${reactionHtml}</div>
+        <div class="uc-react-row">
+          ${appliedHtml ? `<div class="uc-react-applied" role="group" aria-label="Current reactions">${appliedHtml}</div>` : ''}
+          <div class="uc-react-menu">
+            <button type="button" class="uc-react-trigger" aria-haspopup="true" aria-expanded="false">React</button>
+            <div class="uc-react-picker" role="group" aria-label="Add reaction">${pickerHtml}</div>
+          </div>
+        </div>
       </div>`;
     }).join('');
     if (keepScroll) box.scrollTop = prevScroll;
@@ -1454,10 +1464,27 @@
     });
     $('uc-team-send')?.addEventListener('click', () => { sendTeamMessage(); });
     $('uc-team-thread')?.addEventListener('click', (ev) => {
+      const reactTrigger = ev.target.closest('.uc-react-trigger');
+      if (reactTrigger) {
+        ev.preventDefault();
+        const menu = reactTrigger.closest('.uc-react-menu');
+        if (!menu) return;
+        const open = menu.classList.toggle('is-open');
+        reactTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        document.querySelectorAll('.uc-react-menu.is-open').forEach((el) => {
+          if (el !== menu) {
+            el.classList.remove('is-open');
+            el.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
+          }
+        });
+        return;
+      }
       const btn = ev.target.closest('[data-action="team-react"]');
       if (!btn) return;
       ev.preventDefault();
       toggleTeamReaction(btn.getAttribute('data-msg-id'), btn.getAttribute('data-emoji'));
+      btn.closest('.uc-react-menu')?.classList.remove('is-open');
+      btn.closest('.uc-react-menu')?.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
     });
     $('uc-team-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {

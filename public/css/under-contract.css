@@ -1218,11 +1218,18 @@ img.uc-profile-hero {
 .uc-react-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
   margin-top: 0.4rem;
 }
 
-.uc-react-btn {
+.uc-react-applied {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.uc-react-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.15rem;
@@ -1230,22 +1237,92 @@ img.uc-profile-hero {
   background: rgba(255, 255, 255, 0.04);
   color: inherit;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   line-height: 1;
-  padding: 0.2rem 0.35rem;
+  padding: 0.18rem 0.4rem;
   border-radius: 999px;
   cursor: pointer;
-  opacity: 0.85;
+}
+
+.uc-react-chip.is-on,
+.uc-react-chip:hover {
+  background: rgba(238, 183, 70, 0.16);
+  border-color: rgba(238, 183, 70, 0.55);
+}
+
+.uc-react-menu {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.uc-react-trigger {
+  border: none;
+  background: transparent;
+  color: var(--vault-muted, #aea38f);
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.25rem;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.uc-react-trigger:hover,
+.uc-react-menu:focus-within .uc-react-trigger,
+.uc-react-menu:hover .uc-react-trigger {
+  color: var(--phuglee-gold, #eeb746);
+  opacity: 1;
+}
+
+.uc-react-picker {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 0.35rem);
+  z-index: 8;
+  display: none;
+  flex-wrap: nowrap;
+  gap: 0.2rem;
+  padding: 0.35rem;
+  border: 1px solid rgba(238, 183, 70, 0.28);
+  border-radius: 999px;
+  background: rgba(20, 18, 14, 0.96);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+}
+
+.uc-react-menu:hover .uc-react-picker,
+.uc-react-menu:focus-within .uc-react-picker,
+.uc-react-menu.is-open .uc-react-picker {
+  display: flex;
+}
+
+.uc-react-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0.28rem 0.35rem;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.9;
 }
 
 .uc-react-btn:hover {
   opacity: 1;
-  border-color: rgba(238, 183, 70, 0.45);
+  background: rgba(238, 183, 70, 0.14);
+  border-color: rgba(238, 183, 70, 0.4);
 }
 
 .uc-react-btn.is-on {
   opacity: 1;
-  background: rgba(238, 183, 70, 0.16);
+  background: rgba(238, 183, 70, 0.2);
   border-color: rgba(238, 183, 70, 0.55);
 }
 
