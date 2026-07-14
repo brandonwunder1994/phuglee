@@ -7,6 +7,7 @@ const config = require('./lib/config');
 const runtime = require('./lib/runtime');
 const { isForgeRequest, proxyToForge, checkForgeHealth } = require('./lib/forge-proxy');
 const { isAnalyzerRequest, proxyToAnalyzer, checkAnalyzerHealth } = require('./lib/analyzer-proxy');
+const { rejectUnauthorizedModule } = require('./lib/module-auth-gate');
 const { ensureForgeRunning, stopForgeProcess } = require('./lib/forge-process');
 const { ensureAnalyzerRunning, stopAnalyzerProcess } = require('./lib/analyzer-process');
 let embeddedAnalyzerModule;
@@ -327,7 +328,8 @@ async function handleRequest(req, res) {
       password: body.password,
       plan: body.plan,
       email: body.email,
-      fullName: body.fullName
+      fullName: body.fullName,
+      inviteCode: body.inviteCode
     });
     if (!registered.ok) {
       send(res, 400, JSON.stringify(registered), 'application/json');
@@ -395,11 +397,13 @@ async function handleRequest(req, res) {
   }
 
   if (isForgeRequest(pathname)) {
+    if (rejectUnauthorizedModule(req, res, 'Form Forge')) return;
     proxyToForge(req, res, pathname, url.search);
     return;
   }
 
   if (isAnalyzerRequest(pathname)) {
+    if (rejectUnauthorizedModule(req, res, 'Property Analyzer')) return;
     if (runtime.useEmbeddedAnalyzer()) {
       await getEmbeddedAnalyzer().dispatchEmbeddedAnalyzer(req, res, pathname, url.search);
       return;

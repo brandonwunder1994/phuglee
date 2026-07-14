@@ -66,7 +66,15 @@ def _resolve_raw_path(item: dict) -> Path | None:
     raw_rel = str(item.get("raw_path", "")).strip()
     if raw_rel:
         candidate = (ROOT / raw_rel).resolve()
-        if str(candidate).startswith(str(ROOT.resolve())) and candidate.exists():
+        root_resolved = ROOT.resolve()
+        allowed = str(candidate).startswith(str(root_resolved))
+        if not allowed:
+            for alias in ("data", "forms/user-filled", "forms/raw"):
+                alias_root = (ROOT / alias).resolve()
+                if str(candidate).startswith(str(alias_root)):
+                    allowed = True
+                    break
+        if allowed and candidate.exists():
             return candidate
     fallback = ROOT / "forms" / "raw" / item["state"] / f"{item['id']}.pdf"
     return fallback if fallback.exists() else None

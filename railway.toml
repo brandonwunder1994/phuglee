@@ -7,6 +7,8 @@ NODE_ENV = "production"
 # Login required. Do not set PHUGLEE_AUTH_OPEN=1 unless you intentionally want open access.
 PHUGLEE_AUTH_DISABLED = "0"
 PHUGLEE_AUTH_OPEN = "0"
+# Self-serve signup requires PHUGLEE_INVITE_CODE (set in Railway Variables).
+PHUGLEE_REGISTRATION_MODE = "invite"
 # Railway 500MB volume — cap backup/audit growth (override locally if needed)
 PDA_MAX_MILESTONE_BACKUPS = "2"
 PDA_MAX_EPHEMERAL_BACKUPS = "4"

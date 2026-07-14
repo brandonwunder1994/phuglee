@@ -23,9 +23,40 @@ export PDA_DATA_ROOT="${PDA_DATA_ROOT:-/app/pda-data}"
 # Never store user lists only inside the container filesystem — redeploys wipe that.
 export FILTER_LISTS_ROOT="${FILTER_LISTS_ROOT:-${PDA_DATA_ROOT}/filter-lists}"
 export LEADS_CATALOG_ROOT="${LEADS_CATALOG_ROOT:-${PDA_DATA_ROOT}/leads-catalog}"
-mkdir -p "${PDA_DATA_ROOT}" "${FILTER_LISTS_ROOT}" "${LEADS_CATALOG_ROOT}/contracts"
+export FORM_FORGE_DATA_ROOT="${FORM_FORGE_DATA_ROOT:-${PDA_DATA_ROOT}/form-forge}"
+export FORM_FORGE_USER_FILLED_ROOT="${FORM_FORGE_USER_FILLED_ROOT:-${PDA_DATA_ROOT}/form-forge-user-filled}"
+mkdir -p "${PDA_DATA_ROOT}" "${FILTER_LISTS_ROOT}" "${LEADS_CATALOG_ROOT}/contracts" \
+  "${FORM_FORGE_DATA_ROOT}" "${FORM_FORGE_USER_FILLED_ROOT}"
 echo "[entrypoint] Filter lists root: ${FILTER_LISTS_ROOT}"
 echo "[entrypoint] Leads catalog root: ${LEADS_CATALOG_ROOT}"
+echo "[entrypoint] Form Forge data root: ${FORM_FORGE_DATA_ROOT}"
+
+# Persist Form Forge runtime data on the Railway volume via symlink.
+# Seed from the image copy only when the volume side is empty.
+FORGE_PKG_DATA="/app/modules/form-forge/data"
+FORGE_PKG_FILLED="/app/modules/form-forge/forms/user-filled"
+if [ -d "${FORGE_PKG_DATA}" ] && [ ! -L "${FORGE_PKG_DATA}" ]; then
+  if [ -z "$(ls -A "${FORM_FORGE_DATA_ROOT}" 2>/dev/null || true)" ]; then
+    echo "[entrypoint] Seeding Form Forge data onto volume"
+    cp -a "${FORGE_PKG_DATA}/." "${FORM_FORGE_DATA_ROOT}/"
+  fi
+  rm -rf "${FORGE_PKG_DATA}"
+  ln -sfn "${FORM_FORGE_DATA_ROOT}" "${FORGE_PKG_DATA}"
+  echo "[entrypoint] Linked ${FORGE_PKG_DATA} -> ${FORM_FORGE_DATA_ROOT}"
+fi
+mkdir -p "/app/modules/form-forge/forms"
+if [ -d "${FORGE_PKG_FILLED}" ] && [ ! -L "${FORGE_PKG_FILLED}" ]; then
+  if [ -z "$(ls -A "${FORM_FORGE_USER_FILLED_ROOT}" 2>/dev/null || true)" ]; then
+    echo "[entrypoint] Seeding Form Forge user-filled onto volume"
+    cp -a "${FORGE_PKG_FILLED}/." "${FORM_FORGE_USER_FILLED_ROOT}/" 2>/dev/null || true
+  fi
+  rm -rf "${FORGE_PKG_FILLED}"
+  ln -sfn "${FORM_FORGE_USER_FILLED_ROOT}" "${FORGE_PKG_FILLED}"
+  echo "[entrypoint] Linked ${FORGE_PKG_FILLED} -> ${FORM_FORGE_USER_FILLED_ROOT}"
+elif [ ! -e "${FORGE_PKG_FILLED}" ]; then
+  ln -sfn "${FORM_FORGE_USER_FILLED_ROOT}" "${FORGE_PKG_FILLED}"
+  echo "[entrypoint] Linked ${FORGE_PKG_FILLED} -> ${FORM_FORGE_USER_FILLED_ROOT}"
+fi
 
 SEED_SESSION="/app/scripts/seed-data/distressAnalyzerSession_LATEST.json"
 LIVE_SESSION="${PDA_DATA_ROOT}/distressAnalyzerSession_LATEST.json"

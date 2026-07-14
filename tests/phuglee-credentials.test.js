@@ -58,6 +58,42 @@ describe('phuglee credentials', () => {
     assert.equal(registered.code, 'PLAN_NOT_ALLOWED');
   });
 
+  test('invite mode rejects bad invite code', () => {
+    const prevMode = process.env.PHUGLEE_REGISTRATION_MODE;
+    const prevCode = process.env.PHUGLEE_INVITE_CODE;
+    process.env.PHUGLEE_REGISTRATION_MODE = 'invite';
+    process.env.PHUGLEE_INVITE_CODE = 'test-invite-xyz';
+    try {
+      delete require.cache[require.resolve('../lib/phuglee-credentials')];
+      const creds = require('../lib/phuglee-credentials');
+      const bad = creds.registerUser({
+        username: 'invited1',
+        password: 'secret99',
+        plan: 'pro',
+        email: 'inv1@example.com',
+        fullName: 'Invited One',
+        inviteCode: 'wrong'
+      });
+      assert.equal(bad.ok, false);
+      assert.equal(bad.code, 'INVITE_INVALID');
+      const ok = creds.registerUser({
+        username: 'invited1',
+        password: 'secret99',
+        plan: 'pro',
+        email: 'inv1@example.com',
+        fullName: 'Invited One',
+        inviteCode: 'test-invite-xyz'
+      });
+      assert.equal(ok.ok, true);
+    } finally {
+      if (prevMode == null) delete process.env.PHUGLEE_REGISTRATION_MODE;
+      else process.env.PHUGLEE_REGISTRATION_MODE = prevMode;
+      if (prevCode == null) delete process.env.PHUGLEE_INVITE_CODE;
+      else process.env.PHUGLEE_INVITE_CODE = prevCode;
+      delete require.cache[require.resolve('../lib/phuglee-credentials')];
+    }
+  });
+
   test('bootstrap admin verifies env password', () => {
     const prev = process.env.PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD;
     process.env.PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD = 'bootstrap-secret';

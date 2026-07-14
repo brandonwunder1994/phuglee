@@ -127,9 +127,16 @@ def _safe_path(rel: str) -> Path | None:
     if not rel:
         return None
     full = (ROOT / rel).resolve()
-    if not str(full).startswith(str(ROOT.resolve())):
-        return None
-    return full
+    root_resolved = ROOT.resolve()
+    full_str = str(full)
+    if full_str.startswith(str(root_resolved)):
+        return full
+    # Volume-mounted data/ and forms/user-filled may resolve outside the package root.
+    for alias in ("data", "forms/user-filled"):
+        alias_root = (ROOT / alias).resolve()
+        if full_str.startswith(str(alias_root)):
+            return full
+    return None
 
 
 def _resolve_raw_pdf(item: dict) -> Path | None:

@@ -211,7 +211,8 @@
         password: data.password,
         plan: data.plan,
         email: data.email,
-        fullName: data.fullName
+        fullName: data.fullName,
+        inviteCode: data.inviteCode || ''
       })
     }).then(function (res) {
       return res.json().catch(function () { return {}; }).then(function (body) {
@@ -404,13 +405,18 @@
     if (!plan || !PLANS[plan]) {
       return Promise.resolve({ ok: false, error: 'Select a plan to continue.' });
     }
+    var inviteCode = String(data.inviteCode || '').trim();
+    if (!inviteCode) {
+      return Promise.resolve({ ok: false, error: 'Invite code is required.' });
+    }
 
     return registerServerAccount({
       username: username,
       password: password,
       plan: plan,
       email: email,
-      fullName: fullName
+      fullName: fullName,
+      inviteCode: inviteCode
     })
       .then(function (body) {
         var sessionUser = (body && body.username) || username;
@@ -549,6 +555,10 @@
                   '<div class="auth-field">' +
                     '<label for="auth-signup-username">Username</label>' +
                     '<input type="text" id="auth-signup-username" name="username" autocomplete="username" required>' +
+                  '</div>' +
+                  '<div class="auth-field">' +
+                    '<label for="auth-signup-invite">Invite code</label>' +
+                    '<input type="text" id="auth-signup-invite" name="inviteCode" autocomplete="off" spellcheck="false" required>' +
                   '</div>' +
                   '<div class="auth-field-row">' +
                     '<div class="auth-field">' +
@@ -902,6 +912,7 @@
             fullName: ($('#auth-signup-name') || {}).value,
             email: ($('#auth-signup-email') || {}).value,
             username: ($('#auth-signup-username') || {}).value,
+            inviteCode: ($('#auth-signup-invite') || {}).value,
             password: ($('#auth-signup-password') || {}).value,
             confirmPassword: ($('#auth-signup-confirm') || {}).value,
             plan: state.selectedPlan

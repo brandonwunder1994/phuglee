@@ -18,8 +18,15 @@ function register(ctx) {
 
   function serveHtmlWithAuthToken(res) {
     let html = fs.readFileSync(config.PUBLIC_INDEX, 'utf8');
-    const inject = `<script>window.__PDA_AUTH_TOKEN__=${JSON.stringify(authToken)};</script>\n`;
-    html = html.replace('</head>', inject + '</head>');
+    // Only inject when explicitly opted in (direct :3456 debugging).
+    // Shell proxy strips this and injects X-PDA-Token server-side instead.
+    const expose = ['1', 'true', 'yes'].includes(
+      String(process.env.PDA_EXPOSE_TOKEN || '').trim().toLowerCase()
+    );
+    if (expose && authToken) {
+      const inject = `<script>window.__PDA_AUTH_TOKEN__=${JSON.stringify(authToken)};</script>\n`;
+      html = html.replace('</head>', inject + '</head>');
+    }
     res.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store, no-cache, must-revalidate'
