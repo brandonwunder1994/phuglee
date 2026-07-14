@@ -184,6 +184,8 @@ function createGeminiHelpers(apiStats, usageStore) {
       }
     }
     let lastErr = 'All Gemini models failed';
+    let lastRawGoogle = '';
+    let lastHttpStatus = 0;
     const auth = geminiAuthForKey(key);
 
     for (const model of GEMINI_MODELS) {
@@ -203,14 +205,26 @@ function createGeminiHelpers(apiStats, usageStore) {
             return { ok: true, model, text };
           }
           lastErr = `Gemini ${model}: empty response`;
+          lastRawGoogle = '';
+          lastHttpStatus = 200;
           break;
         }
+        lastRawGoogle = parseGeminiErrorBody(result.body);
+        lastHttpStatus = result.status;
+        // Classify hard quota from Google's raw message BEFORE shortening (shorten strips RESOURCE_EXHAUSTED).
         lastErr = shortenGeminiError(result.status, result.body);
-        const hardQuota = isHardQuotaError(result.status, lastErr);
+        const hardQuota = isHardQuotaError(result.status, lastRawGoogle || lastErr);
         // Hard quota is not retryable — stop trying models/attempts immediately
         if (hardQuota) {
           noteGeminiResult(result.status, false, lastErr);
-          return { ok: false, error: lastErr, hardQuota: true, status: result.status };
+          return {
+            ok: false,
+            error: lastErr,
+            rawGoogleError: lastRawGoogle || undefined,
+            httpStatus: result.status,
+            hardQuota: true,
+            status: result.status
+          };
         }
         const retryable = result.status === 429 || result.status === 503 || result.status === 500;
         if (retryable && attempt < maxAttempts - 1) {
@@ -221,19 +235,28 @@ function createGeminiHelpers(apiStats, usageStore) {
           continue;
         }
         if (retryable) {
-          console.error(`[Gemini] ${model} ${result.status}, trying next model…`);
+          console.error(`[Gemini] ${model} ${result.status}:`, (lastRawGoogle || lastErr).slice(0, 220));
           break;
         }
-        console.error(`[Gemini] ${model} failed:`, lastErr.slice(0, 160));
+        console.error(`[Gemini] ${model} failed:`, (lastRawGoogle || lastErr).slice(0, 160));
         break;
       }
     }
     // Infer status from error text when loop ends without a hard-quota short-circuit
-    let failStatus = 500;
-    if (/429|rate limit/i.test(lastErr)) failStatus = 429;
-    else if (/503|overloaded/i.test(lastErr)) failStatus = 503;
+    let failStatus = lastHttpStatus || 500;
+    if (!failStatus || failStatus === 200) {
+      if (/429|rate limit/i.test(lastErr) || /429|rate limit/i.test(lastRawGoogle)) failStatus = 429;
+      else if (/503|overloaded/i.test(lastErr)) failStatus = 503;
+    }
     noteGeminiResult(failStatus, false, lastErr);
-    return { ok: false, error: lastErr, hardQuota: isHardQuotaError(failStatus, lastErr), status: failStatus };
+    return {
+      ok: false,
+      error: lastErr,
+      rawGoogleError: lastRawGoogle || undefined,
+      httpStatus: failStatus,
+      hardQuota: isHardQuotaError(failStatus, lastRawGoogle || lastErr),
+      status: failStatus
+    };
   }
 
   async function geminiGenerate(key, opts) {
@@ -405,7 +428,15 @@ function register(ctx) {
     const result = await geminiHelpers.geminiGenerate(key, { prompt: prompt || 'Reply with only: OK', maxOutputTokens: 64 });
     sendJson(res, 200, result.ok
       ? { ok: true, model: result.model, text: result.text }
-      : { ok: false, error: result.error });
+      : {
+          ok: false,
+          error: result.error,
+          rawGoogleError: result.rawGoogleError || null,
+          httpStatus: result.httpStatus || result.status || null,
+          hardQuota: !!result.hardQuota,
+          keyTail: geminiKeyStatus().geminiKeyTail,
+          keyFormat: loadGeminiKey().startsWith('AQ.') ? 'AQ' : (loadGeminiKey().startsWith('AIza') ? 'AIza' : 'other')
+        });
     return true;
   });
 }
