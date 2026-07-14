@@ -1,0 +1,18 @@
+{
+  "aoc": {
+    "templateId": "94ebbd8054c34148afcc91f8ffe133567ff9d4cc",
+    "name": "AOC"
+  },
+  "jv": {
+    "templateId": "539369380bcc40bd9362f4c49222023510330af1",
+    "name": "JV Agreement"
+  },
+  "amendment": {
+    "templateId": "77a037b041c340c2b336023247c3a9719b44a792",
+    "name": "Amendment to Purchase Agreement"
+  },
+  "cash": {
+    "templateId": "18c85530e2df484cb28f80666c78bd4f7af10bd5",
+    "name": "Cash Purchase Agreement"
+  }
+}

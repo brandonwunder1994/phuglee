@@ -10,8 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
-  <link rel="stylesheet" href="/css/vault.css?v=12">
-  <link rel="stylesheet" href="/css/under-contract.css?v=15">
+  <link rel="stylesheet" href="/css/vault.css?v=15">
+  <link rel="stylesheet" href="/css/under-contract.css?v=16">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -208,6 +208,7 @@
       <div class="uc-drawer-head-actions">
         <button type="button" id="uc-drawer-buyer-found" class="phuglee-btn phuglee-btn-secondary">Buyer Found</button>
         <button type="button" id="uc-drawer-send-jv" class="phuglee-btn phuglee-btn-secondary">Send JV</button>
+        <button type="button" id="uc-drawer-amendment" class="phuglee-btn phuglee-btn-secondary">Amendment</button>
         <button type="button" id="uc-drawer-close" class="phuglee-btn phuglee-btn-ghost">Close</button>
       </div>
     </div>
@@ -253,8 +254,9 @@
         <div class="uc-docs-head">
           <div>
             <h3>Documents</h3>
-            <p class="uc-docs-meta">Purchase contract, addendums, JV agreements</p>
+            <p class="uc-docs-meta">Send via SignNow · signed copies land here automatically</p>
           </div>
+          <button type="button" id="uc-docs-refresh-sn" class="phuglee-btn phuglee-btn-ghost">Refresh signed</button>
         </div>
         <div id="uc-docs-list" class="uc-docs-list"></div>
         <div id="uc-doc-viewer" class="uc-doc-viewer" hidden>
@@ -267,22 +269,18 @@
           </div>
           <iframe id="uc-doc-frame" class="uc-doc-frame" title="Document preview"></iframe>
         </div>
-        <div class="uc-docs-upload">
+        <div class="uc-docs-send">
           <label class="vault-field uc-docs-kind">
-            <span class="vault-field-label">Type</span>
+            <span class="vault-field-label">Document type</span>
             <select id="uc-doc-kind" class="phuglee-select">
-              <option value="purchase_contract">Purchase contract</option>
-              <option value="addendum">Addendum</option>
+              <option value="aoc">AOC (assignment)</option>
               <option value="jv">JV agreement</option>
-              <option value="other">Other</option>
+              <option value="amendment">Amendment</option>
             </select>
           </label>
-          <label class="vault-field uc-docs-file">
-            <span class="vault-field-label">Upload PDF</span>
-            <input type="file" id="uc-doc-file" class="phuglee-input" accept=".pdf,application/pdf,image/*">
-          </label>
-          <button type="button" id="uc-doc-upload" class="phuglee-btn phuglee-btn-secondary">Add document</button>
+          <button type="button" id="uc-doc-send" class="phuglee-btn phuglee-btn-primary">Send Document</button>
         </div>
+        <p id="uc-docs-pending" class="uc-docs-pending" hidden></p>
       </section>
       <section class="uc-convo" aria-label="SMS conversation">
         <div class="uc-convo-head">
@@ -376,6 +374,37 @@
     </form>
   </dialog>
 
+  <dialog id="uc-amendment-dialog" class="uc-dialog">
+    <form method="dialog" id="uc-amendment-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-amendment-title">Send Amendment</h3>
+        <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <input type="hidden" id="uc-amendment-deal-id" value="">
+      <p class="uc-jv-lead">Sends the SignNow Amendment to Purchase Agreement (Buyer = Wunderhaus, Seller signs).</p>
+      <label class="vault-field">
+        <span class="vault-field-label">Amendment terms</span>
+        <textarea id="uc-amendment-terms" class="phuglee-textarea" rows="4" required placeholder="e.g. Extend closing 7 days…"></textarea>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Original agreement date</span>
+        <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="MM/DD/YYYY" required>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Seller name</span>
+        <input type="text" id="uc-amendment-seller-name" class="phuglee-input" required>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Seller email</span>
+        <input type="email" id="uc-amendment-seller-email" class="phuglee-input" required>
+      </label>
+      <div class="uc-edit-actions">
+        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Send Amendment</button>
+        <button type="button" id="uc-amendment-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="uc-release-dialog" class="uc-dialog uc-dialog--warn">
     <form method="dialog" id="uc-release-form" class="uc-edit-form">
       <div class="uc-dialog-head">
@@ -415,6 +444,6 @@
   <script src="/js/settings-menu.js?v=5" defer></script>
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=18" defer></script>
+  <script src="/js/under-contract.js?v=19" defer></script>
 </body>
 </html>

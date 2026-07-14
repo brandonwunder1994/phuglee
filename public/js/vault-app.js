@@ -170,7 +170,7 @@
     const alt = lead ? (lead.address || 'Property') : String(leadOrAlt || 'Property');
     let src = normalizeImageryUrl(url);
     const fallback = lead ? liveSvUrlForLead(lead) : '';
-    // Prefer live proxy immediately when we know cache paths often 404
+    // Prefer live Street View proxy — cached paths often 404 as a black tile
     if (src.includes('/cached-imagery/') && fallback) {
       const sep = src.includes('?') ? '&' : '?';
       src = `${src}${sep}address=${encodeURIComponent([lead.address, lead.city, lead.state].filter(Boolean).join(', '))}`;
@@ -178,8 +178,8 @@
     if (!src && !fallback) {
       return '<span class="vault-thumb vault-thumb--empty" aria-hidden="true"></span>';
     }
-    const initial = src || fallback;
-    const dataFb = fallback && fallback !== initial ? ` data-fallback-src="${esc(fallback)}"` : '';
+    const initial = fallback || src;
+    const dataFb = src && src !== initial ? ` data-fallback-src="${esc(src)}"` : (fallback && fallback !== initial ? ` data-fallback-src="${esc(fallback)}"` : '');
     return `<img class="vault-thumb" src="${esc(initial)}" alt="${esc(alt)}" loading="lazy" decoding="async"${dataFb}>`;
   }
 

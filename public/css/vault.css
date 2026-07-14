@@ -1011,7 +1011,15 @@
   position: relative;
   margin: 0 -1rem 0.85rem;
   aspect-ratio: 16 / 10;
-  background: var(--phuglee-black);
+  background:
+    linear-gradient(160deg, rgba(42, 38, 34, 0.92), rgba(28, 26, 24, 0.98)),
+    repeating-linear-gradient(
+      -12deg,
+      transparent,
+      transparent 11px,
+      rgba(255, 255, 255, 0.015) 11px,
+      rgba(255, 255, 255, 0.015) 12px
+    );
   overflow: hidden;
   border-bottom: 1px solid var(--vault-border);
 }
@@ -1026,6 +1034,17 @@
   text-align: center;
   color: var(--phuglee-stone);
   font-size: 0.8rem;
+}
+
+.vault-hero-img.is-broken,
+.vault-hero-media.is-broken {
+  background: rgba(61, 55, 48, 0.55);
+}
+
+.vault-thumb.is-broken {
+  object-fit: none;
+  background:
+    linear-gradient(145deg, rgba(55, 50, 45, 0.9), rgba(35, 32, 29, 0.95));
 }
 
 .vault-hero-hint {

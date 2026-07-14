@@ -12,6 +12,8 @@
   const DOC_LABELS = {
     purchase_contract: 'Purchase contract',
     addendum: 'Addendum',
+    amendment: 'Amendment',
+    aoc: 'AOC',
     jv: 'JV agreement',
     other: 'Other'
   };
@@ -177,6 +179,7 @@
             <div class="uc-property-quick">
               <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
               <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
+              <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
             </div>
           </div>
         </td>
@@ -336,6 +339,7 @@
 
     fillRehabForm(deal.rehabInfo || {});
     renderDocuments(deal.documents || []);
+    renderDocsPending(deal);
     closeDocViewer();
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
     $('uc-sms-input').value = '';
@@ -424,14 +428,15 @@
     const box = $('uc-docs-list');
     if (!box) return;
     if (!docs.length) {
-      box.innerHTML = '<p class="uc-docs-empty">No documents yet. Sync from GHL pulls the signed PSA; upload addendums or JV PDFs below.</p>';
+      box.innerHTML = '<p class="uc-docs-empty">No documents yet. Pick a type below and click Send Document — signed PDFs return here automatically.</p>';
       return;
     }
     box.innerHTML = docs.map((d) => {
       const kind = DOC_LABELS[d.kind] || d.label || d.kind || 'Document';
+      const src = d.source === 'signnow' ? ' · SignNow' : (d.source === 'ghl' ? '' : '');
       return `<div class="uc-doc-row" data-doc-id="${esc(d.id)}">
         <div class="uc-doc-row-main">
-          <span class="uc-doc-kind">${esc(kind)}</span>
+          <span class="uc-doc-kind">${esc(kind)}${esc(src)}</span>
         </div>
         <div class="uc-doc-row-actions">
           <button type="button" class="phuglee-btn phuglee-btn-secondary" data-doc-action="view">View</button>
@@ -439,6 +444,19 @@
         </div>
       </div>`;
     }).join('');
+  }
+
+  function renderDocsPending(deal) {
+    const el = $('uc-docs-pending');
+    if (!el) return;
+    const pending = Array.isArray(deal?.signNowPending) ? deal.signNowPending : [];
+    if (!pending.length) {
+      el.hidden = true;
+      el.textContent = '';
+      return;
+    }
+    el.hidden = false;
+    el.textContent = `${pending.length} SignNow package${pending.length === 1 ? '' : 's'} awaiting signatures — click Refresh signed after they finish.`;
   }
 
   function closeDocViewer() {
@@ -461,47 +479,43 @@
     viewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  async function uploadDocument() {
+  async function sendDocumentFromPanel() {
     const dealId = state.activeDealId;
     if (!dealId) return;
-    const fileInput = $('uc-doc-file');
-    const kind = $('uc-doc-kind')?.value || 'other';
-    const file = fileInput?.files?.[0];
-    if (!file) {
-      showToast('Choose a PDF first');
+    const kind = $('uc-doc-kind')?.value || 'aoc';
+    if (kind === 'amendment') {
+      if (state.profile) openAmendment(state.profile);
       return;
     }
-    if (file.size > 18 * 1024 * 1024) {
-      showToast('File too large (max 18MB)');
+    if (kind === 'aoc') {
+      if (state.profile) openBuyerFound(state.profile);
       return;
     }
-    const btn = $('uc-doc-upload');
+    if (kind === 'jv') {
+      if (state.profile) openSendJv(state.profile);
+      return;
+    }
+  }
+
+  async function refreshSignedDocuments() {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    const btn = $('uc-docs-refresh-sn');
     if (btn) btn.disabled = true;
     try {
-      const contentBase64 = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result || ''));
-        reader.onerror = () => reject(new Error('Could not read file'));
-        reader.readAsDataURL(file);
-      });
-      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/documents`, {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/sync-signnow`, {
         method: 'POST',
-        body: JSON.stringify({
-          kind,
-          name: file.name,
-          mimeType: file.type || 'application/pdf',
-          contentBase64
-        })
+        body: '{}'
       });
-      if (fileInput) fileInput.value = '';
+      const n = data.ingested || 0;
+      showToast(n ? `Pulled ${n} signed document${n === 1 ? '' : 's'}` : 'No newly signed documents yet');
       if (data.deal) {
         state.profile = data.deal;
         renderDocuments(data.deal.documents || []);
+        renderDocsPending(data.deal);
       }
-      showToast('Document added');
-      if (data.document) openDocViewer(data.document);
     } catch (err) {
-      showToast(err.message || 'Upload failed');
+      showToast(err.message || 'SignNow refresh failed');
     } finally {
       if (btn) btn.disabled = false;
     }
@@ -583,6 +597,16 @@
     $('uc-jv-dialog').showModal();
   }
 
+  function openAmendment(deal) {
+    $('uc-amendment-deal-id').value = deal.dealId;
+    $('uc-amendment-title').textContent = deal.address ? `Amendment — ${deal.address}` : 'Send Amendment';
+    $('uc-amendment-terms').value = '';
+    $('uc-amendment-orig-date').value = deal.originalAgreementDate || deal.agreementDate || '';
+    $('uc-amendment-seller-name').value = deal.ownerName || deal.sellerNames || '';
+    $('uc-amendment-seller-email').value = deal.ownerEmail || deal.email || '';
+    $('uc-amendment-dialog').showModal();
+  }
+
   async function submitBuyerFound(ev) {
     ev.preventDefault();
     const id = $('uc-buyer-deal-id').value;
@@ -602,7 +626,7 @@
         body: JSON.stringify(body)
       });
       $('uc-buyer-dialog').close();
-      showToast(data.aoc?.message || 'AOC SignNow pending template');
+      showToast(data.aoc?.message || 'AOC sent via SignNow');
       await loadDeals();
       if (state.activeDealId === id && data.deal) {
         renderProfile(data.deal, state.contact);
@@ -631,13 +655,42 @@
         body: JSON.stringify(body)
       });
       $('uc-jv-dialog').close();
-      showToast(data.jv?.message || 'JV confirmed for Brandon + Brad');
+      showToast(data.jv?.message || 'JV sent via SignNow');
       await loadDeals();
       if (state.activeDealId === id && data.deal) {
         renderProfile(data.deal, state.contact);
       }
     } catch (err) {
       showToast(err.message || 'Send JV failed');
+    }
+  }
+
+  async function submitAmendment(ev) {
+    ev.preventDefault();
+    const id = $('uc-amendment-deal-id').value;
+    const body = {
+      amendmentTerms: $('uc-amendment-terms').value.trim(),
+      originalAgreementDate: $('uc-amendment-orig-date').value.trim(),
+      sellerName: $('uc-amendment-seller-name').value.trim(),
+      sellerEmail: $('uc-amendment-seller-email').value.trim(),
+      sellers: [{
+        name: $('uc-amendment-seller-name').value.trim(),
+        email: $('uc-amendment-seller-email').value.trim()
+      }]
+    };
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/send-amendment`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      $('uc-amendment-dialog').close();
+      showToast(data.amendment?.message || 'Amendment sent via SignNow');
+      await loadDeals();
+      if (state.activeDealId === id && data.deal) {
+        renderProfile(data.deal, state.contact);
+      }
+    } catch (err) {
+      showToast(err.message || 'Send Amendment failed');
     }
   }
 
@@ -810,10 +863,13 @@
   function bind() {
     $('uc-buyer-form')?.addEventListener('submit', submitBuyerFound);
     $('uc-jv-form')?.addEventListener('submit', submitSendJv);
+    $('uc-amendment-form')?.addEventListener('submit', submitAmendment);
     $('uc-buyer-cancel')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
     $('uc-buyer-close')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
     $('uc-jv-cancel')?.addEventListener('click', () => $('uc-jv-dialog')?.close());
     $('uc-jv-close')?.addEventListener('click', () => $('uc-jv-dialog')?.close());
+    $('uc-amendment-cancel')?.addEventListener('click', () => $('uc-amendment-dialog')?.close());
+    $('uc-amendment-close')?.addEventListener('click', () => $('uc-amendment-dialog')?.close());
     $('uc-release-form')?.addEventListener('submit', submitReleaseConfirm);
     $('uc-release-confirm-input')?.addEventListener('input', onReleaseConfirmInput);
     $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
@@ -826,6 +882,9 @@
     });
     $('uc-drawer-send-jv')?.addEventListener('click', () => {
       if (state.profile) openSendJv(state.profile);
+    });
+    $('uc-drawer-amendment')?.addEventListener('click', () => {
+      if (state.profile) openAmendment(state.profile);
     });
     $('uc-sync-ghl')?.addEventListener('click', () => { syncGhl(); });
     $('uc-edit-form')?.addEventListener('submit', saveEdit);
@@ -841,7 +900,8 @@
         sendSms();
       }
     });
-    $('uc-doc-upload')?.addEventListener('click', () => { uploadDocument(); });
+    $('uc-doc-send')?.addEventListener('click', () => { sendDocumentFromPanel(); });
+    $('uc-docs-refresh-sn')?.addEventListener('click', () => { refreshSignedDocuments(); });
     $('uc-doc-close-viewer')?.addEventListener('click', closeDocViewer);
     $('uc-docs-list')?.addEventListener('click', (ev) => {
       const btn = ev.target.closest('[data-doc-action]');
@@ -857,6 +917,7 @@
       if ($('uc-release-dialog')?.open) return;
       if ($('uc-buyer-dialog')?.open) return;
       if ($('uc-jv-dialog')?.open) return;
+      if ($('uc-amendment-dialog')?.open) return;
       if ($('uc-edit-dialog')?.open) return;
       closeProfile();
     });
@@ -889,6 +950,7 @@
       if (action === 'edit') openEdit(deal);
       if (action === 'buyer-found') openBuyerFound(deal);
       if (action === 'send-jv') openSendJv(deal);
+      if (action === 'amendment') openAmendment(deal);
       if (action === 'view-rehab') openRehabView(deal);
       if (action === 'release' && isAdmin()) releaseDeal(deal.dealId, deal.address);
     });
