@@ -92,9 +92,9 @@
 
   function leadTypeLabel(type) {
     const key = String(type || '').toLowerCase().replace(/\s+/g, '_');
-    if (key === 'distressed') return 'Distressed Code Violations';
-    if (key === 'well_maintained' || key === 'wellmaintained') return 'Code Violations';
-    if (key === 'land') return 'Land Code Violations';
+    if (key === 'distressed') return "Distressed CV's";
+    if (key === 'well_maintained' || key === 'wellmaintained') return "CV's";
+    if (key === 'land') return "Land CV's";
     if (key === 'all') return 'All';
     const s = String(type || '').replace(/_/g, ' ');
     return s.replace(/\b\w/g, (c) => c.toUpperCase());
