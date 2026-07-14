@@ -455,10 +455,18 @@
       }
       renderImportFileResults(data.fileResults);
       if (resultEl) {
-        resultEl.classList.add('is-ok');
-        resultEl.textContent =
-          `Imported ${data.newCount} new · ${data.duplicateCount} duplicates skipped` +
+        const results = Array.isArray(data.fileResults) ? data.fileResults : [];
+        const okFiles = results.filter((f) => f.ok).length;
+        const failFiles = results.filter((f) => !f.ok).length;
+        const fileCount = Number(data.fileCount) || results.length || files.length;
+        const summary =
+          `${fileCount} file${fileCount === 1 ? '' : 's'} received` +
+          (failFiles ? ` · ${okFiles} ok · ${failFiles} failed` : '') +
+          ` · ${data.newCount} new · ${data.duplicateCount} duplicates skipped` +
           (data.watermark?.pickUpDate ? ` · pick up from ${data.watermark.pickUpDate}` : '');
+        resultEl.classList.toggle('is-error', failFiles > 0);
+        resultEl.classList.toggle('is-ok', failFiles === 0);
+        resultEl.textContent = summary;
       }
       await refresh();
     } catch (err) {

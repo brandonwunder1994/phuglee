@@ -92,6 +92,34 @@ test('parseMultipart accumulates multiple file parts with same name', () => {
   assert.deepEqual(list[1].data, b);
 });
 
+test('parseMultipart accepts quoted boundary and PDF bytes containing boundary text', () => {
+  const { collectUploadFiles } = require('../lib/multipart');
+  const boundary = '----WebKitFormBoundary7MA4YWxkTrZu0gW';
+  const evil = Buffer.concat([
+    Buffer.from('%PDF-1.4'),
+    Buffer.from(`--${boundary}`),
+    Buffer.from('trailer')
+  ]);
+  const b = Buffer.from('%PDF-ok-b');
+  const c = Buffer.from('%PDF-ok-c');
+  const body = Buffer.concat([
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="files"; filename="evil.pdf"\r\nContent-Type: application/pdf\r\n\r\n`),
+    evil,
+    Buffer.from(`\r\n--${boundary}\r\nContent-Disposition: form-data; name="files"; filename="b.pdf"\r\nContent-Type: application/pdf\r\n\r\n`),
+    b,
+    Buffer.from(`\r\n--${boundary}\r\nContent-Disposition: form-data; name="files"; filename="c.pdf"\r\nContent-Type: application/pdf\r\n\r\n`),
+    c,
+    Buffer.from(`\r\n--${boundary}--\r\n`)
+  ]);
+  const quoted = parseMultipart(body, `multipart/form-data; boundary="${boundary}"`);
+  const list = collectUploadFiles(quoted.files);
+  assert.equal(list.length, 3);
+  assert.equal(list[0].filename, 'evil.pdf');
+  assert.deepEqual(list[0].data, evil);
+  assert.deepEqual(list[1].data, b);
+  assert.deepEqual(list[2].data, c);
+});
+
 test('parseMultipart throws when boundary missing', () => {
   assert.throws(
     () => parseMultipart(Buffer.from('data'), 'multipart/form-data'),
