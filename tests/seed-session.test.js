@@ -11,7 +11,9 @@ const SESSION_FILE = 'distressAnalyzerSession_LATEST.json';
 
 test('sessionResultCount reads analyzed property count', () => {
   const seed = JSON.parse(fs.readFileSync(SEED, 'utf8'));
-  assert.ok(sessionResultCount(seed) > 10000);
+  assert.ok(sessionResultCount(seed) >= 1);
+  assert.ok(sessionResultCount(seed) < 50, 'seed must stay a synthetic stub (<50), not a real lead dump');
+  assert.match(String(seed.restoreNote || ''), /SYNTHETIC/i);
 });
 
 test('ensureSeededSession seeds admin and vault when global is an empty stub', () => {
@@ -37,9 +39,10 @@ test('ensureSeededSession seeds admin and vault when global is an empty stub', (
   const admin = JSON.parse(fs.readFileSync(adminPath, 'utf8'));
   const vault = JSON.parse(fs.readFileSync(vaultPath, 'utf8'));
   const global = JSON.parse(fs.readFileSync(globalPath, 'utf8'));
+  const seedCount = sessionResultCount(JSON.parse(fs.readFileSync(SEED, 'utf8')));
 
-  assert.ok(sessionResultCount(admin) > 10000);
-  assert.ok(sessionResultCount(vault) > 10000);
+  assert.equal(sessionResultCount(admin), seedCount);
+  assert.equal(sessionResultCount(vault), seedCount);
   assert.equal(sessionResultCount(global), 0);
 
   fs.rmSync(tmp, { recursive: true, force: true });

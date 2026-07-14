@@ -63,7 +63,12 @@ scripts/*.xlsx
 scripts/prod-session-backup.json
 scripts/_cleaned-session-prod.json
 scripts/cheyenne-clear-work*.json
+# Seed backups / accidental real dumps (canonical seed in git must stay synthetic)
 scripts/seed-data/distressAnalyzerSession_LATEST.json.bak*
+scripts/seed-data/*.bak*
+scripts/seed-data/*-real.json
+scripts/seed-data/*-pii.json
+scripts/seed-data/*-prod.json
 
 # Superpowers / agent worktrees
 .worktrees/
