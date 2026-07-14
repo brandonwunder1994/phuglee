@@ -78,8 +78,59 @@
       }
     };
 
+    let _pendingRefreshTimer = null;
+    let _pendingRefreshInFlight = false;
+
+    /** Pull pendingUnscanned from the logged-in server session (admin ≠ anonymous). */
+    R.refreshServerScanPending = async function refreshServerScanPending(opts = {}) {
+      if (!USE_PROXY || typeof apiFetch !== 'function') return null;
+      if (_pendingRefreshInFlight && !opts.force) return state._serverPendingUnscanned;
+      _pendingRefreshInFlight = true;
+      try {
+        const res = await apiFetch('/api/session-summary?lite=1', { cache: 'no-store' });
+        if (!res.ok) return null;
+        const summary = await res.json();
+        if (!summary?.ok) return null;
+        const pending = Math.max(0, Number(summary.pendingUnscanned) || 0);
+        state._serverPendingUnscanned = pending;
+        if (pending > 0) state._pendingUnscanned = Math.max(Number(state._pendingUnscanned) || 0, pending);
+        if (summary.tierCounts && typeof normalizeTierCountsForDisplay === 'function') {
+          state._tierCountsFromServer = normalizeTierCountsForDisplay(
+            summary.tierCounts,
+            summary.results || 0
+          );
+        }
+        return pending;
+      } catch (e) {
+        console.warn('[scan-ready] pending refresh failed', e);
+        return null;
+      } finally {
+        _pendingRefreshInFlight = false;
+      }
+    };
+
+    R.scheduleRefreshServerScanPending = function scheduleRefreshServerScanPending() {
+      if (!USE_PROXY) return;
+      if (_pendingRefreshTimer) return;
+      _pendingRefreshTimer = setTimeout(async () => {
+        _pendingRefreshTimer = null;
+        const before = Number(state._serverPendingUnscanned) || 0;
+        const pending = await refreshServerScanPending();
+        if (pending != null && pending !== before) {
+          updateScanReadyUi();
+          updateStartButton?.();
+        } else if (pending > 0) {
+          updateScanReadyUi();
+        }
+      }, 50);
+    };
+
     R.updateScanReadyUi = function updateScanReadyUi() {
       if (scanReadySection) scanReadySection.hidden = false;
+
+      // Always re-check server pending — browser records often look "fully scanned"
+      // while forceRescan queue still exists on the logged-in user session.
+      if (USE_PROXY) scheduleRefreshServerScanPending();
 
       const hasRecords = (state.records || []).length > 0;
       const expectedTotal = Math.max(

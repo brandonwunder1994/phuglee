@@ -1872,18 +1872,8 @@ R.loadSessionRecords = async function loadSessionRecords(opts = {}) {
     // Merge with any records already present (avoid wiping mid-import)
     if (mode === 'unscanned' || mode === 'pending') {
       // For scan queue: use unscanned set as authoritative pending list.
-      // Keep already-scanned rows out of records so Start Scan only walks pending.
-      const byKey = new Map();
-      for (const r of collected) {
-        const k = recordKey(r);
-        if (k) byKey.set(k, r);
-      }
-      // Preserve any local records that might be mid-session new imports
-      for (const r of state.records || []) {
-        const k = recordKey(r);
-        if (k && !byKey.has(k)) byKey.set(k, r);
-      }
-      state.records = [...byKey.values()];
+      // Do NOT merge stale full-session records — they hide forceRescan and zero the queue UI.
+      state.records = collected;
     } else if (!state.records.length) {
       state.records = collected;
     } else {
@@ -1937,11 +1927,18 @@ R.loadSessionRecords = async function loadSessionRecords(opts = {}) {
 };
 
 R.ensureScanRecordsLoaded = async function ensureScanRecordsLoaded() {
-  if ((state.records || []).length > 0) return true;
+  const serverPending = Number(state._serverPendingUnscanned) || 0;
+  const hasForce = (state.records || []).some((r) => r?.forceRescan);
+  // Stale full-session records (already scanned) look non-empty but block Start Scan.
+  // When the server still has a forceRescan queue, always reload mode=unscanned.
+  if ((state.records || []).length > 0 && !(serverPending > 0 && !hasForce)) {
+    return true;
+  }
   if (!USE_PROXY) return false;
-  const pending = Number(state._pendingUnscanned) || Number(state._expectedRecords) || 0;
-  if (!pending && state._recordsLoadComplete) return false;
+  const pending = serverPending || Number(state._pendingUnscanned) || Number(state._expectedRecords) || 0;
+  if (!pending && state._recordsLoadComplete && !(serverPending > 0)) return false;
   setSessionRestoreBanner?.('Loading leads for scan…');
+  state.records = [];
   const res = await loadSessionRecords({ mode: 'unscanned' });
   setSessionRestoreBanner?.('');
   return !!(res?.ok && (state.records || []).length);
@@ -2355,19 +2352,14 @@ R.loadSession = async function loadSession() {
       const pendingHint = Number(summary.pendingUnscanned) || 0;
       if (pendingHint > 0) {
         // Keep _pendingUnscanned from applySessionSummary; Start Scan uses ensureScanRecordsLoaded.
-        const loadRecordsIdle = () => {
-          loadSessionRecords({ mode: 'unscanned' })
-            .then(() => {
-              updateScanReadyUi?.();
-              updateStartButton?.();
-            })
-            .catch((e) => console.warn('Deferred unscanned records load failed', e));
-        };
-        if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(loadRecordsIdle, { timeout: 2000 });
-        } else {
-          setTimeout(loadRecordsIdle, 0);
+        // Load immediately — idle defer left Start Scan disabled behind stale full records.
+        try {
+          await loadSessionRecords({ mode: 'unscanned' });
+        } catch (e) {
+          console.warn('Unscanned records load failed', e);
         }
+        updateScanReadyUi?.();
+        updateStartButton?.();
       } else {
         state._pendingUnscanned = 0;
         state._expectedRecords = Number(summary.records) || 0;

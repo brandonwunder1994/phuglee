@@ -2078,7 +2078,8 @@ R.getStartBlockReason = function getStartBlockReason() {
   if (USE_PROXY && serverOnline === false && serverOfflineStreak >= 2) {
     return 'Server not responding — double-click "Property Distress Analyzer" on your desktop, wait a few seconds, then refresh.';
   }
-  if (!state.records.length) {
+  const serverPending = Number(state._serverPendingUnscanned) || 0;
+  if (!state.records.length && !(USE_PROXY && serverPending > 0)) {
     return 'Import a spreadsheet in Ready to scan first (CSV/Excel).';
   }
   if (!serverConfig.hasMapsKey) return 'Add MAPS_API_KEY to .env and restart the server.';

@@ -1222,19 +1222,21 @@ R.startScanAnalysis = async function startScanAnalysis() {
       updateStartButton();
     }
     // Large sessions only load results by default — pull unscanned records before scan
-    if (USE_PROXY && !(state.records || []).length) {
+    if (USE_PROXY) {
       const hint = $('startBlockHint');
       if (hint) {
         hint.textContent = 'Loading leads for scan…';
         hint.hidden = false;
       }
-      const loaded = await ensureScanRecordsLoaded?.();
+      const loaded = typeof ensureScanRecordsLoaded === 'function'
+        ? await ensureScanRecordsLoaded()
+        : true;
       updateScanReadyUi?.();
       updateStartButton();
       if (!loaded || !(state.records || []).length) {
         alert(
           'Could not load leads into the scan queue.\n\n' +
-          'Hard-refresh (Ctrl+Shift+R). If you are not on the admin account, switch to admin — the New Analyzer Leads were imported there.'
+          'Hard-refresh (Ctrl+Shift+R). Make sure you are logged in as admin.'
         );
         updateStartButton();
         updateScanReadyUi?.();
