@@ -117,12 +117,32 @@
     return data;
   }
 
+  function photoUrl(d) {
+    return d?.thumbUrl || d?.streetViewUrl || d?.satelliteUrl || '';
+  }
+
   function thumbHtml(d, sizeClass) {
-    const url = d.thumbUrl || d.streetViewUrl || d.satelliteUrl || '';
+    const url = photoUrl(d);
     if (url) {
-      return `<img class="${sizeClass}" src="${esc(url)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'${sizeClass} uc-thumb--empty',textContent:'SV'}))">`;
+      return `<img class="${sizeClass}" src="${esc(url)}" alt="${esc(d.address || 'Property')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'${sizeClass} uc-thumb--empty',textContent:'SV'}))">`;
     }
     return `<div class="${sizeClass} uc-thumb--empty" aria-hidden="true">SV</div>`;
+  }
+
+  function openPhotoLightbox(url, alt) {
+    const box = $('uc-lightbox');
+    const img = $('uc-lightbox-img');
+    if (!box || !img || !url) return;
+    img.src = url;
+    img.alt = alt || 'Property photo';
+    box.hidden = false;
+  }
+
+  function closePhotoLightbox() {
+    const box = $('uc-lightbox');
+    const img = $('uc-lightbox-img');
+    if (box) box.hidden = true;
+    if (img) img.removeAttribute('src');
   }
 
   function renderKpis(totals) {
@@ -169,13 +189,17 @@
       return `<tr data-deal-id="${esc(d.dealId)}" class="uc-row-clickable">
         <td class="uc-property-cell">
           <div class="uc-property-block">
-            <button type="button" class="uc-property-btn" data-action="open">
-              ${thumbHtml(d, 'uc-thumb')}
-              <span class="uc-property-text">
-                <span class="uc-addr">${esc(street)}</span>
-                <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
-              </span>
-            </button>
+            <div class="uc-property-main">
+              <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
+                ${thumbHtml(d, 'uc-thumb')}
+              </button>
+              <button type="button" class="uc-property-btn" data-action="open">
+                <span class="uc-property-text">
+                  <span class="uc-addr">${esc(street)}</span>
+                  <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+                </span>
+              </button>
+            </div>
             <div class="uc-property-quick">
               <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
               <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
@@ -197,6 +221,7 @@
             <span class="uc-rehab-link">Click Here</span>
           </button>
         </td>
+        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerFound || '')}">${esc(d.buyerFoundLabel || '—')}</span></td>
         <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerEmdSubmitted || '')}">${esc(d.buyerEmdLabel || '—')}</span></td>
         <td class="uc-money">${esc(money(d.assignmentFee))}</td>
         <td class="uc-money">${esc(money(d.tcPay))}</td>
@@ -308,7 +333,11 @@
     document.body.classList.add('uc-drawer-open');
 
     $('uc-drawer-title').textContent = deal.address || 'Contract profile';
-    $('uc-drawer-hero').innerHTML = thumbHtml(deal, 'uc-profile-hero') +
+    const url = photoUrl(deal);
+    const heroPhoto = url
+      ? `<button type="button" class="uc-profile-hero-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">${thumbHtml(deal, 'uc-profile-hero')}</button>`
+      : thumbHtml(deal, 'uc-profile-hero');
+    $('uc-drawer-hero').innerHTML = heroPhoto +
       `<div class="uc-profile-hero-copy">
         <p class="uc-stage" data-stage="${esc(deal.stage)}">${esc(STAGE_LABELS[deal.stage] || deal.stage)}</p>
         <h2>${esc(deal.address || '—')}</h2>
@@ -324,6 +353,7 @@
       ['TC Pay', money(deal.tcPay)],
       ['Acq Pay', money(deal.acqPay)],
       ['Dispo Pay', money(deal.dispoPay)],
+      ['Buyer found?', deal.buyerFoundLabel || '—'],
       ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
       ['Closing', deal.closingDate || contact?.closingDate || '—'],
       ['EMD Submitted?', deal.sellerEmdLabel || '—'],
@@ -977,8 +1007,24 @@
       if (btn.dataset.docAction === 'view' && doc) openDocViewer(doc);
       if (btn.dataset.docAction === 'delete') deleteDocument(docId);
     });
+    $('uc-lightbox-close')?.addEventListener('click', closePhotoLightbox);
+    $('uc-lightbox')?.addEventListener('click', (e) => {
+      if (e.target.id === 'uc-lightbox') closePhotoLightbox();
+    });
+    $('uc-drawer-hero')?.addEventListener('click', (ev) => {
+      const zoom = ev.target.closest('[data-action="zoom-photo"]');
+      if (!zoom || !state.profile) return;
+      ev.preventDefault();
+      const url = photoUrl(state.profile);
+      if (url) openPhotoLightbox(url, state.profile.address || 'Property');
+    });
     document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape' || !state.activeDealId) return;
+      if (e.key !== 'Escape') return;
+      if ($('uc-lightbox') && !$('uc-lightbox').hidden) {
+        closePhotoLightbox();
+        return;
+      }
+      if (!state.activeDealId) return;
       if ($('uc-release-dialog')?.open) return;
       if ($('uc-buyer-dialog')?.open) return;
       if ($('uc-jv-dialog')?.open) return;
@@ -1011,6 +1057,14 @@
       const deal = state.deals.find((d) => d.dealId === dealId);
       if (!deal) return;
       const action = btn?.dataset.action || 'open';
+      if (action === 'zoom-photo') {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const url = photoUrl(deal);
+        if (url) openPhotoLightbox(url, deal.address || 'Property');
+        else showToast('No photo available for this deal');
+        return;
+      }
       if (action === 'open') openProfile(dealId);
       if (action === 'edit') openEdit(deal);
       if (action === 'buyer-found') openBuyerFound(deal);

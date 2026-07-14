@@ -429,12 +429,37 @@
   align-content: start;
 }
 
+.uc-property-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 18rem;
+}
+
+.uc-thumb-btn {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  cursor: zoom-in;
+  flex-shrink: 0;
+  border-radius: 4px;
+  line-height: 0;
+}
+
+.uc-thumb-btn:hover .uc-thumb,
+.uc-thumb-btn:focus-visible .uc-thumb {
+  outline: 2px solid rgba(238, 183, 70, 0.55);
+  outline-offset: 1px;
+}
+
 .uc-property-btn {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  width: 100%;
-  max-width: 18rem;
+  min-width: 0;
+  flex: 1;
   text-align: left;
   background: none;
   border: 0;
@@ -633,10 +658,70 @@ img.uc-profile-hero {
   align-items: center;
 }
 
+.uc-profile-hero-btn {
+  appearance: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  cursor: zoom-in;
+  border-radius: 8px;
+  line-height: 0;
+}
+
+.uc-profile-hero-btn:hover .uc-profile-hero,
+.uc-profile-hero-btn:focus-visible .uc-profile-hero {
+  outline: 2px solid rgba(238, 183, 70, 0.55);
+  outline-offset: 2px;
+}
+
 .uc-profile-hero {
   width: 140px;
   height: 105px;
   border-radius: 8px;
+}
+
+.uc-lightbox[hidden] {
+  display: none !important;
+}
+
+.uc-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 320;
+  background: rgba(0, 0, 0, 0.9);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uc-lightbox-img {
+  max-width: min(100%, 56rem);
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: 8px;
+  border: 1px solid var(--vault-border);
+}
+
+.uc-lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.4rem;
+  height: 2.4rem;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: var(--phuglee-cream);
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid var(--vault-border);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.uc-lightbox-close:hover {
+  border-color: rgba(238, 183, 70, 0.45);
+  color: var(--phuglee-gold);
 }
 
 .uc-profile-hero-copy h2 {

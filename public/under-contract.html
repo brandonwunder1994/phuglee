@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=17">
+  <link rel="stylesheet" href="/css/under-contract.css?v=18">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -91,6 +91,7 @@
                 <th>Vacancy</th>
                 <th>Photos?</th>
                 <th>Rehab Info?</th>
+                <th>Buyer Found?</th>
                 <th>Buyer EMD?</th>
                 <th>Assignment fee</th>
                 <th>TC Pay</th>
@@ -449,9 +450,14 @@
     </div>
   </dialog>
 
+  <div id="uc-lightbox" class="uc-lightbox" hidden>
+    <button type="button" id="uc-lightbox-close" class="uc-lightbox-close" aria-label="Close photo">×</button>
+    <img id="uc-lightbox-img" class="uc-lightbox-img" alt="Property photo">
+  </div>
+
   <script src="/js/settings-menu.js?v=5" defer></script>
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=20" defer></script>
+  <script src="/js/under-contract.js?v=21" defer></script>
 </body>
 </html>
