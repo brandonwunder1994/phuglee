@@ -274,31 +274,9 @@
     }
     panel.classList.toggle('is-met', met);
 
-    const restartBtn = $('uc-goal-restart');
-    if (restartBtn) restartBtn.hidden = !isAdmin();
-
     tickGoalCountdown();
     if (state.goalTickTimer) clearInterval(state.goalTickTimer);
     state.goalTickTimer = setInterval(tickGoalCountdown, 1000);
-  }
-
-  async function restartGoal() {
-    if (!isAdmin()) return;
-    if (!window.confirm(
-      'Restart the 60-day funded goal clock from today? Progress for this window resets to deals funded after the new start.'
-    )) {
-      return;
-    }
-    try {
-      const data = await api('/api/leads/admin/contracts/funded-goal/restart', {
-        method: 'POST',
-        body: JSON.stringify({ targetCount: 10, windowDays: 60 })
-      });
-      renderGoal(data.goal || null);
-      showToast('60-day goal restarted');
-    } catch (err) {
-      showToast(err.message || 'Could not restart goal');
-    }
   }
 
   function renderTable(deals) {
@@ -1515,7 +1493,6 @@
     });
     $('uc-funded-close')?.addEventListener('click', closeFundedView);
     $('uc-funded-done')?.addEventListener('click', closeFundedView);
-    $('uc-goal-restart')?.addEventListener('click', () => { restartGoal(); });
     $('uc-rehab-view-close')?.addEventListener('click', closeRehabView);
     $('uc-rehab-view-done')?.addEventListener('click', closeRehabView);
     $('uc-drawer-buyer-found')?.addEventListener('click', () => {

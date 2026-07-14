@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=23">
+  <link rel="stylesheet" href="/css/under-contract.css?v=24">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -52,55 +52,39 @@
 
       <p id="uc-ghl-status" class="uc-ghl-status" hidden data-admin-only></p>
 
-      <section class="uc-goal" id="uc-goal" aria-label="60-day funded goal">
-        <div class="uc-goal-inner">
-          <div class="uc-goal-copy">
-            <p class="uc-goal-eyebrow">Next 60 days</p>
-            <h2 class="uc-goal-title">Funded closings goal</h2>
-            <p class="uc-goal-lead">Every deal that hits <strong>Yes</strong> under Funded counts toward 10 closed &amp; funded contracts.</p>
-          </div>
-          <div class="uc-goal-countdown" aria-live="polite">
-            <span class="uc-goal-countdown-value" id="uc-goal-countdown">—</span>
-            <span class="uc-goal-countdown-label" id="uc-goal-countdown-label">days left</span>
+      <section class="uc-glance" aria-label="Status overview">
+        <div class="uc-goal" id="uc-goal">
+          <div class="uc-goal-line">
+            <span class="uc-goal-kicker">60-day goal</span>
+            <span class="uc-goal-fraction">
+              <strong id="uc-goal-current">0</strong><span class="uc-goal-of">/</span><span id="uc-goal-target">10</span>
+              <span class="uc-goal-fraction-label">funded</span>
+            </span>
+            <span class="uc-goal-countdown" aria-live="polite">
+              <strong id="uc-goal-countdown">—</strong>
+              <span id="uc-goal-countdown-label">days left</span>
+            </span>
             <span class="uc-goal-ends" id="uc-goal-ends"></span>
+            <span class="uc-goal-pct" id="uc-goal-pct">0% to goal</span>
+            <span class="uc-goal-remaining" id="uc-goal-remaining" hidden>10 to go</span>
           </div>
-          <div class="uc-goal-scoreboard">
-            <p class="uc-goal-fraction">
-              <strong id="uc-goal-current">0</strong>
-              <span class="uc-goal-of">/</span>
-              <span id="uc-goal-target">10</span>
-            </p>
-            <p class="uc-goal-fraction-label">funded this window</p>
-            <div class="uc-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="uc-goal-bar">
-              <div class="uc-goal-bar-fill" id="uc-goal-bar-fill"></div>
-            </div>
-            <p class="uc-goal-pct" id="uc-goal-pct">0% to goal</p>
-            <p class="uc-goal-remaining" id="uc-goal-remaining">10 to go</p>
+          <div class="uc-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="uc-goal-bar">
+            <div class="uc-goal-bar-fill" id="uc-goal-bar-fill"></div>
           </div>
         </div>
-        <button type="button" class="phuglee-btn phuglee-btn-ghost uc-goal-restart" id="uc-goal-restart" data-admin-only hidden>
-          Restart 60-day clock
-        </button>
-      </section>
 
-      <section class="uc-kpi-strip" aria-label="Pipeline and closings">
-        <div class="uc-kpi-group">
-          <p class="uc-kpi-group-label">Current under contract</p>
+        <div class="uc-kpi-strip" aria-label="Pipeline and closings">
           <div class="uc-kpi-row">
-            <article class="uc-kpi"><span class="uc-kpi-label">Under contract</span><strong id="uc-kpi-uc" class="uc-kpi-value">0</strong></article>
-            <article class="uc-kpi"><span class="uc-kpi-label">Buyer found</span><strong id="uc-kpi-buyer" class="uc-kpi-value">0</strong></article>
+            <article class="uc-kpi"><span class="uc-kpi-label">UC</span><strong id="uc-kpi-uc" class="uc-kpi-value">0</strong></article>
+            <article class="uc-kpi"><span class="uc-kpi-label">Buyer</span><strong id="uc-kpi-buyer" class="uc-kpi-value">0</strong></article>
             <article class="uc-kpi"><span class="uc-kpi-label">Closing</span><strong id="uc-kpi-closing" class="uc-kpi-value">0</strong></article>
-            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Current Assignments</span><strong id="uc-kpi-open-fees" class="uc-kpi-value">$0</strong></article>
-          </div>
-        </div>
-        <div class="uc-kpi-group uc-kpi-group--closings">
-          <p class="uc-kpi-group-label">Overall closings</p>
-          <div class="uc-kpi-row">
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Open fees</span><strong id="uc-kpi-open-fees" class="uc-kpi-value">$0</strong></article>
+            <span class="uc-kpi-sep" aria-hidden="true"></span>
             <article class="uc-kpi"><span class="uc-kpi-label">Funded</span><strong id="uc-kpi-funded" class="uc-kpi-value">0</strong></article>
-            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Assignments Total</span><strong id="uc-kpi-fees" class="uc-kpi-value">$0</strong></article>
-            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">TC Pay</span><strong id="uc-kpi-tc" class="uc-kpi-value">$0</strong></article>
-            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Acq Pay</span><strong id="uc-kpi-acq" class="uc-kpi-value">$0</strong></article>
-            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Dispo Pay</span><strong id="uc-kpi-dispo" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Closed fees</span><strong id="uc-kpi-fees" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">TC</span><strong id="uc-kpi-tc" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Acq</span><strong id="uc-kpi-acq" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Dispo</span><strong id="uc-kpi-dispo" class="uc-kpi-value">$0</strong></article>
           </div>
         </div>
       </section>
