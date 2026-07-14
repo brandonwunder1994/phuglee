@@ -723,13 +723,33 @@
     return `/api/leads/admin/contracts/${encodeURIComponent(dealId)}/media-proxy?url=${encodeURIComponent(url)}`;
   }
 
-  function savedMediaUrls() {
+  function normalizeMediaUrlKey(url) {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    try {
+      const u = new URL(raw, window.location.origin);
+      // Strip volatile query signatures but keep path identity.
+      return `${u.origin}${u.pathname}`.toLowerCase();
+    } catch (_) {
+      return raw.split('?')[0].split('#')[0].toLowerCase();
+    }
+  }
+
+  function savedMediaUrlKeys() {
     const set = new Set();
     for (const m of (state.profile?.sellerMedia || [])) {
-      if (m.sourceUrl) set.add(m.sourceUrl);
-      if (m.viewUrl) set.add(m.viewUrl);
+      const a = normalizeMediaUrlKey(m.sourceUrl);
+      const b = normalizeMediaUrlKey(m.originalUrl);
+      if (a) set.add(a);
+      if (b) set.add(b);
     }
     return set;
+  }
+
+  function isMediaAlreadySaved(url) {
+    const key = normalizeMediaUrlKey(url);
+    if (!key) return false;
+    return savedMediaUrlKeys().has(key);
   }
 
   function collectThreadMediaItems() {
@@ -739,8 +759,9 @@
       const atts = Array.isArray(m.attachments) ? m.attachments.filter(Boolean) : [];
       atts.forEach((url, i) => {
         const key = String(url);
-        if (!key || seen.has(key)) return;
-        seen.add(key);
+        const norm = normalizeMediaUrlKey(key);
+        if (!key || seen.has(norm || key)) return;
+        seen.add(norm || key);
         items.push({
           url: key,
           messageId: m.id || null,
@@ -755,12 +776,13 @@
     const btn = $('uc-sms-save-all-media');
     if (!btn) return;
     const items = collectThreadMediaItems();
-    const saved = savedMediaUrls();
-    const unsaved = items.filter((it) => !saved.has(it.url));
+    const unsaved = items.filter((it) => !isMediaAlreadySaved(it.url));
     btn.hidden = !unsaved.length;
+    btn.disabled = !unsaved.length;
+    btn.classList.toggle('is-disabled', !unsaved.length);
     btn.textContent = unsaved.length > 1
       ? `Save all media (${unsaved.length})`
-      : (unsaved.length === 1 ? 'Save media' : 'Save all media');
+      : (unsaved.length === 1 ? 'Save media' : 'All media saved');
   }
 
   function isVideoUrl(url, mime) {
@@ -815,7 +837,7 @@
       syncSaveAllMediaButton();
       return;
     }
-    const saved = savedMediaUrls();
+    const saved = savedMediaUrlKeys();
     const dealId = state.activeDealId;
     box.innerHTML = state.messages.map((m) => {
       const outbound = m.direction === 'outbound' || m.direction === 'out';
@@ -824,15 +846,15 @@
       const att = Array.isArray(m.attachments) ? m.attachments.filter(Boolean) : [];
       const attHtml = att.length
         ? `<div class="uc-bubble-atts">${att.map((url, i) => {
-          const isSaved = saved.has(url);
+          const isSaved = isMediaAlreadySaved(url);
           const video = isVideoUrl(url);
           const proxy = dealId ? mediaProxyUrl(dealId, url) : url;
           const preview = video
             ? `<video src="${esc(proxy)}" muted playsinline preload="metadata"></video>`
             : `<img src="${esc(proxy)}" alt="Attachment ${i + 1}" loading="lazy">`;
-          return `<figure class="uc-att-tile" data-att-url="${esc(url)}" data-msg-id="${esc(m.id || '')}">
+          return `<figure class="uc-att-tile${isSaved ? ' is-saved' : ''}" data-att-url="${esc(url)}" data-msg-id="${esc(m.id || '')}" data-saved="${isSaved ? '1' : '0'}">
             ${preview}
-            <button type="button" class="uc-att-save${isSaved ? ' is-saved' : ''}" data-action="save-media" ${isSaved ? 'disabled' : ''}>${isSaved ? 'Saved' : 'Save'}</button>
+            <button type="button" class="uc-att-save${isSaved ? ' is-saved' : ''}" data-action="save-media" ${isSaved ? 'disabled aria-disabled="true"' : ''} title="${isSaved ? 'Already in Media' : 'Save to Media'}">${isSaved ? 'In Media' : 'Save'}</button>
           </figure>`;
         }).join('')}</div>`
         : '';
@@ -906,6 +928,16 @@
 
   async function saveOneThreadMedia(url, messageId, btn) {
     if (!url || !state.activeDealId) return;
+    if (isMediaAlreadySaved(url)) {
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'In Media';
+        btn.classList.add('is-saved');
+        btn.closest('.uc-att-tile')?.classList.add('is-saved');
+      }
+      showToast('Already in Media');
+      return;
+    }
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Saving…';
@@ -913,8 +945,11 @@
     try {
       await saveSellerMediaItems([{ url, messageId, name: `seller-${Date.now()}` }]);
       if (btn) {
-        btn.textContent = 'Saved';
+        btn.textContent = 'In Media';
         btn.classList.add('is-saved');
+        btn.setAttribute('aria-disabled', 'true');
+        btn.closest('.uc-att-tile')?.classList.add('is-saved');
+        btn.closest('.uc-att-tile')?.setAttribute('data-saved', '1');
       }
     } catch (err) {
       if (btn) {
@@ -926,10 +961,10 @@
   }
 
   async function saveAllThreadMedia() {
-    const saved = savedMediaUrls();
-    const items = collectThreadMediaItems().filter((it) => !saved.has(it.url));
+    const items = collectThreadMediaItems().filter((it) => !isMediaAlreadySaved(it.url));
     if (!items.length) {
-      showToast('All thread media already saved');
+      showToast('All thread media already in Media');
+      syncSaveAllMediaButton();
       return;
     }
     const btn = $('uc-sms-save-all-media');
@@ -1976,9 +2011,9 @@
     });
     $('uc-convo-thread')?.addEventListener('click', (ev) => {
       const btn = ev.target.closest('[data-action="save-media"]');
-      if (!btn || btn.disabled) return;
+      if (!btn || btn.disabled || btn.classList.contains('is-saved')) return;
       const tile = btn.closest('[data-att-url]');
-      if (!tile) return;
+      if (!tile || tile.getAttribute('data-saved') === '1') return;
       saveOneThreadMedia(
         tile.getAttribute('data-att-url'),
         tile.getAttribute('data-msg-id'),
