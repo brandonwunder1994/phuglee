@@ -205,9 +205,16 @@
         `/api/admin/operating-costs?period=${encodeURIComponent(period)}`
       );
       state.snapshot = snap;
+      const periodLabel = snap.period?.label || period;
+      const totalLabel = $('oc-total-label');
+      if (totalLabel) totalLabel.textContent = `${periodLabel} total`;
       $('oc-month-total').textContent = money(snap.monthTotalUsd);
       const refreshed = snap.refreshedAt ? new Date(snap.refreshedAt).toLocaleString() : '';
-      $('oc-refreshed').textContent = refreshed ? `Updated ${refreshed}` : '';
+      const range =
+        snap.period?.from && snap.period?.to ? `${snap.period.from} → ${snap.period.to}` : '';
+      $('oc-refreshed').textContent = [range, refreshed ? `Updated ${refreshed}` : '']
+        .filter(Boolean)
+        .join(' · ');
       renderCards(snap.services || {});
       renderWatermark(snap.ghlWatermark);
       renderRateCard(snap.rateCard);

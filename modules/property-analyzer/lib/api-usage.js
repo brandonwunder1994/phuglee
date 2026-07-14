@@ -200,6 +200,72 @@ function createUsageStore(dataRoot) {
     save();
   }
 
+  /**
+   * Read-only stats for a calendar month (YYYY-MM). Does not mutate the ledger.
+   * Used by Operating Costs so each month shows that month's API usage only.
+   */
+  function snapshotForMonth(periodMonth) {
+    const month = String(periodMonth || monthKey()).slice(0, 7);
+    const m = state.months?.[month] || {
+      mapsOk: 0,
+      mapsFail: 0,
+      streetViewOk: 0,
+      estimatedMapsUsd: 0
+    };
+
+    let geminiOk = 0;
+    let geminiFail = 0;
+    let gemini429 = 0;
+    let gemini503 = 0;
+    let mapsOkDays = 0;
+    let mapsFailDays = 0;
+    let dayCount = 0;
+    for (const [day, d] of Object.entries(state.days || {})) {
+      if (!String(day).startsWith(`${month}-`)) continue;
+      dayCount += 1;
+      geminiOk += Number(d.geminiOk) || 0;
+      geminiFail += Number(d.geminiFail) || 0;
+      gemini429 += Number(d.gemini429) || 0;
+      gemini503 += Number(d.gemini503) || 0;
+      mapsOkDays += Number(d.mapsOk) || 0;
+      mapsFailDays += Number(d.mapsFail) || 0;
+    }
+
+    const mapsOk = Number(m.mapsOk) || mapsOkDays;
+    const mapsFail = Number(m.mapsFail) || mapsFailDays;
+    let mapsSpentEst = Number(m.estimatedMapsUsd);
+    if (!Number.isFinite(mapsSpentEst) || mapsSpentEst <= 0) {
+      mapsSpentEst = Number((mapsOk * MAPS_USD_PER_OK).toFixed(4));
+    }
+    const mapsCredit = DEFAULT_MAPS_MONTHLY_CREDIT_USD;
+    const geminiUsed = geminiOk + geminiFail;
+
+    return {
+      ok: true,
+      period: month,
+      dayCount,
+      note:
+        'Usage for the selected calendar month only (from this app’s ledger). Google does not publish live remaining balance for API keys.',
+      maps: {
+        month,
+        monthOk: mapsOk,
+        monthFail: mapsFail,
+        estimatedSpendUsdMonth: mapsSpentEst,
+        monthlyCreditUsdEst: mapsCredit,
+        remainingCreditUsdEst: Math.max(0, mapsCredit - mapsSpentEst)
+      },
+      gemini: {
+        month,
+        monthOk: geminiOk,
+        monthFail: geminiFail,
+        month429: gemini429,
+        month503: gemini503,
+        monthTotal: geminiUsed
+      },
+      updatedAt: state.updatedAt || null
+    };
+  }
+
   function snapshot(apiStats = null) {
     const day = dayKey();
     const month = monthKey();
@@ -268,6 +334,7 @@ function createUsageStore(dataRoot) {
     recordMaps,
     clearHardQuota,
     snapshot,
+    snapshotForMonth,
     isHardQuotaError,
     isSoftRateLimitError,
     classifyApiError
