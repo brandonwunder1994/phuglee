@@ -8,6 +8,26 @@
     { id: 'forge-portal', label: 'City Tracker', href: '/forge/portal' }
   ];
 
+  const ADMIN_PROPERTIES_LINKS = [
+    { id: 'under-contract', label: 'Contract Tracker', href: '/under-contract' }
+  ];
+
+  function isAdminUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function') {
+      return window.PhugleeSettings.isAdmin() === true;
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') === 'admin';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function propertiesLinks() {
+    if (!isAdminUser()) return PROPERTIES_LINKS.slice();
+    return PROPERTIES_LINKS.concat(ADMIN_PROPERTIES_LINKS);
+  }
+
   const FORGE_LINKS = [
     { id: 'forge-desk', label: 'PDF Filler', href: '/forge/' },
     { id: 'forge-portal', label: 'Request Tracker', href: '/forge/portal' },
@@ -45,19 +65,20 @@
     const p = normalizePath(path);
     if (p === '/command') return 'command';
     if (p === '/vault') return 'vault';
+    if (p === '/under-contract') return 'under-contract';
     if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
     }
-    for (const link of PROPERTIES_LINKS) {
+    for (const link of propertiesLinks()) {
       if (matchLink(p, link.href)) return link.id;
     }
     return null;
   }
 
   function isPropertiesSectionActive(current) {
-    return PROPERTIES_LINKS.some((l) => l.id === current);
+    return propertiesLinks().some((l) => l.id === current);
   }
 
   function linkClass(id, current) {
@@ -122,7 +143,7 @@
     const triggerClass = sectionActive
       ? 'shell-link shell-nav-dropdown-trigger active'
       : 'shell-link shell-nav-dropdown-trigger';
-    const itemsHtml = PROPERTIES_LINKS.map((l) => {
+    const itemsHtml = propertiesLinks().map((l) => {
       const itemActive = current === l.id;
       const icon = l.emoji ? `<span class="shell-nav-dropdown-icon" aria-hidden="true">${l.emoji}</span>` : '';
       return `<a href="${l.href}" class="shell-nav-dropdown-item${itemActive ? ' active' : ''}" role="menuitem"${itemActive ? ' aria-current="page"' : ''}>${icon}<span class="shell-nav-dropdown-label">${l.label}</span></a>`;
@@ -393,6 +414,13 @@
     if (window.PhugleeStates && typeof window.PhugleeStates.init === 'function') {
       window.PhugleeStates.init();
     }
+  }
+
+  // Cookie-restored sessions arrive async — remount once so admin Contract Tracker appears.
+  if (window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
+    window.PhugleeSession.syncSessionFromServerCookie().then(function (data) {
+      if (data && data.username) mount();
+    });
   }
 
   window.DistressOSShellNav = {

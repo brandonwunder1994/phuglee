@@ -9,6 +9,7 @@
     { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },
     { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
     { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
+    { group: 'Admin', label: 'Contract Tracker', href: '/under-contract', meta: 'Under contract · proof desk', adminOnly: true },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
     { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
     { group: 'Workflows', label: 'Email-only Requests', href: '/forge/portal/email-only', meta: 'Plain email' },
@@ -84,12 +85,30 @@
     });
   }
 
+  function isAdminUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function') {
+      return window.PhugleeSettings.isAdmin() === true;
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') === 'admin';
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function visibleCommands() {
+    return COMMANDS.filter(function (cmd) {
+      return !cmd.adminOnly || isAdminUser();
+    });
+  }
+
   function filterQuery(q) {
     var needle = (q || '').trim().toLowerCase();
-    if (!needle) return COMMANDS.slice();
-    return COMMANDS.filter(function (cmd) {
+    var pool = visibleCommands();
+    if (!needle) return pool.slice();
+    return pool.filter(function (cmd) {
       return cmd.label.toLowerCase().includes(needle) ||
-        cmd.meta.toLowerCase().includes(needle) ||
+        (cmd.meta || '').toLowerCase().includes(needle) ||
         cmd.group.toLowerCase().includes(needle);
     });
   }

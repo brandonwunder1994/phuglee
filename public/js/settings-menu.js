@@ -88,7 +88,7 @@
         '<div class="shell-settings-section-label">Admin</div>' +
         analyzerItems +
         '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
-          '<span class="shell-settings-item-icon">◇</span> Under Contract' +
+          '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
         '</a>' +
         '<a href="/collect?open=pdf-filler" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">📄</span> PDF Filler' +
@@ -238,7 +238,16 @@
 
   function mount() {
     var slot = document.getElementById('shell-settings-slot');
-    if (!slot || !isAuthenticated()) return;
+    if (!slot) return;
+    if (!isAuthenticated()) {
+      // Session may still be hydrating from cookie — remount once ready.
+      if (window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
+        window.PhugleeSession.syncSessionFromServerCookie().then(function (data) {
+          if (data && data.username) mount();
+        });
+      }
+      return;
+    }
     slot.innerHTML = buildDropdown();
     bind(slot);
   }

@@ -170,8 +170,27 @@
     updateMissionFocus();
     watchCoverageCounts();
     pollHealth();
+    revealAdminTools();
     window.setInterval(pollHealth, 30000);
     window.addEventListener('pageshow', hideShellLoading);
+  }
+
+  function revealAdminTools() {
+    function show() {
+      var isAdmin = window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function'
+        ? window.PhugleeSettings.isAdmin()
+        : false;
+      if (!isAdmin) {
+        try { isAdmin = sessionStorage.getItem('phuglee_session') === 'admin'; } catch (_) {}
+      }
+      document.querySelectorAll('[data-admin-only]').forEach(function (el) {
+        el.hidden = !isAdmin;
+      });
+    }
+    show();
+    if (window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
+      window.PhugleeSession.syncSessionFromServerCookie().then(show);
+    }
   }
 
   if (document.readyState === 'loading') {
