@@ -1,22 +1,22 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee â€” Collect</title>
-  <meta name="description" content="Hit the clerk before aggregators do â€” request distressed property lists via PDF email, plain email FOIA, or online portals.">
-  <meta property="og:title" content="Phuglee â€” Collect">
+  <title>Phuglee — Collect</title>
+  <meta name="description" content="Hit the clerk before aggregators do — request distressed property lists via PDF email, plain email FOIA, or online portals.">
+  <meta property="og:title" content="Phuglee — Collect">
   <meta property="og:description" content="Source distressed leads straight from public records. PDF emails, portals, and email-only FOIA in one workflow.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Phuglee â€” Collect">
+  <meta name="twitter:title" content="Phuglee — Collect">
   <meta name="twitter:description" content="Hit the clerk. Pull distressed leads from public records before anyone else.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/collect-records.css?v=7">
   <link rel="stylesheet" href="/css/distress-collect-hub.css?v=8">
   <script src="/js/auth-session.js"></script>
@@ -32,9 +32,9 @@
   <main id="main" class="collect-landing phuglee-pattern-bg phuglee-pattern-bg--medium" data-phuglee-reveal>
     <div class="collect-hub">
       <header class="collect-hub-hero" data-phuglee-reveal-child>
-        <p class="collect-hub-step">Step 01 Â· Collect</p>
+        <p class="collect-hub-step">Step 01 · Collect</p>
         <h1 class="collect-hub-title">Hit the Clerk</h1>
-        <p class="collect-hub-lead">Pull distressed property lists straight from public records â€” days before aggregators drip the same addresses to everyone else.</p>
+        <p class="collect-hub-lead">Pull distressed property lists straight from public records — days before aggregators drip the same addresses to everyone else.</p>
       </header>
 
       <div class="collect-desk" data-phuglee-reveal-child>
@@ -42,7 +42,7 @@
           <p class="collect-desk-kicker">Start a batch</p>
           <h2 class="collect-desk-primary-title">Request public records</h2>
           <p class="collect-desk-primary-desc">
-            Pick cities. Choose PDF email, plain email, or portal. Launch the batch â€”
+            Pick cities. Choose PDF email, plain email, or portal. Launch the batch —
             nothing sends until you confirm.
           </p>
           <ul class="collect-desk-channels" aria-label="Request channels">
@@ -60,12 +60,12 @@
             <span class="collect-desk-tracker-label">Already waiting?</span>
             <span class="collect-desk-tracker-title">Track Requests</span>
             <span class="collect-desk-tracker-desc">Pending, answered, ready to bridge.</span>
-            <span class="collect-desk-tracker-cta">Open tracker â†’</span>
+            <span class="collect-desk-tracker-cta">Open tracker →</span>
           </a>
         </aside>
       </div>
 
-      <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only Â· Your data stays on your machine</p>
+      <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
     </div>
   </main>
 
@@ -77,19 +77,19 @@
       </div>
 
       <div class="collect-wizard-step" id="collect-step-cities" data-wizard-step="cities">
-        <p class="collect-wizard-crumb" aria-label="Wizard progress"><strong>Cities</strong> â†’ Workflow â†’ Confirm</p>
+        <p class="collect-wizard-crumb" aria-label="Wizard progress"><strong>Cities</strong> → Workflow → Confirm</p>
         <p class="collect-dialog-lead">Select which cities you want to request records from. Next you'll pick how each batch gets sent.</p>
         <div class="collect-city-toolbar">
           <label class="collect-city-search-wrap">
             <span class="visually-hidden">Search cities</span>
-            <input type="search" class="collect-city-search" id="collect-city-search" placeholder="Search city or stateâ€¦" autocomplete="off" />
+            <input type="search" class="collect-city-search" id="collect-city-search" placeholder="Search city or state…" autocomplete="off" />
           </label>
           <div class="collect-city-toolbar-actions">
             <button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm collect-city-toolbar-btn" id="collect-city-select-all">Select all</button>
             <button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm collect-city-toolbar-btn" id="collect-city-clear">Clear</button>
           </div>
         </div>
-        <p class="collect-city-count" id="collect-city-count-label" aria-live="polite">Loading citiesâ€¦</p>
+        <p class="collect-city-count" id="collect-city-count-label" aria-live="polite">Loading cities…</p>
         <div class="collect-city-list-wrap" id="collect-city-list" role="group" aria-label="Cities to request"></div>
         <p class="collect-status" id="collect-city-status" role="status" aria-live="polite"></p>
         <div class="collect-dialog-actions">
@@ -101,7 +101,7 @@
       </div>
 
       <div class="collect-wizard-step" id="collect-step-workflow" data-wizard-step="workflow" hidden>
-        <p class="collect-wizard-crumb" aria-label="Wizard progress">Cities â†’ <strong>Workflow</strong> â†’ Confirm</p>
+        <p class="collect-wizard-crumb" aria-label="Wizard progress">Cities → <strong>Workflow</strong> → Confirm</p>
         <p class="collect-dialog-lead">Pick the workflow that matches how your selected cities accept public records requests.</p>
         <div class="collect-choice-grid" role="radiogroup" aria-label="Request workflow">
           <label class="collect-choice">
@@ -135,20 +135,20 @@
       </div>
 
       <div class="collect-wizard-step" id="collect-step-confirm" data-wizard-step="confirm" hidden>
-        <p class="collect-wizard-crumb" aria-label="Wizard progress">Cities â†’ Workflow â†’ <strong>Confirm</strong></p>
+        <p class="collect-wizard-crumb" aria-label="Wizard progress">Cities → Workflow → <strong>Confirm</strong></p>
         <p class="collect-dialog-lead">Review your batch, then open Form Forge. Nothing sends until you confirm there.</p>
         <dl class="collect-confirm-summary" id="collect-confirm-summary">
           <div class="collect-confirm-row">
             <dt>Cities</dt>
-            <dd id="collect-confirm-cities">â€”</dd>
+            <dd id="collect-confirm-cities">—</dd>
           </div>
           <div class="collect-confirm-row">
             <dt>Workflow</dt>
-            <dd id="collect-confirm-workflow">â€”</dd>
+            <dd id="collect-confirm-workflow">—</dd>
           </div>
         </dl>
         <p class="collect-confirm-back-note">
-          Form Forge keeps a <strong>â† Collect</strong> link at the top so you can return here anytime.
+          Form Forge keeps a <strong>← Collect</strong> link at the top so you can return here anytime.
         </p>
         <div class="collect-dialog-actions">
           <button type="button" class="btn-landing-secondary phuglee-btn phuglee-btn-secondary" id="btn-collect-confirm-back">Back</button>
@@ -167,6 +167,7 @@
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=14" defer></script>
+  <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/collect-records.js?v=5" defer></script>
 </body>
 </html>

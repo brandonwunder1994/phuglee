@@ -440,6 +440,44 @@ button.shell-link.shell-nav-dropdown-trigger {
   flex-shrink: 0;
 }
 
+/* ── Global team-message alert (Contract Desk) ── */
+.shell-team-banner {
+  position: sticky;
+  top: var(--distress-nav-offset, 64px);
+  z-index: 55;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.shell-team-banner[hidden] {
+  display: none !important;
+}
+
+.shell-team-banner-btn {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(220, 60, 60, 0.45);
+  background: linear-gradient(180deg, #c62828 0%, #9b1c1c 100%);
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(155, 28, 28, 0.25);
+}
+
+.shell-team-banner-btn:hover {
+  filter: brightness(1.06);
+}
+
+body.has-shell-team-banner {
+  /* room for sticky alert under nav */
+}
+
 /* ── Global footer ── */
 .shell-footer {
   position: relative;

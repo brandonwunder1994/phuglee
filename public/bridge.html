@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/bridge.css?v=75">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -30,7 +30,7 @@
 
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
     <header class="bridge-hero" data-phuglee-reveal-child>
-      <p class="bridge-step-label">Step 02 · Filter</p>
+      <p class="bridge-step-label">Step 02 � Filter</p>
       <h1 class="bridge-title">Scrub the Mess</h1>
       <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
     </header>
@@ -610,7 +610,7 @@
         <div>
           <h2 id="bridge-type-column-confirm-heading">Confirm Violation Type column</h2>
           <p class="bridge-history-dialog-lead" id="bridge-type-column-confirm-lead">
-            This city format needs a Type column confirmation before processing. Pick the column that holds the violation or issue type.
+            Wrong Type column = wrong filter. Review sample values and keep estimates, then pick the column that holds violation or issue codes.
           </p>
           <p class="bridge-type-confirm-recovery" id="bridge-type-column-recovery-hint">
             Confirmed the wrong column earlier? An admin can use <strong>Clear Type-column memory</strong> on the scrub desk, then re-upload so this dialog appears again.
@@ -623,7 +623,7 @@
       <div class="bridge-type-confirm-samples" id="bridge-type-column-samples" aria-live="polite"></div>
       <div class="bridge-type-confirm-actions">
         <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-type-column-confirm-cancel">Cancel</button>
-        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-type-column-confirm-ok">Confirm</button>
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-type-column-confirm-ok" disabled>Confirm</button>
       </div>
     </div>
   </dialog>
@@ -635,6 +635,7 @@
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=14" defer></script>
+  <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
   <script src="/js/bridge.js?v=77" defer></script>

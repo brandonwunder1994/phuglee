@@ -270,6 +270,13 @@
   }
 
   function renderTeamBanner() {
+    // Prefer site-wide banner (all pages); keep page-local banner hidden.
+    const local = $('uc-team-banner');
+    if (local) local.hidden = true;
+    if (window.PhugleeTeamAlertBanner && typeof window.PhugleeTeamAlertBanner.render === 'function') {
+      window.PhugleeTeamAlertBanner.render(state.unreadTeam || []);
+      return;
+    }
     const banner = $('uc-team-banner');
     const text = $('uc-team-banner-text');
     if (!banner || !text) return;
