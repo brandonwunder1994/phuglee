@@ -5255,8 +5255,6 @@ body.bridge-page details.bridge-lists-details {
   }
 }
 
-/* —— Geocodio clean panel —— */
-.bridge-geocodio-panel {
   margin-top: 1.25rem;
   padding: 1.15rem 1.25rem 1.35rem;
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
@@ -5265,7 +5263,6 @@ body.bridge-page details.bridge-lists-details {
   box-shadow: var(--glass-shadow, 0 8px 32px rgba(0, 0, 0, 0.25));
 }
 
-.bridge-geocodio-head {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
@@ -5274,14 +5271,12 @@ body.bridge-page details.bridge-lists-details {
   margin-bottom: 1rem;
 }
 
-.bridge-geocodio-title {
   margin: 0 0 0.35rem;
   font-size: 1.05rem;
   font-weight: 650;
   letter-spacing: 0.02em;
 }
 
-.bridge-geocodio-lead {
   margin: 0;
   max-width: 52rem;
   font-size: 0.88rem;
@@ -5289,7 +5284,6 @@ body.bridge-page details.bridge-lists-details {
   color: var(--text-muted, rgba(255, 255, 255, 0.65));
 }
 
-.bridge-geocodio-upload-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -5297,7 +5291,6 @@ body.bridge-page details.bridge-lists-details {
   margin-bottom: 0.5rem;
 }
 
-.bridge-geocodio-file-label {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -5308,27 +5301,21 @@ body.bridge-page details.bridge-lists-details {
   font-size: 0.88rem;
 }
 
-.bridge-geocodio-file-label input[type="file"] {
   max-width: 14rem;
   font-size: 0.8rem;
 }
 
-.bridge-geocodio-file-name,
-.bridge-geocodio-status {
   margin: 0.35rem 0 0;
   font-size: 0.85rem;
   color: var(--text-muted, rgba(255, 255, 255, 0.7));
 }
 
-.bridge-geocodio-status.is-error {
   color: var(--status-danger-fg, #f87171);
 }
 
-.bridge-geocodio-status.is-success {
   color: var(--status-success-fg, #4ade80);
 }
 
-.bridge-geocodio-progress {
   margin: 0.65rem 0 0.25rem;
   height: 6px;
   border-radius: 999px;
@@ -5336,7 +5323,6 @@ body.bridge-page details.bridge-lists-details {
   overflow: hidden;
 }
 
-.bridge-geocodio-progress-bar {
   height: 100%;
   width: 0%;
   border-radius: inherit;
@@ -5344,33 +5330,27 @@ body.bridge-page details.bridge-lists-details {
   transition: width 0.25s ease;
 }
 
-.bridge-geocodio-downloads-title {
   margin: 1.15rem 0 0.5rem;
   font-size: 0.92rem;
   font-weight: 600;
 }
 
-.bridge-geocodio-downloads-empty {
   margin: 0;
   font-size: 0.85rem;
   color: var(--text-muted, rgba(255, 255, 255, 0.55));
 }
 
-.bridge-geocodio-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
 }
 
-.bridge-geocodio-table th,
-.bridge-geocodio-table td {
   padding: 0.45rem 0.55rem;
   text-align: left;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
 }
 
-.bridge-geocodio-table th {
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -5378,13 +5358,11 @@ body.bridge-page details.bridge-lists-details {
   color: var(--text-muted, rgba(255, 255, 255, 0.55));
 }
 
-.bridge-geocodio-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
 }
 
-.bridge-geocodio-usage-dialog {
   border: none;
   padding: 0;
   background: transparent;
@@ -5392,36 +5370,30 @@ body.bridge-page details.bridge-lists-details {
   width: 100%;
 }
 
-.bridge-geocodio-usage-dialog::backdrop {
   background: rgba(0, 0, 0, 0.65);
 }
 
-.bridge-geocodio-usage-card {
   padding: 1.15rem 1.25rem 1.35rem;
   max-height: min(85vh, 720px);
   overflow: auto;
 }
 
-.bridge-geocodio-usage-head {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.85rem;
 }
 
-.bridge-geocodio-usage-head h2 {
   margin: 0 0 0.35rem;
   font-size: 1.1rem;
 }
 
-.bridge-geocodio-usage-lead {
   margin: 0;
   font-size: 0.85rem;
   color: var(--text-muted, rgba(255, 255, 255, 0.65));
   max-width: 40rem;
 }
 
-.bridge-geocodio-usage-close {
   border: none;
   background: transparent;
   color: inherit;
@@ -5431,11 +5403,9 @@ body.bridge-page details.bridge-lists-details {
   opacity: 0.75;
 }
 
-.bridge-geocodio-usage-close:hover {
   opacity: 1;
 }
 
-.bridge-geocodio-usage-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -5443,51 +5413,42 @@ body.bridge-page details.bridge-lists-details {
   margin-bottom: 0.75rem;
 }
 
-.bridge-geocodio-usage-totals {
   margin: 0;
   font-size: 0.88rem;
   font-weight: 600;
 }
 
-.bridge-geocodio-usage-table-wrap {
   overflow-x: auto;
 }
 
-.bridge-geocodio-usage-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.82rem;
 }
 
-.bridge-geocodio-usage-table th,
-.bridge-geocodio-usage-table td {
   padding: 0.4rem 0.5rem;
   text-align: left;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: top;
 }
 
-.bridge-geocodio-usage-table th {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted, rgba(255, 255, 255, 0.55));
 }
 
-.bridge-geocodio-usage-key {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.72rem;
   word-break: break-all;
   max-width: 18rem;
 }
 
-.bridge-geocodio-usage-note {
   margin: 0.75rem 0 0;
   font-size: 0.78rem;
   color: var(--text-muted, rgba(255, 255, 255, 0.5));
 }
 
-.bridge-geocodio-status-pill {
   display: inline-block;
   padding: 0.12rem 0.45rem;
   border-radius: 999px;
@@ -5497,25 +5458,18 @@ body.bridge-page details.bridge-lists-details {
   letter-spacing: 0.03em;
 }
 
-.bridge-geocodio-status-pill.is-ok {
   background: rgba(74, 222, 128, 0.15);
   color: #4ade80;
 }
 
-.bridge-geocodio-status-pill.is-exhausted,
-.bridge-geocodio-status-pill.is-failed {
   background: rgba(248, 113, 113, 0.15);
   color: #f87171;
 }
 
-.bridge-geocodio-status-pill.is-running,
-.bridge-geocodio-status-pill.is-queued {
   background: rgba(250, 204, 21, 0.15);
   color: #facc15;
 }
 
-.bridge-geocodio-status-pill.is-partial,
-.bridge-geocodio-status-pill.is-complete {
   background: rgba(96, 165, 250, 0.15);
   color: #60a5fa;
 }

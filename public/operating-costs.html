@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Operating Costs</title>
+  <meta name="description" content="Admin operating costs — live Railway, GHL imports, Maps, Gemini, SignNow.">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
+  <link rel="stylesheet" href="/css/vault.css?v=15">
+  <link rel="stylesheet" href="/css/operating-costs.css?v=1">
+  <script src="/js/auth-session.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js?v=2"></script>
+</head>
+<body class="phuglee-app has-premium-bg vault-page oc-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
+  <div id="distress-os-nav-mount"></div>
+
+  <main id="main" class="vault-main vault-main--app oc-main">
+    <section id="oc-gate" class="vault-gate" hidden>
+      <div class="vault-gate-inner">
+        <p class="vault-eyebrow">Admin</p>
+        <h1 class="vault-title">Operating Costs</h1>
+        <p class="vault-lead">Sign in as admin to view live operating spend.</p>
+        <a href="/" class="phuglee-btn phuglee-btn-primary">Back home</a>
+      </div>
+    </section>
+
+    <div id="oc-app" class="oc-app" hidden>
+      <header class="oc-hero">
+        <div>
+          <p class="vault-eyebrow">Run the stack</p>
+          <h1 class="vault-title vault-title--desk">Operating Costs</h1>
+          <p class="vault-hero-sub">Live Railway · GHL imports · Maps · Gemini · SignNow</p>
+        </div>
+        <div class="oc-hero-actions">
+          <label class="oc-period-label">
+            <span class="oc-period-kicker">Period</span>
+            <input type="month" id="oc-period" class="oc-period-input" />
+          </label>
+          <button type="button" id="oc-refresh" class="phuglee-btn phuglee-btn-primary">Refresh</button>
+        </div>
+      </header>
+
+      <p id="oc-status" class="oc-status" role="status" aria-live="polite"></p>
+
+      <section class="oc-total" aria-label="Month total">
+        <div class="oc-total-inner">
+          <span class="oc-total-label">Month total</span>
+          <strong id="oc-month-total" class="oc-total-value">—</strong>
+          <span id="oc-refreshed" class="oc-total-meta"></span>
+        </div>
+      </section>
+
+      <section class="oc-cards" id="oc-cards" aria-label="Services"></section>
+
+      <section class="oc-import" aria-labelledby="oc-import-heading">
+        <div class="oc-section-head">
+          <div>
+            <h2 class="oc-section-title" id="oc-import-heading">GHL cost export</h2>
+            <p class="oc-section-lead">Drop a HighLevel billing / wallet export (CSV or Excel). We detect date range, categorize charges, and skip anything already imported.</p>
+          </div>
+          <p id="oc-watermark" class="oc-watermark"></p>
+        </div>
+        <div id="oc-dropzone" class="oc-dropzone" tabindex="0" role="button" aria-label="Upload GHL cost export">
+          <input type="file" id="oc-file" accept=".csv,.tsv,.xlsx,.xls,.xlsm,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
+          <p class="oc-dropzone-title">Drag &amp; drop export here</p>
+          <p class="oc-dropzone-sub">or click to choose a file</p>
+        </div>
+        <p id="oc-import-result" class="oc-import-result" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="oc-breakdown" aria-labelledby="oc-breakdown-heading">
+        <div class="oc-section-head">
+          <h2 class="oc-section-title" id="oc-breakdown-heading">GHL breakdown</h2>
+        </div>
+        <div class="oc-breakdown-cats" id="oc-breakdown-cats"></div>
+        <div class="oc-table-wrap">
+          <table class="oc-table" id="oc-charges-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th class="oc-num">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="oc-charges-body">
+              <tr><td colspan="4" class="oc-empty">No imported charges yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="oc-ratecard" aria-labelledby="oc-ratecard-heading">
+        <div class="oc-section-head">
+          <div>
+            <h2 class="oc-section-title" id="oc-ratecard-heading">Fixed plans</h2>
+            <p class="oc-section-lead">GHL and SignNow subscription amounts (edit if your invoice differs).</p>
+          </div>
+        </div>
+        <form id="oc-rate-form" class="oc-rate-form">
+          <label class="oc-field">
+            <span>GHL plan name</span>
+            <input type="text" id="oc-ghl-name" name="ghlPlanName" autocomplete="off" />
+          </label>
+          <label class="oc-field">
+            <span>GHL monthly $</span>
+            <input type="number" id="oc-ghl-usd" name="ghlPlanMonthlyUsd" min="0" step="0.01" />
+          </label>
+          <label class="oc-field">
+            <span>SignNow plan name</span>
+            <input type="text" id="oc-sn-name" name="signnowPlanName" autocomplete="off" />
+          </label>
+          <label class="oc-field">
+            <span>SignNow monthly $</span>
+            <input type="number" id="oc-sn-usd" name="signnowPlanMonthlyUsd" min="0" step="0.01" />
+          </label>
+          <div class="oc-rate-actions">
+            <button type="submit" class="phuglee-btn phuglee-btn-primary">Save fixed plans</button>
+            <span id="oc-rate-status" class="oc-rate-status" role="status"></span>
+          </div>
+        </form>
+      </section>
+    </div>
+  </main>
+
+  <script src="/js/shell-nav.js?v=distress2"></script>
+  <script src="/js/settings-menu.js?v=distress2"></script>
+  <script src="/js/command-palette.js?v=distress2"></script>
+  <script src="/js/operating-costs.js?v=1"></script>
+</body>
+</html>

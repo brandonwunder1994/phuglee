@@ -46,6 +46,12 @@ function getLeadsApi() {
   return leadsApiModule;
 }
 
+let operatingCostsApiModule;
+function getOperatingCostsApi() {
+  if (!operatingCostsApiModule) operatingCostsApiModule = require('./lib/operating-costs/api');
+  return operatingCostsApiModule;
+}
+
 function send(res, status, body, type, extraHeaders = {}) {
   res.writeHead(status, {
     'Content-Type': type || 'text/plain; charset=utf-8',
@@ -366,6 +372,11 @@ async function handleRequest(req, res) {
 
   if (pathname.startsWith('/api/leads')) {
     const handled = await getLeadsApi().handle(req, res, pathname, url);
+    if (handled) return;
+  }
+
+  if (pathname.startsWith('/api/admin/operating-costs')) {
+    const handled = await getOperatingCostsApi().handle(req, res, pathname, url);
     if (handled) return;
   }
 

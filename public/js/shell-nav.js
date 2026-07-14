@@ -9,7 +9,8 @@
   ];
 
   const ADMIN_PROPERTIES_LINKS = [
-    { id: 'under-contract', label: 'Contract Tracker', href: '/under-contract' }
+    { id: 'under-contract', label: 'Contract Tracker', href: '/under-contract' },
+    { id: 'operating-costs', label: 'Operating Costs', href: '/operating-costs' }
   ];
 
   function isAdminUser() {
@@ -85,6 +86,7 @@
     if (p === '/command') return 'command';
     if (p === '/vault') return 'vault';
     if (p === '/under-contract') return 'under-contract';
+    if (p === '/operating-costs') return 'operating-costs';
     if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {

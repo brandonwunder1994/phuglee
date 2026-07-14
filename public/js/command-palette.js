@@ -10,6 +10,7 @@
     { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
     { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
     { group: 'Admin', label: 'Contract Tracker', href: '/under-contract', meta: 'Under contract · proof desk', contractDeskOnly: true },
+    { group: 'Admin', label: 'Operating Costs', href: '/operating-costs', meta: 'Railway · GHL · APIs', adminOnly: true },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
     { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
     { group: 'Workflows', label: 'Email-only Requests', href: '/forge/portal/email-only', meta: 'Plain email' },

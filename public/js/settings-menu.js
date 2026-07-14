@@ -111,6 +111,9 @@
         '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
         '</a>' +
+        '<a href="/operating-costs" class="shell-settings-item" role="menuitem">' +
+          '<span class="shell-settings-item-icon">$</span> Operating Costs' +
+        '</a>' +
         '<button type="button" class="shell-settings-item" id="shell-settings-payouts" role="menuitem">' +
           '<span class="shell-settings-item-icon">$</span> Payouts' +
         '</button>' +
