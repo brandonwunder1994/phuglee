@@ -553,17 +553,25 @@
     if (!stateSel || !citySel || !state.meta) return;
     const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
     const states = [...(state.meta.states || [])].sort(byName);
-    const cities = [...(state.state && state.meta.citiesByState?.[state.state]
-      ? state.meta.citiesByState[state.state]
-      : (state.meta.cities || []))].sort(byName);
+    const hasState = !!state.state;
+    // City is only pickable after a state is chosen — clear orphan city values
+    if (!hasState) state.city = '';
+    const cities = hasState
+      ? [...(state.meta.citiesByState?.[state.state] || [])].sort(byName)
+      : [];
     const prevState = state.state;
     const prevCity = state.city;
     stateSel.innerHTML = '<option value="">All states</option>' + states.map((st) =>
       `<option value="${esc(st.name)}"${st.name === prevState ? ' selected' : ''}>${esc(st.name)} (${st.count})</option>`
     ).join('');
-    citySel.innerHTML = '<option value="">All cities</option>' + cities.map((c) =>
-      `<option value="${esc(c.name)}"${c.name === prevCity ? ' selected' : ''}>${esc(c.name)} (${c.count})</option>`
-    ).join('');
+    citySel.innerHTML = hasState
+      ? ('<option value="">All cities</option>' + cities.map((c) =>
+          `<option value="${esc(c.name)}"${c.name === prevCity ? ' selected' : ''}>${esc(c.name)} (${c.count})</option>`
+        ).join(''))
+      : '<option value="">Select a state first</option>';
+    citySel.disabled = !hasState;
+    citySel.setAttribute('aria-disabled', hasState ? 'false' : 'true');
+    citySel.title = hasState ? '' : 'Select a state first';
   }
 
   function primarySignal(row) {
