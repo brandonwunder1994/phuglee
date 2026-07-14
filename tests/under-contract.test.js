@@ -474,6 +474,44 @@ test('GHL timestamp parse + attachment-only MMS counts as latest inbound', () =>
   assert.match(saved.sellerSms.lastInboundPreview, /photo/i);
 });
 
+test('seller SMS alert clears after desk reply and never regresses to older inbound', () => {
+  const deal = contracts.upsertDeal({
+    address: '104 Reply Clears Ave',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'under_contract',
+    ghlContactId: 'contact_reply_clears'
+  });
+  contracts.recordSellerSmsFromMessages(deal.dealId, [
+    { id: 'in-new', body: 'Front door open', direction: 'inbound', dateAdded: '2026-07-14T16:23:42.081Z' }
+  ]);
+  assert.equal(contracts.isSellerSmsUnreadForUser(contracts.getDeal(deal.dealId), 'admin'), true);
+
+  const afterReply = contracts.recordSellerSmsFromMessages(deal.dealId, [
+    { id: 'in-new', body: 'Front door open', direction: 'inbound', dateAdded: '2026-07-14T16:23:42.081Z' },
+    { id: 'out-reply', body: 'Ok perfect', direction: 'outbound', dateAdded: '2026-07-14T16:28:20.369Z' }
+  ]);
+  assert.equal(contracts.isSellerSmsUnreadForUser(afterReply, 'admin'), false);
+  assert.equal(contracts.isSellerSmsUnreadForUser(afterReply, 'brad'), false);
+
+  // Incomplete older peek must not overwrite a newer stored inbound.
+  const afterStalePeek = contracts.recordSellerSmsFromMessages(deal.dealId, [
+    { id: 'in-old', body: 'Old text', direction: 'inbound', dateAdded: '2026-06-01T12:00:00.000Z' },
+    { id: 'out-reply', body: 'Ok perfect', direction: 'outbound', dateAdded: '2026-07-14T16:28:20.369Z' }
+  ]);
+  assert.equal(afterStalePeek.sellerSms.lastInboundId, 'in-new');
+  assert.equal(afterStalePeek.sellerSms.lastInboundAt, '2026-07-14T16:23:42.081Z');
+
+  // New seller text after our reply brings the alert back.
+  const afterSellerAgain = contracts.recordSellerSmsFromMessages(deal.dealId, [
+    { id: 'in-new', body: 'Front door open', direction: 'inbound', dateAdded: '2026-07-14T16:23:42.081Z' },
+    { id: 'out-reply', body: 'Ok perfect', direction: 'outbound', dateAdded: '2026-07-14T16:28:20.369Z' },
+    { id: 'in-photos', body: '', direction: 'inbound', dateAdded: '2026-07-14T16:44:04.251Z', attachments: ['https://x/a.jpg'] }
+  ]);
+  assert.equal(afterSellerAgain.sellerSms.lastInboundId, 'in-photos');
+  assert.equal(contracts.isSellerSmsUnreadForUser(afterSellerAgain, 'admin'), true);
+});
+
 test('team messages + unread list for other user', () => {
   const deal = contracts.upsertDeal({
     address: '910 Delaware St',

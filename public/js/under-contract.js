@@ -374,17 +374,41 @@
     return formatUcWhen(value);
   }
 
-  function formatSellerSmsWhen(iso) {
-    return formatUcWhen(iso, { withWeekday: true });
+  function azCalendarKey(ms) {
+    return new Date(ms).toLocaleDateString('en-US', {
+      timeZone: UC_TZ,
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric'
+    });
+  }
+
+  function formatSellerSmsAlertTime(iso) {
+    const ms = parseSmsMs(iso);
+    if (!Number.isFinite(ms)) return '';
+    const time = new Date(ms).toLocaleString('en-US', {
+      timeZone: UC_TZ,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).toLowerCase();
+    const msgDay = azCalendarKey(ms);
+    const today = azCalendarKey(Date.now());
+    const yesterday = azCalendarKey(Date.now() - 86400000);
+    if (msgDay === today) return `${time} Today`;
+    if (msgDay === yesterday) return `${time} Yesterday`;
+    const date = new Date(ms).toLocaleDateString('en-US', {
+      timeZone: UC_TZ,
+      month: 'numeric',
+      day: 'numeric',
+      year: '2-digit'
+    });
+    return `${time} ${date}`;
   }
 
   function sellerSmsHoverTitle(deal) {
-    const iso = deal?.sellerSmsAt || deal?.sellerSms?.lastInboundAt;
-    const abs = formatSellerSmsWhen(iso);
-    const rel = formatUcRelative(iso);
-    if (abs && rel && rel !== abs) return `Last seller text — ${rel} · ${abs} AZ`;
-    if (abs) return `Last seller text — ${abs} AZ`;
-    return 'Seller replied — open chat';
+    return formatSellerSmsAlertTime(deal?.sellerSmsAt || deal?.sellerSms?.lastInboundAt)
+      || 'Seller text';
   }
 
   function renderTable(deals) {
