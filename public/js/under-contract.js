@@ -1005,8 +1005,20 @@
       return;
     }
 
+    const labeledCount = Array.isArray(deal?.sellerMedia)
+      ? deal.sellerMedia.filter((m) => m.aiLabel?.room).length
+      : (scan.labeledCount || 0);
+    const mediaCount = Array.isArray(deal?.sellerMedia) ? deal.sellerMedia.length : (scan.mediaCount || 0);
+    const quotaNote = scan.jobError && /quota|billing|429/i.test(scan.jobError)
+      ? `<p class="uc-scan-warn">Gemini quota hit — labeled ${labeledCount}/${mediaCount} photos. Fix the GEMINI_API_KEY billing/quota on Railway, then hit Rescan to finish the rest.</p>`
+      : (scan.jobError
+        ? `<p class="uc-scan-warn">${esc(scan.jobError)}</p>`
+        : (labeledCount < mediaCount && mediaCount
+          ? `<p class="uc-docs-meta">Labeled ${labeledCount}/${mediaCount} photos — Rescan to finish unlabeled.</p>`
+          : ''));
+
     if (scan.status === 'labeling' || scan.status === 'scanning' || scan.status === 'queued') {
-      if (summary) summary.innerHTML = `<p><strong>${esc(scan.status)}…</strong> AI is labeling photos / building lines.</p>`;
+      if (summary) summary.innerHTML = `<p><strong>${esc(scan.status)}…</strong> AI is labeling photos / building lines.</p>${quotaNote}`;
     } else if (summary) {
       const conf = scan.confidence || '—';
       summary.innerHTML =
@@ -1017,7 +1029,8 @@
         `<div><span>Confidence</span><strong class="uc-scan-conf uc-scan-conf--${esc(conf)}">${esc(conf)}</strong></div>` +
         `</div>` +
         `<p>${esc(scan.summary || '')}</p>` +
-        `<p class="uc-docs-meta">${esc(scan.honestyLabel || '')}</p>` +
+        `<p class="uc-docs-meta">${esc(scan.honestyLabel || '')} · labeled ${labeledCount}/${mediaCount || '?'}</p>` +
+        quotaNote +
         (scan.overPurchaseWarn ? '<p class="uc-scan-warn">Rehab mid is high vs purchase — double-check scope.</p>' : '');
     }
 
