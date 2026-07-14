@@ -2219,6 +2219,10 @@ R.restoreServerSessionBackup = async function restoreServerSessionBackup(opts = 
 
 R.primeSessionFromLocalStorage = function primeSessionFromLocalStorage() {
   try {
+    // Server sessions are authoritative when the analyzer runs through the proxy.
+    // Priming large localStorage stubs painted fake "15k all scanned" KPIs and hid
+    // the real forceRescan queue for logged-in users.
+    if (USE_PROXY) return false;
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     const data = JSON.parse(raw);
@@ -2249,34 +2253,6 @@ R.primeSessionFromLocalStorage = function primeSessionFromLocalStorage() {
     if (!data?.records?.length && !data?.results?.length) return false;
     const resultCount = data.resultCount ?? (data.results || []).length;
     if (resultCount > 0 && resultCount < 8000) return false;
-    if (USE_PROXY && resultCount >= 8000) {
-      state.records = [];
-      state.results = [];
-      state.fileName = data.fileName || '';
-      state.processed = data.processed || 0;
-      state.filter = data.filter || 'all';
-      state._tierCountsFromServer = data.tierCounts
-        ? normalizeTierCountsForDisplay(data.tierCounts, resultCount)
-        : null;
-      sessionLoadState.total = resultCount;
-      sessionLoadState.serverCanonical = Math.max(sessionLoadState.serverCanonical || 0, resultCount);
-      const recordCount = Number(data.recordCount ?? data.records?.length) || 0;
-      if (recordCount) {
-        updateScannedCountUi?.();
-        fileInfo.textContent = data.fileName
-          ? `✓ ${data.fileName} — ${recordCount.toLocaleString()} rows`
-          : `✓ ${recordCount.toLocaleString()} rows`;
-        fileInfo.classList.add('visible');
-      }
-      if (sessionLoadState.total) {
-        state.resultsWorkbenchOpen = true;
-        progressSection?.classList.add('review-minimal');
-        if (state.processed > 0) progressSection?.classList.add('active');
-      }
-      updateCommandBar();
-      updateStartButton();
-      return true;
-    }
     state.records = data.records || [];
     state.results = data.results || [];
     state.fileName = data.fileName || '';
