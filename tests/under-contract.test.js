@@ -210,4 +210,52 @@ test('admin contracts list requires admin', async () => {
   assert.equal(body.ok, true);
   assert.ok(Array.isArray(body.deals));
   assert.ok(body.totals);
+  assert.ok(Array.isArray(body.unreadTeam));
+});
+
+test('computeDealPayouts deducts TC then photo cost before split', () => {
+  const { computeDealPayouts } = require('../lib/leads-platform/payout-settings');
+  const settings = { tcFee: 500, acqPercent: 50, dispoPercent: 50 };
+  const out = computeDealPayouts(10000, 1500, settings);
+  assert.equal(out.tcPay, 500);
+  assert.equal(out.photoCost, 1500);
+  assert.equal(out.netAfterCosts, 8000);
+  assert.equal(out.acqPay, 4000);
+  assert.equal(out.dispoPay, 4000);
+});
+
+test('team messages + unread list for other user', () => {
+  const deal = contracts.upsertDeal({
+    address: '910 Delaware St',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'under_contract',
+    assignmentFee: 12000,
+    photoCost: 250
+  });
+  const enriched = contracts.enrichDealForDisplay(deal);
+  assert.equal(enriched.photoCost, 250);
+  assert.equal(enriched.funded, 'no');
+  assert.ok(enriched.tcPay != null);
+
+  const { message } = contracts.addTeamMessage(deal.dealId, {
+    fromUser: 'brad',
+    body: 'Title called — EMD wire tomorrow'
+  });
+  assert.equal(message.fromUser, 'brad');
+  assert.ok(message.readBy.brad);
+
+  const unreadAdmin = contracts.listUnreadTeamForUser('admin');
+  assert.ok(unreadAdmin.some((u) => u.dealId === deal.dealId && u.count >= 1));
+
+  contracts.markTeamMessagesRead(deal.dealId, 'admin');
+  const unreadAfter = contracts.listUnreadTeamForUser('admin');
+  assert.ok(!unreadAfter.some((u) => u.dealId === deal.dealId));
+
+  const desk = contracts.isDeskReady({
+    accessType: 'lockbox',
+    vacancy: 'vacant',
+    rehabInfo: { roof: 'ok', ac: 'ok', foundation: 'ok', electrical: 'ok', plumbing: 'ok', other: '' }
+  });
+  assert.equal(desk, true);
 });

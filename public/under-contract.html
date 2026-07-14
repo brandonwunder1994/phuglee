@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=19">
+  <link rel="stylesheet" href="/css/under-contract.css?v=20">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -33,6 +33,11 @@
     </section>
 
     <div id="uc-app" class="uc-app" hidden>
+      <div id="uc-team-banner" class="uc-team-banner" hidden role="status" aria-live="polite">
+        <button type="button" id="uc-team-banner-btn" class="uc-team-banner-btn">
+          <span id="uc-team-banner-text">New team message</span>
+        </button>
+      </div>
       <header class="uc-hero">
         <div>
           <p class="vault-eyebrow">Proof in the pudding</p>
@@ -93,10 +98,7 @@
                 <th>Rehab Info?</th>
                 <th>Buyer Found?</th>
                 <th>Buyer EMD?</th>
-                <th>Assignment fee</th>
-                <th>TC Pay</th>
-                <th>Acq Pay</th>
-                <th>Dispo Pay</th>
+                <th>Funded</th>
                 <th></th>
               </tr>
             </thead>
@@ -192,6 +194,10 @@
         </select>
       </label>
       <label class="vault-field">
+        <span class="vault-field-label">Photo cost ($)</span>
+        <input type="number" id="uc-edit-photo-cost" class="phuglee-input" step="1" min="0" placeholder="0">
+      </label>
+      <label class="vault-field">
         <span class="vault-field-label">Notes</span>
         <textarea id="uc-edit-notes" class="phuglee-textarea" rows="3"></textarea>
       </label>
@@ -216,6 +222,29 @@
     <div class="uc-drawer-body">
       <div id="uc-drawer-hero" class="uc-drawer-hero"></div>
       <dl id="uc-drawer-facts" class="uc-facts"></dl>
+      <section class="uc-photo-cost" aria-label="Photo cost">
+        <div class="uc-rehab-head">
+          <div>
+            <h3>Photos / marketing</h3>
+            <p class="uc-docs-meta">Mark photos ready and set photo cost for Funded breakdown</p>
+          </div>
+          <button type="button" id="uc-photo-cost-save" class="phuglee-btn phuglee-btn-secondary">Save photos</button>
+        </div>
+        <div class="uc-photo-cost-grid">
+          <label class="vault-field">
+            <span class="vault-field-label">Photos ready?</span>
+            <select id="uc-profile-photos" class="phuglee-select">
+              <option value="">—</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Photo cost ($)</span>
+            <input type="number" id="uc-profile-photo-cost" class="phuglee-input" step="1" min="0" placeholder="0">
+          </label>
+        </div>
+      </section>
       <section class="uc-rehab" aria-label="Rehab info">
         <div class="uc-rehab-head">
           <div>
@@ -282,6 +311,19 @@
           <button type="button" id="uc-doc-send" class="phuglee-btn phuglee-btn-primary">Send Document</button>
         </div>
         <p id="uc-docs-pending" class="uc-docs-pending" hidden></p>
+      </section>
+      <section class="uc-team" aria-label="Internal team messages" id="uc-team-section">
+        <div class="uc-convo-head">
+          <div>
+            <h3>Internal messages</h3>
+            <p class="uc-docs-meta">Admin ↔ Brad notes on this property (not seller SMS)</p>
+          </div>
+        </div>
+        <div id="uc-team-thread" class="uc-convo-thread uc-team-thread"></div>
+        <div class="uc-convo-compose">
+          <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Message your teammate…"></textarea>
+          <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
+        </div>
       </section>
       <section class="uc-convo" aria-label="SMS conversation">
         <div class="uc-convo-head">
@@ -450,6 +492,20 @@
     </div>
   </dialog>
 
+  <dialog id="uc-funded-dialog" class="uc-dialog">
+    <div class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-funded-title">Funded breakdown</h3>
+        <button type="button" id="uc-funded-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <p id="uc-funded-address" class="uc-jv-lead"></p>
+      <dl id="uc-funded-facts" class="uc-facts uc-funded-facts"></dl>
+      <div class="uc-edit-actions">
+        <button type="button" id="uc-funded-done" class="phuglee-btn phuglee-btn-primary">Done</button>
+      </div>
+    </div>
+  </dialog>
+
   <div id="uc-lightbox" class="uc-lightbox" hidden>
     <button type="button" id="uc-lightbox-close" class="uc-lightbox-close" aria-label="Close photo">×</button>
     <img id="uc-lightbox-img" class="uc-lightbox-img" alt="Property photo">
@@ -458,6 +514,6 @@
   <script src="/js/settings-menu.js?v=5" defer></script>
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=22" defer></script>
+  <script src="/js/under-contract.js?v=23" defer></script>
 </body>
 </html>

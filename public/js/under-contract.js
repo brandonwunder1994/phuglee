@@ -28,10 +28,26 @@
     profile: null,
     contact: null,
     messages: [],
+    teamMessages: [],
+    unreadTeam: [],
     fromNumber: null,
     toNumber: null,
-    pollTimer: null
+    pollTimer: null,
+    deepLinkHandled: false
   };
+
+  function teamUserKey() {
+    const u = sessionUser();
+    if (u === DISPOS) return 'brad';
+    if (u === ADMIN) return 'admin';
+    return isAdmin() ? 'admin' : 'brad';
+  }
+
+  function teamDisplayName(user) {
+    if (user === 'brad') return 'Brad';
+    if (user === 'admin') return 'Brandon';
+    return user || 'Teammate';
+  }
 
   function $(id) {
     return document.getElementById(id);
@@ -223,10 +239,12 @@
         </td>
         <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerFound || '')}">${esc(d.buyerFoundLabel || '—')}</span></td>
         <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerEmdSubmitted || '')}">${esc(d.buyerEmdLabel || '—')}</span></td>
-        <td class="uc-money">${esc(money(d.assignmentFee))}</td>
-        <td class="uc-money">${esc(money(d.tcPay))}</td>
-        <td class="uc-money">${esc(money(d.acqPay))}</td>
-        <td class="uc-money">${esc(money(d.dispoPay))}</td>
+        <td>
+          <button type="button" class="uc-funded-cell" data-action="view-funded" title="Funded breakdown">
+            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.funded || '')}">${esc(d.fundedLabel || '—')}</span>
+            <span class="uc-funded-link">Click here</span>
+          </button>
+        </td>
         <td>
           <div class="uc-row-actions">
             <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="edit">Edit</button>
@@ -251,13 +269,34 @@
     return { street: street || '—', cityLine };
   }
 
-  async function loadDeals() {
+  function renderTeamBanner() {
+    const banner = $('uc-team-banner');
+    const text = $('uc-team-banner-text');
+    if (!banner || !text) return;
+    const items = state.unreadTeam || [];
+    if (!items.length) {
+      banner.hidden = true;
+      return;
+    }
+    banner.hidden = false;
+    const first = items[0];
+    const n = items.reduce((sum, it) => sum + (Number(it.count) || 1), 0);
+    const who = teamDisplayName(first.fromUser);
+    const addr = first.address || 'a deal';
+    text.textContent = n === 1
+      ? `1 new team message — ${who} on ${addr}`
+      : `${n} new team message(s) — e.g. ${who} on ${addr}`;
+  }
+
+  async function loadDeals(opts = {}) {
     const data = await api('/api/leads/admin/contracts');
     state.deals = data.deals || [];
     state.totals = data.totals || null;
     state.ghlConfigured = !!data.ghlConfigured;
+    state.unreadTeam = data.unreadTeam || [];
     renderKpis(state.totals);
     renderTable(state.deals);
+    renderTeamBanner();
 
     const status = $('uc-ghl-status');
     const syncBtn = $('uc-sync-ghl');
@@ -273,6 +312,11 @@
       }
     }
     if (syncBtn) syncBtn.disabled = false;
+
+    if (!opts.silent && !state.deepLinkHandled) {
+      state.deepLinkHandled = true;
+      await handleDeepLink();
+    }
   }
 
   function stopPoll() {
@@ -285,8 +329,43 @@
   function startPoll() {
     stopPoll();
     state.pollTimer = setInterval(() => {
-      if (state.activeDealId) loadMessages(state.activeDealId, { silent: true }).catch(() => {});
+      loadDeals({ silent: true }).catch(() => {});
+      if (state.activeDealId) {
+        loadMessages(state.activeDealId, { silent: true }).catch(() => {});
+        refreshTeamMessagesFromState();
+      }
     }, POLL_MS);
+  }
+
+  function ensureBoardPoll() {
+    if (!state.pollTimer) startPoll();
+  }
+
+  function refreshTeamMessagesFromState() {
+    if (!state.activeDealId) return;
+    const deal = state.deals.find((d) => d.dealId === state.activeDealId)
+      || state.profile;
+    if (!deal) return;
+    state.teamMessages = deal.teamMessages || [];
+    if (state.profile && state.profile.dealId === deal.dealId) {
+      state.profile = { ...state.profile, ...deal, teamMessages: state.teamMessages };
+    }
+    renderTeamMessages();
+  }
+
+  async function handleDeepLink() {
+    let dealId = '';
+    try {
+      dealId = new URLSearchParams(window.location.search).get('deal') || '';
+    } catch (_) { /* ignore */ }
+    if (!dealId) return;
+    await openProfile(dealId, { scrollToTeam: true, markTeamRead: true });
+  }
+
+  async function openUnreadFromBanner() {
+    const first = (state.unreadTeam || [])[0];
+    if (!first?.dealId) return;
+    await openProfile(first.dealId, { scrollToTeam: true, markTeamRead: true });
   }
 
   function renderMessages() {
@@ -350,9 +429,8 @@
       ['Email', deal.email || contact?.email || '—'],
       ['Purchase price', money(deal.purchasePrice)],
       ['Assignment fee', money(deal.assignmentFee)],
-      ['TC Pay', money(deal.tcPay)],
-      ['Acq Pay', money(deal.acqPay)],
-      ['Dispo Pay', money(deal.dispoPay)],
+      ['Photo cost', money(deal.photoCost ?? 0)],
+      ['Funded', deal.fundedLabel || '—'],
       ['Buyer found?', deal.buyerFoundLabel || '—'],
       ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
       ['Closing', deal.closingDate || contact?.closingDate || '—'],
@@ -368,11 +446,177 @@
     ).join('');
 
     fillRehabForm(deal.rehabInfo || {});
+    fillPhotoCostForm(deal);
+    state.teamMessages = deal.teamMessages || [];
+    renderTeamMessages();
     renderDocuments(deal.documents || []);
     renderDocsPending(deal);
     closeDocViewer();
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
     $('uc-sms-input').value = '';
+    if ($('uc-team-input')) $('uc-team-input').value = '';
+  }
+
+  function fillPhotoCostForm(deal) {
+    if ($('uc-profile-photos')) $('uc-profile-photos').value = deal.photosAvailable || '';
+    if ($('uc-profile-photo-cost')) {
+      $('uc-profile-photo-cost').value = deal.photoCost != null ? deal.photoCost : 0;
+    }
+  }
+
+  function renderTeamMessages() {
+    const box = $('uc-team-thread');
+    if (!box) return;
+    const msgs = state.teamMessages || [];
+    if (!msgs.length) {
+      box.innerHTML = '<p class="uc-convo-empty">No internal messages yet. Message Brandon or Brad here.</p>';
+      return;
+    }
+    const me = teamUserKey();
+    box.innerHTML = msgs.map((m) => {
+      const mine = m.fromUser === me;
+      const when = m.createdAt ? new Date(m.createdAt).toLocaleString() : '';
+      return `<div class="uc-bubble ${mine ? 'uc-bubble--out' : 'uc-bubble--in'}">
+        <div class="uc-bubble-body">${esc(m.body)}</div>
+        <div class="uc-bubble-meta">${esc(teamDisplayName(m.fromUser))}${when ? ' · ' + esc(when) : ''}</div>
+      </div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function markTeamMessagesRead(dealId) {
+    if (!dealId) return;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/team-messages/read`, {
+        method: 'POST',
+        body: '{}'
+      });
+      if (Array.isArray(data.unreadTeam)) {
+        state.unreadTeam = data.unreadTeam;
+        renderTeamBanner();
+      }
+      if (data.deal) {
+        state.teamMessages = data.deal.teamMessages || [];
+        if (state.profile?.dealId === dealId) {
+          state.profile = { ...state.profile, ...data.deal };
+        }
+        const idx = state.deals.findIndex((d) => d.dealId === dealId);
+        if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...data.deal };
+        renderTeamMessages();
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  async function sendTeamMessage() {
+    const dealId = state.activeDealId;
+    const input = $('uc-team-input');
+    const text = (input?.value || '').trim();
+    if (!dealId || !text) return;
+    const btn = $('uc-team-send');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/team-messages`, {
+        method: 'POST',
+        body: JSON.stringify({ body: text })
+      });
+      input.value = '';
+      if (Array.isArray(data.unreadTeam)) {
+        state.unreadTeam = data.unreadTeam;
+        renderTeamBanner();
+      }
+      if (data.deal) {
+        state.teamMessages = data.deal.teamMessages || [];
+        state.profile = { ...(state.profile || {}), ...data.deal };
+        const idx = state.deals.findIndex((d) => d.dealId === dealId);
+        if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...data.deal };
+        renderTeamMessages();
+      }
+      showToast('Team message sent');
+    } catch (err) {
+      showToast(err.message || 'Could not send team message');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function savePhotoCost() {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    const btn = $('uc-photo-cost-save');
+    if (btn) btn.disabled = true;
+    try {
+      const photoCostRaw = $('uc-profile-photo-cost')?.value;
+      const body = {
+        photosAvailable: $('uc-profile-photos')?.value || '',
+        photoCost: photoCostRaw === '' ? 0 : Number(photoCostRaw)
+      };
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`, {
+        method: 'PATCH',
+        body: JSON.stringify(body)
+      });
+      showToast('Photos / photo cost saved');
+      await loadDeals({ silent: true });
+      if (data.deal) {
+        state.profile = { ...(state.profile || {}), ...data.deal };
+        fillPhotoCostForm(data.deal);
+        const rowsFacts = $('uc-drawer-facts');
+        if (rowsFacts && state.contact) {
+          // Refresh fact row money/labels without tearing down SMS thread
+          const contact = state.contact;
+          const deal = data.deal;
+          const rows = [
+            ['Owner / seller', deal.ownerName || contact?.sellersName || contact?.name || '—'],
+            ['Phone', deal.phone || contact?.phone || '—'],
+            ['Email', deal.email || contact?.email || '—'],
+            ['Purchase price', money(deal.purchasePrice)],
+            ['Assignment fee', money(deal.assignmentFee)],
+            ['Photo cost', money(deal.photoCost ?? 0)],
+            ['Funded', deal.fundedLabel || '—'],
+            ['Buyer found?', deal.buyerFoundLabel || '—'],
+            ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
+            ['Closing', deal.closingDate || contact?.closingDate || '—'],
+            ['EMD Submitted?', deal.sellerEmdLabel || '—'],
+            ['Buyer EMD?', deal.buyerEmdLabel || '—'],
+            ['Access', deal.accessDisplay || deal.accessLabel || '—'],
+            ['Vacancy', deal.vacancyLabel || '—'],
+            ['Photos?', deal.photosLabel || '—'],
+            ['Notes', deal.notes || '—']
+          ];
+          rowsFacts.innerHTML = rows.map(([k, v]) =>
+            `<div class="uc-fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`
+          ).join('');
+        }
+      }
+    } catch (err) {
+      showToast(err.message || 'Could not save photo cost');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function openFundedView(deal) {
+    const dialog = $('uc-funded-dialog');
+    if (!dialog || !deal) return;
+    $('uc-funded-title').textContent = 'Funded breakdown';
+    $('uc-funded-address').textContent = deal.address
+      ? `${deal.address}${deal.city ? ` · ${[deal.city, deal.state, deal.zip].filter(Boolean).join(', ')}` : ''}`
+      : 'Deal payouts';
+    const rows = [
+      ['Funded?', deal.fundedLabel || (deal.stage === 'funded' ? 'Yes' : 'No')],
+      ['Assignment fee', money(deal.assignmentFee)],
+      ['TC cost', money(deal.tcPay)],
+      ['Photo cost', money(deal.photoCostApplied ?? deal.photoCost ?? 0)],
+      ['Acq payout', money(deal.acqPay)],
+      ['Dispo payout', money(deal.dispoPay)]
+    ];
+    $('uc-funded-facts').innerHTML = rows.map(([k, v]) =>
+      `<div class="uc-fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`
+    ).join('');
+    dialog.showModal();
+  }
+
+  function closeFundedView() {
+    $('uc-funded-dialog')?.close();
   }
 
   function fillRehabForm(rehab) {
@@ -571,20 +815,25 @@
     }
   }
 
-  async function openProfile(dealId) {
+  async function openProfile(dealId, opts = {}) {
     state.activeDealId = dealId;
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`);
       renderProfile(data.deal, data.contact);
       await loadMessages(dealId, { silent: true });
       startPoll();
+      if (opts.markTeamRead) await markTeamMessagesRead(dealId);
+      if (opts.scrollToTeam) {
+        requestAnimationFrame(() => {
+          $('uc-team-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
     } catch (err) {
       showToast(err.message || 'Could not open profile');
     }
   }
 
   function closeProfile() {
-    stopPoll();
     state.activeDealId = null;
     closeDocViewer();
     const drawer = $('uc-drawer');
@@ -592,6 +841,7 @@
     if (drawer) drawer.hidden = true;
     if (backdrop) backdrop.hidden = true;
     document.body.classList.remove('uc-drawer-open');
+    ensureBoardPoll();
   }
 
   function openBuyerFound(deal) {
@@ -804,6 +1054,9 @@
     $('uc-edit-buyer-emd').value = deal.buyerEmdSubmitted || '';
     if ($('uc-edit-title-opened')) $('uc-edit-title-opened').value = deal.titleOpened || '';
     if ($('uc-edit-photos')) $('uc-edit-photos').value = deal.photosAvailable || '';
+    if ($('uc-edit-photo-cost')) {
+      $('uc-edit-photo-cost').value = deal.photoCost != null ? deal.photoCost : 0;
+    }
     $('uc-edit-notes').value = deal.notes || '';
     $('uc-edit-title').textContent = deal.address || 'Edit deal';
     $('uc-edit-dialog').showModal();
@@ -830,8 +1083,14 @@
       buyerEmdSubmitted: $('uc-edit-buyer-emd').value,
       titleOpened: $('uc-edit-title-opened')?.value || '',
       photosAvailable: $('uc-edit-photos')?.value || '',
+      photoCost: (() => {
+        const el = $('uc-edit-photo-cost');
+        if (!el) return undefined;
+        return el.value === '' ? 0 : Number(el.value);
+      })(),
       notes: $('uc-edit-notes').value.trim()
     };
+    if (body.photoCost === undefined) delete body.photoCost;
     try {
       await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}`, {
         method: 'PATCH',
@@ -915,8 +1174,10 @@
       });
       state.deals = data.deals || [];
       state.totals = data.totals || null;
+      state.unreadTeam = data.unreadTeam || state.unreadTeam || [];
       renderKpis(state.totals);
       renderTable(state.deals);
+      renderTeamBanner();
       const s = data.sync || {};
       showToast(`Synced ${s.upserted || 0} of ${s.scanned || 0} GHL opportunities`);
     } catch (err) {
@@ -971,6 +1232,19 @@
     $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
+    $('uc-photo-cost-save')?.addEventListener('click', () => { savePhotoCost(); });
+    $('uc-team-send')?.addEventListener('click', () => { sendTeamMessage(); });
+    $('uc-team-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendTeamMessage();
+      }
+    });
+    $('uc-team-banner-btn')?.addEventListener('click', () => {
+      openUnreadFromBanner().catch((e) => showToast(e.message || 'Could not open message'));
+    });
+    $('uc-funded-close')?.addEventListener('click', closeFundedView);
+    $('uc-funded-done')?.addEventListener('click', closeFundedView);
     $('uc-rehab-view-close')?.addEventListener('click', closeRehabView);
     $('uc-rehab-view-done')?.addEventListener('click', closeRehabView);
     $('uc-drawer-buyer-found')?.addEventListener('click', () => {
@@ -1031,6 +1305,7 @@
       if ($('uc-jv-dialog')?.open) return;
       if ($('uc-amendment-dialog')?.open) return;
       if ($('uc-edit-dialog')?.open) return;
+      if ($('uc-funded-dialog')?.open) return;
       closeProfile();
     });
 
@@ -1072,6 +1347,7 @@
       if (action === 'send-jv') openSendJv(deal);
       if (action === 'amendment') openAmendment(deal);
       if (action === 'view-rehab') openRehabView(deal);
+      if (action === 'view-funded') openFundedView(deal);
       if (action === 'release' && isAdmin()) releaseDeal(deal.dealId, deal.address);
     });
   }
@@ -1100,6 +1376,7 @@
     bind();
     try {
       await loadDeals();
+      ensureBoardPoll();
     } catch (err) {
       showToast(err.message || 'Could not load contracts');
       if (err.status === 403 && gate) {
