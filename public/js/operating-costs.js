@@ -157,6 +157,37 @@
     }
   }
 
+  function renderGeminiPrepaidCredit(credit) {
+    const valueEl = $('oc-gemini-credit-value');
+    const inputEl = $('oc-gemini-credit-input');
+    const formInput = $('oc-gemini-credit-form-input');
+    const linksEl = $('oc-gemini-credit-links');
+    if (!valueEl) return;
+
+    const bal = credit && credit.balanceUsd != null ? Number(credit.balanceUsd) : null;
+    if (bal == null || !Number.isFinite(bal)) {
+      valueEl.textContent = 'Not set';
+      valueEl.classList.remove('is-low');
+    } else {
+      valueEl.textContent = money(bal);
+      valueEl.classList.toggle('is-low', bal < 5);
+    }
+    if (inputEl && document.activeElement !== inputEl) {
+      inputEl.value = bal != null ? String(bal) : '';
+    }
+    if (formInput && document.activeElement !== formInput) {
+      formInput.value = bal != null ? String(bal) : '';
+    }
+    if (linksEl) {
+      linksEl.innerHTML = billingLinksHtml(
+        credit?.billing || {
+          label: 'Open AI Studio billing',
+          href: 'https://aistudio.google.com/billing'
+        }
+      );
+    }
+  }
+
   function renderWalletBalance(wb) {
     const valueEl = $('oc-wallet-balance-value');
     const metaEl = $('oc-wallet-balance-meta');
@@ -283,12 +314,18 @@
     const snUsd = $('oc-sn-usd');
     const gcpGranted = $('oc-gcp-granted-input');
     const gcpRemaining = $('oc-gcp-remaining-input');
+    const geminiCredit = $('oc-gemini-credit-form-input');
+    const geminiPanel = $('oc-gemini-credit-input');
     if (ghlName) ghlName.value = rc.ghlPlanName || '';
     if (ghlUsd) ghlUsd.value = rc.ghlPlanMonthlyUsd ?? '';
     if (snName) snName.value = rc.signnowPlanName || '';
     if (snUsd) snUsd.value = rc.signnowPlanMonthlyUsd ?? '';
     if (gcpGranted) gcpGranted.value = rc.gcpPromoCreditGrantedUsd ?? '';
     if (gcpRemaining) gcpRemaining.value = rc.gcpPromoCreditRemainingUsd ?? '';
+    if (geminiCredit) geminiCredit.value = rc.geminiPrepaidCreditUsd ?? '';
+    if (geminiPanel && document.activeElement !== geminiPanel) {
+      geminiPanel.value = rc.geminiPrepaidCreditUsd ?? '';
+    }
   }
 
   function optionalUsdInput(id) {
@@ -453,6 +490,7 @@
         .join(' · ');
       renderCards(snap.services || {});
       renderGcpCredit(snap.googleCloudCredit);
+      renderGeminiPrepaidCredit(snap.geminiPrepaidCredit);
       renderWalletBalance(snap.ghlWalletBalance);
       renderPickup(snap.ghlWatermark);
       renderWatermark(snap.ghlWatermark);
@@ -480,7 +518,10 @@
         signnowPlanName: $('oc-sn-name')?.value,
         signnowPlanMonthlyUsd: Number($('oc-sn-usd')?.value),
         gcpPromoCreditGrantedUsd: optionalUsdInput('oc-gcp-granted-input'),
-        gcpPromoCreditRemainingUsd: optionalUsdInput('oc-gcp-remaining-input')
+        gcpPromoCreditRemainingUsd: optionalUsdInput('oc-gcp-remaining-input'),
+        geminiPrepaidCreditUsd:
+          optionalUsdInput('oc-gemini-credit-form-input') ??
+          optionalUsdInput('oc-gemini-credit-input')
       };
       await fetchJson('/api/admin/operating-costs/rate-card', {
         method: 'PATCH',
@@ -489,6 +530,26 @@
       });
       if (status) {
         status.textContent = 'Saved';
+        status.classList.add('is-ok');
+      }
+      await refresh();
+    } catch (err) {
+      if (status) status.textContent = err.message || 'Save failed';
+    }
+  }
+
+  async function saveGeminiCreditFromPanel() {
+    const status = $('oc-rate-status');
+    try {
+      await fetchJson('/api/admin/operating-costs/rate-card', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          geminiPrepaidCreditUsd: optionalUsdInput('oc-gemini-credit-input')
+        })
+      });
+      if (status) {
+        status.textContent = 'Gemini credit saved';
         status.classList.add('is-ok');
       }
       await refresh();
@@ -705,6 +766,7 @@
     $('oc-refresh')?.addEventListener('click', () => refresh());
     period?.addEventListener('change', () => refresh());
     $('oc-rate-form')?.addEventListener('submit', saveRateCard);
+    $('oc-gemini-credit-input')?.addEventListener('change', () => saveGeminiCreditFromPanel());
     $('oc-kind-filters')?.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-filter]');
       if (!btn) return;

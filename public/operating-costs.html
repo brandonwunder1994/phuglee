@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/operating-costs.css?v=12">
+  <link rel="stylesheet" href="/css/operating-costs.css?v=13">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -78,34 +78,59 @@
 
       <section class="oc-cards" id="oc-cards" aria-label="Services"></section>
 
-      <section class="oc-gcp-credit" id="oc-gcp-credit" aria-labelledby="oc-gcp-credit-heading">
-        <div class="oc-gcp-credit-inner">
-          <div>
-            <h2 class="oc-gcp-credit-title" id="oc-gcp-credit-heading">Google Cloud promo credit</h2>
-            <p class="oc-gcp-credit-note" id="oc-gcp-credit-note">
-              Pays Google Cloud / Maps. Does <strong>not</strong> cover Gemini API or AI Studio.
-              Google does not expose remaining balance to apps — paste numbers from Cloud Console → Billing → Credits.
-            </p>
+      <section class="oc-google-credits" aria-label="Google credit balances">
+        <div class="oc-gcp-credit" id="oc-gcp-credit" aria-labelledby="oc-gcp-credit-heading">
+          <div class="oc-gcp-credit-inner">
+            <div>
+              <h2 class="oc-gcp-credit-title" id="oc-gcp-credit-heading">Google Cloud promo credit</h2>
+              <p class="oc-gcp-credit-note" id="oc-gcp-credit-note">
+                Pays Maps / Google Cloud. Does <strong>not</strong> cover Gemini.
+                Paste from Cloud Console → Billing → Credits.
+              </p>
+            </div>
+            <div class="oc-gcp-credit-stats">
+              <div class="oc-gcp-credit-stat">
+                <span class="oc-gcp-credit-kicker">Granted</span>
+                <strong id="oc-gcp-granted" class="oc-gcp-credit-value">—</strong>
+              </div>
+              <div class="oc-gcp-credit-stat">
+                <span class="oc-gcp-credit-kicker">Left</span>
+                <strong id="oc-gcp-remaining" class="oc-gcp-credit-value">—</strong>
+              </div>
+              <div class="oc-gcp-credit-stat">
+                <span class="oc-gcp-credit-kicker">Used</span>
+                <strong id="oc-gcp-used" class="oc-gcp-credit-value">—</strong>
+              </div>
+              <div class="oc-gcp-credit-stat">
+                <span class="oc-gcp-credit-kicker">Maps burn (this month)</span>
+                <strong id="oc-gcp-maps-burn" class="oc-gcp-credit-value">—</strong>
+              </div>
+            </div>
+            <p id="oc-gcp-credit-links" class="oc-gcp-credit-links"></p>
           </div>
-          <div class="oc-gcp-credit-stats">
-            <div class="oc-gcp-credit-stat">
-              <span class="oc-gcp-credit-kicker">Granted</span>
-              <strong id="oc-gcp-granted" class="oc-gcp-credit-value">—</strong>
+        </div>
+
+        <div class="oc-gcp-credit oc-gemini-credit" id="oc-gemini-credit" aria-labelledby="oc-gemini-credit-heading">
+          <div class="oc-gcp-credit-inner">
+            <div>
+              <h2 class="oc-gcp-credit-title" id="oc-gemini-credit-heading">Gemini AI Studio credit</h2>
+              <p class="oc-gcp-credit-note">
+                Prepaid <strong>Credit balance</strong> from AI Studio → Billing (the $10 wallet on that page).
+                Separate from Cloud promo credit. Paste when you top up — Google has no public API for this.
+              </p>
             </div>
-            <div class="oc-gcp-credit-stat">
-              <span class="oc-gcp-credit-kicker">Left</span>
-              <strong id="oc-gcp-remaining" class="oc-gcp-credit-value">—</strong>
+            <div class="oc-gcp-credit-stats">
+              <div class="oc-gcp-credit-stat">
+                <span class="oc-gcp-credit-kicker">Credit balance</span>
+                <strong id="oc-gemini-credit-value" class="oc-gcp-credit-value">—</strong>
+              </div>
             </div>
-            <div class="oc-gcp-credit-stat">
-              <span class="oc-gcp-credit-kicker">Used</span>
-              <strong id="oc-gcp-used" class="oc-gcp-credit-value">—</strong>
-            </div>
-            <div class="oc-gcp-credit-stat">
-              <span class="oc-gcp-credit-kicker">Maps burn (this month)</span>
-              <strong id="oc-gcp-maps-burn" class="oc-gcp-credit-value">—</strong>
-            </div>
+            <label class="oc-field oc-gemini-credit-field">
+              <span>Update credit balance $</span>
+              <input type="number" id="oc-gemini-credit-input" min="0" step="0.01" placeholder="e.g. 10.00" />
+            </label>
+            <p id="oc-gemini-credit-links" class="oc-gcp-credit-links"></p>
           </div>
-          <p id="oc-gcp-credit-links" class="oc-gcp-credit-links"></p>
         </div>
       </section>
 
@@ -192,7 +217,7 @@
         <div class="oc-section-head">
           <div>
             <h2 class="oc-section-title" id="oc-ratecard-heading">Fixed plans &amp; Cloud credit</h2>
-            <p class="oc-section-lead">GHL / SignNow plan amounts, plus Google Cloud promo credit from the Billing console (Gemini is separate).</p>
+            <p class="oc-section-lead">GHL / SignNow plans, Google Cloud promo credit, and Gemini AI Studio prepaid credit balance.</p>
           </div>
         </div>
         <form id="oc-rate-form" class="oc-rate-form">
@@ -220,8 +245,12 @@
             <span>GCP credit left $</span>
             <input type="number" id="oc-gcp-remaining-input" name="gcpPromoCreditRemainingUsd" min="0" step="0.01" placeholder="from console" />
           </label>
+          <label class="oc-field">
+            <span>Gemini AI Studio credit $</span>
+            <input type="number" id="oc-gemini-credit-form-input" name="geminiPrepaidCreditUsd" min="0" step="0.01" placeholder="e.g. 10.00" />
+          </label>
           <div class="oc-rate-actions">
-            <button type="submit" class="phuglee-btn phuglee-btn-primary">Save plans &amp; credit</button>
+            <button type="submit" class="phuglee-btn phuglee-btn-primary">Save plans &amp; credits</button>
             <span id="oc-rate-status" class="oc-rate-status" role="status"></span>
           </div>
         </form>
@@ -232,6 +261,6 @@
   <script src="/js/shell-nav.js?v=distress2"></script>
   <script src="/js/settings-menu.js?v=distress2"></script>
   <script src="/js/command-palette.js?v=distress2"></script>
-  <script src="/js/operating-costs.js?v=12"></script>
+  <script src="/js/operating-costs.js?v=13"></script>
 </body>
 </html>
