@@ -2,10 +2,12 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// New AI Studio (AQ.) keys cannot call retired 2.5/2.0 models ("no longer available to new users").
+// Prefer cheap high-volume lite first; keep flash-latest / 3.5 as quality fallbacks.
 const GEMINI_MODELS = [
-  'gemini-2.5-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash'
+  'gemini-3.1-flash-lite',
+  'gemini-flash-lite-latest',
+  'gemini-3.5-flash'
 ];
 const GEMINI_MAX_CONCURRENT = 10;
 
@@ -195,6 +197,7 @@ function createGeminiHelpers(apiStats, usageStore) {
     let lastErr = 'All Gemini models failed';
     let lastRawGoogle = '';
     let lastHttpStatus = 0;
+    const attempts = [];
     const auth = geminiAuthForKey(key);
 
     for (const model of GEMINI_MODELS) {
@@ -208,7 +211,14 @@ function createGeminiHelpers(apiStats, usageStore) {
         const result = await httpsPost(geminiUrl, body, auth.headers);
         if (result.status === 200) {
           const data = JSON.parse(result.body);
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const partsOut = data.candidates?.[0]?.content?.parts || [];
+          // Gemini 3.x may return thought parts before the visible answer.
+          const text = partsOut
+            .filter((p) => p && p.text && !p.thought)
+            .map((p) => p.text)
+            .join('')
+            || partsOut.map((p) => p.text || '').join('')
+            || '';
           if (text) {
             noteGeminiResult(200, true);
             return { ok: true, model, text };
@@ -216,12 +226,18 @@ function createGeminiHelpers(apiStats, usageStore) {
           lastErr = `Gemini ${model}: empty response`;
           lastRawGoogle = '';
           lastHttpStatus = 200;
+          attempts.push({ model, attempt, status: 200, error: 'empty response' });
           break;
         }
         lastRawGoogle = parseGeminiErrorBody(result.body);
         lastHttpStatus = result.status;
-        // Classify hard quota from Google's raw message BEFORE shortening (shorten strips RESOURCE_EXHAUSTED).
         lastErr = shortenGeminiError(result.status, result.body);
+        attempts.push({
+          model,
+          attempt,
+          status: result.status,
+          error: (lastRawGoogle || lastErr).slice(0, 240)
+        });
         const hardQuota = isHardQuotaError(result.status, lastRawGoogle || lastErr);
         // Hard quota is not retryable — stop trying models/attempts immediately
         if (hardQuota) {
@@ -232,7 +248,8 @@ function createGeminiHelpers(apiStats, usageStore) {
             rawGoogleError: lastRawGoogle || undefined,
             httpStatus: result.status,
             hardQuota: true,
-            status: result.status
+            status: result.status,
+            attempts
           };
         }
         const retryable = result.status === 429 || result.status === 503 || result.status === 500;
@@ -264,7 +281,8 @@ function createGeminiHelpers(apiStats, usageStore) {
       rawGoogleError: lastRawGoogle || undefined,
       httpStatus: failStatus,
       hardQuota: isHardQuotaError(failStatus, lastRawGoogle || lastErr),
-      status: failStatus
+      status: failStatus,
+      attempts
     };
   }
 
@@ -444,7 +462,8 @@ function register(ctx) {
           httpStatus: result.httpStatus || result.status || null,
           hardQuota: !!result.hardQuota,
           keyTail: geminiKeyStatus().geminiKeyTail,
-          keyFormat: loadGeminiKey().startsWith('AQ.') ? 'AQ' : (loadGeminiKey().startsWith('AIza') ? 'AIza' : 'other')
+          keyFormat: loadGeminiKey().startsWith('AQ.') ? 'AQ' : (loadGeminiKey().startsWith('AIza') ? 'AIza' : 'other'),
+          attempts: result.attempts || null
         });
     return true;
   });
