@@ -713,9 +713,17 @@
     await openProfile(first.dealId, { scrollToTeam: true, markTeamRead: true });
   }
 
-  function renderMessages() {
+  function isThreadNearBottom(el, thresholdPx = 96) {
+    if (!el) return true;
+    return (el.scrollHeight - el.scrollTop - el.clientHeight) <= thresholdPx;
+  }
+
+  function renderMessages(opts = {}) {
     const box = $('uc-convo-thread');
     if (!box) return;
+    const forceScroll = opts.forceScroll === true;
+    const stickToBottom = forceScroll || isThreadNearBottom(box);
+    const prevScroll = box.scrollTop;
     if (!state.messages.length) {
       box.innerHTML = '<p class="uc-convo-empty">No SMS yet. Send the first message below.</p>';
       return;
@@ -737,7 +745,8 @@
         <div class="uc-bubble-meta">${outbound ? 'You' : 'Them'}${when ? ' · ' + esc(when) + ' AZ' : ''}</div>
       </div>`;
     }).join('');
-    box.scrollTop = box.scrollHeight;
+    if (stickToBottom) box.scrollTop = box.scrollHeight;
+    else box.scrollTop = prevScroll;
   }
 
   async function loadMessages(dealId, opts = {}) {
@@ -751,7 +760,7 @@
         ? `From ${state.fromNumber} → ${state.toNumber}`
         : (data.warning || 'SMS numbers resolving…');
     }
-    renderMessages();
+    renderMessages({ forceScroll: opts.forceScroll === true });
     // Opening/polling must NOT clear unread — only Mark as read or a reply does.
     const boardChanged = applySellerSmsDealPatch(data.deal, data.unreadSellerSms);
     if (boardChanged) renderTable(state.deals);
@@ -1250,7 +1259,7 @@
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`);
       renderProfile(data.deal, data.contact);
-      await loadMessages(dealId, { silent: true });
+      await loadMessages(dealId, { silent: true, forceScroll: true });
       startPoll();
       if (opts.markTeamRead) await markTeamMessagesRead(dealId);
       if (opts.scrollToTeam) {
@@ -1655,7 +1664,7 @@
       // Reply clears unread immediately (server marks seen on send).
       const boardChanged = applySellerSmsDealPatch(sent.deal, sent.unreadSellerSms);
       if (boardChanged) renderTable(state.deals);
-      await loadMessages(dealId, { silent: true });
+      await loadMessages(dealId, { silent: true, forceScroll: true });
     } catch (err) {
       showToast(err.message || 'Send failed');
     } finally {
