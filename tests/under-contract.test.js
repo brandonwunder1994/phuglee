@@ -213,6 +213,103 @@ test('admin contracts list requires admin', async () => {
   assert.ok(Array.isArray(body.unreadTeam));
 });
 
+function bradReq(url, method = 'GET', body = null) {
+  return {
+    method,
+    url,
+    headers: {
+      host: '127.0.0.1:3000',
+      cookie: '',
+      'x-phuglee-user': 'brad',
+      'x-phuglee-plan': 'max'
+    },
+    async *[Symbol.asyncIterator]() {
+      if (body) yield Buffer.from(JSON.stringify(body));
+    }
+  };
+}
+
+test('brad can save desk fields via POST and admin sees them', async () => {
+  const deal = contracts.upsertDeal({
+    address: '77 Brad Save Ln',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'under_contract'
+  });
+  const path = `/api/leads/admin/contracts/${deal.dealId}`;
+  const url = new URL(`http://127.0.0.1${path}`);
+  const saveRes = mockRes();
+  await api.handle(bradReq(path, 'POST', {
+    titleOpened: 'yes',
+    sellerEmdSubmitted: 'yes',
+    accessType: 'lockbox',
+    accessDetail: 'box 12',
+    vacancy: 'vacant',
+    photosAvailable: 'yes',
+    photoCost: 275,
+    rehabInfo: { roof: '5 yrs good', ac: 'new', foundation: 'ok', electrical: 'ok', plumbing: 'ok', other: '' },
+    notes: 'brad desk note'
+  }), saveRes, path, url);
+  assert.equal(saveRes.statusCode, 200, saveRes.body);
+  const savedBody = JSON.parse(saveRes.body);
+  assert.equal(savedBody.ok, true);
+  assert.equal(savedBody.deal.titleOpened, 'yes');
+  assert.equal(savedBody.deal.rehabInfo.roof, '5 yrs good');
+  assert.equal(savedBody.deal.photoCost, 275);
+
+  const onDisk = contracts.getDeal(deal.dealId);
+  assert.equal(onDisk.titleOpened, 'yes');
+  assert.equal(onDisk.notes, 'brad desk note');
+  assert.equal(onDisk.accessType, 'lockbox');
+
+  const adminList = mockRes();
+  const listUrl = new URL('http://127.0.0.1/api/leads/admin/contracts');
+  await api.handle(adminReq('/api/leads/admin/contracts'), adminList, '/api/leads/admin/contracts', listUrl);
+  assert.equal(adminList.statusCode, 200);
+  const listed = JSON.parse(adminList.body).deals.find((d) => d.dealId === deal.dealId);
+  assert.ok(listed, 'admin board should include brad-saved deal');
+  assert.equal(listed.titleOpened, 'yes');
+  assert.equal(listed.sellerEmdSubmitted, 'yes');
+  assert.equal(listed.accessType, 'lockbox');
+  assert.equal(listed.rehabInfo.roof, '5 yrs good');
+  assert.equal(listed.photoCost, 275);
+  assert.equal(listed.notes, 'brad desk note');
+});
+
+test('GHL sync keeps Brad desk fields', async () => {
+  const deal = contracts.upsertDeal({
+    dealId: 'ghl_opp_brad_keep',
+    ghlOpportunityId: 'opp_brad_keep',
+    address: '88 Keep Desk Ave',
+    city: 'Mesa',
+    state: 'AZ',
+    stage: 'under_contract',
+    titleOpened: 'yes',
+    photosAvailable: 'yes',
+    photoCost: 150,
+    rehabInfo: { roof: 'patched', ac: '', foundation: '', electrical: '', plumbing: '', other: '' },
+    notes: 'keep me'
+  });
+  const after = await sync.upsertDealFromOpportunity(
+    {
+      id: 'opp_brad_keep',
+      contactId: 'c_keep',
+      pipelineStageId: 's1',
+      _stageName: 'Seller Signed',
+      name: '88 Keep Desk Ave',
+      monetaryValue: 200000
+    },
+    { id: 'pipe', stages: [{ id: 's1', name: 'Seller Signed' }] },
+    { address1: '88 Keep Desk Ave', city: 'Mesa', state: 'AZ', contractPrice: 200000 }
+  );
+  assert.equal(after.dealId, deal.dealId);
+  assert.equal(after.titleOpened, 'yes');
+  assert.equal(after.photosAvailable, 'yes');
+  assert.equal(after.photoCost, 150);
+  assert.equal(after.rehabInfo.roof, 'patched');
+  assert.equal(after.notes, 'keep me');
+});
+
 test('computeDealPayouts deducts TC then photo cost before split', () => {
   const { computeDealPayouts } = require('../lib/leads-platform/payout-settings');
   const settings = { tcFee: 500, acqPercent: 50, dispoPercent: 50 };

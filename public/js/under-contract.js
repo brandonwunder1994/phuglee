@@ -123,6 +123,17 @@
   async function api(path, opts = {}) {
     const headers = Object.assign({ Accept: 'application/json' }, opts.headers || {});
     if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+    // Cookie is primary; also send identity headers so local/dev and sticky
+    // sessionStorage keep Brad authenticated if the cookie is ever missing.
+    try {
+      const user = (window.PhugleeSession && window.PhugleeSession.getSessionUser
+        && window.PhugleeSession.getSessionUser())
+        || sessionStorage.getItem('phuglee_session')
+        || '';
+      if (user && !headers['X-Phuglee-User']) headers['X-Phuglee-User'] = user;
+      if (user === ADMIN && !headers['X-Phuglee-Plan']) headers['X-Phuglee-Plan'] = 'max';
+      if (user === DISPOS && !headers['X-Phuglee-Plan']) headers['X-Phuglee-Plan'] = 'max';
+    } catch (_) { /* ignore */ }
     const res = await fetch(path, {
       ...opts,
       headers,
@@ -137,6 +148,37 @@
       throw err;
     }
     return data;
+  }
+
+  /** Persist desk field changes — POST preferred (PATCH blocked on some networks). */
+  async function saveDealFields(dealId, body) {
+    const id = encodeURIComponent(dealId);
+    const payload = JSON.stringify(body || {});
+    try {
+      return await api(`/api/leads/admin/contracts/${id}`, {
+        method: 'POST',
+        body: payload
+      });
+    } catch (err) {
+      if (err.status === 404 || err.status === 405) {
+        return api(`/api/leads/admin/contracts/${id}`, {
+          method: 'PATCH',
+          body: payload
+        });
+      }
+      throw err;
+    }
+  }
+
+  function mergeDealIntoState(deal) {
+    if (!deal || !deal.dealId) return;
+    const idx = state.deals.findIndex((d) => d.dealId === deal.dealId);
+    if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...deal };
+    else state.deals.unshift(deal);
+    if (state.activeDealId === deal.dealId) {
+      state.profile = { ...(state.profile || {}), ...deal };
+    }
+    renderTable(state.deals);
   }
 
   function photoUrl(d) {
@@ -903,7 +945,10 @@
 
   async function savePhotoCost() {
     const dealId = state.activeDealId;
-    if (!dealId) return;
+    if (!dealId) {
+      showToast('Open a property first, then save');
+      return;
+    }
     const btn = $('uc-photo-cost-save');
     if (btn) btn.disabled = true;
     try {
@@ -912,11 +957,9 @@
         photosAvailable: $('uc-profile-photos')?.value || '',
         photoCost: photoCostRaw === '' ? 0 : Number(photoCostRaw)
       };
-      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`, {
-        method: 'PATCH',
-        body: JSON.stringify(body)
-      });
+      const data = await saveDealFields(dealId, body);
       showToast('Photos / photo cost saved');
+      if (data.deal) mergeDealIntoState(data.deal);
       await loadDeals({ silent: true });
       if (data.deal) {
         state.profile = { ...(state.profile || {}), ...data.deal };
@@ -1004,16 +1047,17 @@
 
   async function saveRehab() {
     const dealId = state.activeDealId;
-    if (!dealId) return;
+    if (!dealId) {
+      showToast('Open a property first, then save');
+      return;
+    }
     const btn = $('uc-rehab-save');
     if (btn) btn.disabled = true;
     try {
-      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ rehabInfo: readRehabForm() })
-      });
+      const data = await saveDealFields(dealId, { rehabInfo: readRehabForm() });
       showToast('Rehab info saved');
-      await loadDeals();
+      if (data.deal) mergeDealIntoState(data.deal);
+      await loadDeals({ silent: true });
       if (data.deal) {
         state.profile = { ...(state.profile || {}), ...data.deal };
         fillRehabForm(data.deal.rehabInfo || {});
@@ -1429,13 +1473,17 @@
   }
 
   async function saveEdit(ev) {
-    ev.preventDefault();
-    const submitter = ev.submitter;
+    if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+    const submitter = ev && ev.submitter;
     if (submitter && submitter.value === 'cancel') {
-      $('uc-edit-dialog').close();
+      $('uc-edit-dialog')?.close();
       return;
     }
-    const id = $('uc-edit-id').value;
+    const id = $('uc-edit-id')?.value;
+    if (!id) {
+      showToast('No deal selected — close and open Edit again');
+      return;
+    }
     const body = {
       stage: $('uc-edit-stage').value,
       purchasePrice: $('uc-edit-purchase').value === '' ? null : Number($('uc-edit-purchase').value),
@@ -1457,18 +1505,24 @@
       notes: $('uc-edit-notes').value.trim()
     };
     if (body.photoCost === undefined) delete body.photoCost;
+    const saveBtn = $('uc-edit-save');
+    if (saveBtn) saveBtn.disabled = true;
     try {
-      await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}`, {
-        method: 'PATCH',
-        body: JSON.stringify(body)
-      });
-      $('uc-edit-dialog').close();
+      const data = await saveDealFields(id, body);
+      $('uc-edit-dialog')?.close();
       showToast('Deal updated');
-      await loadDeals();
+      if (data.deal) mergeDealIntoState(data.deal);
+      await loadDeals({ silent: true });
       if (state.activeDealId === id) await openProfile(id);
     } catch (err) {
       showToast(err.message || 'Save failed');
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
     }
+  }
+
+  function cancelEdit() {
+    $('uc-edit-dialog')?.close();
   }
 
   async function releaseDeal(dealId, address) {
@@ -1672,7 +1726,18 @@
       if (state.profile) openAmendment(state.profile);
     });
     $('uc-sync-ghl')?.addEventListener('click', () => { syncGhl(); });
-    $('uc-edit-form')?.addEventListener('submit', saveEdit);
+    $('uc-edit-form')?.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      saveEdit(ev);
+    });
+    $('uc-edit-save')?.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      saveEdit(ev);
+    });
+    $('uc-edit-cancel')?.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      cancelEdit();
+    });
     $('uc-drawer-close')?.addEventListener('click', closeProfile);
     $('uc-drawer-backdrop')?.addEventListener('click', closeProfile);
     $('uc-sms-send')?.addEventListener('click', () => { sendSms(); });

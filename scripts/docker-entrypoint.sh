@@ -22,8 +22,10 @@ export PDA_DATA_ROOT="${PDA_DATA_ROOT:-/app/pda-data}"
 # Filter saved lists live on the same durable volume as Analyze session data.
 # Never store user lists only inside the container filesystem — redeploys wipe that.
 export FILTER_LISTS_ROOT="${FILTER_LISTS_ROOT:-${PDA_DATA_ROOT}/filter-lists}"
-mkdir -p "${PDA_DATA_ROOT}" "${FILTER_LISTS_ROOT}"
+export LEADS_CATALOG_ROOT="${LEADS_CATALOG_ROOT:-${PDA_DATA_ROOT}/leads-catalog}"
+mkdir -p "${PDA_DATA_ROOT}" "${FILTER_LISTS_ROOT}" "${LEADS_CATALOG_ROOT}/contracts"
 echo "[entrypoint] Filter lists root: ${FILTER_LISTS_ROOT}"
+echo "[entrypoint] Leads catalog root: ${LEADS_CATALOG_ROOT}"
 
 SEED_SESSION="/app/scripts/seed-data/distressAnalyzerSession_LATEST.json"
 LIVE_SESSION="${PDA_DATA_ROOT}/distressAnalyzerSession_LATEST.json"

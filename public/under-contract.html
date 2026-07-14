@@ -125,7 +125,7 @@
   </main>
 
   <dialog id="uc-edit-dialog" class="uc-dialog">
-    <form method="dialog" id="uc-edit-form" class="uc-edit-form">
+    <form id="uc-edit-form" class="uc-edit-form" action="#" method="post">
       <h3 id="uc-edit-title">Edit deal</h3>
       <input type="hidden" id="uc-edit-id" value="">
       <label class="vault-field">
@@ -217,8 +217,8 @@
         <textarea id="uc-edit-notes" class="phuglee-textarea" rows="3"></textarea>
       </label>
       <div class="uc-edit-actions">
-        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Save</button>
-        <button type="submit" value="cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+        <button type="button" id="uc-edit-save" value="save" class="phuglee-btn phuglee-btn-primary">Save</button>
+        <button type="button" id="uc-edit-cancel" value="cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
       </div>
     </form>
   </dialog>
