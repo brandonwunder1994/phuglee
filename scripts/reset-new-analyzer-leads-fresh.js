@@ -8,10 +8,12 @@
  *
  * Usage (purge only — you upload the sheet yourself):
  *   node scripts/reset-new-analyzer-leads-fresh.js --purge-only
- *   node scripts/reset-new-analyzer-leads-fresh.js --purge-only --local
+ *   node scripts/reset-new-analyzer-leads-fresh.js --purge-only --local   (same as default)
+ *   node scripts/reset-new-analyzer-leads-fresh.js --purge-only --prod    (Railway — explicit)
  *
  * Full reset + requeue:
- *   node scripts/reset-new-analyzer-leads-fresh.js --reimport
+ *   node scripts/reset-new-analyzer-leads-fresh.js --reimport --local
+ *   node scripts/reset-new-analyzer-leads-fresh.js --reimport --prod
  */
 const fs = require('fs');
 const path = require('path');
@@ -21,12 +23,17 @@ const { normalizeGeoKey } = require('../modules/property-analyzer/lib/reset-new-
 
 const ROOT = path.join(__dirname, '..');
 const CSV_PATH = path.join(process.env.USERPROFILE || '', 'Desktop', 'New Analyzer Leads.csv');
-const LOCAL = process.argv.includes('--local');
+const { resolveScriptTarget } = require('./script-target');
+const { base: BASE, isProd, label: TARGET_LABEL } = resolveScriptTarget(process.argv);
+const LOCAL = !isProd;
 const REIMPORT = process.argv.includes('--reimport');
 const PURGE_ONLY = process.argv.includes('--purge-only') || !REIMPORT;
-const BASE = LOCAL
-  ? 'http://127.0.0.1:3000'
-  : (process.env.PHUGLEE_PROD_URL || 'https://phuglee-production.up.railway.app');
+
+if (isProd) {
+  console.warn(`[reset-nal] Targeting PRODUCTION (${BASE}). Pass --local to use 127.0.0.1.`);
+} else {
+  console.log(`[reset-nal] Targeting ${TARGET_LABEL} (${BASE}). Pass --prod for Railway.`);
+}
 
 function fetchUrl(url, { method = 'GET', headers = {}, body = null, timeoutMs = 600000 } = {}) {
   return new Promise((resolve, reject) => {

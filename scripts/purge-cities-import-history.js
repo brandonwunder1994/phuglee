@@ -1,19 +1,21 @@
 /**
  * Clear Analyze "already imported" addresses for specific cities so Filter can re-import.
- * Usage: node scripts/purge-cities-import-history.js
+ * Defaults to LOCAL. Pass --prod for Railway only.
+ *
+ *   node scripts/purge-cities-import-history.js
+ *   node scripts/purge-cities-import-history.js --prod
  */
 const https = require('https');
 const http = require('http');
+const { resolveScriptTarget } = require('./script-target');
 
 const CITIES = [
   { city: 'Cheyenne', state: 'WY' },
   { city: 'Midlothian', state: 'TX' }
 ];
 
-const BASES = [
-  'https://phuglee-production.up.railway.app',
-  'http://127.0.0.1:3000'
-];
+const { base: BASE, label: TARGET_LABEL } = resolveScriptTarget(process.argv);
+const BASES = [BASE];
 
 function fetchUrl(url, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -108,6 +110,7 @@ async function purgeBase(base) {
 }
 
 (async () => {
+  console.log(`[purge-cities] Targeting ${TARGET_LABEL} (${BASE}). Pass --prod for Railway.`);
   for (const base of BASES) {
     try {
       await purgeBase(base);

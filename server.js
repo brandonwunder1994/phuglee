@@ -163,6 +163,20 @@ async function handleRequest(req, res) {
   const pathname = url.pathname.replace(/\/$/, '') || '/';
 
   if (pathname === '/api/forge-diagnostics' && req.method === 'GET') {
+    const auth = require('./lib/phuglee-auth');
+    const { isAdminUsername } = require('./lib/phuglee-roles');
+    // When auth is on (typical production), diagnostics are admin-only.
+    // When AUTH_DISABLED (local), keep open for operator debugging.
+    if (auth.isAuthRequired()) {
+      const session = auth.readSessionFromReq(req);
+      if (!session || !isAdminUsername(session.username)) {
+        send(res, 401, JSON.stringify({
+          error: 'Admin authentication required',
+          code: 'ADMIN_REQUIRED'
+        }), 'application/json');
+        return;
+      }
+    }
     const fs = require('fs');
     const bootLogPath = process.env.FORGE_BOOT_LOG || '/tmp/forge-boot.log';
     let bootLog = '';

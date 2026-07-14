@@ -45,6 +45,19 @@ describe('phuglee credentials', () => {
     assert.equal(bad.ok, false);
   });
 
+  test('self-register cannot claim plan=max', () => {
+    const creds = require('../lib/phuglee-credentials');
+    const registered = creds.registerUser({
+      username: 'maxgrabber',
+      password: 'secret99',
+      plan: 'max',
+      email: 'maxgrab@example.com',
+      fullName: 'Max Grabber'
+    });
+    assert.equal(registered.ok, false);
+    assert.equal(registered.code, 'PLAN_NOT_ALLOWED');
+  });
+
   test('bootstrap admin verifies env password', () => {
     const prev = process.env.PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD;
     process.env.PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD = 'bootstrap-secret';

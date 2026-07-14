@@ -15,7 +15,8 @@ PDA_GEMINI_AUDIT_MAX_AGE_DAYS = "7"
 
 [deploy]
 startCommand = "sh scripts/docker-entrypoint.sh"
-healthcheckPath = "/api/health"
+# Deep check fails the deploy when Form Forge or Analyzer are down.
+healthcheckPath = "/api/health/deep"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 numReplicas = 1

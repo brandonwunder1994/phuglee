@@ -986,7 +986,9 @@
       if (err && err.code === 'VERSION_CONFLICT') {
         setBrainStatus('Brain was updated elsewhere — refresh train state', 'error');
         if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
-        await loadBrainPanel().catch(() => {});
+        await loadBrainPanel().catch((err) => {
+          setBrainStatus((err && err.message) || 'Could not refresh Filter brain', 'error');
+        });
       }
       throw err;
     }
@@ -1253,7 +1255,9 @@
       if (err && err.code === 'VERSION_CONFLICT') {
         setTrainStatus('Brain was updated elsewhere — refresh train state', 'error');
         if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
-        await loadBrainPanel().catch(() => {});
+        await loadBrainPanel().catch((err) => {
+          setBrainStatus((err && err.message) || 'Could not refresh Filter brain', 'error');
+        });
       }
       throw err;
     }
@@ -1370,7 +1374,9 @@
         setResultsMode('train');
       }
       if (modeBefore === 'brain') {
-        await loadBrainPanel().catch(() => {});
+        await loadBrainPanel().catch((err) => {
+          setBrainStatus((err && err.message) || 'Could not refresh Filter brain', 'error');
+        });
       }
       setTrainStatus('Undid last training decision · list restored', 'success');
       updateTrainUndoButton();
@@ -1378,7 +1384,9 @@
       if (err && err.code === 'VERSION_CONFLICT') {
         setTrainStatus('Brain was updated elsewhere — refresh train state', 'error');
         if (err.currentVersion != null) brainVersion = Number(err.currentVersion);
-        await loadBrainPanel().catch(() => {});
+        await loadBrainPanel().catch((err) => {
+          setBrainStatus((err && err.message) || 'Could not refresh Filter brain', 'error');
+        });
       } else if (err && err.code === 'NOTHING_TO_UNDO') {
         // Server has nothing; still pop client stack if present
         const snap = popTrainUndoSnapshot();
@@ -4613,7 +4621,13 @@
       historyLead.textContent = `Prior Filter datasets for ${selectedCity.city}, ${selectedCity.state}.`;
     }
     historyDialog.showModal();
-    loadHistory(selectedCity.id).catch(() => {});
+    loadHistory(selectedCity.id).catch((err) => {
+      if (historyList) {
+        historyList.innerHTML = `<p class="bridge-history-empty">${esc(
+          (err && err.message) || 'Could not load history'
+        )}</p>`;
+      }
+    });
   }
 
   function closeHistoryDialog() {

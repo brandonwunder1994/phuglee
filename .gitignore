@@ -34,6 +34,9 @@ data/leads-catalog/
 # Server-side auth credential store (never commit)
 data/auth/
 
+# Operating costs imports / caches (GHL exports, invoices — may contain account PII)
+data/operating-costs/
+
 # Property Analyzer runtime (modules/property-analyzer)
 modules/property-analyzer/node_modules/
 modules/property-analyzer/.env

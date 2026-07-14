@@ -6,18 +6,18 @@
  * prepare hits `_anonymous` while the operator is on `admin`.
  *
  * Usage: node scripts/run-prepare-new-analyzer-leads.js
- *        node scripts/run-prepare-new-analyzer-leads.js --local
+ *        node scripts/run-prepare-new-analyzer-leads.js --local   (default)
+ *        node scripts/run-prepare-new-analyzer-leads.js --prod    (Railway — explicit)
  * Env:   PHUGLEE_PASS or PHUGLEE_BOOTSTRAP_ADMIN_PASSWORD (admin password)
  */
 const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const path = require('path');
+const { resolveScriptTarget } = require('./script-target');
 
-const LOCAL = process.argv.includes('--local');
-const BASE = LOCAL
-  ? 'http://127.0.0.1:3000'
-  : (process.env.PHUGLEE_PROD_URL || 'https://phuglee-production.up.railway.app');
+const { base: BASE, isProd, label: TARGET_LABEL } = resolveScriptTarget(process.argv);
+const LOCAL = !isProd;
 
 function loadDotEnvPassword() {
   try {
@@ -78,6 +78,7 @@ function cookieHeader(setCookies) {
 }
 
 (async () => {
+  console.log(`[prepare] Targeting ${TARGET_LABEL} (${BASE}). Pass --prod for Railway.`);
   const html = await fetchUrl(`${BASE}/analyzer/`);
   const m = html.text.match(/__PDA_AUTH_TOKEN__\s*=\s*"([^"]+)"/);
   if (!m) throw new Error('No PDA auth token');

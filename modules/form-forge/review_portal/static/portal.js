@@ -728,10 +728,12 @@ function renderDetail(city) {
       urlEl.textContent = "";
     } else if (showPortal) {
       urlEl.hidden = false;
-      urlEl.innerHTML = `<a href="${city.portal_url}" target="_blank" rel="noopener">${city.portal_url}</a>`;
+      const portalUrl = String(city.portal_url || "").trim();
+      const safePortalHref = /^(https?:|mailto:)/i.test(portalUrl) ? portalUrl : "#";
+      urlEl.innerHTML = `<a href="${escHtml(safePortalHref)}" target="_blank" rel="noopener">${escHtml(portalUrl)}</a>`;
     } else if (city.contact_email) {
       urlEl.hidden = false;
-      urlEl.innerHTML = `<a href="mailto:${city.contact_email}">${city.contact_email}</a>`;
+      urlEl.innerHTML = `<a href="mailto:${escHtml(city.contact_email)}">${escHtml(city.contact_email)}</a>`;
     } else {
       urlEl.hidden = true;
       urlEl.textContent = "";

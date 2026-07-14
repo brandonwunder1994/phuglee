@@ -609,7 +609,13 @@
           updateMapSummary('home-map-summary', stats);
           updateCoverageStats(pair[0]);
         })
-        .catch(function () {});
+        .catch(function (err) {
+          var el = document.getElementById('home-map-summary');
+          if (el) {
+            el.textContent =
+              'Coverage map unavailable' + (err && err.message ? ' — ' + err.message : '');
+          }
+        });
     }
 
     var homeMapHost = document.getElementById('home-coverage-map');

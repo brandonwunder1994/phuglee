@@ -1,13 +1,26 @@
 'use strict';
+/**
+ * Purge New Analyzer Leads import from Analyze session.
+ * Defaults to LOCAL. Pass --prod for Railway.
+ *
+ *   node scripts/call-purge-new-leads.js
+ *   node scripts/call-purge-new-leads.js --prod
+ */
+const http = require('http');
 const https = require('https');
+const { resolveScriptTarget } = require('./script-target');
+
+const { base, isProd, label } = resolveScriptTarget(process.argv);
 
 function req(url, opts = {}) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
+    const lib = u.protocol === 'https:' ? https : http;
     const body = opts.body ? Buffer.from(opts.body) : null;
-    const r = https.request(
+    const r = lib.request(
       {
         hostname: u.hostname,
+        port: u.port || (u.protocol === 'https:' ? 443 : 80),
         path: u.pathname + u.search,
         method: opts.method || 'GET',
         headers: {
@@ -35,7 +48,7 @@ function req(url, opts = {}) {
 }
 
 (async () => {
-  const base = 'https://phuglee-production.up.railway.app';
+  console.log(`[call-purge] Targeting ${label} (${base}). Pass --prod for Railway.`);
   let headers = null;
 
   for (let i = 0; i < 30; i++) {
@@ -58,7 +71,6 @@ function req(url, opts = {}) {
         headers,
         body: JSON.stringify({ importSource: '__probe__' })
       });
-      // 400/200 = endpoint live; 404 = not deployed yet
       if (probe.status === 404) {
         console.log('endpoint not live yet…', i);
         await new Promise((r) => setTimeout(r, 15000));
@@ -71,7 +83,7 @@ function req(url, opts = {}) {
       await new Promise((r) => setTimeout(r, 15000));
     }
   }
-  if (!headers) throw new Error('Could not reach production analyzer');
+  if (!headers) throw new Error(`Could not reach analyzer at ${base}`);
 
   const purge = await req(`${base}/analyzer/api/purge-import-source`, {
     method: 'POST',
@@ -93,6 +105,7 @@ function req(url, opts = {}) {
   console.log(
     JSON.stringify(
       {
+        target: label,
         records: (s.records || []).length,
         results: (s.results || []).length,
         newLeadsLeft: left
@@ -101,6 +114,7 @@ function req(url, opts = {}) {
       2
     )
   );
+  if (isProd) console.warn('[call-purge] Completed against PRODUCTION');
 })().catch((e) => {
   console.error(e);
   process.exit(1);
