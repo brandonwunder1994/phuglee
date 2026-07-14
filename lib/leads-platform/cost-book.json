@@ -1,0 +1,50 @@
+{
+  "version": "2026.07.1",
+  "currency": "USD",
+  "finishGrades": {
+    "investor": { "kitchenMult": 1.0, "bathMult": 1.0, "flooringMult": 1.0 },
+    "retail": { "kitchenMult": 1.35, "bathMult": 1.3, "flooringMult": 1.2 }
+  },
+  "units": {
+    "roof_squares": { "label": "Roofing", "unit": "sq", "nationalMid": 425, "notes": "Asphalt shingle mid / square incl tear-off" },
+    "kitchen_gut": { "label": "Kitchen remodel", "unit": "ea", "nationalMid": 12000, "finishSensitive": true },
+    "kitchen_cosmetic": { "label": "Kitchen cosmetic (paint/hardware)", "unit": "ea", "nationalMid": 3500, "finishSensitive": true },
+    "bath_gut": { "label": "Bathroom gut", "unit": "ea", "nationalMid": 8500, "finishSensitive": true },
+    "bath_refresh": { "label": "Bathroom refresh", "unit": "ea", "nationalMid": 3200, "finishSensitive": true },
+    "flooring_lvp": { "label": "Flooring (LVP install)", "unit": "sf", "nationalMid": 5.75 },
+    "hvac_replace": { "label": "HVAC full replace", "unit": "ea", "nationalMid": 8500 },
+    "hvac_service": { "label": "HVAC service / fix", "unit": "ea", "nationalMid": 650 },
+    "plumbing_repairs": { "label": "Plumbing repairs bundle", "unit": "ea", "nationalMid": 1800 },
+    "water_heater": { "label": "Water heater replace", "unit": "ea", "nationalMid": 2200 },
+    "electrical_panel": { "label": "Panel upgrade", "unit": "ea", "nationalMid": 2800 },
+    "electrical_misc": { "label": "Electrical miscellaneous", "unit": "ea", "nationalMid": 900 },
+    "paint_interior": { "label": "Interior paint & drywall patch", "unit": "sf", "nationalMid": 2.15 },
+    "exterior_paint": { "label": "Exterior paint / siding touch", "unit": "ea", "nationalMid": 4500 },
+    "window_replace": { "label": "Window replace", "unit": "ea", "nationalMid": 650 },
+    "door_replace": { "label": "Exterior door replace", "unit": "ea", "nationalMid": 1100 }
+  },
+  "metros": {
+    "national": { "label": "National", "factor": 1.0 },
+    "victoria_tx": { "label": "Victoria, TX", "factor": 0.92, "cities": ["victoria"] },
+    "houston_tx": { "label": "Houston, TX", "factor": 1.05, "cities": ["houston", "pasadena", "pearland", "sugar land", "humble", "baytown", "league city", "katy", "cypress"] },
+    "dallas_tx": { "label": "Dallas–Fort Worth, TX", "factor": 1.08, "cities": ["dallas", "fort worth", "arlington", "plano", "irving", "garland", "frisco", "mckinney", "denton"] },
+    "san_antonio_tx": { "label": "San Antonio, TX", "factor": 0.98, "cities": ["san antonio", "new braunfels", "schertz"] },
+    "austin_tx": { "label": "Austin, TX", "factor": 1.12, "cities": ["austin", "round rock", "cedar park", "pflugerville", "georgetown"] },
+    "corpus_christi_tx": { "label": "Corpus Christi, TX", "factor": 0.94, "cities": ["corpus christi"] }
+  },
+  "categories": [
+    { "id": "roofing", "label": "Roofing" },
+    { "id": "kitchen", "label": "Kitchen" },
+    { "id": "bathrooms", "label": "Bathrooms" },
+    { "id": "flooring", "label": "Flooring" },
+    { "id": "hvac", "label": "HVAC" },
+    { "id": "plumbing", "label": "Plumbing" },
+    { "id": "electrical", "label": "Electrical" },
+    { "id": "paint_drywall", "label": "Paint & drywall" },
+    { "id": "exterior", "label": "Exterior" },
+    { "id": "windows_doors", "label": "Windows & doors" }
+  ],
+  "coverageRooms": [
+    "kitchen", "bath", "bedroom", "living", "laundry", "garage", "mechanical", "roof", "exterior_front", "exterior_left", "exterior_right", "exterior_rear", "yard"
+  ]
+}

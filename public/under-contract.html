@@ -1,17 +1,17 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee — Under Contract</title>
-  <meta name="description" content="Admin proof desk — track under-contract deals, assignment fees, and closes.">
+  <title>Phuglee â€” Under Contract</title>
+  <meta name="description" content="Admin proof desk â€” track under-contract deals, assignment fees, and closes.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=30">
+  <link rel="stylesheet" href="/css/under-contract.css?v=32">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -42,7 +42,7 @@
         <div>
           <p class="vault-eyebrow">Proof in the pudding</p>
           <h1 class="vault-title vault-title--desk">Under Contract</h1>
-          <p class="vault-hero-sub">Deal board · Vault kill switch · GHL DTS sync</p>
+          <p class="vault-hero-sub">Deal board Â· Vault kill switch Â· GHL DTS sync</p>
         </div>
         <div class="uc-hero-actions">
           <button type="button" id="uc-sync-ghl" class="phuglee-btn phuglee-btn-primary" data-admin-only>Sync from GHL</button>
@@ -61,7 +61,7 @@
               <span class="uc-goal-fraction-label">funded</span>
             </span>
             <span class="uc-goal-countdown" aria-live="polite">
-              <strong id="uc-goal-countdown">—</strong>
+              <strong id="uc-goal-countdown">â€”</strong>
               <span id="uc-goal-countdown-label">days left</span>
             </span>
             <span class="uc-goal-ends" id="uc-goal-ends"></span>
@@ -156,7 +156,7 @@
       <label class="vault-field">
         <span class="vault-field-label">Title Opened?</span>
         <select id="uc-edit-title-opened" class="phuglee-select">
-          <option value="">—</option>
+          <option value="">â€”</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
@@ -164,7 +164,7 @@
       <label class="vault-field">
         <span class="vault-field-label">EMD Submitted? (our seller PSA)</span>
         <select id="uc-edit-seller-emd" class="phuglee-select">
-          <option value="">—</option>
+          <option value="">â€”</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
@@ -172,7 +172,7 @@
       <label class="vault-field">
         <span class="vault-field-label">Buyer EMD?</span>
         <select id="uc-edit-buyer-emd" class="phuglee-select">
-          <option value="">—</option>
+          <option value="">â€”</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
@@ -180,7 +180,7 @@
       <label class="vault-field">
         <span class="vault-field-label">Access</span>
         <select id="uc-edit-access" class="phuglee-select">
-          <option value="">—</option>
+          <option value="">â€”</option>
           <option value="key">Key</option>
           <option value="lockbox">Lockbox</option>
           <option value="door_code">Door code</option>
@@ -194,7 +194,7 @@
       <label class="vault-field">
         <span class="vault-field-label">Vacancy</span>
         <select id="uc-edit-vacancy" class="phuglee-select">
-          <option value="">—</option>
+          <option value="">â€”</option>
           <option value="vacant">Vacant</option>
           <option value="occupied">Occupied</option>
           <option value="unknown">Unknown</option>
@@ -203,7 +203,7 @@
       <label class="vault-field">
         <span class="vault-field-label">Photos?</span>
         <select id="uc-edit-photos" class="phuglee-select">
-          <option value="">—</option>
+          <option value="">â€”</option>
           <option value="yes">Yes</option>
           <option value="no">No</option>
         </select>
@@ -250,7 +250,7 @@
           <label class="vault-field">
             <span class="vault-field-label">Photos ready?</span>
             <select id="uc-profile-photos" class="phuglee-select">
-              <option value="">—</option>
+              <option value="">â€”</option>
               <option value="yes">Yes</option>
               <option value="no">No</option>
             </select>
@@ -261,11 +261,48 @@
           </label>
         </div>
       </section>
+
+      <section id="uc-photographer-section" class="uc-photographer" aria-label="Photographer scheduling">
+        <div class="uc-rehab-head">
+          <div>
+            <h3>Photographer</h3>
+            <p class="uc-docs-meta" id="uc-photo-sched-meta">Schedule a shoot â€” mints upload link + intro SMS</p>
+          </div>
+          <div class="uc-convo-actions">
+            <button type="button" id="uc-photo-copy-url" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
+            <button type="button" id="uc-photo-sched-save" class="phuglee-btn phuglee-btn-secondary">Schedule</button>
+          </div>
+        </div>
+        <div id="uc-photo-sched-form" class="uc-photo-sched-grid">
+          <label class="vault-field">
+            <span class="vault-field-label">Date</span>
+            <input type="date" id="uc-photo-date" class="phuglee-input">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Time</span>
+            <input type="time" id="uc-photo-time" class="phuglee-input">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Photographer name</span>
+            <input type="text" id="uc-photo-name" class="phuglee-input" placeholder="Full name" autocomplete="name">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Email</span>
+            <input type="email" id="uc-photo-email" class="phuglee-input" placeholder="optional@" autocomplete="email">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Phone</span>
+            <input type="tel" id="uc-photo-phone" class="phuglee-input" placeholder="xxx-xxx-xxxx" autocomplete="tel">
+          </label>
+        </div>
+        <div id="uc-photo-sched-summary" class="uc-photo-sched-summary" hidden></div>
+      </section>
+
       <section class="uc-rehab" aria-label="Rehab info">
         <div class="uc-rehab-head">
           <div>
             <h3>Rehab info</h3>
-            <p class="uc-docs-meta">Notes for dispo to send buyers — roof, AC, foundation, systems</p>
+            <p class="uc-docs-meta">Notes for dispo to send buyers â€” roof, AC, foundation, systems</p>
           </div>
           <button type="button" id="uc-rehab-save" class="phuglee-btn phuglee-btn-secondary">Save rehab</button>
         </div>
@@ -292,7 +329,7 @@
           </label>
           <label class="vault-field uc-rehab-other">
             <span class="vault-field-label">Anything else for dispo</span>
-            <textarea id="uc-rehab-other" class="phuglee-textarea" rows="3" placeholder="Custom notes buyers need to know…"></textarea>
+            <textarea id="uc-rehab-other" class="phuglee-textarea" rows="3" placeholder="Custom notes buyers need to knowâ€¦"></textarea>
           </label>
         </div>
       </section>
@@ -300,19 +337,56 @@
         <div class="uc-docs-head">
           <div>
             <h3>Media</h3>
-            <p class="uc-docs-meta">Seller photos &amp; videos saved from Texts — preview, pull one, or zip for dispo</p>
+            <p class="uc-docs-meta">Seller + photographer photos â€” AI labels when ready</p>
           </div>
           <div class="uc-convo-actions">
+            <button type="button" id="uc-media-desk-upload" class="phuglee-btn phuglee-btn-ghost">Upload</button>
+            <input type="file" id="uc-media-desk-file" accept="image/*,video/*" multiple hidden>
             <a id="uc-media-zip" class="phuglee-btn phuglee-btn-secondary" href="#" hidden>Download ZIP</a>
           </div>
         </div>
         <div id="uc-media-grid" class="uc-media-grid"></div>
       </section>
+
+      <section id="uc-condition-scan" class="uc-condition-scan" aria-label="AI condition scan">
+        <div class="uc-rehab-head">
+          <div>
+            <h3>Condition Scan Â· Rehab cost</h3>
+            <p class="uc-docs-meta" id="uc-scan-meta">Screening-grade estimate from photos + cost book (not a contractor bid)</p>
+          </div>
+          <div class="uc-convo-actions">
+            <button type="button" id="uc-scan-run" class="phuglee-btn phuglee-btn-secondary">Rescan</button>
+          </div>
+        </div>
+        <div class="uc-scan-controls">
+          <label class="vault-field">
+            <span class="vault-field-label">Finish grade</span>
+            <select id="uc-scan-finish" class="phuglee-select">
+              <option value="investor">Investor</option>
+              <option value="retail">Retail</option>
+            </select>
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Living sqft</span>
+            <input type="number" id="uc-scan-sqft" class="phuglee-input" min="200" max="20000" placeholder="confirm">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Contingency %</span>
+            <input type="number" id="uc-scan-contingency" class="phuglee-input" min="0" max="25" step="1" value="10">
+          </label>
+          <button type="button" id="uc-scan-apply-opts" class="phuglee-btn phuglee-btn-ghost">Apply / reprice</button>
+        </div>
+        <div id="uc-scan-summary" class="uc-scan-summary"></div>
+        <div id="uc-scan-walk" class="uc-scan-walk" hidden></div>
+        <div id="uc-scan-lines" class="uc-scan-lines"></div>
+        <p id="uc-scan-provenance" class="uc-scan-provenance"></p>
+      </section>
+
       <section class="uc-docs" aria-label="Contract documents">
         <div class="uc-docs-head">
           <div>
             <h3>Documents</h3>
-            <p class="uc-docs-meta">Send via SignNow · signed copies land here automatically</p>
+            <p class="uc-docs-meta">Send via SignNow Â· signed copies land here automatically</p>
           </div>
           <button type="button" id="uc-docs-refresh-sn" class="phuglee-btn phuglee-btn-ghost">Refresh signed</button>
         </div>
@@ -344,30 +418,36 @@
         <div class="uc-convo-head">
           <div>
             <h3>Internal messages</h3>
-            <p class="uc-docs-meta">Admin ↔ Brad notes on this property (not seller SMS)</p>
+            <p class="uc-docs-meta">Admin â†” Brad notes on this property (not seller SMS)</p>
           </div>
         </div>
         <div id="uc-team-thread" class="uc-convo-thread uc-team-thread"></div>
         <div class="uc-convo-compose">
-          <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Message your teammate…"></textarea>
+          <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Message your teammateâ€¦"></textarea>
           <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
         </div>
       </section>
       <section id="uc-convo-section" class="uc-convo" aria-label="SMS conversation">
         <div class="uc-convo-head">
           <div>
-            <h3>Texts <button type="button" id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text">💬</button></h3>
+            <h3>Texts <button type="button" id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text">ðŸ’¬</button></h3>
+            <div class="uc-sms-tabs" role="tablist">
+              <button type="button" class="uc-sms-tab is-active" data-sms-tab="seller" role="tab" aria-selected="true">Seller</button>
+              <button type="button" class="uc-sms-tab" data-sms-tab="photographer" role="tab" aria-selected="false">Photographer</button>
+            </div>
             <p id="uc-convo-meta" class="uc-convo-meta"></p>
           </div>
           <div class="uc-convo-actions">
+            <button type="button" id="uc-photo-copy-url-sms" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
             <button type="button" id="uc-sms-save-all-media" class="phuglee-btn phuglee-btn-ghost" hidden>Save all media</button>
             <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost" hidden>Mark as read</button>
             <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
           </div>
         </div>
         <div id="uc-convo-thread" class="uc-convo-thread"></div>
+        <div id="uc-photo-thread" class="uc-convo-thread" hidden></div>
         <div class="uc-convo-compose">
-          <textarea id="uc-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the seller…"></textarea>
+          <textarea id="uc-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the sellerâ€¦"></textarea>
           <button type="button" id="uc-sms-send" class="phuglee-btn phuglee-btn-primary">Send</button>
         </div>
       </section>
@@ -378,7 +458,7 @@
     <form method="dialog" id="uc-buyer-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-buyer-title">Buyer found</h3>
-        <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-buyer-deal-id" value="">
       <label class="vault-field">
@@ -424,19 +504,19 @@
     <form method="dialog" id="uc-jv-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-jv-title">Send JV agreement</h3>
-        <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-jv-deal-id" value="">
-      <p class="uc-jv-lead">Confirm these two parties will sign the JV. Details are fixed — no edits needed.</p>
+      <p class="uc-jv-lead">Confirm these two parties will sign the JV. Details are fixed â€” no edits needed.</p>
       <div id="uc-jv-parties" class="uc-jv-parties" aria-label="JV signers">
         <article class="uc-jv-party">
-          <p class="uc-jv-party-role">Party A · Sales</p>
+          <p class="uc-jv-party-role">Party A Â· Sales</p>
           <strong>Brandon Wunder</strong>
           <span>Wunderhaus Group LLC</span>
           <span>brandon@wunderhausgroup.com</span>
         </article>
         <article class="uc-jv-party">
-          <p class="uc-jv-party-role">Party B · Disposition</p>
+          <p class="uc-jv-party-role">Party B Â· Disposition</p>
           <strong>Brad Lewis</strong>
           <span>Green Oasis Solutions</span>
           <span>buyhomes995@gmail.com</span>
@@ -453,10 +533,10 @@
     <form method="dialog" id="uc-amendment-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-amendment-title">Send Amendment</h3>
-        <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-amendment-deal-id" value="">
-      <p class="uc-jv-lead">Wunderhaus signs as Buyer. Pick who the other party is — we fill name/email and original agreement date from the deal / GHL.</p>
+      <p class="uc-jv-lead">Wunderhaus signs as Buyer. Pick who the other party is â€” we fill name/email and original agreement date from the deal / GHL.</p>
       <label class="vault-field">
         <span class="vault-field-label">Amendment for</span>
         <select id="uc-amendment-party" class="phuglee-select">
@@ -466,11 +546,11 @@
       </label>
       <label class="vault-field">
         <span class="vault-field-label">Amendment terms</span>
-        <textarea id="uc-amendment-terms" class="phuglee-textarea" rows="4" required placeholder="e.g. Extend closing 7 days…"></textarea>
+        <textarea id="uc-amendment-terms" class="phuglee-textarea" rows="4" required placeholder="e.g. Extend closing 7 daysâ€¦"></textarea>
       </label>
       <label class="vault-field">
         <span class="vault-field-label">Original agreement date (from PSA)</span>
-        <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="Awaiting PSA signed date…" readonly required tabindex="-1">
+        <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="Awaiting PSA signed dateâ€¦" readonly required tabindex="-1">
         <span id="uc-amendment-orig-hint" class="uc-field-hint"></span>
       </label>
       <label class="vault-field">
@@ -492,7 +572,7 @@
     <form method="dialog" id="uc-release-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3>Release to Vault</h3>
-        <button type="button" id="uc-release-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-release-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-release-deal-id" value="">
       <p class="uc-release-warn">
@@ -514,7 +594,7 @@
     <div class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-rehab-view-title">Rehab info</h3>
-        <button type="button" id="uc-rehab-view-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-rehab-view-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <p id="uc-rehab-view-address" class="uc-jv-lead"></p>
       <dl id="uc-rehab-view-facts" class="uc-facts uc-rehab-view-facts"></dl>
@@ -528,7 +608,7 @@
     <div class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-funded-title">Funded breakdown</h3>
-        <button type="button" id="uc-funded-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-funded-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <p id="uc-funded-address" class="uc-jv-lead"></p>
       <dl id="uc-funded-facts" class="uc-facts uc-funded-facts"></dl>
@@ -539,7 +619,7 @@
   </dialog>
 
   <div id="uc-lightbox" class="uc-lightbox" hidden>
-    <button type="button" id="uc-lightbox-close" class="uc-lightbox-close" aria-label="Close photo">×</button>
+    <button type="button" id="uc-lightbox-close" class="uc-lightbox-close" aria-label="Close photo">Ã—</button>
     <img id="uc-lightbox-img" class="uc-lightbox-img" alt="Property photo">
   </div>
 
@@ -547,6 +627,6 @@
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=37" defer></script>
+  <script src="/js/under-contract.js?v=38" defer></script>
 </body>
 </html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload property photos — Phuglee</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/photo-upload.css?v=1">
+</head>
+<body class="pu-page">
+  <main class="pu-main">
+    <header class="pu-head">
+      <p class="pu-brand">Phuglee</p>
+      <h1 id="pu-title">Property photo upload</h1>
+      <p id="pu-address" class="pu-address">Loading…</p>
+      <p id="pu-meta" class="pu-meta"></p>
+    </header>
+
+    <section class="pu-checklist" aria-label="Photo checklist">
+      <h2>Shoot checklist</h2>
+      <p class="pu-hint">Soft guide — upload what you can. More coverage = better rehab estimate.</p>
+      <ul id="pu-check-list"></ul>
+    </section>
+
+    <section class="pu-upload" aria-label="Upload files">
+      <label class="pu-drop" id="pu-drop">
+        <input type="file" id="pu-file" accept="image/*,video/*" multiple hidden>
+        <span class="pu-drop-title">Drop photos here or tap to choose</span>
+        <span class="pu-drop-sub">Images preferred · up to 40MB each</span>
+      </label>
+      <p id="pu-status" class="pu-status" role="status" aria-live="polite"></p>
+      <div id="pu-thumbs" class="pu-thumbs"></div>
+    </section>
+
+    <section class="pu-done">
+      <button type="button" id="pu-done" class="pu-btn pu-btn-primary" disabled>I'm Done</button>
+      <p class="pu-hint">Tapping Done alerts the Phuglee team. You can still upload more until Done.</p>
+    </section>
+
+    <p id="pu-error" class="pu-error" hidden></p>
+  </main>
+  <script src="/js/photo-upload.js?v=1"></script>
+</body>
+</html>

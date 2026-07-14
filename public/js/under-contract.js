@@ -30,6 +30,8 @@
     profile: null,
     contact: null,
     messages: [],
+    photographerMessages: [],
+    smsTab: 'seller',
     teamMessages: [],
     unreadTeam: [],
     unreadSellerSms: [],
@@ -807,7 +809,7 @@
       }
     }
     if (!media.length) {
-      box.innerHTML = '<p class="uc-media-empty">No saved media yet. Hover a photo/video in Texts and click Save, or use Save all media.</p>';
+      box.innerHTML = '<p class="uc-media-empty">No saved media yet. Hover a photo/video in Texts and click Save, schedule a photographer, or Upload from desk.</p>';
       return;
     }
     box.innerHTML = media.map((m) => {
@@ -816,14 +818,356 @@
       const preview = video
         ? `<video src="${esc(src)}" muted playsinline preload="metadata"></video>`
         : `<img src="${esc(src)}" alt="${esc(m.name || 'Media')}" loading="lazy">`;
+      const label = m.aiLabel?.room
+        ? `<span class="uc-media-ai">${esc(m.aiLabel.room)}${m.aiLabel.severity ? ' · sev ' + m.aiLabel.severity : ''}</span>`
+        : '';
+      const srcChip = m.uploadSource && m.uploadSource !== 'seller'
+        ? `<span class="uc-media-src">${esc(m.uploadSource)}</span>`
+        : '';
       return `<div class="uc-media-card" data-media-id="${esc(m.id)}">
         ${preview}
+        <div class="uc-media-card-meta">${srcChip}${label}</div>
         <div class="uc-media-card-actions">
           <a href="${esc(m.downloadUrl || (src + (src.includes('?') ? '&' : '?') + 'download=1'))}" download>Download</a>
           <button type="button" data-media-action="remove">Remove</button>
         </div>
       </div>`;
     }).join('');
+  }
+
+  function uploadUrlFromDeal(deal) {
+    return deal?.photographerSchedule?.uploadUrl || '';
+  }
+
+  async function copyUploadUrl() {
+    const url = uploadUrlFromDeal(state.profile);
+    if (!url) {
+      showToast('No upload URL yet — schedule a photographer first');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast('Upload URL copied');
+    } catch (_) {
+      showToast(url);
+    }
+  }
+
+  function renderPhotographerSection(deal) {
+    const sched = deal?.photographerSchedule;
+    const form = $('uc-photo-sched-form');
+    const summary = $('uc-photo-sched-summary');
+    const saveBtn = $('uc-photo-sched-save');
+    const copyBtn = $('uc-photo-copy-url');
+    const copySms = $('uc-photo-copy-url-sms');
+    const meta = $('uc-photo-sched-meta');
+    const scheduled = Boolean(sched?.scheduled && sched?.uploadToken);
+    if (copyBtn) copyBtn.hidden = !scheduled;
+    if (copySms) copySms.hidden = !scheduled;
+    if (scheduled) {
+      if (form) form.hidden = true;
+      if (saveBtn) saveBtn.hidden = true;
+      if (summary) {
+        summary.hidden = false;
+        summary.innerHTML = `<p><strong>${esc(sched.photographerName || 'Photographer')}</strong>` +
+          ` · ${esc(sched.date || '')} ${esc(sched.time || '')}</p>` +
+          `<p class="uc-docs-meta">Booked by ${esc(sched.bookedByName || sched.bookedBy || '—')}` +
+          `${sched.introSmsSentAt ? ' · intro SMS sent' : ''}` +
+          `${sched.doneAt ? ' · Done ✓' : ''}</p>` +
+          `<p class="uc-photo-url"><code>${esc(sched.uploadUrl || '')}</code></p>`;
+      }
+      if (meta) meta.textContent = 'Shoot scheduled — share upload link or open Photographer Texts';
+    } else {
+      if (form) form.hidden = false;
+      if (saveBtn) {
+        saveBtn.hidden = false;
+        saveBtn.textContent = 'Schedule';
+      }
+      if (summary) {
+        summary.hidden = true;
+        summary.innerHTML = '';
+      }
+      if (meta) meta.textContent = 'Schedule a shoot — mints upload link + intro SMS (you are named as Brad/Brandon from login)';
+      if ($('uc-photo-date')) $('uc-photo-date').value = '';
+      if ($('uc-photo-time')) $('uc-photo-time').value = '';
+      if ($('uc-photo-name')) $('uc-photo-name').value = '';
+      if ($('uc-photo-email')) $('uc-photo-email').value = '';
+      if ($('uc-photo-phone')) $('uc-photo-phone').value = '';
+    }
+  }
+
+  function moneyPlain(n) {
+    if (n == null || !Number.isFinite(Number(n))) return '—';
+    return '$' + Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+
+  function renderConditionScan(deal) {
+    const scan = deal?.conditionScan;
+    const summary = $('uc-scan-summary');
+    const linesBox = $('uc-scan-lines');
+    const walk = $('uc-scan-walk');
+    const prov = $('uc-scan-provenance');
+    const meta = $('uc-scan-meta');
+    if ($('uc-scan-finish') && scan?.finishGrade) $('uc-scan-finish').value = scan.finishGrade;
+    if ($('uc-scan-sqft') && scan?.livingSqft) $('uc-scan-sqft').value = scan.livingSqft;
+    if ($('uc-scan-contingency') && scan?.contingencyPct != null) $('uc-scan-contingency').value = scan.contingencyPct;
+
+    if (!scan || scan.status === 'idle' || (!scan.lines?.length && scan.status !== 'labeling' && scan.status !== 'scanning')) {
+      if (summary) {
+        summary.innerHTML = `<p>No scan yet. Save media (seller SMS, photographer, or desk upload) then hit Rescan.</p>` +
+          `<p class="uc-docs-meta">Status: ${esc(scan?.status || 'idle')}${scan?.jobError ? ' · ' + esc(scan.jobError) : ''}</p>`;
+      }
+      if (linesBox) linesBox.innerHTML = '';
+      if (walk) { walk.hidden = true; walk.innerHTML = ''; }
+      if (prov) prov.textContent = '';
+      if (meta) meta.textContent = 'Screening-grade estimate from photos + cost book (not a contractor bid)';
+      return;
+    }
+
+    if (scan.status === 'labeling' || scan.status === 'scanning' || scan.status === 'queued') {
+      if (summary) summary.innerHTML = `<p><strong>${esc(scan.status)}…</strong> AI is labeling photos / building lines.</p>`;
+    } else if (summary) {
+      const conf = scan.confidence || '—';
+      summary.innerHTML =
+        `<div class="uc-scan-totals">` +
+        `<div><span>Active</span><strong>${moneyPlain(scan.totals?.active)}</strong></div>` +
+        `<div><span>+ Cont. (${esc(String(scan.contingencyPct ?? 10))}%)</span><strong>${moneyPlain(scan.totals?.withContingency)}</strong></div>` +
+        `<div><span>Voided</span><strong>${moneyPlain(scan.totals?.voided)}</strong></div>` +
+        `<div><span>Confidence</span><strong class="uc-scan-conf uc-scan-conf--${esc(conf)}">${esc(conf)}</strong></div>` +
+        `</div>` +
+        `<p>${esc(scan.summary || '')}</p>` +
+        `<p class="uc-docs-meta">${esc(scan.honestyLabel || '')}</p>` +
+        (scan.overPurchaseWarn ? '<p class="uc-scan-warn">Rehab mid is high vs purchase — double-check scope.</p>' : '');
+    }
+
+    if (walk && Array.isArray(scan.walkOrder) && scan.walkOrder.length) {
+      walk.hidden = false;
+      walk.innerHTML = '<h4>Blind spots / walk order</h4><ol>' +
+        scan.walkOrder.map((w) => `<li><strong>${esc((w.room || '').replace(/_/g, ' '))}</strong> — ${esc(w.tip || '')}</li>`).join('') +
+        '</ol>';
+    } else if (walk) {
+      walk.hidden = true;
+      walk.innerHTML = '';
+    }
+
+    const lines = Array.isArray(scan.lines) ? scan.lines : [];
+    if (linesBox) {
+      linesBox.innerHTML = lines.map((l) => {
+        const faded = l.voided ? ' is-voided' : '';
+        return `<div class="uc-scan-line${faded}" data-line-id="${esc(l.id)}">
+          <div class="uc-scan-line-main">
+            <strong>${esc(l.label)}</strong>
+            <span class="uc-scan-cat">${esc(l.category)}</span>
+            <span>${esc(String(l.qty))} ${esc(l.unit)} · ${moneyPlain(l.total)}</span>
+          </div>
+          <div class="uc-scan-line-meta">cite ${esc((l.mediaIds || []).length)} photo(s)${l.note ? ' · ' + esc(l.note) : ''}</div>
+          <button type="button" class="phuglee-btn phuglee-btn-ghost uc-scan-void-btn" data-line-void="${esc(l.id)}" data-voided="${l.voided ? '0' : '1'}">${l.voided ? 'Restore' : 'Void'}</button>
+        </div>`;
+      }).join('') || '<p class="uc-docs-meta">No cited rehab lines yet.</p>';
+    }
+
+    if (prov) {
+      prov.textContent = [
+        scan.costBookVersion ? `book ${scan.costBookVersion}` : '',
+        scan.metroLabel || scan.metroId || '',
+        scan.livingSqft ? `sqft ${scan.livingSqft} (${scan.sqftSource || '?'})` : '',
+        scan.scannedAt ? `scanned ${scan.scannedAt}` : ''
+      ].filter(Boolean).join(' · ');
+    }
+    if (meta) meta.textContent = `Status: ${scan.status || 'ready'} · finish ${scan.finishGrade || 'investor'}`;
+  }
+
+  async function schedulePhotographer() {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    const body = {
+      date: $('uc-photo-date')?.value || '',
+      time: $('uc-photo-time')?.value || '',
+      photographerName: $('uc-photo-name')?.value || '',
+      photographerEmail: $('uc-photo-email')?.value || '',
+      photographerPhone: $('uc-photo-phone')?.value || ''
+    };
+    if (!body.date || !body.time || !body.photographerName || !body.photographerPhone) {
+      showToast('Date, time, name, and phone required');
+      return;
+    }
+    const btn = $('uc-photo-sched-save');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/photographer/schedule`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      if (data.deal) state.profile = { ...state.profile, ...data.deal };
+      renderPhotographerSection(state.profile);
+      showToast(data.introSmsSentAt ? 'Scheduled + intro SMS sent' : (data.ghlWarning || 'Scheduled'));
+      if (data.ghlWarning && data.introSmsSentAt) showToast(data.ghlWarning);
+    } catch (err) {
+      showToast(err.message || 'Schedule failed');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function runRehabScan({ sync } = {}) {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    try {
+      showToast(sync ? 'Scanning…' : 'Queued AI label + scan…');
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/rehab-scan`, {
+        method: 'POST',
+        body: JSON.stringify({ sync: !!sync, force: false })
+      });
+      if (data.deal) {
+        state.profile = { ...state.profile, ...data.deal };
+        renderMedia(state.profile.sellerMedia || []);
+        renderConditionScan(state.profile);
+      } else {
+        // poll profile shortly
+        setTimeout(() => refreshProfileScan(), 2500);
+        setTimeout(() => refreshProfileScan(), 8000);
+      }
+    } catch (err) {
+      showToast(err.message || 'Scan failed');
+    }
+  }
+
+  async function refreshProfileScan() {
+    if (!state.activeDealId) return;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(state.activeDealId)}`);
+      if (data.deal) {
+        state.profile = { ...state.profile, ...data.deal };
+        renderMedia(state.profile.sellerMedia || []);
+        renderConditionScan(state.profile);
+        renderPhotographerSection(state.profile);
+      }
+    } catch (_) { /* ignore */ }
+  }
+
+  async function applyScanOptions() {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/rehab-scan/options`, {
+        method: 'POST',
+        body: JSON.stringify({
+          finishGrade: $('uc-scan-finish')?.value || 'investor',
+          livingSqft: Number($('uc-scan-sqft')?.value) || undefined,
+          contingencyPct: Number($('uc-scan-contingency')?.value)
+        })
+      });
+      if (data.conditionScan) {
+        state.profile = { ...state.profile, conditionScan: data.conditionScan };
+        renderConditionScan(state.profile);
+        showToast('Repriced');
+      }
+    } catch (err) {
+      showToast(err.message || 'Reprice failed');
+    }
+  }
+
+  async function voidScanLine(lineId, voided) {
+    const dealId = state.activeDealId;
+    if (!dealId || !lineId) return;
+    try {
+      const data = await api(
+        `/api/leads/admin/contracts/${encodeURIComponent(dealId)}/rehab-scan/lines/${encodeURIComponent(lineId)}/void`,
+        { method: 'POST', body: JSON.stringify({ voided: voided !== false }) }
+      );
+      if (data.conditionScan) {
+        state.profile = { ...state.profile, conditionScan: data.conditionScan };
+        renderConditionScan(state.profile);
+      }
+    } catch (err) {
+      showToast(err.message || 'Void failed');
+    }
+  }
+
+  async function deskUploadMedia(fileList) {
+    const dealId = state.activeDealId;
+    const files = [...(fileList || [])];
+    if (!dealId || !files.length) return;
+    const items = [];
+    for (const file of files) {
+      const contentBase64 = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const s = String(r.result || '');
+          resolve(s.includes(',') ? s.split(',')[1] : s);
+        };
+        r.onerror = () => reject(new Error('read failed'));
+        r.readAsDataURL(file);
+      });
+      items.push({
+        contentBase64,
+        mimeType: file.type || 'image/jpeg',
+        name: file.name,
+        uploadSource: 'desk'
+      });
+    }
+    const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/media`, {
+      method: 'POST',
+      body: JSON.stringify({ items })
+    });
+    if (data.deal) state.profile = { ...state.profile, ...data.deal, sellerMedia: data.sellerMedia || data.deal.sellerMedia };
+    else if (data.sellerMedia) state.profile.sellerMedia = data.sellerMedia;
+    renderMedia(state.profile.sellerMedia || []);
+    showToast(`Uploaded ${data.saved || items.length}`);
+    setTimeout(() => refreshProfileScan(), 3000);
+  }
+
+  function setSmsTab(tab) {
+    state.smsTab = tab === 'photographer' ? 'photographer' : 'seller';
+    document.querySelectorAll('.uc-sms-tab').forEach((btn) => {
+      const on = btn.getAttribute('data-sms-tab') === state.smsTab;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    const sellerThread = $('uc-convo-thread');
+    const photoThread = $('uc-photo-thread');
+    const input = $('uc-sms-input');
+    if (state.smsTab === 'photographer') {
+      if (sellerThread) sellerThread.hidden = true;
+      if (photoThread) photoThread.hidden = false;
+      if (input) input.placeholder = 'Text the photographer…';
+      renderPhotographerMessages();
+    } else {
+      if (sellerThread) sellerThread.hidden = false;
+      if (photoThread) photoThread.hidden = true;
+      if (input) input.placeholder = 'Text the seller…';
+    }
+  }
+
+  function renderPhotographerMessages() {
+    const box = $('uc-photo-thread');
+    if (!box) return;
+    const list = state.photographerMessages || [];
+    if (!list.length) {
+      box.innerHTML = '<p class="uc-convo-empty">No photographer texts yet. Schedule a shoot to start the thread.</p>';
+      return;
+    }
+    box.innerHTML = list.map((m) => {
+      const outbound = m.direction === 'outbound' || m.direction === 'out';
+      const when = formatUcWhen(m.dateAdded);
+      const body = (m.body || '').trim();
+      return `<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
+        <div class="uc-bubble-body">${body ? esc(body) : esc('(no text)')}</div>
+        <div class="uc-bubble-meta">${outbound ? 'You' : 'Photographer'}${when ? ' · ' + esc(when) : ''}</div>
+      </div>`;
+    }).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function loadPhotographerMessages(dealId) {
+    if (!dealId) return;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/photographer/messages`);
+      state.photographerMessages = data.messages || [];
+      if (state.smsTab === 'photographer') renderPhotographerMessages();
+    } catch (_) {
+      state.photographerMessages = [];
+    }
   }
 
   function renderMessages(opts = {}) {
@@ -1043,6 +1387,10 @@
     renderTeamMessages();
     renderDocuments(deal.documents || []);
     renderMedia(deal.sellerMedia || []);
+    renderPhotographerSection(deal);
+    renderConditionScan(deal);
+    setSmsTab(state.smsTab || 'seller');
+    loadPhotographerMessages(deal.dealId);
     renderDocsPending(deal);
     closeDocViewer();
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
@@ -1866,20 +2214,29 @@
     const btn = $('uc-sms-send');
     if (btn) btn.disabled = true;
     try {
-      const sent = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`, {
-        method: 'POST',
-        body: JSON.stringify({
-          message: text,
-          fromNumber: state.fromNumber,
-          toNumber: state.toNumber
-        })
-      });
-      input.value = '';
-      showToast('SMS sent');
-      // Reply clears unread immediately (server marks seen on send).
-      const boardChanged = applySellerSmsDealPatch(sent.deal, sent.unreadSellerSms);
-      if (boardChanged) renderTable(state.deals);
-      await loadMessages(dealId, { silent: true, forceScroll: true });
+      if (state.smsTab === 'photographer') {
+        await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/photographer/messages`, {
+          method: 'POST',
+          body: JSON.stringify({ message: text })
+        });
+        input.value = '';
+        showToast('Photographer SMS sent');
+        await loadPhotographerMessages(dealId);
+      } else {
+        const sent = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`, {
+          method: 'POST',
+          body: JSON.stringify({
+            message: text,
+            fromNumber: state.fromNumber,
+            toNumber: state.toNumber
+          })
+        });
+        input.value = '';
+        showToast('SMS sent');
+        const boardChanged = applySellerSmsDealPatch(sent.deal, sent.unreadSellerSms);
+        if (boardChanged) renderTable(state.deals);
+        await loadMessages(dealId, { silent: true, forceScroll: true });
+      }
     } catch (err) {
       showToast(err.message || 'Send failed');
     } finally {
@@ -1904,6 +2261,26 @@
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
     $('uc-photo-cost-save')?.addEventListener('click', () => { savePhotoCost(); });
+    $('uc-photo-sched-save')?.addEventListener('click', () => { schedulePhotographer(); });
+    $('uc-photo-copy-url')?.addEventListener('click', () => { copyUploadUrl(); });
+    $('uc-photo-copy-url-sms')?.addEventListener('click', () => { copyUploadUrl(); });
+    $('uc-scan-run')?.addEventListener('click', () => { runRehabScan({ sync: false }); });
+    $('uc-scan-apply-opts')?.addEventListener('click', () => { applyScanOptions(); });
+    $('uc-scan-lines')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-line-void]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-line-void');
+      const voided = btn.getAttribute('data-voided') !== '0';
+      voidScanLine(id, voided);
+    });
+    $('uc-media-desk-upload')?.addEventListener('click', () => $('uc-media-desk-file')?.click());
+    $('uc-media-desk-file')?.addEventListener('change', (ev) => {
+      deskUploadMedia(ev.target.files).catch((err) => showToast(err.message || 'Upload failed'));
+      ev.target.value = '';
+    });
+    document.querySelectorAll('.uc-sms-tab').forEach((btn) => {
+      btn.addEventListener('click', () => setSmsTab(btn.getAttribute('data-sms-tab')));
+    });
     $('uc-sms-pulse')?.addEventListener('click', () => {
       scrollToSellerSms();
     });
