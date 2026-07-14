@@ -5002,7 +5002,9 @@
   }
 
   /**
-   * Admin modal: ranked Type column candidates + samples.
+   * Admin modal: ranked Type column candidates + samples + keep preview.
+   * Pre-selects only when server sent a confident suggestedHeader.
+   * OK stays disabled until an explicit radio pick (including “No type”).
    * @returns {Promise<string|null|undefined>} header string | null (no type) | undefined (cancel)
    */
   function openTypeColumnConfirmDialog(details) {
@@ -5033,32 +5035,47 @@
         if (multi && idx != null && total != null) {
           typeConfirmLead.textContent =
             `${cityLabel} — format ${idx} of ${total}.${fileNote} ` +
-            `Headers differ across your upload; pick the Type column for this sheet format.`;
+            `Wrong Type column = wrong filter. Review samples and keep estimates, then pick the violation/issue code column for this sheet.`;
         } else {
           typeConfirmLead.textContent =
-            `${cityLabel} format needs a Type column confirmation before processing.${fileNote} ` +
-            `Pick the column that holds the violation or issue type.`;
+            `${cityLabel} needs a Type column confirmation.${fileNote} ` +
+            `Wrong Type column = wrong filter. Review sample values and keep estimates before you confirm.`;
         }
       }
       if (typeConfirmSuggested) {
         if (suggested) {
           typeConfirmSuggested.hidden = false;
-          typeConfirmSuggested.textContent = `Suggested: ${suggested}`;
+          typeConfirmSuggested.textContent =
+            `Suggested (high confidence): ${suggested} — still verify samples before confirming.`;
         } else {
-          typeConfirmSuggested.hidden = true;
-          typeConfirmSuggested.textContent = '';
+          typeConfirmSuggested.hidden = false;
+          typeConfirmSuggested.textContent =
+            'No confident suggestion — pick from the list using sample values (do not guess).';
         }
       }
 
       const samplesByHeader = new Map();
+      const previewByHeader = new Map();
       typeConfirmCandidates.innerHTML = '';
 
-      candidates.forEach((c, idx) => {
+      function formatKeepPreview(preview) {
+        if (!preview || !preview.sampleSize) {
+          return 'Keep preview: no sample values in this column';
+        }
+        const strong = Number(preview.strongDistressed) || 0;
+        const discarded = Number(preview.discarded) || 0;
+        const n = Number(preview.sampleSize) || 0;
+        return `If you pick this → ~${strong} Strong Distressed / ~${discarded} discarded (of ${n} sampled)`;
+      }
+
+      candidates.forEach((c) => {
         const header = c && c.header != null ? String(c.header) : '';
         if (!header) return;
         const score = c.score != null ? Number(c.score) : null;
         const samples = Array.isArray(c.samples) ? c.samples : [];
+        const keepPreview = c.keepPreview || null;
         samplesByHeader.set(header, samples);
+        previewByHeader.set(header, keepPreview);
 
         const label = document.createElement('label');
         label.className = 'bridge-type-confirm-option';
@@ -5066,7 +5083,8 @@
         input.type = 'radio';
         input.name = 'bridge-type-column-pick';
         input.value = header;
-        if ((suggested && header === suggested) || (!suggested && idx === 0)) {
+        // Pre-select only when server sent a confident suggestion that matches
+        if (suggested && header === suggested) {
           input.checked = true;
         }
         const body = document.createElement('div');
@@ -5075,9 +5093,18 @@
         title.textContent = header;
         const meta = document.createElement('div');
         meta.className = 'bridge-type-confirm-option-meta';
-        meta.textContent = Number.isFinite(score) ? `Score ${score}` : '';
+        const scoreBit = Number.isFinite(score) ? `Score ${score}` : '';
+        const previewBit = formatKeepPreview(keepPreview);
+        meta.textContent = [scoreBit, previewBit].filter(Boolean).join(' · ');
+        const sampleHint = document.createElement('div');
+        sampleHint.className = 'bridge-type-confirm-option-samples';
+        const hintVals = samples.slice(0, 3).map((s) => String(s).slice(0, 48));
+        sampleHint.textContent = hintVals.length
+          ? `Samples: ${hintVals.join(' · ')}`
+          : 'Samples: (empty)';
         body.appendChild(title);
         if (meta.textContent) body.appendChild(meta);
+        body.appendChild(sampleHint);
         label.appendChild(input);
         label.appendChild(body);
         typeConfirmCandidates.appendChild(label);
@@ -5090,7 +5117,7 @@
       noneInput.type = 'radio';
       noneInput.name = 'bridge-type-column-pick';
       noneInput.value = '__none__';
-      // Pre-select No type when scorer found nothing
+      // Only pre-select No type when there are no candidates at all
       if (!candidates.length) noneInput.checked = true;
       const noneBody = document.createElement('div');
       const noneTitle = document.createElement('div');
@@ -5105,23 +5132,37 @@
       noneLabel.appendChild(noneBody);
       typeConfirmCandidates.appendChild(noneLabel);
 
+      function syncOkEnabled() {
+        if (!typeConfirmOkBtn) return;
+        const checked = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]:checked');
+        typeConfirmOkBtn.disabled = !checked;
+      }
+
       function renderSamplesForSelection() {
         if (!typeConfirmSamples) return;
         const checked = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]:checked');
         const val = checked ? checked.value : '';
+        syncOkEnabled();
         if (!val || val === '__none__') {
           typeConfirmSamples.innerHTML =
-            '<span class="bridge-type-confirm-samples-empty">No sample values for this choice.</span>';
+            val === '__none__'
+              ? '<span class="bridge-type-confirm-samples-empty">No Type column — filtering will rely on all cell text. Prefer picking a real code column when one exists.</span>'
+              : '<span class="bridge-type-confirm-samples-empty">Select a column to preview sample values and keep estimate.</span>';
           return;
         }
         const samples = (samplesByHeader.get(val) || []).slice(0, 5);
+        const preview = previewByHeader.get(val);
+        const previewHtml = preview
+          ? `<p class="bridge-type-confirm-keep-preview">${esc(formatKeepPreview(preview))}</p>`
+          : '';
         if (!samples.length) {
           typeConfirmSamples.innerHTML =
-            '<span class="bridge-type-confirm-samples-empty">No sample cells available for this column.</span>';
+            `${previewHtml}<span class="bridge-type-confirm-samples-empty">No sample cells available for this column.</span>`;
           return;
         }
         const items = samples.map((s) => `<li>${esc(String(s))}</li>`).join('');
-        typeConfirmSamples.innerHTML = `<strong>Sample values</strong><ul>${items}</ul>`;
+        typeConfirmSamples.innerHTML =
+          `${previewHtml}<strong>Sample values</strong><ul>${items}</ul>`;
       }
 
       renderSamplesForSelection();
@@ -5137,6 +5178,7 @@
         typeConfirmCloseBtn?.removeEventListener('click', onCancel);
         typeConfirmDialog.removeEventListener('cancel', onEsc);
         typeConfirmDialog.removeEventListener('click', onBackdrop);
+        if (typeConfirmOkBtn) typeConfirmOkBtn.disabled = false;
         try {
           if (typeConfirmDialog.open) typeConfirmDialog.close();
         } catch (_) {}
@@ -5146,17 +5188,7 @@
       const onOk = () => {
         const checked = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]:checked');
         if (!checked) {
-          // Prefer suggested / first candidate over silent cancel
-          if (suggested) {
-            finish(suggested);
-            return;
-          }
-          const first = typeConfirmCandidates.querySelector('input[name="bridge-type-column-pick"]');
-          if (first && first.value && first.value !== '__none__') {
-            finish(first.value);
-            return;
-          }
-          finish(null);
+          // Require explicit pick — do not silently use first/suggested
           return;
         }
         if (checked.value === '__none__') {

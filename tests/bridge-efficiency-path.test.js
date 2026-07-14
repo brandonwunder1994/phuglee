@@ -43,7 +43,8 @@ test('EFF-01: GATE-03 auto_reuse + formatMatched still present in engine', () =>
 
 test('EFF-01: bulk download-all anchors present in HTML', () => {
   assert.match(html, /id="bridge-download-all-csv"/);
-  assert.match(html, /Download all \(CSV\)/);
+  // Label evolved to Export all (CSV) for Geocodio copy; id is the stable contract
+  assert.match(html, /Export all \(CSV\)|Download all \(CSV\)/);
   assert.match(html, /id="bridge-download-all-xlsx"/);
   assert.match(html, /Download all \(XLSX\)/);
 });

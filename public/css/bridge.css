@@ -3635,6 +3635,21 @@ button.bridge-inventory-filter-chip.is-active {
   line-height: 1.4;
 }
 
+.bridge-type-confirm-option-samples {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--phuglee-taupe-mid);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.bridge-type-confirm-keep-preview {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--phuglee-cream);
+  font-weight: 500;
+}
+
 .bridge-type-confirm-option--none .bridge-type-confirm-option-label {
   font-weight: 500;
   color: var(--phuglee-taupe-mid);

@@ -310,11 +310,13 @@ test('COL-01 optional: empty samples with classic Violation Type header still ca
 // DEFAULTS + never-blend documentation (Plan 02 Task 2)
 // ---------------------------------------------------------------------------
 
-test('DEFAULTS export documents sampleSize, minScore, minMargin', () => {
+test('DEFAULTS export documents sampleSize, minScore, minMargin, suggest bars', () => {
   assert.equal(DEFAULTS.sampleSize, 80);
   assert.equal(DEFAULTS.maxSamplesPerCol, 40);
   assert.equal(DEFAULTS.minScore, 45);
   assert.equal(DEFAULTS.minMargin, 8);
+  assert.equal(DEFAULTS.suggestMinScore, 58);
+  assert.equal(DEFAULTS.suggestMinMargin, 12);
 });
 
 test('pickTypeColumn returns null below minScore (never invents a blend)', () => {
@@ -324,4 +326,41 @@ test('pickTypeColumn returns null below minScore (never invents a blend)', () =>
   ];
   const picked = pickTypeColumn(ranked);
   assert.equal(picked, null, 'scores below DEFAULTS.minScore must not produce a winner');
+});
+
+test('pickSuggestedTypeColumn abstains when score is below suggestMinScore', () => {
+  const { pickSuggestedTypeColumn } = require('../lib/bridge-type-column-score');
+  const ranked = [
+    { header: 'Maybe Type', score: 52, reasons: [], samples: [], aliasTier: 2 },
+    { header: 'Other', score: 20, reasons: [], samples: [], aliasTier: 0 }
+  ];
+  // Clears pick minScore(45) with wide margin, but below suggestMinScore(58)
+  const picked = pickTypeColumn(ranked);
+  assert.ok(picked && picked.header === 'Maybe Type');
+  assert.equal(pickSuggestedTypeColumn(ranked), null);
+});
+
+test('distress vocab boost prefers short code labels over long narrative', () => {
+  const headers = ['Narrative', 'Vio Cat', 'Address'];
+  const rows = [
+    {
+      Narrative: 'On 01/15/2024 the inspector observed miscellaneous conditions requiring review of multiple municipal code sections across the premises',
+      'Vio Cat': 'High Grass',
+      Address: '123 Main St'
+    },
+    {
+      Narrative: 'Follow up inspection noted continued concerns without a clear single code reference in the detailed field notes',
+      'Vio Cat': 'Trash',
+      Address: '456 Oak Ave'
+    },
+    {
+      Narrative: 'Additional commentary from clerk regarding general appearance of the lot and prior contacts with the owner',
+      'Vio Cat': 'Weeds',
+      Address: '789 Pine Rd'
+    }
+  ];
+  const ranked = scoreTypeColumns(headers, rows);
+  assert.equal(ranked[0].header, 'Vio Cat');
+  const suggested = require('../lib/bridge-type-column-score').pickSuggestedTypeColumn(ranked);
+  assert.ok(suggested && suggested.header === 'Vio Cat');
 });

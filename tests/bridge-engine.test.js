@@ -1220,6 +1220,13 @@ test('GATE-04: TYPE_COLUMN_CONFIRM_REQUIRED details include fingerprint, candida
     details.suggestedHeader === null || typeof details.suggestedHeader === 'string',
     'GATE-04: suggestedHeader string or null'
   );
+  assert.ok(
+    first.keepPreview &&
+      typeof first.keepPreview.strongDistressed === 'number' &&
+      typeof first.keepPreview.sampleSize === 'number',
+    'GATE-04: candidate.keepPreview with strongDistressed + sampleSize'
+  );
+  assert.ok(Array.isArray(first.samples), 'GATE-04: candidate.samples array');
 });
 
 test('GATE-04: admin resume with confirmedTypeHeader Vio Cat succeeds (admin_confirm)', async () => {
