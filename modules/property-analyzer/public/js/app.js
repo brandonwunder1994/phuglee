@@ -22,6 +22,8 @@ if (te) {
   R.hasModerateWithSupportingNeglect = te.hasModerateWithSupportingNeglect;
   R.countNeglectIndicators = te.countNeglectIndicators;
   R.reasonSuggestsDumpHouse = te.reasonSuggestsDumpHouse;
+  R.reasonSuggestsManicured = te.reasonSuggestsManicured;
+  R.reconcileReasonWithTier = te.reconcileReasonWithTier;
 }
 if (ir) {
   R.streetAnalysisNeedsSatellite = ir.streetAnalysisNeedsSatellite;
@@ -391,7 +393,10 @@ R.parseGeminiResponse = function parseGeminiResponse(text) {
     confidence,
     needsReview: false
   };
-  return attachTierRationale(result);
+  const reconciled = typeof reconcileReasonWithTier === 'function'
+    ? reconcileReasonWithTier(result)
+    : result;
+  return attachTierRationale(reconciled);
 }
 
 R.finalizePropertyDistress = function finalizePropertyDistress(analysis, satelliteResult = null) {
@@ -424,6 +429,17 @@ R.finalizePropertyDistress = function finalizePropertyDistress(analysis, satelli
     analysis.score = Math.min(analysis.score, WELL_MAINTAINED_MAX_SCORE);
   }
   analysis.score = clampScoreForTier(analysis.score, analysis.leadTier, analysis.indicators, combinedReason);
+  if (typeof reconcileReasonWithTier === 'function') {
+    const reconciled = reconcileReasonWithTier(
+      {
+        ...analysis,
+        reason: analysis.reason || combinedReason
+      },
+      { satelliteClassification: satelliteResult }
+    );
+    analysis.reason = reconciled.reason;
+    if (reconciled.needsReview) analysis.needsReview = true;
+  }
   return analysis;
 }
 

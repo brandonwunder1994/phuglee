@@ -37,6 +37,11 @@
 
   const DUMP_HOUSE_REASON_PATTERN = /junk|debris|trash pile|dump house|dump yard|trashed|hoarding|boarded|broken window|weeds everywhere|overgrown everywhere|heavy weeds|heavy neglect|severe neglect|signs of neglect|visible neglect|dilapidat|unmaintained|derelict|eyesore|filthy|heavily peeling|extensively peeling|dirty exterior|messy yard|clutter|yard waste|abandoned car|abandoned vehicle/i;
 
+  // Prose that reads like Well Maintained even when score/indicators say Distressed.
+  const MANICURED_REASON_PATTERN = /well[-\s]?maintained|manicured|no visible signs of(?:\s+significant)?\s+distress|no signs of(?:\s+significant)?\s+distress|no visible distress|pristine|cared[-\s]?for suburban|clean facade(?:\s+and)?\s+no(?:\s+visible)?\s+signs|occupied(?:\s+and)?\s+maintained|maintained appearance|recently constructed/i;
+
+  const SEVERE_DISTRESS_REASON_PATTERN = /dump house|boarded|structural damage|fire[-\s]?or[-\s]?water|collapsed|tarp on (?:the )?roof|severe neglect|derelict|trashed lot|heavy neglect|dilapidat/i;
+
   const VALID_CONDITIONS = new Set(['good', 'fair', 'poor', 'unknown']);
 
   function normalizeIndicators(list) {
@@ -74,6 +79,66 @@
       .replace(/without (visible )?(signs of )?(distress|neglect)[^.;]*/gi, '')
       .replace(/appears well-maintained[^.]*/gi, '')
       .replace(/in good condition[^.]*/gi, '');
+  }
+
+  function reasonSuggestsManicured(reason) {
+    return MANICURED_REASON_PATTERN.test(String(reason || ''));
+  }
+
+  function reasonSuggestsSevereDistressProse(reason) {
+    const text = String(reason || '');
+    return SEVERE_DISTRESS_REASON_PATTERN.test(text) || reasonSuggestsDumpHouse(text);
+  }
+
+  function hasSatelliteNeglectSupport(satelliteClassification) {
+    if (!satelliteClassification || typeof satelliteClassification !== 'object') return false;
+    const roof = normalizeCondition(satelliteClassification.roofCondition);
+    const yard = normalizeCondition(satelliteClassification.yardCondition);
+    if (roof === 'poor' || yard === 'poor') return true;
+    const aerial = Math.round(Number(satelliteClassification.aerialDistressScore));
+    if (!isNaN(aerial) && aerial >= DISTRESSED_MIN_SCORE) return true;
+    const inds = normalizeIndicators(satelliteClassification.indicators);
+    return inds.some((i) => HIGH_INDICATORS.has(i) || MODERATE_INDICATORS.has(i));
+  }
+
+  /**
+   * Keep final leadTier/score; rewrite contradictory reason blurbs only.
+   * Narrow needsReview when score>=6, manicured prose, empty indicators, no sat support.
+   */
+  function reconcileReasonWithTier(analysis, opts = {}) {
+    if (!analysis || typeof analysis !== 'object') return analysis;
+    const out = { ...analysis };
+    const tier = normalizeLeadTier(out.leadTier);
+    const score = Math.round(Number(out.score)) || 0;
+    const inds = normalizeIndicators(out.indicators);
+    const reason = String(out.reason || '').trim();
+    const sat = opts.satelliteClassification || out.satelliteClassification || null;
+
+    if (tier === 'distressed' && reasonSuggestsManicured(reason)) {
+      out.reason = inds.length
+        ? `Distressed (score ${score}): ${inds.join(', ')}.`
+        : `Distressed (score ${score}): model scored material distress — verify on Street View.`;
+      if (
+        score >= DISTRESSED_MIN_SCORE
+        && !inds.length
+        && !hasSatelliteNeglectSupport(sat)
+      ) {
+        out.needsReview = true;
+      }
+      return out;
+    }
+
+    if (tier === 'well_maintained' && reasonSuggestsSevereDistressProse(reason)) {
+      const soft = inds.filter(
+        (i) => WELL_MAINTAINED_SOFT_INDICATORS.has(i) || MODERATE_INDICATORS.has(i)
+      );
+      out.reason = soft.length
+        ? `Occupied / maintained appearance (score ${score}): ${soft.join(', ')}.`
+        : `Occupied / maintained appearance (score ${score}).`;
+      return out;
+    }
+
+    return out;
   }
 
   function reasonSuggestsDumpHouse(reason) {
@@ -289,11 +354,17 @@
     COSMETIC_INDICATORS,
     WELL_MAINTAINED_SOFT_INDICATORS,
     DUMP_HOUSE_REASON_PATTERN,
+    MANICURED_REASON_PATTERN,
+    SEVERE_DISTRESS_REASON_PATTERN,
     normalizeIndicators,
     normalizeCategory,
     normalizeCondition,
     countNeglectIndicators,
     reasonSuggestsDumpHouse,
+    reasonSuggestsManicured,
+    reasonSuggestsSevereDistressProse,
+    hasSatelliteNeglectSupport,
+    reconcileReasonWithTier,
     stripTierMigrationReasonSuffix,
     reasonWithoutNegatedDistressPhrases,
     hasModerateWithSupportingNeglect,

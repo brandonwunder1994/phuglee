@@ -997,6 +997,10 @@ DECISION ORDER (first match wins):
   4. 2+ cosmetic neglect signals (weeds+peeling, weeds+deferred) OR dump-house visuals? → score 6-10 distressed
   5. Otherwise normal/maintained or single isolated flag? → score 1-5 well_maintained
 
+REASON MUST MATCH TIER:
+  • Distressed (6-10): reason names the neglect/indicators — never "well-maintained", "manicured", or "no signs of distress"
+  • Well Maintained (1-5): reason describes maintained/occupied look — never dump-house / boarded / structural / severe neglect claims
+
 SATELLITE + STREET VIEW FUSION:
   • Satellite best for: footprint, roof tarp, yard junk piles, abandoned cars from above, poor yard
   • Street View best for: broken windows, peeling paint, boarded doors, code notices, facade neglect

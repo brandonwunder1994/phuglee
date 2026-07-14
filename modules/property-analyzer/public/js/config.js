@@ -259,6 +259,8 @@ ${buildD4DAerialScoringGuide()}
 
 ${buildStaticTierRules()}
 
+REASON CONSISTENCY: If aerial distress is material (score-like 6+ or poor roof/yard neglect), reason must name that neglect — not "well-maintained". If lot looks maintained from above, say so and keep aerial score low.
+
 Respond ONLY valid JSON. reason = one plain sentence (max 25 words) on roof/yard for homes, or why vacant.
 {"category":"property"|"vacant_lot"|"unavailable","structure_on_subject_lot":true|false,"roof_condition":"good"|"fair"|"poor"|"unknown","yard_condition":"good"|"fair"|"poor"|"unknown","aerial_distress_score":<0-10>,"indicators":["roof_damage_or_tarp",...],"confidence":<0-100>,"reason":"<plain sentence, no quotes>"}`;
 }
@@ -330,6 +332,9 @@ EXAMPLES — well maintained (score 1-5, lead_tier well_maintained):
   • Single junk pile near garage but manicured front yard and clean facade → score 4-5, well_maintained (not dump house)
 
 confidence: 0-100. needs_review: false unless lot type truly ambiguous.
+REASON CONSISTENCY (mandatory): reason must match lead_tier / score band.
+  • score 6-10 / lead_tier=distressed → name the visible neglect (indicators). NEVER write "well-maintained", "manicured", or "no signs of distress".
+  • score 1-5 / lead_tier=well_maintained → describe maintained/occupied appearance. Do NOT claim dump-house, boarded, structural, or severe neglect.
 Respond ONLY valid JSON. reason = one plain sentence (max 25 words).
 {"score":<0-10>,"category":"property"|"vacant_lot"|"unavailable"|"blurred","structure_on_subject_lot":true|false|null,"lead_tier":"distressed"|"well_maintained"|"vacant"|"unavailable"|"blurred","confidence":<0-100>,"needs_review":false,"indicators":["boarded_windows",...],"reason":"<short plain sentence, no quotes>"}`;
 }
@@ -2211,6 +2216,8 @@ $('importLearnedFile')?.addEventListener('change', (e) => {
     R.hasModerateWithSupportingNeglect = te.hasModerateWithSupportingNeglect;
     R.countNeglectIndicators = te.countNeglectIndicators;
     R.reasonSuggestsDumpHouse = te.reasonSuggestsDumpHouse;
+    R.reasonSuggestsManicured = te.reasonSuggestsManicured;
+    R.reconcileReasonWithTier = te.reconcileReasonWithTier;
   }
   if (rc) {
     R.inferCategory = rc.inferCategory;
