@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/operating-costs.css?v=11">
+  <link rel="stylesheet" href="/css/operating-costs.css?v=12">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -54,6 +54,19 @@
           <span class="oc-total-label" id="oc-total-label">Month total</span>
           <strong id="oc-month-total" class="oc-total-value">—</strong>
           <span id="oc-refreshed" class="oc-total-meta"></span>
+        </div>
+      </section>
+
+      <section class="oc-wallet-balance" id="oc-wallet-balance" aria-labelledby="oc-wallet-balance-heading">
+        <div class="oc-wallet-balance-inner">
+          <div>
+            <p class="oc-wallet-balance-kicker" id="oc-wallet-balance-heading">HighLevel wallet balance</p>
+            <p id="oc-wallet-balance-value" class="oc-wallet-balance-value">—</p>
+            <p id="oc-wallet-balance-meta" class="oc-wallet-balance-meta">Import a WALLET_TRANSACTIONS CSV to capture the latest balance.</p>
+          </div>
+          <p id="oc-wallet-balance-hint" class="oc-wallet-balance-hint">
+            Pulled from “Wallet Balance After Transaction” on your newest CSV row. Re-upload that export to refresh.
+          </p>
         </div>
       </section>
 
@@ -219,6 +232,6 @@
   <script src="/js/shell-nav.js?v=distress2"></script>
   <script src="/js/settings-menu.js?v=distress2"></script>
   <script src="/js/command-palette.js?v=distress2"></script>
-  <script src="/js/operating-costs.js?v=11"></script>
+  <script src="/js/operating-costs.js?v=12"></script>
 </body>
 </html>

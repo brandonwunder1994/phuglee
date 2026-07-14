@@ -65,9 +65,9 @@ test('parses HighLevel ordinal Activity Date and WALLET_TRANSACTIONS headers', a
   assert.equal(parseDate('Jun 27, 2026'), '2026-06-27');
 
   const csv = [
-    '"Transaction ID","Location Id","Location Name","Transaction Type","Description","Activity Date","Date","Amount"',
-    '"abc123","loc","Wunder","Outbound SMS","Outbound SMS: Ref-1","Jul 14th 2026, 01:14:33 PM","Jul 14th 2026, 01:14:33 PM",0.00747',
-    '"def456","loc","Wunder","Inbound SMS","Inbound SMS: Ref-2","Jul 1st 2026, 08:57:07 AM","Jul 1st 2026, 08:57:07 AM",0.01'
+    '"Transaction ID","Location Id","Location Name","Transaction Type","Description","Activity Date","Date","Amount","Wallet Balance After Transaction","Total Wallet Balance (Including Wallet Credits)"',
+    '"abc123","loc","Wunder","Outbound SMS","Outbound SMS: Ref-1","Jul 14th 2026, 01:14:33 PM","Jul 14th 2026, 01:14:33 PM",0.00747,"7.238341","7.238341"',
+    '"def456","loc","Wunder","Inbound SMS","Inbound SMS: Ref-2","Jul 1st 2026, 08:57:07 AM","Jul 1st 2026, 08:57:07 AM",0.01,"9.10","9.10"'
   ].join('\n');
 
   const parsed = await parseGhlExport(Buffer.from(csv, 'utf8'), 'WALLET_TRANSACTIONS-COMPANY-1.csv');
@@ -76,6 +76,9 @@ test('parses HighLevel ordinal Activity Date and WALLET_TRANSACTIONS headers', a
   assert.equal(parsed.charges[0].date, '2026-07-14');
   assert.equal(parsed.charges[0].time, '13:14:33');
   assert.equal(parsed.charges[0].externalId, 'abc123');
+  assert.ok(parsed.walletBalance);
+  assert.equal(parsed.walletBalance.balanceAfterUsd, 7.24);
+  assert.equal(parsed.walletBalance.asOfDate, '2026-07-14');
 });
 
 test('PDF text-line scraper finds date and amount rows', () => {

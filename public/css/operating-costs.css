@@ -303,6 +303,56 @@
   text-align: center;
 }
 
+.oc-wallet-balance {
+  margin: 0 0 1.25rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  background:
+    linear-gradient(135deg, rgba(25, 118, 210, 0.08), transparent 55%),
+    var(--surface, #fff);
+}
+
+.oc-wallet-balance-inner {
+  display: grid;
+  gap: 0.65rem;
+  padding: 1rem 1.15rem 1.1rem;
+}
+
+@media (min-width: 720px) {
+  .oc-wallet-balance-inner {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: end;
+  }
+}
+
+.oc-wallet-balance-kicker {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8a867c);
+}
+
+.oc-wallet-balance-value {
+  margin: 0;
+  font-family: var(--font-display, 'Fraunces', Georgia, serif);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 550;
+  line-height: 1.1;
+}
+
+.oc-wallet-balance-value.is-low {
+  color: #b42318;
+}
+
+.oc-wallet-balance-meta,
+.oc-wallet-balance-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-muted, #8a867c);
+}
+
 .oc-ghl-families {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

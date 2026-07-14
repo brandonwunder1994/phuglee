@@ -157,6 +157,46 @@
     }
   }
 
+  function renderWalletBalance(wb) {
+    const valueEl = $('oc-wallet-balance-value');
+    const metaEl = $('oc-wallet-balance-meta');
+    const hintEl = $('oc-wallet-balance-hint');
+    if (!valueEl || !metaEl) return;
+
+    const bal =
+      wb && wb.balanceAfterUsd != null
+        ? Number(wb.balanceAfterUsd)
+        : wb && wb.totalIncludingCreditsUsd != null
+          ? Number(wb.totalIncludingCreditsUsd)
+          : null;
+
+    if (bal == null || !Number.isFinite(bal)) {
+      valueEl.textContent = '—';
+      valueEl.classList.remove('is-low');
+      metaEl.textContent = 'Import a WALLET_TRANSACTIONS CSV to capture the latest balance.';
+      if (hintEl) {
+        hintEl.textContent =
+          'Pulled from “Wallet Balance After Transaction” on your newest CSV row. Re-upload that export to refresh.';
+      }
+      return;
+    }
+
+    valueEl.textContent = money(bal);
+    valueEl.classList.toggle('is-low', bal < 10);
+    const when = wb.asOfTime ? `${wb.asOfDate} · ${wb.asOfTime}` : wb.asOfDate || 'unknown time';
+    const total =
+      wb.totalIncludingCreditsUsd != null && wb.totalIncludingCreditsUsd !== wb.balanceAfterUsd
+        ? ` · total w/ credits ${money(wb.totalIncludingCreditsUsd)}`
+        : '';
+    metaEl.textContent = `As of ${when}${total}` + (wb.sourceFile ? ` · ${wb.sourceFile}` : '');
+    if (hintEl) {
+      hintEl.textContent =
+        bal < 10
+          ? 'Wallet is running low — top up in HighLevel, then re-upload WALLET_TRANSACTIONS to refresh this number.'
+          : 'Re-upload your latest WALLET_TRANSACTIONS CSV anytime to refresh this balance.';
+    }
+  }
+
   function renderPickup(wm) {
     const dateEl = $('oc-pickup-date');
     const hintEl = $('oc-pickup-hint');
@@ -413,6 +453,7 @@
         .join(' · ');
       renderCards(snap.services || {});
       renderGcpCredit(snap.googleCloudCredit);
+      renderWalletBalance(snap.ghlWalletBalance);
       renderPickup(snap.ghlWatermark);
       renderWatermark(snap.ghlWatermark);
       renderTeamBrief(snap.teamBrief);
