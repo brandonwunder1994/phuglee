@@ -31,6 +31,7 @@
     viewModeManual: false,
     selected: new Set(),
     meta: null,
+    byTypeFiltered: null,
     sync: null,
     overlays: { favorites: [], notes: {}, presets: [], dispositions: {} },
     leads: [],
@@ -371,7 +372,18 @@
   function renderTypeTabCounts() {
     document.querySelectorAll('.vault-tab-count').forEach((el) => {
       const key = el.dataset.countFor;
-      if (!state.meta || !key) {
+      if (!key) {
+        el.textContent = '';
+        return;
+      }
+      // Prefer filter-aware counts so tabs match the leads list for state/city/signals/etc.
+      const filtered = state.byTypeFiltered;
+      if (filtered && typeof filtered === 'object') {
+        const count = filtered[key];
+        el.textContent = count != null ? `(${Number(count).toLocaleString()})` : '';
+        return;
+      }
+      if (!state.meta) {
         el.textContent = '';
         return;
       }
@@ -443,6 +455,7 @@
   async function loadBootstrap() {
     const data = await fetchJson(`/api/leads/bootstrap?${buildQuery()}`);
     state.meta = data.meta;
+    state.byTypeFiltered = data.byTypeFiltered || null;
     state.sync = data.sync || null;
     state.overlays = data.overlays || { favorites: [], notes: {}, presets: [], dispositions: {} };
     if (!state.overlays.dispositions) state.overlays.dispositions = {};
@@ -499,6 +512,8 @@
       state.total = data.total || 0;
       state.totalPages = data.totalPages || 1;
       state.page = data.page || 1;
+      if (data.byTypeFiltered) state.byTypeFiltered = data.byTypeFiltered;
+      renderTypeTabCounts();
       renderResults();
       renderPagination();
       renderResultsMeta();
