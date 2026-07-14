@@ -370,26 +370,30 @@
   }
 
   function renderTypeTabCounts() {
+    const filtered = state.byTypeFiltered && typeof state.byTypeFiltered === 'object'
+      ? state.byTypeFiltered
+      : null;
+    const activeKey = state.leadType && state.leadType !== 'all' ? state.leadType : 'all';
+
     document.querySelectorAll('.vault-tab-count').forEach((el) => {
       const key = el.dataset.countFor;
       if (!key) {
         el.textContent = '';
         return;
       }
-      // Prefer filter-aware counts so tabs match the leads list for state/city/signals/etc.
-      const filtered = state.byTypeFiltered;
-      if (filtered && typeof filtered === 'object') {
-        const count = filtered[key];
-        el.textContent = count != null ? `(${Number(count).toLocaleString()})` : '';
-        return;
+
+      let count = null;
+      // Active tab must match the leads list total exactly
+      if (key === activeKey && state.total != null) {
+        count = state.total;
+      } else if (filtered && filtered[key] != null) {
+        count = filtered[key];
+      } else if (state.meta) {
+        count = key === 'all'
+          ? state.meta.total
+          : (state.meta.byType?.[key] || 0);
       }
-      if (!state.meta) {
-        el.textContent = '';
-        return;
-      }
-      const count = key === 'all'
-        ? state.meta.total
-        : (state.meta.byType?.[key] || 0);
+
       el.textContent = count != null ? `(${Number(count).toLocaleString()})` : '';
     });
   }
@@ -397,7 +401,10 @@
   function syncFilterControls() {
     if ($('vault-search')) $('vault-search').value = state.q;
     if ($('vault-state')) $('vault-state').value = state.state;
-    if ($('vault-city')) $('vault-city').value = state.city;
+    if ($('vault-city')) {
+      $('vault-city').value = state.state ? state.city : '';
+      $('vault-city').disabled = !state.state;
+    }
     if ($('vault-since')) $('vault-since').value = state.since;
     if ($('vault-min-score')) {
       $('vault-min-score').value = String(state.minScore);
@@ -525,26 +532,9 @@
   }
 
   function renderSyncStatus() {
+    // Sync KPI line removed from hero — counts live on type tabs + results meta
     const el = $('vault-sync-status');
-    if (!el) return;
-    const m = state.meta;
-    const s = state.sync;
-    if (!m) {
-      el.hidden = true;
-      return;
-    }
-    const parts = [`${m.total.toLocaleString()} leads`];
-    if (m.withImagery != null && m.withoutImagery != null) {
-      parts.push(`${m.withImagery.toLocaleString()} with photos`);
-    }
-    if (m.withPhone != null) {
-      parts.push(`${m.withPhone.toLocaleString()} dial-ready`);
-    }
-    if (s && s.lastSyncAt) {
-      parts.push(`synced ${formatSyncAge(s.lastSyncAt)}`);
-    }
-    el.textContent = parts.join(' · ');
-    el.hidden = false;
+    if (el) el.hidden = true;
   }
 
   function populateGeoSelects() {

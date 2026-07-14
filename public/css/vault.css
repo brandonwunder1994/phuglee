@@ -172,40 +172,29 @@
   margin: 0;
   font-size: 0.84rem;
   color: var(--vault-muted);
+  max-width: 38rem;
+  line-height: 1.4;
 }
 
 .vault-mission {
-  margin: 0.45rem 0 0;
-  font-size: 0.74rem;
-  line-height: 1.45;
-  color: var(--phuglee-stone);
-  letter-spacing: 0.02em;
+  display: none;
 }
 
 .vault-hero .vault-kpis {
   display: none;
 }
 
-.vault-type-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
+.vault-tab-count {
+  margin-left: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--phuglee-stone);
 }
 
-.vault-type-tab {
-  padding: 0.38rem 0.7rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--phuglee-stone);
-  background: var(--vault-surface);
-  border: 1px solid var(--vault-border);
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition:
-    color var(--vault-transition),
-    border-color var(--vault-transition),
-    background var(--vault-transition);
+.vault-type-tab.is-active .vault-tab-count,
+.vault-type-tab[aria-selected='true'] .vault-tab-count {
+  color: var(--phuglee-gold);
 }
 
 .vault-type-tab:hover {
@@ -218,19 +207,6 @@
   color: var(--phuglee-cream);
   border-color: rgba(229, 132, 53, 0.45);
   background: rgba(229, 132, 53, 0.1);
-}
-
-.vault-tab-count {
-  margin-left: 0.3rem;
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 500;
-  color: var(--phuglee-stone);
-}
-
-.vault-type-tab.is-active .vault-tab-count,
-.vault-type-tab[aria-selected='true'] .vault-tab-count {
-  color: var(--phuglee-gold);
 }
 
 /* ── Desk grid: filters rail left, leads right ── */
@@ -438,22 +414,63 @@
 .vault-results-toolbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.65rem;
+  gap: 0.65rem 1rem;
+}
+
+.vault-results-toolbar-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.75rem;
+  min-width: 0;
+  flex: 1 1 18rem;
 }
 
 .vault-results-meta {
   margin: 0;
   font-size: 0.8rem;
   color: var(--vault-muted);
+  white-space: nowrap;
 }
 
 .vault-results-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+.vault-type-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.vault-type-tab {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-stone);
+  background: var(--vault-surface);
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition:
+    color var(--vault-transition),
+    border-color var(--vault-transition),
+    background var(--vault-transition);
+}
+
+.vault-export-btn {
+  padding: 0.28rem 0.55rem !important;
+  font-size: 0.68rem !important;
+  font-weight: 600;
+  line-height: 1.2;
+  min-height: 0;
 }
 
 .vault-view-toggle {
