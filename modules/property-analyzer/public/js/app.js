@@ -1969,6 +1969,22 @@ R.bootstrapApp = async function bootstrapApp() {
       /* ignore */
     }
   }
+  // ?resync=1 clears stale browser IndexedDB/localStorage that can show "all scanned"
+  // while the server still has a forceRescan queue (Needs Review dump).
+  try {
+    const resync = new URLSearchParams(location.search).get('resync');
+    if (resync === '1' || resync === 'true') {
+      if (typeof clearBrowserSessionCache === 'function') {
+        await clearBrowserSessionCache();
+      }
+      const url = new URL(location.href);
+      url.searchParams.delete('resync');
+      history.replaceState({}, '', url.pathname + url.search + url.hash);
+      log('Cleared browser session cache — loading queue from server…', 'success');
+    }
+  } catch (_) {
+    /* ignore */
+  }
   const primed = primeSessionFromLocalStorage();
   if (primed) {
     mainWorkspace?.classList.add('visible');

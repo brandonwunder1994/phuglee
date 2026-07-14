@@ -97,17 +97,20 @@
 
       // Single display pending:
       // - Mid-scan: remaining on THIS list = batchTotal - batchDone
-      // - Partial hydration: trust server pending
+      // - Server pending wins when set (forceRescan / requeue) — never hide behind stale browser KPIs
       // - Otherwise: local countPendingScanLeads (same as Start Scan)
       let pendingUnscanned = 0;
+      const localPending = hasRecords && typeof countPendingScanLeads === 'function'
+        ? countPendingScanLeads(state.records, state.results)
+        : Math.max(0, Number(state._pendingUnscanned) || 0);
       if (state.running && batchTotal > 0) {
         pendingUnscanned = Math.max(0, batchTotal - batchDone);
+      } else if (Number.isFinite(serverPending) && serverPending > 0) {
+        pendingUnscanned = Math.max(serverPending, localPending);
       } else if (resultsPartial && Number.isFinite(serverPending)) {
         pendingUnscanned = Math.max(0, serverPending);
-      } else if (hasRecords && typeof countPendingScanLeads === 'function') {
-        pendingUnscanned = countPendingScanLeads(state.records, state.results);
-      } else if (!hasRecords && Number.isFinite(serverPending) && serverPending > 0) {
-        pendingUnscanned = serverPending;
+      } else if (hasRecords) {
+        pendingUnscanned = localPending;
       } else {
         pendingUnscanned = Math.max(0, Number(state._pendingUnscanned) || 0);
       }

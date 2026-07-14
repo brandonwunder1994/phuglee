@@ -2048,6 +2048,7 @@ R.reviewAdvancesSinceSave = 0;
     get flushSaveSession() { return R.flushSaveSession; },
     get clearSession() { return R.clearSession; },
     get primeSessionFromLocalStorage() { return R.primeSessionFromLocalStorage; },
+    get clearBrowserSessionCache() { return R.clearBrowserSessionCache; },
     get setSessionRestoreBanner() { return R.setSessionRestoreBanner; },
     get updateSessionSaveStatus() { return R.updateSessionSaveStatus; },
     get sessionSaveEveryN() { return R.sessionSaveEveryN; },

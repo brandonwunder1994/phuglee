@@ -527,6 +527,26 @@ R.idbGetSession = function idbGetSession() {
   })).catch(() => null);
 }
 
+/** Wipe browser-only session mirrors so the next load trusts the server queue. */
+R.clearBrowserSessionCache = async function clearBrowserSessionCache() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (_) {
+    /* ignore */
+  }
+  try {
+    const db = await openSessionIdb();
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(SESSION_IDB_STORE, 'readwrite');
+      tx.objectStore(SESSION_IDB_STORE).delete(STORAGE_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (_) {
+    /* ignore */
+  }
+}
+
 R.promiseWithTimeout = function promiseWithTimeout(promise, ms, label = 'operation') {
   return Promise.race([
     promise,
