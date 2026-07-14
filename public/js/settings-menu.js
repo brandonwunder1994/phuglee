@@ -87,6 +87,9 @@
       '<div class="shell-settings-section" data-admin-only>' +
         '<div class="shell-settings-section-label">Admin</div>' +
         analyzerItems +
+        '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
+          '<span class="shell-settings-item-icon">◇</span> Under Contract' +
+        '</a>' +
         '<a href="/collect?open=pdf-filler" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">📄</span> PDF Filler' +
         '</a>' +

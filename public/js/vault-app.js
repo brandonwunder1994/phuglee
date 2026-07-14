@@ -790,12 +790,27 @@
       .join('');
   }
 
+  function isVaultAdmin() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function') {
+      return window.PhugleeSettings.isAdmin() === true;
+    }
+    try {
+      return localStorage.getItem('phuglee_session') === 'admin';
+    } catch (_) {
+      return false;
+    }
+  }
+
   function renderActionStrip(l, favorite) {
+    const adminBtn = isVaultAdmin()
+      ? '<button type="button" id="vault-under-contract-btn" class="phuglee-btn phuglee-btn-primary">Move to Under Contract</button>'
+      : '';
     return `<div class="vault-action-strip">
       <a href="${esc(mapsUrl(l))}" class="phuglee-btn phuglee-btn-secondary" target="_blank" rel="noopener noreferrer">Maps</a>
       <a href="${esc(analyzeUrl(l))}" class="phuglee-btn phuglee-btn-ghost" target="_blank" rel="noopener noreferrer">Analyze</a>
       <button type="button" id="vault-copy-addr" class="phuglee-btn phuglee-btn-ghost">Copy address</button>
       <button type="button" id="vault-fav-btn" class="phuglee-btn phuglee-btn-ghost" data-fav="${favorite ? '1' : '0'}">${favorite ? '★ Saved' : '☆ Favorite'}</button>
+      ${adminBtn}
     </div>`;
   }
 
@@ -1195,6 +1210,28 @@
         showToast(data2.favorite ? 'Saved to favorites' : 'Removed from favorites');
       } catch (err) {
         showToast(err.message || 'Could not update favorite');
+      }
+    });
+
+    $('vault-under-contract-btn')?.addEventListener('click', async () => {
+      if (!window.confirm(`Move ${l.address || 'this lead'} to Under Contract and hide it from The Vault?`)) return;
+      const btn = $('vault-under-contract-btn');
+      if (btn) btn.disabled = true;
+      try {
+        await fetchJson('/api/leads/admin/contracts/from-vault', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leadId })
+        });
+        showToast('Moved to Under Contract');
+        state.leads = state.leads.filter((r) => r.leadId !== leadId);
+        state.total = Math.max(0, (state.total || 1) - 1);
+        closeDrawer();
+        renderResults();
+        try { await loadBootstrap(); } catch (_) { /* list already updated */ }
+      } catch (err) {
+        showToast(err.message || 'Could not move lead');
+        if (btn) btn.disabled = false;
       }
     });
 

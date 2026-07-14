@@ -1,0 +1,230 @@
+/* Under Contract — admin proof desk */
+
+.uc-page .uc-main {
+  max-width: 92rem;
+}
+
+.uc-app[hidden],
+#uc-gate[hidden],
+#uc-empty[hidden],
+#uc-table[hidden],
+#uc-ghl-status[hidden] {
+  display: none !important;
+}
+
+.uc-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.uc-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.uc-ghl-status {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  color: var(--vault-muted);
+}
+
+.uc-ghl-status.is-warn {
+  color: #e8a04a;
+}
+
+.uc-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.uc-kpi {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-md, 10px);
+  background: var(--vault-surface);
+}
+
+.uc-kpi--money {
+  border-color: var(--vault-border-strong);
+}
+
+.uc-kpi-label {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--vault-muted);
+  margin-bottom: 0.35rem;
+}
+
+.uc-kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-cream);
+  font-weight: 400;
+}
+
+.uc-board {
+  border: 1px solid var(--vault-border);
+  border-radius: var(--radius-md, 10px);
+  background: var(--vault-surface);
+  padding: 1rem 1rem 0.5rem;
+}
+
+.uc-board-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.uc-board-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--phuglee-cream);
+}
+
+.uc-board-count {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--vault-muted);
+}
+
+.uc-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--vault-muted);
+}
+
+.uc-table-wrap {
+  overflow-x: auto;
+}
+
+.uc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.uc-table th {
+  text-align: left;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--vault-muted);
+  font-weight: 600;
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--vault-border);
+  white-space: nowrap;
+}
+
+.uc-table td {
+  padding: 0.75rem 0.6rem;
+  border-bottom: 1px solid var(--vault-border);
+  vertical-align: top;
+  color: var(--phuglee-cream);
+}
+
+.uc-addr {
+  font-weight: 600;
+  display: block;
+}
+
+.uc-addr-meta {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--vault-muted);
+  margin-top: 0.15rem;
+}
+
+.uc-stage {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(238, 183, 70, 0.12);
+  color: var(--phuglee-gold);
+  white-space: nowrap;
+}
+
+.uc-stage[data-stage="buyer_found"] {
+  background: rgba(90, 170, 220, 0.15);
+  color: #8ec8ef;
+}
+
+.uc-stage[data-stage="closing"] {
+  background: rgba(180, 140, 255, 0.12);
+  color: #c4b0ff;
+}
+
+.uc-stage[data-stage="funded"] {
+  background: rgba(90, 190, 120, 0.15);
+  color: #8fd9a8;
+}
+
+.uc-money {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.uc-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  justify-content: flex-end;
+}
+
+.uc-row-actions .phuglee-btn {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.75rem;
+}
+
+.uc-dialog {
+  border: 1px solid var(--vault-border-strong);
+  border-radius: var(--radius-md, 10px);
+  background: var(--vault-surface-raised, #1a1a1a);
+  color: var(--phuglee-cream);
+  padding: 0;
+  max-width: 26rem;
+  width: calc(100% - 2rem);
+}
+
+.uc-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.uc-edit-form {
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.uc-edit-form h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.uc-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 720px) {
+  .uc-kpi-value {
+    font-size: 1.3rem;
+  }
+}
