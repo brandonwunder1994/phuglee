@@ -1065,6 +1065,14 @@ img.uc-profile-hero {
   background: rgba(0, 0, 0, 0.2);
 }
 
+.uc-convo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
 .uc-convo-head {
   display: flex;
   justify-content: space-between;

@@ -337,7 +337,7 @@
                 </span>
               </button>
               ${d.sellerSmsUnread
-                ? `<button type="button" class="uc-sms-alert" data-action="open-seller-sms" title="Seller replied — open chat" aria-label="Seller replied, open Texts">💬</button>`
+                ? `<button type="button" class="uc-sms-alert" data-action="open-seller-sms" title="${esc(sellerSmsHoverTitle(d))}" aria-label="${esc(sellerSmsHoverTitle(d))}">💬</button>`
                 : ''}
             </div>
             <div class="uc-property-quick">
@@ -501,10 +501,59 @@
   function syncProfileSmsPulse() {
     const pulse = $('uc-sms-pulse');
     if (!pulse) return;
-    const unread = !!(state.profile?.sellerSmsUnread
-      || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId)?.sellerSmsUnread));
+    const deal = state.profile
+      || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId))
+      || null;
+    const unread = !!(deal?.sellerSmsUnread);
     pulse.hidden = !unread;
     pulse.classList.toggle('is-flash', unread);
+    const tip = sellerSmsHoverTitle(deal);
+    pulse.title = tip;
+    pulse.setAttribute('aria-label', tip);
+    syncMarkReadButton(unread);
+  }
+
+  function syncMarkReadButton(unreadExplicit) {
+    const btn = $('uc-sms-mark-read');
+    if (!btn) return;
+    const deal = state.profile
+      || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId))
+      || null;
+    const unread = unreadExplicit != null ? !!unreadExplicit : !!(deal?.sellerSmsUnread);
+    btn.hidden = !unread;
+  }
+
+  function applySellerSmsDealPatch(deal, unreadList) {
+    if (Array.isArray(unreadList)) state.unreadSellerSms = unreadList;
+    if (!deal?.dealId) {
+      syncProfileSmsPulse();
+      return false;
+    }
+    const idx = state.deals.findIndex((d) => d.dealId === deal.dealId);
+    const prevUnread = idx >= 0 ? !!state.deals[idx].sellerSmsUnread : null;
+    if (idx >= 0) {
+      state.deals[idx] = {
+        ...state.deals[idx],
+        ...deal,
+        sellerSmsUnread: deal.sellerSmsUnread,
+        sellerSmsAt: deal.sellerSmsAt ?? state.deals[idx].sellerSmsAt,
+        sellerSmsPreview: deal.sellerSmsPreview ?? state.deals[idx].sellerSmsPreview,
+        sellerSms: deal.sellerSms || state.deals[idx].sellerSms
+      };
+    }
+    if (state.profile?.dealId === deal.dealId) {
+      state.profile = {
+        ...state.profile,
+        ...deal,
+        sellerSmsUnread: deal.sellerSmsUnread,
+        sellerSmsAt: deal.sellerSmsAt ?? state.profile.sellerSmsAt,
+        sellerSmsPreview: deal.sellerSmsPreview ?? state.profile.sellerSmsPreview,
+        sellerSms: deal.sellerSms || state.profile.sellerSms
+      };
+    }
+    const nextUnread = !!deal.sellerSmsUnread;
+    syncProfileSmsPulse();
+    return prevUnread !== nextUnread;
   }
 
   function pulseSellerSmsSection() {
@@ -581,7 +630,22 @@
         : (data.warning || 'SMS numbers resolving…');
     }
     renderMessages();
+    // Opening/polling must NOT clear unread — only Mark as read or a reply does.
+    const boardChanged = applySellerSmsDealPatch(data.deal, data.unreadSellerSms);
+    if (boardChanged) renderTable(state.deals);
     if (!opts.silent) showToast(`Loaded ${state.messages.length} messages`);
+  }
+
+  async function markSellerSmsRead(dealId) {
+    const id = dealId || state.activeDealId;
+    if (!id) return;
+    const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/messages/seen`, {
+      method: 'POST',
+      body: '{}'
+    });
+    const boardChanged = applySellerSmsDealPatch(data.deal, data.unreadSellerSms);
+    if (boardChanged) renderTable(state.deals);
+    showToast('Marked as read');
   }
 
   function renderProfile(deal, contact) {
@@ -638,6 +702,7 @@
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
     $('uc-sms-input').value = '';
     if ($('uc-team-input')) $('uc-team-input').value = '';
+    syncProfileSmsPulse();
   }
 
   function fillPhotoCostForm(deal) {
@@ -1069,6 +1134,10 @@
           $('uc-team-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       }
+      if (opts.scrollToSms) {
+        pulseSellerSmsSection();
+        scrollToSellerSms();
+      }
     } catch (err) {
       showToast(err.message || 'Could not open profile');
     }
@@ -1439,7 +1508,7 @@
     const btn = $('uc-sms-send');
     if (btn) btn.disabled = true;
     try {
-      await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`, {
+      const sent = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`, {
         method: 'POST',
         body: JSON.stringify({
           message: text,
@@ -1449,6 +1518,9 @@
       });
       input.value = '';
       showToast('SMS sent');
+      // Reply clears unread immediately (server marks seen on send).
+      const boardChanged = applySellerSmsDealPatch(sent.deal, sent.unreadSellerSms);
+      if (boardChanged) renderTable(state.deals);
       await loadMessages(dealId, { silent: true });
     } catch (err) {
       showToast(err.message || 'Send failed');
@@ -1530,6 +1602,9 @@
     $('uc-sms-send')?.addEventListener('click', () => { sendSms(); });
     $('uc-sms-refresh')?.addEventListener('click', () => {
       if (state.activeDealId) loadMessages(state.activeDealId).catch((e) => showToast(e.message));
+    });
+    $('uc-sms-mark-read')?.addEventListener('click', () => {
+      markSellerSmsRead().catch((e) => showToast(e.message || 'Could not mark read'));
     });
     $('uc-sms-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {

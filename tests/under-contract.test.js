@@ -261,6 +261,27 @@ test('sellerSms unread + mark seen + find latest inbound', () => {
   assert.equal(inbound.id, 'b');
 });
 
+test('sellerSms stays unread until markSellerSmsSeen (open/poll must not auto-clear)', () => {
+  const deal = contracts.upsertDeal({
+    address: '101 Stay Unread Ave',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'under_contract',
+    ghlContactId: 'contact_stay_unread'
+  });
+  contracts.recordSellerSmsFromMessages(deal.dealId, [
+    { id: 'stay-in1', body: 'Call me back', direction: 'inbound', dateAdded: '2026-07-14T11:00:00.000Z' }
+  ]);
+  assert.equal(contracts.isSellerSmsUnreadForUser(contracts.getDeal(deal.dealId), 'admin'), true);
+  // Re-recording the same inbound (as GET /messages does) must leave unread intact.
+  contracts.recordSellerSmsFromMessages(deal.dealId, [
+    { id: 'stay-in1', body: 'Call me back', direction: 'inbound', dateAdded: '2026-07-14T11:00:00.000Z' }
+  ]);
+  assert.equal(contracts.isSellerSmsUnreadForUser(contracts.getDeal(deal.dealId), 'admin'), true);
+  contracts.markSellerSmsSeen(deal.dealId, 'admin');
+  assert.equal(contracts.isSellerSmsUnreadForUser(contracts.getDeal(deal.dealId), 'admin'), false);
+});
+
 test('team messages + unread list for other user', () => {
   const deal = contracts.upsertDeal({
     address: '910 Delaware St',

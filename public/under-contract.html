@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=25">
+  <link rel="stylesheet" href="/css/under-contract.css?v=26">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -340,13 +340,16 @@
           <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
         </div>
       </section>
-      <section class="uc-convo" aria-label="SMS conversation">
+      <section id="uc-convo-section" class="uc-convo" aria-label="SMS conversation">
         <div class="uc-convo-head">
           <div>
-            <h3>Texts</h3>
+            <h3>Texts <button type="button" id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text">💬</button></h3>
             <p id="uc-convo-meta" class="uc-convo-meta"></p>
           </div>
-          <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
+          <div class="uc-convo-actions">
+            <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost" hidden>Mark as read</button>
+            <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
+          </div>
         </div>
         <div id="uc-convo-thread" class="uc-convo-thread"></div>
         <div class="uc-convo-compose">
@@ -530,6 +533,6 @@
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=29" defer></script>
+  <script src="/js/under-contract.js?v=30" defer></script>
 </body>
 </html>
