@@ -1240,30 +1240,39 @@ img.uc-profile-hero {
 }
 
 .uc-react-trigger:hover,
-.uc-react-menu:focus-within .uc-react-trigger,
-.uc-react-menu:hover .uc-react-trigger {
+.uc-react-menu.is-open .uc-react-trigger,
+.uc-react-menu:focus-within .uc-react-trigger {
   color: var(--phuglee-gold, #eeb746);
   opacity: 1;
 }
 
+/* Opens on click (.is-open) — stays up while you pick. No hover-only open (dead-gap bug). */
 .uc-react-picker {
   position: absolute;
   left: 0;
-  bottom: calc(100% + 0.35rem);
-  z-index: 8;
+  bottom: calc(100% + 0.2rem);
+  z-index: 20;
   display: none;
   flex-wrap: nowrap;
   gap: 0.2rem;
-  padding: 0.35rem;
+  padding: 0.4rem 0.45rem;
   border: 1px solid rgba(238, 183, 70, 0.28);
   border-radius: 999px;
-  background: rgba(20, 18, 14, 0.96);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  background: rgba(20, 18, 14, 0.98);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   white-space: nowrap;
 }
 
-.uc-react-menu:hover .uc-react-picker,
-.uc-react-menu:focus-within .uc-react-picker,
+/* Invisible bridge so the pointer never “falls through” between React and the tray */
+.uc-react-picker::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 0.55rem;
+}
+
 .uc-react-menu.is-open .uc-react-picker {
   display: flex;
 }

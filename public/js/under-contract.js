@@ -757,7 +757,7 @@
         <div class="uc-react-row">
           ${appliedHtml ? `<div class="uc-react-applied" role="group" aria-label="Current reactions">${appliedHtml}</div>` : ''}
           <div class="uc-react-menu">
-            <button type="button" class="uc-react-trigger" aria-haspopup="true" aria-expanded="false">React</button>
+            <button type="button" class="uc-react-trigger" aria-haspopup="true" aria-expanded="false" title="Click to react">React</button>
             <div class="uc-react-picker" role="group" aria-label="Add reaction">${pickerHtml}</div>
           </div>
         </div>
@@ -1554,24 +1554,44 @@
       const reactTrigger = ev.target.closest('.uc-react-trigger');
       if (reactTrigger) {
         ev.preventDefault();
+        ev.stopPropagation();
         const menu = reactTrigger.closest('.uc-react-menu');
         if (!menu) return;
-        const open = menu.classList.toggle('is-open');
-        reactTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const open = !menu.classList.contains('is-open');
         document.querySelectorAll('.uc-react-menu.is-open').forEach((el) => {
-          if (el !== menu) {
-            el.classList.remove('is-open');
-            el.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
-          }
+          el.classList.remove('is-open');
+          el.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
         });
+        if (open) {
+          menu.classList.add('is-open');
+          reactTrigger.setAttribute('aria-expanded', 'true');
+        }
         return;
       }
       const btn = ev.target.closest('[data-action="team-react"]');
       if (!btn) return;
       ev.preventDefault();
+      ev.stopPropagation();
       toggleTeamReaction(btn.getAttribute('data-msg-id'), btn.getAttribute('data-emoji'));
-      btn.closest('.uc-react-menu')?.classList.remove('is-open');
-      btn.closest('.uc-react-menu')?.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
+      const menu = btn.closest('.uc-react-menu');
+      menu?.classList.remove('is-open');
+      menu?.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
+    });
+
+    document.addEventListener('click', (ev) => {
+      if (ev.target.closest('.uc-react-menu')) return;
+      document.querySelectorAll('.uc-react-menu.is-open').forEach((el) => {
+        el.classList.remove('is-open');
+        el.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Escape') return;
+      document.querySelectorAll('.uc-react-menu.is-open').forEach((el) => {
+        el.classList.remove('is-open');
+        el.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
+      });
     });
     $('uc-team-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
