@@ -597,13 +597,74 @@
     $('uc-jv-dialog').showModal();
   }
 
-  function openAmendment(deal) {
-    $('uc-amendment-deal-id').value = deal.dealId;
-    $('uc-amendment-title').textContent = deal.address ? `Amendment — ${deal.address}` : 'Send Amendment';
+  function amendmentPartyDefaults(deal, contact, party) {
+    const key = party === 'end_buyer' ? 'end_buyer' : 'seller';
+    const fromApi = deal?.amendmentDefaults?.[key];
+    if (fromApi && (fromApi.counterpartyName || fromApi.counterpartyEmail || fromApi.originalAgreementDate)) {
+      return {
+        originalAgreementDate: fromApi.originalAgreementDate || '',
+        name: fromApi.counterpartyName || '',
+        email: fromApi.counterpartyEmail || ''
+      };
+    }
+    if (key === 'end_buyer') {
+      const ba = deal?.buyerAssignment || {};
+      return {
+        originalAgreementDate: deal?.originalAgreementDate || contact?.contractSignedDate || '',
+        name: ba.buyerEntity || ba.buyerContactName || deal?.cashBuyerName || contact?.cashBuyerName || '',
+        email: ba.buyerEmail || ''
+      };
+    }
+    return {
+      originalAgreementDate: deal?.originalAgreementDate || contact?.contractSignedDate || '',
+      name: deal?.ownerName || deal?.sellerNames || contact?.sellersName || contact?.name || '',
+      email: deal?.ownerEmail || deal?.email || contact?.email || ''
+    };
+  }
+
+  function applyAmendmentPartyFields() {
+    const deal = state._amendmentDeal;
+    const contact = state._amendmentContact;
+    if (!deal) return;
+    const party = $('uc-amendment-party')?.value || 'seller';
+    const defs = amendmentPartyDefaults(deal, contact, party);
+    const isBuyer = party === 'end_buyer';
+    if ($('uc-amendment-name-label')) {
+      $('uc-amendment-name-label').textContent = isBuyer ? 'End buyer name' : 'Seller name';
+    }
+    if ($('uc-amendment-email-label')) {
+      $('uc-amendment-email-label').textContent = isBuyer ? 'End buyer email' : 'Seller email';
+    }
+    $('uc-amendment-orig-date').value = defs.originalAgreementDate || '';
+    $('uc-amendment-seller-name').value = defs.name || '';
+    $('uc-amendment-seller-email').value = defs.email || '';
+    const hint = $('uc-amendment-orig-hint');
+    if (hint) {
+      hint.textContent = defs.originalAgreementDate
+        ? 'Auto-filled from GHL contract signed date / deal file'
+        : 'No signed date on file — enter the original PSA date';
+    }
+  }
+
+  async function openAmendment(deal) {
+    let full = deal;
+    let contact = (state.activeDealId === deal.dealId) ? state.contact : null;
+    if (state.activeDealId === deal.dealId && state.profile) {
+      full = state.profile;
+    } else {
+      try {
+        const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}`);
+        full = data.deal || deal;
+        contact = data.contact || null;
+      } catch (_) { /* use row data */ }
+    }
+    state._amendmentDeal = full;
+    state._amendmentContact = contact;
+    $('uc-amendment-deal-id').value = full.dealId;
+    $('uc-amendment-title').textContent = full.address ? `Amendment — ${full.address}` : 'Send Amendment';
     $('uc-amendment-terms').value = '';
-    $('uc-amendment-orig-date').value = deal.originalAgreementDate || deal.agreementDate || '';
-    $('uc-amendment-seller-name').value = deal.ownerName || deal.sellerNames || '';
-    $('uc-amendment-seller-email').value = deal.ownerEmail || deal.email || '';
+    if ($('uc-amendment-party')) $('uc-amendment-party').value = 'seller';
+    applyAmendmentPartyFields();
     $('uc-amendment-dialog').showModal();
   }
 
@@ -668,15 +729,18 @@
   async function submitAmendment(ev) {
     ev.preventDefault();
     const id = $('uc-amendment-deal-id').value;
+    const partyType = $('uc-amendment-party')?.value || 'seller';
+    const name = $('uc-amendment-seller-name').value.trim();
+    const email = $('uc-amendment-seller-email').value.trim();
     const body = {
+      partyType,
       amendmentTerms: $('uc-amendment-terms').value.trim(),
       originalAgreementDate: $('uc-amendment-orig-date').value.trim(),
-      sellerName: $('uc-amendment-seller-name').value.trim(),
-      sellerEmail: $('uc-amendment-seller-email').value.trim(),
-      sellers: [{
-        name: $('uc-amendment-seller-name').value.trim(),
-        email: $('uc-amendment-seller-email').value.trim()
-      }]
+      sellerName: name,
+      sellerEmail: email,
+      counterpartyName: name,
+      counterpartyEmail: email,
+      sellers: [{ name, email }]
     };
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/send-amendment`, {
@@ -864,6 +928,7 @@
     $('uc-buyer-form')?.addEventListener('submit', submitBuyerFound);
     $('uc-jv-form')?.addEventListener('submit', submitSendJv);
     $('uc-amendment-form')?.addEventListener('submit', submitAmendment);
+    $('uc-amendment-party')?.addEventListener('change', applyAmendmentPartyFields);
     $('uc-buyer-cancel')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
     $('uc-buyer-close')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
     $('uc-jv-cancel')?.addEventListener('click', () => $('uc-jv-dialog')?.close());

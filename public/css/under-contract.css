@@ -803,6 +803,13 @@ img.uc-profile-hero {
   color: var(--phuglee-stone);
 }
 
+.uc-field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  color: var(--phuglee-stone);
+}
+
 .uc-docs-head {
   display: flex;
   align-items: flex-start;
