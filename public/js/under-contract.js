@@ -31,7 +31,6 @@
     contact: null,
     messages: [],
     photographerMessages: [],
-    smsTab: 'seller',
     teamMessages: [],
     unreadTeam: [],
     unreadSellerSms: [],
@@ -41,7 +40,11 @@
     msgPollTimer: null,
     goalTickTimer: null,
     deepLinkHandled: false,
-    lastInboundToastId: null
+    lastInboundToastId: null,
+    mediaLightbox: {
+      items: [],
+      index: 0
+    }
   };
 
   function teamUserKey() {
@@ -196,19 +199,97 @@
   }
 
   function openPhotoLightbox(url, alt) {
+    if (!url) return;
+    state.mediaLightbox = {
+      items: [{ src: url, alt: alt || 'Property photo', kind: 'image' }],
+      index: 0
+    };
+    showLightboxAt(0);
+  }
+
+  function openMediaLightbox(mediaList, startId) {
+    const list = Array.isArray(mediaList) ? mediaList : [];
+    const items = list
+      .filter((m) => m && (m.viewUrl || m.downloadUrl))
+      .map((m) => ({
+        id: m.id,
+        src: m.viewUrl || m.downloadUrl,
+        alt: m.aiLabel?.room
+          ? `${m.aiLabel.room}${m.name ? ' · ' + m.name : ''}`
+          : (m.name || 'Media'),
+        kind: (m.kind === 'video' || isVideoUrl(m.viewUrl || m.name, m.mimeType)) ? 'video' : 'image'
+      }));
+    if (!items.length) return;
+    let index = items.findIndex((m) => m.id === startId);
+    if (index < 0) index = 0;
+    state.mediaLightbox = { items, index };
+    showLightboxAt(index);
+  }
+
+  function showLightboxAt(index) {
     const box = $('uc-lightbox');
     const img = $('uc-lightbox-img');
-    if (!box || !img || !url) return;
-    img.src = url;
-    img.alt = alt || 'Property photo';
+    const video = $('uc-lightbox-video');
+    const caption = $('uc-lightbox-caption');
+    const prev = $('uc-lightbox-prev');
+    const next = $('uc-lightbox-next');
+    const items = state.mediaLightbox?.items || [];
+    if (!box || !items.length) return;
+    const i = ((index % items.length) + items.length) % items.length;
+    state.mediaLightbox.index = i;
+    const item = items[i];
+    if (img) {
+      if (item.kind === 'video') {
+        img.hidden = true;
+        img.removeAttribute('src');
+      } else {
+        img.hidden = false;
+        img.src = item.src;
+        img.alt = item.alt || 'Property photo';
+      }
+    }
+    if (video) {
+      if (item.kind === 'video') {
+        video.hidden = false;
+        video.src = item.src;
+      } else {
+        video.hidden = true;
+        video.pause?.();
+        video.removeAttribute('src');
+      }
+    }
+    if (caption) {
+      caption.textContent = items.length > 1
+        ? `${i + 1} / ${items.length} · ${item.alt || ''}`
+        : (item.alt || '');
+    }
+    const multi = items.length > 1;
+    if (prev) prev.hidden = !multi;
+    if (next) next.hidden = !multi;
     box.hidden = false;
+  }
+
+  function stepLightbox(delta) {
+    const items = state.mediaLightbox?.items || [];
+    if (items.length < 2) return;
+    showLightboxAt((state.mediaLightbox.index || 0) + delta);
   }
 
   function closePhotoLightbox() {
     const box = $('uc-lightbox');
     const img = $('uc-lightbox-img');
+    const video = $('uc-lightbox-video');
     if (box) box.hidden = true;
-    if (img) img.removeAttribute('src');
+    if (img) {
+      img.hidden = true;
+      img.removeAttribute('src');
+    }
+    if (video) {
+      video.hidden = true;
+      try { video.pause(); } catch (_) { /* ignore */ }
+      video.removeAttribute('src');
+    }
+    state.mediaLightbox = { items: [], index: 0 };
   }
 
   function renderKpis(totals) {
@@ -824,7 +905,7 @@
       const srcChip = m.uploadSource && m.uploadSource !== 'seller'
         ? `<span class="uc-media-src">${esc(m.uploadSource)}</span>`
         : '';
-      return `<div class="uc-media-card" data-media-id="${esc(m.id)}">
+      return `<div class="uc-media-card" data-media-id="${esc(m.id)}" data-media-open="1" title="Click to enlarge">
         ${preview}
         <div class="uc-media-card-meta">${srcChip}${label}</div>
         <div class="uc-media-card-actions">
@@ -1000,6 +1081,8 @@
       });
       if (data.deal) state.profile = { ...state.profile, ...data.deal };
       renderPhotographerSection(state.profile);
+      syncPhotoConvoMeta(state.profile);
+      loadPhotographerMessages(dealId);
       showToast(data.introSmsSentAt ? 'Scheduled + intro SMS sent' : (data.ghlWarning || 'Scheduled'));
       if (data.ghlWarning && data.introSmsSentAt) showToast(data.ghlWarning);
     } catch (err) {
@@ -1117,25 +1200,14 @@
     setTimeout(() => refreshProfileScan(), 3000);
   }
 
-  function setSmsTab(tab) {
-    state.smsTab = tab === 'photographer' ? 'photographer' : 'seller';
-    document.querySelectorAll('.uc-sms-tab').forEach((btn) => {
-      const on = btn.getAttribute('data-sms-tab') === state.smsTab;
-      btn.classList.toggle('is-active', on);
-      btn.setAttribute('aria-selected', on ? 'true' : 'false');
-    });
-    const sellerThread = $('uc-convo-thread');
-    const photoThread = $('uc-photo-thread');
-    const input = $('uc-sms-input');
-    if (state.smsTab === 'photographer') {
-      if (sellerThread) sellerThread.hidden = true;
-      if (photoThread) photoThread.hidden = false;
-      if (input) input.placeholder = 'Text the photographer…';
-      renderPhotographerMessages();
+  function syncPhotoConvoMeta(deal) {
+    const meta = $('uc-photo-convo-meta');
+    const sched = deal?.photographerSchedule;
+    if (!meta) return;
+    if (sched?.photographerName) {
+      meta.textContent = `Texting ${sched.photographerName}${sched.photographerPhone ? ' · ' + sched.photographerPhone : ''} — separate from seller SMS`;
     } else {
-      if (sellerThread) sellerThread.hidden = false;
-      if (photoThread) photoThread.hidden = true;
-      if (input) input.placeholder = 'Text the seller…';
+      meta.textContent = 'Separate thread — schedule a photographer first to enable SMS';
     }
   }
 
@@ -1164,9 +1236,40 @@
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/photographer/messages`);
       state.photographerMessages = data.messages || [];
-      if (state.smsTab === 'photographer') renderPhotographerMessages();
+      renderPhotographerMessages();
+      if (data.photographerName || data.warning) {
+        const meta = $('uc-photo-convo-meta');
+        if (meta && data.photographerName) {
+          meta.textContent = `Texting ${data.photographerName} — separate from seller SMS`;
+        } else if (meta && data.warning) {
+          meta.textContent = data.warning;
+        }
+      }
     } catch (_) {
       state.photographerMessages = [];
+      renderPhotographerMessages();
+    }
+  }
+
+  async function sendPhotographerSms() {
+    const dealId = state.activeDealId;
+    const input = $('uc-photo-sms-input');
+    const text = (input?.value || '').trim();
+    if (!dealId || !text) return;
+    const btn = $('uc-photo-sms-send');
+    if (btn) btn.disabled = true;
+    try {
+      await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/photographer/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ message: text })
+      });
+      input.value = '';
+      showToast('Photographer SMS sent');
+      await loadPhotographerMessages(dealId);
+    } catch (err) {
+      showToast(err.message || 'Send failed');
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 
@@ -1388,13 +1491,14 @@
     renderDocuments(deal.documents || []);
     renderMedia(deal.sellerMedia || []);
     renderPhotographerSection(deal);
+    syncPhotoConvoMeta(deal);
     renderConditionScan(deal);
-    setSmsTab(state.smsTab || 'seller');
     loadPhotographerMessages(deal.dealId);
     renderDocsPending(deal);
     closeDocViewer();
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
     $('uc-sms-input').value = '';
+    if ($('uc-photo-sms-input')) $('uc-photo-sms-input').value = '';
     if ($('uc-team-input')) $('uc-team-input').value = '';
     syncProfileSmsPulse();
   }
@@ -2214,29 +2318,19 @@
     const btn = $('uc-sms-send');
     if (btn) btn.disabled = true;
     try {
-      if (state.smsTab === 'photographer') {
-        await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/photographer/messages`, {
-          method: 'POST',
-          body: JSON.stringify({ message: text })
-        });
-        input.value = '';
-        showToast('Photographer SMS sent');
-        await loadPhotographerMessages(dealId);
-      } else {
-        const sent = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`, {
-          method: 'POST',
-          body: JSON.stringify({
-            message: text,
-            fromNumber: state.fromNumber,
-            toNumber: state.toNumber
-          })
-        });
-        input.value = '';
-        showToast('SMS sent');
-        const boardChanged = applySellerSmsDealPatch(sent.deal, sent.unreadSellerSms);
-        if (boardChanged) renderTable(state.deals);
-        await loadMessages(dealId, { silent: true, forceScroll: true });
-      }
+      const sent = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({
+          message: text,
+          fromNumber: state.fromNumber,
+          toNumber: state.toNumber
+        })
+      });
+      input.value = '';
+      showToast('SMS sent');
+      const boardChanged = applySellerSmsDealPatch(sent.deal, sent.unreadSellerSms);
+      if (boardChanged) renderTable(state.deals);
+      await loadMessages(dealId, { silent: true, forceScroll: true });
     } catch (err) {
       showToast(err.message || 'Send failed');
     } finally {
@@ -2264,6 +2358,16 @@
     $('uc-photo-sched-save')?.addEventListener('click', () => { schedulePhotographer(); });
     $('uc-photo-copy-url')?.addEventListener('click', () => { copyUploadUrl(); });
     $('uc-photo-copy-url-sms')?.addEventListener('click', () => { copyUploadUrl(); });
+    $('uc-photo-sms-send')?.addEventListener('click', () => { sendPhotographerSms(); });
+    $('uc-photo-sms-refresh')?.addEventListener('click', () => {
+      if (state.activeDealId) loadPhotographerMessages(state.activeDealId);
+    });
+    $('uc-photo-sms-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendPhotographerSms();
+      }
+    });
     $('uc-scan-run')?.addEventListener('click', () => { runRehabScan({ sync: false }); });
     $('uc-scan-apply-opts')?.addEventListener('click', () => { applyScanOptions(); });
     $('uc-scan-lines')?.addEventListener('click', (ev) => {
@@ -2277,9 +2381,6 @@
     $('uc-media-desk-file')?.addEventListener('change', (ev) => {
       deskUploadMedia(ev.target.files).catch((err) => showToast(err.message || 'Upload failed'));
       ev.target.value = '';
-    });
-    document.querySelectorAll('.uc-sms-tab').forEach((btn) => {
-      btn.addEventListener('click', () => setSmsTab(btn.getAttribute('data-sms-tab')));
     });
     $('uc-sms-pulse')?.addEventListener('click', () => {
       scrollToSellerSms();
@@ -2398,12 +2499,19 @@
       ).catch((e) => showToast(e.message || 'Save failed'));
     });
     $('uc-media-grid')?.addEventListener('click', (ev) => {
-      const btn = ev.target.closest('[data-media-action="remove"]');
-      if (!btn) return;
-      const card = btn.closest('[data-media-id]');
-      const id = card?.getAttribute('data-media-id');
-      if (!id) return;
-      removeSavedMedia(id).catch((e) => showToast(e.message || 'Remove failed'));
+      if (ev.target.closest('a[download]') || ev.target.closest('[data-media-action="remove"]')) {
+        const btn = ev.target.closest('[data-media-action="remove"]');
+        if (btn) {
+          const card = btn.closest('[data-media-id]');
+          const id = card?.getAttribute('data-media-id');
+          if (id) removeSavedMedia(id).catch((e) => showToast(e.message || 'Remove failed'));
+        }
+        return;
+      }
+      const card = ev.target.closest('.uc-media-card[data-media-id]');
+      if (!card) return;
+      ev.preventDefault();
+      openMediaLightbox(state.profile?.sellerMedia || [], card.getAttribute('data-media-id'));
     });
     $('uc-sms-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -2424,8 +2532,18 @@
       if (btn.dataset.docAction === 'delete') deleteDocument(docId);
     });
     $('uc-lightbox-close')?.addEventListener('click', closePhotoLightbox);
+    $('uc-lightbox-prev')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      stepLightbox(-1);
+    });
+    $('uc-lightbox-next')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      stepLightbox(1);
+    });
     $('uc-lightbox')?.addEventListener('click', (e) => {
-      if (e.target.id === 'uc-lightbox') closePhotoLightbox();
+      if (e.target.id === 'uc-lightbox' || e.target.classList.contains('uc-lightbox-stage')) {
+        closePhotoLightbox();
+      }
     });
     $('uc-drawer-hero')?.addEventListener('click', (ev) => {
       const zoom = ev.target.closest('[data-action="zoom-photo"]');
@@ -2435,11 +2553,23 @@
       if (url) openPhotoLightbox(url, state.profile.address || 'Property');
     });
     document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Escape') return;
       if ($('uc-lightbox') && !$('uc-lightbox').hidden) {
-        closePhotoLightbox();
-        return;
+        if (e.key === 'Escape') {
+          closePhotoLightbox();
+          return;
+        }
+        if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          stepLightbox(-1);
+          return;
+        }
+        if (e.key === 'ArrowRight') {
+          e.preventDefault();
+          stepLightbox(1);
+          return;
+        }
       }
+      if (e.key !== 'Escape') return;
       if (!state.activeDealId) return;
       if ($('uc-release-dialog')?.open) return;
       if ($('uc-buyer-dialog')?.open) return;
