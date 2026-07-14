@@ -279,22 +279,69 @@
     state.goalTickTimer = setInterval(tickGoalCountdown, 1000);
   }
 
-  function formatSellerSmsWhen(iso) {
-    const t = Date.parse(iso);
-    if (!Number.isFinite(t)) return '';
-    return new Date(t).toLocaleString('en-US', {
-      weekday: 'short',
+  const UC_TZ = 'America/Phoenix';
+
+  function parseSmsMs(value) {
+    if (value == null || value === '') return NaN;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value < 1e12 ? value * 1000 : value;
+    }
+    const raw = String(value).trim();
+    if (!raw) return NaN;
+    if (/^\d{10,13}$/.test(raw)) {
+      const n = Number(raw);
+      return raw.length <= 10 ? n * 1000 : n;
+    }
+    // Bare ISO without offset = UTC (GHL).
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(raw)) {
+      return Date.parse(`${raw}Z`);
+    }
+    return Date.parse(raw);
+  }
+
+  function formatUcWhen(value, { withWeekday = false } = {}) {
+    const ms = parseSmsMs(value);
+    if (!Number.isFinite(ms)) return '';
+    const opts = {
+      timeZone: UC_TZ,
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
       hour: 'numeric',
       minute: '2-digit'
-    });
+    };
+    if (withWeekday) opts.weekday = 'short';
+    const year = new Date(ms).toLocaleString('en-US', { timeZone: UC_TZ, year: 'numeric' });
+    const nowYear = new Date().toLocaleString('en-US', { timeZone: UC_TZ, year: 'numeric' });
+    if (year !== nowYear) opts.year = 'numeric';
+    return new Date(ms).toLocaleString('en-US', opts);
+  }
+
+  function formatUcRelative(value) {
+    const ms = parseSmsMs(value);
+    if (!Number.isFinite(ms)) return '';
+    const diff = Date.now() - ms;
+    if (diff < 0) return 'just now';
+    const sec = Math.floor(diff / 1000);
+    if (sec < 45) return 'just now';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    const day = Math.floor(hr / 24);
+    if (day < 7) return `${day}d ago`;
+    return formatUcWhen(value);
+  }
+
+  function formatSellerSmsWhen(iso) {
+    return formatUcWhen(iso, { withWeekday: true });
   }
 
   function sellerSmsHoverTitle(deal) {
-    const when = formatSellerSmsWhen(deal?.sellerSmsAt || deal?.sellerSms?.lastInboundAt);
-    if (when) return `Last seller text — ${when}`;
+    const iso = deal?.sellerSmsAt || deal?.sellerSms?.lastInboundAt;
+    const abs = formatSellerSmsWhen(iso);
+    const rel = formatUcRelative(iso);
+    if (abs && rel && rel !== abs) return `Last seller text — ${rel} · ${abs} AZ`;
+    if (abs) return `Last seller text — ${abs} AZ`;
     return 'Seller replied — open chat';
   }
 
@@ -609,10 +656,19 @@
     }
     box.innerHTML = state.messages.map((m) => {
       const outbound = m.direction === 'outbound' || m.direction === 'out';
-      const when = m.dateAdded ? new Date(m.dateAdded).toLocaleString() : '';
+      const when = formatUcWhen(m.dateAdded);
+      const body = (m.body || '').trim() || (m.hasAttachments || (m.attachments || []).length
+        ? `📷 ${(m.attachments || []).length || 1} photo${(m.attachments || []).length === 1 ? '' : 's'}`
+        : '');
+      const att = Array.isArray(m.attachments) ? m.attachments.filter(Boolean).slice(0, 8) : [];
+      const attHtml = att.length
+        ? `<div class="uc-bubble-atts">${att.map((url) =>
+          `<a class="uc-bubble-att" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Photo</a>`
+        ).join('')}</div>`
+        : '';
       return `<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
-        <div class="uc-bubble-body">${esc(m.body)}</div>
-        <div class="uc-bubble-meta">${outbound ? 'You' : 'Them'}${when ? ' · ' + esc(when) : ''}</div>
+        <div class="uc-bubble-body">${esc(body || '(no text)')}${attHtml}</div>
+        <div class="uc-bubble-meta">${outbound ? 'You' : 'Them'}${when ? ' · ' + esc(when) + ' AZ' : ''}</div>
       </div>`;
     }).join('');
     box.scrollTop = box.scrollHeight;
@@ -739,7 +795,7 @@
     const me = teamUserKey();
     box.innerHTML = msgs.map((m) => {
       const mine = m.fromUser === me;
-      const when = m.createdAt ? new Date(m.createdAt).toLocaleString() : '';
+      const when = formatUcWhen(m.createdAt);
       const reactions = m.reactions || {};
       const appliedHtml = TEAM_REACTIONS.map((r) => {
         const count = reactionCount(reactions, r.key);

@@ -282,6 +282,61 @@ test('sellerSms stays unread until markSellerSmsSeen (open/poll must not auto-cl
   assert.equal(contracts.isSellerSmsUnreadForUser(contracts.getDeal(deal.dealId), 'admin'), false);
 });
 
+test('GHL timestamp parse + attachment-only MMS counts as latest inbound', () => {
+  const ghl = require('../lib/leads-platform/ghl-client');
+  assert.equal(ghl.parseGhlTimestamp('2026-07-14T16:42:51.303Z'), '2026-07-14T16:42:51.303Z');
+  // Bare ISO (no Z) must be treated as UTC, not local wall clock.
+  assert.equal(ghl.parseGhlTimestamp('2026-07-14T16:42:51.303'), '2026-07-14T16:42:51.303Z');
+  assert.equal(ghl.parseGhlTimestamp(1784047442949), '2026-07-14T16:44:02.949Z');
+  assert.equal(
+    ghl.isHumanSmsMessage({
+      id: 'mms1',
+      direction: 'inbound',
+      messageType: 'TYPE_SMS',
+      body: '',
+      attachments: ['https://example.com/a.jpg'],
+      dateAdded: '2026-07-14T16:44:04.251Z'
+    }),
+    true
+  );
+  assert.equal(
+    ghl.isHumanSmsMessage({
+      id: 'empty',
+      direction: 'inbound',
+      messageType: 'TYPE_SMS',
+      body: '',
+      attachments: []
+    }),
+    false
+  );
+
+  const deal = contracts.upsertDeal({
+    address: '102 Photo MMS Ave',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'under_contract',
+    ghlContactId: 'contact_mms'
+  });
+  const saved = contracts.recordSellerSmsFromMessages(deal.dealId, [
+    {
+      id: 'text1',
+      body: 'Not of the inside',
+      direction: 'inbound',
+      dateAdded: '2026-07-14T16:42:51.303Z'
+    },
+    {
+      id: 'mms1',
+      body: '',
+      direction: 'inbound',
+      dateAdded: '2026-07-14T16:44:04.251Z',
+      attachments: ['https://example.com/a.jpg', 'https://example.com/b.jpg']
+    }
+  ]);
+  assert.equal(saved.sellerSms.lastInboundId, 'mms1');
+  assert.equal(saved.sellerSms.lastInboundAt, '2026-07-14T16:44:04.251Z');
+  assert.match(saved.sellerSms.lastInboundPreview, /photo/i);
+});
+
 test('team messages + unread list for other user', () => {
   const deal = contracts.upsertDeal({
     address: '910 Delaware St',
