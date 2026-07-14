@@ -224,6 +224,43 @@ test('computeDealPayouts deducts TC then photo cost before split', () => {
   assert.equal(out.dispoPay, 4000);
 });
 
+test('sellerSms unread + mark seen + find latest inbound', () => {
+  const deal = contracts.upsertDeal({
+    address: '100 SMS Ave',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'under_contract',
+    ghlContactId: 'contact_sms_test'
+  });
+  const saved = contracts.recordSellerSmsFromMessages(deal.dealId, [
+    { id: 'out1', body: 'Hi seller', direction: 'outbound', dateAdded: '2026-07-14T10:00:00.000Z' },
+    { id: 'in1', body: 'Coming by at 3', direction: 'inbound', dateAdded: '2026-07-14T10:05:00.000Z' }
+  ]);
+  assert.equal(saved.sellerSms.lastInboundId, 'in1');
+  assert.equal(contracts.isSellerSmsUnreadForUser(saved, 'admin'), true);
+  assert.ok(contracts.listUnreadSellerSmsForUser('admin').some((u) => u.dealId === deal.dealId));
+
+  const seen = contracts.markSellerSmsSeen(deal.dealId, 'admin');
+  assert.equal(contracts.isSellerSmsUnreadForUser(seen, 'admin'), false);
+  assert.ok(!contracts.listUnreadSellerSmsForUser('admin').some((u) => u.dealId === deal.dealId));
+
+  const funded = contracts.upsertDeal({
+    address: '200 Funded St',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'funded',
+    ghlContactId: 'contact_funded'
+  });
+  // Funded deals are skipped by peek candidate filter (stage === funded)
+  assert.equal(funded.stage, 'funded');
+
+  const inbound = contracts.findLatestInboundMessage([
+    { id: 'a', direction: 'out', body: 'x' },
+    { id: 'b', direction: 'inbound', body: 'yes' }
+  ]);
+  assert.equal(inbound.id, 'b');
+});
+
 test('team messages + unread list for other user', () => {
   const deal = contracts.upsertDeal({
     address: '910 Delaware St',

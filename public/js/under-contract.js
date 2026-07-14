@@ -18,10 +18,12 @@
     other: 'Other'
   };
   const POLL_MS = 12000;
+  const MSG_POLL_MS = 5000;
 
   const state = {
     deals: [],
     totals: null,
+    goal: null,
     ghlConfigured: false,
     editingId: null,
     activeDealId: null,
@@ -30,10 +32,14 @@
     messages: [],
     teamMessages: [],
     unreadTeam: [],
+    unreadSellerSms: [],
     fromNumber: null,
     toNumber: null,
     pollTimer: null,
-    deepLinkHandled: false
+    msgPollTimer: null,
+    goalTickTimer: null,
+    deepLinkHandled: false,
+    lastInboundToastId: null
   };
 
   function teamUserKey() {
@@ -177,6 +183,106 @@
     if ($('uc-kpi-dispo')) $('uc-kpi-dispo').textContent = money(t.closedDispoPay ?? t.totalDispoPay ?? 0);
   }
 
+  function formatCountdown(msRemaining, expired) {
+    if (expired || msRemaining <= 0) {
+      return { value: '0', label: 'window ended' };
+    }
+    const totalSec = Math.floor(msRemaining / 1000);
+    const days = Math.floor(totalSec / 86400);
+    const hours = Math.floor((totalSec % 86400) / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    if (days >= 2) {
+      return { value: String(days), label: 'days left' };
+    }
+    if (days === 1) {
+      return {
+        value: `1d ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`,
+        label: 'left'
+      };
+    }
+    return {
+      value: `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`,
+      label: 'left today'
+    };
+  }
+
+  function tickGoalCountdown() {
+    const goal = state.goal;
+    if (!goal || !$('uc-goal-countdown')) return;
+    const endsAt = Date.parse(goal.endsAt);
+    const msRemaining = Number.isFinite(endsAt)
+      ? Math.max(0, endsAt - Date.now())
+      : Number(goal.msRemaining) || 0;
+    const expired = Boolean(goal.expired) || msRemaining <= 0;
+    const formatted = formatCountdown(msRemaining, expired);
+    $('uc-goal-countdown').textContent = formatted.value;
+    if ($('uc-goal-countdown-label')) {
+      $('uc-goal-countdown-label').textContent = formatted.label;
+    }
+  }
+
+  function renderGoal(goal) {
+    const panel = $('uc-goal');
+    if (!panel) return;
+    const g = goal || {};
+    state.goal = g;
+    const current = Number(g.currentCount) || 0;
+    const target = Number(g.targetCount) || 10;
+    const pct = Number.isFinite(Number(g.percentToGoal))
+      ? Math.max(0, Math.min(100, Number(g.percentToGoal)))
+      : Math.min(100, Math.round((current / Math.max(1, target)) * 100));
+    const remaining = Number.isFinite(Number(g.remainingToGoal))
+      ? Math.max(0, Number(g.remainingToGoal))
+      : Math.max(0, target - current);
+    const met = Boolean(g.met) || current >= target;
+
+    if ($('uc-goal-current')) $('uc-goal-current').textContent = String(current);
+    if ($('uc-goal-target')) $('uc-goal-target').textContent = String(target);
+    if ($('uc-goal-pct')) {
+      $('uc-goal-pct').textContent = met ? 'Goal hit — keep going' : `${pct}% to goal`;
+    }
+    if ($('uc-goal-remaining')) {
+      $('uc-goal-remaining').textContent = met
+        ? `${current} funded this window`
+        : `${remaining} to go`;
+    }
+    const fill = $('uc-goal-bar-fill');
+    const bar = $('uc-goal-bar');
+    if (fill) fill.style.width = `${pct}%`;
+    if (bar) {
+      bar.setAttribute('aria-valuenow', String(pct));
+      bar.setAttribute('aria-valuetext', `${current} of ${target} funded (${pct}%)`);
+    }
+    panel.classList.toggle('is-met', met);
+
+    const restartBtn = $('uc-goal-restart');
+    if (restartBtn) restartBtn.hidden = !isAdmin();
+
+    tickGoalCountdown();
+    if (state.goalTickTimer) clearInterval(state.goalTickTimer);
+    state.goalTickTimer = setInterval(tickGoalCountdown, 1000);
+  }
+
+  async function restartGoal() {
+    if (!isAdmin()) return;
+    if (!window.confirm(
+      'Restart the 60-day funded goal clock from today? Progress for this window resets to deals funded after the new start.'
+    )) {
+      return;
+    }
+    try {
+      const data = await api('/api/leads/admin/contracts/funded-goal/restart', {
+        method: 'POST',
+        body: JSON.stringify({ targetCount: 10, windowDays: 60 })
+      });
+      renderGoal(data.goal || null);
+      showToast('60-day goal restarted');
+    } catch (err) {
+      showToast(err.message || 'Could not restart goal');
+    }
+  }
+
   function renderTable(deals) {
     const tbody = $('uc-tbody');
     const table = $('uc-table');
@@ -215,6 +321,9 @@
                   <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
                 </span>
               </button>
+              ${d.sellerSmsUnread
+                ? `<button type="button" class="uc-sms-alert" data-action="open-seller-sms" title="Seller replied — open chat" aria-label="Seller replied, open Texts">💬</button>`
+                : ''}
             </div>
             <div class="uc-property-quick">
               <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
@@ -299,11 +408,15 @@
     const data = await api('/api/leads/admin/contracts');
     state.deals = data.deals || [];
     state.totals = data.totals || null;
+    state.goal = data.goal || null;
     state.ghlConfigured = !!data.ghlConfigured;
     state.unreadTeam = data.unreadTeam || [];
+    state.unreadSellerSms = data.unreadSellerSms || [];
     renderKpis(state.totals);
+    renderGoal(state.goal);
     renderTable(state.deals);
     renderTeamBanner();
+    syncProfileSmsPulse();
 
     const status = $('uc-ghl-status');
     const syncBtn = $('uc-sync-ghl');
@@ -331,21 +444,69 @@
       clearInterval(state.pollTimer);
       state.pollTimer = null;
     }
+    stopMsgPoll();
+  }
+
+  function stopMsgPoll() {
+    if (state.msgPollTimer) {
+      clearInterval(state.msgPollTimer);
+      state.msgPollTimer = null;
+    }
+  }
+
+  function startMsgPoll() {
+    stopMsgPoll();
+    if (!state.activeDealId) return;
+    state.msgPollTimer = setInterval(() => {
+      if (state.activeDealId) {
+        loadMessages(state.activeDealId, { silent: true }).catch(() => {});
+      }
+    }, MSG_POLL_MS);
   }
 
   function startPoll() {
     stopPoll();
     state.pollTimer = setInterval(() => {
       loadDeals({ silent: true }).catch(() => {});
-      if (state.activeDealId) {
-        loadMessages(state.activeDealId, { silent: true }).catch(() => {});
-        refreshTeamMessagesFromState();
-      }
+      if (state.activeDealId) refreshTeamMessagesFromState();
     }, POLL_MS);
+    startMsgPoll();
   }
 
   function ensureBoardPoll() {
-    if (!state.pollTimer) startPoll();
+    if (!state.pollTimer) {
+      state.pollTimer = setInterval(() => {
+        loadDeals({ silent: true }).catch(() => {});
+      }, POLL_MS);
+    }
+    if (state.activeDealId) startMsgPoll();
+    else stopMsgPoll();
+  }
+
+  function syncProfileSmsPulse() {
+    const pulse = $('uc-sms-pulse');
+    if (!pulse) return;
+    const unread = !!(state.profile?.sellerSmsUnread
+      || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId)?.sellerSmsUnread));
+    pulse.hidden = !unread;
+    pulse.classList.toggle('is-flash', unread);
+  }
+
+  function pulseSellerSmsSection() {
+    const pulse = $('uc-sms-pulse');
+    if (pulse) {
+      pulse.hidden = false;
+      pulse.classList.add('is-flash');
+    }
+    $('uc-convo-section')?.classList.add('uc-convo--alert');
+    setTimeout(() => $('uc-convo-section')?.classList.remove('uc-convo--alert'), 2500);
+  }
+
+  function scrollToSellerSms() {
+    requestAnimationFrame(() => {
+      $('uc-convo-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      $('uc-sms-input')?.focus?.();
+    });
   }
 
   function refreshTeamMessagesFromState() {
@@ -1288,6 +1449,9 @@
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
     $('uc-photo-cost-save')?.addEventListener('click', () => { savePhotoCost(); });
+    $('uc-sms-pulse')?.addEventListener('click', () => {
+      scrollToSellerSms();
+    });
     $('uc-team-send')?.addEventListener('click', () => { sendTeamMessage(); });
     $('uc-team-thread')?.addEventListener('click', (ev) => {
       const btn = ev.target.closest('[data-action="team-react"]');
@@ -1403,6 +1567,12 @@
         return;
       }
       if (action === 'open') openProfile(dealId);
+      if (action === 'open-seller-sms') {
+        ev.preventDefault();
+        ev.stopPropagation();
+        openProfile(dealId, { scrollToSms: true });
+        return;
+      }
       if (action === 'edit') openEdit(deal);
       if (action === 'buyer-found') openBuyerFound(deal);
       if (action === 'send-jv') openSendJv(deal);

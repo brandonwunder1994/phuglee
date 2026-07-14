@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=21">
+  <link rel="stylesheet" href="/css/under-contract.css?v=22">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -51,6 +51,36 @@
       </header>
 
       <p id="uc-ghl-status" class="uc-ghl-status" hidden data-admin-only></p>
+
+      <section class="uc-goal" id="uc-goal" aria-label="60-day funded goal">
+        <div class="uc-goal-inner">
+          <div class="uc-goal-copy">
+            <p class="uc-goal-eyebrow">Next 60 days</p>
+            <h2 class="uc-goal-title">Funded closings goal</h2>
+            <p class="uc-goal-lead">Every deal that hits <strong>Yes</strong> under Funded counts toward 10 closed &amp; funded contracts.</p>
+          </div>
+          <div class="uc-goal-countdown" aria-live="polite">
+            <span class="uc-goal-countdown-value" id="uc-goal-countdown">—</span>
+            <span class="uc-goal-countdown-label" id="uc-goal-countdown-label">days left</span>
+          </div>
+          <div class="uc-goal-scoreboard">
+            <p class="uc-goal-fraction">
+              <strong id="uc-goal-current">0</strong>
+              <span class="uc-goal-of">/</span>
+              <span id="uc-goal-target">10</span>
+            </p>
+            <p class="uc-goal-fraction-label">funded this window</p>
+            <div class="uc-goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="uc-goal-bar">
+              <div class="uc-goal-bar-fill" id="uc-goal-bar-fill"></div>
+            </div>
+            <p class="uc-goal-pct" id="uc-goal-pct">0% to goal</p>
+            <p class="uc-goal-remaining" id="uc-goal-remaining">10 to go</p>
+          </div>
+        </div>
+        <button type="button" class="phuglee-btn phuglee-btn-ghost uc-goal-restart" id="uc-goal-restart" data-admin-only hidden>
+          Restart 60-day clock
+        </button>
+      </section>
 
       <section class="uc-kpi-strip" aria-label="Pipeline and closings">
         <div class="uc-kpi-group">
@@ -515,6 +545,6 @@
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=25" defer></script>
+  <script src="/js/under-contract.js?v=26" defer></script>
 </body>
 </html>
