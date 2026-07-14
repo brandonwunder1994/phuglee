@@ -421,11 +421,62 @@
 
   const IMPORT_NAME_RE = /\.(csv|tsv|txt|xlsx|xls|xlsm|pdf)$/i;
 
+  function collectDroppedFiles(dt) {
+    if (!dt) return [];
+    const out = [];
+    if (dt.items && dt.items.length) {
+      for (let i = 0; i < dt.items.length; i += 1) {
+        const item = dt.items[i];
+        if (item && item.kind === 'file') {
+          const f = item.getAsFile();
+          if (f) out.push(f);
+        }
+      }
+    }
+    if (out.length) return out;
+    return Array.from(dt.files || []);
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || '');
+        const comma = result.indexOf(',');
+        resolve(comma >= 0 ? result.slice(comma + 1) : result);
+      };
+      reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadOneFile(file) {
+    const dataBase64 = await fileToBase64(file);
+    const res = await fetch('/api/admin/operating-costs/ghl-import', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        files: [{ filename: file.name || 'export.csv', dataBase64 }]
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.error || `Import failed (${res.status})`);
+      err.fileResults = data.fileResults || [
+        { ok: false, filename: file.name, error: data.error || `Import failed (${res.status})` }
+      ];
+      err.data = data;
+      throw err;
+    }
+    return data;
+  }
+
   async function uploadFiles(fileList) {
     const resultEl = $('oc-import-result');
     const files = Array.from(fileList || []).slice(0, 5);
     if (!files.length) return;
-    if (fileList.length > 5 && resultEl) {
+    if ((fileList.length || 0) > 5 && resultEl) {
       resultEl.classList.remove('is-ok');
       resultEl.classList.add('is-error');
       resultEl.textContent = 'Only the first 5 files will be imported.';
@@ -433,39 +484,57 @@
     const odd = files.filter((f) => f && f.name && !IMPORT_NAME_RE.test(f.name));
     if (resultEl) {
       resultEl.textContent =
-        `Importing ${files.length} file${files.length === 1 ? '' : 's'}…` +
+        `Importing ${files.length} file${files.length === 1 ? '' : 's'} one-by-one…` +
         (odd.length
           ? ` (including ${odd.map((f) => f.name).join(', ')} — CSV/Excel/PDF preferred)`
           : '');
       resultEl.classList.remove('is-ok', 'is-error');
     }
+
+    const allResults = [];
+    let newCount = 0;
+    let duplicateCount = 0;
+    let lastWatermark = null;
+    let hardError = null;
+
     try {
-      const fd = new FormData();
-      // Keep original names so .csv / .pdf routing stays correct.
-      files.forEach((f) => fd.append('files', f, f.name || 'export.csv'));
-      const res = await fetch('/api/admin/operating-costs/ghl-import', {
-        method: 'POST',
-        credentials: 'same-origin',
-        body: fd
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        renderImportFileResults(data.fileResults);
-        throw new Error(data.error || `Import failed (${res.status})`);
+      for (let i = 0; i < files.length; i += 1) {
+        const file = files[i];
+        if (resultEl) {
+          resultEl.textContent = `Importing ${i + 1}/${files.length}: ${file.name || 'file'}…`;
+        }
+        try {
+          const data = await uploadOneFile(file);
+          const fr = Array.isArray(data.fileResults) ? data.fileResults : [];
+          allResults.push(...fr);
+          newCount += Number(data.newCount) || 0;
+          duplicateCount += Number(data.duplicateCount) || 0;
+          lastWatermark = data.watermark || lastWatermark;
+        } catch (err) {
+          const fr = Array.isArray(err.fileResults) ? err.fileResults : null;
+          if (fr && fr.length) allResults.push(...fr);
+          else {
+            allResults.push({
+              ok: false,
+              filename: file.name || 'file',
+              error: err.message || 'Import failed'
+            });
+          }
+          hardError = hardError || err;
+        }
       }
-      renderImportFileResults(data.fileResults);
+
+      renderImportFileResults(allResults);
+      const okFiles = allResults.filter((f) => f.ok).length;
+      const failFiles = allResults.filter((f) => !f.ok).length;
       if (resultEl) {
-        const results = Array.isArray(data.fileResults) ? data.fileResults : [];
-        const okFiles = results.filter((f) => f.ok).length;
-        const failFiles = results.filter((f) => !f.ok).length;
-        const fileCount = Number(data.fileCount) || results.length || files.length;
         const summary =
-          `${fileCount} file${fileCount === 1 ? '' : 's'} received` +
-          (failFiles ? ` · ${okFiles} ok · ${failFiles} failed` : '') +
-          ` · ${data.newCount} new · ${data.duplicateCount} duplicates skipped` +
-          (data.watermark?.pickUpDate ? ` · pick up from ${data.watermark.pickUpDate}` : '');
-        resultEl.classList.toggle('is-error', failFiles > 0);
-        resultEl.classList.toggle('is-ok', failFiles === 0);
+          `${files.length} file${files.length === 1 ? '' : 's'} sent` +
+          ` · ${okFiles} ok · ${failFiles} failed` +
+          ` · ${newCount} new · ${duplicateCount} duplicates skipped` +
+          (lastWatermark?.pickUpDate ? ` · pick up from ${lastWatermark.pickUpDate}` : '');
+        resultEl.classList.toggle('is-error', failFiles > 0 || !!hardError);
+        resultEl.classList.toggle('is-ok', failFiles === 0 && !hardError);
         resultEl.textContent = summary;
       }
       await refresh();
@@ -501,16 +570,17 @@
         zone.classList.add('is-drag');
       });
     });
-    ['dragleave', 'drop'].forEach((ev) => {
-      zone.addEventListener(ev, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        zone.classList.remove('is-drag');
-      });
+    zone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.remove('is-drag');
     });
     zone.addEventListener('drop', (e) => {
-      const list = e.dataTransfer && e.dataTransfer.files;
-      if (list && list.length) uploadFiles(list);
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.remove('is-drag');
+      const list = collectDroppedFiles(e.dataTransfer);
+      if (list.length) uploadFiles(list);
     });
   }
 
