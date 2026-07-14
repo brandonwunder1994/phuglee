@@ -36,7 +36,7 @@ test('multi-file import detects kinds and same-day new charges', async () => {
   assert.ok(first.watermark.pickUpDate === '2026-07-10');
   assert.match(first.watermark.pickUpHint || '', /2026-07-10/);
   const kinds = first.fileResults.map((f) => f.document?.kind).sort();
-  assert.deepEqual(kinds, ['invoice', 'transactions']);
+  assert.deepEqual(kinds, ['invoice', 'usage']);
 
   const afternoon = [
     'Date,Time,Amount,Description,Category',
@@ -55,7 +55,27 @@ test('multi-file import detects kinds and same-day new charges', async () => {
   const listed = listCharges({ from: '2026-07-01', to: '2026-07-31' });
   assert.equal(listed.charges.length, 5);
   assert.ok(listed.byKind.some((k) => k.kind === 'invoice'));
-  assert.ok(listed.byKind.some((k) => k.kind === 'transactions'));
+  assert.ok(listed.byKind.some((k) => k.kind === 'usage'));
+});
+
+test('parses HighLevel ordinal Activity Date and WALLET_TRANSACTIONS headers', async () => {
+  const { parseDate, parseTime, parseGhlExport } = require('../lib/operating-costs/ghl-export-parse');
+  assert.equal(parseDate('Jul 14th 2026, 01:14:33 PM'), '2026-07-14');
+  assert.equal(parseTime('Jul 14th 2026, 01:14:33 PM'), '13:14:33');
+  assert.equal(parseDate('Jun 27, 2026'), '2026-06-27');
+
+  const csv = [
+    '"Transaction ID","Location Id","Location Name","Transaction Type","Description","Activity Date","Date","Amount"',
+    '"abc123","loc","Wunder","Outbound SMS","Outbound SMS: Ref-1","Jul 14th 2026, 01:14:33 PM","Jul 14th 2026, 01:14:33 PM",0.00747',
+    '"def456","loc","Wunder","Inbound SMS","Inbound SMS: Ref-2","Jul 1st 2026, 08:57:07 AM","Jul 1st 2026, 08:57:07 AM",0.01'
+  ].join('\n');
+
+  const parsed = await parseGhlExport(Buffer.from(csv, 'utf8'), 'WALLET_TRANSACTIONS-COMPANY-1.csv');
+  assert.equal(parsed.document.kind, 'usage');
+  assert.equal(parsed.charges.length, 2);
+  assert.equal(parsed.charges[0].date, '2026-07-14');
+  assert.equal(parsed.charges[0].time, '13:14:33');
+  assert.equal(parsed.charges[0].externalId, 'abc123');
 });
 
 test('PDF text-line scraper finds date and amount rows', () => {

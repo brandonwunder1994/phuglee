@@ -3,6 +3,7 @@
 
   const CAT_LABELS = {
     subscription: 'Subscription / plan',
+    tax: 'Sales tax',
     sms: 'SMS',
     phone: 'Phone / voice',
     email: 'Email',
@@ -13,14 +14,20 @@
   };
 
   const KIND_LABELS = {
+    usage: 'Usage',
+    topup: 'Top-up',
+    tax: 'Tax',
     invoice: 'Invoice',
-    transactions: 'Transaction',
+    transactions: 'Usage',
     unknown: '—'
   };
 
   const state = {
     period: null,
-    snapshot: null
+    snapshot: null,
+    chargeFilter: 'all',
+    chargeRows: [],
+    chargeCats: []
   };
 
   function $(id) {
@@ -157,14 +164,14 @@
     if (!wm || !wm.pickUpDate) {
       dateEl.textContent = 'No GHL charges imported yet';
       hintEl.textContent =
-        'Drop invoices and transaction exports below. We’ll remember the last charge so the next export can restart on that same day — already-seen charges are skipped, new ones are added.';
+        'Drop HighLevel wallet files below: transactions CSV, top-up receipt PDF, and/or sales-tax invoice PDF. Duplicates are skipped by transaction ID — dates are never a hard cutoff.';
       return;
     }
     const when = wm.lastChargeTime ? `${wm.pickUpDate} · ${wm.lastChargeTime}` : wm.pickUpDate;
-    dateEl.textContent = `Last transaction on file: ${when}`;
+    dateEl.textContent = `Latest charge on file: ${when}`;
     hintEl.textContent =
       wm.pickUpHint ||
-      `Next export should include ${wm.pickUpDate} onward. Same-day re-imports only add new charges.`;
+      'Duplicates are skipped by transaction/charge ID. Older-dated rows in a new export still import if they are new.';
   }
 
   function renderWatermark(wm) {
@@ -253,9 +260,59 @@
     return Number.isFinite(n) ? n : null;
   }
 
-  function renderBreakdown(byCategory, charges) {
+  function renderGhlFamilies(family) {
+    const root = $('oc-ghl-families');
+    if (!root) return;
+    const items = [
+      {
+        id: 'usage',
+        title: 'Wallet usage',
+        blurb: 'WALLET_TRANSACTIONS CSV — SMS, calls, email, numbers',
+        bucket: family?.usage
+      },
+      {
+        id: 'tax',
+        title: 'Sales tax',
+        blurb: 'WALLET_SALES_TAX PDF — tax charged to the wallet',
+        bucket: family?.tax
+      },
+      {
+        id: 'topup',
+        title: 'Top-ups (funding)',
+        blurb: 'WALLET_TOP_UP_RECEIPT PDF — money in, not spend',
+        bucket: family?.topup,
+        funding: true
+      }
+    ];
+    root.innerHTML = items
+      .map((item) => {
+        const count = Number(item.bucket?.count) || 0;
+        const total = Number(item.bucket?.totalUsd) || 0;
+        return (
+          `<article class="oc-family-card${item.funding ? ' is-funding' : ''}" data-family="${esc(item.id)}">` +
+          `<h3 class="oc-family-title">${esc(item.title)}</h3>` +
+          `<p class="oc-family-amount">${money(total)}</p>` +
+          `<p class="oc-family-meta">${count} line${count === 1 ? '' : 's'} in this period</p>` +
+          `<p class="oc-family-blurb">${esc(item.blurb)}</p>` +
+          `</article>`
+        );
+      })
+      .join('');
+  }
+
+  function renderBreakdown(byCategory, charges, familyFilter) {
     const cats = $('oc-breakdown-cats');
     const body = $('oc-charges-body');
+    const filter = familyFilter || state.chargeFilter || 'all';
+    let filtered = charges || [];
+    if (filter === 'usage') {
+      filtered = filtered.filter((c) => c.kind === 'usage' || c.kind === 'transactions');
+    } else if (filter === 'topup') {
+      filtered = filtered.filter((c) => c.kind === 'topup');
+    } else if (filter === 'tax') {
+      filtered = filtered.filter((c) => c.kind === 'tax' || c.category === 'tax');
+    }
+
     if (cats) {
       if (!byCategory || !byCategory.length) {
         cats.innerHTML = '';
@@ -273,15 +330,15 @@
       }
     }
     if (!body) return;
-    if (!charges || !charges.length) {
+    if (!filtered.length) {
       body.innerHTML =
-        '<tr><td colspan="5" class="oc-empty">No imported charges for this period.</td></tr>';
+        '<tr><td colspan="5" class="oc-empty">No imported charges for this period / filter. Top-ups often land in a prior month — switch Period if needed.</td></tr>';
       return;
     }
-    const rows = charges
+    const rows = filtered
       .slice()
       .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-      .slice(0, 300);
+      .slice(0, 400);
     body.innerHTML = rows
       .map((c) => {
         const label = c.categoryLabel || CAT_LABELS[c.category] || c.category;
@@ -323,8 +380,14 @@
       const data = await fetchJson(
         `/api/admin/operating-costs/ghl-charges?period=${encodeURIComponent(period)}`
       );
-      renderBreakdown(data.byCategory || [], data.charges || []);
+      state.chargeRows = data.charges || [];
+      state.chargeCats = data.byCategory || [];
+      renderGhlFamilies(data.byFamily || state.snapshot?.ghlFamily);
+      renderBreakdown(state.chargeCats, state.chargeRows, state.chargeFilter);
     } catch (_) {
+      state.chargeRows = [];
+      state.chargeCats = [];
+      renderGhlFamilies(null);
       renderBreakdown([], []);
     }
   }
@@ -353,6 +416,7 @@
       renderPickup(snap.ghlWatermark);
       renderWatermark(snap.ghlWatermark);
       renderTeamBrief(snap.teamBrief);
+      renderGhlFamilies(snap.ghlFamily || snap.teamBrief?.ghlFamily);
       renderRateCard(snap.rateCard);
       await loadCharges();
       setStatus('');
@@ -600,6 +664,15 @@
     $('oc-refresh')?.addEventListener('click', () => refresh());
     period?.addEventListener('change', () => refresh());
     $('oc-rate-form')?.addEventListener('submit', saveRateCard);
+    $('oc-kind-filters')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-filter]');
+      if (!btn) return;
+      state.chargeFilter = btn.getAttribute('data-filter') || 'all';
+      $('oc-kind-filters')
+        ?.querySelectorAll('.oc-kind-filter')
+        .forEach((el) => el.classList.toggle('is-active', el === btn));
+      renderBreakdown(state.chargeCats, state.chargeRows, state.chargeFilter);
+    });
     wireDropzone();
     refresh();
   }

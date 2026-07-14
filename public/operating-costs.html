@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/operating-costs.css?v=10">
+  <link rel="stylesheet" href="/css/operating-costs.css?v=11">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -119,26 +119,42 @@
       <section class="oc-import" aria-labelledby="oc-import-heading">
         <div class="oc-section-head">
           <div>
-            <h2 class="oc-section-title" id="oc-import-heading">GHL invoices &amp; transactions</h2>
-            <p class="oc-section-lead">Drop up to 5 files at once — CSV first, plus Excel or PDF. We detect invoices vs transaction ledgers, categorize spend, and only add charges we have not seen before — even on the same calendar day.</p>
+            <h2 class="oc-section-title" id="oc-import-heading">GHL wallet imports</h2>
+            <p class="oc-section-lead">Drop up to 5 HighLevel files. We split them into usage (CSV), sales tax (PDF), and top-ups (PDF). Duplicates are skipped by transaction ID — not by a date cutoff.</p>
           </div>
           <p id="oc-watermark" class="oc-watermark"></p>
         </div>
         <div id="oc-dropzone" class="oc-dropzone" tabindex="0" role="button" aria-label="Upload GHL CSV, Excel, or PDF cost exports">
           <input type="file" id="oc-file" accept=".csv,.tsv,.txt,.xlsx,.xls,.xlsm,.pdf" multiple hidden />
           <p class="oc-dropzone-title">Drag &amp; drop up to 5 files</p>
-          <p class="oc-dropzone-sub">CSV · Excel · PDF — invoices and transaction exports</p>
+          <p class="oc-dropzone-sub">WALLET_TRANSACTIONS · WALLET_SALES_TAX · WALLET_TOP_UP_RECEIPT</p>
         </div>
         <p id="oc-import-result" class="oc-import-result" role="status" aria-live="polite"></p>
         <div id="oc-import-files" class="oc-import-files" hidden></div>
+      </section>
+
+      <section class="oc-ghl-families-wrap" aria-labelledby="oc-ghl-families-heading">
+        <div class="oc-section-head">
+          <div>
+            <h2 class="oc-section-title" id="oc-ghl-families-heading">GHL wallet areas</h2>
+            <p class="oc-section-lead">Three buckets for the selected period. Top-ups are funding (not counted as spend).</p>
+          </div>
+        </div>
+        <div id="oc-ghl-families" class="oc-ghl-families"></div>
       </section>
 
       <section class="oc-breakdown" aria-labelledby="oc-breakdown-heading">
         <div class="oc-section-head">
           <div>
             <h2 class="oc-section-title" id="oc-breakdown-heading">GHL charge log</h2>
-            <p class="oc-section-lead">Every imported line for this month — ready to walk through with the team.</p>
+            <p class="oc-section-lead">Imported lines for this period. Use the filters if you only want usage, tax, or top-ups.</p>
           </div>
+        </div>
+        <div class="oc-kind-filters" id="oc-kind-filters" role="tablist" aria-label="Charge type filter">
+          <button type="button" class="oc-kind-filter is-active" data-filter="all">All</button>
+          <button type="button" class="oc-kind-filter" data-filter="usage">Usage</button>
+          <button type="button" class="oc-kind-filter" data-filter="tax">Tax</button>
+          <button type="button" class="oc-kind-filter" data-filter="topup">Top-ups</button>
         </div>
         <div class="oc-breakdown-cats" id="oc-breakdown-cats"></div>
         <div class="oc-table-wrap">
@@ -203,6 +219,6 @@
   <script src="/js/shell-nav.js?v=distress2"></script>
   <script src="/js/settings-menu.js?v=distress2"></script>
   <script src="/js/command-palette.js?v=distress2"></script>
-  <script src="/js/operating-costs.js?v=10"></script>
+  <script src="/js/operating-costs.js?v=11"></script>
 </body>
 </html>

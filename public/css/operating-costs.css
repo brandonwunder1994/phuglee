@@ -303,6 +303,68 @@
   text-align: center;
 }
 
+.oc-ghl-families {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.oc-family-card {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  padding: 0.85rem 0.95rem;
+  background: var(--surface, #fff);
+}
+
+.oc-family-card.is-funding {
+  background: linear-gradient(160deg, rgba(46, 125, 50, 0.06), transparent 70%);
+}
+
+.oc-family-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.oc-family-amount {
+  margin: 0;
+  font-family: var(--font-display, 'Fraunces', Georgia, serif);
+  font-size: 1.45rem;
+  font-weight: 550;
+}
+
+.oc-family-meta,
+.oc-family-blurb {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted, #8a867c);
+  line-height: 1.35;
+}
+
+.oc-kind-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.85rem;
+}
+
+.oc-kind-filter {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.14));
+  background: transparent;
+  color: inherit;
+  padding: 0.35rem 0.65rem;
+  cursor: pointer;
+}
+
+.oc-kind-filter.is-active {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.28);
+}
+
 .oc-gcp-credit {
   margin: 1.25rem 0 1.75rem;
   border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
