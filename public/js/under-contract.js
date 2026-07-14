@@ -187,15 +187,16 @@
     if (expired || msRemaining <= 0) {
       return { value: '0', label: 'window ended' };
     }
-    const totalSec = Math.floor(msRemaining / 1000);
-    const days = Math.floor(totalSec / 86400);
+    // ceil so a fresh 60-day window shows "60" (not "59" after a few seconds)
+    const daysLeft = Math.max(1, Math.ceil(msRemaining / (24 * 60 * 60 * 1000)));
+    const totalSec = Math.max(0, Math.floor(msRemaining / 1000));
     const hours = Math.floor((totalSec % 86400) / 3600);
     const mins = Math.floor((totalSec % 3600) / 60);
     const secs = totalSec % 60;
-    if (days >= 2) {
-      return { value: String(days), label: 'days left' };
+    if (msRemaining >= 2 * 86400000) {
+      return { value: String(daysLeft), label: 'days left' };
     }
-    if (days === 1) {
+    if (msRemaining >= 86400000) {
       return {
         value: `1d ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`,
         label: 'left'
@@ -205,6 +206,17 @@
       value: `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`,
       label: 'left today'
     };
+  }
+
+  function formatGoalEndDate(iso) {
+    const t = Date.parse(iso);
+    if (!Number.isFinite(t)) return '';
+    return new Date(t).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   }
 
   function tickGoalCountdown() {
@@ -219,6 +231,12 @@
     $('uc-goal-countdown').textContent = formatted.value;
     if ($('uc-goal-countdown-label')) {
       $('uc-goal-countdown-label').textContent = formatted.label;
+    }
+    if ($('uc-goal-ends')) {
+      const endLabel = formatGoalEndDate(goal.endsAt);
+      $('uc-goal-ends').textContent = endLabel
+        ? (expired ? `Ended ${endLabel}` : `Ends ${endLabel}`)
+        : '';
     }
   }
 

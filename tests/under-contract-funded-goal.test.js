@@ -78,6 +78,9 @@ test('computeFundedGoal counts Funded Yes deals in the 60-day window toward 10',
   assert.ok(!goal.fundedDealIds.includes('goal_old'));
   assert.ok(!goal.fundedDealIds.includes('goal_open'));
   assert.equal(goal.percentToGoal, Math.min(100, Math.round((goal.currentCount / 10) * 100)));
-  assert.ok(goal.daysRemaining >= 0 && goal.daysRemaining <= 60);
+  assert.equal(goal.daysRemaining, 60);
+  assert.ok(goal.endsAt);
   assert.ok(goal.msRemaining > 0);
+  const spanMs = Date.parse(goal.endsAt) - Date.parse(goal.startedAt);
+  assert.ok(Math.abs(spanMs - 60 * 24 * 60 * 60 * 1000) < 2000);
 });
