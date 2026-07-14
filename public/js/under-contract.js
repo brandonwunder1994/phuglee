@@ -1716,6 +1716,15 @@
     $('uc-funded-done')?.addEventListener('click', closeFundedView);
     $('uc-rehab-view-close')?.addEventListener('click', closeRehabView);
     $('uc-rehab-view-done')?.addEventListener('click', closeRehabView);
+    $('uc-drawer-edit')?.addEventListener('click', () => {
+      const deal = state.profile
+        || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId));
+      if (!deal) {
+        showToast('Open a property first');
+        return;
+      }
+      openEdit(deal);
+    });
     $('uc-drawer-buyer-found')?.addEventListener('click', () => {
       if (state.profile) openBuyerFound(state.profile);
     });

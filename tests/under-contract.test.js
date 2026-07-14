@@ -310,6 +310,46 @@ test('GHL sync keeps Brad desk fields', async () => {
   assert.equal(after.notes, 'keep me');
 });
 
+test('GHL sync preserves locked SMS contact remap', async () => {
+  const deal = contracts.upsertDeal({
+    dealId: 'ghl_opp_sms_lock',
+    ghlOpportunityId: 'opp_sms_lock',
+    address: '103 Laurel Ave',
+    city: 'Victoria',
+    state: 'TX',
+    stage: 'under_contract',
+    ghlContactId: 'Hl2wGn5xH5AoFyucXjM6',
+    ghlContactLocked: true,
+    phone: '+18322965168',
+    conversationId: 'MQYCgAMYQubw69lhUHhy',
+    ownerName: 'Gina Galloway'
+  });
+  const after = await sync.upsertDealFromOpportunity(
+    {
+      id: 'opp_sms_lock',
+      contactId: 'hVAdAnsoJPYPRI29D9Vy',
+      pipelineStageId: 's1',
+      _stageName: 'Seller Signed',
+      name: '103 Laurel Ave',
+      monetaryValue: 39000
+    },
+    { id: 'pipe', stages: [{ id: 's1', name: 'Seller Signed' }] },
+    {
+      id: 'hVAdAnsoJPYPRI29D9Vy',
+      address1: '103 Laurel Ave',
+      city: 'Victoria',
+      state: 'TX',
+      phone: '+12813563939',
+      name: 'Jerry Walker'
+    }
+  );
+  assert.equal(after.dealId, deal.dealId);
+  assert.equal(after.ghlContactLocked, true);
+  assert.equal(after.ghlContactId, 'Hl2wGn5xH5AoFyucXjM6');
+  assert.equal(after.phone, '+18322965168');
+  assert.equal(after.conversationId, 'MQYCgAMYQubw69lhUHhy');
+});
+
 test('computeDealPayouts deducts TC then photo cost before split', () => {
   const { computeDealPayouts } = require('../lib/leads-platform/payout-settings');
   const settings = { tcFee: 500, acqPercent: 50, dispoPercent: 50 };
