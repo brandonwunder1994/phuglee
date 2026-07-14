@@ -5,7 +5,7 @@ const path = require('path');
 const GEMINI_MODELS = [
   'gemini-2.5-flash-lite',
   'gemini-2.5-flash',
-  'gemini-1.5-flash'
+  'gemini-2.0-flash'
 ];
 const GEMINI_MAX_CONCURRENT = 10;
 
@@ -109,8 +109,12 @@ function shortenGeminiError(status, body) {
   if (status === 503 || /high demand|overloaded|unavailable/i.test(msg)) {
     return 'Gemini is temporarily overloaded (503). Wait and retry — your API key is fine.';
   }
-  if (status === 429 || /quota|rate/i.test(msg)) {
+  // IMPORTANT: do not use bare /rate/ — it matches "generateContent" and mislabels every Gemini error as 429.
+  if (status === 429 || /\brate[\s_-]?limit\b|too many requests|resource_exhausted|quota exceeded|exceeded your current quota/i.test(msg)) {
     return 'Gemini rate limit hit (429). Slow down workers or wait a few minutes.';
+  }
+  if (status === 404 || /not found for API version|is not supported for generateContent|model .* not found/i.test(msg)) {
+    return `Gemini model unavailable (HTTP ${status}): ${msg || 'model not found'}`;
   }
   if (status === 400 && /api key/i.test(msg)) {
     return 'Gemini API key invalid. Paste a new key from aistudio.google.com/apikey (AIza or AQ. format).';
@@ -147,6 +151,11 @@ function createGeminiHelpers(apiStats, usageStore) {
     const st = Number(status) || 0;
     if (ok) {
       apiStats.geminiOk++;
+      // Clear sticky rate-limit banner so /api/status recovers after a good call
+      if (/429|rate limit/i.test(apiStats.lastGeminiError || '')) {
+        apiStats.lastGeminiError = '';
+        apiStats.lastGeminiErrorAt = 0;
+      }
       if (usageStore) usageStore.recordGemini({ ok: true, status: 200 });
       return;
     }
