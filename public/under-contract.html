@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=18">
+  <link rel="stylesheet" href="/css/under-contract.css?v=19">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -395,8 +395,8 @@
         <textarea id="uc-amendment-terms" class="phuglee-textarea" rows="4" required placeholder="e.g. Extend closing 7 days…"></textarea>
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Original agreement date</span>
-        <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="Auto from GHL signed date" required>
+        <span class="vault-field-label">Original agreement date (from PSA)</span>
+        <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="Awaiting PSA signed date…" readonly required tabindex="-1">
         <span id="uc-amendment-orig-hint" class="uc-field-hint"></span>
       </label>
       <label class="vault-field">
@@ -458,6 +458,6 @@
   <script src="/js/settings-menu.js?v=5" defer></script>
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=21" defer></script>
+  <script src="/js/under-contract.js?v=22" defer></script>
 </body>
 </html>

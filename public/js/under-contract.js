@@ -666,13 +666,14 @@
       $('uc-amendment-email-label').textContent = isBuyer ? 'End buyer email' : 'Seller email';
     }
     $('uc-amendment-orig-date').value = defs.originalAgreementDate || '';
+    if ($('uc-amendment-orig-date')) $('uc-amendment-orig-date').readOnly = true;
     $('uc-amendment-seller-name').value = defs.name || '';
     $('uc-amendment-seller-email').value = defs.email || '';
     const hint = $('uc-amendment-orig-hint');
     if (hint) {
       hint.textContent = defs.originalAgreementDate
-        ? 'Auto-filled from GHL contract signed date / deal file'
-        : 'No signed date on file — enter the original PSA date';
+        ? 'Locked to the PSA / GHL contract signed date — not editable'
+        : 'No PSA signed date on file yet — open the deal or Sync from GHL first';
     }
   }
 
@@ -765,7 +766,7 @@
     const body = {
       partyType,
       amendmentTerms: $('uc-amendment-terms').value.trim(),
-      originalAgreementDate: $('uc-amendment-orig-date').value.trim(),
+      // Original agreement date is locked to PSA — server resolves it; do not send edits
       sellerName: name,
       sellerEmail: email,
       counterpartyName: name,
