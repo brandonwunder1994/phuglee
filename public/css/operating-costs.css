@@ -346,6 +346,165 @@
   color: #2f6f3e;
 }
 
+.oc-pickup {
+  margin: 0 0 1.5rem;
+  padding: 0.9rem 1.05rem;
+  border-left: 3px solid var(--text, #1a1916);
+  background: color-mix(in srgb, var(--surface, #fff) 90%, transparent);
+}
+
+.oc-pickup-kicker {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8a867c);
+  margin-bottom: 0.25rem;
+}
+
+.oc-pickup-date {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.oc-pickup-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-muted, #8a867c);
+  max-width: 46rem;
+}
+
+.oc-brief {
+  margin-bottom: 2.25rem;
+}
+
+.oc-brief-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.oc-brief-panel {
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  padding: 0.85rem 1rem 1rem;
+  background: color-mix(in srgb, var(--surface, #fff) 92%, transparent);
+}
+
+.oc-brief-panel-title {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted, #8a867c);
+}
+
+.oc-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.oc-bar-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr) auto;
+  gap: 0.55rem 0.75rem;
+  align-items: center;
+}
+
+.oc-bar-label {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.oc-bar-blurb {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted, #8a867c);
+  margin-top: 0.1rem;
+}
+
+.oc-bar-track {
+  height: 0.45rem;
+  background: color-mix(in srgb, var(--text, #1a1916) 10%, transparent);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.oc-bar-fill {
+  height: 100%;
+  background: var(--text, #1a1916);
+  min-width: 0;
+}
+
+.oc-bar-nums {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.oc-bar-nums span {
+  color: var(--text-muted, #8a867c);
+  font-size: 0.68rem;
+}
+
+.oc-empty-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted, #8a867c);
+}
+
+.oc-import-files {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.oc-import-file {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+  align-items: baseline;
+  font-size: 0.82rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+}
+
+.oc-import-file.is-error {
+  color: #b42318;
+}
+
+.oc-import-file-kind {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #8a867c);
+}
+
+.oc-import,
+.oc-breakdown,
+.oc-ratecard,
+.oc-brief {
+  margin-bottom: 2.25rem;
+}
+
+@media (max-width: 720px) {
+  .oc-bar-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .oc-bar-track {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 640px) {
   .oc-total-meta {
     margin-left: 0;

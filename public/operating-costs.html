@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/operating-costs.css?v=2">
+  <link rel="stylesheet" href="/css/operating-costs.css?v=3">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -36,7 +36,7 @@
         <div>
           <p class="vault-eyebrow">Run the stack</p>
           <h1 class="vault-title vault-title--desk">Operating Costs</h1>
-          <p class="vault-hero-sub">Live Railway · GHL imports · Maps · Gemini · SignNow</p>
+          <p class="vault-hero-sub">Month-by-month spend · Railway · GHL · Maps · Gemini · SignNow</p>
         </div>
         <div class="oc-hero-actions">
           <label class="oc-period-label">
@@ -57,27 +57,57 @@
         </div>
       </section>
 
+      <section class="oc-pickup" id="oc-pickup" aria-label="GHL import pick-up point">
+        <div class="oc-pickup-kicker">GHL pick-up point</div>
+        <p id="oc-pickup-date" class="oc-pickup-date">No imports yet</p>
+        <p id="oc-pickup-hint" class="oc-pickup-hint">Drop invoices and transaction exports below. We’ll remember the last charge so the next export can restart on that same day — already-seen charges are skipped, new ones are added.</p>
+      </section>
+
       <section class="oc-cards" id="oc-cards" aria-label="Services"></section>
+
+      <section class="oc-brief" aria-labelledby="oc-brief-heading">
+        <div class="oc-section-head">
+          <div>
+            <h2 class="oc-section-title" id="oc-brief-heading">Team spend brief</h2>
+            <p class="oc-section-lead">Clear breakdown for meetings — where the money goes this month.</p>
+          </div>
+        </div>
+        <div class="oc-brief-grid">
+          <div class="oc-brief-panel">
+            <h3 class="oc-brief-panel-title">Stack</h3>
+            <div id="oc-stack-bars" class="oc-bars"></div>
+          </div>
+          <div class="oc-brief-panel">
+            <h3 class="oc-brief-panel-title">GHL usage buckets</h3>
+            <div id="oc-ghl-bars" class="oc-bars"></div>
+            <p id="oc-ghl-brief-empty" class="oc-empty-note" hidden>Import GHL invoices / transactions to fill this.</p>
+          </div>
+        </div>
+      </section>
 
       <section class="oc-import" aria-labelledby="oc-import-heading">
         <div class="oc-section-head">
           <div>
-            <h2 class="oc-section-title" id="oc-import-heading">GHL cost export</h2>
-            <p class="oc-section-lead">Drop a HighLevel billing / wallet export (CSV or Excel). We detect date range, categorize charges, and skip anything already imported.</p>
+            <h2 class="oc-section-title" id="oc-import-heading">GHL invoices &amp; transactions</h2>
+            <p class="oc-section-lead">Drop up to 5 CSV/Excel files at once. We detect invoices vs transaction ledgers, categorize spend, and only add charges we have not seen before — even on the same calendar day.</p>
           </div>
           <p id="oc-watermark" class="oc-watermark"></p>
         </div>
-        <div id="oc-dropzone" class="oc-dropzone" tabindex="0" role="button" aria-label="Upload GHL cost export">
-          <input type="file" id="oc-file" accept=".csv,.tsv,.xlsx,.xls,.xlsm,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
-          <p class="oc-dropzone-title">Drag &amp; drop export here</p>
-          <p class="oc-dropzone-sub">or click to choose a file</p>
+        <div id="oc-dropzone" class="oc-dropzone" tabindex="0" role="button" aria-label="Upload GHL cost exports">
+          <input type="file" id="oc-file" accept=".csv,.tsv,.xlsx,.xls,.xlsm,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple hidden />
+          <p class="oc-dropzone-title">Drag &amp; drop up to 5 files</p>
+          <p class="oc-dropzone-sub">Invoices and transaction exports · CSV or Excel</p>
         </div>
         <p id="oc-import-result" class="oc-import-result" role="status" aria-live="polite"></p>
+        <div id="oc-import-files" class="oc-import-files" hidden></div>
       </section>
 
       <section class="oc-breakdown" aria-labelledby="oc-breakdown-heading">
         <div class="oc-section-head">
-          <h2 class="oc-section-title" id="oc-breakdown-heading">GHL breakdown</h2>
+          <div>
+            <h2 class="oc-section-title" id="oc-breakdown-heading">GHL charge log</h2>
+            <p class="oc-section-lead">Every imported line for this month — ready to walk through with the team.</p>
+          </div>
         </div>
         <div class="oc-breakdown-cats" id="oc-breakdown-cats"></div>
         <div class="oc-table-wrap">
@@ -85,13 +115,14 @@
             <thead>
               <tr>
                 <th>Date</th>
+                <th>Type</th>
                 <th>Category</th>
                 <th>Description</th>
                 <th class="oc-num">Amount</th>
               </tr>
             </thead>
             <tbody id="oc-charges-body">
-              <tr><td colspan="4" class="oc-empty">No imported charges yet.</td></tr>
+              <tr><td colspan="5" class="oc-empty">No imported charges yet.</td></tr>
             </tbody>
           </table>
         </div>
@@ -133,6 +164,6 @@
   <script src="/js/shell-nav.js?v=distress2"></script>
   <script src="/js/settings-menu.js?v=distress2"></script>
   <script src="/js/command-palette.js?v=distress2"></script>
-  <script src="/js/operating-costs.js?v=2"></script>
+  <script src="/js/operating-costs.js?v=3"></script>
 </body>
 </html>

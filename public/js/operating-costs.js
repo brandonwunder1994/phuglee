@@ -2,13 +2,20 @@
   'use strict';
 
   const CAT_LABELS = {
-    subscription: 'Subscription',
+    subscription: 'Subscription / plan',
     sms: 'SMS',
-    phone: 'Phone',
+    phone: 'Phone / voice',
     email: 'Email',
     ai: 'AI',
-    numbers: 'Numbers',
+    numbers: 'Phone numbers',
+    wallet: 'Wallet / top-up',
     other: 'Other'
+  };
+
+  const KIND_LABELS = {
+    invoice: 'Invoice',
+    transactions: 'Transaction',
+    unknown: '—'
   };
 
   const state = {
@@ -92,6 +99,23 @@
       .join('');
   }
 
+  function renderPickup(wm) {
+    const dateEl = $('oc-pickup-date');
+    const hintEl = $('oc-pickup-hint');
+    if (!dateEl || !hintEl) return;
+    if (!wm || !wm.pickUpDate) {
+      dateEl.textContent = 'No GHL charges imported yet';
+      hintEl.textContent =
+        'Drop invoices and transaction exports below. We’ll remember the last charge so the next export can restart on that same day — already-seen charges are skipped, new ones are added.';
+      return;
+    }
+    const when = wm.lastChargeTime ? `${wm.pickUpDate} · ${wm.lastChargeTime}` : wm.pickUpDate;
+    dateEl.textContent = `Last transaction on file: ${when}`;
+    hintEl.textContent =
+      wm.pickUpHint ||
+      `Next export should include ${wm.pickUpDate} onward. Same-day re-imports only add new charges.`;
+  }
+
   function renderWatermark(wm) {
     const el = $('oc-watermark');
     if (!el) return;
@@ -100,17 +124,52 @@
       return;
     }
     const covered =
-      wm.coveredFrom && wm.coveredTo
-        ? `Covered ${wm.coveredFrom} → ${wm.coveredTo}`
-        : wm.coveredTo
-          ? `Through ${wm.coveredTo}`
-          : '';
+      wm.coveredFrom && wm.coveredTo ? `Covered ${wm.coveredFrom} → ${wm.coveredTo}` : '';
     const last = wm.lastImportAt
       ? `Last import ${new Date(wm.lastImportAt).toLocaleString()}`
       : '';
-    el.textContent = [covered, last, wm.lastFilename ? `(${wm.lastFilename})` : '']
-      .filter(Boolean)
-      .join(' · ');
+    el.textContent = [covered, last].filter(Boolean).join(' · ');
+  }
+
+  function renderBars(rootId, rows, emptyId) {
+    const root = $(rootId);
+    const empty = emptyId ? $(emptyId) : null;
+    if (!root) return;
+    if (!rows || !rows.length) {
+      root.innerHTML = '';
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    root.innerHTML = rows
+      .map((row) => {
+        const pct = Math.max(0, Math.min(100, Number(row.sharePct) || 0));
+        const label = row.label || row.category || row.id;
+        const blurb = row.blurb ? `<span class="oc-bar-blurb">${esc(row.blurb)}</span>` : '';
+        return (
+          `<div class="oc-bar-row">` +
+          `<div class="oc-bar-meta">` +
+          `<span class="oc-bar-label">${esc(label)}</span>` +
+          blurb +
+          `</div>` +
+          `<div class="oc-bar-track" aria-hidden="true"><div class="oc-bar-fill" style="width:${pct}%"></div></div>` +
+          `<div class="oc-bar-nums"><strong>${money(row.amountUsd ?? row.totalUsd)}</strong><span>${pct}%</span></div>` +
+          `</div>`
+        );
+      })
+      .join('');
+  }
+
+  function renderTeamBrief(brief) {
+    if (!brief) {
+      renderBars('oc-stack-bars', []);
+      renderBars('oc-ghl-bars', [], 'oc-ghl-brief-empty');
+      return;
+    }
+    const heading = $('oc-brief-heading');
+    if (heading && brief.title) heading.textContent = brief.title;
+    renderBars('oc-stack-bars', brief.stack || []);
+    renderBars('oc-ghl-bars', brief.ghlBuckets || [], 'oc-ghl-brief-empty');
   }
 
   function renderRateCard(rc) {
@@ -134,7 +193,7 @@
       } else {
         cats.innerHTML = byCategory
           .map((c) => {
-            const label = CAT_LABELS[c.category] || c.category;
+            const label = c.label || CAT_LABELS[c.category] || c.category;
             return (
               `<span class="oc-cat-chip">${esc(label)}` +
               `<strong>${money(c.totalUsd)}</strong>` +
@@ -146,19 +205,23 @@
     }
     if (!body) return;
     if (!charges || !charges.length) {
-      body.innerHTML = '<tr><td colspan="4" class="oc-empty">No imported charges for this period.</td></tr>';
+      body.innerHTML =
+        '<tr><td colspan="5" class="oc-empty">No imported charges for this period.</td></tr>';
       return;
     }
     const rows = charges
       .slice()
       .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
-      .slice(0, 200);
+      .slice(0, 300);
     body.innerHTML = rows
       .map((c) => {
-        const label = CAT_LABELS[c.category] || c.category;
+        const label = c.categoryLabel || CAT_LABELS[c.category] || c.category;
+        const kind = KIND_LABELS[c.kind] || c.kind || '—';
+        const when = c.time ? `${c.date} ${c.time}` : c.date;
         return (
           `<tr>` +
-          `<td>${esc(c.date)}</td>` +
+          `<td>${esc(when)}</td>` +
+          `<td>${esc(kind)}</td>` +
           `<td>${esc(label)}</td>` +
           `<td>${esc(c.description || '—')}</td>` +
           `<td class="oc-num">${money(c.amountUsd)}</td>` +
@@ -179,6 +242,7 @@
       const err = new Error(data.error || `HTTP ${res.status}`);
       err.code = data.code;
       err.status = res.status;
+      err.fileResults = data.fileResults;
       throw err;
     }
     return data;
@@ -191,7 +255,7 @@
         `/api/admin/operating-costs/ghl-charges?period=${encodeURIComponent(period)}`
       );
       renderBreakdown(data.byCategory || [], data.charges || []);
-    } catch (err) {
+    } catch (_) {
       renderBreakdown([], []);
     }
   }
@@ -216,7 +280,9 @@
         .filter(Boolean)
         .join(' · ');
       renderCards(snap.services || {});
+      renderPickup(snap.ghlWatermark);
       renderWatermark(snap.ghlWatermark);
+      renderTeamBrief(snap.teamBrief);
       renderRateCard(snap.rateCard);
       await loadCharges();
       setStatus('');
@@ -254,16 +320,49 @@
     }
   }
 
-  async function uploadFile(file) {
+  function renderImportFileResults(fileResults) {
+    const wrap = $('oc-import-files');
+    if (!wrap) return;
+    if (!fileResults || !fileResults.length) {
+      wrap.hidden = true;
+      wrap.innerHTML = '';
+      return;
+    }
+    wrap.hidden = false;
+    wrap.innerHTML = fileResults
+      .map((f) => {
+        if (!f.ok) {
+          return `<div class="oc-import-file is-error"><strong>${esc(f.filename)}</strong> — ${esc(f.error || 'failed')}</div>`;
+        }
+        const doc = f.document?.label || f.document?.kind || 'detected';
+        return (
+          `<div class="oc-import-file">` +
+          `<strong>${esc(f.filename)}</strong>` +
+          `<span class="oc-import-file-kind">${esc(doc)}</span>` +
+          `<span>+${f.newCount} new · ${f.duplicateCount} dup</span>` +
+          (f.dateRange?.from ? `<span>${esc(f.dateRange.from)} → ${esc(f.dateRange.to)}</span>` : '') +
+          `</div>`
+        );
+      })
+      .join('');
+  }
+
+  async function uploadFiles(fileList) {
     const resultEl = $('oc-import-result');
-    if (!file) return;
+    const files = Array.from(fileList || []).slice(0, 5);
+    if (!files.length) return;
+    if (fileList.length > 5 && resultEl) {
+      resultEl.classList.remove('is-ok');
+      resultEl.classList.add('is-error');
+      resultEl.textContent = 'Only the first 5 files will be imported.';
+    }
     if (resultEl) {
-      resultEl.textContent = `Importing ${file.name}…`;
+      resultEl.textContent = `Importing ${files.length} file${files.length === 1 ? '' : 's'}…`;
       resultEl.classList.remove('is-ok', 'is-error');
     }
     try {
       const fd = new FormData();
-      fd.append('file', file, file.name);
+      files.forEach((f) => fd.append('files', f, f.name));
       const res = await fetch('/api/admin/operating-costs/ghl-import', {
         method: 'POST',
         credentials: 'same-origin',
@@ -271,15 +370,15 @@
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        renderImportFileResults(data.fileResults);
         throw new Error(data.error || `Import failed (${res.status})`);
       }
+      renderImportFileResults(data.fileResults);
       if (resultEl) {
         resultEl.classList.add('is-ok');
         resultEl.textContent =
           `Imported ${data.newCount} new · ${data.duplicateCount} duplicates skipped` +
-          (data.dateRange?.from
-            ? ` · export range ${data.dateRange.from} → ${data.dateRange.to}`
-            : '');
+          (data.watermark?.pickUpDate ? ` · pick up from ${data.watermark.pickUpDate}` : '');
       }
       await refresh();
     } catch (err) {
@@ -303,8 +402,7 @@
       }
     });
     input.addEventListener('change', () => {
-      const f = input.files && input.files[0];
-      if (f) uploadFile(f);
+      if (input.files && input.files.length) uploadFiles(input.files);
       input.value = '';
     });
 
@@ -323,8 +421,8 @@
       });
     });
     zone.addEventListener('drop', (e) => {
-      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
-      if (f) uploadFile(f);
+      const list = e.dataTransfer && e.dataTransfer.files;
+      if (list && list.length) uploadFiles(list);
     });
   }
 
