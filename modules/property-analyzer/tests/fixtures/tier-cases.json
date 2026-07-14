@@ -14,7 +14,9 @@
   { "id": "triple_neglect_combo", "score": 1, "category": "property", "ctx": { "indicators": ["overgrown_landscaping", "peeling_paint", "deferred_maintenance"] }, "expected": "distressed" },
   { "id": "manicured_exemption", "score": 3, "category": "property", "ctx": { "indicators": ["overgrown_landscaping"], "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" } }, "expected": "well_maintained" },
   { "id": "manicured_soft_only", "score": 2, "category": "property", "ctx": { "indicators": ["deferred_maintenance"], "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" } }, "expected": "well_maintained" },
-  { "id": "score8_cosmetic_only", "score": 8, "category": "property", "ctx": { "indicators": ["overgrown_landscaping"], "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" } }, "expected": "well_maintained" },
+  { "id": "score8_cosmetic_only", "score": 8, "category": "property", "ctx": { "indicators": ["overgrown_landscaping"], "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" } }, "expected": "distressed" },
+  { "id": "score6_soft_deferred_is_distressed", "score": 6, "category": "property", "ctx": { "indicators": ["deferred_maintenance"], "confidence": 95, "reason": "Some deferred maintenance visible" }, "expected": "distressed" },
+  { "id": "score6_empty_manicured_stays_wm", "score": 6, "category": "property", "ctx": { "indicators": [], "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" }, "reason": "Clean manicured home" }, "expected": "well_maintained" },
   { "id": "score6_neglect_combo", "score": 6, "category": "property", "ctx": { "indicators": ["overgrown_landscaping", "peeling_paint", "deferred_maintenance"] }, "expected": "distressed" },
   { "id": "dump_house_reason", "score": 7, "category": "property", "ctx": { "indicators": ["junk_or_hoarding_yard", "overgrown_landscaping"], "reason": "Yard full of junk and debris pile visible" }, "expected": "distressed" },
   { "id": "broken_windows_moderate_support", "score": 4, "category": "property", "ctx": { "indicators": ["broken_windows", "overgrown_landscaping", "deferred_maintenance"] }, "expected": "distressed" },
@@ -24,5 +26,7 @@
   { "id": "aerial_high_with_boarded", "score": 2, "category": "property", "ctx": { "indicators": ["boarded_windows"], "satelliteClassification": { "aerialDistressScore": 9, "roofCondition": "fair", "yardCondition": "fair" } }, "expected": "distressed" },
   { "id": "code_violation_soft_good_yard", "score": 2, "category": "property", "ctx": { "indicators": ["code_violation_notice"], "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" } }, "expected": "well_maintained" },
   { "id": "score8_no_sat_not_demoted", "score": 8, "category": "property", "ctx": { "indicators": ["overgrown_landscaping"], "reason": "Tall grass visible" }, "expected": "distressed" },
-  { "id": "score7_moderate_single", "score": 7, "category": "property", "ctx": { "indicators": ["broken_windows"], "reason": "Broken front window visible" }, "expected": "distressed" }
+  { "id": "score7_moderate_single", "score": 7, "category": "property", "ctx": { "indicators": ["broken_windows"], "reason": "Broken front window visible" }, "expected": "distressed" },
+  { "id": "junk_roof_combo_score5", "score": 5, "category": "property", "ctx": { "indicators": ["junk_or_hoarding_yard", "roof_damage_or_tarp"], "reason": "Yard junk and roof damage" }, "expected": "distressed" },
+  { "id": "overgrown_only_score5_wm", "score": 5, "category": "property", "ctx": { "indicators": ["overgrown_landscaping"], "reason": "Tall grass only" }, "expected": "well_maintained" }
 ]

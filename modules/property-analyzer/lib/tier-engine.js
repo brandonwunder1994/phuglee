@@ -101,13 +101,15 @@
     const hasOvergrown = list.includes('overgrown_landscaping');
     const hasPeeling = list.includes('peeling_paint');
     const hasDeferred = list.includes('deferred_maintenance');
+    const hasRoof = list.includes('roof_damage_or_tarp');
     const supportCosmetic = hasOvergrown || hasPeeling || hasDeferred
-      || list.includes('broken_gutters') || list.includes('roof_damage_or_tarp');
+      || list.includes('broken_gutters') || hasRoof;
     const neglectCount = countNeglectIndicators(list);
 
-    if (hasJunk && (hasOvergrown || hasPeeling || hasDeferred || hasBroken || hasAbandoned || neglectCount >= 2)) return true;
+    if (hasJunk && (hasOvergrown || hasPeeling || hasDeferred || hasBroken || hasAbandoned || hasRoof || neglectCount >= 2)) return true;
     if (hasBroken && (hasOvergrown || hasPeeling || hasDeferred || hasJunk || hasAbandoned || supportCosmetic)) return true;
-    if (hasAbandoned && (hasJunk || hasOvergrown || hasPeeling || hasDeferred || neglectCount >= 2)) return true;
+    if (hasAbandoned && (hasJunk || hasOvergrown || hasPeeling || hasDeferred || hasRoof || neglectCount >= 2)) return true;
+    if (hasJunk && hasRoof) return true;
     if (hasJunk && /debris pile|junk (scattered|everywhere)|hoarding|trashed (lot|yard)|dump (house|yard)|yard full of|scattered debris/i.test(reason)) return true;
     return false;
   }
@@ -239,17 +241,27 @@
     if (hasNeglectCombo(inds, reason)) return 'distressed';
     if (inds.some(i => HIGH_INDICATORS.has(i))) return 'distressed';
     if (hasModerateWithSupportingNeglect(inds, reason)) return 'distressed';
-    if (qualifiesManicuredExemption(inds, normalizeCondition(satellite?.roofCondition), normalizeCondition(satellite?.yardCondition), reason)) return 'well_maintained';
+    // Manicured soft-flag exemption is for scores 1–5 only. At 6+ the model already
+    // claimed material distress — soft indicators must not wipe that to Well Maintained.
+    if (s < DISTRESSED_MIN_SCORE && qualifiesManicuredExemption(inds, normalizeCondition(satellite?.roofCondition), normalizeCondition(satellite?.yardCondition), reason)) return 'well_maintained';
     if (s >= DISTRESSED_MIN_SCORE && reasonSuggestsDumpHouse(reason) && (hasModerateWithSupportingNeglect(inds, reason) || countNeglectIndicators(inds) >= 2)) return 'distressed';
     if (s >= DISTRESSED_MIN_SCORE && !isNaN(conf) && conf >= 70
       && inds.some(i => MODERATE_INDICATORS.has(i)) && !qualifiesManicuredExemption(inds, normalizeCondition(satellite?.roofCondition), normalizeCondition(satellite?.yardCondition), reason)) {
       return 'distressed';
     }
     if (s >= DISTRESSED_MIN_SCORE && !looksVisuallyDistressed(s, indicators, satellite, reason)) {
-      if (qualifiesManicuredExemption(inds, normalizeCondition(satellite?.roofCondition), normalizeCondition(satellite?.yardCondition), reason)) return 'well_maintained';
-      if (s >= 7) return 'distressed';
-      if (inds.some(i => MODERATE_INDICATORS.has(i))) return 'distressed';
-      if (!inds.length || inds.every(i => WELL_MAINTAINED_SOFT_INDICATORS.has(i))) return 'well_maintained';
+      // Score 6+ empty + truly manicured sat can stay WM; anything with flags → distressed.
+      if (
+        !inds.length
+        && qualifiesManicuredExemption(
+          inds,
+          normalizeCondition(satellite?.roofCondition),
+          normalizeCondition(satellite?.yardCondition),
+          reason
+        )
+      ) {
+        return 'well_maintained';
+      }
       return 'distressed';
     }
     return 'well_maintained';
