@@ -182,11 +182,18 @@
         </td>
         <td><span class="uc-stage" data-stage="${esc(d.stage)}">${esc(stage)}</span></td>
         <td class="uc-money">${esc(money(d.purchasePrice))}</td>
+        <td class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</td>
         <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.titleOpened || '')}">${esc(d.titleOpenedLabel || '—')}</span></td>
         <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.sellerEmdSubmitted || '')}">${esc(d.sellerEmdLabel || '—')}</span></td>
         <td><span class="uc-pill uc-pill--access" data-access="${esc(d.accessType || '')}">${esc(d.accessDisplay || d.accessLabel || '—')}</span></td>
         <td><span class="uc-pill uc-pill--vacancy" data-vacancy="${esc(d.vacancy || '')}">${esc(d.vacancyLabel || '—')}</span></td>
-        <td>${esc(d.closingDisplay || d.closingDate || '—')}</td>
+        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.photosAvailable || '')}">${esc(d.photosLabel || '—')}</span></td>
+        <td>
+          <button type="button" class="uc-rehab-cell" data-action="view-rehab" title="View rehab info">
+            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.rehabInfoReady || '')}">${esc(d.rehabInfoLabel || '—')}</span>
+            <span class="uc-rehab-link">Click Here</span>
+          </button>
+        </td>
         <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerEmdSubmitted || '')}">${esc(d.buyerEmdLabel || '—')}</span></td>
         <td class="uc-money">${esc(money(d.assignmentFee))}</td>
         <td class="uc-money">${esc(money(d.tcPay))}</td>
@@ -320,16 +327,97 @@
       ['Buyer EMD?', deal.buyerEmdLabel || '—'],
       ['Access', deal.accessDisplay || deal.accessLabel || '—'],
       ['Vacancy', deal.vacancyLabel || '—'],
+      ['Photos?', deal.photosLabel || '—'],
       ['Notes', deal.notes || '—']
     ];
     $('uc-drawer-facts').innerHTML = rows.map(([k, v]) =>
       `<div class="uc-fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`
     ).join('');
 
+    fillRehabForm(deal.rehabInfo || {});
     renderDocuments(deal.documents || []);
     closeDocViewer();
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
     $('uc-sms-input').value = '';
+  }
+
+  function fillRehabForm(rehab) {
+    const r = rehab || {};
+    if ($('uc-rehab-roof')) $('uc-rehab-roof').value = r.roof || '';
+    if ($('uc-rehab-ac')) $('uc-rehab-ac').value = r.ac || '';
+    if ($('uc-rehab-foundation')) $('uc-rehab-foundation').value = r.foundation || '';
+    if ($('uc-rehab-electrical')) $('uc-rehab-electrical').value = r.electrical || '';
+    if ($('uc-rehab-plumbing')) $('uc-rehab-plumbing').value = r.plumbing || '';
+    if ($('uc-rehab-other')) $('uc-rehab-other').value = r.other || '';
+  }
+
+  function readRehabForm() {
+    return {
+      roof: ($('uc-rehab-roof')?.value || '').trim(),
+      ac: ($('uc-rehab-ac')?.value || '').trim(),
+      foundation: ($('uc-rehab-foundation')?.value || '').trim(),
+      electrical: ($('uc-rehab-electrical')?.value || '').trim(),
+      plumbing: ($('uc-rehab-plumbing')?.value || '').trim(),
+      other: ($('uc-rehab-other')?.value || '').trim()
+    };
+  }
+
+  async function saveRehab() {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    const btn = $('uc-rehab-save');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ rehabInfo: readRehabForm() })
+      });
+      showToast('Rehab info saved');
+      await loadDeals();
+      if (data.deal) {
+        state.profile = { ...(state.profile || {}), ...data.deal };
+        fillRehabForm(data.deal.rehabInfo || {});
+      } else if (state.activeDealId === dealId) {
+        await openProfile(dealId);
+      }
+    } catch (err) {
+      showToast(err.message || 'Could not save rehab info');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function openRehabView(deal) {
+    const dialog = $('uc-rehab-view-dialog');
+    if (!dialog || !deal) return;
+    const rehab = deal.rehabInfo || {};
+    const rows = [
+      ['Roof age & condition', rehab.roof],
+      ['AC age & condition', rehab.ac],
+      ['Foundation', rehab.foundation],
+      ['Electrical', rehab.electrical],
+      ['Plumbing', rehab.plumbing],
+      ['Anything else', rehab.other]
+    ];
+    const hasAny = rows.some(([, v]) => String(v || '').trim());
+    $('uc-rehab-view-title').textContent = 'Rehab info';
+    $('uc-rehab-view-address').textContent = deal.address
+      ? `${deal.address}${deal.city ? ` · ${[deal.city, deal.state, deal.zip].filter(Boolean).join(', ')}` : ''}`
+      : 'Property rehab details';
+    const facts = $('uc-rehab-view-facts');
+    if (!hasAny) {
+      facts.innerHTML = '<p class="uc-docs-empty">No rehab notes yet. Open the deal profile to add them.</p>';
+    } else {
+      facts.innerHTML = rows.map(([k, v]) => {
+        const val = String(v || '').trim() || '—';
+        return `<div class="uc-fact"><dt>${esc(k)}</dt><dd>${esc(val)}</dd></div>`;
+      }).join('');
+    }
+    dialog.showModal();
+  }
+
+  function closeRehabView() {
+    $('uc-rehab-view-dialog')?.close();
   }
 
   function renderDocuments(docs) {
@@ -566,6 +654,8 @@
     $('uc-edit-vacancy').value = deal.vacancy || '';
     $('uc-edit-seller-emd').value = deal.sellerEmdSubmitted || '';
     $('uc-edit-buyer-emd').value = deal.buyerEmdSubmitted || '';
+    if ($('uc-edit-title-opened')) $('uc-edit-title-opened').value = deal.titleOpened || '';
+    if ($('uc-edit-photos')) $('uc-edit-photos').value = deal.photosAvailable || '';
     $('uc-edit-notes').value = deal.notes || '';
     $('uc-edit-title').textContent = deal.address || 'Edit deal';
     $('uc-edit-dialog').showModal();
@@ -590,6 +680,8 @@
       vacancy: $('uc-edit-vacancy').value,
       sellerEmdSubmitted: $('uc-edit-seller-emd').value,
       buyerEmdSubmitted: $('uc-edit-buyer-emd').value,
+      titleOpened: $('uc-edit-title-opened')?.value || '',
+      photosAvailable: $('uc-edit-photos')?.value || '',
       notes: $('uc-edit-notes').value.trim()
     };
     try {
@@ -726,6 +818,9 @@
     $('uc-release-confirm-input')?.addEventListener('input', onReleaseConfirmInput);
     $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
+    $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
+    $('uc-rehab-view-close')?.addEventListener('click', closeRehabView);
+    $('uc-rehab-view-done')?.addEventListener('click', closeRehabView);
     $('uc-drawer-buyer-found')?.addEventListener('click', () => {
       if (state.profile) openBuyerFound(state.profile);
     });
@@ -794,6 +889,7 @@
       if (action === 'edit') openEdit(deal);
       if (action === 'buyer-found') openBuyerFound(deal);
       if (action === 'send-jv') openSendJv(deal);
+      if (action === 'view-rehab') openRehabView(deal);
       if (action === 'release' && isAdmin()) releaseDeal(deal.dealId, deal.address);
     });
   }

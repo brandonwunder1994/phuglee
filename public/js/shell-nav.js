@@ -196,7 +196,8 @@
 
     let linksHtml;
     if (isDisposUser()) {
-      linksHtml = vaultHtml + contractHtml;
+      // Disposition partner: Contract Tracker first — no mission / dashboard link
+      linksHtml = contractHtml + vaultHtml;
     } else {
       const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
       const propertiesHtml = buildPropertiesDropdown(current);
@@ -209,6 +210,8 @@
         </div>`
       : '';
 
+    const brandHref = isDisposUser() ? '/under-contract' : '/';
+
     return `
 <div class="shell-loading-strip" id="shell-loading-strip" hidden aria-live="polite">
   <div class="phuglee-loading-bar" aria-hidden="true"></div>
@@ -216,7 +219,7 @@
 </div>
 <header class="shell-nav-wrap distress-glass--chrome" id="distress-os-nav">
   <nav class="shell-nav" aria-label="Main navigation">
-    <a href="/" class="shell-brand" aria-label="Phuglee home">
+    <a href="${brandHref}" class="shell-brand" aria-label="Phuglee home">
       <img
         src="/images/phuglee-text-logo.svg"
         alt="Phuglee"

@@ -1,11 +1,16 @@
 (function () {
   if (window.__PHUGLEE_AUTH_DISABLED__) return;
 
-  var path = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
-  if (path === '/' || path === '/index.html' || path === '/heat') return;
+  function normalizePath(pathname) {
+    var p = (pathname || '/').replace(/\/+$/, '') || '/';
+    if (p === '/index.html') return '/';
+    return p;
+  }
 
-  var signOutUrl = (window.PhugleeSession && window.PhugleeSession.SIGN_OUT_URL)
-    || '/?signed_out=1&login=1';
+  var path = normalizePath(window.location.pathname);
+  var DISPOS_USER = 'brad';
+  var DISPOS_PATHS = { '/vault': true, '/under-contract': true };
+  var DISPOS_HOME = '/under-contract';
 
   function sessionApi() {
     return window.PhugleeSession || null;
@@ -24,19 +29,17 @@
     }
   }
 
-  function redirectToSignIn() {
-    var returnUrl = window.location.pathname + window.location.search + window.location.hash;
-    window.location.replace('/?login=1&return=' + encodeURIComponent(returnUrl));
+  function getSessionUser() {
+    var api = sessionApi();
+    if (api && typeof api.getSessionUser === 'function') {
+      return api.getSessionUser() || '';
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') || '';
+    } catch (_) {
+      return '';
+    }
   }
-
-  function normalizePath(pathname) {
-    var p = (pathname || '/').replace(/\/+$/, '') || '/';
-    if (p === '/index.html') return '/';
-    return p;
-  }
-
-  var DISPOS_USER = 'brad';
-  var DISPOS_PATHS = { '/vault': true, '/under-contract': true };
 
   function isDisposUser(user) {
     return user === DISPOS_USER;
@@ -44,10 +47,32 @@
 
   function enforceDisposPath(user) {
     if (!isDisposUser(user)) return;
-    var path = normalizePath(window.location.pathname);
-    if (!DISPOS_PATHS[path]) {
-      window.location.replace('/vault');
+    var p = normalizePath(window.location.pathname);
+    if (p === '/command' || p === '/' || p === '/heat' || !DISPOS_PATHS[p]) {
+      window.location.replace(DISPOS_HOME);
     }
+  }
+
+  // Public landers stay public, but Brad never parks on the mission home.
+  if (path === '/' || path === '/heat') {
+    if (isLoggedIn()) {
+      var landUser = getSessionUser();
+      if (landUser) enforceDisposPath(landUser);
+      else if (sessionApi() && typeof sessionApi().syncSessionFromServerCookie === 'function') {
+        sessionApi().syncSessionFromServerCookie().then(function (data) {
+          if (data && data.username) enforceDisposPath(data.username);
+        });
+      }
+    }
+    return;
+  }
+
+  var signOutUrl = (window.PhugleeSession && window.PhugleeSession.SIGN_OUT_URL)
+    || '/?signed_out=1&login=1';
+
+  function redirectToSignIn() {
+    var returnUrl = window.location.pathname + window.location.search + window.location.hash;
+    window.location.replace('/?login=1&return=' + encodeURIComponent(returnUrl));
   }
 
   if (!isLoggedIn()) {
@@ -61,17 +86,7 @@
     return;
   }
 
-  var sessionUser = (function () {
-    var api = sessionApi();
-    if (api && typeof api.getSessionUser === 'function') {
-      return api.getSessionUser() || '';
-    }
-    try {
-      return sessionStorage.getItem('phuglee_session') || '';
-    } catch (_) {
-      return '';
-    }
-  })();
+  var sessionUser = getSessionUser();
 
   if (sessionUser) {
     enforceDisposPath(sessionUser);

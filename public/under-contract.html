@@ -11,10 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=2">
   <link rel="stylesheet" href="/css/vault.css?v=12">
-  <link rel="stylesheet" href="/css/under-contract.css?v=13">
+  <link rel="stylesheet" href="/css/under-contract.css?v=15">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
-  <script src="/js/auth-guard.js"></script>
+  <script src="/js/auth-guard.js?v=2"></script>
 </head>
 <body class="phuglee-app has-premium-bg vault-page uc-page">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
@@ -83,12 +83,14 @@
               <tr>
                 <th>Property</th>
                 <th>Stage</th>
-                <th>Purchase</th>
+                <th>Purchase Price</th>
+                <th>Closing Date</th>
                 <th>Title Opened?</th>
                 <th>EMD Submitted?</th>
                 <th>Access</th>
                 <th>Vacancy</th>
-                <th>Closing</th>
+                <th>Photos?</th>
+                <th>Rehab Info?</th>
                 <th>Buyer EMD?</th>
                 <th>Assignment fee</th>
                 <th>TC Pay</th>
@@ -158,6 +160,37 @@
         </select>
       </label>
       <label class="vault-field">
+        <span class="vault-field-label">Access</span>
+        <select id="uc-edit-access" class="phuglee-select">
+          <option value="">—</option>
+          <option value="key">Key</option>
+          <option value="lockbox">Lockbox</option>
+          <option value="door_code">Door code</option>
+          <option value="open">Open</option>
+        </select>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Access detail (code / notes)</span>
+        <input type="text" id="uc-edit-access-detail" class="phuglee-input">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Vacancy</span>
+        <select id="uc-edit-vacancy" class="phuglee-select">
+          <option value="">—</option>
+          <option value="vacant">Vacant</option>
+          <option value="occupied">Occupied</option>
+          <option value="unknown">Unknown</option>
+        </select>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Photos?</span>
+        <select id="uc-edit-photos" class="phuglee-select">
+          <option value="">—</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </label>
+      <label class="vault-field">
         <span class="vault-field-label">Notes</span>
         <textarea id="uc-edit-notes" class="phuglee-textarea" rows="3"></textarea>
       </label>
@@ -181,6 +214,41 @@
     <div class="uc-drawer-body">
       <div id="uc-drawer-hero" class="uc-drawer-hero"></div>
       <dl id="uc-drawer-facts" class="uc-facts"></dl>
+      <section class="uc-rehab" aria-label="Rehab info">
+        <div class="uc-rehab-head">
+          <div>
+            <h3>Rehab info</h3>
+            <p class="uc-docs-meta">Notes for dispo to send buyers — roof, AC, foundation, systems</p>
+          </div>
+          <button type="button" id="uc-rehab-save" class="phuglee-btn phuglee-btn-secondary">Save rehab</button>
+        </div>
+        <div class="uc-rehab-grid">
+          <label class="vault-field">
+            <span class="vault-field-label">Roof age &amp; condition</span>
+            <input type="text" id="uc-rehab-roof" class="phuglee-input" placeholder="e.g. 8 yrs, fair">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">AC age &amp; condition</span>
+            <input type="text" id="uc-rehab-ac" class="phuglee-input" placeholder="e.g. 5 yrs, good">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Foundation</span>
+            <input type="text" id="uc-rehab-foundation" class="phuglee-input">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Electrical</span>
+            <input type="text" id="uc-rehab-electrical" class="phuglee-input">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Plumbing</span>
+            <input type="text" id="uc-rehab-plumbing" class="phuglee-input">
+          </label>
+          <label class="vault-field uc-rehab-other">
+            <span class="vault-field-label">Anything else for dispo</span>
+            <textarea id="uc-rehab-other" class="phuglee-textarea" rows="3" placeholder="Custom notes buyers need to know…"></textarea>
+          </label>
+        </div>
+      </section>
       <section class="uc-docs" aria-label="Contract documents">
         <div class="uc-docs-head">
           <div>
@@ -330,9 +398,23 @@
     </form>
   </dialog>
 
+  <dialog id="uc-rehab-view-dialog" class="uc-dialog">
+    <div class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-rehab-view-title">Rehab info</h3>
+        <button type="button" id="uc-rehab-view-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <p id="uc-rehab-view-address" class="uc-jv-lead"></p>
+      <dl id="uc-rehab-view-facts" class="uc-facts uc-rehab-view-facts"></dl>
+      <div class="uc-edit-actions">
+        <button type="button" id="uc-rehab-view-done" class="phuglee-btn phuglee-btn-primary">Done</button>
+      </div>
+    </div>
+  </dialog>
+
   <script src="/js/settings-menu.js?v=5" defer></script>
-  <script src="/js/shell-nav.js?v=15" defer></script>
+  <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=16" defer></script>
+  <script src="/js/under-contract.js?v=18" defer></script>
 </body>
 </html>

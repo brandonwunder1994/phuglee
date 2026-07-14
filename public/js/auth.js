@@ -76,7 +76,7 @@
     activeView: 'login',
     selectedPlan: null,
     pendingUsername: null,
-    returnUrl: '/command'
+    returnUrl: ''
   };
 
   function readUsers() {
@@ -754,18 +754,18 @@
     try {
       user = sessionStorage.getItem(SESSION_KEY) || '';
     } catch (_) {}
-    var dest = state.returnUrl || (user === 'brad' ? '/vault' : '/command');
+    var dest = state.returnUrl || (user === 'brad' ? '/under-contract' : '/command');
     try {
       var path = (dest.split('?')[0].split('#')[0] || '/').replace(/\/+$/, '') || '/';
-      if (path === '/' || path === '/index.html' || path === '/heat') {
-        return user === 'brad' ? '/vault' : '/command';
+      if (path === '/' || path === '/index.html' || path === '/heat' || path === '/command') {
+        return user === 'brad' ? '/under-contract' : '/command';
       }
       if (user === 'brad' && path !== '/vault' && path !== '/under-contract') {
-        return '/vault';
+        return '/under-contract';
       }
       return dest;
     } catch (_) {
-      return user === 'brad' ? '/vault' : '/command';
+      return user === 'brad' ? '/under-contract' : '/command';
     }
   }
 
@@ -965,7 +965,11 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         if (isAuthenticated()) {
-          window.location.href = '/command';
+          var user = '';
+          try {
+            user = sessionStorage.getItem(SESSION_KEY) || '';
+          } catch (_) {}
+          window.location.href = user === 'brad' ? '/under-contract' : '/command';
         } else {
           openModal();
         }

@@ -157,6 +157,17 @@
 .uc-table th:last-child,
 .uc-table td:last-child {
   border-right: 0;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  background: var(--vault-surface, #141414);
+  min-width: 7.5rem;
+  width: 7.5rem;
+  box-shadow: -8px 0 12px rgba(0, 0, 0, 0.25);
+}
+
+.uc-table th:last-child {
+  z-index: 3;
 }
 
 .uc-table td {
@@ -166,6 +177,12 @@
   vertical-align: middle;
   color: var(--phuglee-cream);
   line-height: 1.25;
+}
+
+.uc-table td.uc-closing-cell {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5rem;
 }
 
 .uc-table .uc-money {
@@ -240,14 +257,82 @@
 
 .uc-row-actions {
   display: flex;
+  flex-direction: column;
   flex-wrap: nowrap;
   gap: 0.25rem;
-  justify-content: flex-end;
+  align-items: stretch;
+  justify-content: center;
 }
 
 .uc-row-actions .phuglee-btn {
-  padding: 0.2rem 0.4rem;
+  padding: 0.25rem 0.45rem;
   font-size: 0.68rem;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.uc-rehab-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.uc-rehab-link {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--phuglee-gold);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.uc-rehab-cell:hover .uc-rehab-link {
+  color: var(--phuglee-cream);
+}
+
+.uc-rehab {
+  border: 1px solid var(--vault-border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  display: grid;
+  gap: 0.75rem;
+}
+
+.uc-rehab-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.uc-rehab-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.uc-rehab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+}
+
+.uc-rehab-other {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .uc-rehab-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .uc-dialog {
