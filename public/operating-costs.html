@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/operating-costs.css?v=4">
+  <link rel="stylesheet" href="/css/operating-costs.css?v=7">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -89,14 +89,14 @@
         <div class="oc-section-head">
           <div>
             <h2 class="oc-section-title" id="oc-import-heading">GHL invoices &amp; transactions</h2>
-            <p class="oc-section-lead">Drop up to 5 CSV/Excel files at once. We detect invoices vs transaction ledgers, categorize spend, and only add charges we have not seen before — even on the same calendar day.</p>
+            <p class="oc-section-lead">Drop up to 5 files at once — CSV first, plus Excel or PDF. We detect invoices vs transaction ledgers, categorize spend, and only add charges we have not seen before — even on the same calendar day.</p>
           </div>
           <p id="oc-watermark" class="oc-watermark"></p>
         </div>
-        <div id="oc-dropzone" class="oc-dropzone" tabindex="0" role="button" aria-label="Upload GHL cost exports">
-          <input type="file" id="oc-file" accept=".csv,.tsv,.xlsx,.xls,.xlsm,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple hidden />
+        <div id="oc-dropzone" class="oc-dropzone" tabindex="0" role="button" aria-label="Upload GHL CSV, Excel, or PDF cost exports">
+          <input type="file" id="oc-file" accept=".csv,.CSV,.tsv,.txt,text/csv,text/plain,.xlsx,.xls,.xlsm,.pdf,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" multiple hidden />
           <p class="oc-dropzone-title">Drag &amp; drop up to 5 files</p>
-          <p class="oc-dropzone-sub">Invoices and transaction exports · CSV or Excel</p>
+          <p class="oc-dropzone-sub">CSV · Excel · PDF — invoices and transaction exports</p>
         </div>
         <p id="oc-import-result" class="oc-import-result" role="status" aria-live="polite"></p>
         <div id="oc-import-files" class="oc-import-files" hidden></div>
@@ -164,6 +164,6 @@
   <script src="/js/shell-nav.js?v=distress2"></script>
   <script src="/js/settings-menu.js?v=distress2"></script>
   <script src="/js/command-palette.js?v=distress2"></script>
-  <script src="/js/operating-costs.js?v=4"></script>
+  <script src="/js/operating-costs.js?v=7"></script>
 </body>
 </html>

@@ -26,7 +26,7 @@ test('multi-file import detects kinds and same-day new charges', async () => {
     '2026-07-01,97.00,Agency Starter Plan,INV-1001'
   ].join('\n');
 
-  const first = importGhlExports([
+  const first = await importGhlExports([
     { data: Buffer.from(morning, 'utf8'), filename: 'wallet-morning.csv' },
     { data: Buffer.from(invoice, 'utf8'), filename: 'july-invoice.csv' }
   ]);
@@ -45,7 +45,7 @@ test('multi-file import detects kinds and same-day new charges', async () => {
     '2026-07-11,08:00:00,0.05,Email send,Email'
   ].join('\n');
 
-  const second = importGhlExports([
+  const second = await importGhlExports([
     { data: Buffer.from(afternoon, 'utf8'), filename: 'wallet-week2.csv' }
   ]);
   assert.equal(second.newCount, 2);
@@ -56,4 +56,36 @@ test('multi-file import detects kinds and same-day new charges', async () => {
   assert.equal(listed.charges.length, 5);
   assert.ok(listed.byKind.some((k) => k.kind === 'invoice'));
   assert.ok(listed.byKind.some((k) => k.kind === 'transactions'));
+});
+
+test('PDF text-line scraper finds date and amount rows', () => {
+  const { linesToBillingRows } = require('../lib/operating-costs/ghl-pdf-parse');
+  const text = [
+    'HighLevel Invoice',
+    'Page 1 of 1',
+    'July 1, 2026 Agency Starter Plan $97.00',
+    '07/10/2026 LC SMS outbound $0.40',
+    'Total $97.40'
+  ].join('\n');
+
+  const result = linesToBillingRows(text);
+  assert.ok(result);
+  assert.equal(result.parser, 'pdf-text-lines');
+  assert.equal(result.rows.length, 2);
+  assert.match(result.rows[0].Description, /Agency Starter/i);
+  assert.equal(result.rows[1].Amount, '0.40');
+});
+
+test('PDF text rows flow through parseGhlExport charge builder', async () => {
+  const { linesToBillingRows } = require('../lib/operating-costs/ghl-pdf-parse');
+  const { chargesFromTable } = require('../lib/operating-costs/ghl-export-parse');
+
+  const scraped = linesToBillingRows(
+    '2026-07-01 Agency Starter Plan $97.00\n2026-07-10 LC SMS outbound $0.40'
+  );
+  assert.ok(scraped);
+  const parsed = chargesFromTable(scraped.headers, scraped.rows, 'ghl-july-invoice.pdf');
+  assert.equal(parsed.charges.length, 2);
+  assert.equal(parsed.document.kind, 'invoice');
+  assert.ok(parsed.charges.some((c) => c.amountCents === 9700));
 });

@@ -371,6 +371,8 @@
       .join('');
   }
 
+  const IMPORT_NAME_RE = /\.(csv|tsv|txt|xlsx|xls|xlsm|pdf)$/i;
+
   async function uploadFiles(fileList) {
     const resultEl = $('oc-import-result');
     const files = Array.from(fileList || []).slice(0, 5);
@@ -380,13 +382,19 @@
       resultEl.classList.add('is-error');
       resultEl.textContent = 'Only the first 5 files will be imported.';
     }
+    const odd = files.filter((f) => f && f.name && !IMPORT_NAME_RE.test(f.name));
     if (resultEl) {
-      resultEl.textContent = `Importing ${files.length} file${files.length === 1 ? '' : 's'}…`;
+      resultEl.textContent =
+        `Importing ${files.length} file${files.length === 1 ? '' : 's'}…` +
+        (odd.length
+          ? ` (including ${odd.map((f) => f.name).join(', ')} — CSV/Excel/PDF preferred)`
+          : '');
       resultEl.classList.remove('is-ok', 'is-error');
     }
     try {
       const fd = new FormData();
-      files.forEach((f) => fd.append('files', f, f.name));
+      // Keep original names so .csv / .pdf routing stays correct.
+      files.forEach((f) => fd.append('files', f, f.name || 'export.csv'));
       const res = await fetch('/api/admin/operating-costs/ghl-import', {
         method: 'POST',
         credentials: 'same-origin',
