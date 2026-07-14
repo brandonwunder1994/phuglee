@@ -661,7 +661,8 @@
         sellerSmsUnread: deal.sellerSmsUnread,
         sellerSmsAt: deal.sellerSmsAt ?? state.profile.sellerSmsAt,
         sellerSmsPreview: deal.sellerSmsPreview ?? state.profile.sellerSmsPreview,
-        sellerSms: deal.sellerSms || state.profile.sellerSms
+        sellerSms: deal.sellerSms || state.profile.sellerSms,
+        sellerMedia: deal.sellerMedia || state.profile.sellerMedia
       };
     }
     const nextUnread = !!deal.sellerSmsUnread;
@@ -718,6 +719,91 @@
     return (el.scrollHeight - el.scrollTop - el.clientHeight) <= thresholdPx;
   }
 
+  function mediaProxyUrl(dealId, url) {
+    return `/api/leads/admin/contracts/${encodeURIComponent(dealId)}/media-proxy?url=${encodeURIComponent(url)}`;
+  }
+
+  function savedMediaUrls() {
+    const set = new Set();
+    for (const m of (state.profile?.sellerMedia || [])) {
+      if (m.sourceUrl) set.add(m.sourceUrl);
+      if (m.viewUrl) set.add(m.viewUrl);
+    }
+    return set;
+  }
+
+  function collectThreadMediaItems() {
+    const items = [];
+    const seen = new Set();
+    for (const m of state.messages || []) {
+      const atts = Array.isArray(m.attachments) ? m.attachments.filter(Boolean) : [];
+      atts.forEach((url, i) => {
+        const key = String(url);
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        items.push({
+          url: key,
+          messageId: m.id || null,
+          name: `seller-${(m.id || 'msg').slice(-6)}-${i + 1}`
+        });
+      });
+    }
+    return items;
+  }
+
+  function syncSaveAllMediaButton() {
+    const btn = $('uc-sms-save-all-media');
+    if (!btn) return;
+    const items = collectThreadMediaItems();
+    const saved = savedMediaUrls();
+    const unsaved = items.filter((it) => !saved.has(it.url));
+    btn.hidden = !unsaved.length;
+    btn.textContent = unsaved.length > 1
+      ? `Save all media (${unsaved.length})`
+      : (unsaved.length === 1 ? 'Save media' : 'Save all media');
+  }
+
+  function isVideoUrl(url, mime) {
+    const m = String(mime || '').toLowerCase();
+    if (m.startsWith('video/')) return true;
+    return /\.(mp4|mov|webm|m4v)(\?|$)/i.test(String(url || ''));
+  }
+
+  function renderMedia(list) {
+    const box = $('uc-media-grid');
+    const zip = $('uc-media-zip');
+    if (!box) return;
+    const media = Array.isArray(list) ? list : (state.profile?.sellerMedia || []);
+    if (zip) {
+      if (media.length && state.activeDealId) {
+        zip.hidden = false;
+        zip.href = `/api/leads/admin/contracts/${encodeURIComponent(state.activeDealId)}/media/zip`;
+        zip.setAttribute('download', 'property-media.zip');
+      } else {
+        zip.hidden = true;
+        zip.removeAttribute('href');
+      }
+    }
+    if (!media.length) {
+      box.innerHTML = '<p class="uc-media-empty">No saved media yet. Hover a photo/video in Texts and click Save, or use Save all media.</p>';
+      return;
+    }
+    box.innerHTML = media.map((m) => {
+      const video = m.kind === 'video' || isVideoUrl(m.viewUrl || m.name, m.mimeType);
+      const src = m.viewUrl || '';
+      const preview = video
+        ? `<video src="${esc(src)}" muted playsinline preload="metadata"></video>`
+        : `<img src="${esc(src)}" alt="${esc(m.name || 'Media')}" loading="lazy">`;
+      return `<div class="uc-media-card" data-media-id="${esc(m.id)}">
+        ${preview}
+        <div class="uc-media-card-actions">
+          <a href="${esc(m.downloadUrl || (src + (src.includes('?') ? '&' : '?') + 'download=1'))}" download>Download</a>
+          <button type="button" data-media-action="remove">Remove</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
   function renderMessages(opts = {}) {
     const box = $('uc-convo-thread');
     if (!box) return;
@@ -726,27 +812,42 @@
     const prevScroll = box.scrollTop;
     if (!state.messages.length) {
       box.innerHTML = '<p class="uc-convo-empty">No SMS yet. Send the first message below.</p>';
+      syncSaveAllMediaButton();
       return;
     }
+    const saved = savedMediaUrls();
+    const dealId = state.activeDealId;
     box.innerHTML = state.messages.map((m) => {
       const outbound = m.direction === 'outbound' || m.direction === 'out';
       const when = formatUcWhen(m.dateAdded);
-      const body = (m.body || '').trim() || (m.hasAttachments || (m.attachments || []).length
-        ? `📷 ${(m.attachments || []).length || 1} photo${(m.attachments || []).length === 1 ? '' : 's'}`
-        : '');
-      const att = Array.isArray(m.attachments) ? m.attachments.filter(Boolean).slice(0, 8) : [];
+      const body = (m.body || '').trim();
+      const att = Array.isArray(m.attachments) ? m.attachments.filter(Boolean) : [];
       const attHtml = att.length
-        ? `<div class="uc-bubble-atts">${att.map((url) =>
-          `<a class="uc-bubble-att" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Photo</a>`
-        ).join('')}</div>`
+        ? `<div class="uc-bubble-atts">${att.map((url, i) => {
+          const isSaved = saved.has(url);
+          const video = isVideoUrl(url);
+          const proxy = dealId ? mediaProxyUrl(dealId, url) : url;
+          const preview = video
+            ? `<video src="${esc(proxy)}" muted playsinline preload="metadata"></video>`
+            : `<img src="${esc(proxy)}" alt="Attachment ${i + 1}" loading="lazy">`;
+          return `<figure class="uc-att-tile" data-att-url="${esc(url)}" data-msg-id="${esc(m.id || '')}">
+            ${preview}
+            <button type="button" class="uc-att-save${isSaved ? ' is-saved' : ''}" data-action="save-media" ${isSaved ? 'disabled' : ''}>${isSaved ? 'Saved' : 'Save'}</button>
+          </figure>`;
+        }).join('')}</div>`
         : '';
+      const label = body
+        || (att.length
+          ? `📷 ${att.length} ${att.length === 1 ? 'attachment' : 'attachments'}`
+          : '');
       return `<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
-        <div class="uc-bubble-body">${esc(body || '(no text)')}${attHtml}</div>
+        <div class="uc-bubble-body">${body ? esc(body) : (attHtml ? '' : esc('(no text)'))}${attHtml}</div>
         <div class="uc-bubble-meta">${outbound ? 'You' : 'Them'}${when ? ' · ' + esc(when) + ' AZ' : ''}</div>
       </div>`;
     }).join('');
     if (stickToBottom) box.scrollTop = box.scrollHeight;
     else box.scrollTop = prevScroll;
+    syncSaveAllMediaButton();
   }
 
   async function loadMessages(dealId, opts = {}) {
@@ -777,6 +878,84 @@
     const boardChanged = applySellerSmsDealPatch(data.deal, data.unreadSellerSms);
     if (boardChanged) renderTable(state.deals);
     showToast('Marked as read');
+  }
+
+  async function saveSellerMediaItems(items, { toastLabel } = {}) {
+    const dealId = state.activeDealId;
+    if (!dealId || !items.length) return null;
+    const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/media`, {
+      method: 'POST',
+      body: JSON.stringify({ items })
+    });
+    if (data.deal) {
+      state.profile = { ...state.profile, ...data.deal, sellerMedia: data.sellerMedia || data.deal.sellerMedia || [] };
+    } else if (data.sellerMedia) {
+      state.profile = { ...state.profile, sellerMedia: data.sellerMedia };
+    }
+    renderMedia(state.profile.sellerMedia || []);
+    renderMessages({ forceScroll: false });
+    const saved = data.saved || 0;
+    const skipped = data.skipped || 0;
+    const failed = data.failed || 0;
+    if (toastLabel) showToast(toastLabel);
+    else if (failed && !saved) showToast(`Could not save media (${failed} failed)`);
+    else if (saved) showToast(`Saved ${saved} media item${saved === 1 ? '' : 's'}${skipped ? ` · ${skipped} already saved` : ''}`);
+    else if (skipped) showToast('Already saved');
+    return data;
+  }
+
+  async function saveOneThreadMedia(url, messageId, btn) {
+    if (!url || !state.activeDealId) return;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+    }
+    try {
+      await saveSellerMediaItems([{ url, messageId, name: `seller-${Date.now()}` }]);
+      if (btn) {
+        btn.textContent = 'Saved';
+        btn.classList.add('is-saved');
+      }
+    } catch (err) {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
+      showToast(err.message || 'Save failed');
+    }
+  }
+
+  async function saveAllThreadMedia() {
+    const saved = savedMediaUrls();
+    const items = collectThreadMediaItems().filter((it) => !saved.has(it.url));
+    if (!items.length) {
+      showToast('All thread media already saved');
+      return;
+    }
+    const btn = $('uc-sms-save-all-media');
+    if (btn) btn.disabled = true;
+    try {
+      await saveSellerMediaItems(items);
+    } catch (err) {
+      showToast(err.message || 'Save all failed');
+    } finally {
+      if (btn) btn.disabled = false;
+      syncSaveAllMediaButton();
+    }
+  }
+
+  async function removeSavedMedia(mediaId) {
+    const dealId = state.activeDealId;
+    if (!dealId || !mediaId) return;
+    const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/media/${encodeURIComponent(mediaId)}`, {
+      method: 'DELETE',
+      body: '{}'
+    });
+    if (data.deal) state.profile = { ...state.profile, ...data.deal };
+    state.profile.sellerMedia = data.sellerMedia || data.deal?.sellerMedia || [];
+    renderMedia(state.profile.sellerMedia);
+    renderMessages({ forceScroll: false });
+    showToast('Removed from Media');
   }
 
   function renderProfile(deal, contact) {
@@ -828,6 +1007,7 @@
     state.teamMessages = deal.teamMessages || [];
     renderTeamMessages();
     renderDocuments(deal.documents || []);
+    renderMedia(deal.sellerMedia || []);
     renderDocsPending(deal);
     closeDocViewer();
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
@@ -1784,10 +1964,34 @@
     $('uc-drawer-backdrop')?.addEventListener('click', closeProfile);
     $('uc-sms-send')?.addEventListener('click', () => { sendSms(); });
     $('uc-sms-refresh')?.addEventListener('click', () => {
-      if (state.activeDealId) loadMessages(state.activeDealId).catch((e) => showToast(e.message));
+      if (state.activeDealId) {
+        loadMessages(state.activeDealId, { forceScroll: true }).catch((e) => showToast(e.message));
+      }
     });
     $('uc-sms-mark-read')?.addEventListener('click', () => {
       markSellerSmsRead().catch((e) => showToast(e.message || 'Could not mark read'));
+    });
+    $('uc-sms-save-all-media')?.addEventListener('click', () => {
+      saveAllThreadMedia().catch((e) => showToast(e.message || 'Save all failed'));
+    });
+    $('uc-convo-thread')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-action="save-media"]');
+      if (!btn || btn.disabled) return;
+      const tile = btn.closest('[data-att-url]');
+      if (!tile) return;
+      saveOneThreadMedia(
+        tile.getAttribute('data-att-url'),
+        tile.getAttribute('data-msg-id'),
+        btn
+      ).catch((e) => showToast(e.message || 'Save failed'));
+    });
+    $('uc-media-grid')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-media-action="remove"]');
+      if (!btn) return;
+      const card = btn.closest('[data-media-id]');
+      const id = card?.getAttribute('data-media-id');
+      if (!id) return;
+      removeSavedMedia(id).catch((e) => showToast(e.message || 'Remove failed'));
     });
     $('uc-sms-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {

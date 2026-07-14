@@ -1154,6 +1154,122 @@ img.uc-profile-hero {
   background: rgba(238, 183, 70, 0.35);
 }
 
+.uc-att-tile {
+  position: relative;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.uc-att-tile img,
+.uc-att-tile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.uc-att-save {
+  position: absolute;
+  left: 50%;
+  bottom: 0.35rem;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(13, 13, 13, 0.88);
+  color: #f0e6c8;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.uc-att-tile:hover .uc-att-save,
+.uc-att-tile:focus-within .uc-att-save {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.uc-att-save.is-saved {
+  opacity: 1;
+  pointer-events: none;
+  background: rgba(70, 140, 90, 0.9);
+}
+
+.uc-media {
+  margin: 1rem 0 1.25rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.uc-media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 0.65rem;
+}
+
+.uc-media-card {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  aspect-ratio: 1;
+}
+
+.uc-media-card img,
+.uc-media-card video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #111;
+}
+
+.uc-media-card-actions {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.35rem;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.uc-media-card:hover .uc-media-card-actions,
+.uc-media-card:focus-within .uc-media-card-actions {
+  opacity: 1;
+}
+
+.uc-media-card-actions a,
+.uc-media-card-actions button {
+  flex: 1;
+  border: 0;
+  border-radius: 6px;
+  padding: 0.25rem 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  color: #f0e6c8;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.uc-media-empty {
+  margin: 0.35rem 0 0;
+  color: var(--vault-muted);
+  font-size: 0.85rem;
+}
+
 .uc-convo-compose {
   display: flex;
   gap: 0.5rem;

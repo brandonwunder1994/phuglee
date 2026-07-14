@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=3">
   <link rel="stylesheet" href="/css/vault.css?v=15">
-  <link rel="stylesheet" href="/css/under-contract.css?v=28">
+  <link rel="stylesheet" href="/css/under-contract.css?v=29">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -296,6 +296,18 @@
           </label>
         </div>
       </section>
+      <section class="uc-media" aria-label="Seller media">
+        <div class="uc-docs-head">
+          <div>
+            <h3>Media</h3>
+            <p class="uc-docs-meta">Seller photos &amp; videos saved from Texts — preview, pull one, or zip for dispo</p>
+          </div>
+          <div class="uc-convo-actions">
+            <a id="uc-media-zip" class="phuglee-btn phuglee-btn-secondary" href="#" hidden>Download ZIP</a>
+          </div>
+        </div>
+        <div id="uc-media-grid" class="uc-media-grid"></div>
+      </section>
       <section class="uc-docs" aria-label="Contract documents">
         <div class="uc-docs-head">
           <div>
@@ -348,6 +360,7 @@
             <p id="uc-convo-meta" class="uc-convo-meta"></p>
           </div>
           <div class="uc-convo-actions">
+            <button type="button" id="uc-sms-save-all-media" class="phuglee-btn phuglee-btn-ghost" hidden>Save all media</button>
             <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost" hidden>Mark as read</button>
             <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
           </div>
@@ -534,6 +547,6 @@
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=35" defer></script>
+  <script src="/js/under-contract.js?v=36" defer></script>
 </body>
 </html>

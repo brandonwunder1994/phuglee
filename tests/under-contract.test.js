@@ -512,6 +512,55 @@ test('seller SMS alert clears after desk reply and never regresses to older inbo
   assert.equal(contracts.isSellerSmsUnreadForUser(afterSellerAgain, 'admin'), true);
 });
 
+test('seller media saves locally and zips for download', async () => {
+  const deal = contracts.upsertDeal({
+    address: '105 Media Zip Ave',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'under_contract',
+    ghlContactId: 'contact_media_zip'
+  });
+  const tinyPng = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    'base64'
+  );
+  const mediaDir = path.join(
+    process.env.LEADS_CATALOG_ROOT || path.join(tmpRoot, 'leads-catalog'),
+    'contracts',
+    'files',
+    deal.dealId,
+    'media'
+  );
+  fs.mkdirSync(mediaDir, { recursive: true });
+  const fileName = 'media_unit_test.png';
+  fs.writeFileSync(path.join(mediaDir, fileName), tinyPng);
+  const saved = contracts.upsertDeal({
+    ...deal,
+    sellerMedia: [{
+      id: 'media_unit_test',
+      name: 'seller-photo.png',
+      mimeType: 'image/png',
+      kind: 'image',
+      size: tinyPng.length,
+      sourceUrl: 'https://example.com/seller-photo.png',
+      localFile: fileName,
+      savedAt: '2026-07-14T18:00:00.000Z'
+    }]
+  });
+  const enriched = contracts.enrichDealForDisplay(saved);
+  assert.equal(enriched.sellerMedia.length, 1);
+  assert.match(enriched.sellerMedia[0].viewUrl, /\/media\/media_unit_test$/);
+  assert.match(enriched.mediaZipUrl, /\/media\/zip$/);
+
+  const zip = await contracts.buildSellerMediaZip(deal.dealId);
+  assert.ok(zip.buffer.length > 40);
+  assert.match(zip.filename, /media\.zip$/i);
+  assert.equal(zip.count, 1);
+
+  const afterRemove = contracts.removeSellerMedia(deal.dealId, 'media_unit_test');
+  assert.equal((afterRemove.sellerMedia || []).length, 0);
+});
+
 test('team messages + unread list for other user', () => {
   const deal = contracts.upsertDeal({
     address: '910 Delaware St',
