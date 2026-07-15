@@ -1683,7 +1683,6 @@
     ).join('');
 
     fillRehabForm(deal.rehabInfo || {});
-    fillPhotoCostForm(deal);
     state.teamMessages = deal.teamMessages || [];
     renderTeamMessages();
     renderDocuments(deal.documents || []);
@@ -1699,13 +1698,6 @@
     if ($('uc-photo-sms-input')) $('uc-photo-sms-input').value = '';
     if ($('uc-team-input')) $('uc-team-input').value = '';
     syncProfileSmsPulse();
-  }
-
-  function fillPhotoCostForm(deal) {
-    if ($('uc-profile-photos')) $('uc-profile-photos').value = deal.photosAvailable || '';
-    if ($('uc-profile-photo-cost')) {
-      $('uc-profile-photo-cost').value = deal.photoCost != null ? deal.photoCost : 0;
-    }
   }
 
   const TEAM_REACTIONS = [
@@ -1836,62 +1828,6 @@
       showToast('Team message sent');
     } catch (err) {
       showToast(err.message || 'Could not send team message');
-    } finally {
-      if (btn) btn.disabled = false;
-    }
-  }
-
-  async function savePhotoCost() {
-    const dealId = state.activeDealId;
-    if (!dealId) {
-      showToast('Open a property first, then save');
-      return;
-    }
-    const btn = $('uc-photo-cost-save');
-    if (btn) btn.disabled = true;
-    try {
-      const photoCostRaw = $('uc-profile-photo-cost')?.value;
-      const body = {
-        photosAvailable: $('uc-profile-photos')?.value || '',
-        photoCost: photoCostRaw === '' ? 0 : Number(photoCostRaw)
-      };
-      const data = await saveDealFields(dealId, body);
-      showToast('Photos / photo cost saved');
-      if (data.deal) mergeDealIntoState(data.deal);
-      await loadDeals({ silent: true });
-      if (data.deal) {
-        state.profile = { ...(state.profile || {}), ...data.deal };
-        fillPhotoCostForm(data.deal);
-        const rowsFacts = $('uc-drawer-facts');
-        if (rowsFacts && state.contact) {
-          // Refresh fact row money/labels without tearing down SMS thread
-          const contact = state.contact;
-          const deal = data.deal;
-          const rows = [
-            ['Owner / seller', deal.ownerName || contact?.sellersName || contact?.name || '—'],
-            ['Phone', deal.phone || contact?.phone || '—'],
-            ['Email', deal.email || contact?.email || '—'],
-            ['Purchase price', money(deal.purchasePrice)],
-            ['Assignment fee', money(deal.assignmentFee)],
-            ['Photo cost', money(deal.photoCost ?? 0)],
-            ['Funded', deal.fundedLabel || '—'],
-            ['Buyer EMD?', deal.buyerFoundLabel || '—'],
-            ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
-            ['Closing', deal.closingDate || contact?.closingDate || '—'],
-            ['EMD Submitted?', deal.sellerEmdLabel || '—'],
-            ['Buyer EMD?', deal.buyerEmdLabel || '—'],
-            ['Access', deal.accessDisplay || deal.accessLabel || '—'],
-            ['Vacancy', deal.vacancyLabel || '—'],
-            ['Photos?', deal.photosLabel || '—'],
-            ['Notes', deal.notes || '—']
-          ];
-          rowsFacts.innerHTML = rows.map(([k, v]) =>
-            `<div class="uc-fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`
-          ).join('');
-        }
-      }
-    } catch (err) {
-      showToast(err.message || 'Could not save photo cost');
     } finally {
       if (btn) btn.disabled = false;
     }
@@ -2744,7 +2680,6 @@
     $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
-    $('uc-photo-cost-save')?.addEventListener('click', () => { savePhotoCost(); });
     $('uc-photo-sched-save')?.addEventListener('click', () => { schedulePhotographer(); });
     $('uc-photo-copy-url')?.addEventListener('click', () => { copyUploadUrl(); });
     $('uc-photo-copy-url-sms')?.addEventListener('click', () => { copyUploadUrl(); });
