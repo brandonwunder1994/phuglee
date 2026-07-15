@@ -1101,9 +1101,24 @@ R.stopServerStatusPolling = function stopServerStatusPolling() {
 
 R.isRawFetchTransportError = function isRawFetchTransportError(msg) {
   const m = String(msg || '').toLowerCase().trim();
-  return /^(typeerror: )?failed to fetch\.?$/.test(m)
-    || /^fetch failed/i.test(m)
-    || /networkerror|network error|connection refused|err_connection_refused|net::err_connection_refused/.test(m);
+  // Exact browser/Node fetch failures
+  if (/^(typeerror: )?failed to fetch\.?$/.test(m) || /^fetch failed\.?$/.test(m)) return true;
+  // Contained in wrappers: "Street View request failed (Failed to fetch)…"
+  if (/\bfailed to fetch\b/.test(m) || /\bfetch failed\b/.test(m)) return true;
+  return /networkerror|network error|connection refused|err_connection_refused|net::err_connection_refused|err_network|err_internet_disconnected|err_connection_reset|err_connection_timed_out|econnreset|socket hang up/.test(m);
+}
+
+/**
+ * Brief browser↔proxy blip under high concurrency — retry/defer, never Needs Review.
+ * Matches raw Failed to fetch and wrapped Street View / Satellite / Imagery / Gemini errors.
+ */
+R.isTransportBlipError = function isTransportBlipError(msg) {
+  const m = String(msg || '');
+  if (!m) return false;
+  if (isHardQuotaError?.(m)) return false;
+  if (isRawFetchTransportError(m)) return true;
+  return /(street view|satellite|imagery|gemini)\s+request failed/i.test(m)
+    && /failed to fetch|fetch failed|network|timed out|timeout|econnreset|socket hang up|connection/i.test(m);
 }
 
 R.isServerConnectionError = function isServerConnectionError(msg) {
@@ -1465,10 +1480,11 @@ R.countFailedResults = function countFailedResults() {
   }).length;
 }
 
-/** Transient 429/503 — defer/retry, do not treat as batch pressure or scan halt. */
+/** Transient 429/503 / transport blips — defer/retry, do not treat as batch pressure or scan halt. */
 R.isDeferrableRateLimitError = function isDeferrableRateLimitError(msg) {
   const m = String(msg || '');
   if (isHardQuotaError(m)) return false;
+  if (typeof isTransportBlipError === 'function' && isTransportBlipError(m)) return true;
   return isTransientError(m);
 };
 
@@ -1641,9 +1657,12 @@ R.isDiskSpaceError = function isDiskSpaceError(msg) {
 }
 
 R.isTransientError = function isTransientError(msg) {
-  if (isServerConnectionError(msg)) return false;
   if (isHardQuotaError(msg)) return false; // do not treat hard quota as "retry later"
   if (isDiskSpaceError(msg)) return true; // disk full is infra — cleanup + retry, not halt
+  // Transport blips retry like soft API pressure (was excluded and dumped into Needs Review).
+  if (typeof isTransportBlipError === 'function' ? isTransportBlipError(msg) : isRawFetchTransportError(msg)) {
+    return true;
+  }
   const m = String(msg || '').toLowerCase();
   return /503|429|high demand|overloaded|rate limit|too many requests|try again later|temporarily unavailable|econnreset|socket hang up|image fetch failed|bad json|invalid json|unterminated|invalid score/.test(m);
 }

@@ -1020,8 +1020,9 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       return { address: label, status: result.reason, streetViewUrl: urls.streetView, satelliteUrl: urls.satellite, score: result.score };
     } catch (err) {
       lastErr = err;
-      const maybeTransport = isServerConnectionError(err.message)
-        || /imagery request failed/i.test(String(err.message || ''));
+      const maybeTransport = (typeof isTransportBlipError === 'function' && isTransportBlipError(err.message))
+        || isServerConnectionError(err.message)
+        || /(street view|satellite|imagery|gemini)\s+request failed/i.test(String(err.message || ''));
       if (maybeTransport) {
         const st = await pingServerStatus();
         if (st) {
@@ -1033,6 +1034,8 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
             await sleep(2000 * attempt + Math.floor(Math.random() * 1500));
             continue;
           }
+          // Exhausted retries but proxy is up — defer this address; do NOT write Needs Review.
+          break;
         } else if (!state.serverStopAlertShown) {
           serverOnline = false;
           updateServerOfflineBanner();
@@ -1089,6 +1092,9 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
   }
   if (lastErr) {
     const deferDisk = isDiskSpaceError?.(lastErr.message) && deferQueue && !state.aborted;
+    const deferTransport = (typeof isTransportBlipError === 'function'
+      ? isTransportBlipError(lastErr.message)
+      : isServerConnectionError?.(lastErr.message)) && deferQueue && !state.aborted;
     const deferRate = isDeferrableRateLimitError?.(lastErr.message) && deferQueue && !state.aborted;
     if (deferDisk) {
       noteDiskSpaceError?.(lastErr.message);
@@ -1097,6 +1103,20 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       updateAgentSlot(workerNum, {
         active: false,
         status: 'Waiting — disk cleanup',
+        phase: 'idle',
+        address: ''
+      });
+      if (state.running) scheduleThrottledUi();
+      return null;
+    }
+    if (deferTransport) {
+      noteRateLimit(lastErr);
+      scaleDownWorkers?.('network blips under load', { hard: false });
+      deferQueue.push(record);
+      log(`⏸ ${label} — network blip; will retry this run (not marked Needs Review)`, 'warn');
+      updateAgentSlot(workerNum, {
+        active: false,
+        status: 'Waiting — network',
         phase: 'idle',
         address: ''
       });
@@ -1130,6 +1150,20 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       lastErr.message,
       { kind: 'quota' }
     );
+    return null;
+  }
+  // Network blips under high concurrency — leave unscanned (never dump into Needs Review).
+  if (lastErr && (typeof isTransportBlipError === 'function'
+    ? isTransportBlipError(lastErr.message)
+    : isServerConnectionError?.(lastErr.message))) {
+    updateAgentSlot(workerNum, {
+      active: false,
+      status: 'Paused — network',
+      phase: 'idle',
+      address: ''
+    });
+    log(`⏸ ${label} — network blip left unscanned for next Start Scan`, 'warn');
+    if (state.running) scheduleThrottledUi();
     return null;
   }
   const cat = categorizeError(lastErr?.message);
