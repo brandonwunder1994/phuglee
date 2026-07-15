@@ -1890,6 +1890,17 @@ R.showReviewOverlay = function showReviewOverlay() {
   document.body.classList.add('review-mode-active');
   document.body.style.overflow = 'hidden';
   updateReviewModeChrome();
+  // Pull focus out of dashboard search/settings so 1–7 shortcuts work immediately.
+  try {
+    const ae = document.activeElement;
+    if (ae && typeof ae.blur === 'function' && ae !== document.body) ae.blur();
+  } catch (_) {}
+  if (reviewModeInner) {
+    if (!reviewModeInner.hasAttribute('tabindex')) reviewModeInner.setAttribute('tabindex', '-1');
+    try { reviewModeInner.focus({ preventScroll: true }); } catch (_) {
+      try { reviewModeInner.focus(); } catch (__) {}
+    }
+  }
 }
 
 R.hideReviewOverlay = function hideReviewOverlay() {
@@ -2167,15 +2178,23 @@ document.addEventListener('click', (e) => {
   if (sidebarSettingsToggle) sidebarSettingsToggle.setAttribute('aria-expanded', 'false');
   if (sidebarManageDataToggle) sidebarManageDataToggle.setAttribute('aria-expanded', 'false');
 });
+R.focusReviewShortcuts = function focusReviewShortcuts() {
+  if (!state.reviewMode || !reviewModeInner) return;
+  if (!reviewModeInner.hasAttribute('tabindex')) reviewModeInner.setAttribute('tabindex', '-1');
+  try { reviewModeInner.focus({ preventScroll: true }); } catch (_) {
+    try { reviewModeInner.focus(); } catch (__) {}
+  }
+};
+
 reviewExitBtn?.addEventListener('click', () => closeReviewMode());
 reviewCompleteExitBtn?.addEventListener('click', () => closeReviewMode());
-reviewKeepBtn?.addEventListener('click', () => reviewKeep());
-reviewChangeBtn?.addEventListener('click', () => reviewApplyChange());
-reviewDeferBtn?.addEventListener('click', () => reviewDeferLater());
-reviewLandBtn?.addEventListener('click', () => reviewLandKeep());
-reviewBlurredBtn?.addEventListener('click', () => reviewApplyBlurred());
-reviewSatelliteOnlyBtn?.addEventListener('click', () => reviewApplySatelliteOnly());
-reviewUndoBtn?.addEventListener('click', () => reviewUndo());
+reviewKeepBtn?.addEventListener('click', () => { reviewKeep(); focusReviewShortcuts(); });
+reviewChangeBtn?.addEventListener('click', () => { void reviewApplyChange(); focusReviewShortcuts(); });
+reviewDeferBtn?.addEventListener('click', () => { reviewDeferLater(); focusReviewShortcuts(); });
+reviewLandBtn?.addEventListener('click', () => { reviewLandKeep(); focusReviewShortcuts(); });
+reviewBlurredBtn?.addEventListener('click', () => { reviewApplyBlurred(); focusReviewShortcuts(); });
+reviewSatelliteOnlyBtn?.addEventListener('click', () => { reviewApplySatelliteOnly(); focusReviewShortcuts(); });
+reviewUndoBtn?.addEventListener('click', () => { reviewUndo(); focusReviewShortcuts(); });
 reviewImages?.addEventListener('click', (e) => {
   const img = e.target.closest('img');
   if (!img?.src) return;
@@ -2263,51 +2282,58 @@ resultsLoadMoreBtn?.addEventListener('click', async () => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (reviewTierPickOverlay?.classList.contains('open')) {
+  const tierPickOpen = !!(reviewTierPickOverlay
+    && !reviewTierPickOverlay.hidden
+    && reviewTierPickOverlay.classList.contains('open'));
+  if (tierPickOpen) {
     if (e.key === 'Escape') {
       e.preventDefault();
       closeReviewTierPicker(null);
     }
     return;
   }
-  if (state.reviewMode && !e.target.matches('input, textarea, select')) {
+  if (state.reviewMode) {
+    // Number shortcuts must work even if focus was left on dashboard search/settings.
     if (e.key === 'Escape' && !imageLightbox.classList.contains('open')) {
+      e.preventDefault();
       closeReviewMode();
       return;
     }
     if (imageLightbox.classList.contains('open')) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+    const code = String(e.code || '');
+    const digit = (
+      /^Digit([1-7])$/.test(code) ? code.slice(5)
+        : /^Numpad([1-7])$/.test(code) ? code.slice(6)
+          : /^[1-7]$/.test(e.key) ? e.key
+            : ''
+    );
+    if (!digit) return;
+
+    e.preventDefault();
+    e.stopPropagation();
     const kind = getReviewKind();
-    if (e.key === '1') { e.preventDefault(); reviewKeep(); return; }
-    if (e.key === '2') { e.preventDefault(); reviewApplyChange(); return; }
-    if (e.key === '3') {
-      e.preventDefault();
+    if (digit === '1') { reviewKeep(); return; }
+    if (digit === '2') { void reviewApplyChange(); return; }
+    if (digit === '3') {
       if (kind === 'needs_review') reviewLandKeep();
       else if (kind === 'land') reviewUndo();
       return;
     }
-    if (e.key === '4') {
-      e.preventDefault();
+    if (digit === '4') {
       if (kind === 'needs_review' || kind === 'tier') reviewDeferLater();
       return;
     }
-    if (e.key === '5') {
-      e.preventDefault();
-      reviewApplyBlurred();
-      return;
-    }
-    if (e.key === '6') {
-      e.preventDefault();
+    if (digit === '5') { reviewApplyBlurred(); return; }
+    if (digit === '6') {
       if (kind === 'tier' || kind === 'needs_review' || kind === 'satellite_only') reviewUndo();
       return;
     }
-    if (e.key === '7') {
-      e.preventDefault();
-      reviewApplySatelliteOnly();
-      return;
-    }
+    if (digit === '7') { reviewApplySatelliteOnly(); return; }
     return;
   }
-  if (e.target.matches('input, textarea, select')) {
+  if (e.target.matches?.('input, textarea, select')) {
     if (e.key === '/' && e.target !== resultSearch) {
       e.preventDefault();
       resultSearch.focus();
@@ -2346,7 +2372,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     navigateProperty(-1);
   }
-});
+}, true);
 
 document.querySelectorAll('.view-btn').forEach(btn => {
   btn.addEventListener('click', () => setViewMode(btn.dataset.view));

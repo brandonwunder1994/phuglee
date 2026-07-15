@@ -43,7 +43,7 @@ async function main() {
   ok('html_imagery_tag', !!scriptMap.imagery, scriptMap.imagery || 'missing');
   ok('html_session_tag', !!scriptMap.session, scriptMap.session || 'missing');
   ok('html_state_tag', !!scriptMap.state, scriptMap.state || 'missing');
-  ok('html_cachebust_review_fast', /review-fast2/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
+  ok('html_cachebust_review_keys', /review-keys1/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
 
   async function assertServed(label, src, needles) {
     if (!src) {
@@ -66,7 +66,7 @@ async function main() {
   await assertServed('session.js', scriptMap.session, [
     'isReviewQueueStaleVsPending',
     'clearAllReviewProgressStashes',
-    'paint the next lead first'
+    'Number shortcuts must work even if focus'
   ]);
   await assertServed('state.js', scriptMap.state, [
     '_sessionResultsLoadPromise',
