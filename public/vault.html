@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/vault.css?v=16">
+  <link rel="stylesheet" href="/css/vault.css?v=17">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -80,6 +80,30 @@
             <button type="button" id="vault-signals-more" class="vault-text-btn" hidden>More signals</button>
           </div>
 
+          <details class="vault-more-filters" open>
+            <summary>Map radius</summary>
+            <label class="vault-field">
+              <span class="vault-field-label">Miles from</span>
+              <input type="search" id="vault-radius-address" class="phuglee-input" placeholder="Address or city…" autocomplete="off">
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">Radius (miles)</span>
+              <select id="vault-radius-miles" class="phuglee-select">
+                <option value="1">1 mile</option>
+                <option value="5" selected>5 miles</option>
+                <option value="10">10 miles</option>
+                <option value="25">25 miles</option>
+                <option value="50">50 miles</option>
+              </select>
+            </label>
+            <div class="vault-radius-actions">
+              <button type="button" id="vault-radius-apply" class="phuglee-btn phuglee-btn-secondary">Apply</button>
+              <button type="button" id="vault-near-me" class="phuglee-btn phuglee-btn-ghost">Near me</button>
+              <button type="button" id="vault-radius-clear" class="phuglee-btn phuglee-btn-ghost">Clear</button>
+            </div>
+            <p id="vault-radius-status" class="vault-field-hint" hidden></p>
+          </details>
+
           <details class="vault-more-filters">
             <summary>More filters</summary>
             <label class="vault-field">
@@ -141,6 +165,7 @@
               <div class="vault-view-toggle" role="group" aria-label="View mode">
                 <button type="button" class="vault-view-btn is-active" data-view="table" aria-pressed="true">Table</button>
                 <button type="button" class="vault-view-btn" data-view="cards" aria-pressed="false">Cards</button>
+                <button type="button" class="vault-view-btn" data-view="map" aria-pressed="false">Map</button>
               </div>
               <button type="button" id="vault-export-btn" class="phuglee-btn phuglee-btn-ghost vault-export-btn" disabled>Export</button>
             </div>
@@ -162,6 +187,10 @@
               <tbody id="vault-results-body"></tbody>
             </table>
             <div id="vault-cards" class="vault-cards" hidden></div>
+            <div id="vault-map-panel" class="vault-map-panel" hidden>
+              <div id="vault-map" class="vault-map" role="application" aria-label="Lead locations map"></div>
+              <p id="vault-map-hint" class="vault-map-hint">Click a pin to open the lead. Use Map radius filters for Near me or miles from an address.</p>
+            </div>
             <div id="vault-skeleton" class="vault-skeleton" hidden aria-hidden="true"></div>
             <div id="vault-empty" class="phuglee-empty-state" hidden>
               <p class="phuglee-empty-title">No leads match</p>
@@ -215,6 +244,6 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=14" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/vault-app.js?v=19" defer></script>
+  <script src="/js/vault-app.js?v=20" defer></script>
 </body>
 </html>

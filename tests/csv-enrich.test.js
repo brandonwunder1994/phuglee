@@ -101,8 +101,39 @@ test('isTruthyFlag parses sheet flags', () => {
   assert.equal(isTruthyFlag('0'), false);
 });
 
-test('parseCsv reads header without BOM issues', () => {
-  const { header, rows } = parseCsv('\uFEFFFirstName,PropertyAddress,PropertyCity,PropertyState\nA,1 St,Tyler,TX\n');
-  assert.equal(header[0], 'FirstName');
-  assert.equal(rows[0].PropertyCity, 'Tyler');
+test('canonicalizeRow maps spaced sheet headers to PropStream keys', () => {
+  const { canonicalizeRow, rowToEnrichment } = require('../lib/leads-platform/csv-enrich');
+  const row = canonicalizeRow({
+    'First Name': 'Ann',
+    'Last Name': 'Lee',
+    'Street Address': '123 Main St',
+    City: 'Tyler',
+    State: 'TX',
+    'Postal Code': '75701',
+    Latitude: '32.3',
+    Longitude: '-95.3',
+    Beds: '3',
+    'Air Condition': 'Central',
+    'High Equity': '1',
+    Vacancy: '0',
+    Phone: '2145551212',
+    Email: 'a@b.com',
+    'Mailing Address': 'PO Box 1',
+    'Mailing City': 'Tyler',
+    'Mailign State': 'TX',
+    'Mailing Postal Code': '75701',
+    AVM: '$250,000'
+  });
+  const enrichment = rowToEnrichment(row);
+  assert.equal(enrichment.address, '123 Main St');
+  assert.equal(enrichment.city, 'Tyler');
+  assert.equal(enrichment.lat, 32.3);
+  assert.equal(enrichment.lng, -95.3);
+  assert.equal(enrichment.propertyDetails.beds, 3);
+  assert.equal(enrichment.propertyDetails.airConditioning, 'Central');
+  assert.ok(enrichment.signalTags.includes('High equity'));
+  assert.equal(enrichment.signalTags.includes('Vacant'), false);
+  assert.deepEqual(enrichment.phones, ['2145551212']);
+  assert.equal(enrichment.email, 'a@b.com');
+  assert.ok(enrichment.mailingAddress.includes('PO Box 1'));
 });

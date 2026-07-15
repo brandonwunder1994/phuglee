@@ -1664,6 +1664,70 @@
   }
 }
 
+.vault-radius-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.vault-radius-actions .phuglee-btn {
+  min-height: 44px;
+  flex: 1 1 auto;
+}
+
+.vault-map-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: min(70vh, 36rem);
+  height: calc(100dvh - var(--distress-nav-offset, 56px) - 9.5rem);
+  border: 1px solid var(--vault-border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--vault-surface-raised);
+}
+
+.vault-map {
+  flex: 1 1 auto;
+  min-height: 18rem;
+  width: 100%;
+}
+
+.vault-map-hint {
+  margin: 0;
+  padding: 0.45rem 0.7rem;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--vault-muted);
+  border-top: 1px solid var(--vault-border);
+  background: var(--vault-surface);
+}
+
+.vault-map .maplibregl-popup-content {
+  padding: 0.55rem 0.7rem;
+  font-family: var(--font-body, Outfit, sans-serif);
+  font-size: 0.78rem;
+  color: #1a1a1a;
+  border-radius: 4px;
+}
+
+.vault-map .maplibregl-ctrl-group {
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .vault-map-panel {
+    height: min(62vh, 28rem);
+    min-height: 16rem;
+  }
+
+  .vault-radius-actions .phuglee-btn {
+    flex: 1 1 calc(50% - 0.35rem);
+  }
+}
+
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
   .vault-skeleton-row {

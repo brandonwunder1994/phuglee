@@ -46,7 +46,15 @@
     signalsExpanded: false,
     smartDefaults: true,
     focusRestoreEl: null,
-    toastTimer: null
+    toastTimer: null,
+    originLat: null,
+    originLng: null,
+    originLabel: '',
+    radiusMiles: 5,
+    mapMarkers: [],
+    mapInstance: null,
+    mapPopup: null,
+    mapLibReady: null
   };
 
   const $ = (id) => document.getElementById(id);
@@ -315,10 +323,23 @@
     if (state.favoritesOnly) params.set('favoritesOnly', '1');
     if (state.hasPhone) params.set('hasPhone', '1');
     if (state.hasImagery) params.set('hasImagery', '1');
+    if (state.originLat != null && state.originLng != null && state.radiusMiles > 0) {
+      params.set('originLat', String(state.originLat));
+      params.set('originLng', String(state.originLng));
+      params.set('radiusMiles', String(state.radiusMiles));
+    }
     params.set('page', String(state.page));
     params.set('sort', state.sort);
     params.set('sortDir', state.sortDir);
     state.signals.forEach((s) => params.append('signal', s));
+    return params.toString();
+  }
+
+  function buildMapQuery() {
+    const params = new URLSearchParams(buildQuery());
+    params.delete('page');
+    params.delete('sort');
+    params.delete('sortDir');
     return params.toString();
   }
 
@@ -490,10 +511,12 @@
     const sk = $('vault-skeleton');
     const table = $('vault-table');
     const cards = $('vault-cards');
+    const mapPanel = $('vault-map-panel');
     if (!sk) return;
     sk.hidden = false;
     if (table) table.hidden = true;
     if (cards) cards.hidden = true;
+    if (mapPanel) mapPanel.hidden = true;
     sk.innerHTML = Array.from({ length: 8 }, () =>
       '<div class="vault-skeleton-row"></div>'
     ).join('');
@@ -502,6 +525,425 @@
   function hideSkeleton() {
     const sk = $('vault-skeleton');
     if (sk) sk.hidden = true;
+  }
+
+  function loadStylesheet(href) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`link[href="${href}"]`)) {
+        resolve();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.onload = () => resolve();
+      link.onerror = () => reject(new Error(`css failed: ${href}`));
+      document.head.appendChild(link);
+    });
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      if (window.maplibregl) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`script failed: ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureMapLibre() {
+    if (window.maplibregl) return window.maplibregl;
+    if (state.mapLibReady) return state.mapLibReady;
+    state.mapLibReady = (async () => {
+      const cssUrls = [
+        '/forge/static/vendor/maplibre-gl.css',
+        'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'
+      ];
+      const jsUrls = [
+        '/forge/static/vendor/maplibre-gl.js',
+        'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'
+      ];
+      let cssOk = false;
+      for (const href of cssUrls) {
+        try {
+          await loadStylesheet(href);
+          cssOk = true;
+          break;
+        } catch (_) { /* try next */ }
+      }
+      if (!cssOk) throw new Error('Could not load map styles');
+      let jsOk = false;
+      for (const src of jsUrls) {
+        try {
+          await loadScript(src);
+          if (window.maplibregl) {
+            jsOk = true;
+            break;
+          }
+        } catch (_) { /* try next */ }
+      }
+      if (!jsOk || !window.maplibregl) throw new Error('Could not load map engine');
+      return window.maplibregl;
+    })();
+    return state.mapLibReady;
+  }
+
+  function vaultMapStyle() {
+    return {
+      version: 8,
+      sources: {
+        carto: {
+          type: 'raster',
+          tiles: [
+            'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+          ],
+          tileSize: 256,
+          attribution: '&copy; OpenStreetMap &copy; CARTO'
+        }
+      },
+      layers: [{ id: 'carto', type: 'raster', source: 'carto' }]
+    };
+  }
+
+  function circleRing(lat, lng, miles, steps = 64) {
+    const coords = [];
+    const R = 3958.7613;
+    const latR = (lat * Math.PI) / 180;
+    for (let i = 0; i <= steps; i++) {
+      const brng = (2 * Math.PI * i) / steps;
+      const lat2 = Math.asin(
+        Math.sin(latR) * Math.cos(miles / R)
+        + Math.cos(latR) * Math.sin(miles / R) * Math.cos(brng)
+      );
+      const lng2 = ((lng * Math.PI) / 180) + Math.atan2(
+        Math.sin(brng) * Math.sin(miles / R) * Math.cos(latR),
+        Math.cos(miles / R) - Math.sin(latR) * Math.sin(lat2)
+      );
+      coords.push([(lng2 * 180) / Math.PI, (lat2 * 180) / Math.PI]);
+    }
+    return coords;
+  }
+
+  function markersToGeoJson(markers) {
+    return {
+      type: 'FeatureCollection',
+      features: (markers || []).map((m) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [m.lng, m.lat] },
+        properties: {
+          leadId: m.leadId,
+          address: m.address || '',
+          city: m.city || '',
+          state: m.state || '',
+          priorityScore: m.priorityScore || 0,
+          topSignal: m.topSignal || ''
+        }
+      }))
+    };
+  }
+
+  function radiusGeoJson() {
+    if (state.originLat == null || state.originLng == null || !(state.radiusMiles > 0)) {
+      return { type: 'FeatureCollection', features: [] };
+    }
+    return {
+      type: 'FeatureCollection',
+      features: [{
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [circleRing(state.originLat, state.originLng, state.radiusMiles)]
+        },
+        properties: {}
+      }]
+    };
+  }
+
+  async function ensureMapInstance() {
+    const maplibregl = await ensureMapLibre();
+    const el = $('vault-map');
+    if (!el) throw new Error('Map container missing');
+    if (state.mapInstance) {
+      state.mapInstance.resize();
+      return state.mapInstance;
+    }
+
+    const map = new maplibregl.Map({
+      container: el,
+      style: vaultMapStyle(),
+      center: [-97.5, 31.5],
+      zoom: 5.2,
+      attributionControl: true
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    state.mapPopup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: 10,
+      maxWidth: '220px'
+    });
+
+    map.on('load', () => {
+      map.addSource('vault-leads', {
+        type: 'geojson',
+        data: markersToGeoJson([])
+      });
+      map.addSource('vault-radius', {
+        type: 'geojson',
+        data: radiusGeoJson()
+      });
+      map.addLayer({
+        id: 'vault-radius-fill',
+        type: 'fill',
+        source: 'vault-radius',
+        paint: {
+          'fill-color': '#eeb746',
+          'fill-opacity': 0.12
+        }
+      });
+      map.addLayer({
+        id: 'vault-radius-line',
+        type: 'line',
+        source: 'vault-radius',
+        paint: {
+          'line-color': '#eeb746',
+          'line-width': 2,
+          'line-opacity': 0.7
+        }
+      });
+      map.addLayer({
+        id: 'vault-leads-circle',
+        type: 'circle',
+        source: 'vault-leads',
+        paint: {
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            4, 3,
+            10, 6,
+            14, 9
+          ],
+          'circle-color': '#e58435',
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#1a1a1a',
+          'circle-opacity': 0.92
+        }
+      });
+    });
+
+    map.on('mouseenter', 'vault-leads-circle', (e) => {
+      map.getCanvas().style.cursor = 'pointer';
+      const f = e.features && e.features[0];
+      if (!f || !state.mapPopup) return;
+      const p = f.properties || {};
+      state.mapPopup
+        .setLngLat(f.geometry.coordinates)
+        .setHTML(
+          `<strong>${esc(p.address || 'Lead')}</strong><br>`
+          + `${esc(p.city || '')}${p.city && p.state ? ', ' : ''}${esc(p.state || '')}`
+          + (p.priorityScore != null ? `<br>Score ${esc(String(p.priorityScore))}` : '')
+        )
+        .addTo(map);
+    });
+    map.on('mouseleave', 'vault-leads-circle', () => {
+      map.getCanvas().style.cursor = '';
+      state.mapPopup?.remove();
+    });
+    map.on('click', 'vault-leads-circle', (e) => {
+      const f = e.features && e.features[0];
+      const leadId = f && f.properties && f.properties.leadId;
+      if (leadId) openDrawer(leadId);
+    });
+
+    state.mapInstance = map;
+    return map;
+  }
+
+  function fitMapToMarkers(markers) {
+    const map = state.mapInstance;
+    if (!map || !window.maplibregl) return;
+    if (state.originLat != null && state.originLng != null && state.radiusMiles > 0) {
+      const ring = circleRing(state.originLat, state.originLng, state.radiusMiles);
+      const bounds = ring.reduce(
+        (b, c) => b.extend(c),
+        new window.maplibregl.LngLatBounds(ring[0], ring[0])
+      );
+      map.fitBounds(bounds, { padding: 48, maxZoom: 12, duration: 500 });
+      return;
+    }
+    if (!markers.length) return;
+    if (markers.length === 1) {
+      map.easeTo({ center: [markers[0].lng, markers[0].lat], zoom: 13, duration: 500 });
+      return;
+    }
+    const bounds = markers.reduce(
+      (b, m) => b.extend([m.lng, m.lat]),
+      new window.maplibregl.LngLatBounds([markers[0].lng, markers[0].lat], [markers[0].lng, markers[0].lat])
+    );
+    map.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 600 });
+  }
+
+  function paintMapData(markers) {
+    const map = state.mapInstance;
+    if (!map) return;
+    const apply = () => {
+      const leadsSrc = map.getSource('vault-leads');
+      const radiusSrc = map.getSource('vault-radius');
+      if (leadsSrc) leadsSrc.setData(markersToGeoJson(markers));
+      if (radiusSrc) radiusSrc.setData(radiusGeoJson());
+      fitMapToMarkers(markers);
+    };
+    if (map.isStyleLoaded() && map.getSource('vault-leads')) apply();
+    else map.once('load', apply);
+  }
+
+  function updateRadiusStatus() {
+    const el = $('vault-radius-status');
+    if (!el) return;
+    if (state.originLat == null || state.originLng == null) {
+      el.hidden = true;
+      el.textContent = '';
+      return;
+    }
+    const label = state.originLabel || `${state.originLat.toFixed(4)}, ${state.originLng.toFixed(4)}`;
+    el.hidden = false;
+    el.textContent = `Within ${state.radiusMiles} mi of ${label}`;
+  }
+
+  async function setRadiusOrigin(lat, lng, label) {
+    state.originLat = Number(lat);
+    state.originLng = Number(lng);
+    state.originLabel = label || '';
+    const milesSel = $('vault-radius-miles');
+    state.radiusMiles = Number(milesSel?.value || state.radiusMiles || 5) || 5;
+    updateRadiusStatus();
+    state.page = 1;
+    state.leads = [];
+    await refreshCurrentView();
+  }
+
+  function clearRadiusOrigin() {
+    state.originLat = null;
+    state.originLng = null;
+    state.originLabel = '';
+    updateRadiusStatus();
+    state.page = 1;
+    state.leads = [];
+    refreshCurrentView();
+  }
+
+  async function applyRadiusFromAddress() {
+    const input = $('vault-radius-address');
+    const q = (input?.value || '').trim();
+    const milesSel = $('vault-radius-miles');
+    state.radiusMiles = Number(milesSel?.value || 5) || 5;
+    if (q.length < 3) {
+      showToast('Enter an address (3+ characters)');
+      input?.focus();
+      return;
+    }
+    try {
+      showToast('Looking up address…');
+      const data = await fetchJson(`/api/leads/geocode?q=${encodeURIComponent(q)}`);
+      await setRadiusOrigin(data.lat, data.lng, data.label || q);
+      if (state.viewMode !== 'map') {
+        state.viewModeManual = true;
+        state.viewMode = 'map';
+        updateViewToggle();
+      }
+      showToast(`Showing leads within ${state.radiusMiles} miles`);
+    } catch (err) {
+      showToast(err.message || 'Address not found');
+    }
+  }
+
+  async function applyNearMe() {
+    if (!navigator.geolocation) {
+      showToast('GPS not available in this browser');
+      return;
+    }
+    const milesSel = $('vault-radius-miles');
+    state.radiusMiles = Number(milesSel?.value || 5) || 5;
+    showToast('Getting your location…');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          await setRadiusOrigin(
+            pos.coords.latitude,
+            pos.coords.longitude,
+            'Near me'
+          );
+          if (state.viewMode !== 'map') {
+            state.viewModeManual = true;
+            state.viewMode = 'map';
+            updateViewToggle();
+          }
+          showToast(`Showing leads within ${state.radiusMiles} miles of you`);
+        } catch (err) {
+          showToast(err.message || 'Could not apply Near me');
+        }
+      },
+      (err) => {
+        const msg = err && err.code === 1
+          ? 'Location permission denied'
+          : 'Could not get GPS location';
+        showToast(msg);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+    );
+  }
+
+  async function loadMapMarkers() {
+    state.loading = true;
+    showSkeleton();
+    try {
+      await ensureMapInstance();
+      const data = await fetchJson(`/api/leads/map?${buildMapQuery()}`);
+      state.mapMarkers = data.markers || [];
+      state.total = data.total || state.mapMarkers.length;
+      state.totalPages = 1;
+      hideSkeleton();
+      renderMap();
+      renderPagination();
+      renderResultsMeta();
+      paintMapData(state.mapMarkers);
+    } catch (err) {
+      hideSkeleton();
+      showToast(err.message || 'Map failed to load');
+      const empty = $('vault-empty');
+      if (empty) {
+        empty.hidden = false;
+        empty.querySelector('.phuglee-empty-title').textContent = 'Map unavailable';
+        empty.querySelector('.phuglee-empty-copy').textContent = err.message || 'Try again in a moment.';
+      }
+    } finally {
+      state.loading = false;
+    }
+  }
+
+  function renderMap() {
+    const table = $('vault-table');
+    const cards = $('vault-cards');
+    const mapPanel = $('vault-map-panel');
+    const empty = $('vault-empty');
+    if (table) table.hidden = true;
+    if (cards) cards.hidden = true;
+    if (mapPanel) mapPanel.hidden = false;
+    if (empty) empty.hidden = state.mapMarkers.length > 0;
+    updateViewToggle();
+    requestAnimationFrame(() => {
+      state.mapInstance?.resize();
+    });
+  }
+
+  async function refreshCurrentView() {
+    if (state.viewMode === 'map') return loadMapMarkers();
+    return loadLeads();
   }
 
   async function loadLeads(opts = {}) {
@@ -573,11 +1015,24 @@
     const empty = $('vault-empty');
     const table = $('vault-table');
     const cards = $('vault-cards');
+    const mapPanel = $('vault-map-panel');
     if (!body) return;
+
+    if (mapPanel) mapPanel.hidden = true;
 
     if (!state.leads.length) {
       body.innerHTML = '';
-      if (empty) empty.hidden = false;
+      if (empty) {
+        empty.hidden = false;
+        const title = empty.querySelector('.phuglee-empty-title');
+        const copy = empty.querySelector('.phuglee-empty-copy');
+        if (title) title.textContent = 'No leads match';
+        if (copy) {
+          copy.textContent = state.originLat != null
+            ? 'No leads in this radius. Widen miles or clear the radius filter.'
+            : 'Clear filters or finish reviewing leads in Analyze, then refresh.';
+        }
+      }
       if (table) table.hidden = true;
       if (cards) cards.hidden = true;
       updateExportButton();
@@ -659,12 +1114,28 @@
   }
 
   function renderResults() {
+    if (state.viewMode === 'map') {
+      renderMap();
+      return;
+    }
     renderTable();
   }
 
   function renderResultsMeta() {
     const el = $('vault-results-meta');
     if (!el) return;
+    if (state.viewMode === 'map') {
+      const n = state.mapMarkers.length;
+      const radiusNote = state.originLat != null
+        ? ` within ${state.radiusMiles} mi`
+        : '';
+      el.textContent = n
+        ? `${n.toLocaleString()} mapped leads${radiusNote}`
+        : (state.originLat != null
+          ? 'No mapped leads in this radius'
+          : 'No mapped leads match');
+      return;
+    }
     const shown = state.leads.length;
     const start = state.total ? (state.page - 1) * 50 + 1 : 0;
     const end = state.total ? Math.min((state.page - 1) * 50 + shown, state.total) : 0;
@@ -682,6 +1153,10 @@
   function renderPagination() {
     const nav = $('vault-pagination');
     if (!nav) return;
+    if (state.viewMode === 'map') {
+      nav.innerHTML = '';
+      return;
+    }
     if (state.viewMode === 'cards' || state.totalPages <= 1) {
       nav.innerHTML = state.viewMode === 'cards' && state.page < state.totalPages
         ? '<span class="vault-page-label">Scroll down to load more</span>'
@@ -730,14 +1205,15 @@
 
   function applyAutoViewMode() {
     const narrow = window.innerWidth < CARD_BREAKPOINT;
-    // Phone: always cards (thumb-first). Manual toggle only applies ≥641px.
+    // Phone: cards by default. Manual Map (or table) toggle sticks until cleared.
     if (narrow) {
+      if (state.viewModeManual && (state.viewMode === 'map' || state.viewMode === 'table')) return;
       if (state.viewMode === 'cards') return;
       state.viewMode = 'cards';
       state.page = 1;
       state.leads = [];
       updateViewToggle();
-      loadLeads();
+      refreshCurrentView();
       return;
     }
     if (state.viewModeManual) return;
@@ -747,7 +1223,7 @@
     state.page = 1;
     state.leads = [];
     updateViewToggle();
-    loadLeads();
+    refreshCurrentView();
   }
 
   function activeLeadIndex() {
