@@ -131,6 +131,11 @@ R.prefetchRemainingReviewQueueResults = async function prefetchRemainingReviewQu
   let offset = Math.max(0, Number(startOffset) || 0);
   const limit = Math.min(1000, Math.max(50, Number(pageSize) || 300));
   while (state.reviewMode && state.reviewFilter === filter) {
+    // If the operator is racing ahead of the lean window, jump to their cursor page first.
+    const cursor = Number(state.reviewIndex) || 0;
+    if (cursor > offset + Math.floor(limit * 0.6)) {
+      offset = Math.floor(cursor / limit) * limit;
+    }
     let body;
     try {
       body = await fetchSessionReviewQueue(filter, { offset, limit });
@@ -139,13 +144,54 @@ R.prefetchRemainingReviewQueueResults = async function prefetchRemainingReviewQu
       break;
     }
     const rows = body?.results || [];
-    if (rows.length) mergeReviewQueueResults(rows);
+    if (rows.length) {
+      mergeReviewQueueResults(rows);
+      // Warm imagery for the just-hydrated window immediately (not idle-only).
+      try {
+        prefetchReviewQueueImages(offset, Math.min(rows.length, REVIEW_PREFETCH_AHEAD || 14));
+      } catch (_) {}
+    }
     if (!body?.hasMoreResults || !rows.length) break;
     offset += rows.length;
     await new Promise((r) => setTimeout(r, 0));
   }
   // Keep warming imagery as more rows land
   if (state.reviewMode && state.reviewFilter === filter) warmReviewImagery?.();
+};
+
+/** Fetch the lean page covering a queue index when findResultByKey misses (fast Keep past first page). */
+R._reviewLeanAroundInFlight = null;
+R.ensureReviewLeanAround = function ensureReviewLeanAround(index) {
+  const filter = state.reviewFilter;
+  const key = state.reviewQueue[index];
+  if (!key || !filter || !USE_PROXY) return Promise.resolve(null);
+  const existing = findResultByKey(key);
+  if (existing) return Promise.resolve(existing);
+
+  const pageSize = 300;
+  const offset = Math.max(0, Math.floor(Math.max(0, index) / pageSize) * pageSize);
+  const flightKey = `${filter}:${offset}`;
+  if (R._reviewLeanAroundInFlight?.key === flightKey) {
+    return R._reviewLeanAroundInFlight.promise;
+  }
+  const promise = fetchSessionReviewQueue(filter, { offset, limit: pageSize })
+    .then((body) => {
+      const rows = body?.results || [];
+      if (rows.length) mergeReviewQueueResults(rows);
+      try {
+        prefetchReviewQueueImages(offset, Math.min(rows.length || 0, REVIEW_PREFETCH_AHEAD || 14));
+      } catch (_) {}
+      return findResultByKey(key);
+    })
+    .catch((e) => {
+      console.warn('[review] ensure lean around failed', e);
+      return null;
+    })
+    .finally(() => {
+      if (R._reviewLeanAroundInFlight?.key === flightKey) R._reviewLeanAroundInFlight = null;
+    });
+  R._reviewLeanAroundInFlight = { key: flightKey, promise };
+  return promise;
 };
 
 R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
@@ -196,15 +242,41 @@ R.prefetchReviewImageUrlsForRecord = function prefetchReviewImageUrlsForRecord(r
 
 R.prefetchReviewQueueImages = function prefetchReviewQueueImages(fromIndex = state.reviewIndex, count = REVIEW_PREFETCH_AHEAD) {
   const ahead = Math.max(0, Number(count) || REVIEW_PREFETCH_AHEAD);
+  let missing = 0;
   for (let i = 0; i <= ahead; i++) {
-    const key = state.reviewQueue[fromIndex + i];
+    const idx = fromIndex + i;
+    const key = state.reviewQueue[idx];
     if (!key) break;
-    prefetchReviewImageUrlsForRecord(findResultByKey(key));
+    const r = findResultByKey(key);
+    if (r) prefetchReviewImageUrlsForRecord(r);
+    else if (++missing === 1 && typeof ensureReviewLeanAround === 'function') {
+      // Kick one lean page fetch for the first hole — don't stampede the API.
+      void ensureReviewLeanAround(idx);
+    }
   }
 }
 
 R.prefetchUpcomingReviewImages = function prefetchUpcomingReviewImages(fromIndex = state.reviewIndex) {
   prefetchReviewQueueImages(fromIndex, REVIEW_PREFETCH_AHEAD);
+}
+
+/** Immediate urgent prefetch + idle fill — idle-only stalls when hammering Keep. */
+R.prefetchReviewAheadNow = function prefetchReviewAheadNow(fromIndex = state.reviewIndex + 1) {
+  const urgent = Math.max(1, Number(REVIEW_PREFETCH_URGENT) || 4);
+  const total = Math.max(urgent, Number(REVIEW_PREFETCH_AHEAD) || 14);
+  try {
+    prefetchReviewQueueImages(fromIndex, urgent);
+  } catch (_) {}
+  const rest = Math.max(0, total - urgent);
+  if (!rest) return;
+  const fill = () => {
+    try { prefetchReviewQueueImages(fromIndex + urgent, rest); } catch (_) {}
+  };
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(fill, { timeout: 350 });
+  } else {
+    setTimeout(fill, 0);
+  }
 }
 
 R.scheduleLearnedBrainSave = function scheduleLearnedBrainSave() {
@@ -659,6 +731,8 @@ R.renderReviewLead = function renderReviewLead() {
     while (state.reviewIndex < state.reviewQueue.length && skipped < skipBatchMax) {
       const key = state.reviewQueue[state.reviewIndex];
       const r = key ? findResultByKey(key) : null;
+      // Missing lean row ≠ done — hydrate it; do not leap past (causes stalls / false complete).
+      if (!r && key) break;
       const stillPending = r
         && matchesReviewFilter(r, state.reviewFilter)
         && !isExcludedFromAllReviewQueues(r, key, state.reviewFilter)
@@ -681,7 +755,26 @@ R.renderReviewLead = function renderReviewLead() {
     }
   }
 
-  const r = getReviewRecord();
+  const queueKey = state.reviewQueue[state.reviewIndex];
+  let r = getReviewRecord();
+  if (!r && queueKey) {
+    // Lean page hasn't landed yet — show a soft loading state and hydrate, then re-render.
+    if (reviewMetaName) reviewMetaName.textContent = 'Loading next lead…';
+    if (reviewMetaStreet) reviewMetaStreet.textContent = '';
+    if (reviewProgress) {
+      const pos = state.reviewIndex + 1;
+      const total = state.reviewQueue.length;
+      reviewProgress.textContent = reviewProgressLabel(pos, total);
+    }
+    reviewImages?.classList.add('loading');
+    void ensureReviewLeanAround(state.reviewIndex).then((row) => {
+      if (!state.reviewMode) return;
+      if (state.reviewQueue[state.reviewIndex] !== queueKey) return;
+      if (row || findResultByKey(queueKey)) renderReviewLead();
+    });
+    prefetchReviewAheadNow(state.reviewIndex + 1);
+    return;
+  }
   if (!r) {
     showReviewComplete();
     return;
@@ -694,13 +787,8 @@ R.renderReviewLead = function renderReviewLead() {
   if (reviewMetaName) reviewMetaName.innerHTML = propertyTitleHtml(r);
   if (reviewMetaStreet) reviewMetaStreet.textContent = propertyStreetLine(r);
   setReviewImages({ ...urls, fromCache: !!(urls.fromCache || prefetched) });
-  // Prefetch ahead off the critical path so Keep stays snappy.
-  const prefetchFrom = state.reviewIndex + 1;
-  if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(() => prefetchReviewQueueImages(prefetchFrom, REVIEW_PREFETCH_AHEAD), { timeout: 800 });
-  } else {
-    setTimeout(() => prefetchReviewQueueImages(prefetchFrom, REVIEW_PREFETCH_AHEAD), 0);
-  }
+  // Warm next leads immediately — idle-only prefetch stalls when hammering Keep.
+  prefetchReviewAheadNow(state.reviewIndex + 1);
 
   const pos = state.reviewIndex + 1;
   const total = state.reviewQueue.length;
@@ -772,21 +860,27 @@ R.reviewAdvance = function reviewAdvance(via = 'review_keep', opts = {}) {
   if (via === 'review_keep' && r && key) {
     pushReviewUndo(key, snapshotRecordForUndo(r), { action: 'keep', queueIndex: state.reviewIndex });
   }
-  if (via !== 'review_defer' && key) {
-    const idx = typeof ensureResultKeyIndex === 'function'
-      ? ensureResultKeyIndex().get(key)
-      : state.results.findIndex(x => recordKey(x) === key);
-    if (idx != null && idx >= 0) {
-      state.results[idx] = finalizeReviewClassification(state.results[idx]);
-      if (typeof notifyResultMutation === 'function') {
-        notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: false });
-      }
-    }
-  }
-  // Stamp reviewed + paint next lead before any Vault/KPI/training work.
+  // Stamp reviewed + paint next lead before finalize / Vault / KPI / training work.
   markReviewedKey(state.reviewFilter, key, via, { deferHeavy: true });
   state.reviewIndex++;
   renderReviewLead();
+  if (via !== 'review_defer' && key) {
+    const runFinalize = () => {
+      try {
+        const idx = typeof ensureResultKeyIndex === 'function'
+          ? ensureResultKeyIndex().get(key)
+          : state.results.findIndex(x => recordKey(x) === key);
+        if (idx != null && idx >= 0) {
+          state.results[idx] = finalizeReviewClassification(state.results[idx]);
+          if (typeof notifyResultMutation === 'function') {
+            notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: false });
+          }
+        }
+      } catch (_) {}
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(runFinalize);
+    else setTimeout(runFinalize, 0);
+  }
   deferReviewAdvanceSideEffects(key, via, opts);
 }
 
@@ -995,13 +1089,22 @@ R.reviewKeep = function reviewKeep() {
     return;
   }
   const r = getReviewRecord();
-  const trained = reviewRecordAffirmation(r);
   state.reviewStats.kept++;
-  if (trained) {
-    scheduleLearnedBrainSave();
-    log(`✓ Kept ${leadTierLabel(resultLeadTier(r))} — brain training signal queued`, 'success');
-  }
+  // Paint next lead first — affirmation / log are deferred so rapid Keep never hitch-stalls.
   reviewAdvance('review_keep');
+  if (r) {
+    const runTraining = () => {
+      try {
+        const trained = reviewRecordAffirmation(r);
+        if (trained) {
+          scheduleLearnedBrainSave();
+          log(`✓ Kept ${leadTierLabel(resultLeadTier(r))} — brain training signal queued`, 'success');
+        }
+      } catch (_) {}
+    };
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(runTraining);
+    else setTimeout(runTraining, 0);
+  }
 }
 
 R.reviewApplyHome = async function reviewApplyHome() {

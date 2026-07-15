@@ -597,35 +597,42 @@ R.countReviewedKeysInPayload = function countReviewedKeysInPayload(buckets) {
 }
 
 R.buildReviewMetadataPayload = function buildReviewMetadataPayload() {
-  const patches = [];
-  for (const r of state.results) {
-    if (!r.manuallyReviewed && !r.reviewResolved && !r.manualOverride && !r.manualScore && !r.needsReviewLater && !r.satelliteOnly) continue;
-    patches.push({
-      email: r.email,
-      phone: r.phone,
-      address: r.address,
-      manuallyReviewed: r.manuallyReviewed,
-      manuallyReviewedAt: r.manuallyReviewedAt,
-      manuallyReviewedVia: r.manuallyReviewedVia,
-      reviewResolved: r.reviewResolved,
-      needsReview: r.needsReview,
-      needsReviewLater: r.needsReviewLater,
-      satelliteOnly: !!r.satelliteOnly,
-      landHomeConflict: r.landHomeConflict,
-      satelliteConflict: r.satelliteConflict,
-      manualOverride: r.manualOverride,
-      manualScore: r.manualScore,
-      tierLocked: r.tierLocked,
-      category: r.category,
-      leadTier: r.leadTier,
-      score: r.score,
-      structureOnLot: r.structureOnLot,
-      confidence: r.confidence,
-      imageryQuality: r.imageryQuality,
-      reason: r.reason,
-      analyzedAt: r.analyzedAt,
-      manualEditedAt: r.manualEditedAt
-    });
+  // Prefer incremental session patches (fast) — avoid scanning all ~16k results mid-review.
+  const pending = state._pendingReviewPatches;
+  let patches;
+  if (pending && pending.size) {
+    patches = Array.from(pending.values());
+  } else {
+    patches = [];
+    for (const r of state.results) {
+      if (!r.manuallyReviewed && !r.reviewResolved && !r.manualOverride && !r.manualScore && !r.needsReviewLater && !r.satelliteOnly) continue;
+      patches.push({
+        email: r.email,
+        phone: r.phone,
+        address: r.address,
+        manuallyReviewed: r.manuallyReviewed,
+        manuallyReviewedAt: r.manuallyReviewedAt,
+        manuallyReviewedVia: r.manuallyReviewedVia,
+        reviewResolved: r.reviewResolved,
+        needsReview: r.needsReview,
+        needsReviewLater: r.needsReviewLater,
+        satelliteOnly: !!r.satelliteOnly,
+        landHomeConflict: r.landHomeConflict,
+        satelliteConflict: r.satelliteConflict,
+        manualOverride: r.manualOverride,
+        manualScore: r.manualScore,
+        tierLocked: r.tierLocked,
+        category: r.category,
+        leadTier: r.leadTier,
+        score: r.score,
+        structureOnLot: r.structureOnLot,
+        confidence: r.confidence,
+        imageryQuality: r.imageryQuality,
+        reason: r.reason,
+        analyzedAt: r.analyzedAt,
+        manualEditedAt: r.manualEditedAt
+      });
+    }
   }
   return {
     partialReviewSync: true,
@@ -674,6 +681,9 @@ R.flushReviewMetadataToServer = async function flushReviewMetadataToServer(reaso
   }
   reviewMetadataSaveInFlight = true;
   try {
+    const flushedKeys = state._pendingReviewPatches?.size
+      ? Array.from(state._pendingReviewPatches.keys())
+      : [];
     const payload = buildReviewMetadataPayload();
     const json = JSON.stringify(payload);
     const reasonParam = encodeURIComponent(reason || 'review-metadata');
@@ -691,6 +701,10 @@ R.flushReviewMetadataToServer = async function flushReviewMetadataToServer(reaso
       pendingServerSave = false;
       lastSessionSaveRejected = false;
       lastSessionSaveAt = payload.savedAt;
+      // Only drop keys that were in this payload — Keeps during the request stay queued.
+      if (flushedKeys.length && state._pendingReviewPatches) {
+        for (const k of flushedKeys) state._pendingReviewPatches.delete(k);
+      }
       updateSessionSaveStatus();
     } else if (!interpreted.rejected) {
       console.warn('[Review metadata save]', interpreted.error || 'failed');

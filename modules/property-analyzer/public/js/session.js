@@ -1630,22 +1630,56 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review', opts =
   }
   sessionDirty = true;
 
+  // Incremental patch list for fast mid-review saves (avoids 16k scan hitch).
+  const stampedNow = idx != null && idx >= 0 ? state.results[idx] : null;
+  if (stampedNow && key) {
+    if (!state._pendingReviewPatches) state._pendingReviewPatches = new Map();
+    state._pendingReviewPatches.set(key, {
+      email: stampedNow.email,
+      phone: stampedNow.phone,
+      address: stampedNow.address,
+      manuallyReviewed: true,
+      manuallyReviewedAt: stampedNow.manuallyReviewedAt || Date.now(),
+      manuallyReviewedVia: via,
+      reviewResolved: !!stampedNow.reviewResolved,
+      needsReview: stampedNow.needsReview,
+      needsReviewLater: !!stampedNow.needsReviewLater,
+      satelliteOnly: !!stampedNow.satelliteOnly,
+      landHomeConflict: stampedNow.landHomeConflict,
+      satelliteConflict: stampedNow.satelliteConflict,
+      manualOverride: stampedNow.manualOverride,
+      manualScore: stampedNow.manualScore,
+      tierLocked: stampedNow.tierLocked,
+      category: stampedNow.category,
+      leadTier: stampedNow.leadTier,
+      score: stampedNow.score,
+      structureOnLot: stampedNow.structureOnLot,
+      confidence: stampedNow.confidence,
+      imageryQuality: stampedNow.imageryQuality,
+      reason: stampedNow.reason,
+      analyzedAt: stampedNow.analyzedAt,
+      manualEditedAt: stampedNow.manualEditedAt
+    });
+  }
+
   // During Review Keep/Change: paint the next lead first. Heavy KPI / Vault work is deferred.
   const deferHeavy = opts.deferHeavy !== false && !!state.reviewMode;
   if (deferHeavy) {
     if (typeof notifyResultMutation === 'function') {
       notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: false });
     }
-    const stamped = idx != null && idx >= 0 ? state.results[idx] : null;
-    const runHeavy = () => {
-      if (stamped && typeof publishReviewedLeadToVault === 'function') {
+    const stamped = stampedNow;
+    if (stamped && typeof enqueueVaultPublish === 'function') {
+      enqueueVaultPublish(stamped, via);
+    } else if (stamped && typeof publishReviewedLeadToVault === 'function') {
+      const runHeavy = () => {
         try { publishReviewedLeadToVault(stamped, via); } catch (err) {
           console.warn('[Vault] publish on review failed', err);
         }
-      }
-    };
-    if (typeof requestIdleCallback === 'function') requestIdleCallback(runHeavy, { timeout: 1200 });
-    else setTimeout(runHeavy, 0);
+      };
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(runHeavy, { timeout: 2000 });
+      else setTimeout(runHeavy, 50);
+    }
     return;
   }
 
@@ -1666,10 +1700,50 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review', opts =
 }
 
 /** Push a Keep/Change decision into The Vault catalog (admin). */
-R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via = 'review_keep') {
+R._vaultPublishQueue = [];
+R._vaultPublishBusy = false;
+
+R.enqueueVaultPublish = function enqueueVaultPublish(result, via = 'review_keep') {
   if (!result) return;
+  R._vaultPublishQueue.push({ result, via });
+  // Cap queue so rapid Keep doesn't pile hundreds of network jobs ahead of imagery.
+  if (R._vaultPublishQueue.length > 40) {
+    R._vaultPublishQueue.splice(0, R._vaultPublishQueue.length - 40);
+  }
+  drainVaultPublishQueue();
+};
+
+R.drainVaultPublishQueue = function drainVaultPublishQueue() {
+  if (R._vaultPublishBusy) return;
+  const next = R._vaultPublishQueue.shift();
+  if (!next) return;
+  R._vaultPublishBusy = true;
+  const done = () => {
+    R._vaultPublishBusy = false;
+    // Yield to Street View while Review imagery is still loading or operator is mid-burst.
+    let delay = 0;
+    if (state.reviewMode) {
+      const imgBusy = !!(R.reviewImages?.classList?.contains('loading'));
+      delay = imgBusy ? 220 : 90;
+    }
+    setTimeout(() => drainVaultPublishQueue(), delay);
+  };
+  try {
+    const p = publishReviewedLeadToVault(next.result, next.via);
+    if (p && typeof p.then === 'function') p.finally(done);
+    else done();
+  } catch (err) {
+    console.warn('[Vault] enqueue publish failed', err);
+    done();
+  }
+};
+
+R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via = 'review_keep') {
+  if (!result) return Promise.resolve({ ok: false, skipped: true });
   const tier = String(result.leadTier || '').toLowerCase().replace(/-/g, '_');
-  if (!['distressed', 'well_maintained', 'vacant'].includes(tier)) return;
+  if (!['distressed', 'well_maintained', 'vacant'].includes(tier)) {
+    return Promise.resolve({ ok: false, skipped: true });
+  }
   // Lean payload — never stringify nested profile / imagery blobs on the Keep hot path.
   const lean = {
     email: result.email,
@@ -1721,18 +1795,17 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
         }
         return res.json().catch(() => ({ ok: true }));
       });
-  send(urls[0])
+  return send(urls[0])
     .then(() => {
       invalidateVaultMetaCache?.();
-      void refreshVaultSummaryRow?.({ force: true, instant: true });
-      // Don't force a full 16k recount while still inside Review — Exit refreshes KPIs.
       if (!state.reviewMode) {
+        void refreshVaultSummaryRow?.({ force: true, instant: true });
         updateSummaryStats?.({ force: true, forceVault: true });
       }
+      return { ok: true };
     })
     .catch((err) => {
       console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
-      // Rate-limit toasts — one Keep spam was flooding the UI when publish was broken.
       const now = Date.now();
       if (!R._vaultPublishFailToastAt || now - R._vaultPublishFailToastAt > 15000) {
         R._vaultPublishFailToastAt = now;
@@ -1740,6 +1813,7 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
           DistressPersistence?.showToast?.('Vault publish failed — lead saved locally', 'error', 5000);
         } catch (_) {}
       }
+      return { ok: false, error: err };
     });
 };
 
@@ -2301,6 +2375,8 @@ document.addEventListener('keydown', (e) => {
     }
     if (imageLightbox.classList.contains('open')) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
+    // Ignore key-repeat — holding 1 was firing Keep faster than imagery could keep up.
+    if (e.repeat) return;
 
     const code = String(e.code || '');
     const digit = (
