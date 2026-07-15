@@ -937,12 +937,15 @@
 
   function initHomepage() {
     var params = new URLSearchParams(window.location.search);
-    if (params.get('return')) {
-      state.returnUrl = params.get('return');
+    // auth-guard uses return=; older module gate used next= — accept both.
+    var returnParam = params.get('return') || params.get('next');
+    if (returnParam) {
+      state.returnUrl = returnParam;
     }
 
     var signedOut = params.get('signed_out') === '1';
-    var wantsLogin = params.get('login') === '1';
+    // module-auth-gate historically sent auth=login; auth-guard sends login=1.
+    var wantsLogin = params.get('login') === '1' || params.get('auth') === 'login';
 
     if (signedOut) {
       clearServerSession();
@@ -1011,13 +1014,55 @@
       params.get('signup') === '1' ||
       params.get('auth') === 'tiers';
 
-    if ((wantsLogin || signedOut || wantsSignup) && !isAuthenticated()) {
-      openModal(wantsSignup ? 'tiers' : undefined);
+    function cleanAuthQuery() {
       var cleanUrl = '/';
-      if (params.get('return')) {
-        cleanUrl = '/?return=' + encodeURIComponent(params.get('return'));
+      if (state.returnUrl) {
+        cleanUrl = '/?return=' + encodeURIComponent(state.returnUrl);
       }
       history.replaceState(null, '', cleanUrl);
+    }
+
+    function openLoginForReturn() {
+      updateHomeAuthChrome(false);
+      updateHomePrimaryCta(false);
+      openModal(wantsSignup ? 'tiers' : undefined);
+      cleanAuthQuery();
+    }
+
+    // Server bounced us here for Analyze/Forge. Client sessionStorage can look
+    // "logged in" while the HttpOnly cookie is missing — verify before redirecting.
+    if ((wantsLogin || signedOut || wantsSignup) && isAuthenticated() && !signedOut) {
+      var sync =
+        window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function'
+          ? window.PhugleeSession.syncSessionFromServerCookie()
+          : Promise.resolve(null);
+      Promise.resolve(sync).then(function (data) {
+        if (data && data.username && state.returnUrl) {
+          window.location.replace(resolvePostLoginDest());
+          return;
+        }
+        if (data && data.username && !state.returnUrl) {
+          updateHomeAuthChrome(true);
+          updateHomePrimaryCta(true);
+          cleanAuthQuery();
+          return;
+        }
+        try {
+          if (window.PhugleeSession && typeof window.PhugleeSession.clearSession === 'function') {
+            window.PhugleeSession.clearSession();
+          } else {
+            clearSession();
+          }
+        } catch (_) {
+          clearSession();
+        }
+        openLoginForReturn();
+      });
+      return;
+    }
+
+    if ((wantsLogin || signedOut || wantsSignup) && !isAuthenticated()) {
+      openLoginForReturn();
     }
   }
 
