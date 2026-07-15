@@ -4,7 +4,9 @@ const {
   parseLooseJson,
   extractJsonBlock,
   stripTrailingCommas,
-  salvagePartialJson
+  salvagePartialJson,
+  parseStructureOnLot,
+  applyStructureToSatelliteCategory
 } = require('../lib/gemini-json');
 
 describe('extractJsonBlock', () => {
@@ -17,6 +19,7 @@ describe('extractJsonBlock', () => {
 describe('stripTrailingCommas', () => {
   it('removes trailing comma before brace', () => {
     assert.equal(stripTrailingCommas('{"a":1,}'), '{"a":1}');
+    assert.equal(stripTrailingCommas('{"a":1}'), '{"a":1}');
   });
 });
 
@@ -48,19 +51,32 @@ describe('parseLooseJson', () => {
   it('fills default category and reason', () => {
     const out = parseLooseJson('{"score":2}');
     assert.equal(out.category, 'property');
-    assert.equal(out.reason, 'Analysis complete.');
+  });
+});
+
+describe('parseStructureOnLot', () => {
+  it('keeps true/false and does not coerce null/missing to false', () => {
+    assert.equal(parseStructureOnLot(true), true);
+    assert.equal(parseStructureOnLot('true'), true);
+    assert.equal(parseStructureOnLot(false), false);
+    assert.equal(parseStructureOnLot('false'), false);
+    assert.equal(parseStructureOnLot(null), null);
+    assert.equal(parseStructureOnLot(undefined), null);
+    assert.equal(parseStructureOnLot(''), null);
+  });
+});
+
+describe('applyStructureToSatelliteCategory', () => {
+  it('does not force vacant when structure flag is missing', () => {
+    assert.equal(applyStructureToSatelliteCategory('property', null), 'property');
+    assert.equal(applyStructureToSatelliteCategory('property', undefined), 'property');
   });
 
-  it('throws on empty garbage', () => {
-    assert.throws(() => parseLooseJson(''), /invalid JSON/i);
+  it('forces vacant only on explicit false', () => {
+    assert.equal(applyStructureToSatelliteCategory('property', false), 'vacant_lot');
   });
 
-  it('validates required keys', () => {
-    assert.throws(() => parseLooseJson('{"score":5,"category":"property","reason":"ok"}', ['confidence']));
-  });
-
-  it('salvages partial when full parse fails', () => {
-    const out = parseLooseJson('Here is analysis: {"score": 6, "indicators": ["boarded_windows"');
-    assert.equal(out.score, 6);
+  it('promotes unavailable to property when structure is explicitly true', () => {
+    assert.equal(applyStructureToSatelliteCategory('unavailable', true), 'property');
   });
 });

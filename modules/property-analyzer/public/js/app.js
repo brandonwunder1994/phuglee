@@ -86,7 +86,21 @@ if (gj) {
   R.salvagePartialJson = gj.salvagePartialJson;
   R.stripTrailingCommas = gj.stripTrailingCommas;
   R.parseLooseJson = gj.parseLooseJson;
+  R.parseStructureOnLot = gj.parseStructureOnLot;
+  R.applyStructureToSatelliteCategory = gj.applyStructureToSatelliteCategory;
 } else {
+  R.parseStructureOnLot = function parseStructureOnLot(value) {
+    if (value === true || value === 'true') return true;
+    if (value === false || value === 'false') return false;
+    return null;
+  };
+  R.applyStructureToSatelliteCategory = function applyStructureToSatelliteCategory(category, structureOnLot) {
+    const cat = String(category || '').trim() || 'property';
+    if (structureOnLot === false) return 'vacant_lot';
+    if (structureOnLot === true && (cat === 'unavailable' || cat === 'blurred')) return 'property';
+    return cat;
+  };
+
   R.extractJsonBlock = function extractJsonBlock(text) {
     let cleaned = String(text || '').trim();
     cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '');
@@ -180,20 +194,21 @@ if (gj) {
 
 R.parseSatelliteResponse = function parseSatelliteResponse(text) {
   const parsed = parseLooseJson(text, ['category']);
-  const category = inferCategory(0, parsed.reason || '', normalizeCategory(parsed.category), parsed.structure_on_subject_lot === true || parsed.structure_on_subject_lot === 'true');
+  const structureOnLot = parseStructureOnLot(parsed.structure_on_subject_lot);
+  let category = inferCategory(0, parsed.reason || '', normalizeCategory(parsed.category), structureOnLot);
+  category = applyStructureToSatelliteCategory(category, structureOnLot);
   let confidence = Math.round(Number(parsed.confidence));
   if (isNaN(confidence) || confidence < 0) confidence = null;
   else if (confidence > 100) confidence = 100;
-  const structureOnLot = parsed.structure_on_subject_lot === true || parsed.structure_on_subject_lot === 'true';
   let aerialDistressScore = Math.round(Number(parsed.aerial_distress_score));
   if (isNaN(aerialDistressScore) || aerialDistressScore < 0) aerialDistressScore = null;
   else if (aerialDistressScore > 10) aerialDistressScore = 10;
-  if (category === 'vacant_lot' || !structureOnLot) aerialDistressScore = 0;
+  if (category === 'vacant_lot' || structureOnLot === false) aerialDistressScore = 0;
   let indicators = normalizeIndicators(parsed.indicators);
   const roofCondition = normalizeCondition(parsed.roof_condition);
   const yardCondition = normalizeCondition(parsed.yard_condition);
   let result = {
-    category: structureOnLot === false ? 'vacant_lot' : category,
+    category,
     structureOnLot,
     confidence,
     reason: String(parsed.reason || 'Satellite D4D scan complete.').trim(),
@@ -202,7 +217,7 @@ R.parseSatelliteResponse = function parseSatelliteResponse(text) {
     yardCondition,
     aerialDistressScore
   };
-  if (result.category === 'property' && result.structureOnLot) {
+  if (result.category === 'property' && result.structureOnLot === true) {
     result = applyAerialScoreCalibration(result);
   }
   return result;
@@ -311,9 +326,9 @@ R.parseGeminiResponse = function parseGeminiResponse(text) {
   }
   const reason = String(parsed.reason || 'No reason provided').trim();
   let indicators = normalizeIndicators(parsed.indicators);
-  let structureOnLot = parsed.structure_on_subject_lot === true
-    || parsed.structure_on_subject_lot === 'true';
+  let structureOnLot = parseStructureOnLot(parsed.structure_on_subject_lot);
   let category = inferCategory(score, reason, normalizeCategory(parsed.category), structureOnLot);
+  // Explicit false only — missing/null must not flip a home into vacant_lot.
   if (structureOnLot === false && category === 'property') category = 'vacant_lot';
   if (category === 'blurred') {
     return attachTierRationale({
@@ -453,12 +468,33 @@ R.reconcileSatelliteWithStreetView = function reconcileSatelliteWithStreetView(a
   analysis.landHomeConflict = false;
   analysis.needsReview = false;
 
-  const satSaysVacant = satCat === 'vacant_lot' && satelliteResult.structureOnLot === false;
-  const satSaysHome = satCat === 'property' && satelliteResult.structureOnLot === true;
+  // Explicit vacant_lot from the model counts even if structure flag was omitted.
+  // Explicit false structure still required to *force* property→vacant in the parser.
+  const satSaysVacant = satCat === 'vacant_lot' && satelliteResult.structureOnLot !== true;
+  const satSaysHome = satCat === 'property' && satelliteResult.structureOnLot !== false;
   const svSaysVacant = svCat === 'vacant_lot' && analysis.structureOnLot === false;
   const svSaysHome = svCat === 'property' && analysis.structureOnLot !== false;
 
-  if ((satSaysVacant && svSaysHome) || (satSaysHome && svSaysVacant)) {
+  // Street-clear home vs sat-vacant: only hard-conflict when BOTH are strongly confident.
+  // Moderate sat-vacant against a scored street home was dumping whole batches into
+  // "could not determine" (especially when sat omitted structure_on_subject_lot).
+  if (satSaysVacant && svSaysHome) {
+    const strongConflict = satConf >= 80 && svConf >= 70;
+    if (strongConflict) {
+      analysis.landHomeConflict = true;
+      analysis.satelliteConflict = true;
+      analysis.category = 'unavailable';
+      analysis.leadTier = 'unavailable';
+      analysis.score = 0;
+      analysis.indicators = [];
+      analysis.reason = `${analysis.reason || 'Lot type unclear.'} Satellite and Street View disagree — vacant land vs home.`.trim();
+      return analysis;
+    }
+    // Trust street home; skip fusing a vacant aerial classification into distress.
+    return finalizePropertyDistress(analysis, null);
+  }
+
+  if (satSaysHome && svSaysVacant) {
     if (satConf >= 55 && svConf >= 55) {
       analysis.landHomeConflict = true;
       analysis.satelliteConflict = true;

@@ -31,6 +31,28 @@
     return t;
   }
 
+  /**
+   * Gemini sometimes omits structure_on_subject_lot or sends null.
+   * Never coerce missing/null to false — that falsely marks homes as vacant
+   * and then Street/Satellite reconcile dumps them as "could not determine".
+   */
+  function parseStructureOnLot(value) {
+    if (value === true || value === 'true') return true;
+    if (value === false || value === 'false') return false;
+    return null;
+  }
+
+  /**
+   * Apply explicit structure flag to satellite category.
+   * Missing/null structure must NOT force vacant_lot.
+   */
+  function applyStructureToSatelliteCategory(category, structureOnLot) {
+    const cat = String(category || '').trim() || 'property';
+    if (structureOnLot === false) return 'vacant_lot';
+    if (structureOnLot === true && (cat === 'unavailable' || cat === 'blurred')) return 'property';
+    return cat;
+  }
+
   function salvagePartialJson(text) {
     const block = extractJsonBlock(text);
     const out = {};
@@ -102,6 +124,8 @@
     repairJsonString,
     salvagePartialJson,
     stripTrailingCommas,
-    parseLooseJson
+    parseLooseJson,
+    parseStructureOnLot,
+    applyStructureToSatelliteCategory
   };
 });
