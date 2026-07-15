@@ -42,6 +42,13 @@ describe('api-usage classification', () => {
     assert.equal(isSoftRateLimitError(429, 'Too many requests, rate limit — try again in 20s'), true);
     assert.equal(isHardQuotaError(429, 'Too many requests, rate limit — try again in 20s'), false);
   });
+
+  it('treats bare RESOURCE_EXHAUSTED as soft rate (credits can still remain)', () => {
+    assert.equal(isSoftRateLimitError(429, 'RESOURCE_EXHAUSTED'), true);
+    assert.equal(isHardQuotaError(429, 'RESOURCE_EXHAUSTED'), false);
+    assert.equal(isSoftRateLimitError(429, 'Resource has been exhausted'), true);
+    assert.equal(isHardQuotaError(429, 'Resource has been exhausted'), false);
+  });
 });
 
 describe('client scan hard-quota halt policy', () => {
@@ -90,5 +97,10 @@ describe('api-usage ledger', () => {
     assert.equal(snap.maps.todayStreetViewOk, 1);
     assert.ok(snap.gemini.remainingTodayEst < snap.gemini.freeTierDailyLimitEst);
     assert.ok(snap.maps.remainingCreditUsdEst <= snap.maps.monthlyCreditUsdEst);
+
+    // A later success clears the sticky gemini halt
+    store.recordGemini({ ok: true, status: 200 });
+    const afterOk = store.snapshot();
+    assert.equal(afterOk.hardQuotaActive, false);
   });
 });

@@ -28,30 +28,34 @@ function classifyApiError(status, message = '') {
   const m = String(message || '').toLowerCase();
   const st = Number(status) || 0;
 
-  const hardQuota =
-    /exceeded your current quota|quota exceeded|resource_exhausted|billing not enabled|enable billing|free_tier.*limit|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment|invoice|account.*disabled|api key not valid.*quota|quota\/credits exhausted/i.test(
+  // Explicit prepaid / billing / free-tier daily exhaustion (stop the scan).
+  const creditExhausted =
+    /exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment required|invoice|account.*disabled|quota\/credits exhausted/i.test(
       m
     ) ||
-    (/quota/i.test(m) && /exhausted|exceeded|daily|monthly|free.?tier|credit/i.test(m)) ||
-    (st === 429 && /quota|resource_exhausted|free.?tier|daily|monthly|credit/i.test(m) && !/try again in|rate/i.test(m));
+    (/quota/i.test(m) && /exhausted|exceeded|daily|monthly|free.?tier|credit/i.test(m)
+      && !/per.?minute|rate limit|try again|\/min\b|\brpm\b/i.test(m));
 
   const mapsHard =
     /over_query_limit|request_denied.*billing|billing.*not.?enabled|you must enable billing|this api project is not authorized|billing account|maps.*billing|street.?view.*billing/i.test(
       m
     );
 
-  if (hardQuota || mapsHard) {
-    return { kind: 'hard_quota', retryable: false };
-  }
-
+  // Soft RPM / concurrency — Google often returns RESOURCE_EXHAUSTED while credits remain.
+  // Bare resource_exhausted used to hard-stop scans for hours even with money left.
   const softRate =
-    st === 429 ||
     st === 503 ||
-    /rate limit|too many requests|high demand|overloaded|try again later|temporarily unavailable|resource has been exhausted.*rate/i.test(
-      m
+    /rate limit|too many requests|high demand|overloaded|try again later|temporarily unavailable|per minute|requests per minute|\brpm\b|quota.*per.?minute/i.test(m) ||
+    (
+      (st === 429 || /resource_exhausted|resource has been exhausted/i.test(m))
+      && !creditExhausted
+      && !mapsHard
     );
 
-  if (softRate) {
+  if (creditExhausted || mapsHard) {
+    return { kind: 'hard_quota', retryable: false };
+  }
+  if (softRate || st === 429) {
     return { kind: 'soft_rate_limit', retryable: true };
   }
 
@@ -140,6 +144,10 @@ function createUsageStore(dataRoot) {
     const day = ensureDay(dayKey());
     if (ok) {
       day.geminiOk += 1;
+      // Live success means credits work — drop sticky false "exhausted" halt.
+      if (state.lastHardQuota?.provider === 'gemini') {
+        state.lastHardQuota = null;
+      }
     } else {
       day.geminiFail += 1;
       if (Number(status) === 429) day.gemini429 += 1;
@@ -279,8 +287,9 @@ function createUsageStore(dataRoot) {
     const mapsRemainingUsdEst = Math.max(0, mapsCredit - mapsSpentEst);
     const last = state.lastHardQuota;
     const lastAgeSec = last?.at ? Math.floor((Date.now() - last.at) / 1000) : null;
-    // Consider hard quota "active" for 6 hours unless cleared
-    const hardQuotaActive = !!(last && lastAgeSec != null && lastAgeSec < 6 * 3600);
+    // Sticky halt only for real credit stops, and only ~20 minutes (was 6 hours —
+    // rate-limit RESOURCE_EXHAUSTED false positives blocked scans despite remaining credits).
+    const hardQuotaActive = !!(last && lastAgeSec != null && lastAgeSec < 20 * 60);
 
     return {
       ok: true,

@@ -1628,11 +1628,17 @@ R.waitForRateLimit = async function waitForRateLimit() {
 R.isHardQuotaError = function isHardQuotaError(msg, status) {
   const m = String(msg || '').toLowerCase();
   const st = Number(status) || 0;
+  // Soft RPM: bare RESOURCE_EXHAUSTED / 429 without credit language — retry, don't halt.
+  if (/rate limit|per minute|requests per minute|\brpm\b|try again in|high demand|overloaded/i.test(m)
+    && !/billing not enabled|out of credits|credits?.?(exhausted|depleted)|spend.?limit|free_tier|prepaid|purchase additional/i.test(m)) {
+    return false;
+  }
   if (/exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment required|over_query_limit|must enable billing|api project is not authorized|quota\/credits exhausted/i.test(m)) {
     return true;
   }
-  if (/resource_exhausted/i.test(m) && /quota|daily|monthly|free|credit/i.test(m)) return true;
-  if ((st === 429 || /429/.test(m)) && /quota|resource_exhausted|free.?tier|daily|monthly|credit/i.test(m) && !/try again in|per minute|rate/i.test(m)) {
+  // RESOURCE_EXHAUSTED alone is usually RPM — only hard when paired with credit/daily language.
+  if (/resource_exhausted/i.test(m) && /daily|monthly|free.?tier|credit|billing|spend/i.test(m)) return true;
+  if ((st === 429 || /429/.test(m)) && /free.?tier|daily|monthly|credit|billing|spend/i.test(m) && !/try again in|per minute|rate/i.test(m)) {
     return true;
   }
   // Dead API key / Maps denied / Gemini auth

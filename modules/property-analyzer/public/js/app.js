@@ -1547,6 +1547,11 @@ R.startScanAnalysis = async function startScanAnalysis() {
     state.diskSpaceWarned = false;
     state.quotaHaltShown = false;
     state.apiFailStreak = 0;
+    // Clear sticky "exhausted" flag from a prior soft rate-limit misclassify.
+    // Real credit exhaustion will re-halt on the first hard Google error.
+    if (USE_PROXY && typeof apiFetch === 'function') {
+      apiFetch('/api/usage/clear-quota', { method: 'POST' }).catch(() => {});
+    }
     if (USE_PROXY && typeof requestDiskCleanup === 'function') {
       requestDiskCleanup().catch(() => {});
     }

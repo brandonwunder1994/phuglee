@@ -152,7 +152,9 @@ function getApiStatus() {
   const mapsQueue = mapsModule.getMapsQueueState();
   const geminiQueue = geminiModule.getGeminiQueueState();
   const usage = usageStore.snapshot(apiStats);
-  const hardQuotaActive = !!(usage.hardQuotaActive || apiStats.lastHardQuota);
+  // Trust the ledger age window only — in-memory lastHardQuota alone used to
+  // keep "exhausted" sticky forever after a soft rate-limit misclassification.
+  const hardQuotaActive = !!usage.hardQuotaActive;
   return {
     ok: true,
     uptimeSec: Math.floor((now - apiStats.startedAt) / 1000),
