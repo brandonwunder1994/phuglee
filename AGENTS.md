@@ -1,5 +1,19 @@
 # Distress OS / Phuglee — Agent Rules
 
+## MANDATORY: Never claim live / fixed without proof
+
+**Deploy SUCCESS is not proof. Do not lie to the operator.**
+
+Before you tell the user anything is live on Railway/production, fixed, or ready to check:
+
+1. Run a real verification that proves the **served** assets and the **user-facing condition**.
+2. For Analyze review/scan/bucket claims, prefer:
+   ```powershell
+   node modules/property-analyzer/scripts/verify-prod-review-ready.js
+   ```
+3. If that script (or an equivalent check) fails or was not run, say **not verified** — never “it’s live.”
+4. Full rule: `.cursor/rules/verify-before-claiming-live.mdc`
+
 ## MANDATORY: Never wipe user work while editing
 
 The user runs real Filter lists, Train decisions, and City Tracker work. **Site edits, restarts, and deploys must not destroy that work.**

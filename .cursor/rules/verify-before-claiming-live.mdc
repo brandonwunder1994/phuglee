@@ -1,0 +1,47 @@
+---
+description: Never claim live/fixed/done without proof — verify prod/UI before telling the user
+alwaysApply: true
+---
+
+# Verify before you claim anything is live
+
+## Hard rule (non-negotiable)
+
+You must **never** tell the user that something is:
+
+- live on the site / Railway / production
+- fixed
+- ready to test
+- working now
+
+…unless you have **just run proof in that same turn** and the proof passed.
+
+Deploy SUCCESS, commit pushed, health 200, or “code looks right” is **not** enough.
+
+## What counts as proof
+
+For Analyze / review / scan / bucket issues on production, run and pass:
+
+```powershell
+node modules/property-analyzer/scripts/verify-prod-review-ready.js
+```
+
+Or an equivalent check that proves **all** of:
+
+1. Prod HTML references the **new** cache-busted JS (`?v=…` you just shipped)
+2. The **served** JS file bodies contain the new symbols/strings (not just HTML tags)
+3. Session data still has the expected results / pending counts (no wipe)
+4. The specific user-facing failure mode is gone (e.g. no tiny review stashes; pending manual queues are large)
+
+For local UI edits, still run `scripts\verify-live.ps1` and `scripts\verify-mobile.ps1` as required by AGENTS.md — those are additional, not substitutes for prod proof when you claimed prod.
+
+## If proof fails
+
+- Say **not live / not verified** clearly
+- Show which check failed
+- Fix or escalate — do **not** soft-sell (“should work after hard refresh”) as if verified
+
+## If you cannot prove it
+
+Say exactly: **“I have not verified this on production yet.”**  
+Do not imply the user should trust the deploy.

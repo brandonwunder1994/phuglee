@@ -755,8 +755,12 @@ R.mergeBrowserReviewMetadata = function mergeBrowserReviewMetadata(localData) {
       const prevIndex = Number(prev?.index) || 0;
       const incQueueLen = Array.isArray(inc?.queue) ? inc.queue.length : 0;
       const prevQueueLen = Array.isArray(prev?.queue) ? prev.queue.length : 0;
+      const incRemaining = Math.max(0, incQueueLen - incIndex);
       // Prefer the longer queue when one side looks like a tiny pre-scan stash.
       if (prev && prevQueueLen > incQueueLen + 2 && incQueueLen <= 5) continue;
+      // Server cleared this filter on purpose (heal). Do NOT re-inject a tiny/exhausted
+      // local stash — that is why Distressed kept opening to 1–2 leads after deploy.
+      if (!prev && (incQueueLen <= 20 || incRemaining <= 5 || incIndex >= incQueueLen)) continue;
       if (!prev || incIndex > prevIndex || (incIndex === prevIndex && localSavedAt > serverSavedAt)) {
         next[filter] = inc;
         changed = true;
