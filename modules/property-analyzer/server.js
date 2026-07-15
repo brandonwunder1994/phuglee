@@ -202,6 +202,12 @@ const ctx = {
   sendJson,
   readBody,
   requireAuth,
+  extractAuthToken,
+  /** True when request already passed PDA bearer / X-PDA-Token (standalone or shell proxy). */
+  hasValidPdaAuth(req) {
+    const provided = extractAuthToken(req);
+    return !!(provided && provided === authToken);
+  },
   config,
   backups,
   safety,

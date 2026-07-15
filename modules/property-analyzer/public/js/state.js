@@ -1046,7 +1046,11 @@ R.pushScanQueueToServer = async function pushScanQueueToServer(opts = {}) {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || data?.ok === false) {
-      return { ok: false, error: data?.error || `HTTP ${res.status}`, data };
+      return {
+        ok: false,
+        error: data?.error || `HTTP ${res.status}`,
+        data: { ...data, status: res.status, code: data?.code || null }
+      };
     }
     // replaceQueue stores the list as uploaded — keep the local count the user just saw.
     if (data && typeof data.records === 'number') {

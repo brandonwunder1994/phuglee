@@ -34,9 +34,38 @@ describe('scan Must not dump good street calls into Needs Review', () => {
     assert.match(appSrc, /Scanning full import list/);
   });
 
+  it('force-rescan start skips huge address-index fetch that froze Analyze', () => {
+    assert.match(appSrc, /skip the huge index download on force-rescan/);
+    assert.match(appSrc, /Do NOT bulk-filter 10k\+ historical results/);
+  });
+
   it('requeues satellite-wipe and incomplete-AI unavailable dumps', () => {
     assert.match(appSrc, /satellite fallback failed/);
     assert.match(appSrc, /satellite also unavailable/);
     assert.match(appSrc, /needs manual review/);
+  });
+
+  it('does not abort whole scan on a single status-ping miss', () => {
+    assert.match(appSrc, /status ping missed/);
+    assert.match(appSrc, /serverOfflineStreak < 3/);
+  });
+
+  it('forces summary KPI repaint after scan complete', () => {
+    assert.match(appSrc, /force: true, forceVault: true/);
+    assert.match(appSrc, /invalidateReviewSnapshotCache/);
+  });
+});
+
+describe('scan durable writes accept PDA auth', () => {
+  it('rejectAnonymousWrite allows valid PDA bearer', () => {
+    const sessionSrc = fs.readFileSync(path.join(root, 'routes/session.js'), 'utf8');
+    assert.match(sessionSrc, /hasValidPdaAuth/);
+    assert.match(sessionSrc, /Do not also require a Phuglee cookie/);
+  });
+
+  it('standalone HTML exposes PDA token by default when not embedded', () => {
+    const staticSrc = fs.readFileSync(path.join(root, 'routes/static.js'), 'utf8');
+    assert.match(staticSrc, /!embedded/);
+    assert.match(staticSrc, /__PDA_AUTH_TOKEN__/);
   });
 });

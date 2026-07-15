@@ -1166,9 +1166,9 @@ R.pingServerStatus = async function pingServerStatus() {
 }
 
 R.waitForServerReady = async function waitForServerReady({ attempts = 10, delayMs = 1500 } = {}) {
-  // Embedded Railway: fail fast — long retries looked like a dead Analyze page.
-  const tries = R.IS_EMBEDDED ? Math.min(attempts, 4) : attempts;
-  const delay = R.IS_EMBEDDED ? Math.min(delayMs, 600) : delayMs;
+  // Embedded Railway can cold-start — give it real backoff (was 4×500ms and aborted Start).
+  const tries = R.IS_EMBEDDED ? Math.max(attempts, 12) : attempts;
+  const delay = R.IS_EMBEDDED ? Math.max(delayMs, 1000) : delayMs;
   for (let i = 0; i < tries; i++) {
     const st = await pingServerStatus();
     if (st) return st;

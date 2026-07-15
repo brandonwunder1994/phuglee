@@ -18,11 +18,14 @@ function register(ctx) {
 
   function serveHtmlWithAuthToken(res) {
     let html = fs.readFileSync(config.PUBLIC_INDEX, 'utf8');
-    // Only inject when explicitly opted in (direct :3456 debugging).
-    // Shell proxy strips this and injects X-PDA-Token server-side instead.
-    const expose = ['1', 'true', 'yes'].includes(
-      String(process.env.PDA_EXPOSE_TOKEN || '').trim().toLowerCase()
-    );
+    // Standalone :3456 needs the bearer in-page so apiFetch can POST gemini/scan-result.
+    // Shell proxy strips this script and injects X-PDA-Token server-side instead.
+    // Opt out with PDA_EXPOSE_TOKEN=0; force with PDA_EXPOSE_TOKEN=1.
+    const flag = String(process.env.PDA_EXPOSE_TOKEN || '').trim().toLowerCase();
+    const embedded = String(process.env.ANALYZER_EMBEDDED || '').trim() === '1';
+    const expose = flag === '0' || flag === 'false' || flag === 'no'
+      ? false
+      : (flag === '1' || flag === 'true' || flag === 'yes' || !embedded);
     if (expose && authToken) {
       const inject = `<script>window.__PDA_AUTH_TOKEN__=${JSON.stringify(authToken)};</script>\n`;
       html = html.replace('</head>', inject + '</head>');

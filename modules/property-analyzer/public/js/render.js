@@ -1801,6 +1801,19 @@ R.handleFile = async function handleFile(file, opts = {}) {
         const q = await pushScanQueueToServer({ reason: 'file-upload' });
         if (!q?.ok) {
           console.warn('[import] scan-queue save failed', q?.error);
+          const errText = String(q?.error?.message || q?.error || q?.data?.error || '');
+          const authBlocked = /AUTH_REQUIRED|Authentication required|401/i.test(errText)
+            || Number(q?.data?.status) === 401;
+          if (authBlocked) {
+            log('Queue NOT saved — log in, hard-refresh, then drop the file again.', 'error');
+            alert(
+              'Could not save the scan queue (login required).\n\n' +
+              'Stay logged in, hard-refresh (Ctrl+Shift+R), drop the file again, then Start Scan.'
+            );
+            updateStartButton();
+            updateScanReadyUi?.();
+            return;
+          }
           log('Queue saved in browser — server sync may retry when you Start Scan.', 'warn');
         } else if (typeof q?.data?.records === 'number') {
           // Keep UI locked to what we queued (server must not silently shrink replace-queue).

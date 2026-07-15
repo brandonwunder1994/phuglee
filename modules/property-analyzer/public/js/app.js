@@ -1188,8 +1188,23 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
           // Exhausted retries but proxy is up — defer via break (never Needs Review).
           break;
         }
-        // Proxy/status unreachable. Abort once; every worker MUST break — never fall through
-        // to buildNeedsReviewResult (that glitched 40+ rows into Needs Review on deploy blips).
+        // Status ping failed — defer THIS address. Only abort the whole run after
+        // several consecutive unreachable pings (one blip used to zero the batch).
+        serverOfflineStreak = (Number(serverOfflineStreak) || 0) + 1;
+        if (serverOfflineStreak < 3) {
+          if (deferQueue && !state.aborted) deferQueue.push(record);
+          log(`↻ ${label} — status ping missed (${serverOfflineStreak}/3); will retry this run…`, 'warn');
+          updateAgentSlot(workerNum, {
+            active: false,
+            status: 'Waiting — reconnect',
+            phase: 'idle',
+            address: ''
+          });
+          if (state.running) scheduleThrottledUi();
+          return null;
+        }
+        // Proxy/status unreachable repeatedly. Abort once; every worker MUST break —
+        // never fall through to buildNeedsReviewResult.
         if (!state.serverStopAlertShown) {
           serverOnline = false;
           updateServerOfflineBanner();
@@ -1829,7 +1844,9 @@ R.startScanAnalysis = async function startScanAnalysis() {
           }
           state.processed = Number(summary.results) || state.processed;
           tierCountsCache = null;
-          updateSummaryStats?.({ forceVault: true });
+          invalidateReviewSnapshotCache?.();
+          // force:true — reviewMode / dual-strip must repaint after scan (forceVault alone was skipped).
+          updateSummaryStats?.({ force: true, forceVault: true, instant: true });
           updateScanReadyUi?.();
           updateLiveScanSectionUi?.();
           void refreshVaultSummaryRow?.({ force: true, instant: true });
@@ -1913,7 +1930,16 @@ R.startScanAnalysis = async function startScanAnalysis() {
       other: 0
     };
     for (const r of batchNew) {
-      const t = String(r.leadTier || r.tier || 'other').toLowerCase().replace(/-/g, '_');
+      const cat = String(r.category || '').toLowerCase();
+      let t = String(r.leadTier || r.tier || '').toLowerCase().replace(/-/g, '_');
+      if (!t || t === 'other') {
+        if (cat === 'vacant_lot' || cat === 'vacant' || cat === 'land') t = 'vacant';
+        else if (typeof computeNeedsReview === 'function' && computeNeedsReview(r)) t = 'review';
+        else if (typeof resultLeadTier === 'function') {
+          t = String(resultLeadTier(r) || 'other').toLowerCase().replace(/-/g, '_');
+        } else t = 'other';
+      }
+      if (t === 'hot_lead') t = 'distressed';
       if (t in tierTallies) tierTallies[t] += 1;
       else tierTallies.other += 1;
     }

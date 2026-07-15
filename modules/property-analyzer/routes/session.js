@@ -4,7 +4,7 @@ const { scopeSessionPath } = require('../lib/user-session');
 const { freeSessionDiskSpace, pruneRejectedQuarantine, isDiskSpaceError } = require('../lib/disk-cleanup');
 
 function register(ctx) {
-  const { router, sendJson, readBody, backups, safety, config, fs, path } = ctx;
+  const { router, sendJson, readBody, backups, safety, config, fs, path, hasValidPdaAuth } = ctx;
   const { DATA_ROOT, SESSION_BACKUP_FILES, SESSION_LATEST_FILE, ARCHIVE_REJECTED_DIR } = config;
   const { readScopeFromRequest } = require('../lib/user-session');
 
@@ -14,6 +14,12 @@ function register(ctx) {
       const { isAuthRequired } = require(authPath);
       if (!isAuthRequired()) return false;
     } catch (_) {
+      return false;
+    }
+    // Standalone :3456 / shell proxy already authenticated via X-PDA-Token.
+    // Do not also require a Phuglee cookie — that blocked queue + scan-result saves
+    // and left Analyze stuck on "Analyzing…" with empty buckets.
+    if (typeof hasValidPdaAuth === 'function' && hasValidPdaAuth(req)) {
       return false;
     }
     const scope = readScopeFromRequest(req);
