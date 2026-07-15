@@ -9,6 +9,7 @@
   var started = false;
   var coverage = null;
   var openState = '';
+  var bound = false;
 
   function isPhone() {
     return window.matchMedia(MQ).matches;
@@ -102,9 +103,14 @@
     );
   }
 
-  function render(query) {
-    var root = document.getElementById('home-coverage-directory');
-    if (!root || !coverage) return;
+  function currentQuery() {
+    var input = document.getElementById('home-dir-search');
+    return input ? input.value : '';
+  }
+
+  function renderBody(query) {
+    var body = document.getElementById('home-dir-body');
+    if (!body || !coverage) return;
 
     var q = String(query || '').trim();
     var live = liveStates().filter(function (s) {
@@ -140,7 +146,7 @@
           '</span>' +
           '<span class="home-dir-state-count">' +
           formatCount(s.count) +
-          ' cities</span>' +
+          '</span>' +
           '<span class="home-dir-state-chevron" aria-hidden="true"></span>' +
           '</button>' +
           cityHtml +
@@ -164,52 +170,55 @@
       })
       .join('');
 
-    var searchValue = escapeHtml(q);
-    root.innerHTML =
-      '<div class="home-dir-toolbar">' +
-      '<label class="home-dir-search-label">' +
-      '<span class="visually-hidden">Search markets</span>' +
-      '<input type="search" class="home-dir-search" id="home-dir-search" placeholder="Search state or city…" value="' +
-      searchValue +
-      '" autocomplete="off" enterkeyhint="search">' +
-      '</label>' +
-      '</div>' +
-      '<div class="home-dir-body">' +
+    body.innerHTML =
       '<p class="home-dir-kicker">Live markets</p>' +
       (liveHtml
         ? '<ul class="home-dir-states" id="home-dir-live">' + liveHtml + '</ul>'
         : '<p class="home-dir-empty">No live markets match.</p>') +
       (blockedHtml
-        ? '<p class="home-dir-kicker">Records blocked</p>' +
+        ? '<details class="home-dir-blocked-details">' +
+          '<summary class="home-dir-kicker home-dir-kicker--summary">Records blocked (' +
+          blocked.length +
+          ')</summary>' +
           '<ul class="home-dir-states home-dir-states--blocked" id="home-dir-blocked">' +
           blockedHtml +
-          '</ul>'
-        : '') +
-      '</div>' +
-      '<p class="home-dir-footnote">Full US map on larger screens</p>';
+          '</ul>' +
+          '</details>'
+        : '');
+  }
 
-    var input = document.getElementById('home-dir-search');
-    if (input) {
-      input.addEventListener('input', function () {
-        render(input.value);
-        var next = document.getElementById('home-dir-search');
-        if (next) {
-          next.focus();
-          try {
-            var len = next.value.length;
-            next.setSelectionRange(len, len);
-          } catch (_) {}
+  function ensureShell() {
+    var root = document.getElementById('home-coverage-directory');
+    if (!root) return null;
+    if (!document.getElementById('home-dir-body')) {
+      root.innerHTML =
+        '<div class="home-dir-toolbar">' +
+        '<label class="home-dir-search-label">' +
+        '<span class="visually-hidden">Search markets</span>' +
+        '<input type="search" class="home-dir-search" id="home-dir-search" placeholder="Search state or city…" autocomplete="off" enterkeyhint="search">' +
+        '</label>' +
+        '</div>' +
+        '<div class="home-dir-body" id="home-dir-body">' +
+        '<p class="home-dir-loading">Loading markets…</p>' +
+        '</div>' +
+        '<p class="home-dir-footnote">Tap a state to expand cities</p>';
+    }
+    if (!bound) {
+      bound = true;
+      root.addEventListener('input', function (e) {
+        if (e.target && e.target.id === 'home-dir-search') {
+          renderBody(e.target.value);
         }
       });
-    }
-
-    root.querySelectorAll('.home-dir-state-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+      root.addEventListener('click', function (e) {
+        var btn = e.target.closest('.home-dir-state-btn');
+        if (!btn || !root.contains(btn)) return;
         var name = btn.getAttribute('data-state') || '';
         openState = openState === name ? '' : name;
-        render(document.getElementById('home-dir-search')?.value || '');
+        renderBody(currentQuery());
       });
-    });
+    }
+    return root;
   }
 
   function updateHud(cov) {
@@ -223,16 +232,16 @@
         formatCount(cov.total_cities) +
         ' cities across ' +
         formatCount(cov.total_states) +
-        ' states — tap a state to see markets.';
+        ' states. Tap a state below.';
     }
   }
 
   async function loadAndRender() {
-    var root = document.getElementById('home-coverage-directory');
+    var root = ensureShell();
     if (!root) return;
 
-    root.innerHTML = '<p class="home-dir-loading">Loading markets…</p>';
-    root.hidden = false;
+    var body = document.getElementById('home-dir-body');
+    if (body) body.innerHTML = '<p class="home-dir-loading">Loading markets…</p>';
 
     try {
       var shared = window.PhugleeCoverageShared;
@@ -246,15 +255,13 @@
         coverage = await res.json();
       }
       updateHud(coverage);
-      if (window.PhugleeTerritoryTicker && window.PhugleeTerritoryTicker.build) {
-        window.PhugleeTerritoryTicker.build(coverage);
-      }
-      document.getElementById('home-territory-monitor')?.classList.add('is-live');
-      render('');
+      renderBody('');
     } catch (err) {
-      root.innerHTML =
-        '<p class="home-dir-error">Markets unavailable — refresh in a moment.</p>' +
-        '<button type="button" class="home-dir-retry" id="home-dir-retry">Retry</button>';
+      if (body) {
+        body.innerHTML =
+          '<p class="home-dir-error">Markets unavailable — refresh in a moment.</p>' +
+          '<button type="button" class="home-dir-retry" id="home-dir-retry">Retry</button>';
+      }
       document.getElementById('home-dir-retry')?.addEventListener('click', function () {
         started = false;
         initDirectory();
@@ -267,10 +274,11 @@
     if (started) return;
     started = true;
     document.body.classList.add('home-territory-list-mode');
+    ensureShell();
     loadAndRender();
   }
 
-  function observeDirectory() {
+  function bootDirectory() {
     if (!document.body.hasAttribute('data-home-map-preview')) return;
     if (!document.getElementById('home-coverage-directory')) return;
 
@@ -279,34 +287,14 @@
       return;
     }
 
-    var section = document.querySelector('.home-coverage');
-    if (!section) {
-      initDirectory();
-      return;
-    }
-
-    if (!('IntersectionObserver' in window)) {
-      initDirectory();
-      return;
-    }
-
-    var observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          initDirectory();
-          observer.disconnect();
-        });
-      },
-      { rootMargin: '160px 0px', threshold: 0.05 }
-    );
-    observer.observe(section);
+    /* Load immediately — do not wait for scroll into view */
+    initDirectory();
   }
 
   window.addEventListener('resize', function () {
     if (isPhone()) {
       document.body.classList.add('home-territory-list-mode');
-      if (!started) observeDirectory();
+      if (!started) initDirectory();
     } else {
       document.body.classList.remove('home-territory-list-mode');
     }
@@ -318,8 +306,8 @@
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', observeDirectory);
+    document.addEventListener('DOMContentLoaded', bootDirectory);
   } else {
-    observeDirectory();
+    bootDirectory();
   }
 })();

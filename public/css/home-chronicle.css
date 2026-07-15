@@ -2045,12 +2045,21 @@ body.p3d-modal-open {
   max-width: 32rem;
 }
 
-/* ── Chapter: Territory full bleed ── */
+/* ── Chapter: Territory full bleed (desktop). Phones: see home.css ≤768. ── */
 .home-chapter--territory {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   padding-left: calc(50vw - 50% + 1.25rem);
   padding-right: calc(50vw - 50% + 1.25rem);
+}
+
+@media (max-width: 768px) {
+  .home-chapter--territory {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 .home-territory-stage--bleed {

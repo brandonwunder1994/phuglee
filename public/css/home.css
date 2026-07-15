@@ -980,42 +980,79 @@ body.home-page.logo-page .landing-actions {
 }
 
 @media (max-width: 768px) {
-  body.home-territory-list-mode .home-coverage-map,
-  body.home-territory-list-mode .home-territory-cascade,
-  body.home-territory-list-mode .home-map-legend--overlay,
-  body.home-territory-list-mode .home-territory-dossier,
-  body.home-territory-list-mode .home-map-hover-tip,
-  body.home-territory-list-mode .home-monitor-scan--map {
+  /* Kill nested full-bleed padding that squeezed the list to ~270px */
+  .home-below-hero {
+    padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+  }
+
+  .home-chapter--territory {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* CSS-first: never show the clipped US map on phones */
+  .home-chapter--territory .home-territory-monitor,
+  .home-chapter--territory .home-coverage-map,
+  .home-chapter--territory .home-territory-ticker,
+  .home-chapter--territory .home-territory-cascade,
+  .home-chapter--territory .home-map-legend--overlay,
+  .home-chapter--territory .home-territory-dossier,
+  .home-chapter--territory .home-map-hover-tip,
+  .home-chapter--territory .home-monitor-scan--map,
+  .home-chapter--territory .home-territory-corners,
+  .home-chapter--territory .home-territory-live-badge {
     display: none !important;
   }
 
-  body.home-territory-list-mode .home-coverage-directory {
-    display: flex;
+  .home-chapter--territory .home-territory-stage--explorer {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home-chapter--territory .home-territory-summary--sr {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--phuglee-taupe-mid, rgba(244, 239, 230, 0.72));
+  }
+
+  .home-chapter--territory .home-territory-hud {
+    width: 100%;
+    justify-content: flex-start;
   }
 
   .home-coverage-directory {
+    display: flex;
     position: relative;
     z-index: 2;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.85rem;
     width: 100%;
-    min-height: min(62vh, 520px);
-    max-height: min(70vh, 560px);
-    padding: 0.85rem 0.75rem 0.65rem;
-    background:
-      linear-gradient(180deg, rgba(12, 18, 28, 0.98) 0%, rgba(8, 12, 20, 0.99) 100%);
-    overflow: hidden;
-  }
-
-  body.home-territory-list-mode .home-territory-screen--explorer {
+    max-width: 100%;
     min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  body.home-territory-list-mode .home-territory-corners,
-  body.home-territory-list-mode .home-territory-live-badge {
-    display: none;
+    max-height: none;
+    margin: 0;
+    padding: 0.9rem 0.85rem 1rem;
+    border: 1px solid rgba(229, 132, 53, 0.22);
+    border-radius: 12px;
+    background:
+      linear-gradient(165deg, rgba(16, 22, 34, 0.98) 0%, rgba(8, 12, 20, 0.99) 100%);
+    overflow: visible;
+    box-sizing: border-box;
   }
 
   .home-dir-toolbar {
@@ -1048,12 +1085,12 @@ body.home-page.logo-page .landing-actions {
   }
 
   .home-dir-body {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding-right: 0.15rem;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .home-dir-kicker {
@@ -1066,6 +1103,38 @@ body.home-page.logo-page .landing-actions {
 
   .home-dir-kicker:first-child {
     margin-top: 0.15rem;
+  }
+
+  .home-dir-blocked-details {
+    margin-top: 0.35rem;
+  }
+
+  .home-dir-kicker--summary {
+    list-style: none;
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+  }
+
+  .home-dir-kicker--summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .home-dir-kicker--summary::after {
+    content: '';
+    width: 0.4rem;
+    height: 0.4rem;
+    margin-left: 0.45rem;
+    border-right: 2px solid rgba(238, 183, 70, 0.65);
+    border-bottom: 2px solid rgba(238, 183, 70, 0.65);
+    transform: rotate(45deg);
+  }
+
+  .home-dir-blocked-details[open] .home-dir-kicker--summary::after {
+    transform: rotate(-135deg);
+    margin-top: 0.2rem;
   }
 
   .home-dir-states {
@@ -1117,6 +1186,10 @@ body.home-page.logo-page .landing-actions {
     font-size: 0.78rem;
     color: rgba(244, 239, 230, 0.55);
     white-space: nowrap;
+  }
+
+  .home-dir-state-count::after {
+    content: ' cities';
   }
 
   .home-dir-state-chevron {
@@ -1808,10 +1881,19 @@ body.home-page .home-below-hero {
     min-height: 44px;
   }
 
-  .home-territory-screen--explorer,
   .home-edge-side--phuglee .p3d-stage {
     overflow: hidden;
     max-width: 100%;
+  }
+
+  .home-coverage-directory {
+    padding: 0.8rem 0.7rem 0.9rem;
+  }
+
+  .home-dir-state-btn,
+  .home-dir-state-static {
+    min-height: 52px;
+    padding: 0.8rem 0.85rem;
   }
 }
 
