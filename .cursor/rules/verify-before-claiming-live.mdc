@@ -1,48 +1,80 @@
 ---
-description: Never claim live/fixed/done without proof — verify prod/UI before telling the user
+description: ZERO TOLERANCE — never claim working/live/fixed in Phuglee without same-turn proof
 alwaysApply: true
 ---
 
-# Verify before you claim anything is live
+# Phuglee / distress-os — verify before you claim ANYTHING works
 
-## Hard rule (non-negotiable)
+This rule applies to **every** chat and agent in this workspace (`distress-os` / Phuglee): Analyze, Filter, Vault, Collect, Train, City Tracker, shell, Railway, local.
 
-You must **never** tell the user that something is:
+## Absolute ban
 
-- live on the site / Railway / production
+You must **never** tell the operator that something is:
+
+- working
 - fixed
-- ready to test
-- working now
+- live
+- deployed and ready
+- ready to check / try / refresh
+- “should work now”
+- “hard refresh and you’re good”
 
-…unless you have **just run proof in that same turn** and the proof passed.
+…unless you have **run proof in that same turn** and it **passed**.
 
-Deploy SUCCESS, commit pushed, health 200, or “code looks right” is **not** enough.
+If you have not run proof, your only allowed line is:
 
-## What counts as proof
+> **I have not verified this yet.**
 
-For Analyze / review / scan / bucket issues on production, **both** must pass:
+Deploy SUCCESS, `git push`, health 200, green CI, “the code looks right,” or “I fixed X” is **not** proof.
+
+## What counts as proof (by surface)
+
+### Production / Railway claims
+Must prove the **served** site, not just the repo:
+
+1. Fetch the live HTML and confirm new cache-bust / asset versions you shipped
+2. Fetch the **actual served JS/CSS bodies** (Phuglee shell paths are often `/analyzer/js/…`, `/js/…`, etc.) and confirm new symbols exist
+3. Hit the real API/UI path for the bug and show the failure mode is gone
+4. Confirm user data was not wiped (counts/session still present)
+
+For Analyze review/scan/buckets, **both** must exit 0 in the same turn:
 
 ```powershell
 node modules/property-analyzer/scripts/verify-prod-review-ready.js
 node modules/property-analyzer/scripts/verify-prod-review-ui.js
 ```
 
-Or an equivalent check that proves **all** of:
+For other prod surfaces: write or run an equivalent check that exercises the **user-visible behavior** (browser or API that mirrors the UI). Do not stop at health checks.
 
-1. Prod HTML references the **new** cache-busted JS (`?v=…` you just shipped)
-2. The **served** JS file bodies contain the new symbols/strings (not just HTML tags) — fetch `/analyzer/js/…` paths, not `/js/…`
-3. Session data still has the expected results / pending counts (no wipe)
-4. A **real browser** opened Distressed review and `reviewQueue.length >= 100` (not 0–2, not “all checked” on a partial hydrate)
+### Local claims (`127.0.0.1:3000`)
+Same turn, required:
 
-For local UI edits, still run `scripts\verify-live.ps1` and `scripts\verify-mobile.ps1` as required by AGENTS.md — those are additional, not substitutes for prod proof when you claimed prod.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1
+```
 
-## If proof fails
+After user-facing UI edits, also:
 
-- Say **not live / not verified** clearly
-- Show which check failed
-- Fix or escalate — do **not** soft-sell (“should work after hard refresh”) as if verified
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-mobile.ps1
+```
 
-## If you cannot prove it
+Plus a targeted check for the specific feature you claimed (not health alone).
 
-Say exactly: **“I have not verified this on production yet.”**  
-Do not imply the user should trust the deploy.
+## Response format when claiming success
+
+Only after proof passed, say it is verified and include:
+
+- What command(s) you ran
+- Exit code 0 / key assertion (e.g. queueLen=607, health=200 + feature check)
+- Exact URL checked
+
+## When proof fails
+
+- Say **not verified / not live**
+- Paste the failing check name
+- Keep fixing — never ask the operator to “just try it” as confirmation that your work is done
+
+## Why this exists
+
+False “it’s live” claims wasted days and money. Breaking this rule is a firing offense for the agent in this project.

@@ -1,20 +1,32 @@
 # Distress OS / Phuglee — Agent Rules
 
-## MANDATORY: Never claim live / fixed without proof
+## ZERO TOLERANCE: Never claim working / live / fixed without proof
 
-**Deploy SUCCESS is not proof. Do not lie to the operator.**
+**This is the top rule for the entire Phuglee folder. It overrides convenience.**
 
-Before you tell the user anything is live on Railway/production, fixed, or ready to check:
+You will **not** tell the operator something works, is live, is fixed, or is ready to check unless you ran proof **in that same turn** and it passed.
 
-1. Run a real verification that proves the **served** assets and the **user-facing condition**.
-2. For Analyze review/scan/bucket claims on production, **both** must pass:
-   ```powershell
-   node modules/property-analyzer/scripts/verify-prod-review-ready.js
-   node modules/property-analyzer/scripts/verify-prod-review-ui.js
-   ```
-   The UI script opens Distressed review in a real browser and asserts queue length ≥ 100.
-3. If either script fails or was not run, say **not verified** — never “it’s live.”
-4. Full rule: `.cursor/rules/verify-before-claiming-live.mdc`
+Allowed if unverified: **“I have not verified this yet.”**  
+Forbidden if unverified: “it’s live,” “should work,” “hard refresh and try,” “fixed on Railway,” “ready for you.”
+
+Deploy SUCCESS / git push / health 200 / “code looks right” = **not proof.**
+
+### Production Analyze review/scan/buckets — both required
+
+```powershell
+node modules/property-analyzer/scripts/verify-prod-review-ready.js
+node modules/property-analyzer/scripts/verify-prod-review-ui.js
+```
+
+### Local site claims
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1
+```
+
+UI edits also need `scripts\verify-mobile.ps1` plus a feature-specific check.
+
+Full rule (always applied): `.cursor/rules/verify-before-claiming-live.mdc`
 
 ## MANDATORY: Never wipe user work while editing
 
