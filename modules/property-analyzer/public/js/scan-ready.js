@@ -165,11 +165,16 @@
       if (state.running && batchTotal > 0) {
         pendingUnscanned = Math.max(0, batchTotal - batchDone);
       } else if (freshImport && localQueue > 0) {
+        // Match Start Scan: fresh drop scans every row in the list.
         pendingUnscanned = localQueue;
+      } else if (hasRecords && (state.records || []).some((r) => r?.forceRescan)) {
+        pendingUnscanned = localQueue || localPending;
       } else if (Number.isFinite(serverPending) && serverPending > 0 && !hasRecords) {
         pendingUnscanned = serverPending;
       } else if (hasRecords) {
-        pendingUnscanned = localQueue || localPending;
+        // Prefer real Start-Scan pending (excludes already-scanned) over raw queue length
+        // so the top number never lies about what Start will run.
+        pendingUnscanned = localPending || localQueue;
       } else {
         pendingUnscanned = Math.max(0, Number(state._pendingUnscanned) || 0);
       }

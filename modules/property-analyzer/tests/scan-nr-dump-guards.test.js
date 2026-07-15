@@ -18,14 +18,20 @@ describe('scan Must not dump good street calls into Needs Review', () => {
     assert.ok(catchBlock.includes('finalizePropertyDistress'), 'keep street call on sat throw');
   });
 
-  it('incomplete Gemini with Street View defaults to property, not unavailable NR', () => {
-    assert.match(appSrc, /never dump into Unavailable\/Needs Review just because Gemini JSON/);
-    assert.match(appSrc, /Omit low invented confidence/);
+  it('incomplete Gemini rethrows / defers — never invents Well Maintained or Unavailable NR', () => {
+    assert.match(appSrc, /not inventing Well Maintained/);
+    assert.match(appSrc, /will retry this run \(not inventing Well Maintained\)/);
     const fallback = appSrc.match(
       /R\.buildImageryConfirmedFallback = function buildImageryConfirmedFallback[\s\S]*?\n\}/
     )?.[0] || '';
-    assert.ok(fallback.includes("category: 'property'"), 'property default with imagery');
     assert.ok(!/category: 'unavailable'/.test(fallback), 'no unavailable dump in fallback');
+    assert.ok(!/defaulting to Well Maintained/i.test(fallback), 'no invent-WM copy in fallback');
+  });
+
+  it('fresh import force-scans the whole list (no 2089→702 shrink)', () => {
+    assert.match(appSrc, /forceWholeList/);
+    assert.match(appSrc, /2089 → ~700/);
+    assert.match(appSrc, /Scanning full import list/);
   });
 
   it('requeues satellite-wipe and incomplete-AI unavailable dumps', () => {

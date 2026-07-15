@@ -272,22 +272,20 @@ R.buildImageryConfirmedFallback = function buildImageryConfirmedFallback(address
   const strongPartialDistress = hasPartialScore && score >= DISTRESSED_MIN_SCORE
     && (looksVisuallyDistressed(score, inds, null, '') || inds.some(i => HIGH_INDICATORS.has(i) || MODERATE_INDICATORS.has(i)));
 
-  // Street View pulled — never dump into Unavailable/Needs Review just because Gemini JSON
-  // was incomplete. Default to a usable property tier; operators can still review by flag.
-  if (hasImagery) {
-    if (!hasPartialScore) score = 2;
+  // Repair / salvage helper only. Live scan must NOT invent Well Maintained —
+  // finalizeStreetAnalysis rethrows incomplete AI so the loop retries/defers.
+  if (strongPartialDistress) {
     return attachTierRationale({
       score,
       category: 'property',
       leadTier: computeLeadTier(score, 'property', { indicators: inds }),
       structureOnLot: true,
-      indicators: score >= DISTRESSED_MIN_SCORE ? (inds.length ? inds : ['deferred_maintenance']) : inds,
-      // Omit low invented confidence — that auto-routed whole batches into Needs Review.
+      indicators: inds.length ? inds : ['deferred_maintenance'],
       confidence: null,
       needsReview: false,
-      reason: strongPartialDistress
-        ? 'Street View imagery confirmed — partial AI analysis suggests distress; parked in Distressed for review.'
-        : 'Street View imagery confirmed — defaulting to Well Maintained (AI response incomplete).',
+      reason: hasImagery
+        ? 'Street View imagery confirmed — partial AI analysis suggests distress; parked in Distressed.'
+        : 'Partial AI analysis suggests distress; parked in Distressed.',
       viewMeta: svPayload?.view || null,
       usedSatellite: false,
       skippedStreetView: !svPayload,
@@ -295,18 +293,19 @@ R.buildImageryConfirmedFallback = function buildImageryConfirmedFallback(address
     });
   }
 
+  // Soft salvage for session repair tools only (not the live invent-WM path).
   if (!hasPartialScore) score = 2;
   return attachTierRationale({
     score,
     category: 'property',
     leadTier: computeLeadTier(score, 'property', { indicators: inds }),
     structureOnLot: true,
-    indicators: score >= DISTRESSED_MIN_SCORE ? (inds.length ? inds : ['deferred_maintenance']) : inds,
+    indicators: inds,
     confidence: null,
     needsReview: false,
-    reason: strongPartialDistress
-      ? 'Partial AI analysis suggests distress; parked in Distressed for review.'
-      : 'Defaulting to Well Maintained (AI response incomplete).',
+    reason: hasImagery
+      ? 'Street View imagery confirmed — AI response incomplete (repair default).'
+      : 'AI response incomplete (repair default).',
     viewMeta: svPayload?.view || null,
     usedSatellite: false,
     skippedStreetView: !svPayload,
@@ -775,17 +774,30 @@ R.finalizeStreetAnalysis = async function finalizeStreetAnalysis(svPayload, svUr
     });
   } catch (e) {
     const partial = salvagePartialJson(String(e.message || ''));
-    log(`Street AI incomplete — street-level fallback: ${address}`, 'warn');
-    const result = buildImageryConfirmedFallback(address, {
-      svPayload,
-      err: e,
-      partialScore: partial?.score,
-      partialIndicators: partial?.indicators
-    });
-    result.qualityFlags = [...(result.qualityFlags || []), 'street_ai_failed'];
-    const tierLabel = leadTierLabel(result.leadTier);
-    scanPreview(address, `${tierLabel} — ${result.reason}`, svUrl, null, result.category === 'property' ? result.score : 0, true, workerNum);
-    return result;
+    const partialScore = Math.round(Number(partial?.score));
+    const hasPartialScore = !isNaN(partialScore) && partialScore >= 1 && partialScore <= 10;
+    const inds = normalizeIndicators(partial?.indicators || []);
+    const strongPartial = hasPartialScore && partialScore >= DISTRESSED_MIN_SCORE
+      && (looksVisuallyDistressed?.(partialScore, inds, null, '')
+        || inds.some((i) => HIGH_INDICATORS?.has?.(i) || MODERATE_INDICATORS?.has?.(i)));
+    // Only keep a FALLBACK when Gemini gave a salvageable distress signal.
+    // Never invent Well Maintained for incomplete AI — that dumped whole batches as WM.
+    // Bubbling up lets processOneRecord retry/defer (left unscanned, not fake-tiered).
+    if (hasPartialScore && strongPartial) {
+      log(`Street AI incomplete — keeping partial distress signal: ${address}`, 'warn');
+      const result = buildImageryConfirmedFallback(address, {
+        svPayload,
+        err: e,
+        partialScore,
+        partialIndicators: inds
+      });
+      result.qualityFlags = [...(result.qualityFlags || []), 'street_ai_failed'];
+      const tierLabel = leadTierLabel(result.leadTier);
+      scanPreview(address, `${tierLabel} — ${result.reason}`, svUrl, null, result.category === 'property' ? result.score : 0, true, workerNum);
+      return result;
+    }
+    log(`Street AI incomplete — retry/defer (not inventing Well Maintained): ${address}`, 'warn');
+    throw e;
   }
 }
 
@@ -1102,6 +1114,10 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
         });
       }
       noteApiScanSuccess?.();
+      if (record && typeof record === 'object') delete record.forceRescan;
+      for (const r of state.records || []) {
+        if (recordKey(r) === recordKey(record)) delete r.forceRescan;
+      }
       state.results.push(result);
       state.succeeded++;
       state.processed = state.results.length;
@@ -1221,6 +1237,9 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       || isServerConnectionError?.(lastErr.message)
     ) && deferQueue && !state.aborted;
     const deferRate = isDeferrableRateLimitError?.(lastErr.message) && deferQueue && !state.aborted;
+    const deferIncompleteAi = /bad json|invalid json|unterminated|missing score|missing category|ai response incomplete|invalid score/i.test(
+      String(lastErr.message || '')
+    ) && deferQueue && !state.aborted;
     if (deferDisk) {
       noteDiskSpaceError?.(lastErr.message);
       deferQueue.push(record);
@@ -1255,6 +1274,18 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       updateAgentSlot(workerNum, {
         active: false,
         status: 'Waiting — API busy',
+        phase: 'idle',
+        address: ''
+      });
+      if (state.running) scheduleThrottledUi();
+      return null;
+    }
+    if (deferIncompleteAi) {
+      deferQueue.push(record);
+      log(`⏸ ${label} — Gemini response incomplete; will retry this run (not inventing Well Maintained)`, 'warn');
+      updateAgentSlot(workerNum, {
+        active: false,
+        status: 'Waiting — AI retry',
         phase: 'idle',
         address: ''
       });
@@ -1552,9 +1583,19 @@ R.startScanAnalysis = async function startScanAnalysis() {
     for (const r of state.results || []) {
       existingRecordKeys.add(recordKey(r));
     }
+    // Fresh file drop (or any forceRescan queue) = scan the whole list the UI shows.
+    // Historical session matches must NOT silently shrink 2089 → ~700.
+    const freshImport = Number(state._freshImportAt) > 0
+      && (Date.now() - Number(state._freshImportAt)) < 30 * 60 * 1000;
+    const forceWholeList = freshImport || (state.records || []).some((r) => r?.forceRescan);
+    if (forceWholeList) {
+      for (const r of state.records || []) {
+        if (r && typeof r === 'object') r.forceRescan = true;
+      }
+    }
     let skippedDupAtStart = 0;
     const pending = state.records.filter((r) => {
-      if (r?.forceRescan) return true;
+      if (r?.forceRescan || forceWholeList) return true;
       if (existingRecordKeys.has(recordKey(r))) {
         skippedDupAtStart += 1;
         return false;
@@ -1566,10 +1607,10 @@ R.startScanAnalysis = async function startScanAnalysis() {
       return true;
     });
     // Drop prior AI rows for forceRescan addresses so the new scan replaces them
-    if (pending.some((r) => r?.forceRescan)) {
-      const forceKeys = new Set(pending.filter((r) => r?.forceRescan).map((r) => recordKey(r)));
+    if (pending.some((r) => r?.forceRescan) || forceWholeList) {
+      const forceKeys = new Set(pending.map((r) => recordKey(r)).filter(Boolean));
       const forceLoose = typeof buildKnownAddressSets === 'function'
-        ? buildKnownAddressSets(pending.filter((r) => r?.forceRescan))
+        ? buildKnownAddressSets(pending)
         : null;
       state.results = (state.results || []).filter((row) => {
         if (forceKeys.has(recordKey(row))) return false;
@@ -1580,8 +1621,11 @@ R.startScanAnalysis = async function startScanAnalysis() {
       });
     }
     // Keep scan queue clean for credits — remove skipped dups from records
-    if (skippedDupAtStart > 0) {
+    // (never shrink a force-whole-list / fresh import — that was the 2089 vs 702 bug)
+    if (skippedDupAtStart > 0 && !forceWholeList) {
       state.records = pending.slice();
+      state._pendingUnscanned = pending.length;
+    } else {
       state._pendingUnscanned = pending.length;
     }
     const resumeCount = state.results.length;
@@ -1611,7 +1655,12 @@ R.startScanAnalysis = async function startScanAnalysis() {
       if (state.results.length) enterReviewMode();
       return;
     }
-    if (skippedDupAtStart > 0) {
+    if (forceWholeList) {
+      log(
+        `Scanning full import list — ${pending.length.toLocaleString()} addresses (including overlaps already in session)`,
+        'success'
+      );
+    } else if (skippedDupAtStart > 0) {
       log(
         `Skipping ${skippedDupAtStart.toLocaleString()} already-scanned addresses (saving Maps/Gemini credits)`,
         'warn'

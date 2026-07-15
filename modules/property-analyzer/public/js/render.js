@@ -1705,7 +1705,8 @@ R.handleFile = async function handleFile(file, opts = {}) {
     const batchId = `batch_upload_${importedAt}`;
 
     // Simple contract: unique addresses in THIS file = the scan queue = the number we show.
-    // (Blank streets already dropped in parseSpreadsheet. Same address twice in-file → once.)
+    // forceRescan so Start Scan actually runs EVERY row (don't silently shrink to
+    // "not already in session" — that caused 2089 at the top vs ~702 on Start).
     let skippedDupInFile = 0;
     const seenInFile = new Set();
     const stamped = [];
@@ -1714,7 +1715,8 @@ R.handleFile = async function handleFile(file, opts = {}) {
         ...r,
         importedAt: r.importedAt || importedAt,
         importBatchId: batchId,
-        sourceFile: file.name
+        sourceFile: file.name,
+        forceRescan: true
       };
       const k = typeof addressMatchKey === 'function' ? addressMatchKey(row) : '';
       if (k) {
