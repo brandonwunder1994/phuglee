@@ -1142,8 +1142,8 @@ R.reviewUndo = function reviewUndo() {
 }
 
 R.openReviewMode = async function openReviewMode(filter, opts = {}) {
-  // Review needs the full result set — finish deferred hydration if still loading
-  if (typeof ensureSessionResultsLoaded === 'function' && sessionLoadState && !sessionLoadState.complete) {
+  // Review needs the FULL result set — never build queues from a partial hydrate.
+  if (typeof ensureSessionResultsLoaded === 'function') {
     try {
       await ensureSessionResultsLoaded();
     } catch (e) {
@@ -1164,17 +1164,19 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
 
   if (state.appView !== 'dashboard') setAppView('dashboard');
 
-  // Drop tiny mid-review stashes left over from before a large scan landed.
-  if (typeof discardStaleReviewProgress === 'function') {
+  // Poison stashes (2 Distressed / near-done WM) hid thousands of unreviewed leads.
+  // Always drop stashes that don't cover current pending; prefer a full rebuild.
+  if (typeof clearAllReviewProgressStashes === 'function' && opts.restart) {
+    clearAllReviewProgressStashes();
+  } else if (typeof discardStaleReviewProgress === 'function') {
     discardStaleReviewProgress(filter);
   }
 
-  // Same review already open — just show overlay (do not reset progress),
-  // unless the in-memory queue is missing most of the current pending set.
+  // Same review already open with a fresh-enough queue — just show overlay.
   if (!opts.restart && state.reviewMode && state.reviewFilter === filter) {
     const staleOpen = typeof isReviewQueueStaleVsPending === 'function'
       && isReviewQueueStaleVsPending(filter, state.reviewQueue);
-    if (!staleOpen) {
+    if (!staleOpen && state.reviewQueue.length && state.reviewIndex < state.reviewQueue.length) {
       showReviewOverlay();
       renderReviewLead();
       warmReviewImagery();
@@ -1185,7 +1187,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     state.reviewIndex = 0;
   }
 
-  // Resume mid-session only (page refresh or overlay hidden — not after Exit)
+  // Resume in-memory mid-session only when the queue still matches pending.
   if (!opts.restart && !state.reviewMode && hasActiveReviewProgress(filter)) {
     const staleActive = typeof isReviewQueueStaleVsPending === 'function'
       && isReviewQueueStaleVsPending(filter, state.reviewQueue);
@@ -1201,14 +1203,22 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     state.reviewIndex = 0;
   }
 
-  // Resume stashed progress when switching between distressed ↔ well maintained without exiting
-  if (!opts.restart && restoreReviewProgress(filter)) {
-    state.reviewMode = true;
-    showReviewOverlay();
-    renderReviewLead();
-    warmReviewImagery();
-    log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
-    return;
+  // Do NOT resume disk/server stashes when they are smaller than current pending.
+  // rebuild from pendingKeys below. (restore still merges tiny deltas when not stale.)
+  if (!opts.restart && !opts.forceRebuild && restoreReviewProgress(filter)) {
+    const restoredStale = typeof isReviewQueueStaleVsPending === 'function'
+      && isReviewQueueStaleVsPending(filter, state.reviewQueue);
+    if (!restoredStale) {
+      state.reviewMode = true;
+      showReviewOverlay();
+      renderReviewLead();
+      warmReviewImagery();
+      log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
+      return;
+    }
+    if (state.reviewProgressByFilter) delete state.reviewProgressByFilter[filter];
+    state.reviewQueue = [];
+    state.reviewIndex = 0;
   }
 
   if (!opts.restart && state.reviewMode && state.reviewFilter !== filter && hasActiveReviewProgress()) {
@@ -1216,6 +1226,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     stashReviewProgress(state.reviewFilter);
   }
 
+  invalidateReviewSnapshotCache?.();
   const snap = scanReviewFilterSnapshot(filter);
   const queue = snap.pendingKeys;
   const { total: totalInFilter, reviewedInFilter: alreadyReviewed, pending } = snap;
@@ -1223,7 +1234,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     if (alreadyReviewed > 0) {
       alert(`All ${totalInFilter.toLocaleString()} ${reviewFilterLabel(filter)} leads have been checked in this review queue (${alreadyReviewed.toLocaleString()} saved). New leads will appear after your next scan.`);
     } else {
-      alert(`No ${reviewFilterLabel(filter)} leads to review yet.`);
+      alert(`No ${reviewFilterLabel(filter)} leads to review yet. Loaded ${state.results.length.toLocaleString()} results — if this looks short, hard-refresh and try again.`);
     }
     return;
   }
@@ -1240,6 +1251,8 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   };
   if (typeof resetReviewTrainingBuffer === 'function') resetReviewTrainingBuffer();
   state.reviewMode = true;
+  // Drop the old stash so Exit/reload cannot resurrect a 2-item queue.
+  if (state.reviewProgressByFilter) delete state.reviewProgressByFilter[filter];
 
   showReviewOverlay();
   renderReviewLead();

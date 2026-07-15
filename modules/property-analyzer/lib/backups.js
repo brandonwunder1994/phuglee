@@ -426,13 +426,34 @@ module.exports = function createBackups(deps) {
     session = mergeIncrementalIntoSession(session);
     // Completed force-rescans left forceRescan=true on disk → fake "N left to scan".
     const { cleared } = healStaleForceRescanFlags(session);
-    if (cleared > 0) {
+    let dirty = cleared > 0;
+    // Stale mid-review stashes (Distressed queueLen=2, WM almost finished) hide
+    // thousands of unreviewed leads. Drop exhausted / near-empty progress maps.
+    if (session.reviewProgressByFilter && typeof session.reviewProgressByFilter === 'object') {
+      const progress = session.reviewProgressByFilter;
+      const next = {};
+      for (const [filter, saved] of Object.entries(progress)) {
+        const qLen = Array.isArray(saved?.queue) ? saved.queue.length : 0;
+        const idx = Number(saved?.index) || 0;
+        const remaining = Math.max(0, qLen - idx);
+        // Keep only a real mid-review with meaningful work left.
+        if (qLen > 20 && remaining > 5 && idx < qLen) next[filter] = saved;
+      }
+      if (JSON.stringify(next) !== JSON.stringify(progress)) {
+        session.reviewProgressByFilter = next;
+        dirty = true;
+      }
+    }
+    if (dirty) {
       try {
         session.savedAt = Date.now();
         writeLatestSessionFileForScope(scope, session);
-        console.log(`[Session] Cleared ${cleared} stale forceRescan flags (${scope.storageKey})`);
+        if (cleared > 0) {
+          console.log(`[Session] Cleared ${cleared} stale forceRescan flags (${scope.storageKey})`);
+        }
+        console.log(`[Session] Pruned stale reviewProgressByFilter (${scope.storageKey})`);
       } catch (err) {
-        console.warn('[Session] forceRescan heal write failed:', err.message);
+        console.warn('[Session] session heal write failed:', err.message);
       }
     }
     return { scope, session };

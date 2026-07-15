@@ -1955,15 +1955,28 @@ R.ensureSessionResultsLoaded = async function ensureSessionResultsLoaded() {
   const target = Math.max(
     Number(sessionLoadState?.total) || 0,
     Number(sessionLoadState?.serverCanonical) || 0,
-    Number(state._tierCountsFromServer?.total) || 0
+    Number(state._tierCountsFromServer?.all) || 0,
+    Number(state._tierCountsFromServer?.total) || 0,
+    Number(state.processed) || 0
   );
   if (!USE_PROXY) return true;
+
+  // Never treat a partial client cache as "done" when the server still has more.
+  if (target > 0 && state.results.length < target) {
+    sessionLoadState.complete = false;
+    sessionLoadState.total = Math.max(Number(sessionLoadState.total) || 0, target);
+    sessionLoadState.serverCanonical = Math.max(Number(sessionLoadState.serverCanonical) || 0, target);
+  }
+
   if (sessionLoadState?.complete && (!target || state.results.length >= target)) return true;
-  if (!target && state.results.length) return true;
+  // Do NOT early-return on (!target && results.length) — that left Review Leads empty
+  // after a partial hydrate while ~6k leads still awaited Keep/Change on the server.
+  if (!target && !state.results.length) return true;
+
   setSessionRestoreBanner?.('Loading remaining results…');
   await loadSessionResultsBackground(target || sessionLoadState?.total || state.results.length, { force: true });
   setSessionRestoreBanner?.('');
-  return !!(sessionLoadState?.complete || state.results.length);
+  return !!(sessionLoadState?.complete || (target > 0 && state.results.length >= target) || state.results.length);
 };
 
 R.sessionDataRank = function sessionDataRank(data) {

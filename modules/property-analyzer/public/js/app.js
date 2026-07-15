@@ -1640,6 +1640,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
     const expectedTotal = Math.max(
       Number(sessionLoadState?.total) || 0,
       Number(sessionLoadState?.serverCanonical) || 0,
+      Number(state._tierCountsFromServer?.all) || 0,
       Number(state._tierCountsFromServer?.total) || 0
     );
     const resultsPartial = expectedTotal > 0 && (state.results || []).length < expectedTotal;
