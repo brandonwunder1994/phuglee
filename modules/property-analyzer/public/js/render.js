@@ -1703,73 +1703,33 @@ R.handleFile = async function handleFile(file, opts = {}) {
 
     const importedAt = Date.now();
     const batchId = `batch_upload_${importedAt}`;
-    let stamped = records.map((r) => ({
-      ...r,
-      importedAt: r.importedAt || importedAt,
-      importBatchId: batchId,
-      sourceFile: file.name
-    }));
 
-    // Drop addresses already in the system (already scanned) so we never re-scan / burn credits.
-    // Source of truth = full results DB via server index (browser may only have a partial page loaded).
-    let serverIndex = null;
-    if (keepResults && typeof USE_PROXY !== 'undefined' && USE_PROXY && typeof fetchServerAddressIndex === 'function') {
-      setStatus('Checking against existing scanned database…');
-      serverIndex = await fetchServerAddressIndex();
-      if (serverIndex?.matchKeys?.length) {
-        log?.(
-          `Dedupe index: ${serverIndex.matchKeys.length.toLocaleString()} scanned addresses from server` +
-          (serverIndex.resultsCount != null
-            ? ` (${Number(serverIndex.resultsCount).toLocaleString()} results)`
-            : ''),
-          'info'
-        );
-      }
-    }
-    const known = typeof buildKnownAddressSets === 'function'
-      ? buildKnownAddressSets(keepResults ? state.results : [], serverIndex)
-      : { exact: new Set(), loose: new Set() };
-    let skippedAlreadyInSystem = 0;
+    // Simple contract: unique addresses in THIS file = the scan queue = the number we show.
+    // (Blank streets already dropped in parseSpreadsheet. Same address twice in-file → once.)
     let skippedDupInFile = 0;
     const seenInFile = new Set();
-    const deduped = [];
-    for (const r of stamped) {
-      const k = typeof addressMatchKey === 'function' ? addressMatchKey(r) : '';
-      if (!k) {
-        deduped.push(r);
-        continue;
+    const stamped = [];
+    for (const r of records) {
+      const row = {
+        ...r,
+        importedAt: r.importedAt || importedAt,
+        importBatchId: batchId,
+        sourceFile: file.name
+      };
+      const k = typeof addressMatchKey === 'function' ? addressMatchKey(row) : '';
+      if (k) {
+        if (seenInFile.has(k)) {
+          skippedDupInFile += 1;
+          continue;
+        }
+        seenInFile.add(k);
       }
-      if (typeof isRowAlreadyKnown === 'function' && isRowAlreadyKnown(r, known)) {
-        skippedAlreadyInSystem += 1;
-        continue;
-      }
-      if (seenInFile.has(k)) {
-        skippedDupInFile += 1;
-        continue;
-      }
-      seenInFile.add(k);
-      known.exact.add(k);
-      const l = typeof addressMatchKeyLoose === 'function' ? addressMatchKeyLoose(r) : '';
-      if (l) known.loose.add(l);
-      deduped.push(r);
+      stamped.push(row);
     }
-    stamped = deduped;
 
     if (!stamped.length) {
-      setStatus(
-        `All ${records.length.toLocaleString()} rows were already in the system (or blank). Nothing new to scan.`
-      );
-      alert(
-        `No new leads to scan.\n\n` +
-        `${skippedAlreadyInSystem.toLocaleString()} already scanned in the Analyzer.\n` +
-        `${skippedDupInFile.toLocaleString()} duplicate rows inside the file.\n\n` +
-        `Your existing results were left alone.`
-      );
-      log(
-        `Import skipped — ${skippedAlreadyInSystem.toLocaleString()} already scanned, ` +
-        `${skippedDupInFile.toLocaleString()} in-file dups`,
-        'warn'
-      );
+      setStatus(`No address rows found in ${file.name}.`);
+      alert(`No address rows found in ${file.name}.`);
       updateStartButton();
       updateScanReadyUi?.();
       return;
@@ -1785,7 +1745,7 @@ R.handleFile = async function handleFile(file, opts = {}) {
     };
     delete state._tierCountsFromServer;
 
-    // Scan queue = this file (minus already-scanned addresses). Keep prior AI results.
+    // Scan queue = this file. Prior AI results stay in the database.
     state.records = stamped;
     if (!keepResults) {
       state.results = [];
@@ -1807,8 +1767,10 @@ R.handleFile = async function handleFile(file, opts = {}) {
     state.fileName = file.name;
     state.selectedKey = null;
     state._pendingUnscanned = stamped.length;
+    state._serverPendingUnscanned = stamped.length;
     state._expectedRecords = stamped.length;
     state._recordsLoadComplete = true;
+    state._freshImportAt = importedAt;
     state.importBatches = [
       ...(Array.isArray(state.importBatches) ? state.importBatches : []),
       {
@@ -1821,37 +1783,27 @@ R.handleFile = async function handleFile(file, opts = {}) {
       }
     ];
 
+    const toScanLabel = `${stamped.length.toLocaleString()} to scan`;
     $('failStats')?.classList.remove('visible');
-    const skipNote = skippedAlreadyInSystem || skippedDupInFile
-      ? ` · skipped ${skippedAlreadyInSystem.toLocaleString()} already in system` +
-        (skippedDupInFile ? ` · ${skippedDupInFile.toLocaleString()} file dups` : '')
-      : '';
-    fileInfo.textContent =
-      `✓ ${file.name} — ${stamped.length.toLocaleString()} new leads ready to scan` +
-      `${skipNote} · ${leadTypeLabel(leadType)}`;
+    fileInfo.textContent = `✓ ${file.name} — ${toScanLabel}`;
     fileInfo.classList.add('visible');
     if (heroCount) heroCount.textContent = stamped.length.toLocaleString();
-    setStatus(
-      `✓ ${stamped.length.toLocaleString()} new leads ready — click Start Scan.` +
-      (skippedAlreadyInSystem
-        ? ` Removed ${skippedAlreadyInSystem.toLocaleString()} already-scanned (no credit waste).`
-        : '') +
-      (skippedDupInFile
-        ? ` Removed ${skippedDupInFile.toLocaleString()} duplicate rows in the file.`
-        : '')
-    );
+    setStatus(`✓ ${toScanLabel} — click Start Scan.`);
 
     updateExportButtons();
     updateGauge(null);
 
-    // v3.1 lean persist: never re-POST the full ~60MB results blob on upload.
-    // Scan-queue endpoint updates records + importBatches only; results stay on server.
+    // Lean persist: queue + batches only (never re-POST full results).
     try {
       if (typeof pushScanQueueToServer === 'function' && typeof USE_PROXY !== 'undefined' && USE_PROXY) {
         const q = await pushScanQueueToServer({ reason: 'file-upload' });
         if (!q?.ok) {
           console.warn('[import] scan-queue save failed', q?.error);
           log('Queue saved in browser — server sync may retry when you Start Scan.', 'warn');
+        } else if (typeof q?.data?.records === 'number') {
+          // Keep UI locked to what we queued (server must not silently shrink replace-queue).
+          state._pendingUnscanned = stamped.length;
+          state._serverPendingUnscanned = stamped.length;
         }
       } else if (typeof saveSession === 'function') {
         saveSession('file-upload');
@@ -1862,14 +1814,8 @@ R.handleFile = async function handleFile(file, opts = {}) {
     }
 
     log(
-      `Loaded ${stamped.length.toLocaleString()} new leads from ${file.name}` +
-      (skippedAlreadyInSystem
-        ? ` · dropped ${skippedAlreadyInSystem.toLocaleString()} already scanned`
-        : '') +
-      (skippedDupInFile
-        ? ` · dropped ${skippedDupInFile.toLocaleString()} in-file dups`
-        : '') +
-      (keepResults ? ` · kept ${(state.results || []).length.toLocaleString()} prior results` : ''),
+      `Loaded ${toScanLabel} from ${file.name}` +
+      (skippedDupInFile ? ` · ${skippedDupInFile.toLocaleString()} duplicate rows in file ignored` : ''),
       'success'
     );
     state.appView = 'dashboard';
@@ -1879,9 +1825,7 @@ R.handleFile = async function handleFile(file, opts = {}) {
     updateStartButton();
     document.getElementById('scanImportDrop')?.classList.add('has-file');
     updateScanReadyUi?.();
-    setStatus(
-      `✓ ${stamped.length.toLocaleString()} leads ready — click Start Scan.`
-    );
+    setStatus(`✓ ${toScanLabel} — click Start Scan.`);
   } catch (err) {
     const msg = err?.message || String(err) || 'Import failed';
     setStatus(msg);

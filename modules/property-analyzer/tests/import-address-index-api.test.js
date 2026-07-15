@@ -54,4 +54,31 @@ describe('import-address-index API payload', () => {
     const blocked = dedupeIncomingAgainstKnown([dup], known);
     assert.equal(blocked.kept.length, 0);
   });
+
+  it('addresses bag does not contain pipe match-keys from the scan queue', () => {
+    const session = {
+      results: [
+        { street: '100 Oak Ave', city: 'Waco', state: 'TX', postal: '76701' }
+      ],
+      records: [
+        { street: '200 Pine Rd', city: 'Waco', state: 'TX', postal: '76702' }
+      ]
+    };
+    const index = buildImportAddressIndex(session);
+    const { addressMatchKey } = require('../lib/address-match');
+    const queueKey = addressMatchKey(session.records[0]);
+    const resultKey = addressMatchKey(session.results[0]);
+
+    assert.ok(queueKey);
+    assert.ok(!index.addresses.includes(queueKey), 'queue pipe-key must not be in addresses');
+    assert.ok(!index.addresses.includes(resultKey), 'result pipe-key must not be in addresses');
+    assert.ok(index.matchKeys.includes(resultKey));
+    assert.ok(!index.matchKeys.includes(queueKey));
+
+    // Legacy clients that merge index.addresses into exact must not block queue rows
+    // via addressMatchKey lookups.
+    const legacyExact = new Set([...(index.matchKeys || []), ...(index.addresses || [])]);
+    assert.equal(legacyExact.has(queueKey), false);
+    assert.equal(legacyExact.has(resultKey), true);
+  });
 });

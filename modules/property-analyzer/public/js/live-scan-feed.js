@@ -189,29 +189,24 @@
         }
       }
 
-      // Live KPIs — four primary buckets + scanned (Needs Review residual only)
+      // Live KPIs — THIS SCAN ONLY (start at 0; never merge session history)
       let distressed = 0;
       let wellMaintained = 0;
       let land = 0;
       let blocked = 0;
       let review = 0;
-      let scanned = sessionTotal;
+      let scanned = batchDone;
       try {
-        if (typeof getSummaryMetrics === 'function') {
-          const m = getSummaryMetrics();
-          distressed = Number(m?.counts?.distressed) || 0;
-          wellMaintained = Number(m?.counts?.well_maintained) || 0;
-          land = Number(m?.counts?.vacant) || 0;
-          blocked = Number(m?.counts?.blurred) || 0;
-          review = Number(m?.counts?.review) || 0;
-          scanned = Number(m?.total) || scanned;
-        } else if (typeof getTierCounts === 'function') {
-          const c = getTierCounts({ global: true });
-          distressed = Number(c?.distressed) || 0;
-          wellMaintained = Number(c?.well_maintained) || 0;
-          land = Number(c?.vacant) || 0;
-          blocked = Number(c?.blurred) || 0;
-          review = Number(c?.review) || 0;
+        const c = typeof getScanBatchTierCounts === 'function'
+          ? getScanBatchTierCounts()
+          : null;
+        if (c) {
+          distressed = Number(c.distressed) || 0;
+          wellMaintained = Number(c.well_maintained) || 0;
+          land = Number(c.vacant) || 0;
+          blocked = Number(c.blurred) || 0;
+          review = Number(c.review) || 0;
+          scanned = Math.max(batchDone, Number(c.all) || 0);
         }
       } catch (_) {}
 

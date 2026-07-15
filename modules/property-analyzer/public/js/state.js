@@ -185,12 +185,28 @@ R.buildKnownAddressSets = function buildKnownAddressSets(results = [], index = n
   };
   for (const r of results || []) addRow(r);
   if (index) {
-    // matchKeys = scanned results only. Do NOT use index.addresses — it includes
-    // the scan queue (imported but not analyzed) and would block re-uploads.
+    // Scanned-only keys. Never merge:
+    // - index.addresses (Filter bag; historically included queue match-keys)
+    // - index.matchKeysWithQueue (would block replace-queue re-uploads)
     for (const k of index.matchKeys || []) if (k) exact.add(k);
     for (const k of index.matchKeysLoose || []) if (k) loose.add(k);
   }
   return { exact, loose };
+}
+
+/**
+ * Scan-desk import index: scanned results only (safe for replace-queue uploads).
+ * Strips queue-inflated fields so accidental merges cannot shrink the batch.
+ */
+R.scannedOnlyAddressIndex = function scannedOnlyAddressIndex(index) {
+  if (!index || typeof index !== 'object') return null;
+  return {
+    ok: index.ok,
+    matchKeys: Array.isArray(index.matchKeys) ? index.matchKeys : [],
+    matchKeysLoose: Array.isArray(index.matchKeysLoose) ? index.matchKeysLoose : [],
+    resultsCount: index.resultsCount,
+    recordsCount: index.recordsCount
+  };
 }
 
 /** True when row matches a known scanned address (exact or loose-without-zip). */
@@ -1032,36 +1048,11 @@ R.pushScanQueueToServer = async function pushScanQueueToServer(opts = {}) {
     if (!res.ok || data?.ok === false) {
       return { ok: false, error: data?.error || `HTTP ${res.status}`, data };
     }
-    // Server may drop more dups than the client saw (full DB) — trust its queue length
-    if (data && typeof data.records === 'number' && Array.isArray(state.records)) {
-      if (data.dedupe && data.dedupe.kept < leanRecords.length) {
-        const keptN = Number(data.dedupe.kept) || 0;
-        const skippedServer = Number(data.dedupe.skippedTotal) || (leanRecords.length - keptN);
-        if (skippedServer > 0) {
-          log?.(
-            `Server dedupe: dropped ${skippedServer.toLocaleString()} already in database · ${keptN.toLocaleString()} left to scan`,
-            'warn'
-          );
-        }
-        // Align local queue with server-kept count (re-filter locally by address vs results)
-        if (keptN === 0) {
-          state.records = [];
-          state._pendingUnscanned = 0;
-        } else if (keptN < state.records.length && typeof addressMatchKey === 'function') {
-          const known = new Set();
-          for (const r of state.results || []) {
-            const k = addressMatchKey(r);
-            if (k) known.add(k);
-          }
-          state.records = (state.records || []).filter((r) => {
-            const k = addressMatchKey(r);
-            return !k || !known.has(k);
-          }).slice(0, keptN);
-          state._pendingUnscanned = state.records.length;
-        }
-        updateScanReadyUi?.();
-        updateStartButton?.();
-      }
+    // replaceQueue stores the list as uploaded — keep the local count the user just saw.
+    if (data && typeof data.records === 'number') {
+      const n = Math.max(0, Number(data.records) || 0);
+      state._pendingUnscanned = n;
+      state._serverPendingUnscanned = n;
     }
     lastSessionSaveAt = Date.now();
     lastSessionSaveError = null;

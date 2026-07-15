@@ -36,11 +36,10 @@ function addRecordIndexKeys(keys, record) {
     .join(', ');
   if (composedFull) added.add(normalizeAddress(composedFull));
 
-  // Primary scan-desk keys (must match browser addressMatchKey)
-  const match = addressMatchKey(record);
-  if (match) added.add(match);
-  const loose = addressMatchKeyLoose(record);
-  if (loose) added.add(loose);
+  // Do NOT add addressMatchKey / loose pipe-keys here.
+  // `addresses` is for Filter (normalizeAddress forms). Analyze uses matchKeys
+  // (scanned results only). Mixing pipe-keys for the scan queue into `addresses`
+  // made re-uploads treat queued-but-unscanned rows as already scanned.
 
   for (const key of added) keys.add(key);
   return added.size > 0;

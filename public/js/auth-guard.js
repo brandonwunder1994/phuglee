@@ -9,7 +9,7 @@
 
   var path = normalizePath(window.location.pathname);
   var DISPOS_USER = 'brad';
-  var DISPOS_PATHS = { '/vault': true, '/under-contract': true };
+  var DISPOS_PATHS = { '/vault': true, '/under-contract': true, '/pipeline': true };
   var DISPOS_HOME = '/under-contract';
 
   function sessionApi() {

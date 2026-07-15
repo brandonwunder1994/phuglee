@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/cyber-review.css?v=20260714-lite">
   <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260714-mobile6">
-  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=4">
+  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=5-dual-buckets">
   <link rel="stylesheet" href="/css/property-profile-v2.css?v=2" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/css/property-profile-v2.css?v=2"></noscript>
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
@@ -230,26 +230,27 @@
     <section class="summary-section analyze-bucket-board phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" hidden data-phuglee-reveal-child>
       <div class="summary-head">
         <h2 class="analyze-panel-heading">Session buckets</h2>
-        <p class="summary-intro analyze-panel-lead" id="summaryIntro">AI sorted every scanned property into these groups — open Review Leads when ready.</p>
+        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Awaiting review vs In The Vault — open Review Leads or The Vault when ready.</p>
       </div>
-      <div class="bridge-kpi-grid analyze-metric-strip" id="summaryHeroRow">
-        <button type="button" class="bridge-kpi bridge-kpi--accent clickable" id="sumDistressedKpiCard" title="Filter distressed leads">
+      <p class="summary-row-label" id="summaryAwaitingLabel">Awaiting review</p>
+      <div class="bridge-kpi-grid analyze-metric-strip" id="summaryHeroRow" aria-label="Awaiting manual review">
+        <button type="button" class="bridge-kpi bridge-kpi--accent clickable" id="sumDistressedKpiCard" title="Review distressed leads">
           <span class="bridge-kpi-value" id="sumDistressedKpi">0</span>
           <span class="bridge-kpi-label">Distressed</span>
         </button>
-        <button type="button" class="bridge-kpi clickable" id="sumWellMaintainedCard" title="Filter well maintained leads">
+        <button type="button" class="bridge-kpi clickable" id="sumWellMaintainedCard" title="Review well maintained leads">
           <span class="bridge-kpi-value" id="sumWellMaintained">0</span>
           <span class="bridge-kpi-label">Well Maintained</span>
         </button>
-        <button type="button" class="bridge-kpi clickable" id="sumVacantCard" title="Filter land / vacant lots">
+        <button type="button" class="bridge-kpi clickable" id="sumVacantCard" title="Review land / vacant lots">
           <span class="bridge-kpi-value" id="sumVacant">0</span>
           <span class="bridge-kpi-label">Land</span>
         </button>
-        <button type="button" class="bridge-kpi clickable" id="sumBlurredCard" title="Filter blocked / blurry imagery">
+        <button type="button" class="bridge-kpi clickable" id="sumBlurredCard" title="Review blocked / blurry imagery">
           <span class="bridge-kpi-value" id="sumBlurred">0</span>
           <span class="bridge-kpi-label">Blocked</span>
         </button>
-        <div class="bridge-kpi" id="sumScannedHeroCard">
+        <div class="bridge-kpi" id="sumScannedHeroCard" title="Total scanned in this Analyzer session">
           <span class="bridge-kpi-value" id="sumScannedHero">0</span>
           <span class="bridge-kpi-label">Scanned</span>
         </div>
@@ -258,6 +259,25 @@
         <span class="bridge-kpi-value" id="sumReview">0</span>
         <span class="bridge-kpi-label">Needs Review</span>
       </button>
+      <p class="summary-row-label" id="summaryVaultLabel">In The Vault</p>
+      <div class="bridge-kpi-grid analyze-metric-strip summary-vault-row" id="summaryVaultRow" aria-label="Approved leads in The Vault">
+        <a class="bridge-kpi bridge-kpi--accent clickable summary-vault-link" id="sumVaultDistressedCard" href="/vault" title="Open Distressed in The Vault">
+          <span class="bridge-kpi-value" id="sumVaultDistressed">—</span>
+          <span class="bridge-kpi-label">Distressed</span>
+        </a>
+        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultWellMaintainedCard" href="/vault" title="Open Well Maintained in The Vault">
+          <span class="bridge-kpi-value" id="sumVaultWellMaintained">—</span>
+          <span class="bridge-kpi-label">Well Maintained</span>
+        </a>
+        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultLandCard" href="/vault" title="Open Land in The Vault">
+          <span class="bridge-kpi-value" id="sumVaultLand">—</span>
+          <span class="bridge-kpi-label">Land</span>
+        </a>
+        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultTotalCard" href="/vault" title="Open The Vault">
+          <span class="bridge-kpi-value" id="sumVaultTotal">—</span>
+          <span class="bridge-kpi-label">Total</span>
+        </a>
+      </div>
       <div id="summaryBreakdown" hidden aria-hidden="true">
         <div id="summaryPipeline"><div id="summaryPipelineTrack"></div></div>
         <div id="summarySecondaryGrid">
@@ -710,16 +730,16 @@
   <script src="/lib/review-training.js?v=20260630c" defer></script>
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
   <script src="/js/config.js?v=20260714-transport-blip" defer></script>
-  <script src="/js/state.js?v=20260714-pendingfix" defer></script>
+  <script src="/js/state.js?v=20260715-import-exact-count" defer></script>
   <script src="/js/imagery.js?v=20260713-satonly" defer></script>
   <script src="/js/scan.js?v=20260714-reason-align" defer></script>
   <script src="/js/review.js?v=20260713-satonly" defer></script>
-  <script src="/js/render.js?v=20260714-full-profile" defer></script>
-  <script src="/js/session.js?v=20260714-workers25" defer></script>
+  <script src="/js/render.js?v=20260715-import-exact-count" defer></script>
+  <script src="/js/session.js?v=20260715-dual-buckets" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/scan-ready.js?v=20260714-pendingfix" defer></script>
-  <script src="/js/live-scan-feed.js?v=20260712-distill" defer></script>
+  <script src="/js/scan-ready.js?v=20260715-import-exact-count" defer></script>
+  <script src="/js/live-scan-feed.js?v=20260715-dual-buckets" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
-  <script src="/js/app.js?v=20260714-transport-blip" defer></script>
+  <script src="/js/app.js?v=20260715-dual-buckets" defer></script>
 </body>
 </html>

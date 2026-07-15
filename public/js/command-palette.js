@@ -9,6 +9,7 @@
     { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },
     { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
     { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
+    { group: 'Admin', label: 'Sales Pipeline', href: '/pipeline', meta: 'GHL DTS kanban', contractDeskOnly: true },
     { group: 'Admin', label: 'Contract Tracker', href: '/under-contract', meta: 'Under contract · proof desk', contractDeskOnly: true },
     { group: 'Admin', label: 'Operating Costs', href: '/operating-costs', meta: 'Railway · GHL · APIs', adminOnly: true },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
@@ -120,7 +121,7 @@
       if (cmd.adminOnly && !isAdminUser()) return false;
       if (cmd.contractDeskOnly && !isContractDeskUser()) return false;
       if (isDisposUser()) {
-        return cmd.href === '/vault' || cmd.href === '/under-contract';
+        return cmd.href === '/vault' || cmd.href === '/under-contract' || cmd.href === '/pipeline';
       }
       return true;
     });

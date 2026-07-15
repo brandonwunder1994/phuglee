@@ -5,9 +5,9 @@
   const DISPOS = 'brad';
   const STAGE_LABELS = {
     under_contract: 'Under contract',
-    buyer_found: 'Buyer found',
-    closing: 'Closing',
-    funded: 'Funded'
+    buyer_found: 'Buyer Submitted EMD',
+    funded: 'Funded',
+    terminated: 'Terminated'
   };
   const DOC_LABELS = {
     purchase_contract: 'Purchase contract',
@@ -297,7 +297,8 @@
     const by = t.byStage || {};
     $('uc-kpi-uc').textContent = String(by.under_contract || t.underContract || 0);
     $('uc-kpi-buyer').textContent = String(by.buyer_found || t.buyerFound || 0);
-    $('uc-kpi-closing').textContent = String(by.closing || t.closing || 0);
+    // Closing stage removed — keep element hidden-safe if present
+    if ($('uc-kpi-closing')) $('uc-kpi-closing').textContent = '—';
     if ($('uc-kpi-open-fees')) {
       $('uc-kpi-open-fees').textContent = money(t.openAssignmentFees || 0);
     }
@@ -569,6 +570,10 @@
     const count = $('uc-board-count');
     if (!tbody) return;
 
+    // Contract Tracker only shows dispo stages (API also filters board=contracts)
+    const DISPO = new Set(['under_contract', 'buyer_found', 'funded', 'terminated']);
+    deals = (deals || []).filter((d) => DISPO.has(d.stage));
+
     if (!deals.length) {
       if (table) table.hidden = true;
       if (cards) {
@@ -610,7 +615,7 @@
                 : ''}
             </div>
             <div class="uc-property-quick">
-              <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
+              <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer EMD</button>
               <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
               <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
             </div>
@@ -688,7 +693,7 @@
             ${dealChecklistHtml(d)}
           </div>
           <div class="uc-deal-card-quick">
-            <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
+            <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer EMD</button>
             <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
             <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
           </div>
@@ -743,7 +748,7 @@
   }
 
   async function loadDeals(opts = {}) {
-    const data = await api('/api/leads/admin/contracts');
+    const data = await api('/api/leads/admin/contracts?board=contracts');
     state.deals = data.deals || [];
     state.totals = data.totals || null;
     state.goal = data.goal || null;
@@ -1610,7 +1615,7 @@
       ['Assignment fee', money(deal.assignmentFee)],
       ['Photo cost', money(deal.photoCost ?? 0)],
       ['Funded', deal.fundedLabel || '—'],
-      ['Buyer found?', deal.buyerFoundLabel || '—'],
+      ['Buyer EMD?', deal.buyerFoundLabel || '—'],
       ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
       ['Closing', deal.closingDate || contact?.closingDate || '—'],
       ['EMD Submitted?', deal.sellerEmdLabel || '—'],
@@ -1817,7 +1822,7 @@
             ['Assignment fee', money(deal.assignmentFee)],
             ['Photo cost', money(deal.photoCost ?? 0)],
             ['Funded', deal.fundedLabel || '—'],
-            ['Buyer found?', deal.buyerFoundLabel || '—'],
+            ['Buyer EMD?', deal.buyerFoundLabel || '—'],
             ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
             ['Closing', deal.closingDate || contact?.closingDate || '—'],
             ['EMD Submitted?', deal.sellerEmdLabel || '—'],
@@ -2102,7 +2107,7 @@
 
   function openBuyerFound(deal) {
     $('uc-buyer-deal-id').value = deal.dealId;
-    $('uc-buyer-title').textContent = deal.address ? `Buyer found — ${deal.address}` : 'Buyer found';
+    $('uc-buyer-title').textContent = deal.address ? `Buyer Submitted EMD — ${deal.address}` : 'Buyer Submitted EMD';
     $('uc-buyer-entity').value = deal.cashBuyerName || deal.buyerAssignment?.buyerEntity || '';
     $('uc-buyer-contact').value = deal.buyerAssignment?.buyerContactName || '';
     $('uc-buyer-email').value = deal.buyerAssignment?.buyerEmail || '';
@@ -2438,9 +2443,10 @@
         method: 'POST',
         body: '{}'
       });
-      state.deals = data.deals || [];
-      state.totals = data.totals || null;
-      state.unreadTeam = data.unreadTeam || state.unreadTeam || [];
+      const board = await api('/api/leads/admin/contracts?board=contracts');
+      state.deals = board.deals || [];
+      state.totals = board.totals || data.totals || null;
+      state.unreadTeam = board.unreadTeam || data.unreadTeam || state.unreadTeam || [];
       renderKpis(state.totals);
       renderTable(state.deals);
       renderTeamBanner();

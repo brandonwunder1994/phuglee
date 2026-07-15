@@ -9,6 +9,7 @@
   ];
 
   const ADMIN_PROPERTIES_LINKS = [
+    { id: 'pipeline', label: 'Sales Pipeline', href: '/pipeline' },
     { id: 'under-contract', label: 'Contract Tracker', href: '/under-contract' },
     { id: 'operating-costs', label: 'Operating Costs', href: '/operating-costs' }
   ];
@@ -85,6 +86,7 @@
     const p = normalizePath(path);
     if (p === '/command') return 'command';
     if (p === '/vault') return 'vault';
+    if (p === '/pipeline') return 'pipeline';
     if (p === '/under-contract') return 'under-contract';
     if (p === '/operating-costs') return 'operating-costs';
     if (p === '/filter' || p === '/bridge') return 'bridge';
@@ -194,12 +196,13 @@
   function buildNav(pathname) {
     const current = activeId(pathname);
     const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>The Vault</a>`;
+    const pipelineHtml = `<a href="/pipeline" class="${linkClass('pipeline', current)}"${current === 'pipeline' ? ' aria-current="page"' : ''}>Sales Pipeline</a>`;
     const contractHtml = `<a href="/under-contract" class="${linkClass('under-contract', current)}"${current === 'under-contract' ? ' aria-current="page"' : ''}>Contract Tracker</a>`;
 
     let linksHtml;
     if (isDisposUser()) {
-      // Disposition partner: Contract Tracker first — no mission / dashboard link
-      linksHtml = contractHtml + vaultHtml;
+      // Disposition partner: Tracker + Pipeline glance + Vault
+      linksHtml = contractHtml + pipelineHtml + vaultHtml;
     } else {
       const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
       const propertiesHtml = buildPropertiesDropdown(current);

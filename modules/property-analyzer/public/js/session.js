@@ -124,6 +124,165 @@ R.countTierBuckets = function countTierBuckets(results, totalHint) {
   return { all, distressed, well_maintained, vacant, blurred, review, satellite_only };
 }
 
+/**
+ * Bucket counts for THIS scan run only (starts at 0 when the run begins).
+ * Used by live KPI strip — never merges historical session totals.
+ */
+R.getScanBatchTierCounts = function getScanBatchTierCounts() {
+  const startedAt = Number(state.scanStartedAt) || 0;
+  const batchDone = Math.max(0, Number(state.scanBatchDone) || 0);
+  if (!startedAt) {
+    return { all: 0, distressed: 0, well_maintained: 0, vacant: 0, blurred: 0, review: 0, satellite_only: 0 };
+  }
+  const batchNew = (state.results || []).filter(
+    (r) => Number(r.analyzedAt || r.savedAt || 0) >= startedAt - 60_000
+  );
+  return countTierBuckets(batchNew, batchDone);
+};
+
+/** Zero-paint live scan KPI DOM before the first result arrives. */
+R.zeroPaintLiveScanKpis = function zeroPaintLiveScanKpis() {
+  const ids = [
+    'liveScanKpiDistressed',
+    'liveScanKpiWellMaintained',
+    'liveScanKpiLand',
+    'liveScanKpiBlocked',
+    'liveScanKpiScanned',
+    'liveScanKpiReview'
+  ];
+  for (const id of ids) {
+    const el = $(id);
+    if (el) el.textContent = '0';
+  }
+  const wrap = $('liveScanKpiReviewWrap');
+  if (wrap) wrap.hidden = true;
+};
+
+/**
+ * Awaiting-review queue sizes (still need Keep/Change).
+ * Uses the same exclusion rules as Review Leads.
+ */
+R.getAwaitingReviewBucketCounts = function getAwaitingReviewBucketCounts() {
+  const distressed = Number(scanReviewFilterSnapshot('distressed')?.pending) || 0;
+  const well_maintained = Number(scanReviewFilterSnapshot('well_maintained')?.pending) || 0;
+  const vacant = Number(scanReviewFilterSnapshot('vacant')?.pending) || 0;
+  const blurred = Number(scanReviewFilterSnapshot('blurred')?.pending) || 0;
+  const review = Number(scanReviewFilterSnapshot('review')?.pending) || 0;
+  const satellite_only = Number(scanReviewFilterSnapshot('satellite_only')?.pending) || 0;
+  const all = Math.max(
+    getTotalScannedCount(),
+    (state.results || []).length,
+    Number(state._tierCountsFromServer?.all) || 0
+  );
+  return { all, distressed, well_maintained, vacant, blurred, review, satellite_only };
+};
+
+R.VAULT_META_CACHE_MS = 45_000;
+
+/** Fetch The Vault catalog meta (byType / total). Cached ~45s. */
+R.fetchVaultMeta = async function fetchVaultMeta(opts = {}) {
+  const force = !!opts.force;
+  const cached = state._vaultMeta;
+  const cachedAt = Number(state._vaultMetaAt) || 0;
+  if (!force && cached && (Date.now() - cachedAt) < (R.VAULT_META_CACHE_MS || 45_000)) {
+    return cached;
+  }
+  try {
+    const headers = { Accept: 'application/json' };
+    try {
+      const user = sessionStorage.getItem('phuglee_session') || 'admin';
+      headers['X-Phuglee-User'] = user;
+      headers['X-Phuglee-Plan'] = sessionStorage.getItem('phuglee_plan')
+        || (user === 'admin' ? 'max' : 'max');
+    } catch (_) {
+      headers['X-Phuglee-User'] = 'admin';
+      headers['X-Phuglee-Plan'] = 'max';
+    }
+    const res = await fetch('/api/leads/meta', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers
+    });
+    if (!res.ok) {
+      state._vaultMeta = null;
+      state._vaultMetaAt = Date.now();
+      state._vaultMetaError = `HTTP ${res.status}`;
+      return null;
+    }
+    const body = await res.json().catch(() => null);
+    const meta = body?.meta || body;
+    if (!meta || typeof meta !== 'object') {
+      state._vaultMeta = null;
+      state._vaultMetaAt = Date.now();
+      state._vaultMetaError = 'bad_payload';
+      return null;
+    }
+    state._vaultMeta = meta;
+    state._vaultMetaAt = Date.now();
+    state._vaultMetaError = null;
+    return meta;
+  } catch (err) {
+    state._vaultMeta = null;
+    state._vaultMetaAt = Date.now();
+    state._vaultMetaError = err?.message || 'fetch_failed';
+    return null;
+  }
+};
+
+R.invalidateVaultMetaCache = function invalidateVaultMetaCache() {
+  delete state._vaultMeta;
+  delete state._vaultMetaAt;
+  delete state._vaultMetaError;
+};
+
+R.paintVaultSummaryRow = function paintVaultSummaryRow(meta, opts = {}) {
+  const instant = opts.instant !== false;
+  const animOpts = instant ? { instant: true } : { duration: 450 };
+  const byType = meta?.byType || {};
+  const available = !!(meta && typeof meta === 'object' && !state._vaultMetaError);
+
+  const setVal = (id, n) => {
+    const el = $(id);
+    if (!el) return;
+    if (!available) {
+      el.textContent = '—';
+      return;
+    }
+    if (typeof animateStatNumber === 'function') {
+      animateStatNumber(el, n, animOpts);
+    } else {
+      el.textContent = Number(n || 0).toLocaleString();
+    }
+  };
+
+  const distressed = Number(byType.distressed) || 0;
+  const wm = Number(byType.well_maintained) || 0;
+  const land = Number(byType.land) || 0;
+  const total = Number(meta?.catalogTotal ?? meta?.total) || (distressed + wm + land);
+
+  setVal('sumVaultDistressed', distressed);
+  setVal('sumVaultWellMaintained', wm);
+  setVal('sumVaultLand', land);
+  setVal('sumVaultTotal', total);
+
+  const row = $('summaryVaultRow');
+  if (row) {
+    row.hidden = false;
+    row.classList.toggle('is-unavailable', !available);
+    row.title = available
+      ? 'Approved leads in The Vault catalog'
+      : 'Vault totals unavailable — check Max plan / login';
+  }
+};
+
+/** Refresh Vault strip (force refetch). Safe to call fire-and-forget. */
+R.refreshVaultSummaryRow = async function refreshVaultSummaryRow(opts = {}) {
+  if (opts.force) invalidateVaultMetaCache();
+  const meta = await fetchVaultMeta({ force: !!opts.force });
+  paintVaultSummaryRow(meta, { instant: opts.instant !== false });
+  return meta;
+};
+
 R.getResultsForMarketTierCounts = function getResultsForMarketTierCounts() {
   const li = PDA.lib?.locationIndex;
   const ib = PDA.lib?.importBatches;
@@ -484,12 +643,19 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   if (state.reviewMode && !opts.force) return;
   const n = state.results.length;
   const metrics = getSummaryMetrics();
-  const { counts } = metrics;
   const scanLight = opts.light || (state.running && !opts.full);
   // Instant paint when server KPIs are ready — 900ms count-up made totals feel "slow to load"
   const usingServerKpis = !!(state._tierCountsFromServer && !sessionLoadState.complete);
   const instant = !!(opts.instant || scanLight || usingServerKpis || opts.full === false && usingServerKpis);
   const animOpts = instant ? { instant: true } : { duration: 450 };
+
+  // While scanning, live strip owns bucket UI — don't paint session dual totals
+  if (state.running && !opts.force) {
+    updateScannedCountUi();
+    updateScanReadyUi?.();
+    applyAnalyzeVisibility?.();
+    return;
+  }
 
   const totalScanned = metrics.total || 0;
   const hasData = totalScanned > 0 || n > 0 || state.records.length > 0;
@@ -500,41 +666,58 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
     animateStatNumber($('sumBlurred'), 0, { instant: true });
     animateStatNumber($('sumScannedHero'), 0, { instant: true });
     animateStatNumber($('sumReview'), 0, { instant: true });
+    paintVaultSummaryRow(null, { instant: true });
     const intro = $('summaryIntro');
-    if (intro) intro.textContent = 'Upload a list and scan — buckets fill here.';
+    if (intro) intro.textContent = 'Upload a list and scan — awaiting-review and Vault totals show here when done.';
     $('sumReviewCard')?.classList.remove('has-items');
     if ($('sumReviewCard')) $('sumReviewCard').hidden = true;
-    // Zone show/hide owned by applyAnalyzeVisibility (scan-first IA)
     updateScannedCountUi();
     updateScanReadyUi?.();
     applyAnalyzeVisibility?.();
     return;
   }
 
-  // Numbers only — visibility gated by getAnalyzeZones via applyAnalyzeVisibility
   updateScannedCountUi();
-  // Four primary buckets (operator contract) + scanned total
-  animateStatNumber($('sumDistressedKpi'), counts.distressed, animOpts);
-  animateStatNumber($('sumWellMaintained'), counts.well_maintained, animOpts);
-  animateStatNumber($('sumVacant'), counts.vacant, animOpts);
-  animateStatNumber($('sumBlurred'), counts.blurred, animOpts);
-  animateStatNumber($('sumScannedHero'), metrics.total, animOpts);
-  // Residual only — hidden when zero
-  const reviewN = Number(counts.review) || 0;
+
+  // Post-scan primary row = awaiting Keep/Change (not all-time classified totals)
+  if (opts.force) invalidateReviewSnapshotCache?.();
+  const awaiting = typeof getAwaitingReviewBucketCounts === 'function'
+    ? getAwaitingReviewBucketCounts()
+    : (metrics.counts || {});
+  animateStatNumber($('sumDistressedKpi'), awaiting.distressed, animOpts);
+  animateStatNumber($('sumWellMaintained'), awaiting.well_maintained, animOpts);
+  animateStatNumber($('sumVacant'), awaiting.vacant, animOpts);
+  animateStatNumber($('sumBlurred'), awaiting.blurred, animOpts);
+  animateStatNumber($('sumScannedHero'), totalScanned, animOpts);
+  const reviewN = Number(awaiting.review) || 0;
   animateStatNumber($('sumReview'), reviewN, animOpts);
   if ($('sumReviewCard')) {
     $('sumReviewCard').hidden = reviewN <= 0;
     $('sumReviewCard').classList.toggle('has-items', reviewN > 0);
   }
-  if (counts.distressed > 0 && typeof R.pulseDistressedKpi === 'function' && !instant) {
-    R.pulseDistressedKpi(counts.distressed);
+  if (awaiting.distressed > 0 && typeof R.pulseDistressedKpi === 'function' && !instant) {
+    R.pulseDistressedKpi(awaiting.distressed);
   }
 
+  const pendingReview =
+    (Number(awaiting.distressed) || 0)
+    + (Number(awaiting.well_maintained) || 0)
+    + (Number(awaiting.vacant) || 0)
+    + (Number(awaiting.blurred) || 0)
+    + reviewN;
   const intro = $('summaryIntro');
   if (intro) {
     intro.textContent = totalScanned
-      ? buildSummaryIntro(metrics)
-      : 'Buckets fill as Street View + AI finish each property.';
+      ? `${totalScanned.toLocaleString()} scanned in session · ${pendingReview.toLocaleString()} awaiting review · Vault totals below`
+      : 'Awaiting-review buckets fill after Street View + AI finish.';
+  }
+
+  // Vault row — use cache instantly, refresh in background when stale/forced
+  if (state._vaultMeta) {
+    paintVaultSummaryRow(state._vaultMeta, { instant: true });
+  }
+  if (opts.refreshVault !== false) {
+    void refreshVaultSummaryRow({ force: !!opts.forceVault, instant: true });
   }
 
   if (!scanLight) updateFilterLabels();
@@ -1416,6 +1599,11 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review') {
     touchManuallyReviewedByKey(key, via);
   }
   sessionDirty = true;
+  if (typeof notifyResultMutation === 'function') {
+    notifyResultMutation({ clearServerTierCounts: true });
+  } else {
+    invalidateReviewSnapshotCache?.();
+  }
   const stamped = idx != null && idx >= 0 ? state.results[idx] : null;
   if (stamped && typeof publishReviewedLeadToVault === 'function') {
     try {
@@ -1424,6 +1612,8 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review') {
       console.warn('[Vault] publish on review failed', err);
     }
   }
+  // Optimistic awaiting-review refresh (Vault row refreshes after publish succeeds)
+  updateSummaryStats?.({ force: true, refreshVault: false });
 }
 
 /** Push a Keep/Change decision into The Vault catalog (admin). */
@@ -1464,12 +1654,18 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
         }
         return res.json().catch(() => ({ ok: true }));
       });
-  send(urls[0]).catch((err) => {
-    console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
-    try {
-      DistressPersistence?.showToast?.('Vault publish failed — lead saved locally', 'error', 5000);
-    } catch (_) {}
-  });
+  send(urls[0])
+    .then(() => {
+      invalidateVaultMetaCache?.();
+      void refreshVaultSummaryRow?.({ force: true, instant: true });
+      updateSummaryStats?.({ force: true, forceVault: true });
+    })
+    .catch((err) => {
+      console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
+      try {
+        DistressPersistence?.showToast?.('Vault publish failed — lead saved locally', 'error', 5000);
+      } catch (_) {}
+    });
 };
 
 R.unmarkReviewedKey = function unmarkReviewedKey(filter, key) {

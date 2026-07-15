@@ -770,7 +770,7 @@
       if (path === '/' || path === '/index.html' || path === '/heat' || path === '/command') {
         return user === 'brad' ? '/under-contract' : '/command';
       }
-      if (user === 'brad' && path !== '/vault' && path !== '/under-contract') {
+      if (user === 'brad' && path !== '/vault' && path !== '/under-contract' && path !== '/pipeline') {
         return '/under-contract';
       }
       return dest;

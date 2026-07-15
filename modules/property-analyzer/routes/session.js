@@ -259,7 +259,8 @@ function register(ctx) {
   /**
    * Lean scan-queue write (v3.1). Updates records + importBatches + fileName only.
    * Never touches results — avoids multi‑10MB client POST on every spreadsheet upload.
-   * Server-side dedupe against full results DB so already-scanned addresses never re-queue.
+   * replaceQueue: store the uploaded list as-is (count the user just saw).
+   * append: still skip addresses already scanned or already queued.
    * Body: { replaceQueue?: true, records: [], importBatches?: [], fileName?: string }
    */
   router.post('/api/session-scan-queue', async (req, res, url) => {
@@ -300,18 +301,36 @@ function register(ctx) {
       return rest;
     });
 
-    // Authoritative dedupe vs full scanned results (and non-replace append vs existing queue)
-    const known = buildKnownAddressKeySet(
-      results,
-      replaceQueue ? [] : (Array.isArray(base.records) ? base.records : [])
-    );
-    const deduped = dedupeIncomingAgainstKnown(lean, known);
+    let queueRecords = lean;
+    let dedupeStats = {
+      incoming: lean.length,
+      kept: lean.length,
+      skippedExact: 0,
+      skippedLoose: 0,
+      skippedInFile: 0,
+      skippedTotal: 0
+    };
+    if (!replaceQueue) {
+      // Append only: don't re-queue addresses already scanned or already waiting
+      const known = buildKnownAddressKeySet(
+        results,
+        Array.isArray(base.records) ? base.records : []
+      );
+      const deduped = dedupeIncomingAgainstKnown(lean, known);
+      queueRecords = [...(Array.isArray(base.records) ? base.records : []), ...deduped.kept];
+      dedupeStats = {
+        incoming: lean.length,
+        kept: deduped.kept.length,
+        skippedExact: deduped.skippedExact,
+        skippedLoose: deduped.skippedLoose,
+        skippedInFile: deduped.skippedInFile,
+        skippedTotal: deduped.skippedTotal
+      };
+    }
 
     const next = {
       ...base,
-      records: replaceQueue
-        ? deduped.kept
-        : [...(Array.isArray(base.records) ? base.records : []), ...deduped.kept],
+      records: replaceQueue ? lean : queueRecords,
       results,
       processed: Number(base.processed) || results.length || 0,
       importBatches: nextBatches,
@@ -333,14 +352,7 @@ function register(ctx) {
       importBatches: Array.isArray(next.importBatches) ? next.importBatches.length : 0,
       fileName: next.fileName || '',
       savedAt: next.savedAt,
-      dedupe: {
-        incoming: lean.length,
-        kept: deduped.kept.length,
-        skippedExact: deduped.skippedExact,
-        skippedLoose: deduped.skippedLoose,
-        skippedInFile: deduped.skippedInFile,
-        skippedTotal: deduped.skippedTotal
-      }
+      dedupe: dedupeStats
     });
     return true;
   });

@@ -89,6 +89,9 @@
         '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
         '</a>' +
+        '<a href="/pipeline" class="shell-settings-item" role="menuitem">' +
+          '<span class="shell-settings-item-icon">▦</span> Sales Pipeline' +
+        '</a>' +
       '</div>'
     );
   }
@@ -108,6 +111,9 @@
       '<div class="shell-settings-section" data-admin-only>' +
         '<div class="shell-settings-section-label">Admin</div>' +
         analyzerItems +
+        '<a href="/pipeline" class="shell-settings-item" role="menuitem">' +
+          '<span class="shell-settings-item-icon">▦</span> Sales Pipeline' +
+        '</a>' +
         '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
         '</a>' +

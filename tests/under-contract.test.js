@@ -82,13 +82,22 @@ after(() => {
 });
 
 test('mapGhlStageName maps DTS stages', () => {
+  // Live DTS sales stages
+  assert.equal(sync.mapGhlStageName('🧑‍🍳 Interested | Nurturing'), 'interested');
+  assert.equal(sync.mapGhlStageName('🔥 Warm | Engaged'), 'warm');
+  assert.equal(sync.mapGhlStageName('🗣️ Verbal Offer Made'), 'verbal_offer');
+  assert.equal(sync.mapGhlStageName('📨 Sent Contract to Seller'), 'contract_sent');
+  // Contract signed (= Seller Signed) → Under Contract in Phuglee
   assert.equal(sync.mapGhlStageName('✅ Seller Signed | ➡️ Send To Title'), 'under_contract');
+  assert.equal(sync.mapGhlStageName('Contract Signed'), 'under_contract');
   assert.equal(sync.mapGhlStageName('🔎 Escrow Opened + Looking for Buyers'), 'under_contract');
   assert.equal(sync.mapGhlStageName('📮 AOC Sent to Cash Buyer'), 'buyer_found');
   assert.equal(sync.mapGhlStageName('✅ AOC Signed | ➡️ Send to Title'), 'buyer_found');
-  assert.equal(sync.mapGhlStageName('🏁 In Line to Close'), 'closing');
+  assert.equal(sync.mapGhlStageName('🏁 In Line to Close'), 'buyer_found');
   assert.equal(sync.mapGhlStageName('🥳 Funded'), 'funded');
-  assert.equal(sync.mapGhlStageName('Interested'), null);
+  assert.equal(sync.mapGhlStageName('Terminated'), 'terminated');
+  assert.equal(sync.mapGhlStageName('🚫 Not Interested'), null);
+  assert.equal(sync.mapGhlStageName('Unknown Stage XYZ'), null);
 });
 
 test('computeDealProfit uses assignment fee then override', () => {
@@ -98,9 +107,14 @@ test('computeDealProfit uses assignment fee then override', () => {
 });
 
 test('catalogStatusForDealStage hides and sold-maps funded', () => {
+  assert.equal(schema.catalogStatusForDealStage('interested'), 'under_contract');
+  assert.equal(schema.catalogStatusForDealStage('warm'), 'under_contract');
+  assert.equal(schema.catalogStatusForDealStage('verbal_offer'), 'under_contract');
+  assert.equal(schema.catalogStatusForDealStage('contract_sent'), 'under_contract');
   assert.equal(schema.catalogStatusForDealStage('under_contract'), 'under_contract');
   assert.equal(schema.catalogStatusForDealStage('buyer_found'), 'under_contract');
   assert.equal(schema.catalogStatusForDealStage('funded'), 'sold');
+  assert.equal(schema.catalogStatusForDealStage('terminated'), 'excluded');
 });
 
 test('queryLeads hides under_contract leads unless includeHidden', () => {
@@ -600,4 +614,115 @@ test('team messages + unread list for other user', () => {
     rehabInfo: { roof: 'ok', ac: 'ok', foundation: 'ok', electrical: 'ok', plumbing: 'ok', other: '' }
   });
   assert.equal(desk, true);
+});
+
+test('pre-UC GHL upsert hides Vault lead; pipeline board includes it', async () => {
+  const lead = store.upsertLead({
+    address: '77 Pipeline Rd',
+    city: 'Gilbert',
+    state: 'AZ',
+    zip: '85233',
+    leadType: 'well_maintained',
+    reviewStatus: 'approved',
+    signalTags: ['code'],
+    catalogStatus: 'active'
+  });
+  assert.equal(store.queryLeads({}).total >= 1, true);
+
+  const pipeline = {
+    id: 'pipe-sales',
+    name: 'DTS Pipeline',
+    stages: [{ id: 'st-int', name: 'Interested' }]
+  };
+  const opp = {
+    id: 'opp-sales-1',
+    contactId: 'c-sales',
+    pipelineStageId: 'st-int',
+    name: '77 Pipeline Rd — Gilbert AZ',
+    monetaryValue: 0,
+    _stageName: 'Interested'
+  };
+  const deal = await sync.upsertDealFromOpportunity(opp, pipeline, {
+    address1: '77 Pipeline Rd',
+    city: 'Gilbert',
+    state: 'AZ',
+    zip: '85233'
+  });
+  assert.equal(deal.stage, 'interested');
+  assert.equal(deal.leadId, lead.leadId);
+  assert.equal(store.getLead(lead.leadId).catalogStatus, 'under_contract');
+  assert.equal(store.queryLeads({}).leads.some((l) => l.leadId === lead.leadId), false);
+
+  const pipelineDeals = contracts.filterDealsForBoard(contracts.listDeals(), 'pipeline');
+  assert.ok(pipelineDeals.some((d) => d.dealId === deal.dealId && d.stage === 'interested'));
+  const contractDeals = contracts.filterDealsForBoard(contracts.listDeals(), 'contracts');
+  assert.ok(!contractDeals.some((d) => d.dealId === deal.dealId));
+});
+
+test('Brad projection strips PII on pre-UC; full on UC+; write blocked', async () => {
+  const sales = contracts.upsertDeal({
+    address: '12 Secret Ave',
+    city: 'Scottsdale',
+    state: 'AZ',
+    stage: 'verbal_offer',
+    phone: '4805550199',
+    ownerName: 'Hidden Owner',
+    notes: 'secret offer notes',
+    streetViewUrl: 'https://example.com/sv.jpg'
+  });
+  const projected = contracts.projectDealForViewer(sales, 'brad');
+  assert.equal(projected.restricted, true);
+  assert.equal(projected.address, '12 Secret Ave');
+  assert.ok(projected.thumbUrl || projected.streetViewUrl);
+  assert.equal(projected.phone, undefined);
+  assert.equal(projected.ownerName, undefined);
+  assert.equal(projected.notes, undefined);
+
+  assert.throws(
+    () => contracts.assertBradCanWriteDeal(sales, 'brad'),
+    (err) => err.code === 'FORBIDDEN_SALES_STAGE'
+  );
+
+  const uc = contracts.upsertDeal({
+    address: '99 Open Ln',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'under_contract',
+    phone: '4805550100',
+    ownerName: 'Visible'
+  });
+  const full = contracts.projectDealForViewer(uc, 'brad');
+  assert.notEqual(full.restricted, true);
+  assert.equal(full.phone, '4805550100');
+  assert.doesNotThrow(() => contracts.assertBradCanWriteDeal(uc, 'brad'));
+
+  const patchRes = mockRes();
+  await api.handle(
+    bradReq(`/api/leads/admin/contracts/${sales.dealId}`, 'POST', { notes: 'hack' }),
+    patchRes,
+    `/api/leads/admin/contracts/${sales.dealId}`,
+    new URL(`http://127.0.0.1/api/leads/admin/contracts/${sales.dealId}`)
+  );
+  assert.equal(patchRes.statusCode, 403);
+
+  const listRes = mockRes();
+  await api.handle(
+    bradReq('/api/leads/admin/contracts?board=pipeline'),
+    listRes,
+    '/api/leads/admin/contracts',
+    new URL('http://127.0.0.1/api/leads/admin/contracts?board=pipeline')
+  );
+  assert.equal(listRes.statusCode, 200);
+  const listBody = JSON.parse(listRes.body);
+  const salesCard = listBody.deals.find((d) => d.dealId === sales.dealId);
+  assert.ok(salesCard);
+  assert.equal(salesCard.restricted, true);
+  assert.equal(salesCard.phone, undefined);
+});
+
+test('dispos role allows /pipeline path', () => {
+  const roles = require('../lib/phuglee-roles');
+  assert.equal(roles.isPathAllowedForUsername('brad', '/pipeline'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/under-contract'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/filter'), false);
 });

@@ -92,8 +92,17 @@
         const summary = await res.json();
         if (!summary?.ok) return null;
         const pending = Math.max(0, Number(summary.pendingUnscanned) || 0);
-        state._serverPendingUnscanned = pending;
-        if (pending > 0) state._pendingUnscanned = Math.max(Number(state._pendingUnscanned) || 0, pending);
+        const freshImport = Number(state._freshImportAt) > 0
+          && (Date.now() - Number(state._freshImportAt)) < 10 * 60 * 1000;
+        // After a file drop, keep the list length the user just saw — don't
+        // overwrite it with a stale/filtered server pending count.
+        if (freshImport && (state.records || []).length > 0) {
+          state._serverPendingUnscanned = (state.records || []).length;
+          state._pendingUnscanned = (state.records || []).length;
+        } else {
+          state._serverPendingUnscanned = pending;
+          if (pending > 0) state._pendingUnscanned = Math.max(Number(state._pendingUnscanned) || 0, pending);
+        }
         if (summary.tierCounts && typeof normalizeTierCountsForDisplay === 'function') {
           state._tierCountsFromServer = normalizeTierCountsForDisplay(
             summary.tierCounts,
@@ -140,28 +149,27 @@
         Number(state._tierCountsFromServer?.all) || 0,
         Number(state._scanBaselineTierCounts?.all) || 0
       );
-      const resultsPartial = expectedTotal > 0
-        && (state.results || []).length < Math.floor(expectedTotal * 0.95);
       const serverPending = Number(state._serverPendingUnscanned);
       const batchDone = Number(state.scanBatchDone) || 0;
       const batchTotal = Number(state.scanBatchTotal) || 0;
 
-      // Single display pending:
-      // - Mid-scan: remaining on THIS list = batchTotal - batchDone
-      // - Server pending wins when set (forceRescan / requeue) — never hide behind stale browser KPIs
-      // - Otherwise: local countPendingScanLeads (same as Start Scan)
+      // Single display pending — after a fresh file drop, trust THIS list length.
+      // Do not let a stale server queue inflate/deflate the number the user just saw.
       let pendingUnscanned = 0;
+      const localQueue = Math.max(0, (state.records || []).length);
+      const freshImport = Number(state._freshImportAt) > 0
+        && (Date.now() - Number(state._freshImportAt)) < 10 * 60 * 1000;
       const localPending = hasRecords && typeof countPendingScanLeads === 'function'
         ? countPendingScanLeads(state.records, state.results)
         : Math.max(0, Number(state._pendingUnscanned) || 0);
       if (state.running && batchTotal > 0) {
         pendingUnscanned = Math.max(0, batchTotal - batchDone);
-      } else if (Number.isFinite(serverPending) && serverPending > 0) {
-        pendingUnscanned = Math.max(serverPending, localPending);
-      } else if (resultsPartial && Number.isFinite(serverPending)) {
-        pendingUnscanned = Math.max(0, serverPending);
+      } else if (freshImport && localQueue > 0) {
+        pendingUnscanned = localQueue;
+      } else if (Number.isFinite(serverPending) && serverPending > 0 && !hasRecords) {
+        pendingUnscanned = serverPending;
       } else if (hasRecords) {
-        pendingUnscanned = localPending;
+        pendingUnscanned = localQueue || localPending;
       } else {
         pendingUnscanned = Math.max(0, Number(state._pendingUnscanned) || 0);
       }
@@ -201,12 +209,11 @@
             ` · ${sessionSaved.toLocaleString()} total in session` +
             ` — Stop keeps finished ones.`;
         } else if (pendingUnscanned > 0) {
-          const onList = (state.records || []).length || (pendingUnscanned + Math.max(0, Number(state.scanBatchDone) || 0));
-          const doneOnList = Math.max(0, onList - pendingUnscanned);
           scanReadyCount.textContent =
-            `${pendingUnscanned.toLocaleString()} left to scan` +
-            (onList ? ` (${doneOnList.toLocaleString()} of ${onList.toLocaleString()} on this list already done)` : '') +
-            ` · ${sessionSaved.toLocaleString()} total in session` +
+            `${pendingUnscanned.toLocaleString()} to scan` +
+            (sessionSaved
+              ? ` · ${sessionSaved.toLocaleString()} already in session`
+              : '') +
             ` — hit Start Scan`;
         } else if (sessionSaved > 0) {
           scanReadyCount.textContent =

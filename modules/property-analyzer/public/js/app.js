@@ -1359,12 +1359,11 @@ R.startScanAnalysis = async function startScanAnalysis() {
     abortSessionBackgroundLoad();
     state.running = true;
     state.scanStartedAt = Date.now();
-    // Snapshot server/session buckets BEFORE the run so KPIs don't collapse to partial pages.
+    // Snapshot session buckets for other logic; live KPI strip uses scan-only counts from 0.
     const baselineTiers = (typeof getTierCounts === 'function')
       ? { ...(getTierCounts({ global: true }) || {}) }
       : (state._tierCountsFromServer ? { ...state._tierCountsFromServer } : null);
     state._scanBaselineTierCounts = baselineTiers;
-    // Keep _tierCountsFromServer as fallback; live getTierCounts merges baseline + this-run delta.
     tierCountsCache = null;
     tierCountsCacheKey = '';
     updateScanReadyUi?.();
@@ -1458,6 +1457,8 @@ R.startScanAnalysis = async function startScanAnalysis() {
     state.scanBaselineResults = resumeCount;
     state.scanBatchTotal = pending.length;
     state.scanBatchDone = 0;
+    if (typeof zeroPaintLiveScanKpis === 'function') zeroPaintLiveScanKpis();
+    updateLiveScanSectionUi?.();
 
     if (!pending.length) {
       log('All addresses already analyzed — open results to review', 'success');
@@ -1604,9 +1605,10 @@ R.startScanAnalysis = async function startScanAnalysis() {
           }
           state.processed = Number(summary.results) || state.processed;
           tierCountsCache = null;
-          updateSummaryStats?.();
+          updateSummaryStats?.({ forceVault: true });
           updateScanReadyUi?.();
           updateLiveScanSectionUi?.();
+          void refreshVaultSummaryRow?.({ force: true, instant: true });
         })
         .catch(() => {});
     }
