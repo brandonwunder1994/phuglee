@@ -56,6 +56,21 @@ describe('signnow-send helpers', () => {
     assert.equal(BRAD.email, 'buyhomes995@gmail.com');
   });
 
+  it('uses spaced AOC template field names and Assignor/Assignee roles', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    assert.match(src, /'Property Address'/);
+    assert.match(src, /'Legal Description'/);
+    assert.match(src, /'Assignee Purchase Price'/);
+    assert.match(src, /'Title Company Name'/);
+    assert.match(src, /'Additional Terms'/);
+    assert.match(src, /AOC - \$\{prop\}/);
+    assert.match(src, /role: 'Assignor'/);
+    assert.match(src, /role: 'Assignee'/);
+  });
+
   it('maps template keys to document kinds', () => {
     assert.equal(kindFromTemplateKey('aoc'), 'aoc');
     assert.equal(kindFromTemplateKey('jv'), 'jv');
