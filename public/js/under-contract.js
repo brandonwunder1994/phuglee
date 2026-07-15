@@ -907,10 +907,21 @@
     if (!el) return null;
     const panel = el.closest?.('.uc-panel') || (el.classList?.contains('uc-panel') ? el : null) || el;
     if (!panel?.classList?.contains('uc-panel')) return panel;
-    // Accordion: one section open at a time so content isn't pushed off-screen.
-    document.querySelectorAll('#uc-drawer .uc-panel.is-open').forEach((other) => {
-      if (other !== panel) setPanelOpen(other, false);
-    });
+    // Keep ancestors open so nested Communication children stay visible.
+    const ancestors = [];
+    let walk = panel.parentElement?.closest?.('.uc-panel');
+    while (walk) {
+      ancestors.push(walk);
+      walk = walk.parentElement?.closest?.('.uc-panel');
+    }
+    ancestors.reverse().forEach((a) => setPanelOpen(a, true));
+    // Accordion only among siblings at the same nesting level.
+    const parent = panel.parentElement;
+    if (parent) {
+      Array.from(parent.children).forEach((sib) => {
+        if (sib !== panel && sib.classList?.contains('uc-panel')) setPanelOpen(sib, false);
+      });
+    }
     setPanelOpen(panel, true);
     requestAnimationFrame(() => {
       const drawerBody = document.querySelector('#uc-drawer .uc-drawer-body');
@@ -1074,7 +1085,7 @@
       }
     }
     if (!media.length) {
-      box.innerHTML = '<p class="uc-media-empty">No saved media yet. Hover a photo/video in Texts and click Save, schedule a photographer, or Upload from desk.</p>';
+      box.innerHTML = '<p class="uc-media-empty">No saved media yet. Hover a photo/video in Seller texts and click Save, or Upload from desk.</p>';
       return;
     }
     box.innerHTML = media.map((m) => {
@@ -1107,7 +1118,7 @@
   async function copyUploadUrl() {
     const url = uploadUrlFromDeal(state.profile);
     if (!url) {
-      showToast('No upload URL yet — schedule a photographer first');
+.showToast('No upload URL on file for this deal');
       return;
     }
     try {
@@ -1120,45 +1131,10 @@
 
   function renderPhotographerSection(deal) {
     const sched = deal?.photographerSchedule;
-    const form = $('uc-photo-sched-form');
-    const summary = $('uc-photo-sched-summary');
-    const saveBtn = $('uc-photo-sched-save');
-    const copyBtn = $('uc-photo-copy-url');
     const copySms = $('uc-photo-copy-url-sms');
-    const meta = $('uc-photo-sched-meta');
     const scheduled = Boolean(sched?.scheduled && sched?.uploadToken);
-    if (copyBtn) copyBtn.hidden = !scheduled;
     if (copySms) copySms.hidden = !scheduled;
-    if (scheduled) {
-      if (form) form.hidden = true;
-      if (saveBtn) saveBtn.hidden = true;
-      if (summary) {
-        summary.hidden = false;
-        summary.innerHTML = `<p><strong>${esc(sched.photographerName || 'Photographer')}</strong>` +
-          ` · ${esc(sched.date || '')} ${esc(sched.time || '')}</p>` +
-          `<p class="uc-docs-meta">Booked by ${esc(sched.bookedByName || sched.bookedBy || '—')}` +
-          `${sched.introSmsSentAt ? ' · intro SMS sent' : ''}` +
-          `${sched.doneAt ? ' · Done ✓' : ''}</p>` +
-          `<p class="uc-photo-url"><code>${esc(sched.uploadUrl || '')}</code></p>`;
-      }
-      if (meta) meta.textContent = 'Shoot scheduled — share upload link or open Photographer Texts';
-    } else {
-      if (form) form.hidden = false;
-      if (saveBtn) {
-        saveBtn.hidden = false;
-        saveBtn.textContent = 'Schedule';
-      }
-      if (summary) {
-        summary.hidden = true;
-        summary.innerHTML = '';
-      }
-      if (meta) meta.textContent = 'Schedule a shoot — mints upload link + intro SMS (you are named as Brad/Brandon from login)';
-      if ($('uc-photo-date')) $('uc-photo-date').value = '';
-      if ($('uc-photo-time')) $('uc-photo-time').value = '';
-      if ($('uc-photo-name')) $('uc-photo-name').value = '';
-      if ($('uc-photo-email')) $('uc-photo-email').value = '';
-      if ($('uc-photo-phone')) $('uc-photo-phone').value = '';
-    }
+    syncPhotoConvoMeta(deal);
   }
 
   function moneyPlain(n) {
@@ -1402,9 +1378,9 @@
     const sched = deal?.photographerSchedule;
     if (!meta) return;
     if (sched?.photographerName) {
-      meta.textContent = `Texting ${sched.photographerName}${sched.photographerPhone ? ' · ' + sched.photographerPhone : ''} — separate from seller SMS`;
+      meta.textContent = `Texting ${sched.photographerName}${sched.photographerPhone ? ' · ' + sched.photographerPhone : ''}`;
     } else {
-      meta.textContent = 'Separate thread — schedule a photographer first to enable SMS';
+      meta.textContent = 'Photographer texts';
     }
   }
 
@@ -1413,7 +1389,7 @@
     if (!box) return;
     const list = state.photographerMessages || [];
     if (!list.length) {
-      box.innerHTML = '<p class="uc-convo-empty">No photographer texts yet. Schedule a shoot to start the thread.</p>';
+      box.innerHTML = '<p class="uc-convo-empty">No photographer texts yet.</p>';
       return;
     }
     box.innerHTML = list.map((m) => {
@@ -2798,8 +2774,6 @@
     $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
-    $('uc-photo-sched-save')?.addEventListener('click', () => { schedulePhotographer(); });
-    $('uc-photo-copy-url')?.addEventListener('click', () => { copyUploadUrl(); });
     $('uc-photo-copy-url-sms')?.addEventListener('click', () => { copyUploadUrl(); });
     $('uc-photo-sms-send')?.addEventListener('click', () => { sendPhotographerSms(); });
     $('uc-photo-sms-refresh')?.addEventListener('click', () => {

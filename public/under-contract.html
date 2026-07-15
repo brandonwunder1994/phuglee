@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=50">
+  <link rel="stylesheet" href="/css/under-contract.css?v=51">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -250,147 +250,6 @@
       <div id="uc-drawer-hero" class="uc-drawer-hero"></div>
       <dl id="uc-drawer-facts" class="uc-facts"></dl>
 
-      <section id="uc-photographer-section" class="uc-panel uc-photographer" aria-label="Photographer scheduling">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Photographer</span>
-          <span class="uc-panel-hint" id="uc-photo-sched-meta">Schedule shoot · upload link + intro SMS</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-photo-copy-url" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
-            <button type="button" id="uc-photo-sched-save" class="phuglee-btn phuglee-btn-secondary">Schedule</button>
-          </div>
-          <div id="uc-photo-sched-form" class="uc-photo-sched-grid">
-            <label class="vault-field">
-              <span class="vault-field-label">Date</span>
-              <input type="date" id="uc-photo-date" class="phuglee-input">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Time</span>
-              <input type="time" id="uc-photo-time" class="phuglee-input">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Photographer name</span>
-              <input type="text" id="uc-photo-name" class="phuglee-input" placeholder="Full name" autocomplete="name">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Email</span>
-              <input type="email" id="uc-photo-email" class="phuglee-input" placeholder="optional@" autocomplete="email">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Phone</span>
-              <input type="tel" id="uc-photo-phone" class="phuglee-input" placeholder="xxx-xxx-xxxx" autocomplete="tel">
-            </label>
-          </div>
-          <div id="uc-photo-sched-summary" class="uc-photo-sched-summary" hidden></div>
-        </div>
-      </section>
-
-      <section id="uc-photo-convo-section" class="uc-panel uc-convo uc-photo-convo" aria-label="Photographer SMS">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Photographer Texts</span>
-          <span class="uc-panel-hint" id="uc-photo-convo-meta">Separate from seller SMS</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-photo-copy-url-sms" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
-            <button type="button" id="uc-photo-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
-          </div>
-          <div id="uc-photo-thread" class="uc-convo-thread"></div>
-          <div class="uc-convo-compose">
-            <textarea id="uc-photo-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the photographer?"></textarea>
-            <button type="button" id="uc-photo-sms-send" class="phuglee-btn phuglee-btn-primary">Send to photographer</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="uc-panel uc-rehab" aria-label="Rehab info">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Rehab info</span>
-          <span class="uc-panel-hint">Roof, AC, foundation, systems for dispo</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-rehab-save" class="phuglee-btn phuglee-btn-secondary">Save rehab</button>
-          </div>
-          <div class="uc-rehab-grid">
-            <label class="vault-field">
-              <span class="vault-field-label">Roof age &amp; condition</span>
-              <input type="text" id="uc-rehab-roof" class="phuglee-input" placeholder="e.g. 8 yrs, fair">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">AC age &amp; condition</span>
-              <input type="text" id="uc-rehab-ac" class="phuglee-input" placeholder="e.g. 5 yrs, good">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Foundation</span>
-              <input type="text" id="uc-rehab-foundation" class="phuglee-input">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Electrical</span>
-              <input type="text" id="uc-rehab-electrical" class="phuglee-input">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Plumbing</span>
-              <input type="text" id="uc-rehab-plumbing" class="phuglee-input">
-            </label>
-            <label class="vault-field uc-rehab-other">
-              <span class="vault-field-label">Anything else for dispo</span>
-              <textarea id="uc-rehab-other" class="phuglee-textarea" rows="3" placeholder="Custom notes buyers need to know?"></textarea>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      <section class="uc-panel uc-media" aria-label="Seller media">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Media</span>
-          <span class="uc-panel-hint">Seller + photographer photos</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-media-desk-upload" class="phuglee-btn phuglee-btn-ghost">Upload</button>
-            <input type="file" id="uc-media-desk-file" accept="image/*,video/*" multiple hidden>
-            <a id="uc-media-zip" class="phuglee-btn phuglee-btn-secondary" href="#" hidden>Download ZIP</a>
-          </div>
-          <div id="uc-media-grid" class="uc-media-grid"></div>
-        </div>
-      </section>
-
-      <section id="uc-condition-scan" class="uc-panel uc-condition-scan" aria-label="AI condition scan">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Condition Scan</span>
-          <span class="uc-panel-hint" id="uc-scan-meta">Rehab cost estimate from photos</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-scan-run" class="phuglee-btn phuglee-btn-secondary">Rescan</button>
-          </div>
-          <div class="uc-scan-controls">
-            <label class="vault-field">
-              <span class="vault-field-label">Finish grade</span>
-              <select id="uc-scan-finish" class="phuglee-select">
-                <option value="investor">Investor</option>
-                <option value="retail">Retail</option>
-              </select>
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Living sqft</span>
-              <input type="number" id="uc-scan-sqft" class="phuglee-input" min="200" max="20000" placeholder="confirm">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Contingency %</span>
-              <input type="number" id="uc-scan-contingency" class="phuglee-input" min="0" max="25" step="1" value="10">
-            </label>
-            <button type="button" id="uc-scan-apply-opts" class="phuglee-btn phuglee-btn-ghost">Apply / reprice</button>
-          </div>
-          <div id="uc-scan-summary" class="uc-scan-summary"></div>
-          <div id="uc-scan-walk" class="uc-scan-walk" hidden></div>
-          <div id="uc-scan-lines" class="uc-scan-lines"></div>
-          <p id="uc-scan-provenance" class="uc-scan-provenance"></p>
-        </div>
-      </section>
-
       <section class="uc-panel uc-docs" aria-label="Contract documents">
         <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Documents</span>
@@ -444,37 +303,150 @@
         </div>
       </section>
 
-      <section class="uc-panel uc-team" aria-label="Internal team messages" id="uc-team-section">
+      <section id="uc-communication-section" class="uc-panel uc-communication" aria-label="Communication">
         <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Internal messages</span>
-          <span class="uc-panel-hint">Admin ↔ Brad on this property</span>
+          <span class="uc-panel-title">Communication</span>
+          <span class="uc-panel-hint">Seller · Internal · Photographer</span>
+        </button>
+        <div class="uc-panel-body uc-comm-body" hidden>
+          <section id="uc-convo-section" class="uc-panel uc-convo uc-panel--nested" aria-label="Seller SMS">
+            <button type="button" class="uc-panel-summary" aria-expanded="false">
+              <span class="uc-panel-title">Seller <button type="button" id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text">●</button></span>
+              <span class="uc-panel-hint">Seller texts</span>
+              <span id="uc-convo-meta" class="uc-convo-meta"></span>
+            </button>
+            <div class="uc-panel-body" hidden>
+              <div class="uc-panel-toolbar">
+                <button type="button" id="uc-sms-save-all-media" class="phuglee-btn phuglee-btn-ghost" hidden>Save all media</button>
+                <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost" hidden>Mark as read</button>
+                <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
+              </div>
+              <div id="uc-convo-thread" class="uc-convo-thread"></div>
+              <div class="uc-convo-compose">
+                <textarea id="uc-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the seller?"></textarea>
+                <button type="button" id="uc-sms-send" class="phuglee-btn phuglee-btn-primary">Send to seller</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="uc-panel uc-team uc-panel--nested" aria-label="Internal team messages" id="uc-team-section">
+            <button type="button" class="uc-panel-summary" aria-expanded="false">
+              <span class="uc-panel-title">Internal</span>
+              <span class="uc-panel-hint">Team messages on this property</span>
+            </button>
+            <div class="uc-panel-body" hidden>
+              <div id="uc-team-thread" class="uc-convo-thread uc-team-thread"></div>
+              <div class="uc-convo-compose">
+                <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Message your teammate?"></textarea>
+                <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
+              </div>
+            </div>
+          </section>
+
+          <section id="uc-photo-convo-section" class="uc-panel uc-convo uc-photo-convo uc-panel--nested" aria-label="Photographer SMS">
+            <button type="button" class="uc-panel-summary" aria-expanded="false">
+              <span class="uc-panel-title">Photographer</span>
+              <span class="uc-panel-hint" id="uc-photo-convo-meta">Photographer texts</span>
+            </button>
+            <div class="uc-panel-body" hidden>
+              <div class="uc-panel-toolbar">
+                <button type="button" id="uc-photo-copy-url-sms" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
+                <button type="button" id="uc-photo-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
+              </div>
+              <div id="uc-photo-thread" class="uc-convo-thread"></div>
+              <div class="uc-convo-compose">
+                <textarea id="uc-photo-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the photographer?"></textarea>
+                <button type="button" id="uc-photo-sms-send" class="phuglee-btn phuglee-btn-primary">Send to photographer</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="uc-panel uc-media" aria-label="Seller media">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
+          <span class="uc-panel-title">Media</span>
+          <span class="uc-panel-hint">Seller + photographer photos</span>
         </button>
         <div class="uc-panel-body" hidden>
-          <div id="uc-team-thread" class="uc-convo-thread uc-team-thread"></div>
-          <div class="uc-convo-compose">
-            <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Message your teammate?"></textarea>
-            <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
+          <div class="uc-panel-toolbar">
+            <button type="button" id="uc-media-desk-upload" class="phuglee-btn phuglee-btn-ghost">Upload</button>
+            <input type="file" id="uc-media-desk-file" accept="image/*,video/*" multiple hidden>
+            <a id="uc-media-zip" class="phuglee-btn phuglee-btn-secondary" href="#" hidden>Download ZIP</a>
+          </div>
+          <div id="uc-media-grid" class="uc-media-grid"></div>
+        </div>
+      </section>
+
+      <section class="uc-panel uc-rehab" aria-label="Rehab info">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
+          <span class="uc-panel-title">Rehab info</span>
+          <span class="uc-panel-hint">Roof, AC, foundation, systems for dispo</span>
+        </button>
+        <div class="uc-panel-body" hidden>
+          <div class="uc-panel-toolbar">
+            <button type="button" id="uc-rehab-save" class="phuglee-btn phuglee-btn-secondary">Save rehab</button>
+          </div>
+          <div class="uc-rehab-grid">
+            <label class="vault-field">
+              <span class="vault-field-label">Roof age &amp; condition</span>
+              <input type="text" id="uc-rehab-roof" class="phuglee-input" placeholder="e.g. 8 yrs, fair">
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">AC age &amp; condition</span>
+              <input type="text" id="uc-rehab-ac" class="phuglee-input" placeholder="e.g. 5 yrs, good">
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">Foundation</span>
+              <input type="text" id="uc-rehab-foundation" class="phuglee-input">
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">Electrical</span>
+              <input type="text" id="uc-rehab-electrical" class="phuglee-input">
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">Plumbing</span>
+              <input type="text" id="uc-rehab-plumbing" class="phuglee-input">
+            </label>
+            <label class="vault-field uc-rehab-other">
+              <span class="vault-field-label">Anything else for dispo</span>
+              <textarea id="uc-rehab-other" class="phuglee-textarea" rows="3" placeholder="Custom notes buyers need to know?"></textarea>
+            </label>
           </div>
         </div>
       </section>
 
-      <section id="uc-convo-section" class="uc-panel uc-convo" aria-label="Seller SMS">
+      <section id="uc-condition-scan" class="uc-panel uc-condition-scan" aria-label="AI condition scan">
         <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Seller Texts <button type="button" id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text">●</button></span>
-          <span class="uc-panel-hint">Seller SMS only · photographer has its own section</span>
-          <span id="uc-convo-meta" class="uc-convo-meta"></span>
+          <span class="uc-panel-title">Condition Scan</span>
+          <span class="uc-panel-hint" id="uc-scan-meta">Rehab cost estimate from photos</span>
         </button>
         <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
-            <button type="button" id="uc-sms-save-all-media" class="phuglee-btn phuglee-btn-ghost" hidden>Save all media</button>
-            <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost" hidden>Mark as read</button>
-            <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
+            <button type="button" id="uc-scan-run" class="phuglee-btn phuglee-btn-secondary">Rescan</button>
           </div>
-          <div id="uc-convo-thread" class="uc-convo-thread"></div>
-          <div class="uc-convo-compose">
-            <textarea id="uc-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the seller?"></textarea>
-            <button type="button" id="uc-sms-send" class="phuglee-btn phuglee-btn-primary">Send to seller</button>
+          <div class="uc-scan-controls">
+            <label class="vault-field">
+              <span class="vault-field-label">Finish grade</span>
+              <select id="uc-scan-finish" class="phuglee-select">
+                <option value="investor">Investor</option>
+                <option value="retail">Retail</option>
+              </select>
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">Living sqft</span>
+              <input type="number" id="uc-scan-sqft" class="phuglee-input" min="200" max="20000" placeholder="confirm">
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">Contingency %</span>
+              <input type="number" id="uc-scan-contingency" class="phuglee-input" min="0" max="25" step="1" value="10">
+            </label>
+            <button type="button" id="uc-scan-apply-opts" class="phuglee-btn phuglee-btn-ghost">Apply / reprice</button>
           </div>
+          <div id="uc-scan-summary" class="uc-scan-summary"></div>
+          <div id="uc-scan-walk" class="uc-scan-walk" hidden></div>
+          <div id="uc-scan-lines" class="uc-scan-lines"></div>
+          <p id="uc-scan-provenance" class="uc-scan-provenance"></p>
         </div>
       </section>
     </div>
@@ -677,6 +649,6 @@
   <script src="/js/shell-nav.js?v=17" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=54" defer></script>
+  <script src="/js/under-contract.js?v=55" defer></script>
 </body>
 </html>

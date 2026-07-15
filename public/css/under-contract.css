@@ -1238,7 +1238,7 @@ section.uc-panel.uc-rehab,
 section.uc-panel.uc-docs,
 section.uc-panel.uc-convo,
 section.uc-panel.uc-media,
-section.uc-panel.uc-photographer,
+section.uc-panel.uc-communication,
 section.uc-panel.uc-condition-scan,
 section.uc-panel.uc-team {
   margin: 0;
@@ -1246,6 +1246,24 @@ section.uc-panel.uc-team {
   display: block;
   gap: 0;
   flex-shrink: 0;
+}
+
+.uc-comm-body {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.uc-panel--nested {
+  border-color: color-mix(in srgb, var(--vault-border, #444) 80%, transparent);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.uc-panel--nested > .uc-panel-summary {
+  padding: 0.55rem 0.7rem;
+}
+
+.uc-panel--nested > .uc-panel-summary .uc-panel-title {
+  font-size: 0.88rem;
 }
 
 .uc-drawer-hero {
@@ -2098,11 +2116,8 @@ body.uc-drawer-open {
   margin-top: 0.5rem;
 }
 
-.uc-photographer,
 .uc-condition-scan {
-  margin-top: 1.25rem;
-  padding-top: 1rem;
-  border-top: 1px solid color-mix(in srgb, var(--vault-line, #333) 55%, transparent);
+  margin-top: 0.25rem;
 }
 .uc-photo-sched-grid,
 .uc-scan-controls {
