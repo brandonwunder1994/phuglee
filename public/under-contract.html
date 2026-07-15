@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=45">
+  <link rel="stylesheet" href="/css/under-contract.css?v=46">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -250,12 +250,12 @@
       <div id="uc-drawer-hero" class="uc-drawer-hero"></div>
       <dl id="uc-drawer-facts" class="uc-facts"></dl>
 
-      <details class="uc-panel uc-photo-cost" aria-label="Photo cost">
-        <summary class="uc-panel-summary">
+      <section class="uc-panel uc-photo-cost" aria-label="Photo cost">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Photos / marketing</span>
           <span class="uc-panel-hint">Photo ready flag + cost for Funded</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-photo-cost-save" class="phuglee-btn phuglee-btn-secondary">Save photos</button>
           </div>
@@ -274,14 +274,14 @@
             </label>
           </div>
         </div>
-      </details>
+      </section>
 
-      <details id="uc-photographer-section" class="uc-panel uc-photographer" aria-label="Photographer scheduling">
-        <summary class="uc-panel-summary">
+      <section id="uc-photographer-section" class="uc-panel uc-photographer" aria-label="Photographer scheduling">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Photographer</span>
           <span class="uc-panel-hint" id="uc-photo-sched-meta">Schedule shoot · upload link + intro SMS</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-photo-copy-url" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
             <button type="button" id="uc-photo-sched-save" class="phuglee-btn phuglee-btn-secondary">Schedule</button>
@@ -310,14 +310,14 @@
           </div>
           <div id="uc-photo-sched-summary" class="uc-photo-sched-summary" hidden></div>
         </div>
-      </details>
+      </section>
 
-      <details id="uc-photo-convo-section" class="uc-panel uc-convo uc-photo-convo" aria-label="Photographer SMS">
-        <summary class="uc-panel-summary">
+      <section id="uc-photo-convo-section" class="uc-panel uc-convo uc-photo-convo" aria-label="Photographer SMS">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Photographer Texts</span>
           <span class="uc-panel-hint" id="uc-photo-convo-meta">Separate from seller SMS</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-photo-copy-url-sms" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
             <button type="button" id="uc-photo-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
@@ -328,14 +328,14 @@
             <button type="button" id="uc-photo-sms-send" class="phuglee-btn phuglee-btn-primary">Send to photographer</button>
           </div>
         </div>
-      </details>
+      </section>
 
-      <details class="uc-panel uc-rehab" aria-label="Rehab info">
-        <summary class="uc-panel-summary">
+      <section class="uc-panel uc-rehab" aria-label="Rehab info">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Rehab info</span>
           <span class="uc-panel-hint">Roof, AC, foundation, systems for dispo</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-rehab-save" class="phuglee-btn phuglee-btn-secondary">Save rehab</button>
           </div>
@@ -366,14 +366,14 @@
             </label>
           </div>
         </div>
-      </details>
+      </section>
 
-      <details class="uc-panel uc-media" aria-label="Seller media">
-        <summary class="uc-panel-summary">
+      <section class="uc-panel uc-media" aria-label="Seller media">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Media</span>
           <span class="uc-panel-hint">Seller + photographer photos</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-media-desk-upload" class="phuglee-btn phuglee-btn-ghost">Upload</button>
             <input type="file" id="uc-media-desk-file" accept="image/*,video/*" multiple hidden>
@@ -381,14 +381,14 @@
           </div>
           <div id="uc-media-grid" class="uc-media-grid"></div>
         </div>
-      </details>
+      </section>
 
-      <details id="uc-condition-scan" class="uc-panel uc-condition-scan" aria-label="AI condition scan">
-        <summary class="uc-panel-summary">
+      <section id="uc-condition-scan" class="uc-panel uc-condition-scan" aria-label="AI condition scan">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Condition Scan</span>
           <span class="uc-panel-hint" id="uc-scan-meta">Rehab cost estimate from photos</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-scan-run" class="phuglee-btn phuglee-btn-secondary">Rescan</button>
           </div>
@@ -415,14 +415,14 @@
           <div id="uc-scan-lines" class="uc-scan-lines"></div>
           <p id="uc-scan-provenance" class="uc-scan-provenance"></p>
         </div>
-      </details>
+      </section>
 
-      <details class="uc-panel uc-docs" aria-label="Contract documents">
-        <summary class="uc-panel-summary">
+      <section class="uc-panel uc-docs" aria-label="Contract documents">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Documents</span>
           <span class="uc-panel-hint">Upload or send via SignNow</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-docs-refresh-sn" class="phuglee-btn phuglee-btn-ghost">Refresh signed</button>
           </div>
@@ -468,29 +468,29 @@
           </div>
           <p id="uc-docs-pending" class="uc-docs-pending" hidden></p>
         </div>
-      </details>
+      </section>
 
-      <details class="uc-panel uc-team" aria-label="Internal team messages" id="uc-team-section">
-        <summary class="uc-panel-summary">
+      <section class="uc-panel uc-team" aria-label="Internal team messages" id="uc-team-section">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Internal messages</span>
           <span class="uc-panel-hint">Admin ↔ Brad on this property</span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div id="uc-team-thread" class="uc-convo-thread uc-team-thread"></div>
           <div class="uc-convo-compose">
             <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Message your teammate?"></textarea>
             <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
           </div>
         </div>
-      </details>
+      </section>
 
-      <details id="uc-convo-section" class="uc-panel uc-convo" aria-label="Seller SMS">
-        <summary class="uc-panel-summary">
+      <section id="uc-convo-section" class="uc-panel uc-convo" aria-label="Seller SMS">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
           <span class="uc-panel-title">Seller Texts <button type="button" id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text">●</button></span>
           <span class="uc-panel-hint">Seller SMS only · photographer has its own section</span>
           <span id="uc-convo-meta" class="uc-convo-meta"></span>
-        </summary>
-        <div class="uc-panel-body">
+        </button>
+        <div class="uc-panel-body" hidden>
           <div class="uc-panel-toolbar">
             <button type="button" id="uc-sms-save-all-media" class="phuglee-btn phuglee-btn-ghost" hidden>Save all media</button>
             <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost" hidden>Mark as read</button>
@@ -502,7 +502,7 @@
             <button type="button" id="uc-sms-send" class="phuglee-btn phuglee-btn-primary">Send to seller</button>
           </div>
         </div>
-      </details>
+      </section>
     </div>
   </aside>
 
@@ -686,6 +686,6 @@
   <script src="/js/shell-nav.js?v=17" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=50" defer></script>
+  <script src="/js/under-contract.js?v=51" defer></script>
 </body>
 </html>

@@ -892,11 +892,28 @@
     return prevUnread !== nextUnread;
   }
 
+  function setPanelOpen(panel, open) {
+    if (!panel) return null;
+    const next = Boolean(open);
+    panel.classList.toggle('is-open', next);
+    const btn = panel.querySelector(':scope > .uc-panel-summary');
+    const body = panel.querySelector(':scope > .uc-panel-body');
+    if (btn) btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+    if (body) body.hidden = !next;
+    return panel;
+  }
+
   function expandPanel(el) {
     if (!el) return null;
-    const panel = el.closest?.('details.uc-panel') || (el.matches?.('details.uc-panel') ? el : null) || el;
-    if (panel && panel.tagName === 'DETAILS') panel.open = true;
+    const panel = el.closest?.('.uc-panel') || (el.classList?.contains('uc-panel') ? el : null) || el;
+    if (panel?.classList?.contains('uc-panel')) return setPanelOpen(panel, true);
     return panel;
+  }
+
+  function togglePanel(panel) {
+    if (!panel?.classList?.contains('uc-panel')) return null;
+    const open = !panel.classList.contains('is-open');
+    return setPanelOpen(panel, open);
   }
 
   function pulseSellerSmsSection() {
@@ -2834,6 +2851,15 @@
     });
     $('uc-drawer-close')?.addEventListener('click', closeProfile);
     $('uc-drawer-backdrop')?.addEventListener('click', closeProfile);
+    $('uc-drawer')?.addEventListener('click', (ev) => {
+      const summary = ev.target.closest('.uc-panel > .uc-panel-summary');
+      if (!summary || !ev.currentTarget.contains(summary)) return;
+      // Nested controls inside the header (e.g. unread pulse) handle themselves.
+      if (ev.target.closest('a, input, select, textarea, label') && ev.target !== summary) return;
+      if (ev.target.closest('#uc-sms-pulse')) return;
+      ev.preventDefault();
+      togglePanel(summary.closest('.uc-panel'));
+    });
     $('uc-sms-send')?.addEventListener('click', () => { sendSms(); });
     $('uc-sms-refresh')?.addEventListener('click', () => {
       if (state.activeDealId) {

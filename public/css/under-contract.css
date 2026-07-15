@@ -1116,7 +1116,14 @@ img.uc-profile-hero {
   grid-template-columns: 1fr auto;
   gap: 0.15rem 0.75rem;
   align-items: center;
+  width: 100%;
+  margin: 0;
   padding: 0.7rem 0.85rem;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
   list-style: none;
   user-select: none;
@@ -1140,7 +1147,7 @@ img.uc-profile-hero {
   margin-right: 0.15rem;
 }
 
-.uc-panel[open] > .uc-panel-summary::after {
+.uc-panel.is-open > .uc-panel-summary::after {
   transform: rotate(-135deg);
   margin-top: 0.2rem;
 }
@@ -1167,13 +1174,16 @@ img.uc-profile-hero {
 }
 
 .uc-panel-body {
-  display: none;
   padding: 0 0.85rem 0.85rem;
   gap: 0.75rem;
   border-top: 1px solid transparent;
 }
 
-.uc-panel[open] > .uc-panel-body {
+.uc-panel-body[hidden] {
+  display: none !important;
+}
+
+.uc-panel.is-open > .uc-panel-body:not([hidden]) {
   display: grid;
   border-top-color: var(--vault-border);
   padding-top: 0.75rem;
@@ -1188,14 +1198,14 @@ img.uc-profile-hero {
 }
 
 /* Panel host replaces old section chrome (avoid double border/padding) */
-details.uc-panel.uc-rehab,
-details.uc-panel.uc-docs,
-details.uc-panel.uc-convo,
-details.uc-panel.uc-media,
-details.uc-panel.uc-photo-cost,
-details.uc-panel.uc-photographer,
-details.uc-panel.uc-condition-scan,
-details.uc-panel.uc-team {
+section.uc-panel.uc-rehab,
+section.uc-panel.uc-docs,
+section.uc-panel.uc-convo,
+section.uc-panel.uc-media,
+section.uc-panel.uc-photo-cost,
+section.uc-panel.uc-photographer,
+section.uc-panel.uc-condition-scan,
+section.uc-panel.uc-team {
   margin: 0;
   padding: 0;
   display: block;
