@@ -258,7 +258,7 @@ module.exports = function createBackups(deps) {
     return `${r.email || ''}|${r.phone || ''}|${street}`;
   }
 
-  const { countPendingUnscanned } = require('./pending-scan');
+  const { countPendingUnscanned, healStaleForceRescanFlags } = require('./pending-scan');
 
   function buildSessionSummary(session, opts = {}) {
     const lite = !!opts.lite;
@@ -424,6 +424,17 @@ module.exports = function createBackups(deps) {
     lastActiveScope = scope;
     let session = readLatestSessionFileForScope(scope);
     session = mergeIncrementalIntoSession(session);
+    // Completed force-rescans left forceRescan=true on disk → fake "N left to scan".
+    const { cleared } = healStaleForceRescanFlags(session);
+    if (cleared > 0) {
+      try {
+        session.savedAt = Date.now();
+        writeLatestSessionFileForScope(scope, session);
+        console.log(`[Session] Cleared ${cleared} stale forceRescan flags (${scope.storageKey})`);
+      } catch (err) {
+        console.warn('[Session] forceRescan heal write failed:', err.message);
+      }
+    }
     return { scope, session };
   }
 
