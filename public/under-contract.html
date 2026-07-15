@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=40">
+  <link rel="stylesheet" href="/css/under-contract.css?v=41">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -527,27 +527,15 @@
   <dialog id="uc-jv-dialog" class="uc-dialog">
     <form method="dialog" id="uc-jv-form" class="uc-edit-form">
       <div class="uc-dialog-head">
-        <h3 id="uc-jv-title">Send JV agreement</h3>
-        <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">?</button>
+        <h3 id="uc-jv-title">Resend JV agreement</h3>
+        <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">×</button>
       </div>
       <input type="hidden" id="uc-jv-deal-id" value="">
-      <p class="uc-jv-lead">Confirm these two parties will sign the JV. Details are fixed ? no edits needed.</p>
-      <div id="uc-jv-parties" class="uc-jv-parties" aria-label="JV signers">
-        <article class="uc-jv-party">
-          <p class="uc-jv-party-role">Party A ? Sales</p>
-          <strong>Brandon Wunder</strong>
-          <span>Wunderhaus Group LLC</span>
-          <span>brandon@wunderhausgroup.com</span>
-        </article>
-        <article class="uc-jv-party">
-          <p class="uc-jv-party-role">Party B ? Disposition</p>
-          <strong>Brad Lewis</strong>
-          <span>Green Oasis Solutions</span>
-          <span>buyhomes995@gmail.com</span>
-        </article>
+      <div id="uc-jv-resend-body" class="uc-jv-resend-body">
+        <p>We already sent this JV agreement out. Are you sure you want to resend it?</p>
       </div>
       <div class="uc-edit-actions">
-        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Confirm &amp; Send JV</button>
+        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Yes, resend JV</button>
         <button type="button" id="uc-jv-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
       </div>
     </form>
@@ -657,6 +645,6 @@
   <script src="/js/shell-nav.js?v=17" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=45" defer></script>
+  <script src="/js/under-contract.js?v=46" defer></script>
 </body>
 </html>

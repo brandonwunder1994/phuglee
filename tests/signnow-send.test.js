@@ -5,8 +5,12 @@ const assert = require('node:assert/strict');
 const {
   formatMoney,
   propertyLine,
+  propertyLines,
   kindFromTemplateKey,
-  TEMPLATES
+  TEMPLATES,
+  SENDER,
+  BRAD,
+  WUNDERHAUS_JV_ROLE
 } = require('../lib/leads-platform/signnow-send');
 
 describe('signnow-send helpers', () => {
@@ -26,6 +30,30 @@ describe('signnow-send helpers', () => {
       propertyLine({ address: '910 Delaware', city: 'Longmont', state: 'CO', zip: '80501' }),
       '910 Delaware, Longmont, CO 80501'
     );
+  });
+
+  it('splits street and city line for JV property fields', () => {
+    assert.deepEqual(
+      propertyLines({ address: '910 Delaware', city: 'Longmont', state: 'CO', zip: '80501' }),
+      { street: '910 Delaware', cityLine: 'Longmont, CO 80501' }
+    );
+    assert.deepEqual(
+      propertyLines({
+        address: '910 Delaware, Longmont, CO 80501',
+        city: 'Longmont',
+        state: 'CO',
+        zip: '80501'
+      }),
+      { street: '910 Delaware', cityLine: 'Longmont, CO 80501' }
+    );
+  });
+
+  it('wires JV invite roles and emails to Brandon and Brad', () => {
+    assert.equal(WUNDERHAUS_JV_ROLE, 'Wunderhaus Group LLC');
+    assert.equal(SENDER.email, 'brandon@wunderhausgroup.com');
+    assert.equal(BRAD.signNowRole, 'Green Oasis Solutions LLC');
+    assert.equal(BRAD.company, 'Green Oasis Solutions LLC');
+    assert.equal(BRAD.email, 'buyhomes995@gmail.com');
   });
 
   it('maps template keys to document kinds', () => {

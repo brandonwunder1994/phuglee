@@ -616,7 +616,7 @@
             </div>
             <div class="uc-property-quick">
               <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer EMD</button>
-              <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
+              ${jvQuickBtnHtml(d)}
               <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
             </div>
           </div>
@@ -694,7 +694,7 @@
           </div>
           <div class="uc-deal-card-quick">
             <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer EMD</button>
-            <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
+            ${jvQuickBtnHtml(d)}
             <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
           </div>
           <div class="uc-row-actions uc-deal-card-actions">
@@ -1594,6 +1594,7 @@
     drawer.hidden = false;
     if (backdrop) backdrop.hidden = false;
     document.body.classList.add('uc-drawer-open');
+    syncDrawerJvButton(deal);
 
     $('uc-drawer-title').textContent = deal.address || 'Contract profile';
     const url = photoUrl(deal);
@@ -2126,16 +2127,118 @@
       email: 'brandon@wunderhausgroup.com'
     },
     dispos: {
-      name: 'Brad Lewis',
-      company: 'Green Oasis Solutions',
+      name: 'Bradley Lewis',
+      company: 'Green Oasis Solutions LLC',
       email: 'buyhomes995@gmail.com'
     }
   };
 
-  function openSendJv(deal) {
+  function jvState(deal) {
+    const jv = deal?.jvAgreement && typeof deal.jvAgreement === 'object' ? deal.jvAgreement : null;
+    if (!jv) return { sent: false, signed: false, jv: null };
+    const status = String(jv.status || '').toLowerCase();
+    const signed = status === 'signed' || Boolean(jv.signedAt);
+    const sent = signed
+      || status === 'sent'
+      || status === 'sending'
+      || Boolean(jv.signNowDocumentId)
+      || Boolean(jv.requestedAt);
+    return { sent, signed, jv };
+  }
+
+  function formatJvWhen(iso) {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return String(iso);
+    return d.toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
+  function jvQuickBtnHtml(deal) {
+    const { sent, signed } = jvState(deal);
+    const cls = ['uc-quick-btn', 'uc-quick-btn--jv'];
+    if (signed) cls.push('uc-quick-btn--jv-signed');
+    else if (sent) cls.push('uc-quick-btn--jv-sent');
+    const label = signed ? 'JV signed' : (sent ? 'JV sent' : 'Send JV');
+    const title = signed
+      ? 'JV fully signed — click to resend with confirmation'
+      : (sent ? 'JV already sent — click to resend with confirmation' : 'Send JV agreement via SignNow');
+    return `<button type="button" class="${cls.join(' ')}" data-action="send-jv" title="${esc(title)}">${esc(label)}</button>`;
+  }
+
+  function syncDrawerJvButton(deal) {
+    const btn = $('uc-drawer-send-jv');
+    if (!btn) return;
+    const { sent, signed } = jvState(deal);
+    btn.classList.toggle('uc-btn-jv-signed', signed);
+    btn.classList.toggle('uc-btn-jv-sent', sent && !signed);
+    btn.textContent = signed ? 'JV signed' : (sent ? 'JV sent' : 'Send JV');
+  }
+
+  async function doSendJv(deal) {
+    if (!deal?.dealId) return;
+    const body = {
+      salesPartner: 'brandon',
+      disposPartner: 'brad',
+      salesName: JV_PARTIES.sales.name,
+      salesCompany: JV_PARTIES.sales.company,
+      salesEmail: JV_PARTIES.sales.email,
+      disposName: JV_PARTIES.dispos.name,
+      disposCompany: JV_PARTIES.dispos.company,
+      disposEmail: JV_PARTIES.dispos.email
+    };
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/send-jv`, {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      showToast(data.jv?.message || 'JV sent via SignNow');
+      await loadDeals();
+      if (state.activeDealId === deal.dealId && data.deal) {
+        renderProfile(data.deal, state.contact);
+      }
+    } catch (err) {
+      showToast(err.message || 'Send JV failed');
+    }
+  }
+
+  function openJvResendWarning(deal) {
+    const { jv, signed } = jvState(deal);
     $('uc-jv-deal-id').value = deal.dealId;
-    $('uc-jv-title').textContent = deal.address ? `Send JV — ${deal.address}` : 'Send JV agreement';
-    $('uc-jv-dialog').showModal();
+    $('uc-jv-title').textContent = deal.address ? `Resend JV — ${deal.address}` : 'Resend JV agreement';
+    const who = (jv && jv.requestedBy) ? jv.requestedBy : 'unknown';
+    const sentWhen = formatJvWhen(jv?.requestedAt) || 'unknown time';
+    const doneWhen = signed
+      ? (formatJvWhen(jv?.signedAt) || 'completed (time unknown)')
+      : 'Not fully signed yet — still awaiting signatures';
+    const body = $('uc-jv-resend-body');
+    if (body) {
+      body.innerHTML = `
+        <p>We already sent this JV agreement out.</p>
+        <p>Are you sure you want to resend it?</p>
+        <ul class="uc-jv-resend-meta">
+          <li><strong>Originally sent by:</strong> ${esc(who)}</li>
+          <li><strong>Sent at:</strong> ${esc(sentWhen)}</li>
+          <li><strong>Signatures completed:</strong> ${esc(doneWhen)}</li>
+        </ul>
+        <p class="uc-jv-resend-note">Resend invites Brandon (${esc(JV_PARTIES.sales.email)}) and Brad (${esc(JV_PARTIES.dispos.email)}) again with the current property address.</p>`;
+    }
+    $('uc-jv-dialog')?.showModal();
+  }
+
+  /** First click sends immediately; after a prior send, confirm before resend. */
+  function openSendJv(deal) {
+    const { sent } = jvState(deal);
+    if (sent) {
+      openJvResendWarning(deal);
+      return;
+    }
+    doSendJv(deal);
   }
 
   function amendmentPartyDefaults(deal, contact, party) {
@@ -2242,30 +2345,11 @@
   async function submitSendJv(ev) {
     ev.preventDefault();
     const id = $('uc-jv-deal-id').value;
-    const body = {
-      salesPartner: 'brandon',
-      disposPartner: 'brad',
-      salesName: JV_PARTIES.sales.name,
-      salesCompany: JV_PARTIES.sales.company,
-      salesEmail: JV_PARTIES.sales.email,
-      disposName: JV_PARTIES.dispos.name,
-      disposCompany: JV_PARTIES.dispos.company,
-      disposEmail: JV_PARTIES.dispos.email
-    };
-    try {
-      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/send-jv`, {
-        method: 'POST',
-        body: JSON.stringify(body)
-      });
-      $('uc-jv-dialog').close();
-      showToast(data.jv?.message || 'JV sent via SignNow');
-      await loadDeals();
-      if (state.activeDealId === id && data.deal) {
-        renderProfile(data.deal, state.contact);
-      }
-    } catch (err) {
-      showToast(err.message || 'Send JV failed');
-    }
+    const deal = state.deals.find((d) => d.dealId === id)
+      || (state.profile?.dealId === id ? state.profile : null)
+      || { dealId: id };
+    $('uc-jv-dialog')?.close();
+    await doSendJv(deal);
   }
 
   async function submitAmendment(ev) {

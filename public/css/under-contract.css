@@ -880,6 +880,28 @@
   border-color: rgba(142, 200, 239, 0.55);
 }
 
+.uc-quick-btn--jv-sent {
+  opacity: 0.85;
+}
+
+.uc-quick-btn--jv-signed,
+#uc-drawer-send-jv.uc-btn-jv-signed {
+  filter: grayscale(0.9) brightness(0.78);
+  opacity: 0.72;
+  border-color: rgba(160, 160, 160, 0.4);
+  background: rgba(120, 120, 120, 0.14);
+  color: #b0b0b0;
+}
+
+.uc-quick-btn--jv-signed:hover,
+#uc-drawer-send-jv.uc-btn-jv-signed:hover {
+  filter: grayscale(0.7) brightness(0.88);
+  opacity: 0.9;
+  background: rgba(140, 140, 140, 0.2);
+  border-color: rgba(180, 180, 180, 0.5);
+  color: #c8c8c8;
+}
+
 .uc-thumb,
 .uc-profile-hero img.uc-profile-hero,
 img.uc-thumb,
@@ -2270,4 +2292,25 @@ body.uc-drawer-open {
   padding: 0.35rem;
   font-size: 0.8rem;
   color: var(--vault-muted, #9a927f);
+}
+
+.uc-jv-resend-body {
+  display: grid;
+  gap: 0.75rem;
+  color: var(--vault-text, #e8e8e8);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.uc-jv-resend-meta {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.uc-jv-resend-note {
+  color: var(--vault-muted, #9a9a9a);
+  font-size: 0.85rem;
+  margin: 0;
 }
