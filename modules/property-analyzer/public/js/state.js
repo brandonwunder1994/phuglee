@@ -1920,6 +1920,13 @@ R.loadSessionRecords = async function loadSessionRecords(opts = {}) {
 R.ensureScanRecordsLoaded = async function ensureScanRecordsLoaded() {
   const serverPending = Number(state._serverPendingUnscanned) || 0;
   const hasForce = (state.records || []).some((r) => r?.forceRescan);
+  const freshImport = Number(state._freshImportAt) > 0
+    && (Date.now() - Number(state._freshImportAt)) < 30 * 60 * 1000;
+  // Never wipe a list the user just dropped / marked forceRescan — that left Start
+  // Scan stuck on "Loading leads…" while re-paging a huge server queue.
+  if ((state.records || []).length > 0 && (hasForce || freshImport)) {
+    return true;
+  }
   // Stale full-session records (already scanned) look non-empty but block Start Scan.
   // When the server still has a forceRescan queue, always reload mode=unscanned.
   if ((state.records || []).length > 0 && !(serverPending > 0 && !hasForce)) {

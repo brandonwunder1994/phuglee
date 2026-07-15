@@ -1118,7 +1118,13 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       for (const r of state.records || []) {
         if (recordKey(r) === recordKey(record)) delete r.forceRescan;
       }
-      state.results.push(result);
+      // Replace prior row for this address (force-rescan) instead of duplicating.
+      const rk = recordKey(result);
+      const priorIdx = rk
+        ? (state.results || []).findIndex((row) => recordKey(row) === rk)
+        : -1;
+      if (priorIdx >= 0) state.results[priorIdx] = result;
+      else state.results.push(result);
       state.succeeded++;
       state.processed = state.results.length;
       if (state.running && state.scanBatchTotal > 0) {
@@ -1569,25 +1575,6 @@ R.startScanAnalysis = async function startScanAnalysis() {
     showScanStartedAlert();
     startServerStatusPolling();
     initAgentSlots(getEffectiveConcurrentLimit());
-    // Prefer address-level dedupe — always sync full server index (partial browser pages lie)
-    const expectedTotal = Math.max(
-      Number(sessionLoadState?.total) || 0,
-      Number(sessionLoadState?.serverCanonical) || 0,
-      Number(state._tierCountsFromServer?.total) || 0
-    );
-    const resultsPartial = expectedTotal > 0 && (state.results || []).length < expectedTotal;
-    if (USE_PROXY && typeof fetchServerAddressIndex === 'function') {
-      await fetchServerAddressIndex();
-    } else if (resultsPartial && typeof fetchServerAddressIndex === 'function') {
-      await fetchServerAddressIndex();
-    }
-    const known = typeof buildKnownAddressSets === 'function'
-      ? buildKnownAddressSets(state.results, state._serverAddressIndex)
-      : { exact: new Set(), loose: new Set() };
-    const existingRecordKeys = new Set();
-    for (const r of state.results || []) {
-      existingRecordKeys.add(recordKey(r));
-    }
     // Fresh file drop (or any forceRescan queue) = scan the whole list the UI shows.
     // Historical session matches must NOT silently shrink 2089 → ~700.
     const freshImport = Number(state._freshImportAt) > 0
@@ -1596,6 +1583,40 @@ R.startScanAnalysis = async function startScanAnalysis() {
     if (forceWholeList) {
       for (const r of state.records || []) {
         if (r && typeof r === 'object') r.forceRescan = true;
+      }
+    }
+    const hintPrep = $('startBlockHint');
+    if (hintPrep) {
+      hintPrep.textContent = forceWholeList
+        ? `Preparing full list (${(state.records || []).length.toLocaleString()})…`
+        : 'Preparing scan…';
+      hintPrep.hidden = false;
+    }
+    // Prefer address-level dedupe — skip the huge index download on force-rescan
+    // (it froze Start Scan on large sessions while "sitting" in Analyze).
+    const expectedTotal = Math.max(
+      Number(sessionLoadState?.total) || 0,
+      Number(sessionLoadState?.serverCanonical) || 0,
+      Number(state._tierCountsFromServer?.total) || 0
+    );
+    const resultsPartial = expectedTotal > 0 && (state.results || []).length < expectedTotal;
+    if (!forceWholeList) {
+      if (USE_PROXY && typeof fetchServerAddressIndex === 'function') {
+        await fetchServerAddressIndex();
+      } else if (resultsPartial && typeof fetchServerAddressIndex === 'function') {
+        await fetchServerAddressIndex();
+      }
+    }
+    await new Promise((r) => setTimeout(r, 0));
+    const known = forceWholeList
+      ? { exact: new Set(), loose: new Set() }
+      : (typeof buildKnownAddressSets === 'function'
+        ? buildKnownAddressSets(state.results, state._serverAddressIndex)
+        : { exact: new Set(), loose: new Set() });
+    const existingRecordKeys = new Set();
+    if (!forceWholeList) {
+      for (const r of state.results || []) {
+        existingRecordKeys.add(recordKey(r));
       }
     }
     let skippedDupAtStart = 0;
@@ -1611,20 +1632,8 @@ R.startScanAnalysis = async function startScanAnalysis() {
       }
       return true;
     });
-    // Drop prior AI rows for forceRescan addresses so the new scan replaces them
-    if (pending.some((r) => r?.forceRescan) || forceWholeList) {
-      const forceKeys = new Set(pending.map((r) => recordKey(r)).filter(Boolean));
-      const forceLoose = typeof buildKnownAddressSets === 'function'
-        ? buildKnownAddressSets(pending)
-        : null;
-      state.results = (state.results || []).filter((row) => {
-        if (forceKeys.has(recordKey(row))) return false;
-        if (forceLoose && typeof isRowAlreadyKnown === 'function' && isRowAlreadyKnown(row, forceLoose)) {
-          return false;
-        }
-        return true;
-      });
-    }
+    // Do NOT bulk-filter 10k+ historical results here — that froze the tab.
+    // Successful scans replace the prior row by recordKey (see processOneRecord).
     // Keep scan queue clean for credits — remove skipped dups from records
     // (never shrink a force-whole-list / fresh import — that was the 2089 vs 702 bug)
     if (skippedDupAtStart > 0 && !forceWholeList) {
@@ -1633,6 +1642,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
     } else {
       state._pendingUnscanned = pending.length;
     }
+    if (hintPrep) hintPrep.hidden = true;
     const resumeCount = state.results.length;
     // Track THIS sheet's progress separately from historical session totals
     state.scanBaselineResults = resumeCount;
@@ -1720,11 +1730,10 @@ R.startScanAnalysis = async function startScanAnalysis() {
     if (resumeCount > 0) {
       log(`Resuming — ${countSuccessfulResults().toLocaleString()} good leads kept, ${pending.length.toLocaleString()} to scan`, 'success');
     }
-    // Short warmup only for large fresh runs (was up to 20s — felt like "nothing happened")
-    if (pending.length > 50 && resumeCount === 0) {
-      const waitSec = Math.min(6, 2 + Math.floor(pending.length / 1000));
-      log(`Gemini warmup ${waitSec}s before fresh bulk scan…`, 'warn');
-      await sleep(waitSec * 1000);
+    // Tiny settle only — long warmups made large lists look stuck in Analyze.
+    if (pending.length > 50 && resumeCount === 0 && !forceWholeList) {
+      log('Starting bulk scan…', 'warn');
+      await sleep(400);
       if (state.aborted) {
         state.running = false;
         stopScanSaveHeartbeat();
