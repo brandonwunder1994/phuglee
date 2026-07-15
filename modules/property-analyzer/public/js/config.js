@@ -6,15 +6,16 @@
   const R = PDA.env;
   with (R) {
 
-R.BATCH_SIZE = 50;
+R.BATCH_SIZE = 100;
 /**
- * Operator band: 5–10 parallel property workers.
+ * Operator band: 5–50 parallel property workers.
  * Soft API pressure can lower toward 5; clean batches climb back to the slider max.
  * Never collapses to 1 — that used to happen when a global pause left one visible Gemini slot.
+ * Default 25 = sweet spot for paid Gemini RPM + Maps/browser; slider can go to 50.
  */
 R.MIN_CONCURRENT_LIMIT = 5;
-R.DEFAULT_CONCURRENT_LIMIT = 10;
-R.MAX_SAFE_CONCURRENT = 10;
+R.DEFAULT_CONCURRENT_LIMIT = 25;
+R.MAX_SAFE_CONCURRENT = 50;
 /** Cooldown so server status polls don’t keep hammering scale-down every 5s. */
 R.SCALE_DOWN_COOLDOWN_MS = 45000;
 R.STREET_VIEW_SIZE = '640x480';
@@ -1503,7 +1504,7 @@ R.getEffectiveConcurrentLimit = function getEffectiveConcurrentLimit() {
 };
 
 /**
- * Smart worker throttle within the 5–10 band.
+ * Smart worker throttle within the 5–50 band.
  * Soft API pressure drops toward 5; clean batches climb back to the operator max.
  * Takes effect on the next batch (in-flight workers finish their current address).
  */
@@ -1546,7 +1547,7 @@ R.scaleDownWorkers = function scaleDownWorkers(reason = 'rate_limit', opts = {})
   return true;
 };
 
-/** After a clean batch while throttled, step workers back toward the operator max (≤ 10). */
+/** After a clean batch while throttled, step workers back toward the operator max (≤ 50). */
 R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
   if (adaptiveConcurrentCap == null) {
     adaptiveHealthyStreak = 0;
@@ -1563,7 +1564,9 @@ R.maybeScaleUpWorkers = function maybeScaleUpWorkers() {
   if (adaptiveHealthyStreak < 1) return false;
   adaptiveHealthyStreak = 0;
   const prev = adaptiveConcurrentCap;
-  let next = clampWorkerCount(adaptiveConcurrentCap + 2);
+  // Larger band: climb in bigger steps so recovery from 5→50 is not dozens of batches.
+  const step = Math.max(2, Math.ceil(userMax / 10));
+  let next = clampWorkerCount(adaptiveConcurrentCap + step);
   if (next >= userMax) {
     adaptiveConcurrentCap = null;
     next = userMax;
@@ -2142,7 +2145,14 @@ R.runStreetViewTest = async function runStreetViewTest() {
   testSvBtn.disabled = false;
 }
 
-R.savedWorkers = clampWorkerCount(parseInt(savedPrefs.concurrentLimit, 10) || DEFAULT_CONCURRENT_LIMIT);
+{
+  const rawSaved = parseInt(savedPrefs.concurrentLimit, 10);
+  // Migrate old 5–10 band, and the brief default-50 push, to the 25 sweet spot.
+  const migrated = Number.isFinite(rawSaved) && rawSaved > 0 && (rawSaved <= 10 || rawSaved === 50)
+    ? DEFAULT_CONCURRENT_LIMIT
+    : (rawSaved || DEFAULT_CONCURRENT_LIMIT);
+  R.savedWorkers = clampWorkerCount(migrated);
+}
 if (concurrentLimitInput) {
   concurrentLimitInput.min = String(MIN_CONCURRENT_LIMIT);
   concurrentLimitInput.max = String(MAX_SAFE_CONCURRENT);

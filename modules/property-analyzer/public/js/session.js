@@ -806,10 +806,10 @@ R.updateWorkerActivityUi = function updateWorkerActivityUi(serverSt = lastServer
   cmdWorkers?.classList.toggle('throttled', effective < configured || paused);
 }
 
-R.initAgentSlots = function initAgentSlots(count = 8) {
+R.initAgentSlots = function initAgentSlots(count = 25) {
   const n = typeof clampWorkerCount === 'function'
-    ? clampWorkerCount(count || DEFAULT_CONCURRENT_LIMIT || 8)
-    : Math.max(5, Math.min(8, count || 8));
+    ? clampWorkerCount(count || DEFAULT_CONCURRENT_LIMIT || 25)
+    : Math.max(5, Math.min(50, count || 25));
   state.agentSlots = Array.from({ length: n }, (_, i) => ({
     id: i + 1,
     active: false,

@@ -9,7 +9,7 @@ const GEMINI_MODELS = [
   'gemini-flash-lite-latest',
   'gemini-3.5-flash'
 ];
-const GEMINI_MAX_CONCURRENT = 10;
+const GEMINI_MAX_CONCURRENT = 50;
 
 let serverGeminiKey = '';
 let geminiActive = 0;
