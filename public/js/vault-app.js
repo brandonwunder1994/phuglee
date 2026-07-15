@@ -379,7 +379,7 @@
     syncTypeTabs();
     renderSignalChips();
     populateGeoSelects();
-    loadLeads();
+    refreshCurrentView();
   }
 
   function syncTypeTabs() {
@@ -665,6 +665,57 @@
     };
   }
 
+  function ensureMapLayers(map) {
+    if (!map.getSource('vault-radius')) {
+      map.addSource('vault-radius', {
+        type: 'geojson',
+        data: radiusGeoJson()
+      });
+      map.addLayer({
+        id: 'vault-radius-fill',
+        type: 'fill',
+        source: 'vault-radius',
+        paint: {
+          'fill-color': '#eeb746',
+          'fill-opacity': 0.12
+        }
+      });
+      map.addLayer({
+        id: 'vault-radius-line',
+        type: 'line',
+        source: 'vault-radius',
+        paint: {
+          'line-color': '#eeb746',
+          'line-width': 2,
+          'line-opacity': 0.7
+        }
+      });
+    }
+    if (!map.getSource('vault-leads')) {
+      map.addSource('vault-leads', {
+        type: 'geojson',
+        data: markersToGeoJson([])
+      });
+      map.addLayer({
+        id: 'vault-leads-circle',
+        type: 'circle',
+        source: 'vault-leads',
+        paint: {
+          'circle-radius': [
+            'interpolate', ['linear'], ['zoom'],
+            4, 3,
+            10, 6,
+            14, 9
+          ],
+          'circle-color': '#e58435',
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': '#1a1a1a',
+          'circle-opacity': 0.92
+        }
+      });
+    }
+  }
+
   async function ensureMapInstance() {
     const maplibregl = await ensureMapLibre();
     const el = $('vault-map');
@@ -690,50 +741,7 @@
     });
 
     map.on('load', () => {
-      map.addSource('vault-leads', {
-        type: 'geojson',
-        data: markersToGeoJson([])
-      });
-      map.addSource('vault-radius', {
-        type: 'geojson',
-        data: radiusGeoJson()
-      });
-      map.addLayer({
-        id: 'vault-radius-fill',
-        type: 'fill',
-        source: 'vault-radius',
-        paint: {
-          'fill-color': '#eeb746',
-          'fill-opacity': 0.12
-        }
-      });
-      map.addLayer({
-        id: 'vault-radius-line',
-        type: 'line',
-        source: 'vault-radius',
-        paint: {
-          'line-color': '#eeb746',
-          'line-width': 2,
-          'line-opacity': 0.7
-        }
-      });
-      map.addLayer({
-        id: 'vault-leads-circle',
-        type: 'circle',
-        source: 'vault-leads',
-        paint: {
-          'circle-radius': [
-            'interpolate', ['linear'], ['zoom'],
-            4, 3,
-            10, 6,
-            14, 9
-          ],
-          'circle-color': '#e58435',
-          'circle-stroke-width': 1.5,
-          'circle-stroke-color': '#1a1a1a',
-          'circle-opacity': 0.92
-        }
-      });
+      ensureMapLayers(map);
     });
 
     map.on('mouseenter', 'vault-leads-circle', (e) => {
@@ -792,13 +800,14 @@
     const map = state.mapInstance;
     if (!map) return;
     const apply = () => {
+      ensureMapLayers(map);
       const leadsSrc = map.getSource('vault-leads');
       const radiusSrc = map.getSource('vault-radius');
       if (leadsSrc) leadsSrc.setData(markersToGeoJson(markers));
       if (radiusSrc) radiusSrc.setData(radiusGeoJson());
       fitMapToMarkers(markers);
     };
-    if (map.isStyleLoaded() && map.getSource('vault-leads')) apply();
+    if (map.isStyleLoaded()) apply();
     else map.once('load', apply);
   }
 
@@ -1882,7 +1891,7 @@
       state.page = 1;
       state.leads = [];
       syncTypeTabs();
-      loadLeads();
+      refreshCurrentView();
     });
 
     $('vault-search')?.addEventListener('input', (e) => {
@@ -1891,7 +1900,7 @@
         state.q = e.target.value.trim();
         state.page = 1;
         state.leads = [];
-        loadLeads();
+        refreshCurrentView();
       }, 300);
     });
 
@@ -1901,21 +1910,21 @@
       state.page = 1;
       state.leads = [];
       populateGeoSelects();
-      loadLeads();
+      refreshCurrentView();
     });
 
     $('vault-city')?.addEventListener('change', (e) => {
       state.city = e.target.value;
       state.page = 1;
       state.leads = [];
-      loadLeads();
+      refreshCurrentView();
     });
 
     $('vault-since')?.addEventListener('change', (e) => {
       state.since = e.target.value;
       state.page = 1;
       state.leads = [];
-      loadLeads();
+      refreshCurrentView();
     });
 
     ['vault-favorites-only', 'vault-has-phone', 'vault-has-photo'].forEach((id) => {
@@ -1925,7 +1934,7 @@
         else state.hasImagery = e.target.checked;
         state.page = 1;
         state.leads = [];
-        loadLeads();
+        refreshCurrentView();
       });
     });
 
@@ -1936,7 +1945,7 @@
         applySmartDefaults();
         state.page = 1;
         state.leads = [];
-        loadLeads();
+        refreshCurrentView();
       }
     });
 
@@ -1950,7 +1959,7 @@
       state.searchTimer = setTimeout(() => {
         state.page = 1;
         state.leads = [];
-        loadLeads();
+        refreshCurrentView();
       }, 200);
     });
 
@@ -1964,7 +1973,7 @@
       renderSignalChips();
       state.page = 1;
       state.leads = [];
-      loadLeads();
+      refreshCurrentView();
     });
 
     $('vault-signals-more')?.addEventListener('click', () => {
@@ -1983,14 +1992,45 @@
       state.hasPhone = false;
       state.hasImagery = false;
       state.leadType = 'all';
+      state.originLat = null;
+      state.originLng = null;
+      state.originLabel = '';
       state.page = 1;
       state.leads = [];
       if ($('vault-smart-defaults')) $('vault-smart-defaults').checked = false;
+      if ($('vault-radius-address')) $('vault-radius-address').value = '';
+      updateRadiusStatus();
       syncFilterControls();
       syncTypeTabs();
       renderSignalChips();
       populateGeoSelects();
-      loadLeads();
+      refreshCurrentView();
+    });
+
+    $('vault-radius-apply')?.addEventListener('click', () => {
+      applyRadiusFromAddress();
+    });
+    $('vault-near-me')?.addEventListener('click', () => {
+      applyNearMe();
+    });
+    $('vault-radius-clear')?.addEventListener('click', () => {
+      if ($('vault-radius-address')) $('vault-radius-address').value = '';
+      clearRadiusOrigin();
+    });
+    $('vault-radius-miles')?.addEventListener('change', (e) => {
+      state.radiusMiles = Number(e.target.value) || 5;
+      if (state.originLat != null) {
+        updateRadiusStatus();
+        state.page = 1;
+        state.leads = [];
+        refreshCurrentView();
+      }
+    });
+    $('vault-radius-address')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        applyRadiusFromAddress();
+      }
     });
 
     $('vault-presets')?.addEventListener('change', (e) => {
@@ -2033,7 +2073,7 @@
       state.viewMode = btn.dataset.view || 'table';
       state.page = 1;
       state.leads = [];
-      loadLeads();
+      refreshCurrentView();
     });
 
     $('vault-results-body')?.addEventListener('click', (e) => {
@@ -2078,7 +2118,7 @@
       if (!btn || btn.disabled) return;
       state.page = Number(btn.dataset.page) || 1;
       state.leads = [];
-      loadLeads();
+      refreshCurrentView();
     });
 
     $('vault-results')?.addEventListener('scroll', () => {
@@ -2104,7 +2144,7 @@
         }
         state.page = 1;
         state.leads = [];
-        loadLeads();
+        refreshCurrentView();
       });
     });
 
@@ -2123,7 +2163,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: [...state.selected], favorite: true })
         });
-        await loadLeads();
+        await refreshCurrentView();
         showToast('Favorited selection');
       } catch (err) {
         showToast(err.message || 'Could not favorite');
