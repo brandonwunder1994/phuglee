@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=42">
+  <link rel="stylesheet" href="/css/under-contract.css?v=43">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -238,7 +238,7 @@
         <details class="uc-drawer-more">
           <summary class="phuglee-btn phuglee-btn-secondary uc-drawer-more-summary">Actions</summary>
           <div class="uc-drawer-more-menu" role="group" aria-label="Deal actions">
-            <button type="button" id="uc-drawer-buyer-found" class="phuglee-btn phuglee-btn-secondary">Buyer Found</button>
+            <button type="button" id="uc-drawer-buyer-found" class="phuglee-btn phuglee-btn-secondary">Send AOC</button>
             <button type="button" id="uc-drawer-send-jv" class="phuglee-btn phuglee-btn-secondary">Send JV</button>
             <button type="button" id="uc-drawer-amendment" class="phuglee-btn phuglee-btn-secondary">Amendment</button>
           </div>
@@ -496,47 +496,60 @@
     </div>
   </aside>
 
-  <dialog id="uc-buyer-dialog" class="uc-dialog">
+  <dialog id="uc-buyer-dialog" class="uc-dialog uc-dialog--aoc">
     <form method="dialog" id="uc-buyer-form" class="uc-edit-form">
       <div class="uc-dialog-head">
-        <h3 id="uc-buyer-title">Buyer Submitted EMD</h3>
-        <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">?</button>
+        <h3 id="uc-buyer-title">Send AOC</h3>
+        <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">×</button>
       </div>
       <input type="hidden" id="uc-buyer-deal-id" value="">
+      <p class="uc-jv-lead" id="uc-aoc-property-line">Property address is filled from this deal. Assignee fills their own name/address/phone when they sign.</p>
       <label class="vault-field">
-        <span class="vault-field-label">Buyer entity</span>
-        <input type="text" id="uc-buyer-entity" class="phuglee-input" required>
+        <span class="vault-field-label">Buyer email (Assignee)</span>
+        <input type="email" id="uc-aoc-buyer-email" class="phuglee-input" required autocomplete="email">
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Contact name</span>
-        <input type="text" id="uc-buyer-contact" class="phuglee-input">
+        <span class="vault-field-label">Legal description</span>
+        <textarea id="uc-aoc-legal" class="phuglee-textarea" rows="2" required></textarea>
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Email</span>
-        <input type="email" id="uc-buyer-email" class="phuglee-input">
+        <span class="vault-field-label">APN</span>
+        <input type="text" id="uc-aoc-apn" class="phuglee-input" required>
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Phone</span>
-        <input type="tel" id="uc-buyer-phone" class="phuglee-input">
+        <span class="vault-field-label">Assignee purchase price</span>
+        <input type="number" id="uc-aoc-purchase-price" class="phuglee-input" step="0.01" min="0" required>
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Assignment fee</span>
-        <input type="number" id="uc-buyer-fee" class="phuglee-input" step="1" min="0">
+        <span class="vault-field-label">Title company name</span>
+        <input type="text" id="uc-aoc-title-name" class="phuglee-input" required>
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Closing date</span>
-        <input type="text" id="uc-buyer-closing" class="phuglee-input" placeholder="YYYY-MM-DD">
+        <span class="vault-field-label">Title company address</span>
+        <input type="text" id="uc-aoc-title-address" class="phuglee-input" required>
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Buyer EMD</span>
-        <input type="number" id="uc-buyer-emd" class="phuglee-input" step="1" min="0">
+        <span class="vault-field-label">Escrow officer name</span>
+        <input type="text" id="uc-aoc-escrow-officer" class="phuglee-input" required>
       </label>
       <label class="vault-field">
-        <span class="vault-field-label">Notes</span>
-        <textarea id="uc-buyer-notes" class="phuglee-textarea" rows="3"></textarea>
+        <span class="vault-field-label">Title company email</span>
+        <input type="email" id="uc-aoc-title-email" class="phuglee-input" required>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Buyer EMD amount</span>
+        <input type="number" id="uc-aoc-emd" class="phuglee-input" step="0.01" min="0" required>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Close of escrow date</span>
+        <input type="text" id="uc-aoc-coe" class="phuglee-input" placeholder="MM/DD/YYYY" required>
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Additional terms</span>
+        <textarea id="uc-aoc-terms" class="phuglee-textarea" rows="3" placeholder="Leave blank for NA"></textarea>
       </label>
       <div class="uc-edit-actions">
-        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Save = Send AOC</button>
+        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Send AOC</button>
         <button type="button" id="uc-buyer-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
       </div>
     </form>
@@ -663,6 +676,6 @@
   <script src="/js/shell-nav.js?v=17" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=47" defer></script>
+  <script src="/js/under-contract.js?v=48" defer></script>
 </body>
 </html>

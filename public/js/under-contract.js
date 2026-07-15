@@ -615,7 +615,7 @@
                 : ''}
             </div>
             <div class="uc-property-quick">
-              <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer EMD</button>
+              <button type="button" class="uc-quick-btn" data-action="buyer-found">Send AOC</button>
               ${jvQuickBtnHtml(d)}
               <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
             </div>
@@ -693,7 +693,7 @@
             ${dealChecklistHtml(d)}
           </div>
           <div class="uc-deal-card-quick">
-            <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer EMD</button>
+            <button type="button" class="uc-quick-btn" data-action="buyer-found">Send AOC</button>
             ${jvQuickBtnHtml(d)}
             <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
           </div>
@@ -1959,9 +1959,11 @@
     }
     box.innerHTML = docs.map((d) => {
       const kind = DOC_LABELS[d.kind] || d.label || d.kind || 'Document';
-      const src = d.source === 'signnow' ? ' · SignNow' : (d.source === 'ghl' ? '' : '');
+      const name = String(d.name || d.label || 'Document').trim() || 'Document';
+      const src = d.source === 'signnow' ? ' · SignNow' : (d.source === 'ghl' ? ' · GHL' : '');
       return `<div class="uc-doc-row" data-doc-id="${esc(d.id)}">
         <div class="uc-doc-row-main">
+          <span class="uc-doc-name" title="${esc(name)}">${esc(name)}</span>
           <span class="uc-doc-kind">${esc(kind)}${esc(src)}</span>
         </div>
         <div class="uc-doc-row-actions">
@@ -2156,16 +2158,26 @@
   }
 
   function openBuyerFound(deal) {
+    const aoc = deal.aocSend || {};
+    const { street, cityLine } = propertyLines(deal);
+    const propLine = [street, cityLine].filter((p) => p && p !== '—').join(', ') || deal.address || 'this property';
     $('uc-buyer-deal-id').value = deal.dealId;
-    $('uc-buyer-title').textContent = deal.address ? `Buyer Submitted EMD — ${deal.address}` : 'Buyer Submitted EMD';
-    $('uc-buyer-entity').value = deal.cashBuyerName || deal.buyerAssignment?.buyerEntity || '';
-    $('uc-buyer-contact').value = deal.buyerAssignment?.buyerContactName || '';
-    $('uc-buyer-email').value = deal.buyerAssignment?.buyerEmail || '';
-    $('uc-buyer-phone').value = deal.buyerAssignment?.buyerPhone || '';
-    $('uc-buyer-fee').value = deal.assignmentFee ?? '';
-    $('uc-buyer-closing').value = deal.closingDate || '';
-    $('uc-buyer-emd').value = deal.buyerAssignment?.buyerEmd ?? '';
-    $('uc-buyer-notes').value = '';
+    $('uc-buyer-title').textContent = deal.address ? `Send AOC — ${deal.address}` : 'Send AOC';
+    const lead = $('uc-aoc-property-line');
+    if (lead) {
+      lead.textContent = `Property address (from deal): ${propLine}. Assignee fills their own name/address/phone when they sign.`;
+    }
+    $('uc-aoc-buyer-email').value = aoc.buyerEmail || deal.buyerAssignment?.buyerEmail || '';
+    $('uc-aoc-legal').value = aoc.legalDescription || '';
+    $('uc-aoc-apn').value = aoc.apn || '';
+    $('uc-aoc-purchase-price').value = aoc.assigneePurchasePrice ?? '';
+    $('uc-aoc-title-name').value = aoc.titleCompanyName || '';
+    $('uc-aoc-title-address').value = aoc.titleCompanyAddress || '';
+    $('uc-aoc-escrow-officer').value = aoc.escrowOfficerName || '';
+    $('uc-aoc-title-email').value = aoc.titleCompanyEmail || '';
+    $('uc-aoc-emd').value = aoc.buyerEmd ?? '';
+    $('uc-aoc-coe').value = aoc.closingDate || deal.closingDate || deal.closingDisplay || '';
+    $('uc-aoc-terms').value = aoc.additionalTerms && aoc.additionalTerms !== 'NA' ? aoc.additionalTerms : '';
     $('uc-buyer-dialog').showModal();
   }
 
@@ -2376,17 +2388,20 @@
     ev.preventDefault();
     const id = $('uc-buyer-deal-id').value;
     const body = {
-      buyerEntity: $('uc-buyer-entity').value.trim(),
-      buyerContactName: $('uc-buyer-contact').value.trim(),
-      buyerEmail: $('uc-buyer-email').value.trim(),
-      buyerPhone: $('uc-buyer-phone').value.trim(),
-      assignmentFee: $('uc-buyer-fee').value === '' ? null : Number($('uc-buyer-fee').value),
-      closingDate: $('uc-buyer-closing').value.trim(),
-      buyerEmd: $('uc-buyer-emd').value === '' ? null : Number($('uc-buyer-emd').value),
-      notes: $('uc-buyer-notes').value.trim()
+      buyerEmail: $('uc-aoc-buyer-email').value.trim(),
+      legalDescription: $('uc-aoc-legal').value.trim(),
+      apn: $('uc-aoc-apn').value.trim(),
+      assigneePurchasePrice: $('uc-aoc-purchase-price').value === '' ? null : Number($('uc-aoc-purchase-price').value),
+      titleCompanyName: $('uc-aoc-title-name').value.trim(),
+      titleCompanyAddress: $('uc-aoc-title-address').value.trim(),
+      escrowOfficerName: $('uc-aoc-escrow-officer').value.trim(),
+      titleCompanyEmail: $('uc-aoc-title-email').value.trim(),
+      buyerEmd: $('uc-aoc-emd').value === '' ? null : Number($('uc-aoc-emd').value),
+      closingDate: $('uc-aoc-coe').value.trim(),
+      additionalTerms: $('uc-aoc-terms').value.trim() || 'NA'
     };
     try {
-      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/buyer-found`, {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/send-aoc`, {
         method: 'POST',
         body: JSON.stringify(body)
       });
@@ -2397,7 +2412,7 @@
         renderProfile(data.deal, state.contact);
       }
     } catch (err) {
-      showToast(err.message || 'Buyer found failed');
+      showToast(err.message || 'Send AOC failed');
     }
   }
 
