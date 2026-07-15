@@ -413,6 +413,27 @@ async function handleRequest(req, res) {
   }
 
   if (config.DISTRESS_ROUTES[pathname]) {
+    const auth = require('./lib/phuglee-auth');
+    if (auth.isAuthRequired()) {
+      const session = auth.readSessionFromReq(req);
+      if (session && session.username) {
+        const {
+          isPathAllowedForUsername,
+          defaultHomeForUsername,
+          normalizePath
+        } = require('./lib/phuglee-roles');
+        const pagePath = normalizePath(pathname);
+        // Public landers stay reachable; restricted roles are bounced to their home.
+        if (pagePath !== '/' && pagePath !== '/heat' && !isPathAllowedForUsername(session.username, pagePath)) {
+          res.writeHead(302, {
+            Location: defaultHomeForUsername(session.username),
+            'Cache-Control': 'no-store'
+          });
+          res.end();
+          return;
+        }
+      }
+    }
     const file = path.join(config.PUBLIC, config.DISTRESS_ROUTES[pathname]);
     if (fs.existsSync(file)) {
       const html = fs.readFileSync(file, 'utf8');

@@ -109,6 +109,17 @@
     }
   }
 
+  function isVaultOnlyUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isVaultOnly === 'function') {
+      return window.PhugleeSettings.isVaultOnly() === true;
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') === 'matt';
+    } catch (_) {
+      return false;
+    }
+  }
+
   function isContractDeskUser() {
     if (window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function') {
       return window.PhugleeSettings.isContractDesk() === true;
@@ -120,6 +131,9 @@
     return COMMANDS.filter(function (cmd) {
       if (cmd.adminOnly && !isAdminUser()) return false;
       if (cmd.contractDeskOnly && !isContractDeskUser()) return false;
+      if (isVaultOnlyUser()) {
+        return cmd.href === '/vault';
+      }
       if (isDisposUser()) {
         return cmd.href === '/vault' || cmd.href === '/under-contract' || cmd.href === '/pipeline';
       }

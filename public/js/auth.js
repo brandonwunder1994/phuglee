@@ -764,18 +764,22 @@
     try {
       user = sessionStorage.getItem(SESSION_KEY) || '';
     } catch (_) {}
-    var dest = state.returnUrl || (user === 'brad' ? '/under-contract' : '/command');
+    var home = user === 'matt' ? '/vault' : (user === 'brad' ? '/under-contract' : '/command');
+    var dest = state.returnUrl || home;
     try {
       var path = (dest.split('?')[0].split('#')[0] || '/').replace(/\/+$/, '') || '/';
       if (path === '/' || path === '/index.html' || path === '/heat' || path === '/command') {
-        return user === 'brad' ? '/under-contract' : '/command';
+        return home;
+      }
+      if (user === 'matt' && path !== '/vault') {
+        return '/vault';
       }
       if (user === 'brad' && path !== '/vault' && path !== '/under-contract' && path !== '/pipeline') {
         return '/under-contract';
       }
       return dest;
     } catch (_) {
-      return user === 'brad' ? '/under-contract' : '/command';
+      return home;
     }
   }
 
@@ -983,7 +987,7 @@
           try {
             user = sessionStorage.getItem(SESSION_KEY) || '';
           } catch (_) {}
-          window.location.href = user === 'brad' ? '/under-contract' : '/command';
+          window.location.href = user === 'matt' ? '/vault' : (user === 'brad' ? '/under-contract' : '/command');
         } else {
           openModal();
         }

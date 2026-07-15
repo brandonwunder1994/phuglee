@@ -113,7 +113,7 @@
 
   function isMaxPlan(me) {
     if (!me) return false;
-    if (me.plan === 'max' || me.username === 'admin' || me.username === 'brad') return true;
+    if (me.plan === 'max' || me.username === 'admin' || me.username === 'brad' || me.username === 'matt') return true;
     if (window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function') {
       return window.PhugleeSettings.isContractDesk() === true;
     }

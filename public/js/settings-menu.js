@@ -5,6 +5,7 @@
   var USERS_KEY = 'phuglee_users';
   var ADMIN_USER = 'admin';
   var DISPOS_USER = 'brad';
+  var VAULT_ONLY_USER = 'matt';
 
   function sessionApi() {
     return window.PhugleeSession || null;
@@ -43,6 +44,10 @@
 
   function isDispos() {
     return getSessionUser() === DISPOS_USER;
+  }
+
+  function isVaultOnly() {
+    return getSessionUser() === VAULT_ONLY_USER;
   }
 
   function isContractDesk() {
@@ -428,6 +433,7 @@
     buildDropdown: buildDropdown,
     isAdmin: isAdmin,
     isDispos: isDispos,
+    isVaultOnly: isVaultOnly,
     isContractDesk: isContractDesk
   };
 })();

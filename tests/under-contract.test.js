@@ -726,3 +726,18 @@ test('dispos role allows /pipeline path', () => {
   assert.equal(roles.isPathAllowedForUsername('brad', '/under-contract'), true);
   assert.equal(roles.isPathAllowedForUsername('brad', '/filter'), false);
 });
+
+test('vault-only role (matt) allows only /vault', () => {
+  const roles = require('../lib/phuglee-roles');
+  assert.equal(roles.isVaultOnlyUsername('matt'), true);
+  assert.equal(roles.isPathAllowedForUsername('matt', '/vault'), true);
+  assert.equal(roles.isPathAllowedForUsername('matt', '/under-contract'), false);
+  assert.equal(roles.isPathAllowedForUsername('matt', '/pipeline'), false);
+  assert.equal(roles.isPathAllowedForUsername('matt', '/filter'), false);
+  assert.equal(roles.isPathAllowedForUsername('matt', '/command'), false);
+  assert.equal(roles.isAdminUsername('matt'), false);
+  assert.equal(roles.isContractDeskUsername('matt'), false);
+  assert.equal(roles.hasVaultAccess('matt', 'pro'), true);
+  assert.equal(roles.defaultHomeForUsername('matt'), '/vault');
+  assert.equal(roles.roleForUsername('matt').id, 'vault');
+});

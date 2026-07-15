@@ -36,6 +36,17 @@
     }
   }
 
+  function isVaultOnlyUser() {
+    if (window.PhugleeSettings && typeof window.PhugleeSettings.isVaultOnly === 'function') {
+      return window.PhugleeSettings.isVaultOnly() === true;
+    }
+    try {
+      return sessionStorage.getItem('phuglee_session') === 'matt';
+    } catch (_) {
+      return false;
+    }
+  }
+
   function isContractDeskUser() {
     if (window.PhugleeSettings && typeof window.PhugleeSettings.isContractDesk === 'function') {
       return window.PhugleeSettings.isContractDesk() === true;
@@ -44,7 +55,7 @@
   }
 
   function propertiesLinks() {
-    if (isDisposUser()) return [];
+    if (isDisposUser() || isVaultOnlyUser()) return [];
     if (!isAdminUser()) return PROPERTIES_LINKS.slice();
     return PROPERTIES_LINKS.concat(ADMIN_PROPERTIES_LINKS);
   }
@@ -114,6 +125,20 @@
 
   function buildFooter(pathname) {
     const onAnalyzer = isAnalyzerPath(pathname || window.location.pathname);
+    if (isVaultOnlyUser()) {
+      return `
+<footer class="shell-footer" id="distress-os-footer">
+  <div class="shell-footer-inner">
+    <div class="shell-footer-brand-block">
+      <span class="shell-footer-brand">PHUGLEE</span>
+      <span class="shell-footer-meta">The Vault</span>
+    </div>
+    <nav class="shell-footer-links" aria-label="Footer">
+      <a href="/vault" class="shell-footer-link">The Vault</a>
+    </nav>
+  </div>
+</footer>`;
+    }
     const metaLine = onAnalyzer
       ? ''
       : '<span class="shell-footer-meta">Distress OS · Collect. Filter. Analyze.</span>';
@@ -200,7 +225,9 @@
     const contractHtml = `<a href="/under-contract" class="${linkClass('under-contract', current)}"${current === 'under-contract' ? ' aria-current="page"' : ''}>Contract Tracker</a>`;
 
     let linksHtml;
-    if (isDisposUser()) {
+    if (isVaultOnlyUser()) {
+      linksHtml = vaultHtml;
+    } else if (isDisposUser()) {
       // Disposition partner: Tracker + Pipeline glance + Vault
       linksHtml = contractHtml + pipelineHtml + vaultHtml;
     } else {
@@ -215,7 +242,7 @@
         </div>`
       : '';
 
-    const brandHref = isDisposUser() ? '/under-contract' : '/';
+    const brandHref = isVaultOnlyUser() ? '/vault' : (isDisposUser() ? '/under-contract' : '/');
 
     return `
 <div class="shell-loading-strip" id="shell-loading-strip" hidden aria-live="polite">
@@ -465,6 +492,7 @@
     isPropertiesSectionActive,
     isAdminUser,
     isDisposUser,
+    isVaultOnlyUser,
     isContractDeskUser
   };
   mount();

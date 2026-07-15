@@ -11,6 +11,9 @@
   var DISPOS_USER = 'brad';
   var DISPOS_PATHS = { '/vault': true, '/under-contract': true, '/pipeline': true };
   var DISPOS_HOME = '/under-contract';
+  var VAULT_ONLY_USER = 'matt';
+  var VAULT_ONLY_PATHS = { '/vault': true };
+  var VAULT_ONLY_HOME = '/vault';
 
   function sessionApi() {
     return window.PhugleeSession || null;
@@ -45,22 +48,32 @@
     return user === DISPOS_USER;
   }
 
-  function enforceDisposPath(user) {
-    if (!isDisposUser(user)) return;
+  function isVaultOnlyUser(user) {
+    return user === VAULT_ONLY_USER;
+  }
+
+  function enforceRestrictedPath(user) {
     var p = normalizePath(window.location.pathname);
+    if (isVaultOnlyUser(user)) {
+      if (p === '/command' || p === '/' || p === '/heat' || !VAULT_ONLY_PATHS[p]) {
+        window.location.replace(VAULT_ONLY_HOME);
+      }
+      return;
+    }
+    if (!isDisposUser(user)) return;
     if (p === '/command' || p === '/' || p === '/heat' || !DISPOS_PATHS[p]) {
       window.location.replace(DISPOS_HOME);
     }
   }
 
-  // Public landers stay public, but Brad never parks on the mission home.
+  // Public landers stay public, but restricted users never park on the mission home.
   if (path === '/' || path === '/heat') {
     if (isLoggedIn()) {
       var landUser = getSessionUser();
-      if (landUser) enforceDisposPath(landUser);
+      if (landUser) enforceRestrictedPath(landUser);
       else if (sessionApi() && typeof sessionApi().syncSessionFromServerCookie === 'function') {
         sessionApi().syncSessionFromServerCookie().then(function (data) {
-          if (data && data.username) enforceDisposPath(data.username);
+          if (data && data.username) enforceRestrictedPath(data.username);
         });
       }
     }
@@ -89,10 +102,10 @@
   var sessionUser = getSessionUser();
 
   if (sessionUser) {
-    enforceDisposPath(sessionUser);
+    enforceRestrictedPath(sessionUser);
   } else if (sessionApi() && typeof sessionApi().syncSessionFromServerCookie === 'function') {
     sessionApi().syncSessionFromServerCookie().then(function (data) {
-      if (data && data.username) enforceDisposPath(data.username);
+      if (data && data.username) enforceRestrictedPath(data.username);
     });
   }
 
