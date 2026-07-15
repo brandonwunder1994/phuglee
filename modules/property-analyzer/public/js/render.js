@@ -1802,7 +1802,7 @@ R.handleFile = async function handleFile(file, opts = {}) {
         if (!q?.ok) {
           console.warn('[import] scan-queue save failed', q?.error);
           const errText = String(q?.error?.message || q?.error || q?.data?.error || '');
-          const authBlocked = /AUTH_REQUIRED|Authentication required|401/i.test(errText)
+          const authBlocked = /AUTH_REQUIRED|Authentication required|Unauthorized|401/i.test(errText)
             || Number(q?.data?.status) === 401;
           if (authBlocked) {
             log('Queue NOT saved — log in, hard-refresh, then drop the file again.', 'error');
