@@ -116,6 +116,26 @@ test('queryLeads stacks signals with AND logic', () => {
   assert.equal(result.total, 1);
 });
 
+test('queryLeads filters by entityType and minEquity', () => {
+  store.upsertLead(fixtureDistressed);
+  store.upsertLead(fixtureWM);
+  store.upsertLead(fixtureLand);
+
+  const individuals = store.queryLeads({ entityType: 'individual' });
+  assert.ok(individuals.total >= 1);
+  assert.ok(individuals.leads.every((l) => l.entityType === 'individual'));
+
+  const llcs = store.queryLeads({ entityType: 'llc' });
+  assert.ok(llcs.total >= 1);
+  assert.ok(llcs.leads.every((l) => l.entityType === 'llc'));
+
+  const equityOk = store.queryLeads({ minEquity: 50000 });
+  assert.ok(equityOk.leads.some((l) => l.leadId === fixtureDistressed.leadId));
+
+  const equityHigh = store.queryLeads({ minEquity: 100000 });
+  assert.ok(!equityHigh.leads.some((l) => l.leadId === fixtureDistressed.leadId));
+});
+
 test('queryLeads facet counts follow geo and signal filters', () => {
   store.upsertLead(fixtureDistressed);
   store.upsertLead(fixtureWM);
@@ -281,4 +301,41 @@ test('mapAnalyzerResultToVaultLead carries distress findings and code violation 
   assert.ok(lead.codeViolation);
   assert.equal(lead.codeViolation.type, 'Code violation');
   assert.ok(lead.signalTags.includes('Code violation'));
+});
+
+test('leadsToCsv includes entity and multi-phone columns', () => {
+  store.upsertLead({
+    ...fixtureDistressed,
+    phones: ['(901) 555-0142', '(901) 555-0199', '(901) 555-0111']
+  });
+  const csv = api.leadsToCsv([store.getLead(fixtureDistressed.leadId)]);
+  assert.match(csv, /Entity/);
+  assert.match(csv, /Phone 2/);
+  assert.match(csv, /Phone 3/);
+  assert.match(csv, /Mailing Address|Signals/);
+  assert.match(csv, /individual/i);
+  assert.match(csv, /555-0199/);
+});
+
+test('explainPriorityScore breaks down score parts', () => {
+  const { explainPriorityScore } = require('../lib/leads-platform/scoring');
+  const explained = explainPriorityScore(fixtureDistressed);
+  assert.ok(explained.total >= 0 && explained.total <= 100);
+  assert.ok(Array.isArray(explained.parts));
+  assert.ok(explained.parts.length >= 1);
+  assert.equal(
+    explained.total,
+    require('../lib/leads-platform/scoring').computePriorityScore(fixtureDistressed)
+  );
+});
+
+test('collectMatchingLeadIds respects hasPhone filter', () => {
+  store.upsertLead(fixtureDistressed);
+  store.upsertLead({
+    ...fixtureWM,
+    phones: []
+  });
+  const withPhone = store.collectMatchingLeadIds({ hasPhone: true }, 50);
+  assert.ok(withPhone.ids.includes(fixtureDistressed.leadId));
+  assert.ok(!withPhone.ids.includes(fixtureWM.leadId));
 });

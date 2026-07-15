@@ -27,6 +27,8 @@
     favoritesOnly: false,
     hasPhone: false,
     hasImagery: false,
+    entityType: '',
+    minEquity: 0,
     viewMode: 'table',
     viewModeManual: false,
     selected: new Set(),
@@ -91,6 +93,24 @@
     return esc(p);
   }
 
+  function formatPhoneStack(phones, opts = {}) {
+    const list = (Array.isArray(phones) ? phones : []).map((p) => String(p || '').trim()).filter(Boolean);
+    if (!list.length) return '—';
+    const max = opts.max != null ? opts.max : 2;
+    const large = !!opts.large;
+    const shown = list.slice(0, max);
+    const extra = (opts.totalCount != null ? opts.totalCount : list.length) - shown.length;
+    const rows = shown.map((p) => formatPhone(p, large)).join('');
+    if (large) {
+      return `<div class="vault-dial-phones">${shown.map((p) =>
+        `<p class="vault-dial-phone-row">${formatPhone(p, true)}</p>`
+      ).join('')}${extra > 0 ? `<p class="vault-phone-more">+${extra} more on file</p>` : ''}</div>`;
+    }
+    return `<div class="vault-phone-stack">${rows}${
+      extra > 0 ? `<span class="vault-phone-more">+${extra}</span>` : ''
+    }</div>`;
+  }
+
   function isMaxPlan(me) {
     if (!me) return false;
     if (me.plan === 'max' || me.username === 'admin' || me.username === 'brad') return true;
@@ -102,9 +122,9 @@
 
   function leadTypeLabel(type) {
     const key = String(type || '').toLowerCase().replace(/\s+/g, '_');
-    if (key === 'distressed') return "Distressed CV's";
-    if (key === 'well_maintained' || key === 'wellmaintained') return "CV's";
-    if (key === 'land') return "Land CV's";
+    if (key === 'distressed') return 'Distressed';
+    if (key === 'well_maintained' || key === 'wellmaintained') return 'Code';
+    if (key === 'land') return 'Land';
     if (key === 'all') return 'All';
     const s = String(type || '').replace(/_/g, ' ');
     return s.replace(/\b\w/g, (c) => c.toUpperCase());
@@ -325,6 +345,8 @@
     if (state.favoritesOnly) params.set('favoritesOnly', '1');
     if (state.hasPhone) params.set('hasPhone', '1');
     if (state.hasImagery) params.set('hasImagery', '1');
+    if (state.entityType) params.set('entityType', state.entityType);
+    if (state.minEquity > 0) params.set('minEquity', String(state.minEquity));
     if (state.originLat != null && state.originLng != null && state.radiusMiles > 0) {
       params.set('originLat', String(state.originLat));
       params.set('originLng', String(state.originLng));
@@ -357,9 +379,33 @@
       favoritesOnly: state.favoritesOnly,
       hasPhone: state.hasPhone,
       hasImagery: state.hasImagery,
+      entityType: state.entityType,
+      minEquity: state.minEquity,
       sort: state.sort,
-      sortDir: state.sortDir
+      sortDir: state.sortDir,
+      originLat: state.originLat,
+      originLng: state.originLng,
+      radiusMiles: state.radiusMiles,
+      originLabel: state.originLabel || ''
     };
+  }
+
+  function filtersAreActive() {
+    return !!(
+      state.state
+      || state.city
+      || state.signals.length
+      || state.minScore > 0
+      || state.since
+      || state.q
+      || state.favoritesOnly
+      || state.hasPhone
+      || state.hasImagery
+      || state.entityType
+      || state.minEquity > 0
+      || (state.leadType && state.leadType !== 'all')
+      || (state.originLat != null && state.originLng != null)
+    );
   }
 
   function applyFilterSnapshot(snapshot) {
@@ -374,13 +420,28 @@
     state.favoritesOnly = !!snapshot.favoritesOnly;
     state.hasPhone = !!snapshot.hasPhone;
     state.hasImagery = !!snapshot.hasImagery;
+    state.entityType = snapshot.entityType || '';
+    state.minEquity = Number(snapshot.minEquity) || 0;
     state.sort = snapshot.sort || 'priorityScore';
     state.sortDir = snapshot.sortDir || 'desc';
+    const lat = snapshot.originLat == null || snapshot.originLat === '' ? null : Number(snapshot.originLat);
+    const lng = snapshot.originLng == null || snapshot.originLng === '' ? null : Number(snapshot.originLng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      state.originLat = lat;
+      state.originLng = lng;
+      state.radiusMiles = Number(snapshot.radiusMiles) || state.radiusMiles || 5;
+      state.originLabel = snapshot.originLabel || '';
+    } else {
+      state.originLat = null;
+      state.originLng = null;
+      state.originLabel = '';
+    }
     state.page = 1;
     syncFilterControls();
     syncTypeTabs();
     renderSignalChips();
     populateGeoSelects();
+    updateRadiusStatus();
     refreshCurrentView();
   }
 
@@ -435,6 +496,14 @@
     if ($('vault-favorites-only')) $('vault-favorites-only').checked = state.favoritesOnly;
     if ($('vault-has-phone')) $('vault-has-phone').checked = state.hasPhone;
     if ($('vault-has-photo')) $('vault-has-photo').checked = state.hasImagery;
+    if ($('vault-entity-type')) $('vault-entity-type').value = state.entityType || '';
+    if ($('vault-equity-band')) {
+      const band = state.minEquity >= 400000 ? '400k'
+        : state.minEquity >= 300000 ? '300k'
+          : state.minEquity >= 200000 ? '200k'
+            : state.minEquity >= 100000 ? '100k' : '';
+      $('vault-equity-band').value = band;
+    }
     if ($('vault-smart-defaults')) $('vault-smart-defaults').checked = state.smartDefaults;
   }
 
@@ -474,10 +543,29 @@
   function renderPresetSelect() {
     const sel = $('vault-presets');
     if (!sel) return;
+    const prev = sel.value;
     const presets = state.overlays.presets || [];
-    sel.innerHTML = '<option value="">Load preset…</option>' + presets.map((p, i) =>
-      `<option value="${i}">${esc(p.name || `Preset ${i + 1}`)}</option>`
+    sel.innerHTML = '<option value="">Load pull…</option>' + presets.map((p, i) =>
+      `<option value="${i}">${esc(p.name || `Pull ${i + 1}`)}</option>`
     ).join('');
+    if (prev !== '' && presets[Number(prev)]) sel.value = prev;
+    updatePullActions();
+  }
+
+  function selectedPullIndex() {
+    const sel = $('vault-presets');
+    if (!sel || sel.value === '') return -1;
+    const idx = Number(sel.value);
+    return Number.isFinite(idx) ? idx : -1;
+  }
+
+  function updatePullActions() {
+    const idx = selectedPullIndex();
+    const has = idx >= 0;
+    const del = $('vault-delete-preset');
+    const exp = $('vault-export-pull');
+    if (del) del.disabled = !has;
+    if (exp) exp.disabled = !has;
   }
 
   function applyListFacets(data = {}) {
@@ -506,11 +594,22 @@
     renderResults();
     renderPagination();
     renderResultsMeta();
+    updateExportButton();
     hideSkeleton();
   }
 
   function renderKpis() {
-    /* no-op — KPI strip removed from desk redesign */
+    const wrap = $('vault-kpis');
+    if (!wrap) return;
+    const m = state.meta || {};
+    const set = (key, val) => {
+      const el = wrap.querySelector(`[data-kpi="${key}"]`);
+      if (el) el.textContent = val == null ? '—' : Number(val).toLocaleString();
+    };
+    set('total', m.total);
+    set('phone', m.withPhone);
+    set('fresh', m.freshThisWeek);
+    set('mapped', m.withCoords);
   }
 
   function showSkeleton() {
@@ -1079,7 +1178,10 @@
       if (table) table.hidden = false;
       body.innerHTML = state.leads.map((row) => {
         const signal = primarySignal(row);
-        const phone = (row.phones && row.phones[0]) || '';
+        const phoneHtml = formatPhoneStack(row.phones, {
+          max: 2,
+          totalCount: row.phoneCount != null ? row.phoneCount : (row.phones || []).length
+        });
         const checked = state.selected.has(row.leadId) ? ' checked' : '';
         const fav = row.favorite ? ' vault-row--fav' : '';
         const tier = row.distressTier != null
@@ -1094,7 +1196,7 @@
           <td><span class="vault-signal${hotSignalClass(signal)}">${esc(signal)}</span></td>
           <td><span class="vault-score${scoreCls}">${esc(row.priorityScore)}</span>${tier}</td>
           <td class="vault-col-owner">${esc(row.ownerName || '—')}</td>
-          <td class="vault-col-phone">${formatPhone(phone)}</td>
+          <td class="vault-col-phone">${phoneHtml}</td>
         </tr>`;
       }).join('');
     }
@@ -1125,7 +1227,10 @@
 
   function renderCard(row) {
     const signal = primarySignal(row);
-    const phone = (row.phones && row.phones[0]) || '';
+    const phoneHtml = formatPhoneStack(row.phones, {
+      max: 2,
+      totalCount: row.phoneCount != null ? row.phoneCount : (row.phones || []).length
+    });
     const checked = state.selected.has(row.leadId) ? ' checked' : '';
     const scoreCls = scoreHeatClass(row.priorityScore);
     return `<article class="vault-card${row.favorite ? ' vault-card--fav' : ''}" data-lead-id="${esc(row.leadId)}" tabindex="0">
@@ -1135,7 +1240,7 @@
         <h3 class="vault-card-address">${esc(row.address)}</h3>
         <p class="vault-card-meta">${esc(row.city)}, ${esc(row.state)} · <span class="vault-score${scoreCls}">${esc(row.priorityScore)}</span></p>
         <p class="vault-card-signal${hotSignalClass(signal)}">${esc(signal)}</p>
-        ${phone ? `<p class="vault-card-phone">${formatPhone(phone)}</p>` : ''}
+        ${phoneHtml !== '—' ? `<div class="vault-card-phone">${phoneHtml}</div>` : ''}
       </div>
     </article>`;
   }
@@ -1151,13 +1256,17 @@
   function renderResultsMeta() {
     const el = $('vault-results-meta');
     if (!el) return;
+    const inventory = state.meta && state.meta.total != null ? Number(state.meta.total) : null;
     if (state.viewMode === 'map') {
       const n = state.mapMarkers.length;
       const radiusNote = state.originLat != null
         ? ` within ${state.radiusMiles} mi`
         : '';
+      const matchNote = filtersAreActive() && inventory != null && state.total !== inventory
+        ? ` · matching ${Number(state.total || 0).toLocaleString()} of ${inventory.toLocaleString()} inventory`
+        : '';
       el.textContent = n
-        ? `${n.toLocaleString()} mapped leads${radiusNote}`
+        ? `${n.toLocaleString()} mapped leads${radiusNote}${matchNote}`
         : (state.originLat != null
           ? 'No mapped leads in this radius'
           : 'No mapped leads match');
@@ -1166,15 +1275,20 @@
     const shown = state.leads.length;
     const start = state.total ? (state.page - 1) * 50 + 1 : 0;
     const end = state.total ? Math.min((state.page - 1) * 50 + shown, state.total) : 0;
+    const inventoryNote = filtersAreActive() && inventory != null && state.total !== inventory
+      ? ` · matching ${state.total.toLocaleString()} of ${inventory.toLocaleString()} inventory`
+      : '';
     if (state.viewMode === 'cards' && state.page > 1) {
       el.textContent = state.total
-        ? `Showing ${shown.toLocaleString()} of ${state.total.toLocaleString()} leads (scroll for more)`
+        ? `Showing ${shown.toLocaleString()} of ${state.total.toLocaleString()} leads (scroll for more)${inventoryNote}`
         : 'No leads in catalog yet';
       return;
     }
     el.textContent = state.total
-      ? `Showing ${start}–${end} of ${state.total.toLocaleString()} leads`
-      : 'No leads in catalog yet';
+      ? `Showing ${start.toLocaleString()}–${end.toLocaleString()} of ${state.total.toLocaleString()} leads${inventoryNote}`
+      : (filtersAreActive() && inventory
+        ? `No matches · ${inventory.toLocaleString()} in inventory`
+        : 'No leads in catalog yet');
   }
 
   function renderPagination() {
@@ -1210,12 +1324,23 @@
   function updateExportButton() {
     const btn = $('vault-export-btn');
     if (!btn) return;
-    if (state.selected.size > 0) {
-      btn.hidden = true;
-      return;
-    }
+    const selected = state.selected.size;
+    const matching = Number(state.total) || 0;
     btn.hidden = false;
-    btn.disabled = state.leads.length === 0;
+    btn.disabled = selected === 0 && matching === 0;
+    if (selected > 0) {
+      btn.textContent = `Export ${selected}`;
+      btn.title = `Export ${selected} selected lead${selected === 1 ? '' : 's'}`;
+    } else if (matching > 0) {
+      const n = Math.min(matching, 500);
+      btn.textContent = matching > 500 ? `Export ${n} (cap)` : `Export ${n}`;
+      btn.title = matching > 500
+        ? `Export first 500 of ${matching.toLocaleString()} matching leads`
+        : `Export all ${matching.toLocaleString()} matching leads`;
+    } else {
+      btn.textContent = 'Export';
+      btn.title = 'No leads to export';
+    }
   }
 
   function updateBulkBar() {
@@ -1354,6 +1479,7 @@
   }
 
   function buildDrawerSections(l, data) {
+    const whyBody = renderWhyThisLead(l, data.scoreExplain);
     const dealBody = [renderDealMath(l), renderOfferBand(l)].filter(Boolean).join('');
     const distressBody = [renderDistressSection(l), renderCodeViolationSection(l)].filter(Boolean).join('');
     const propertyBody = renderPropertySection(l);
@@ -1367,6 +1493,7 @@
       </div>`;
 
     const sections = [
+      { id: 'why', label: 'Why', html: whyBody },
       { id: 'owner', label: 'Owner', html: renderDialBrief(l) },
       { id: 'deal', label: 'Deal', html: stripSectionShell(dealBody) },
       { id: 'distress', label: 'Distress', html: stripSectionShell(distressBody) },
@@ -1380,8 +1507,9 @@
       sections.push({ id: 'owner', label: 'Owner', html: '<p class="vault-drawer-loading">No details for this lead yet.</p>' });
     }
 
-    const activeId = sections.some((s) => s.id === state.drawerSection)
-      ? state.drawerSection
+    const preferred = state.drawerSection || 'why';
+    const activeId = sections.some((s) => s.id === preferred)
+      ? preferred
       : sections[0].id;
     state.drawerSection = activeId;
 
@@ -1405,16 +1533,79 @@
     `;
   }
 
+  function renderWhyThisLead(l, scoreExplain) {
+    const explain = scoreExplain && Array.isArray(scoreExplain.parts) ? scoreExplain : null;
+    const score = explain?.total != null ? explain.total : l.priorityScore;
+    const parts = explain?.parts || [];
+    const scoreRows = parts.map((p) =>
+      `<li><span class="vault-why-label">${esc(p.label)}</span><span class="vault-why-pts">+${esc(p.points)}</span></li>`
+    ).join('');
+
+    const signals = (l.signalTags || []).slice(0, 8).map((t) =>
+      `<span class="vault-signal-chip is-active">${esc(t)}</span>`
+    ).join(' ');
+
+    const d = l.distress || null;
+    const distressBits = [];
+    if (d?.score != null) distressBits.push(`Distress ${d.score}/10`);
+    if (d?.tier != null || l.distressTier != null) {
+      distressBits.push(`Tier ${d?.tier != null ? d.tier : l.distressTier}`);
+    }
+    const summary = d?.summary
+      ? `<blockquote class="vault-distress-quote">${esc(d.summary)}</blockquote>`
+      : '';
+    const findings = Array.isArray(d?.indicators) ? d.indicators.slice(0, 6) : [];
+    const findingChips = findings.length
+      ? `<div class="vault-signal-chips">${findings.map((t) =>
+        `<span class="vault-signal-chip is-active">${esc(t)}</span>`
+      ).join(' ')}</div>`
+      : '';
+
+    const cv = l.codeViolation;
+    let cvLine = '';
+    if (cv && (cv.type || cv.description || cv.date)) {
+      const bits = [cv.type, cv.date, cv.category].filter(Boolean).map(String);
+      cvLine = `<p class="vault-why-cv"><strong>Code:</strong> ${esc(bits.join(' · '))}${
+        cv.description ? ` — ${esc(String(cv.description).slice(0, 160))}` : ''
+      }</p>`;
+    }
+
+    const proofBits = [
+      l.sourceCity ? `Sourced · ${l.sourceCity}` : null,
+      l.publishedAt ? `Published ${String(l.publishedAt).slice(0, 10)}` : null,
+      l.streetViewUrl || (l.photos && l.photos[0]) ? 'Street View on file' : null,
+      Array.isArray(l.phones) && l.phones.length ? `${l.phones.length} phone${l.phones.length === 1 ? '' : 's'}` : 'No phone yet'
+    ].filter(Boolean);
+
+    const hasProof = scoreRows || signals || summary || findingChips || cvLine || proofBits.length;
+    if (!hasProof) return '';
+
+    return `<div class="vault-why-panel">
+      <p class="vault-why-headline">Why this lead <span class="vault-why-score">${esc(score ?? '—')}</span></p>
+      <p class="vault-why-sub">Clerk-reviewed catalog proof — not a scraped skip-trace dump.</p>
+      ${scoreRows ? `<ul class="vault-why-score-list">${scoreRows}</ul>` : ''}
+      ${distressBits.length ? `<p class="vault-why-distress">${esc(distressBits.join(' · '))}</p>` : ''}
+      ${summary}
+      ${findingChips}
+      ${cvLine}
+      ${signals ? `<div class="vault-signal-chips vault-why-signals">${signals}</div>` : ''}
+      <p class="vault-why-provenance">${esc(proofBits.join(' · '))}</p>
+    </div>`;
+  }
+
   function renderDialBrief(l) {
-    const phoneRaw = (l.phones && l.phones[0]) || '';
+    const phones = Array.isArray(l.phones) ? l.phones : [];
     const entity = entityTypeLabel(l.entityType);
     const ownerLine = [l.ownerName || 'Owner unknown', entity].filter(Boolean).join(' · ');
     const signals = (l.signalTags || []).slice(0, 6).map((t) =>
       `<span class="vault-signal-chip is-active">${esc(t)}</span>`
     ).join(' ');
+    const phoneBlock = phones.length
+      ? formatPhoneStack(phones, { large: true, max: 4 })
+      : '<p class="vault-dial-phone-row">—</p>';
     return `<div class="vault-dial-brief">
       <p class="vault-dial-owner"><strong>${esc(ownerLine)}</strong></p>
-      <p class="vault-dial-phone-row">${formatPhone(phoneRaw, true)}</p>
+      ${phoneBlock}
       ${l.email ? `<p class="vault-dial-email">${esc(l.email)}</p>` : ''}
       ${l.mailingAddress ? `<p class="vault-dial-mail">Mail: ${esc(l.mailingAddress)}</p>` : ''}
       <p class="vault-dial-script">${esc(buildDialScript(l))}</p>
@@ -1670,7 +1861,7 @@
     const switchingLead = state.activeLeadId !== leadId;
     state.activeLeadId = leadId;
     state.drawerImageMode = state.drawerImageMode || 'street';
-    if (switchingLead) state.drawerSection = 'owner';
+    if (switchingLead) state.drawerSection = 'why';
     drawer.hidden = false;
     body.innerHTML = '<p class="vault-drawer-loading">Loading…</p>';
     updateDrawerNav();
@@ -1846,21 +2037,80 @@
     }
   }
 
+  async function downloadExportPayload(data, format) {
+    if (format === 'csv' || data.format === 'csv') {
+      const blob = new Blob([data.csv || ''], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = data.filename || 'vault-export.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      return;
+    }
+    const raw = String(data.xlsxBase64 || '');
+    if (!raw) throw new Error('Export returned empty workbook');
+    const bin = atob(raw);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = data.filename || 'vault-export.xlsx';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   async function exportSelected(ids) {
     const list = ids || [...state.selected];
     if (!list.length) return;
+    const format = ($('vault-export-format-sel')?.value || 'xlsx') === 'csv' ? 'csv' : 'xlsx';
     const data = await fetchJson('/api/leads/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: list })
+      body: JSON.stringify({
+        ids: list,
+        format,
+        scope: 'ids',
+        filters: currentFilterSnapshot(),
+        label: ''
+      })
     });
-    const blob = new Blob([data.csv], { type: 'text/csv' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = data.filename || 'vault-export.csv';
-    a.click();
-    URL.revokeObjectURL(a.href);
+    await downloadExportPayload(data, format);
     showToast(`Exported ${data.count || list.length} leads`);
+  }
+
+  async function exportMatchingFilters(label, filtersOverride) {
+    const format = ($('vault-export-format-sel')?.value || 'xlsx') === 'csv' ? 'csv' : 'xlsx';
+    const filters = filtersOverride || currentFilterSnapshot();
+    const data = await fetchJson('/api/leads/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        scope: 'filtered',
+        format,
+        filters,
+        label: label || ''
+      })
+    });
+    await downloadExportPayload(data, format);
+    const extra = data.truncated
+      ? ` (first ${data.count} of ${Number(data.matchTotal || 0).toLocaleString()})`
+      : '';
+    showToast(`Exported ${data.count || 0} leads${extra}`);
+  }
+
+  async function runToolbarExport() {
+    if (state.selected.size > 0) {
+      await exportSelected([...state.selected]);
+      return;
+    }
+    if (!state.total) {
+      showToast('No leads to export');
+      return;
+    }
+    await exportMatchingFilters();
   }
 
   function copySelectedPhones() {
@@ -1956,6 +2206,21 @@
       });
     });
 
+    $('vault-entity-type')?.addEventListener('change', (e) => {
+      state.entityType = e.target.value || '';
+      state.page = 1;
+      state.leads = [];
+      refreshCurrentView();
+    });
+
+    $('vault-equity-band')?.addEventListener('change', (e) => {
+      const map = { '100k': 100000, '200k': 200000, '300k': 300000, '400k': 400000 };
+      state.minEquity = map[e.target.value] || 0;
+      state.page = 1;
+      state.leads = [];
+      refreshCurrentView();
+    });
+
     $('vault-smart-defaults')?.addEventListener('change', (e) => {
       state.smartDefaults = e.target.checked;
       writeSmartDefaultsPref(state.smartDefaults);
@@ -2009,6 +2274,8 @@
       state.favoritesOnly = false;
       state.hasPhone = false;
       state.hasImagery = false;
+      state.entityType = '';
+      state.minEquity = 0;
       state.leadType = 'all';
       state.originLat = null;
       state.originLng = null;
@@ -2053,23 +2320,34 @@
 
     $('vault-presets')?.addEventListener('change', (e) => {
       const idx = e.target.value;
+      updatePullActions();
       if (idx === '') return;
       const preset = state.overlays.presets[Number(idx)];
-      if (preset?.filters) applyFilterSnapshot(preset.filters);
-      e.target.value = '';
+      if (!preset?.filters) return;
+      if (preset.name && $('vault-preset-name')) $('vault-preset-name').value = preset.name;
+      applyFilterSnapshot(preset.filters);
+      showToast(`Loaded pull: ${preset.name || 'Untitled'}`);
     });
 
     $('vault-save-preset')?.addEventListener('click', async () => {
       const input = $('vault-preset-name');
       const name = (input?.value || '').trim();
       if (!name) {
-        showToast('Enter a preset name');
+        showToast('Name this pull');
         input?.focus();
         return;
       }
       try {
         const presets = [...(state.overlays.presets || [])];
-        presets.push({ name, filters: currentFilterSnapshot() });
+        const existingIdx = presets.findIndex((p) => String(p.name || '').toLowerCase() === name.toLowerCase());
+        const entry = {
+          id: existingIdx >= 0 ? presets[existingIdx].id : undefined,
+          name,
+          createdAt: existingIdx >= 0 ? presets[existingIdx].createdAt : undefined,
+          filters: currentFilterSnapshot()
+        };
+        if (existingIdx >= 0) presets[existingIdx] = { ...presets[existingIdx], ...entry };
+        else presets.push(entry);
         const data = await fetchJson('/api/leads/user/presets', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -2077,10 +2355,48 @@
         });
         state.overlays.presets = data.presets || presets;
         renderPresetSelect();
-        if (input) input.value = '';
-        showToast('Preset saved');
+        const sel = $('vault-presets');
+        if (sel) {
+          const idx = (state.overlays.presets || []).findIndex((p) => p.name === name);
+          if (idx >= 0) sel.value = String(idx);
+        }
+        updatePullActions();
+        showToast(existingIdx >= 0 ? 'Pull updated' : 'Pull saved');
       } catch (err) {
-        showToast(err.message || 'Could not save preset');
+        showToast(err.message || 'Could not save pull');
+      }
+    });
+
+    $('vault-delete-preset')?.addEventListener('click', async () => {
+      const idx = selectedPullIndex();
+      if (idx < 0) return;
+      const presets = [...(state.overlays.presets || [])];
+      const removed = presets.splice(idx, 1)[0];
+      try {
+        const data = await fetchJson('/api/leads/user/presets', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ presets })
+        });
+        state.overlays.presets = data.presets || presets;
+        renderPresetSelect();
+        if ($('vault-preset-name')) $('vault-preset-name').value = '';
+        showToast(`Deleted ${removed?.name || 'pull'}`);
+      } catch (err) {
+        showToast(err.message || 'Could not delete pull');
+      }
+    });
+
+    $('vault-export-pull')?.addEventListener('click', async () => {
+      const idx = selectedPullIndex();
+      if (idx < 0) return;
+      const preset = state.overlays.presets[idx];
+      if (!preset?.filters) return;
+      try {
+        applyFilterSnapshot(preset.filters);
+        await exportMatchingFilters(preset.name || '', preset.filters);
+      } catch (err) {
+        showToast(err.message || 'Export failed');
       }
     });
 
@@ -2167,7 +2483,7 @@
     });
 
     $('vault-export-btn')?.addEventListener('click', () => {
-      exportSelected([...state.selected]).catch((err) => showToast(err.message || 'Export failed'));
+      runToolbarExport().catch((err) => showToast(err.message || 'Export failed'));
     });
 
     $('vault-bulk-export')?.addEventListener('click', () => {

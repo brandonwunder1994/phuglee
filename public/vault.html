@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/vault.css?v=19">
+  <link rel="stylesheet" href="/css/vault.css?v=22">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -55,6 +55,12 @@
           <p class="vault-eyebrow">The Vault</p>
           <h1 class="vault-title vault-title--desk">Curated leads</h1>
           <p class="vault-hero-sub">40%+ equity · independently owned · $500K max value · SFH &amp; multi-unit</p>
+        </div>
+        <div id="vault-kpis" class="vault-kpis" aria-label="Catalog snapshot">
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="total">—</span><span class="vault-kpi-label">Inventory</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="phone">—</span><span class="vault-kpi-label">Dial-ready</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="fresh">—</span><span class="vault-kpi-label">Fresh 7d</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="mapped">—</span><span class="vault-kpi-label">Mapped</span></div>
         </div>
       </header>
 
@@ -107,6 +113,26 @@
           <details class="vault-more-filters">
             <summary>More filters</summary>
             <label class="vault-field">
+              <span class="vault-field-label">Owner type</span>
+              <select id="vault-entity-type" class="phuglee-select">
+                <option value="">All owners</option>
+                <option value="individual">Individual</option>
+                <option value="llc">LLC / company</option>
+                <option value="estate">Estate</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </label>
+            <label class="vault-field">
+              <span class="vault-field-label">Est. equity</span>
+              <select id="vault-equity-band" class="phuglee-select">
+                <option value="">Any equity</option>
+                <option value="100k">$100K+</option>
+                <option value="200k">$200K+</option>
+                <option value="300k">$300K+</option>
+                <option value="400k">$400K+</option>
+              </select>
+            </label>
+            <label class="vault-field">
               <span class="vault-field-label">Min score <span id="vault-min-score-val" class="vault-range-val">0</span></span>
               <input type="range" id="vault-min-score" class="vault-range" min="0" max="100" value="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             </label>
@@ -138,13 +164,18 @@
           </details>
 
           <div class="vault-field">
-            <span class="vault-field-label">Saved presets</span>
+            <span class="vault-field-label">Saved pulls</span>
+            <p class="vault-field-hint">Save your filter stack · reload anytime · export the pack</p>
             <div class="vault-preset-row">
-              <select id="vault-presets" class="phuglee-select"><option value="">Load preset…</option></select>
+              <select id="vault-presets" class="phuglee-select"><option value="">Load pull…</option></select>
             </div>
             <div class="vault-preset-save-row">
-              <input type="text" id="vault-preset-name" class="phuglee-input" placeholder="Preset name" maxlength="48" autocomplete="off">
+              <input type="text" id="vault-preset-name" class="phuglee-input" placeholder="e.g. TX distressed phone" maxlength="48" autocomplete="off">
               <button type="button" id="vault-save-preset" class="phuglee-btn phuglee-btn-ghost">Save</button>
+            </div>
+            <div class="vault-preset-actions">
+              <button type="button" id="vault-export-pull" class="phuglee-btn phuglee-btn-secondary" disabled>Export pull</button>
+              <button type="button" id="vault-delete-preset" class="phuglee-btn phuglee-btn-ghost" disabled>Delete</button>
             </div>
           </div>
           <button type="button" id="vault-clear-filters" class="phuglee-btn phuglee-btn-ghost vault-clear-btn">Clear filters</button>
@@ -156,9 +187,9 @@
               <p id="vault-results-meta" class="vault-results-meta">Loading…</p>
               <div id="vault-type-tabs" class="vault-type-tabs" role="tablist" aria-label="Lead type">
                 <button type="button" class="vault-type-tab is-active" role="tab" id="vault-tab-all" aria-controls="vault-results" aria-selected="true" data-type="all">All <span class="vault-tab-count" data-count-for="all"></span></button>
-                <button type="button" class="vault-type-tab" role="tab" id="vault-tab-well" aria-controls="vault-results" aria-selected="false" data-type="well_maintained">⚠️ CV's <span class="vault-tab-count" data-count-for="well_maintained"></span></button>
-                <button type="button" class="vault-type-tab" role="tab" id="vault-tab-distressed" aria-controls="vault-results" aria-selected="false" data-type="distressed">⚠️ Distressed CV's <span class="vault-tab-count" data-count-for="distressed"></span></button>
-                <button type="button" class="vault-type-tab" role="tab" id="vault-tab-land" aria-controls="vault-results" aria-selected="false" data-type="land">⚠️ Land CV's <span class="vault-tab-count" data-count-for="land"></span></button>
+                <button type="button" class="vault-type-tab" role="tab" id="vault-tab-well" aria-controls="vault-results" aria-selected="false" data-type="well_maintained">Code <span class="vault-tab-count" data-count-for="well_maintained"></span></button>
+                <button type="button" class="vault-type-tab" role="tab" id="vault-tab-distressed" aria-controls="vault-results" aria-selected="false" data-type="distressed">Distressed <span class="vault-tab-count" data-count-for="distressed"></span></button>
+                <button type="button" class="vault-type-tab" role="tab" id="vault-tab-land" aria-controls="vault-results" aria-selected="false" data-type="land">Land <span class="vault-tab-count" data-count-for="land"></span></button>
               </div>
             </div>
             <div class="vault-results-actions">
@@ -167,7 +198,14 @@
                 <button type="button" class="vault-view-btn" data-view="cards" aria-pressed="false">Cards</button>
                 <button type="button" class="vault-view-btn" data-view="map" aria-pressed="false">Map</button>
               </div>
-              <button type="button" id="vault-export-btn" class="phuglee-btn phuglee-btn-ghost vault-export-btn" disabled>Export</button>
+              <label class="vault-export-format">
+                <span class="vault-sr-only">Export format</span>
+                <select id="vault-export-format-sel" class="phuglee-select vault-export-format-sel" title="Export format">
+                  <option value="xlsx" selected>Excel</option>
+                  <option value="csv">CSV</option>
+                </select>
+              </label>
+              <button type="button" id="vault-export-btn" class="phuglee-btn phuglee-btn-ghost vault-export-btn" disabled title="Export selected rows, or matching filters when none selected">Export</button>
             </div>
           </div>
           <div id="vault-results" class="vault-results">
@@ -244,6 +282,6 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=14" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/vault-app.js?v=22" defer></script>
+  <script src="/js/vault-app.js?v=24" defer></script>
 </body>
 </html>

@@ -181,7 +181,71 @@
 }
 
 .vault-hero .vault-kpis {
-  display: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.1rem;
+  align-items: flex-end;
+}
+
+.vault-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  min-width: 4.5rem;
+}
+
+.vault-kpi-val {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--phuglee-cream);
+  line-height: 1.1;
+}
+
+.vault-kpi-label {
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--vault-muted);
+}
+
+.vault-export-format-sel {
+  min-width: 5.5rem;
+  max-width: 6.5rem;
+  min-height: 2.4rem;
+  font-size: 0.78rem;
+}
+
+.vault-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.vault-phone-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  line-height: 1.25;
+}
+
+.vault-phone-more {
+  font-size: 0.68rem;
+  color: var(--vault-muted);
+}
+
+.vault-dial-phones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.55rem;
 }
 
 .vault-tab-count {
@@ -396,6 +460,18 @@
 .vault-preset-save-row .phuglee-input {
   flex: 1;
   min-width: 0;
+}
+
+.vault-preset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.45rem;
+}
+
+.vault-preset-actions .phuglee-btn {
+  flex: 1 1 auto;
+  min-height: 2.5rem;
 }
 
 .vault-clear-btn {
@@ -1301,6 +1377,72 @@
   border-left: 3px solid var(--phuglee-orange);
 }
 
+.vault-why-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.vault-why-headline {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--phuglee-cream);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.vault-why-score {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: var(--phuglee-gold, var(--phuglee-orange));
+}
+
+.vault-why-sub {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--vault-muted);
+}
+
+.vault-why-score-list {
+  list-style: none;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+}
+
+.vault-why-score-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--phuglee-cream);
+}
+
+.vault-why-pts {
+  font-family: var(--font-mono);
+  color: var(--phuglee-orange);
+  white-space: nowrap;
+}
+
+.vault-why-distress,
+.vault-why-cv,
+.vault-why-provenance {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--vault-muted);
+}
+
+.vault-why-cv {
+  color: var(--phuglee-cream);
+}
+
 .vault-dossier-mail {
   margin: 0.15rem 0 0;
   font-size: 0.76rem;
@@ -1532,6 +1674,18 @@
   .vault-hero {
     flex-direction: column;
     align-items: flex-start;
+    gap: 0.85rem;
+  }
+
+  .vault-hero .vault-kpis {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem 0.75rem;
+  }
+
+  .vault-kpi {
+    min-width: 0;
   }
 
   .vault-type-tabs {
