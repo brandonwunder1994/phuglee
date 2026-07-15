@@ -43,7 +43,7 @@ async function main() {
   ok('html_imagery_tag', !!scriptMap.imagery, scriptMap.imagery || 'missing');
   ok('html_session_tag', !!scriptMap.session, scriptMap.session || 'missing');
   ok('html_state_tag', !!scriptMap.state, scriptMap.state || 'missing');
-  ok('html_cachebust_review_queues', /review-queues/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
+  ok('html_cachebust_review_queues', /review-queues3/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
 
   async function assertServed(label, src, needles) {
     if (!src) {
@@ -59,7 +59,7 @@ async function main() {
 
   await assertServed('imagery.js', scriptMap.imagery, ['discardStaleReviewProgress', 'forceRebuild']);
   await assertServed('session.js', scriptMap.session, ['isReviewQueueStaleVsPending', 'clearAllReviewProgressStashes']);
-  await assertServed('state.js', scriptMap.state, ['_tierCountsFromServer?.all', 'Do NOT early-return', 're-inject a tiny']);
+  await assertServed('state.js', scriptMap.state, ['_tierCountsFromServer?.all', 'ensureSessionResultsLoaded incomplete', 're-inject a tiny', '_sessionResultsLoadPromise']);
 
   const sum = await (await fetch(`${BASE}/analyzer/api/session-summary`, { headers: hdr, cache: 'no-store' })).json();
   ok('pending_unscanned_zero', Number(sum.pendingUnscanned) === 0, `pending=${sum.pendingUnscanned}`);

@@ -1145,7 +1145,20 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   // Review needs the FULL result set — never build queues from a partial hydrate.
   if (typeof ensureSessionResultsLoaded === 'function') {
     try {
-      await ensureSessionResultsLoaded();
+      const loadedOk = await ensureSessionResultsLoaded();
+      const target = Math.max(
+        Number(sessionLoadState?.total) || 0,
+        Number(sessionLoadState?.serverCanonical) || 0,
+        Number(state._tierCountsFromServer?.all) || 0,
+        Number(state.processed) || 0
+      );
+      if (!loadedOk || (target > 0 && state.results.length < Math.floor(target * 0.95))) {
+        alert(
+          `Still loading scanned leads (${state.results.length.toLocaleString()} of ${target.toLocaleString()}). ` +
+          `Wait for the load to finish, then open Review Leads again — otherwise the queue looks empty.`
+        );
+        return;
+      }
     } catch (e) {
       console.warn('[review] ensureSessionResultsLoaded failed', e);
     }

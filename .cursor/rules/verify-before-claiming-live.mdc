@@ -20,18 +20,19 @@ Deploy SUCCESS, commit pushed, health 200, or “code looks right” is **not** 
 
 ## What counts as proof
 
-For Analyze / review / scan / bucket issues on production, run and pass:
+For Analyze / review / scan / bucket issues on production, **both** must pass:
 
 ```powershell
 node modules/property-analyzer/scripts/verify-prod-review-ready.js
+node modules/property-analyzer/scripts/verify-prod-review-ui.js
 ```
 
 Or an equivalent check that proves **all** of:
 
 1. Prod HTML references the **new** cache-busted JS (`?v=…` you just shipped)
-2. The **served** JS file bodies contain the new symbols/strings (not just HTML tags)
+2. The **served** JS file bodies contain the new symbols/strings (not just HTML tags) — fetch `/analyzer/js/…` paths, not `/js/…`
 3. Session data still has the expected results / pending counts (no wipe)
-4. The specific user-facing failure mode is gone (e.g. no tiny review stashes; pending manual queues are large)
+4. A **real browser** opened Distressed review and `reviewQueue.length >= 100` (not 0–2, not “all checked” on a partial hydrate)
 
 For local UI edits, still run `scripts\verify-live.ps1` and `scripts\verify-mobile.ps1` as required by AGENTS.md — those are additional, not substitutes for prod proof when you claimed prod.
 

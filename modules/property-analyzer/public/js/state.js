@@ -1610,14 +1610,24 @@ R.getSessionBackgroundPageSize = function getSessionBackgroundPageSize() {
   return Math.min(500, Number(SESSION_PAGE_SIZE) || 500);
 };
 
+/** In-flight hydration promise — waiters must await this, not return early. */
+R._sessionResultsLoadPromise = null;
+
 R.loadSessionResultsBackground = async function loadSessionResultsBackground(expectedTotal, opts = {}) {
-  if (sessionLoadState.loading) return;
   const target = Math.max(
     Number(expectedTotal) || 0,
     sessionLoadState.serverCanonical || 0,
     sessionLoadState.total || 0
   );
-  if (sessionLoadState.complete && target > 0 && state.results.length >= target) return;
+  if (sessionLoadState.complete && target > 0 && state.results.length >= target) {
+    return true;
+  }
+
+  // Another hydrate is running — join it instead of no-op returning (that left Review
+  // Leads building queues from ~3k of 16k rows and falsely saying "all checked").
+  if (sessionLoadState.loading && R._sessionResultsLoadPromise) {
+    return R._sessionResultsLoadPromise;
+  }
 
   // Fast first paint: wait until browser is idle before sucking down remaining 10k rows
   if (opts.deferIdle && !opts.force && target > (state.results?.length || 0) + 50) {
@@ -1631,104 +1641,107 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
     } else {
       setTimeout(run, 600);
     }
-    return;
+    return false;
   }
 
   const generation = sessionLoadGeneration;
   sessionLoadState.loading = true;
   sessionLoadState.total = target || sessionLoadState.total;
-  let offset = state.results.length;
-  let emptyStreak = 0;
-  const pageSize = getSessionBackgroundPageSize();
-  let pagesSinceUi = 0;
-  while (offset < sessionLoadState.total) {
-    if (generation !== sessionLoadGeneration) break;
-    // Pause hydration while a live scan is running so Street View/Gemini stay snappy
-    if (state.running) {
-      sessionLoadState.loading = false;
-      setTimeout(() => {
-        if (!sessionLoadState.complete && !sessionLoadState.loading && !state.running) {
-          loadSessionResultsBackground(sessionLoadState.total, { force: true });
+
+  R._sessionResultsLoadPromise = (async () => {
+    try {
+      let offset = state.results.length;
+      let emptyStreak = 0;
+      const pageSize = getSessionBackgroundPageSize();
+      let pagesSinceUi = 0;
+      while (offset < sessionLoadState.total) {
+        if (generation !== sessionLoadGeneration) break;
+        if (state.running) {
+          setTimeout(() => {
+            if (!sessionLoadState.complete && !sessionLoadState.loading && !state.running) {
+              loadSessionResultsBackground(sessionLoadState.total, { force: true });
+            }
+          }, 4000);
+          return false;
         }
-      }, 4000);
-      return;
-    }
-    const page = await fetchSessionResultsPage(offset, pageSize);
-    if (!page?.results?.length) {
-      emptyStreak++;
-      if (emptyStreak >= 3) break;
-      await yieldToMain();
-      continue;
-    }
-    emptyStreak = 0;
-    // Link disk-cached photos onto newly hydrated results (index already in memory)
-    if (typeof resolveImageryForResult === 'function' && typeof imageryIndexMapCache !== 'undefined' && imageryIndexMapCache) {
-      for (const r of page.results) {
-        try { resolveImageryForResult(r); } catch (_) {}
+        const page = await fetchSessionResultsPage(offset, pageSize);
+        if (!page?.results?.length) {
+          emptyStreak++;
+          if (emptyStreak >= 3) break;
+          await yieldToMain();
+          continue;
+        }
+        emptyStreak = 0;
+        if (typeof resolveImageryForResult === 'function' && typeof imageryIndexMapCache !== 'undefined' && imageryIndexMapCache) {
+          for (const r of page.results) {
+            try { resolveImageryForResult(r); } catch (_) {}
+          }
+        }
+        state.results.push(...page.results);
+        offset += page.results.length;
+        sessionLoadState.loaded = state.results.length;
+        pagesSinceUi += 1;
+        invalidateFilteredResultsCache();
+        if (pagesSinceUi >= 4 || !page.hasMore || offset >= sessionLoadState.total) {
+          pagesSinceUi = 0;
+          updateResultCountLabel();
+          updateScannedCountUi?.();
+          updateSessionSaveStatus();
+          if (cardsVirtualWindow) {
+            const el = cardsVirtualWindow.querySelector('.session-load-indicator');
+            if (el) {
+              el.textContent =
+                `Loading results… ${sessionLoadState.loaded.toLocaleString()} / ${sessionLoadState.total.toLocaleString()}`;
+            }
+          }
+        }
+        const yieldMs = target > 3000 ? 24 : 0;
+        if (yieldMs) await new Promise((r) => setTimeout(r, yieldMs));
+        else await yieldToMain();
+        if (!page.hasMore) break;
       }
-    }
-    state.results.push(...page.results);
-    offset += page.results.length;
-    sessionLoadState.loaded = state.results.length;
-    pagesSinceUi += 1;
-    // Cheap bookkeeping every page; expensive UI only every few pages
-    invalidateFilteredResultsCache();
-    if (pagesSinceUi >= 4 || !page.hasMore || offset >= sessionLoadState.total) {
-      pagesSinceUi = 0;
-      updateResultCountLabel();
-      updateScannedCountUi?.();
+      sessionLoadState.complete = sessionLoadState.total > 0
+        ? state.results.length >= sessionLoadState.total
+        : state.results.length > 0;
+      if (!sessionLoadState.complete && sessionLoadState.total > state.results.length) {
+        console.warn(`[Session] Background load incomplete: ${state.results.length} / ${sessionLoadState.total}`);
+        setTimeout(() => {
+          if (!sessionLoadState.complete && !sessionLoadState.loading) {
+            loadSessionResultsBackground(sessionLoadState.total, { force: true });
+          }
+        }, 3000);
+      } else {
+        sessionDirty = false;
+        if ((state.results?.length || 0) < 1500) {
+          flushPendingServerSave('session-ready');
+        }
+      }
       updateSessionSaveStatus();
-      if (cardsVirtualWindow) {
-        const el = cardsVirtualWindow.querySelector('.session-load-indicator');
-        if (el) {
-          el.textContent =
-            `Loading results… ${sessionLoadState.loaded.toLocaleString()} / ${sessionLoadState.total.toLocaleString()}`;
-        }
+      if ((state.results?.length || 0) >= (sessionLoadState.total || 0) && sessionLoadState.total > 0) {
+        invalidateTierCountsCache({ clearServer: true });
+        updateSummaryStats({ instant: true });
+        updateFilterLabels?.();
+        updateLocationHubUi?.();
       }
-    }
-    // Yield longer on large sessions so click handlers (Start Scan) stay responsive
-    const yieldMs = target > 3000 ? 24 : 0;
-    if (yieldMs) await new Promise((r) => setTimeout(r, yieldMs));
-    else await yieldToMain();
-    if (!page.hasMore) break;
-  }
-  sessionLoadState.loading = false;
-  sessionLoadState.complete = sessionLoadState.total > 0
-    ? state.results.length >= sessionLoadState.total
-    : state.results.length > 0;
-  if (!sessionLoadState.complete && sessionLoadState.total > state.results.length) {
-    console.warn(`[Session] Background load incomplete: ${state.results.length} / ${sessionLoadState.total}`);
-    setTimeout(() => {
-      if (!sessionLoadState.complete && !sessionLoadState.loading) {
-        loadSessionResultsBackground(sessionLoadState.total, { force: true });
+      if (isAnalyzeLayout() && resultsUiRendered) {
+        updateResultCountLabel();
+        updateSummaryStats({ light: true });
+      } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {
+        renderVirtualCards();
+      } else if (!isAnalyzeLayout()) {
+        renderResults({ force: true });
       }
-    }, 3000);
-  } else {
-    sessionDirty = false;
-    // Large sessions: server is authoritative — avoid multi-10MB IDB rewrite on every restore
-    if ((state.results?.length || 0) < 1500) {
-      flushPendingServerSave('session-ready');
+      cardsVirtualWindow?.querySelector('.session-load-indicator')?.remove();
+      updateExportButtons();
+      return sessionLoadState.complete;
+    } finally {
+      sessionLoadState.loading = false;
+      R._sessionResultsLoadPromise = null;
     }
-  }
-  updateSessionSaveStatus();
-  // Full hydration done — recompute once from memory, then drop server snapshot
-  if ((state.results?.length || 0) >= (sessionLoadState.total || 0) && sessionLoadState.total > 0) {
-    invalidateTierCountsCache({ clearServer: true });
-    updateSummaryStats({ instant: true });
-    updateFilterLabels?.();
-    updateLocationHubUi?.();
-  }
-  if (isAnalyzeLayout() && resultsUiRendered) {
-    updateResultCountLabel();
-    updateSummaryStats({ light: true });
-  } else if (state.viewMode === 'cards' && shouldUseVirtualScroll()) {
-    renderVirtualCards();
-  } else if (!isAnalyzeLayout()) {
-    renderResults({ force: true });
-  }
-  cardsVirtualWindow?.querySelector('.session-load-indicator')?.remove();
-  updateExportButtons();
-}
+  })();
+
+  return R._sessionResultsLoadPromise;
+};
 
 R.applySessionSummary = async function applySessionSummary(summary) {
   initVirtualScroll();
@@ -1965,22 +1978,46 @@ R.ensureSessionResultsLoaded = async function ensureSessionResultsLoaded() {
   );
   if (!USE_PROXY) return true;
 
-  // Never treat a partial client cache as "done" when the server still has more.
   if (target > 0 && state.results.length < target) {
     sessionLoadState.complete = false;
     sessionLoadState.total = Math.max(Number(sessionLoadState.total) || 0, target);
     sessionLoadState.serverCanonical = Math.max(Number(sessionLoadState.serverCanonical) || 0, target);
   }
 
-  if (sessionLoadState?.complete && (!target || state.results.length >= target)) return true;
-  // Do NOT early-return on (!target && results.length) — that left Review Leads empty
-  // after a partial hydrate while ~6k leads still awaited Keep/Change on the server.
+  if (target > 0 && state.results.length >= target) {
+    sessionLoadState.complete = true;
+    return true;
+  }
   if (!target && !state.results.length) return true;
 
-  setSessionRestoreBanner?.('Loading remaining results…');
-  await loadSessionResultsBackground(target || sessionLoadState?.total || state.results.length, { force: true });
+  setSessionRestoreBanner?.('Loading remaining results for review…');
+  const deadline = Date.now() + 180_000;
+  while (Date.now() < deadline) {
+    const need = Math.max(target, Number(sessionLoadState.total) || 0);
+    if (need > 0 && state.results.length >= need) {
+      sessionLoadState.complete = true;
+      break;
+    }
+    await loadSessionResultsBackground(need || target || state.results.length, { force: true });
+    if (need > 0 && state.results.length >= need) {
+      sessionLoadState.complete = true;
+      break;
+    }
+    // Brief pause then retry if a concurrent loader stalled mid-flight
+    await new Promise((r) => setTimeout(r, 150));
+    if (!sessionLoadState.loading && need > 0 && state.results.length < need) {
+      sessionLoadState.complete = false;
+      continue;
+    }
+    if (!sessionLoadState.loading) break;
+  }
   setSessionRestoreBanner?.('');
-  return !!(sessionLoadState?.complete || (target > 0 && state.results.length >= target) || state.results.length);
+  const loaded = state.results.length;
+  const ok = !target || loaded >= target;
+  if (!ok) {
+    console.warn(`[Session] ensureSessionResultsLoaded incomplete: ${loaded} / ${target}`);
+  }
+  return ok;
 };
 
 R.sessionDataRank = function sessionDataRank(data) {
