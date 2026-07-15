@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/bridge.css?v=80">
+  <link rel="stylesheet" href="/css/bridge.css?v=81">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -481,6 +481,7 @@
         <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
           <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv" title="One CSV: Street Address, City, State, Postal Code">Export all (CSV)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-danger" id="bridge-download-full-xlsx" title="Full raw columns: tags, types, notes, confidence ? not the 4-column enrichment sheet">Download FULL EXCEL</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-xlsx" title="One workbook: sheets of 5,000 leads each">Export batches (5k XLSX)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-csv" title="ZIP of CSV files, 5,000 leads each">Export batches (5k CSV zip)</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-delete-selected-lists" hidden>Delete selected</button>
@@ -570,6 +571,6 @@
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=84" defer></script>
+  <script src="/js/bridge.js?v=85" defer></script>
 </body>
 </html>

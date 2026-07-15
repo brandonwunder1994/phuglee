@@ -28,9 +28,11 @@ test('LIST-01: Save list primary CTA present in HTML', () => {
 
 test('LIST-01: Download all bulk path present', () => {
   assert.match(html, /id="bridge-download-all-csv"/);
-  assert.match(html, /Download all \(CSV\)/);
+  assert.match(html, /Export all \(CSV\)|Download all \(CSV\)/);
   assert.match(html, /id="bridge-download-all-xlsx"/);
   assert.match(html, /Download all \(XLSX\)/);
+  assert.match(html, /id="bridge-download-full-xlsx"/);
+  assert.match(html, /Download FULL EXCEL/);
 });
 
 test('LIST-01: saved lists total records footer present', () => {

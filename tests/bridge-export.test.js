@@ -3,9 +3,13 @@ const assert = require('node:assert/strict');
 const {
   rowsToCsv,
   rowsToXlsxBuffer,
+  rowsToFullCsv,
+  rowsToFullXlsxBuffer,
   parseResponseReceivedAt,
   ADDRESS_EXPORT_HEADERS,
-  toAddressExportRow
+  FULL_BULK_EXPORT_HEADERS,
+  toAddressExportRow,
+  toFullExportRow
 } = require('../lib/bridge-export');
 
 const sampleRow = {
@@ -74,6 +78,54 @@ test('rowsToCsv falls back to list city/state when row lacks them', () => {
 
 test('rowsToXlsxBuffer returns non-empty buffer', () => {
   const buffer = rowsToXlsxBuffer([sampleRow]);
+  assert.ok(Buffer.isBuffer(buffer));
+  assert.ok(buffer.length > 0);
+});
+
+test('FULL_BULK_EXPORT_HEADERS include list provenance + normalized columns', () => {
+  assert.ok(FULL_BULK_EXPORT_HEADERS.includes('List Name'));
+  assert.ok(FULL_BULK_EXPORT_HEADERS.includes('Street Address'));
+  assert.ok(FULL_BULK_EXPORT_HEADERS.includes('Distressed Signal Tag'));
+  assert.ok(FULL_BULK_EXPORT_HEADERS.includes('Violation/Issue Type'));
+  assert.ok(FULL_BULK_EXPORT_HEADERS.includes('Description/Notes'));
+  assert.ok(!FULL_BULK_EXPORT_HEADERS.includes('Postal Code'));
+});
+
+test('toFullExportRow keeps tags and types intact', () => {
+  const out = toFullExportRow({
+    ...sampleRow,
+    savedListName: 'Marana CV',
+    savedListCity: 'Marana',
+    savedListState: 'Arizona'
+  });
+  assert.equal(out['List Name'], 'Marana CV');
+  assert.equal(out['Street Address'], '123 Main St');
+  assert.equal(out['Distressed Signal Tag'], 'Strong Distressed Signal');
+  assert.equal(out['Violation/Issue Type'], 'Overgrown weeds');
+  assert.equal(out['Description/Notes'], 'Front yard');
+  assert.equal(out.Zip, '85704');
+});
+
+test('rowsToFullCsv keeps raw Filter columns (not address-only)', () => {
+  const csv = rowsToFullCsv([
+    {
+      ...sampleRow,
+      savedListName: 'Marana CV',
+      savedListCity: 'Marana',
+      savedListState: 'Arizona'
+    }
+  ]);
+  const header = csv.split('\n')[0];
+  assert.match(header, /^List Name,List City,List State,Street Address/);
+  assert.match(csv, /Strong Distressed Signal/);
+  assert.match(csv, /Overgrown weeds/);
+  assert.match(csv, /Front yard/);
+  assert.match(csv, /Marana CV/);
+  assert.doesNotMatch(header, /Postal Code/);
+});
+
+test('rowsToFullXlsxBuffer returns non-empty buffer', () => {
+  const buffer = rowsToFullXlsxBuffer([sampleRow]);
   assert.ok(Buffer.isBuffer(buffer));
   assert.ok(buffer.length > 0);
 });

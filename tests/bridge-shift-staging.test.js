@@ -202,7 +202,10 @@ test('SHIFT-02: renderSavedLists still emits rename/download/delete actions', ()
 test('SHIFT-02: download-all + clear-all toolbar IDs preserved', () => {
   assert.match(html, /id=["']bridge-download-all-csv["']/);
   assert.match(html, /id=["']bridge-download-all-xlsx["']/);
+  assert.match(html, /id=["']bridge-download-full-xlsx["']/);
   assert.match(html, /id=["']bridge-clear-all-lists["']/);
+  assert.match(js, /download-all-full/);
+  assert.match(js, /downloadAllSavedListsFull/);
 });
 
 test('SHIFT-02: batched 5k export toolbar + client route', () => {

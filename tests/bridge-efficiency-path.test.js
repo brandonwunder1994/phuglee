@@ -47,6 +47,8 @@ test('EFF-01: bulk download-all anchors present in HTML', () => {
   assert.match(html, /Export all \(CSV\)|Download all \(CSV\)/);
   assert.match(html, /id="bridge-download-all-xlsx"/);
   assert.match(html, /Download all \(XLSX\)/);
+  assert.match(html, /id="bridge-download-full-xlsx"/);
+  assert.match(html, /Download FULL EXCEL/);
 });
 
 test('EFF-01: Save list primary CTA carry-forward in HTML', () => {

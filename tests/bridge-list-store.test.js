@@ -29,6 +29,7 @@ const {
   clearAllLists,
   buildDownload,
   buildDownloadAll,
+  buildDownloadAllFull,
   buildDownloadAllBatched,
   chunkRowsForExport,
   EXPORT_BATCH_SIZE,
@@ -265,6 +266,53 @@ test('buildDownloadAll combines rows with list name columns', () => {
   assert.doesNotMatch(text, /List Name/);
   assert.doesNotMatch(text, /City A List/);
   assert.doesNotMatch(text, /Distressed Signal/);
+});
+
+test('buildDownloadAllFull keeps all raw Filter columns', () => {
+  const user = 'full-export-user';
+  saveList({
+    name: 'Full City List',
+    rows: [{
+      streetAddress: '99 Full St',
+      city: 'Delta',
+      state: 'TX',
+      zip: '75002',
+      violationIssueType: 'Junk vehicles',
+      descriptionNotes: 'Side yard',
+      distressedSignalTag: 'Strong Distressed Signal',
+      confidenceLevel: 'high',
+      sourceFile: 'delta.csv',
+      uploadType: 'code_violation',
+      processedAt: '2026-07-14T12:00:00.000Z'
+    }],
+    city: 'Delta',
+    state: 'TX',
+    username: user
+  });
+  const dl = buildDownloadAllFull('xlsx', { username: user });
+  assert.equal(dl.listCount, 1);
+  assert.equal(dl.recordCount, 1);
+  assert.match(dl.filename, /full/i);
+  assert.match(dl.contentType, /spreadsheetml/i);
+  assert.ok(Buffer.isBuffer(dl.buffer));
+  assert.ok(dl.buffer.length > 0);
+
+  const csv = buildDownloadAllFull('csv', { username: user });
+  const text = csv.buffer.toString('utf8');
+  const header = text.split('\n')[0];
+  assert.match(header, /^List Name,List City,List State,Street Address/);
+  assert.match(text, /Full City List/);
+  assert.match(text, /99 Full St/);
+  assert.match(text, /Junk vehicles/);
+  assert.match(text, /Strong Distressed Signal/);
+  assert.match(text, /Side yard/);
+  assert.doesNotMatch(header, /Postal Code/);
+
+  // Full export must not flip Ready → Downloaded
+  const lists = listSummaries({ username: user }).lists;
+  const row = lists.find((l) => l.name === 'Full City List');
+  assert.ok(row);
+  assert.equal(row.status, 'ready');
 });
 
 test('chunkRowsForExport splits 26000 into six 5k batches (last 1000)', () => {

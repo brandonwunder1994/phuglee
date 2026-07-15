@@ -101,6 +101,7 @@
   const listsToolbar = document.getElementById('bridge-lists-toolbar');
   const downloadAllCsvBtn = document.getElementById('bridge-download-all-csv');
   const downloadAllXlsxBtn = document.getElementById('bridge-download-all-xlsx');
+  const downloadFullXlsxBtn = document.getElementById('bridge-download-full-xlsx');
   const downloadBatchedXlsxBtn = document.getElementById('bridge-download-batched-xlsx');
   const downloadBatchedCsvBtn = document.getElementById('bridge-download-batched-csv');
   const clearAllListsBtn = document.getElementById('bridge-clear-all-lists');
@@ -3633,6 +3634,17 @@
         : 'Download all (XLSX)';
       downloadAllXlsxBtn.disabled = n === 0;
     }
+    if (downloadFullXlsxBtn) {
+      const sel = inventorySelectedIds.size;
+      if (sel > 0) {
+        downloadFullXlsxBtn.textContent = `Download FULL EXCEL (${sel})`;
+      } else if (filtered) {
+        downloadFullXlsxBtn.textContent = 'Download FULL EXCEL (filtered)';
+      } else {
+        downloadFullXlsxBtn.textContent = 'Download FULL EXCEL';
+      }
+      downloadFullXlsxBtn.disabled = n === 0;
+    }
     if (downloadBatchedXlsxBtn) {
       downloadBatchedXlsxBtn.textContent = filtered
         ? 'Export filtered batches (5k)'
@@ -4294,6 +4306,80 @@
       await loadSavedLists();
     } catch (err) {
       showError(err.message || 'Could not download lists.');
+    }
+  }
+
+  /**
+   * Bulk FULL Excel — every normalized column (tags, types, notes, confidence…).
+   * Not the 4-column enrichment sheet. Uses checkbox selection when any are
+   * checked; otherwise all visible / filtered scan-history lists.
+   */
+  async function downloadAllSavedListsFull() {
+    const visible = getVisibleSavedLists();
+    if (!visible.length) {
+      showError(
+        inventoryTypeFilter
+          ? 'No lists match the current filter.'
+          : 'No saved lists to download yet.'
+      );
+      return;
+    }
+    let targets = visible;
+    if (inventorySelectedIds.size > 0) {
+      targets = visible.filter((l) => inventorySelectedIds.has(String(l.id)));
+      if (!targets.length) {
+        showError('No selected lists in the current view. Check rows or clear selection.');
+        return;
+      }
+    }
+    const totalRec = targets.reduce((sum, row) => sum + (Number(row.recordCount) || 0), 0);
+    if (totalRec > 5000) {
+      const ok = window.confirm(
+        `Download FULL EXCEL for ${totalRec.toLocaleString()} leads?\n\n` +
+        `This keeps all raw Filter columns (tags, types, notes) — not the 4-column enrichment sheet.\n\n` +
+        `Continue?`
+      );
+      if (!ok) return;
+    }
+    const ids = targets.map((l) => l.id).filter(Boolean);
+    const qs = new URLSearchParams({ format: 'xlsx' });
+    if (inventorySelectedIds.size > 0 || inventoryTypeFilter || ids.length < savedLists.length) {
+      qs.set('ids', ids.join(','));
+    }
+    const btn = downloadFullXlsxBtn;
+    const prevLabel = btn ? btn.textContent : '';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Building FULL EXCEL…';
+    }
+    try {
+      const res = await fetch(`/api/bridge/lists/download-all-full?${qs.toString()}`, {
+        cache: 'no-store',
+        headers: bridgeHeaders()
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `FULL download failed (${res.status})`);
+      }
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="?([^"]+)"?/i);
+      const filename = match?.[1] || 'filter-lists-full.xlsx';
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = objectUrl;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+      await loadSavedLists();
+    } catch (err) {
+      showError(err.message || 'Could not download FULL EXCEL.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prevLabel || 'Download FULL EXCEL';
+      }
+      syncInventoryToolbarLabels();
     }
   }
 
@@ -5719,6 +5805,9 @@
   });
   downloadAllXlsxBtn?.addEventListener('click', () => {
     downloadAllSavedLists('xlsx').catch((e) => showError(e.message));
+  });
+  downloadFullXlsxBtn?.addEventListener('click', () => {
+    downloadAllSavedListsFull().catch((e) => showError(e.message));
   });
   downloadBatchedXlsxBtn?.addEventListener('click', () => {
     downloadAllSavedListsBatched('xlsx').catch((e) => showError(e.message));

@@ -2649,6 +2649,34 @@ body {
   margin-top: 0.75rem;
 }
 
+/* FULL raw Excel — solid red so it stands apart from enrichment downloads */
+#bridge-download-full-xlsx.phuglee-btn-danger {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.14) 0%, transparent 42%),
+    #c62828;
+  border-color: #b71c1c;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.32),
+    0 0 18px rgba(198, 40, 40, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+#bridge-download-full-xlsx.phuglee-btn-danger:hover:not(:disabled) {
+  color: #fff;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.18) 0%, transparent 42%),
+    #d32f2f;
+  border-color: #c62828;
+}
+
+#bridge-download-full-xlsx.phuglee-btn-danger:disabled {
+  opacity: 0.45;
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .bridge-lists-pager {
   display: flex;
   flex-wrap: wrap;
