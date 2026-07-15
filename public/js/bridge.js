@@ -44,6 +44,12 @@
 
   const stateSelect = document.getElementById('bridge-state');
   const citySelect = document.getElementById('bridge-city');
+  function liveStateSelect() {
+    return document.getElementById('bridge-state') || stateSelect;
+  }
+  function liveCitySelect() {
+    return document.getElementById('bridge-city') || citySelect;
+  }
   const cityActions = document.getElementById('bridge-city-actions');
   const registryBanner = document.getElementById('bridge-registry-banner');
   const clearCityFormatBtn = document.getElementById('bridge-clear-city-format');
@@ -89,6 +95,7 @@
   const listsEmpty = document.getElementById('bridge-lists-empty');
   const listsWrap = document.getElementById('bridge-lists-wrap');
   const listsBody = document.getElementById('bridge-lists-body');
+  const listsCards = document.getElementById('bridge-lists-cards');
   const listsToolbar = document.getElementById('bridge-lists-toolbar');
   const downloadAllCsvBtn = document.getElementById('bridge-download-all-csv');
   const downloadAllXlsxBtn = document.getElementById('bridge-download-all-xlsx');
@@ -1596,7 +1603,12 @@
     const headers = bridgeHeaders(options && options.headers);
     let res;
     try {
-      res = await fetch(url, { cache: 'no-store', ...options, headers });
+      res = await fetch(url, {
+        cache: 'no-store',
+        credentials: 'same-origin',
+        ...options,
+        headers
+      });
     } catch (netErr) {
       if (
         (netErr && netErr.name === 'AbortError') ||
@@ -1992,16 +2004,24 @@
     const data = await fetchJson('/api/bridge/states');
     noteRegistryFallback(data);
     states = data.states || [];
-    stateSelect.innerHTML = '<option value="">Select a state…</option>';
+    // Re-query in case shell/nav remounted the select after initial capture.
+    const select = liveStateSelect();
+    const citySel = liveCitySelect();
+    if (!select) {
+      throw new Error('State dropdown missing from page');
+    }
+    select.innerHTML = '<option value="">Select a state…</option>';
     states.forEach((state) => {
       const opt = document.createElement('option');
       opt.value = state.code;
       opt.textContent = `${state.label} (${state.cityCount})`;
-      stateSelect.appendChild(opt);
+      select.appendChild(opt);
     });
-    stateSelect.disabled = false;
-    citySelect.innerHTML = '<option value="">Select a state first</option>';
-    citySelect.disabled = true;
+    select.disabled = false;
+    if (citySel) {
+      citySel.innerHTML = '<option value="">Select a state first</option>';
+      citySel.disabled = true;
+    }
     // Fire-and-forget city index for typeahead (does not block state dropdown)
     loadCitySearchIndex().catch(() => { /* non-fatal */ });
   }
@@ -2020,29 +2040,37 @@
   async function onStateChange() {
     resetDownstream('state');
     showError('');
-    const state = stateSelect.value;
+    const stateSel = liveStateSelect();
+    const citySel = liveCitySelect();
+    const state = stateSel ? stateSel.value : '';
     if (!state) {
-      citySelect.innerHTML = '<option value="">Select a state first</option>';
-      citySelect.disabled = true;
+      if (citySel) {
+        citySel.innerHTML = '<option value="">Select a state first</option>';
+        citySel.disabled = true;
+      }
       return;
     }
 
     lastFailedAction = 'stateChange';
-    citySelect.disabled = true;
-    citySelect.innerHTML = '<option value="">Loading cities…</option>';
+    if (citySel) {
+      citySel.disabled = true;
+      citySel.innerHTML = '<option value="">Loading cities…</option>';
+    }
     const data = await fetchJson(`/api/bridge/cities?state=${encodeURIComponent(state)}`);
     noteRegistryFallback(data);
     cities = data.cities || [];
-    citySelect.innerHTML = cities.length
-      ? '<option value="">Select a city…</option>'
-      : '<option value="">No profiles in this state</option>';
-    cities.forEach((city) => {
-      const opt = document.createElement('option');
-      opt.value = city.id;
-      opt.textContent = city.city;
-      citySelect.appendChild(opt);
-    });
-    citySelect.disabled = cities.length === 0;
+    if (citySel) {
+      citySel.innerHTML = cities.length
+        ? '<option value="">Select a city…</option>'
+        : '<option value="">No profiles in this state</option>';
+      cities.forEach((city) => {
+        const opt = document.createElement('option');
+        opt.value = city.id;
+        opt.textContent = city.city;
+        citySel.appendChild(opt);
+      });
+      citySel.disabled = cities.length === 0;
+    }
   }
 
   /**
@@ -3738,6 +3766,10 @@
       setHidden(listsWrap, true);
       setHidden(listsToolbar, true);
       listsBody.innerHTML = '';
+      if (listsCards) {
+        listsCards.innerHTML = '';
+        setHidden(listsCards, true);
+      }
       const emptyPager = document.getElementById('bridge-lists-pager');
       if (emptyPager) emptyPager.remove();
       if (listsTotalEl) {
@@ -3803,6 +3835,38 @@
       );
     }).join('');
 
+    if (listsCards) {
+      listsCards.innerHTML = pageLists.map((list) => {
+        const cityLabel = [list.city, list.state].filter(Boolean).join(', ') || '—';
+        const kind = listUploadTypeBadge(list.uploadType);
+        const id = String(list.id || '');
+        const checked = inventorySelectedIds.has(id) ? ' checked' : '';
+        const rec = Number(list.recordCount || 0).toLocaleString();
+        return (
+          `<article class="bridge-list-card" data-list-id="${esc(list.id)}" data-upload-type="${esc(list.uploadType || kind.kind)}" data-list-kind="${esc(kind.kind)}">` +
+          `<div class="bridge-list-card-top">` +
+          `<label class="bridge-list-card-check">` +
+          `<input type="checkbox" class="bridge-list-select" data-action="select" data-list-id="${esc(id)}" aria-label="Select list"${checked} />` +
+          `</label>` +
+          `<button type="button" class="bridge-list-type bridge-list-type--${esc(kind.kind)} bridge-list-type-filter-btn" data-inventory-filter="${esc(kind.kind)}" title="Filter to ${esc(kind.title)}">` +
+          `<span class="bridge-list-type-emoji" aria-hidden="true">${kind.emoji}</span>` +
+          `<span class="bridge-list-type-text">${esc(kind.label)}</span>` +
+          `</button>` +
+          `<span class="bridge-list-status bridge-list-status--${esc(list.status || 'ready')}">${esc(statusLabel(list.status))}</span>` +
+          `</div>` +
+          `<input type="text" class="bridge-list-name-input bridge-list-card-name" data-action="rename" value="${esc(list.name)}" maxlength="120" aria-label="List name" />` +
+          `<p class="bridge-list-card-meta">${esc(cityLabel)} · ${esc(formatListWhen(list.createdAt))} · ${rec} rec</p>` +
+          `<div class="bridge-list-card-actions bridge-list-actions">` +
+          `<button type="button" class="bridge-list-action" data-action="download" data-format="csv">CSV</button>` +
+          `<button type="button" class="bridge-list-action" data-action="download" data-format="xlsx">XLSX</button>` +
+          `<button type="button" class="bridge-list-action bridge-list-action--danger" data-action="delete">Delete</button>` +
+          `</div>` +
+          `</article>`
+        );
+      }).join('');
+      setHidden(listsCards, pageLists.length === 0);
+    }
+
     // Inventory pager (only when more than one page of lists)
     let pagerHtml = '';
     if (visible.length > LISTS_PAGE_SIZE) {
@@ -3816,8 +3880,10 @@
     }
     const existingPager = document.getElementById('bridge-lists-pager');
     if (existingPager) existingPager.remove();
-    if (pagerHtml && listsBody && listsBody.parentElement) {
-      listsBody.parentElement.insertAdjacentHTML('afterend', pagerHtml);
+    if (pagerHtml && listsWrap) {
+      const totalEl = document.getElementById('bridge-lists-total');
+      if (totalEl) totalEl.insertAdjacentHTML('beforebegin', pagerHtml);
+      else listsWrap.insertAdjacentHTML('beforeend', pagerHtml);
     }
 
     const totalRecords = visible.reduce(
@@ -3896,15 +3962,39 @@
     if (details) details.open = true;
   }
 
+  async function ensureBridgeSession() {
+    try {
+      if (window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
+        // Wait for cookie → sessionStorage so X-Phuglee-User is present for lists.
+        await window.PhugleeSession.syncSessionFromServerCookie();
+      }
+    } catch (_) {
+      /* non-fatal — fetch may still succeed via HttpOnly cookie */
+    }
+  }
+
   async function loadSavedLists() {
     try {
+      await ensureBridgeSession();
       const data = await fetchJson('/api/bridge/lists');
       savedLists = Array.isArray(data.lists) ? data.lists : [];
       renderSavedLists();
       // SHIFT-01: drop orphan queue chips; empty inventory clears session strip
       pruneShiftQueueAgainstLists(savedLists);
     } catch (err) {
-      console.warn('[Filter] Could not load saved lists:', err.message);
+      const code = err && err.code;
+      const status = err && err.status;
+      console.warn('[Filter] Could not load saved lists:', err && err.message);
+      if (code === 'AUTH_REQUIRED' || status === 401) {
+        showError('Sign in as admin to load SCAN HISTORY. Your lists are not deleted.');
+        if (window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
+          window.PhugleeSession.syncSessionFromServerCookie().then((data) => {
+            if (data && data.username) {
+              loadSavedLists().catch(() => {});
+            }
+          });
+        }
+      }
     }
   }
 
@@ -5658,12 +5748,12 @@
       citySelect?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } catch (_) { /* ignore */ }
   });
-  listsBody?.addEventListener('click', (event) => {
+  listsWrap?.addEventListener('click', (event) => {
     if (event.target.closest('[data-inventory-filter]')) return; // handled on panel
     const btn = event.target.closest('[data-action]');
     if (!btn || btn.tagName === 'INPUT') return;
     if (btn.dataset.action === 'flash-download' || btn.dataset.action === 'select') return;
-    const row = btn.closest('tr[data-list-id]');
+    const row = btn.closest('[data-list-id]');
     const listId = row?.dataset.listId;
     if (!listId) return;
     if (btn.dataset.action === 'download') {
@@ -5672,10 +5762,10 @@
       deleteSavedList(listId).catch((e) => showError(e.message));
     }
   });
-  listsBody?.addEventListener('change', (event) => {
+  listsWrap?.addEventListener('change', (event) => {
     const selectBox = event.target.closest('input.bridge-list-select[data-action="select"]');
     if (selectBox) {
-      const id = selectBox.dataset.listId || selectBox.closest('tr[data-list-id]')?.dataset.listId;
+      const id = selectBox.dataset.listId || selectBox.closest('[data-list-id]')?.dataset.listId;
       if (id) {
         if (selectBox.checked) inventorySelectedIds.add(String(id));
         else inventorySelectedIds.delete(String(id));
@@ -5685,12 +5775,12 @@
     }
     const input = event.target.closest('input[data-action="rename"]');
     if (!input) return;
-    const row = input.closest('tr[data-list-id]');
+    const row = input.closest('[data-list-id]');
     const listId = row?.dataset.listId;
     if (!listId) return;
     renameSavedList(listId, input.value).catch((e) => showError(e.message));
   });
-  listsBody?.addEventListener('keydown', (event) => {
+  listsWrap?.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter') return;
     const input = event.target.closest('input[data-action="rename"]');
     if (!input) return;
@@ -6010,6 +6100,31 @@
     setResponseDateYmd(chip.getAttribute('data-date') || '');
   });
 
-  loadStates().catch((err) => showError(err.message || 'Could not load city profiles. Is Form Forge running?'));
-  loadSavedLists().catch((err) => showError(err.message || 'Could not load saved Filter lists. Check login and try refresh.'));
+  (async () => {
+    try {
+      window.__FILTER_BOOT__ = { startedAt: Date.now(), phase: 'session' };
+      await ensureBridgeSession();
+      window.__FILTER_BOOT__.phase = 'fetch';
+      // Do not serialize behind states — SCAN HISTORY must populate even if Forge is slow.
+      const listsPromise = loadSavedLists().catch((err) => {
+        window.__FILTER_BOOT__.listsError = (err && err.message) || String(err);
+        showError(err.message || 'Could not load saved Filter lists. Check login and try refresh.');
+      });
+      const statesPromise = loadStates().catch((err) => {
+        window.__FILTER_BOOT__.statesError = (err && err.message) || String(err);
+        showError(err.message || 'Could not load city profiles. Is Form Forge running?');
+      });
+      await listsPromise;
+      window.__FILTER_BOOT__.phase = 'lists-done';
+      window.__FILTER_BOOT__.listCount = Array.isArray(savedLists) ? savedLists.length : -1;
+      await statesPromise;
+      window.__FILTER_BOOT__.phase = 'done';
+      window.__FILTER_BOOT__.finishedAt = Date.now();
+    } catch (err) {
+      window.__FILTER_BOOT__ = window.__FILTER_BOOT__ || {};
+      window.__FILTER_BOOT__.phase = 'failed';
+      window.__FILTER_BOOT__.error = (err && err.message) || String(err);
+      console.warn('[Filter] boot load failed:', err && err.message);
+    }
+  })();
 })();
