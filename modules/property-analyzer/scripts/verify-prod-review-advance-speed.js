@@ -44,7 +44,12 @@ async function main() {
     } catch (_) {}
   });
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.waitForTimeout(4000);
+  await page.waitForFunction(
+    () => typeof window.PDA?.env?.openReviewMode === 'function'
+      && typeof window.PDA?.env?.reviewKeep === 'function',
+    { timeout: 60000 }
+  );
+  await page.waitForTimeout(1500);
 
   const report = await page.evaluate(async () => {
     const R = window.PDA?.env || {};
