@@ -76,4 +76,18 @@ describe('signnow-send helpers', () => {
     assert.equal(kindFromTemplateKey('jv'), 'jv');
     assert.equal(kindFromTemplateKey('amendment'), 'amendment');
   });
+
+  it('omits personalized subject/message from SignNow invites (plan limitation)', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-client.js'),
+      'utf8'
+    );
+    assert.match(src, /Do NOT send custom subject\/message/);
+    assert.match(src, /error 65582/);
+    // Invite payload must not include subject/message keys (plan rejects them).
+    assert.doesNotMatch(
+      src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, ''),
+      /return api\('POST', `\/document\/\$\{documentId\}\/invite`, \{[\s\S]*?subject/
+    );
+  });
 });

@@ -99,13 +99,14 @@
     });
   }
 
-  function showToast(msg) {
+  function showToast(msg, ms = 3200) {
     const el = $('uc-toast');
     if (!el) return;
     el.textContent = msg;
     el.hidden = false;
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => { el.hidden = true; }, 3200);
+    const hold = Math.max(3200, Number(ms) || 3200, String(msg || '').length > 80 ? 7000 : 3200);
+    showToast._t = setTimeout(() => { el.hidden = true; }, hold);
   }
 
   function money(n) {
@@ -2254,17 +2255,18 @@
       disposEmail: JV_PARTIES.dispos.email
     };
     try {
+      showToast('Sending JV via SignNow…', 8000);
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/send-jv`, {
         method: 'POST',
         body: JSON.stringify(body)
       });
-      showToast(data.jv?.message || 'JV sent via SignNow');
+      showToast(data.jv?.message || 'JV sent via SignNow — check Brandon + Brad email', 7000);
       await loadDeals();
       if (state.activeDealId === deal.dealId && data.deal) {
         renderProfile(data.deal, state.contact);
       }
     } catch (err) {
-      showToast(err.message || 'Send JV failed');
+      showToast(err.message || 'Send JV failed', 9000);
     }
   }
 
