@@ -1118,7 +1118,7 @@
   async function copyUploadUrl() {
     const url = uploadUrlFromDeal(state.profile);
     if (!url) {
-.showToast('No upload URL on file for this deal');
+      showToast('No upload URL on file for this deal');
       return;
     }
     try {
