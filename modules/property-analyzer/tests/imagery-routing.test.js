@@ -40,12 +40,12 @@ describe('propertyScanNeedsSatellite', () => {
 });
 
 describe('scanNeedsSatellite', () => {
-  it('returns true for clear property (always-on satellite path)', () => {
+  it('returns false for clear property (street-only bulk path)', () => {
     assert.equal(scanNeedsSatellite({
       category: 'property',
       confidence: 85,
       reason: 'Maintained ranch home.'
-    }), true);
+    }), false);
   });
 
   it('returns false for blurred category (no satellite)', () => {
@@ -59,6 +59,13 @@ describe('scanNeedsSatellite', () => {
     assert.equal(scanNeedsSatellite({
       category: 'unavailable',
       reason: 'Cannot see the home.'
+    }), true);
+  });
+
+  it('returns true for vacant_lot', () => {
+    assert.equal(scanNeedsSatellite({
+      category: 'vacant_lot',
+      reason: 'Open lot with no structure.'
     }), true);
   });
 });

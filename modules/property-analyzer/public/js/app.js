@@ -681,6 +681,12 @@ R.finalizeStreetAnalysis = async function finalizeStreetAnalysis(svPayload, svUr
   const { base64, mimeType, view } = svPayload;
   const qualityFlags = [...(view?.qualityFlags || [])];
   scanPreview(address, 'Analyzing distress from street level…', svUrl, null, null, true, workerNum);
+  updateAgentSlot(workerNum, {
+    active: true,
+    address: shortAgentAddress(address),
+    status: 'Street AI…',
+    phase: 'working'
+  });
   try {
     let analysis = await analyzeWithGemini(base64, mimeType, gKey, address, view || {});
     let satelliteResult = null;
@@ -1125,6 +1131,10 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
         : -1;
       if (priorIdx >= 0) state.results[priorIdx] = result;
       else state.results.push(result);
+      if (rk) {
+        state._scanBatchResultKeys = state._scanBatchResultKeys || new Set();
+        state._scanBatchResultKeys.add(rk);
+      }
       state.succeeded++;
       state.processed = state.results.length;
       if (state.running && state.scanBatchTotal > 0) {
@@ -1134,6 +1144,7 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
         );
       }
       pushIncrementalScanResult(result, state.processed);
+      updateLiveScanSectionUi?.();
       const tier = resultLeadTier(result);
       log(`✓ ${label} — ${leadTierLabel(tier)}`, 'success');
       onResultAdded(result);
@@ -1339,7 +1350,16 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
   if (cat === 'streetview') state.failStreetView++;
   else if (cat === 'gemini') state.failGemini++;
   const reviewResult = buildNeedsReviewResult(record, lastErr);
-  state.results.push(reviewResult);
+  const rrk = recordKey(reviewResult);
+  const priorNr = rrk
+    ? (state.results || []).findIndex((row) => recordKey(row) === rrk)
+    : -1;
+  if (priorNr >= 0) state.results[priorNr] = reviewResult;
+  else state.results.push(reviewResult);
+  if (rrk) {
+    state._scanBatchResultKeys = state._scanBatchResultKeys || new Set();
+    state._scanBatchResultKeys.add(rrk);
+  }
   state.processed = state.results.length;
   if (state.running && state.scanBatchTotal > 0) {
     state.scanBatchDone = Math.min(
@@ -1348,6 +1368,7 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
     );
   }
   pushIncrementalScanResult(reviewResult, state.processed);
+  updateLiveScanSectionUi?.();
   syncResultCounters();
   updateAgentSlot(workerNum, {
     active: false,
@@ -1655,6 +1676,7 @@ R.startScanAnalysis = async function startScanAnalysis() {
     state.scanBaselineResults = resumeCount;
     state.scanBatchTotal = pending.length;
     state.scanBatchDone = 0;
+    state._scanBatchResultKeys = new Set();
     if (typeof zeroPaintLiveScanKpis === 'function') zeroPaintLiveScanKpis();
     updateLiveScanSectionUi?.();
 

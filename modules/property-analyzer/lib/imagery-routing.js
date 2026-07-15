@@ -52,8 +52,11 @@
     const cat = normalizeCategory(analysis.category);
     if (cat === 'blurred') return false;
     if (BLUR_REASON.test(String(analysis.reason || ''))) return false;
-    return propertyScanNeedsSatellite(analysis, viewMeta)
-      || streetAnalysisNeedsSatellite(analysis, viewMeta);
+    // Bulk scan: escalate only when street is unclear / vacant / no structure.
+    // Always-on satellite for every clear property doubled Gemini load and left
+    // workers stuck on "Analyzing…" with empty live buckets.
+    if (cat === 'vacant_lot' || analysis.structureOnLot === false) return true;
+    return streetAnalysisNeedsSatellite(analysis, viewMeta);
   }
 
   function satelliteFallbackFailed(analysis, satelliteResult) {

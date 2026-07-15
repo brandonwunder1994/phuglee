@@ -134,10 +134,13 @@ R.getScanBatchTierCounts = function getScanBatchTierCounts() {
   if (!startedAt) {
     return { all: 0, distressed: 0, well_maintained: 0, vacant: 0, blurred: 0, review: 0, satellite_only: 0 };
   }
-  const batchNew = (state.results || []).filter(
-    (r) => Number(r.analyzedAt || r.savedAt || 0) >= startedAt - 60_000
-  );
-  return countTierBuckets(batchNew, batchDone);
+  const keySet = state._scanBatchResultKeys;
+  const batchNew = (state.results || []).filter((r) => {
+    const k = typeof recordKey === 'function' ? recordKey(r) : '';
+    if (keySet && keySet.size && k && keySet.has(k)) return true;
+    return Number(r.analyzedAt || r.savedAt || 0) >= startedAt - 60_000;
+  });
+  return countTierBuckets(batchNew, Math.max(batchDone, batchNew.length));
 };
 
 /** Zero-paint live scan KPI DOM before the first result arrives. */
