@@ -272,16 +272,22 @@ R.buildImageryConfirmedFallback = function buildImageryConfirmedFallback(address
   const strongPartialDistress = hasPartialScore && score >= DISTRESSED_MIN_SCORE
     && (looksVisuallyDistressed(score, inds, null, '') || inds.some(i => HIGH_INDICATORS.has(i) || MODERATE_INDICATORS.has(i)));
 
-  if (hasImagery && !strongPartialDistress) {
+  // Street View pulled — never dump into Unavailable/Needs Review just because Gemini JSON
+  // was incomplete. Default to a usable property tier; operators can still review by flag.
+  if (hasImagery) {
+    if (!hasPartialScore) score = 2;
     return attachTierRationale({
-      score: hasPartialScore ? score : 0,
-      category: 'unavailable',
-      leadTier: 'unavailable',
-      structureOnLot: null,
-      indicators: inds,
-      confidence: 40,
-      needsReview: true,
-      reason: 'Street View imagery confirmed — AI response incomplete; needs manual review.',
+      score,
+      category: 'property',
+      leadTier: computeLeadTier(score, 'property', { indicators: inds }),
+      structureOnLot: true,
+      indicators: score >= DISTRESSED_MIN_SCORE ? (inds.length ? inds : ['deferred_maintenance']) : inds,
+      // Omit low invented confidence — that auto-routed whole batches into Needs Review.
+      confidence: null,
+      needsReview: false,
+      reason: strongPartialDistress
+        ? 'Street View imagery confirmed — partial AI analysis suggests distress; parked in Distressed for review.'
+        : 'Street View imagery confirmed — defaulting to Well Maintained (AI response incomplete).',
       viewMeta: svPayload?.view || null,
       usedSatellite: false,
       skippedStreetView: !svPayload,
@@ -296,11 +302,11 @@ R.buildImageryConfirmedFallback = function buildImageryConfirmedFallback(address
     leadTier: computeLeadTier(score, 'property', { indicators: inds }),
     structureOnLot: true,
     indicators: score >= DISTRESSED_MIN_SCORE ? (inds.length ? inds : ['deferred_maintenance']) : inds,
-    confidence: 45,
-    needsReview: strongPartialDistress,
+    confidence: null,
+    needsReview: false,
     reason: strongPartialDistress
-      ? 'Street View imagery confirmed — partial AI analysis suggests distress; review recommended.'
-      : 'Street View imagery confirmed — defaulting to Well Maintained (AI response incomplete).',
+      ? 'Partial AI analysis suggests distress; parked in Distressed for review.'
+      : 'Defaulting to Well Maintained (AI response incomplete).',
     viewMeta: svPayload?.view || null,
     usedSatellite: false,
     skippedStreetView: !svPayload,
@@ -721,21 +727,33 @@ R.finalizeStreetAnalysis = async function finalizeStreetAnalysis(svPayload, svUr
           qualityFlags.push(satelliteFromCache ? 'satellite_from_cache' : (propertyScanNeedsSatellite && propertyScanNeedsSatellite(analysis, view || {}) ? 'satellite_fusion' : 'satellite_fallback'));
           analysis = reconcileSatelliteWithStreetView(analysis, satelliteResult);
         } else if (typeof satelliteFallbackFailed === 'function' && satelliteFallbackFailed(analysis, null)) {
+          // Only when Street View itself was unusable — never wipe a good street call.
           analysis.category = 'unavailable';
           analysis.leadTier = 'unavailable';
           analysis.score = 0;
           analysis.indicators = [];
           analysis.reason = `${analysis.reason || 'Street view unclear.'} Satellite also unavailable — needs review.`.trim();
           analysis = attachTierRationale(analysis);
+        } else {
+          // Street View already classified property/vacant — keep it if satellite fetch fails softly.
+          qualityFlags.push('satellite_unavailable');
+          analysis = finalizePropertyDistress(analysis);
         }
       } catch (satErr) {
         log(`Satellite fallback failed for ${address}: ${satErr.message}`, 'warn');
-        if (normalizeCategory(analysis.category) !== 'unavailable') {
+        const streetCat = normalizeCategory(analysis.category);
+        // CRITICAL: do NOT wipe a successful Street View classification into Needs Review
+        // when always-on satellite throws (rate limit / proxy blip). That dumped whole batches
+        // into Needs Review without a real look.
+        if (streetCat === 'unavailable' || streetCat === 'blurred') {
           analysis.category = 'unavailable';
           analysis.leadTier = 'unavailable';
           analysis.score = 0;
           analysis.reason = `${analysis.reason || 'Street view unclear.'} Satellite fallback failed — needs review.`.trim();
           analysis = attachTierRationale(analysis);
+        } else {
+          qualityFlags.push('satellite_failed');
+          analysis = finalizePropertyDistress(analysis);
         }
       }
     } else {
@@ -826,6 +844,15 @@ R.isGlitchedIncompleteScan = function isGlitchedIncompleteScan(r) {
     || (typeof isProxyInfraError === 'function' && isProxyInfraError(reason))
     || /failed to fetch|fetch failed|local server|not responding|connection lost|502|503|504|bad gateway|unexpected token/i.test(reason);
   if (transportish) return true;
+  // Satellite always-on path used to wipe good street calls into Unavailable/Needs Review.
+  if (/satellite fallback failed|satellite also unavailable/i.test(reason)
+    && (cat === 'unavailable' || flags.includes('analysis_incomplete'))) {
+    return true;
+  }
+  // Incomplete AI dumped as unavailable Needs Review (old fallback path).
+  if (/ai response incomplete;\s*needs manual review/i.test(reason) && cat === 'unavailable') {
+    return true;
+  }
   // Empty dump: incomplete + no imagery + no score (the ~44 glitch signature).
   return !hasImagery && flags.includes('analysis_incomplete') && !(Number(r.score) > 0);
 }

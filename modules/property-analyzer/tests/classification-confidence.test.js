@@ -133,6 +133,21 @@ describe('computeNeedsReview confidence routing', () => {
     assert.equal(computeNeedsReview(record), true);
   });
 
+  it('does not send incomplete AI with usable street classification to Needs Review', () => {
+    const record = enrichClassificationFields({
+      category: 'property',
+      score: 2,
+      leadTier: 'well_maintained',
+      confidence: null,
+      indicators: [],
+      viewMeta: { heading: 90 },
+      qualityFlags: ['ai_response_incomplete', 'street_ai_failed'],
+      reason: 'Street View imagery confirmed — defaulting to Well Maintained (AI response incomplete).'
+    });
+    assert.equal(inferImageryQuality(record), IMAGERY_QUALITY.DEGRADED);
+    assert.equal(computeNeedsReview(record), false);
+  });
+
   it('excludes manually reviewed leads from needs review dashboard', () => {
     const record = enrichClassificationFields({
       category: 'property',

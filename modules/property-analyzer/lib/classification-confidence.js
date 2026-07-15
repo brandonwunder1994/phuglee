@@ -63,6 +63,11 @@
 
     if (flags.includes('street_ai_failed') || flags.includes('ai_response_incomplete')) {
       if (BLUR_REASON.test(reason)) return IMAGERY_QUALITY.BLURRED;
+      // Usable street classification with imagery present — soft degraded, not "retry → Needs Review".
+      // Treating every incomplete Gemini JSON as RETRY dumped whole scan batches into Needs Review.
+      if ((cat === 'property' || cat === 'vacant_lot') && (record.viewMeta || record.score > 0)) {
+        return IMAGERY_QUALITY.DEGRADED;
+      }
       return IMAGERY_QUALITY.RETRY;
     }
 
