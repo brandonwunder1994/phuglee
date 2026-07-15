@@ -1145,8 +1145,21 @@
     if (host) host.innerHTML = '<p class="home-map-error">Map unavailable — check back shortly.</p>';
   }
 
+  function isPhoneTerritory() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
   async function initExplorer() {
     if (previewStarted || !shared) return;
+
+    /* Phone: list UI owns the territory stage — skip MapLibre until desktop. */
+    if (isPhoneTerritory()) {
+      if (window.PhugleeHomeCoverageDirectory) {
+        window.PhugleeHomeCoverageDirectory.init();
+      }
+      return;
+    }
+
     previewStarted = true;
 
     reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1254,6 +1267,17 @@
     if (!document.body.hasAttribute('data-home-map-preview')) return;
     var section = document.querySelector('.home-coverage');
     if (!section) return;
+
+    if (isPhoneTerritory()) {
+      if (window.PhugleeHomeCoverageDirectory) {
+        window.PhugleeHomeCoverageDirectory.init();
+      }
+      window.addEventListener('resize', function onTerritoryResize() {
+        if (isPhoneTerritory() || previewStarted) return;
+        initExplorer();
+      });
+      return;
+    }
 
     if (!('IntersectionObserver' in window)) {
       initExplorer();

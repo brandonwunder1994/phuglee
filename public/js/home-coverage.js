@@ -622,7 +622,10 @@
     if (homeMapHost) {
       if (document.body.hasAttribute('data-home-map-preview')) {
         // MapLibre explorer owns the primary path; SVG safety net if it never paints.
+        // Phone list mode skips the map entirely — do not fall back to SVG.
         window.setTimeout(function () {
+          if (window.matchMedia('(max-width: 768px)').matches) return;
+          if (document.body.classList.contains('home-territory-list-mode')) return;
           var host = document.getElementById('home-coverage-map');
           if (!host) return;
           var painted =
