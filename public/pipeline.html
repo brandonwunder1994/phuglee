@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Sales Pipeline</title>
+  <meta name="description" content="GHL DTS sales pipeline mirror — Sales Pipeline kanban for Brandon and Brad.">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
+  <link rel="stylesheet" href="/css/vault.css?v=16">
+  <link rel="stylesheet" href="/css/under-contract.css?v=38">
+  <link rel="stylesheet" href="/css/pipeline.css?v=3">
+  <script src="/js/auth-session.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js?v=2"></script>
+</head>
+<body class="phuglee-app has-premium-bg vault-page pipe-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
+  <div id="distress-os-nav-mount"></div>
+  <div id="pipe-toast" class="vault-toast" hidden role="status" aria-live="polite"></div>
+
+  <main id="main" class="vault-main vault-main--app pipe-main">
+    <section id="pipe-gate" class="vault-gate" hidden>
+      <div class="vault-gate-inner">
+        <p class="vault-eyebrow">Sales desk</p>
+        <h1 class="vault-title">Sales Pipeline</h1>
+        <p class="vault-lead">Sign in as admin or disposition partner to view the DTS pipeline.</p>
+        <a href="/" class="phuglee-btn phuglee-btn-primary">Back home</a>
+      </div>
+    </section>
+
+    <div id="pipe-app" class="pipe-app" hidden>
+      <header class="pipe-hero">
+        <div>
+          <p class="vault-eyebrow">GHL DTS mirror</p>
+          <h1 class="vault-title vault-title--desk">Sales Pipeline</h1>
+          <p class="vault-hero-sub">Reflects your GoHighLevel stages — early sales through funded</p>
+        </div>
+        <div class="pipe-hero-actions">
+          <div class="uc-view-toggle pipe-view-toggle" role="group" aria-label="Board view">
+            <a href="/under-contract" class="uc-view-btn" data-view="table">Table</a>
+            <span class="uc-view-btn is-active" data-view="kanban" aria-current="true">Kanban</span>
+          </div>
+          <button type="button" id="pipe-sync-ghl" class="phuglee-btn phuglee-btn-primary" data-admin-only>Sync from GHL</button>
+        </div>
+      </header>
+
+      <p id="pipe-ghl-status" class="pipe-ghl-status" hidden data-admin-only></p>
+      <p id="pipe-brad-note" class="pipe-brad-note" hidden>
+        Early stages show address and photo only. Under Contract and later open in Contract Tracker.
+      </p>
+
+      <div id="pipe-empty" class="pipe-empty" hidden>
+        <p>No pipeline deals yet. Sync from GHL after opportunities are on the DTS pipeline.</p>
+      </div>
+
+      <div id="pipe-board" class="pipe-board" aria-label="Sales pipeline kanban"></div>
+    </div>
+  </main>
+
+  <script src="/js/settings-menu.js?v=5" defer></script>
+  <script src="/js/shell-nav.js?v=17" defer></script>
+  <script src="/js/team-alert-banner.js?v=1" defer></script>
+  <script src="/js/command-palette.js" defer></script>
+  <script src="/js/pipeline-app.js?v=6" defer></script>
+</body>
+</html>
