@@ -102,8 +102,10 @@ R.mergeReviewQueueResults = function mergeReviewQueueResults(incoming = []) {
       added++;
     }
   }
-  invalidateResultKeyIndex();
-  invalidateReviewSnapshotCache?.();
+  // Keep the incremental Map — full rebuild on every lean page was hitching Keep.
+  resultKeyToIdxLen = state.results.length;
+  resultKeyToIdxSource = state.results;
+  resultKeyToIdx = idx;
   return added;
 };
 
@@ -113,12 +115,14 @@ R.mergeReviewQueueResults = function mergeReviewQueueResults(incoming = []) {
  */
 R.fetchSessionReviewQueue = async function fetchSessionReviewQueue(filter, opts = {}) {
   const offset = Math.max(0, Number(opts.offset) || 0);
-  const limit = Math.min(1000, Math.max(50, Number(opts.limit) || 300));
+  const limit = Math.min(1000, Math.max(50, Number(opts.limit) || REVIEW_LEAN_PAGE_SIZE || 500));
   const q = new URLSearchParams({
     filter: String(filter || ''),
     offset: String(offset),
     limit: String(limit)
   });
+  // Page fetches skip the giant pendingKeys array (open already has the full queue).
+  if (opts.resultsOnly || offset > 0) q.set('resultsOnly', '1');
   const res = await apiFetch(`/api/session-review-queue?${q}`, { cache: 'no-store' });
   if (!res?.ok) {
     const err = await res?.json?.().catch(() => ({}));
@@ -127,18 +131,24 @@ R.fetchSessionReviewQueue = async function fetchSessionReviewQueue(filter, opts 
   return res.json();
 };
 
-R.prefetchRemainingReviewQueueResults = async function prefetchRemainingReviewQueueResults(filter, startOffset, pageSize = 300) {
+R.prefetchRemainingReviewQueueResults = async function prefetchRemainingReviewQueueResults(filter, startOffset, pageSize) {
   let offset = Math.max(0, Number(startOffset) || 0);
-  const limit = Math.min(1000, Math.max(50, Number(pageSize) || 300));
+  const limit = Math.min(1000, Math.max(50, Number(pageSize) || REVIEW_LEAN_PAGE_SIZE || 500));
+  // Keep ≥2 lean pages ahead of the cursor so rapid Keep never hits "Loading next lead…".
+  const aheadTarget = () => (Number(state.reviewIndex) || 0) + (limit * 2);
   while (state.reviewMode && state.reviewFilter === filter) {
-    // If the operator is racing ahead of the lean window, jump to their cursor page first.
     const cursor = Number(state.reviewIndex) || 0;
-    if (cursor > offset + Math.floor(limit * 0.6)) {
+    if (cursor > offset + Math.floor(limit * 0.5)) {
       offset = Math.floor(cursor / limit) * limit;
+    }
+    // Already far enough ahead — wait for the operator to catch up.
+    if (offset >= aheadTarget() && offset > cursor + limit) {
+      await new Promise((r) => setTimeout(r, 120));
+      continue;
     }
     let body;
     try {
-      body = await fetchSessionReviewQueue(filter, { offset, limit });
+      body = await fetchSessionReviewQueue(filter, { offset, limit, resultsOnly: true });
     } catch (e) {
       console.warn('[review] prefetch remaining failed', e);
       break;
@@ -146,16 +156,14 @@ R.prefetchRemainingReviewQueueResults = async function prefetchRemainingReviewQu
     const rows = body?.results || [];
     if (rows.length) {
       mergeReviewQueueResults(rows);
-      // Warm imagery for the just-hydrated window immediately (not idle-only).
       try {
-        prefetchReviewQueueImages(offset, Math.min(rows.length, REVIEW_PREFETCH_AHEAD || 14));
+        prefetchReviewQueueImages(offset, Math.min(rows.length, REVIEW_PREFETCH_AHEAD || 10));
       } catch (_) {}
     }
     if (!body?.hasMoreResults || !rows.length) break;
     offset += rows.length;
     await new Promise((r) => setTimeout(r, 0));
   }
-  // Keep warming imagery as more rows land
   if (state.reviewMode && state.reviewFilter === filter) warmReviewImagery?.();
 };
 
@@ -168,18 +176,27 @@ R.ensureReviewLeanAround = function ensureReviewLeanAround(index) {
   const existing = findResultByKey(key);
   if (existing) return Promise.resolve(existing);
 
-  const pageSize = 300;
+  const pageSize = REVIEW_LEAN_PAGE_SIZE || 500;
   const offset = Math.max(0, Math.floor(Math.max(0, index) / pageSize) * pageSize);
   const flightKey = `${filter}:${offset}`;
   if (R._reviewLeanAroundInFlight?.key === flightKey) {
     return R._reviewLeanAroundInFlight.promise;
   }
-  const promise = fetchSessionReviewQueue(filter, { offset, limit: pageSize })
+  // Also kick the next page in parallel so one miss fills two windows.
+  const nextOffset = offset + pageSize;
+  void fetchSessionReviewQueue(filter, { offset: nextOffset, limit: pageSize, resultsOnly: true })
+    .then((body) => {
+      const rows = body?.results || [];
+      if (rows.length) mergeReviewQueueResults(rows);
+    })
+    .catch(() => {});
+
+  const promise = fetchSessionReviewQueue(filter, { offset, limit: pageSize, resultsOnly: true })
     .then((body) => {
       const rows = body?.results || [];
       if (rows.length) mergeReviewQueueResults(rows);
       try {
-        prefetchReviewQueueImages(offset, Math.min(rows.length || 0, REVIEW_PREFETCH_AHEAD || 14));
+        prefetchReviewQueueImages(offset, Math.min(rows.length || 0, REVIEW_PREFETCH_AHEAD || 10));
       } catch (_) {}
       return findResultByKey(key);
     })
@@ -194,6 +211,8 @@ R.ensureReviewLeanAround = function ensureReviewLeanAround(index) {
   return promise;
 };
 
+R._reviewPreloadInFlight = 0;
+R._reviewPreloadWait = [];
 R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
   url = resolveImageryPublicUrl(url);
   if (!url || reviewImagePreloadCache.has(url)) return;
@@ -202,11 +221,30 @@ R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
     const oldest = reviewImagePreloadOrder.shift();
     reviewImagePreloadCache.delete(oldest);
   }
-  const img = new Image();
-  img.decoding = 'async';
-  img.src = url;
-  reviewImagePreloadCache.set(url, img);
-  reviewImagePreloadOrder.push(url);
+  const cap = Math.max(1, Number(REVIEW_PRELOAD_CONCURRENCY) || 3);
+  const start = () => {
+    R._reviewPreloadInFlight = (R._reviewPreloadInFlight || 0) + 1;
+    const img = new Image();
+    img.decoding = 'async';
+    const done = () => {
+      R._reviewPreloadInFlight = Math.max(0, (R._reviewPreloadInFlight || 1) - 1);
+      const next = R._reviewPreloadWait.shift();
+      if (next) next();
+    };
+    img.onload = done;
+    img.onerror = done;
+    img.src = url;
+    reviewImagePreloadCache.set(url, img);
+    reviewImagePreloadOrder.push(url);
+  };
+  if ((R._reviewPreloadInFlight || 0) >= cap) {
+    // Reserve cache slot so later lookups still hit once the download starts.
+    reviewImagePreloadCache.set(url, { complete: false, naturalWidth: 0, pending: true });
+    reviewImagePreloadOrder.push(url);
+    R._reviewPreloadWait.push(start);
+    return;
+  }
+  start();
 }
 
 R.isReviewImageReady = function isReviewImageReady(url) {
@@ -835,20 +873,27 @@ R.deferReviewAdvanceSideEffects = function deferReviewAdvanceSideEffects(key, vi
   }
 }
 
-R.warmReviewImagery = function warmReviewImagery() {
+R.warmReviewImagery = function warmReviewImagery(opts = {}) {
   if (!state.reviewQueue?.length) return;
   const run = () => {
     try {
       if (USE_PROXY && typeof fetchImageryIndexMap === 'function' && !imageryIndexMapCache) {
         fetchImageryIndexMap().catch(() => {});
       }
-      prefetchReviewQueueImages(state.reviewIndex, REVIEW_PREFETCH_AHEAD);
+      // Current lead first, then urgent ahead — never wait on idle for the first window.
+      prefetchReviewQueueImages(state.reviewIndex, REVIEW_PREFETCH_URGENT || 6);
+      prefetchReviewAheadNow(state.reviewIndex + 1);
     } catch (e) {
       console.warn('[Review imagery warm]', e);
     }
   };
+  if (opts.immediate) {
+    run();
+    return;
+  }
+  // Secondary warm can wait briefly, but keep timeout tight.
   if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(run, { timeout: 1500 });
+    requestIdleCallback(run, { timeout: 250 });
   } else {
     setTimeout(run, 0);
   }
@@ -1388,12 +1433,25 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     return;
   }
 
+  // Show chrome immediately so open never feels like a blank wait.
+  closePropertyModal({ save: false });
+  closeScoreEditModal();
+  setBulkSelectMode(false);
+  if (state.appView !== 'dashboard') setAppView('dashboard');
+  state._reviewOpening = true;
+  state._reviewPauseHydrate = true; // Pause full-session hydrate — fights Street View.
+  showReviewOverlay();
+  if (reviewMetaName) reviewMetaName.textContent = `Loading ${reviewFilterLabel(filter)}…`;
+  if (reviewMetaStreet) reviewMetaStreet.textContent = '';
+  reviewImages?.classList.add('loading');
+
   // Fast path: server queue — do NOT wait for full 16k hydrate (that made Review feel stuck).
   let serverQueue = null;
+  const leanPage = REVIEW_LEAN_PAGE_SIZE || 500;
   if (USE_PROXY && typeof fetchSessionReviewQueue === 'function' && !opts.localOnly) {
     try {
       setSessionRestoreBanner?.(`Loading ${reviewFilterLabel(filter)} review…`);
-      serverQueue = await fetchSessionReviewQueue(filter, { offset: 0, limit: 300 });
+      serverQueue = await fetchSessionReviewQueue(filter, { offset: 0, limit: leanPage });
       setSessionRestoreBanner?.('');
     } catch (e) {
       console.warn('[review] session-review-queue failed, falling back to local hydrate', e);
@@ -1404,6 +1462,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
 
   if (!serverQueue?.ok) {
     // Fallback: full hydrate (slower) then build from in-memory snapshot
+    state._reviewPauseHydrate = false;
     if (typeof ensureSessionResultsLoaded === 'function') {
       try {
         const loadedOk = await ensureSessionResultsLoaded();
@@ -1414,6 +1473,9 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
           Number(state.processed) || 0
         );
         if (!loadedOk || (target > 0 && state.results.length < Math.floor(target * 0.95))) {
+          state._reviewOpening = false;
+          state._reviewPauseHydrate = false;
+          hideReviewOverlay?.();
           alert(
             `Still loading scanned leads (${state.results.length.toLocaleString()} of ${target.toLocaleString()}). ` +
             `Wait for the load to finish, then open Review Leads again — otherwise the queue looks empty.`
@@ -1426,34 +1488,42 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     }
   } else if (Array.isArray(serverQueue.results) && serverQueue.results.length) {
     mergeReviewQueueResults(serverQueue.results);
+    // Warm first Street Views from the open payload before first paint.
+    try {
+      for (let i = 0; i < Math.min(serverQueue.results.length, REVIEW_PREFETCH_URGENT || 6); i++) {
+        prefetchReviewImageUrlsForRecord(serverQueue.results[i]);
+      }
+    } catch (_) {}
   }
 
   if (!state.results.length && !(serverQueue?.pendingKeys || []).length) {
+    state._reviewOpening = false;
+    state._reviewPauseHydrate = false;
+    hideReviewOverlay?.();
     alert('No analyzed leads yet — run a scan or restore your saved session first.');
     return;
   }
-  closePropertyModal({ save: false });
-  closeScoreEditModal();
-  setBulkSelectMode(false);
-
-  if (state.appView !== 'dashboard') setAppView('dashboard');
 
   // Poison stashes (2 Distressed / near-done WM) hid thousands of unreviewed leads.
-  // Always drop stashes that don't cover current pending; prefer a full rebuild.
+  // Server queue is authoritative — skip expensive client O(n) stale scans.
   if (typeof clearAllReviewProgressStashes === 'function' && opts.restart) {
     clearAllReviewProgressStashes();
-  } else if (typeof discardStaleReviewProgress === 'function') {
+  } else if (!serverQueue?.ok && typeof discardStaleReviewProgress === 'function') {
     discardStaleReviewProgress(filter);
   }
 
   // Same review already open with a fresh-enough queue — just show overlay.
-  if (!opts.restart && state.reviewMode && state.reviewFilter === filter) {
-    const staleOpen = typeof isReviewQueueStaleVsPending === 'function'
+  // (Skip when we are mid-open with an empty queue from the optimistic chrome.)
+  if (!opts.restart && state.reviewMode && state.reviewFilter === filter
+    && state.reviewQueue.length && state.reviewIndex < state.reviewQueue.length) {
+    const staleOpen = !serverQueue?.ok
+      && typeof isReviewQueueStaleVsPending === 'function'
       && isReviewQueueStaleVsPending(filter, state.reviewQueue);
-    if (!staleOpen && state.reviewQueue.length && state.reviewIndex < state.reviewQueue.length) {
+    if (!staleOpen) {
+      state._reviewOpening = false;
       showReviewOverlay();
       renderReviewLead();
-      warmReviewImagery();
+      warmReviewImagery({ immediate: true });
       return;
     }
     state.reviewMode = false;
@@ -1462,14 +1532,16 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   }
 
   // Resume in-memory mid-session only when the queue still matches pending.
-  if (!opts.restart && !state.reviewMode && hasActiveReviewProgress(filter)) {
-    const staleActive = typeof isReviewQueueStaleVsPending === 'function'
+  if (!opts.restart && !state.reviewMode && hasActiveReviewProgress(filter) && state.reviewQueue.length) {
+    const staleActive = !serverQueue?.ok
+      && typeof isReviewQueueStaleVsPending === 'function'
       && isReviewQueueStaleVsPending(filter, state.reviewQueue);
     if (!staleActive) {
       state.reviewMode = true;
+      state._reviewOpening = false;
       showReviewOverlay();
       renderReviewLead();
-      warmReviewImagery();
+      warmReviewImagery({ immediate: true });
       log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
       return;
     }
@@ -1483,9 +1555,10 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
       && isReviewQueueStaleVsPending(filter, state.reviewQueue);
     if (!restoredStale) {
       state.reviewMode = true;
+      state._reviewOpening = false;
       showReviewOverlay();
       renderReviewLead();
-      warmReviewImagery();
+      warmReviewImagery({ immediate: true });
       log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
       return;
     }
@@ -1517,6 +1590,10 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     pending = snap.pending;
   }
   if (!queue.length) {
+    state._reviewOpening = false;
+    state._reviewPauseHydrate = false;
+    state.reviewMode = false;
+    hideReviewOverlay?.();
     if (alreadyReviewed > 0) {
       alert(`All ${totalInFilter.toLocaleString()} ${reviewFilterLabel(filter)} leads have been checked in this review queue (${alreadyReviewed.toLocaleString()} saved). New leads will appear after your next scan.`);
     } else {
@@ -1537,12 +1614,13 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   };
   if (typeof resetReviewTrainingBuffer === 'function') resetReviewTrainingBuffer();
   state.reviewMode = true;
+  state._reviewOpening = false;
   // Drop the old stash so Exit/reload cannot resurrect a 2-item queue.
   if (state.reviewProgressByFilter) delete state.reviewProgressByFilter[filter];
 
   showReviewOverlay();
   renderReviewLead();
-  warmReviewImagery();
+  warmReviewImagery({ immediate: true });
   persistReviewProgress({ defer: true });
   const skipped = alreadyReviewed
     ? ` (${alreadyReviewed.toLocaleString()} already checked in this queue — skipped)`
@@ -1551,12 +1629,9 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
 
   // Pull remaining pending rows in the background so later Keep/Change stays instant.
   if (serverQueue?.hasMoreResults) {
-    void prefetchRemainingReviewQueueResults(filter, (serverQueue.results || []).length, 300);
+    void prefetchRemainingReviewQueueResults(filter, (serverQueue.results || []).length, leanPage);
   }
-  // Keep full session hydrate going in the background without blocking Review.
-  if (typeof ensureSessionResultsLoaded === 'function' && sessionLoadState && !sessionLoadState.complete) {
-    void ensureSessionResultsLoaded().catch(() => {});
-  }
+  // Do NOT hydrate the full 16k session while reviewing — lean queue pages are enough.
 }
 
 R.closeReviewMode = async function closeReviewMode() {
@@ -1571,6 +1646,12 @@ R.closeReviewMode = async function closeReviewMode() {
   flushLearnedBrainSave();
   const saveResult = await flushReviewProgress();
   state.reviewMode = false;
+  state._reviewOpening = false;
+  state._reviewPauseHydrate = false;
+  // Resume background hydrate after Exit (was paused so Street View stayed fast).
+  if (typeof ensureSessionResultsLoaded === 'function' && sessionLoadState && !sessionLoadState.complete) {
+    void ensureSessionResultsLoaded().catch(() => {});
+  }
   flushDeferredCorrectionReviews();
   state.reviewQueue = [];
   state.reviewIndex = 0;

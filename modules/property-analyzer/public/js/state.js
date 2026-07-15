@@ -1676,6 +1676,17 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
           }, 4000);
           return false;
         }
+        // Review owns the network — park full hydrate until Exit Review.
+        if (state.reviewMode || state._reviewPauseHydrate || state._reviewOpening) {
+          sessionLoadState.loading = false;
+          setTimeout(() => {
+            if (!sessionLoadState.complete && !sessionLoadState.loading
+              && !state.reviewMode && !state._reviewPauseHydrate && !state._reviewOpening) {
+              loadSessionResultsBackground(sessionLoadState.total, { force: true });
+            }
+          }, 2500);
+          return false;
+        }
         const page = await fetchSessionResultsPage(offset, pageSize);
         if (!page?.results?.length) {
           emptyStreak++;

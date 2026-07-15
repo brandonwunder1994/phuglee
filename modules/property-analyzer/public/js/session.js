@@ -1715,6 +1715,15 @@ R.enqueueVaultPublish = function enqueueVaultPublish(result, via = 'review_keep'
 
 R.drainVaultPublishQueue = function drainVaultPublishQueue() {
   if (R._vaultPublishBusy) return;
+  // Hard-pause Vault POSTs while Review Street View is loading or opening.
+  if (state.reviewMode || state._reviewOpening) {
+    const imgBusy = !!(R.reviewImages?.classList?.contains('loading'));
+    const preloadBusy = (R._reviewPreloadInFlight || 0) > 0 || (R._reviewPreloadWait?.length || 0) > 0;
+    if (imgBusy || preloadBusy || state._reviewOpening) {
+      setTimeout(() => drainVaultPublishQueue(), 280);
+      return;
+    }
+  }
   const next = R._vaultPublishQueue.shift();
   if (!next) return;
   R._vaultPublishBusy = true;
@@ -1724,7 +1733,7 @@ R.drainVaultPublishQueue = function drainVaultPublishQueue() {
     let delay = 0;
     if (state.reviewMode) {
       const imgBusy = !!(R.reviewImages?.classList?.contains('loading'));
-      delay = imgBusy ? 220 : 90;
+      delay = imgBusy ? 280 : 140;
     }
     setTimeout(() => drainVaultPublishQueue(), delay);
   };

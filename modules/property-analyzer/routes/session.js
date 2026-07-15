@@ -87,10 +87,21 @@ function register(ctx) {
     const filter = String(url.searchParams.get('filter') || '').trim();
     const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
     const limit = Math.min(1000, Math.max(1, parseInt(url.searchParams.get('limit') || '300', 10) || 300));
+    const resultsOnly = url.searchParams.get('resultsOnly') === '1'
+      || url.searchParams.get('resultsOnly') === 'true';
+    const includeKeysParam = url.searchParams.get('includeKeys');
+    const includeKeys = includeKeysParam == null
+      ? undefined
+      : !(includeKeysParam === '0' || includeKeysParam === 'false');
     const { session } = backups.loadSessionForRequest(req);
     const finalized = finalizeSession(session);
     const results = Array.isArray(finalized.results) ? finalized.results : [];
-    const body = buildSessionReviewQueue(results, filter, { offset, limit });
+    const body = buildSessionReviewQueue(results, filter, {
+      offset,
+      limit,
+      resultsOnly,
+      includeKeys
+    });
     if (!body.ok) {
       sendJson(res, 400, body);
       return true;

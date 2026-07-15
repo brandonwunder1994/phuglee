@@ -3,6 +3,9 @@
 /**
  * Server-side Review Leads queue builder.
  * Lets the client open a bucket without waiting to hydrate all ~16k session results.
+ *
+ * Built queues are cached against the results array identity so paging / rapid Keep
+ * does not re-scan 16k rows or re-emit giant pendingKeys payloads.
  */
 
 const { recordKeyFromResult } = require('./backup-logic');
@@ -22,6 +25,9 @@ const REVIEW_FILTERS = new Set([
   'review',
   'satellite_only'
 ]);
+
+/** @type {WeakMap<object, Map<string, { pendingKeys: string[], pendingRows: object[], totalInFilter: number, reviewedInFilter: number }>>} */
+const queueCacheByResults = new WeakMap();
 
 function isSoftManualVia(r) {
   const via = String(r?.manuallyReviewedVia || '');
@@ -61,20 +67,7 @@ function matchesReviewFilter(r, filter) {
   return false;
 }
 
-/**
- * @param {object[]} results
- * @param {string} filter
- * @param {{ offset?: number, limit?: number }} [opts]
- */
-function buildSessionReviewQueue(results, filter, opts = {}) {
-  const f = String(filter || '').toLowerCase().replace(/-/g, '_');
-  if (!REVIEW_FILTERS.has(f)) {
-    return { ok: false, error: 'invalid_filter', filter: f };
-  }
-  const list = Array.isArray(results) ? results : [];
-  const offset = Math.max(0, Number(opts.offset) || 0);
-  const limit = Math.min(1000, Math.max(1, Number(opts.limit) || 300));
-
+function buildPendingForFilter(list, f) {
   let totalInFilter = 0;
   let reviewedInFilter = 0;
   const pendingRows = [];
@@ -92,24 +85,73 @@ function buildSessionReviewQueue(results, filter, opts = {}) {
     pendingRows.push(r);
   }
 
-  const slice = pendingRows.slice(offset, offset + limit);
+  return { pendingKeys, pendingRows, totalInFilter, reviewedInFilter };
+}
+
+function getCachedPending(list, f) {
+  if (!list || typeof list !== 'object') {
+    return buildPendingForFilter(Array.isArray(list) ? list : [], f);
+  }
+  let byFilter = queueCacheByResults.get(list);
+  if (!byFilter) {
+    byFilter = new Map();
+    queueCacheByResults.set(list, byFilter);
+  }
+  let built = byFilter.get(f);
+  if (!built) {
+    built = buildPendingForFilter(list, f);
+    byFilter.set(f, built);
+  }
+  return built;
+}
+
+/**
+ * @param {object[]} results
+ * @param {string} filter
+ * @param {{ offset?: number, limit?: number, includeKeys?: boolean, resultsOnly?: boolean }} [opts]
+ */
+function buildSessionReviewQueue(results, filter, opts = {}) {
+  const f = String(filter || '').toLowerCase().replace(/-/g, '_');
+  if (!REVIEW_FILTERS.has(f)) {
+    return { ok: false, error: 'invalid_filter', filter: f };
+  }
+  const list = Array.isArray(results) ? results : [];
+  const offset = Math.max(0, Number(opts.offset) || 0);
+  const limit = Math.min(1000, Math.max(1, Number(opts.limit) || 300));
+  const resultsOnly = opts.resultsOnly === true || opts.resultsOnly === 1 || opts.resultsOnly === '1';
+  // Page fetches never need the full key list — that payload was dominating open latency.
+  const includeKeys = resultsOnly
+    ? false
+    : (opts.includeKeys === false || opts.includeKeys === 0 || opts.includeKeys === '0'
+      ? false
+      : offset === 0);
+
+  const built = getCachedPending(list, f);
+  const slice = built.pendingRows.slice(offset, offset + limit);
+
   return {
     ok: true,
     filter: f,
-    totalInFilter,
-    pending: pendingKeys.length,
-    reviewedInFilter,
-    pendingKeys,
+    totalInFilter: built.totalInFilter,
+    pending: built.pendingKeys.length,
+    reviewedInFilter: built.reviewedInFilter,
+    pendingKeys: includeKeys ? built.pendingKeys : [],
+    keysOmitted: !includeKeys,
     offset,
     limit,
-    hasMoreResults: offset + slice.length < pendingRows.length,
+    hasMoreResults: offset + slice.length < built.pendingRows.length,
     results: leanResultsForList(slice)
   };
+}
+
+function clearReviewQueueCache(results) {
+  if (results && typeof results === 'object') queueCacheByResults.delete(results);
 }
 
 module.exports = {
   REVIEW_FILTERS,
   matchesReviewFilter,
   isExcludedFromReview,
-  buildSessionReviewQueue
+  buildSessionReviewQueue,
+  clearReviewQueueCache
 };

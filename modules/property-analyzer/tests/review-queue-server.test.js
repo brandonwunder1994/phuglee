@@ -42,5 +42,29 @@ describe('server review queue', () => {
     assert.equal(page.pending, 5);
     assert.equal(page.results.length, 2);
     assert.equal(page.hasMoreResults, true);
+    // Page fetches omit the full key list (payload was dominating Review open latency).
+    assert.deepEqual(page.pendingKeys, []);
+    assert.equal(page.keysOmitted, true);
+  });
+
+  it('resultsOnly omits keys even at offset 0', () => {
+    const q = buildSessionReviewQueue(rows, 'distressed', { limit: 50, resultsOnly: true });
+    assert.equal(q.ok, true);
+    assert.equal(q.pending, 1);
+    assert.deepEqual(q.pendingKeys, []);
+    assert.equal(q.results.length, 1);
+  });
+
+  it('caches pending build across pages for the same results array', () => {
+    const many = Array.from({ length: 8 }, (_, i) => ({
+      email: `c${i}@t.com`, phone: `${i}`, address: `${i} Pine`,
+      category: 'property', leadTier: 'distressed', score: 5
+    }));
+    const a = buildSessionReviewQueue(many, 'distressed', { offset: 0, limit: 3 });
+    const b = buildSessionReviewQueue(many, 'distressed', { offset: 3, limit: 3, resultsOnly: true });
+    assert.equal(a.pending, 8);
+    assert.equal(b.pending, 8);
+    assert.equal(a.results[0].address, '0 Pine');
+    assert.equal(b.results[0].address, '3 Pine');
   });
 });
