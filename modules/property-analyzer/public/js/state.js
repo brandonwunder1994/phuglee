@@ -644,7 +644,9 @@ R.buildReviewMetadataPayload = function buildReviewMetadataPayload() {
 }
 
 R.pushReviewMetadataToServer = function pushReviewMetadataToServer(reason = 'review-metadata', opts = {}) {
-  if (!USE_PROXY || !isSessionReadyForServerSave()) {
+  // Partial review sync is always safe mid-hydrate — it only patches stamped rows + buckets.
+  // Blocking on isSessionReadyForServerSave dropped Exit Review Keep/Change on large sessions.
+  if (!USE_PROXY) {
     pendingServerSave = true;
     return Promise.resolve({ ok: false, deferred: true });
   }
@@ -666,10 +668,6 @@ R.pushReviewMetadataToServer = function pushReviewMetadataToServer(reason = 'rev
 
 R.flushReviewMetadataToServer = async function flushReviewMetadataToServer(reason = 'review-metadata') {
   if (!USE_PROXY) return { ok: false, skipped: true };
-  if (!isSessionReadyForServerSave()) {
-    pendingServerSave = true;
-    return { ok: false, deferred: true };
-  }
   if (reviewMetadataSaveInFlight) {
     reviewMetadataSaveQueued = true;
     return { ok: false, queued: true };
@@ -1711,10 +1709,9 @@ R.loadSessionResultsBackground = async function loadSessionResultsBackground(exp
           }
         }, 3000);
       } else {
-        sessionDirty = false;
-        if ((state.results?.length || 0) < 1500) {
-          flushPendingServerSave('session-ready');
-        }
+        // Always flush deferred review/session saves once hydrate finishes —
+        // the old <1500 gate dropped Exit Review stamps on large sessions (~16k).
+        flushPendingServerSave('session-ready');
       }
       updateSessionSaveStatus();
       if ((state.results?.length || 0) >= (sessionLoadState.total || 0) && sessionLoadState.total > 0) {

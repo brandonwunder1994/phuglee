@@ -14,7 +14,10 @@ function isManuallyEditedResult(r) {
 
 function resultEditTimestamp(r) {
   if (!r) return 0;
-  return Number(r.manualEditedAt) || Number(r.analyzedAt) || 0;
+  return Number(r.manualEditedAt)
+    || Number(r.manuallyReviewedAt)
+    || Number(r.analyzedAt)
+    || 0;
 }
 
 function resultHasUsefulProfile(r) {
@@ -65,7 +68,9 @@ function shouldReplaceSessionResult(prev, incoming) {
 
 function applyIncomingResult(prev, incoming) {
   if (!shouldReplaceSessionResult(prev, incoming)) return prev;
-  return preserveProfileFromPrevious(prev, incoming);
+  // Field-merge so partial review patches (Exit Review) never wipe imagery / indicators.
+  const merged = { ...prev, ...incoming };
+  return preserveProfileFromPrevious(prev, merged);
 }
 
 function mergeIncomingPreservingProfiles(existingResults, incomingResults) {

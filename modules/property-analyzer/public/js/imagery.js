@@ -251,16 +251,31 @@ R.persistReviewProgress = function persistReviewProgress(opts = {}) {
   }
 }
 
-R.flushReviewProgress = function flushReviewProgress() {
+R.flushReviewProgress = async function flushReviewProgress() {
   if (reviewProgressSaveTimer) {
     clearTimeout(reviewProgressSaveTimer);
     reviewProgressSaveTimer = null;
   }
   reviewAdvancesSinceSave = 0;
+  // Always push Keep/Change stamps + reviewedKeys immediately (works mid-hydrate).
+  let metaResult = { ok: false };
   if (typeof pushReviewMetadataToServer === 'function') {
-    pushReviewMetadataToServer('review-exit', { immediate: true });
+    try {
+      metaResult = await pushReviewMetadataToServer('review-exit', { immediate: true });
+    } catch (e) {
+      console.warn('[Review exit] metadata save failed', e);
+      metaResult = { ok: false, error: e };
+    }
   }
-  saveSession('review-exit');
+  // Full session save when hydrated; otherwise metadata patch already covered stamps.
+  if (typeof isSessionReadyForServerSave === 'function' && isSessionReadyForServerSave()) {
+    saveSession('review-exit');
+  } else {
+    pendingServerSave = true;
+    sessionDirty = true;
+    updateSessionSaveStatus?.();
+  }
+  return metaResult;
 }
 
 R.getReviewRecord = function getReviewRecord() {
@@ -1427,16 +1442,17 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   }
 }
 
-R.closeReviewMode = function closeReviewMode() {
+R.closeReviewMode = async function closeReviewMode() {
   closeReviewTierPicker(null);
   const filter = state.reviewFilter;
   const reviewedNow = state.reviewStats.kept + state.reviewStats.changed + (state.reviewStats.deferred || 0) + (state.reviewStats.blurred || 0);
   commitReviewedThroughIndex(filter);
+  // Drop resume stash so re-open rebuilds from pending — reviewed stamps keep those leads out.
   if (state.reviewProgressByFilter && filter && filter !== 'all') {
     delete state.reviewProgressByFilter[filter];
   }
   flushLearnedBrainSave();
-  flushReviewProgress();
+  const saveResult = await flushReviewProgress();
   state.reviewMode = false;
   flushDeferredCorrectionReviews();
   state.reviewQueue = [];
@@ -1457,9 +1473,12 @@ R.closeReviewMode = function closeReviewMode() {
   renderResults({ force: true });
   if (reviewedNow > 0 && filter && filter !== 'all') {
     const remaining = buildReviewQueue(filter).length;
+    const savedOk = saveResult?.ok !== false;
     log(
-      `${reviewedNow.toLocaleString()} ${reviewFilterLabel(filter)} lead${reviewedNow === 1 ? '' : 's'} saved as reviewed — ${remaining.toLocaleString()} left for next session`,
-      'success'
+      savedOk
+        ? `${reviewedNow.toLocaleString()} ${reviewFilterLabel(filter)} lead${reviewedNow === 1 ? '' : 's'} saved as reviewed — ${remaining.toLocaleString()} left for next session`
+        : `Reviewed ${reviewedNow.toLocaleString()} locally — server save pending (will retry). ${remaining.toLocaleString()} left in this queue.`,
+      savedOk ? 'success' : 'warn'
     );
   }
 }

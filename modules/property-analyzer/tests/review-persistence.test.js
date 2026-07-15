@@ -113,4 +113,44 @@ describe('review persistence merge', () => {
     assert.equal(merged.results[0].manuallyReviewed, true);
     assert.deepEqual(merged.reviewedKeysByFilter.vacant, ['a|1|1 Main']);
   });
+
+  it('partial Keep patch stamps review without wiping imagery fields', () => {
+    const existing = {
+      savedAt: 100,
+      processed: 1,
+      results: [
+        {
+          email: 'a', phone: '1', address: '1 Main',
+          category: 'property', leadTier: 'distressed', score: 8,
+          streetViewUrl: 'https://maps.example/sv',
+          indicators: ['boarded'],
+          profile: { marketValue: 120000 }
+        }
+      ],
+      reviewedKeysByFilter: { distressed: [] }
+    };
+    const incoming = {
+      partialReviewSync: true,
+      savedAt: 300,
+      processed: 1,
+      results: [
+        {
+          email: 'a', phone: '1', address: '1 Main',
+          category: 'property', leadTier: 'distressed', score: 8,
+          manuallyReviewed: true,
+          manuallyReviewedVia: 'review_keep',
+          manuallyReviewedAt: 300,
+          reviewResolved: true,
+          needsReview: false
+        }
+      ],
+      reviewedKeysByFilter: { distressed: ['a|1|1 Main'] }
+    };
+    const merged = mergeSessionSave(existing, incoming);
+    assert.equal(merged.results[0].manuallyReviewed, true);
+    assert.equal(merged.results[0].reviewResolved, true);
+    assert.equal(merged.results[0].streetViewUrl, 'https://maps.example/sv');
+    assert.deepEqual(merged.results[0].indicators, ['boarded']);
+    assert.equal(merged.results[0].profile.marketValue, 120000);
+  });
 });
