@@ -1295,8 +1295,14 @@ R.log = function log(msg, type = '') {
   else write();
 }
 
+R._importProfileLib = function _importProfileLib() {
+  return (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.importProfile) || null;
+};
+
 /** Normalize header labels so PropertyAddress / property_address / Property Address all match. */
 R.headerKey = function headerKey(h) {
+  const lib = _importProfileLib();
+  if (lib?.headerKey) return lib.headerKey(h);
   return String(h || '')
     .toLowerCase()
     .replace(/[^a-z0-9]/g, '');
@@ -1330,6 +1336,8 @@ R.cellStr = function cellStr(row, col) {
 }
 
 R.flag01 = function flag01(v) {
+  const lib = _importProfileLib();
+  if (lib?.flag01) return lib.flag01(v);
   const s = String(v ?? '').trim().toLowerCase();
   if (!s) return 0;
   if (s === '1' || s === 'true' || s === 'yes' || s === 'y') return 1;
@@ -1338,112 +1346,13 @@ R.flag01 = function flag01(v) {
   return Number.isFinite(n) && n !== 0 ? 1 : 0;
 }
 
-/** Build optional property profile from skip-trace / New Analyzer Leads style columns. */
+/** Build full property profile from skip-trace / New Analyzer Leads / Filter-style columns. */
 R.buildImportProfile = function buildImportProfile(row, cols) {
-  const g = (names) => {
-    const map = cols._byLower;
-    for (const n of names) {
-      const c = map?.get?.(headerKey(n));
-      if (c != null && String(row[c] ?? '').trim()) return String(row[c]).trim();
-    }
-    return '';
-  };
-  const phones = [];
-  const p1 = g(['contact1phone_1', 'contact1phone1', 'phone', 'phone number', 'mobile']);
-  if (p1) {
-    phones.push({
-      number: p1,
-      type: g(['contact1phone_1_type', 'contact1phone1type', 'phone type']),
-      dnc: /true|1|yes/i.test(g(['contact1phone_1_dnc', 'contact1phone1dnc', 'dnc'])),
-      litigator: /true|1|yes/i.test(g(['contact1phone_1_litigator', 'litigator']))
-    });
+  const lib = _importProfileLib();
+  if (lib?.buildImportProfile) {
+    return lib.buildImportProfile(row, { byLower: cols?._byLower });
   }
-  const p2 = g(['contact1phone_2', 'contact1phone2']);
-  if (p2) {
-    phones.push({
-      number: p2,
-      type: g(['contact1phone_2_type']),
-      dnc: /true|1|yes/i.test(g(['contact1phone_2_dnc'])),
-      litigator: /true|1|yes/i.test(g(['contact1phone_2_litigator']))
-    });
-  }
-  const emails = [];
-  const e1 = g(['contact1email_1', 'contact1email1', 'email', 'email address']);
-  const e2 = g(['contact1email_2', 'contact1email2']);
-  if (e1) emails.push(e1);
-  if (e2) emails.push(e2);
-
-  const profile = {
-    _shaped: true,
-    propertyType: g(['propertytype', 'property type']),
-    beds: g(['beds', 'bedrooms']),
-    baths: g(['baths', 'bathrooms']),
-    squareFootage: g(['squarefootage', 'sqft', 'living area']),
-    lotSizeSqFt: g(['lotsizesqft', 'lot size', 'lot sqft']),
-    yearBuilt: g(['yearbuilt', 'year built']),
-    stories: g(['stories']),
-    units: g(['units']),
-    ownerType: g(['ownertype', 'owner type']),
-    county: g(['county']),
-    lastSalesDate: g(['lastsalesdate', 'last sale date', 'sale date']),
-    lastSalesPrice: g(['lastsalesprice', 'last sale price', 'sale price']),
-    pricePerSqFt: g(['pricepersqft', 'price per sqft']),
-    avm: g(['avm']),
-    marketValue: g(['marketvalue', 'market value']),
-    wholesaleValue: g(['wholesalevalue', 'wholesale value']),
-    taxAssessedValue: g(['taxassessedvalue', 'assessed value']),
-    taxAmount: g(['taxamount', 'tax amount']),
-    ltv: g(['ltv']),
-    estimatedMortgageBalance: g(['estimatedmortgagebalance', 'mortgage balance']),
-    estimatedMortgagePayment: g(['estimatedmortgagepayment', 'mortgage payment']),
-    mortgageInterestRate: g(['mortgageinterestrate', 'interest rate']),
-    lenderName: g(['lendername', 'lender']),
-    loanType: g(['loantype', 'loan type']),
-    numberOfLoans: g(['numberofloans', 'loans']),
-    totalLoans: g(['totalloans']),
-    loanAmount: g(['loanamount', 'loan amount']),
-    mailingStreet: g(['recipientaddress', 'mailing address', 'mail street']),
-    mailingCity: g(['recipientcity', 'mail city']),
-    mailingState: g(['recipientstate', 'mail state']),
-    mailingPostal: g(['recipientpostalcode', 'mail zip', 'mail postal']),
-    contactName: g(['contact1name', 'contact name', 'owner name']),
-    contactType: g(['contact1type', 'contact type']),
-    phones,
-    emails,
-    heating: g(['heating']),
-    airConditioning: g(['airconditioning', 'ac', 'a/c']),
-    garage: g(['garage']),
-    roof: g(['roof']),
-    pool: g(['pool']),
-    porch: g(['porch']),
-    basement: g(['basement']),
-    hoa: flag01(g(['hoa'])) ? 'Yes' : '',
-    auctionDate: g(['auctiondate', 'auction date']),
-    lastNoticeDate: g(['lastnoticedate', 'last notice date']),
-    flags: {
-      absenteeOwner: flag01(g(['absenteeowner', 'absentee owner'])),
-      activeListing: flag01(g(['activelisting', 'active listing'])),
-      highEquity: flag01(g(['highequity', 'high equity'])),
-      preForeclosure: flag01(g(['preforeclosure', 'pre foreclosure'])),
-      vacancy: flag01(g(['vacancy', 'vacant'])),
-      freeAndClear: flag01(g(['freeandclear', 'free and clear'])),
-      longTermOwner: flag01(g(['longtermowner', 'long term owner'])),
-      potentiallyInherited: flag01(g(['potentiallyinherited', 'inherited'])),
-      delinquentTaxActivity: flag01(g(['delinquenttaxactivity', 'tax delinquent'])),
-      zombieProperty: flag01(g(['zombieproperty', 'zombie'])),
-      cashBuyer: flag01(g(['cashbuyer', 'cash buyer'])),
-      flipped: flag01(g(['flipped']))
-    }
-  };
-
-  const hasAny = Object.values(profile).some((v) => {
-    if (v && typeof v === 'object') {
-      if (Array.isArray(v)) return v.length > 0;
-      return Object.values(v).some((x) => x === 1 || (typeof x === 'string' && x));
-    }
-    return !!v && v !== true;
-  });
-  return hasAny ? profile : null;
+  return null;
 }
 
 /** Lazy-load SheetJS only when importing/exporting (keeps analyzer first paint fast). */
@@ -1598,39 +1507,21 @@ R.parseSpreadsheet = async function parseSpreadsheet(file, leadType = DEFAULT_LE
           if (lng) rec.longitude = lng;
 
           if (profile) {
-            // Keep a lean profile for UI — enough for property cards, not huge payloads
-            rec.profile = {
-              _shaped: true,
-              propertyType: profile.propertyType || '',
-              beds: profile.beds || '',
-              baths: profile.baths || '',
-              squareFootage: profile.squareFootage || '',
-              yearBuilt: profile.yearBuilt || '',
-              ownerType: profile.ownerType || '',
-              county: profile.county || '',
-              marketValue: profile.marketValue || '',
-              avm: profile.avm || '',
-              wholesaleValue: profile.wholesaleValue || '',
-              taxAssessedValue: profile.taxAssessedValue || '',
-              taxAmount: profile.taxAmount || '',
-              ltv: profile.ltv || '',
-              estimatedMortgageBalance: profile.estimatedMortgageBalance || '',
-              lenderName: profile.lenderName || '',
-              mailingStreet: profile.mailingStreet || '',
-              mailingCity: profile.mailingCity || '',
-              mailingState: profile.mailingState || '',
-              mailingPostal: profile.mailingPostal || '',
-              contactName: profile.contactName || '',
-              contactType: profile.contactType || '',
-              phones: profile.phones || [],
-              emails: profile.emails || [],
-              flags: profile.flags || {}
-            };
+            // Keep the full mapped profile so Property Profile dossier slots fill in.
+            const lib = _importProfileLib();
+            rec.profile = lib?.profileForImportRecord
+              ? lib.profileForImportRecord(profile)
+              : { ...profile, _shaped: true };
             if (profile.marketValue) rec.marketValue = profile.marketValue;
             if (profile.avm) rec.avm = profile.avm;
+            if (profile.wholesaleValue) rec.wholesaleValue = profile.wholesaleValue;
             if (profile.ownerType) rec.ownerType = profile.ownerType;
             if (profile.county) rec.county = profile.county;
             if (profile.contactName) rec.ownerName = profile.contactName;
+            if (profile.codeCategory) rec.codeCategory = profile.codeCategory;
+            if (profile.codeType) rec.codeType = profile.codeType;
+            if (profile.violationDescription) rec.violationDescription = profile.violationDescription;
+            if (profile.violationDate) rec.violationDate = profile.violationDate;
           }
           records.push(rec);
         }
