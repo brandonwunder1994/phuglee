@@ -111,4 +111,27 @@ describe('phuglee credentials', () => {
       delete require.cache[require.resolve('../lib/phuglee-credentials')];
     }
   });
+
+  test('vault-only matt bootstrap + ensure writes users.json', () => {
+    const prev = process.env.PHUGLEE_VAULT_ONLY_PASSWORD;
+    process.env.PHUGLEE_VAULT_ONLY_PASSWORD = 'wholesale';
+    try {
+      delete require.cache[require.resolve('../lib/phuglee-credentials')];
+      const creds = require('../lib/phuglee-credentials');
+      const ensured = creds.ensureVaultOnlyUser();
+      assert.equal(ensured.ok, true);
+      assert.equal(ensured.username, 'matt');
+      const ok = creds.authenticateUser('matt', 'wholesale');
+      assert.equal(ok.ok, true);
+      assert.equal(ok.username, 'matt');
+      assert.equal(ok.plan, 'max');
+      assert.equal(ok.role, 'vault');
+      const bad = creds.authenticateUser('matt', 'wrong');
+      assert.equal(bad.ok, false);
+    } finally {
+      if (prev == null) delete process.env.PHUGLEE_VAULT_ONLY_PASSWORD;
+      else process.env.PHUGLEE_VAULT_ONLY_PASSWORD = prev;
+      delete require.cache[require.resolve('../lib/phuglee-credentials')];
+    }
+  });
 });

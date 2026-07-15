@@ -608,6 +608,16 @@ function runListOpsMigrations() {
 }
 
 function startStandaloneServer() {
+  try {
+    const { ensureVaultOnlyUser } = require('./lib/phuglee-credentials');
+    const ensured = ensureVaultOnlyUser();
+    if (ensured.ok) {
+      console.log(`[auth] Ensured vault-only user: ${ensured.username}`);
+    }
+  } catch (err) {
+    console.warn('[auth] ensureVaultOnlyUser skipped:', err.message);
+  }
+
   const publicHost = config.loopbackHost(config.HOST);
   const onListening = () => {
     console.log(`Distress OS running at http://${publicHost}:${config.PORT}`);
