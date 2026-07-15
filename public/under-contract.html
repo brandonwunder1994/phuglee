@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=41">
+  <link rel="stylesheet" href="/css/under-contract.css?v=42">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -415,7 +415,7 @@
         <div class="uc-docs-head">
           <div>
             <h3>Documents</h3>
-            <p class="uc-docs-meta">Send via SignNow ? signed copies land here automatically</p>
+            <p class="uc-docs-meta">Upload contracts you already have, or send via SignNow — signed copies land here automatically</p>
           </div>
           <button type="button" id="uc-docs-refresh-sn" class="phuglee-btn phuglee-btn-ghost">Refresh signed</button>
         </div>
@@ -430,9 +430,27 @@
           </div>
           <iframe id="uc-doc-frame" class="uc-doc-frame" title="Document preview"></iframe>
         </div>
+        <div class="uc-docs-upload">
+          <label class="vault-field uc-docs-kind">
+            <span class="vault-field-label">Upload type</span>
+            <select id="uc-doc-upload-kind" class="phuglee-select">
+              <option value="purchase_contract">Purchase contract</option>
+              <option value="addendum">Addendum</option>
+              <option value="amendment">Amendment</option>
+              <option value="aoc">AOC</option>
+              <option value="jv">JV agreement</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label class="vault-field uc-docs-upload-file">
+            <span class="vault-field-label">File</span>
+            <input type="file" id="uc-doc-upload-file" class="phuglee-input" accept=".pdf,.doc,.docx,image/*,application/pdf">
+          </label>
+          <button type="button" id="uc-doc-upload" class="phuglee-btn phuglee-btn-secondary">Upload</button>
+        </div>
         <div class="uc-docs-send">
           <label class="vault-field uc-docs-kind">
-            <span class="vault-field-label">Document type</span>
+            <span class="vault-field-label">Send via SignNow</span>
             <select id="uc-doc-kind" class="phuglee-select">
               <option value="aoc">AOC (assignment)</option>
               <option value="jv">JV agreement</option>
@@ -527,15 +545,15 @@
   <dialog id="uc-jv-dialog" class="uc-dialog">
     <form method="dialog" id="uc-jv-form" class="uc-edit-form">
       <div class="uc-dialog-head">
-        <h3 id="uc-jv-title">Resend JV agreement</h3>
+        <h3 id="uc-jv-title">Send JV agreement</h3>
         <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">×</button>
       </div>
       <input type="hidden" id="uc-jv-deal-id" value="">
       <div id="uc-jv-resend-body" class="uc-jv-resend-body">
-        <p>We already sent this JV agreement out. Are you sure you want to resend it?</p>
+        <p>Send the JV agreement via SignNow?</p>
       </div>
       <div class="uc-edit-actions">
-        <button type="submit" value="save" class="phuglee-btn phuglee-btn-primary">Yes, resend JV</button>
+        <button type="submit" id="uc-jv-confirm" value="save" class="phuglee-btn phuglee-btn-primary">Yes, send JV</button>
         <button type="button" id="uc-jv-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
       </div>
     </form>
@@ -645,6 +663,6 @@
   <script src="/js/shell-nav.js?v=17" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=46" defer></script>
+  <script src="/js/under-contract.js?v=47" defer></script>
 </body>
 </html>

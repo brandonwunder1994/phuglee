@@ -1954,7 +1954,7 @@
     const box = $('uc-docs-list');
     if (!box) return;
     if (!docs.length) {
-      box.innerHTML = '<p class="uc-docs-empty">No documents yet. Pick a type below and click Send Document — signed PDFs return here automatically.</p>';
+      box.innerHTML = '<p class="uc-docs-empty">No documents yet. Upload a file below, or send via SignNow — signed PDFs return here automatically.</p>';
       return;
     }
     box.innerHTML = docs.map((d) => {
@@ -2003,6 +2003,55 @@
     frame.src = doc.viewUrl;
     viewer.hidden = false;
     viewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function uploadDocumentFromPanel() {
+    const dealId = state.activeDealId;
+    if (!dealId) {
+      showToast('Open a property first');
+      return;
+    }
+    const input = $('uc-doc-upload-file');
+    const file = input?.files?.[0];
+    if (!file) {
+      showToast('Choose a file to upload');
+      return;
+    }
+    const kind = $('uc-doc-upload-kind')?.value || 'purchase_contract';
+    const btn = $('uc-doc-upload');
+    if (btn) btn.disabled = true;
+    try {
+      const contentBase64 = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => {
+          const s = String(r.result || '');
+          resolve(s.includes(',') ? s.split(',')[1] : s);
+        };
+        r.onerror = () => reject(new Error('Could not read file'));
+        r.readAsDataURL(file);
+      });
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/documents`, {
+        method: 'POST',
+        body: JSON.stringify({
+          kind,
+          name: file.name,
+          mimeType: file.type || 'application/pdf',
+          contentBase64,
+          source: 'local'
+        })
+      });
+      if (data.deal) {
+        state.profile = data.deal;
+        renderDocuments(data.deal.documents || []);
+        renderDocsPending(data.deal);
+      }
+      if (input) input.value = '';
+      showToast(`Uploaded ${file.name}`);
+    } catch (err) {
+      showToast(err.message || 'Upload failed');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   async function sendDocumentFromPanel() {
@@ -2167,7 +2216,7 @@
     const label = signed ? 'JV signed' : (sent ? 'JV sent' : 'Send JV');
     const title = signed
       ? 'JV fully signed — click to resend with confirmation'
-      : (sent ? 'JV already sent — click to resend with confirmation' : 'Send JV agreement via SignNow');
+      : (sent ? 'JV already sent — click to resend with confirmation' : 'Send JV agreement via SignNow — confirmation required');
     return `<button type="button" class="${cls.join(' ')}" data-action="send-jv" title="${esc(title)}">${esc(label)}</button>`;
   }
 
@@ -2207,38 +2256,48 @@
     }
   }
 
-  function openJvResendWarning(deal) {
-    const { jv, signed } = jvState(deal);
+  function openJvConfirm(deal) {
+    const { sent, signed, jv } = jvState(deal);
     $('uc-jv-deal-id').value = deal.dealId;
-    $('uc-jv-title').textContent = deal.address ? `Resend JV — ${deal.address}` : 'Resend JV agreement';
-    const who = (jv && jv.requestedBy) ? jv.requestedBy : 'unknown';
-    const sentWhen = formatJvWhen(jv?.requestedAt) || 'unknown time';
-    const doneWhen = signed
-      ? (formatJvWhen(jv?.signedAt) || 'completed (time unknown)')
-      : 'Not fully signed yet — still awaiting signatures';
     const body = $('uc-jv-resend-body');
-    if (body) {
-      body.innerHTML = `
-        <p>We already sent this JV agreement out.</p>
-        <p>Are you sure you want to resend it?</p>
-        <ul class="uc-jv-resend-meta">
-          <li><strong>Originally sent by:</strong> ${esc(who)}</li>
-          <li><strong>Sent at:</strong> ${esc(sentWhen)}</li>
-          <li><strong>Signatures completed:</strong> ${esc(doneWhen)}</li>
-        </ul>
-        <p class="uc-jv-resend-note">Resend invites Brandon (${esc(JV_PARTIES.sales.email)}) and Brad (${esc(JV_PARTIES.dispos.email)}) again with the current property address.</p>`;
+    const confirmBtn = $('uc-jv-confirm');
+    const addr = deal.address || 'this property';
+
+    if (sent) {
+      $('uc-jv-title').textContent = deal.address ? `Resend JV — ${deal.address}` : 'Resend JV agreement';
+      if (confirmBtn) confirmBtn.textContent = 'Yes, resend JV';
+      const who = (jv && jv.requestedBy) ? jv.requestedBy : 'unknown';
+      const sentWhen = formatJvWhen(jv?.requestedAt) || 'unknown time';
+      const doneWhen = signed
+        ? (formatJvWhen(jv?.signedAt) || 'completed (time unknown)')
+        : 'Not fully signed yet — still awaiting signatures';
+      if (body) {
+        body.innerHTML = `
+          <p>We already sent this JV agreement out.</p>
+          <p>Are you sure you want to resend it?</p>
+          <ul class="uc-jv-resend-meta">
+            <li><strong>Originally sent by:</strong> ${esc(who)}</li>
+            <li><strong>Sent at:</strong> ${esc(sentWhen)}</li>
+            <li><strong>Signatures completed:</strong> ${esc(doneWhen)}</li>
+          </ul>
+          <p class="uc-jv-resend-note">Resend invites Brandon (${esc(JV_PARTIES.sales.email)}) and Brad (${esc(JV_PARTIES.dispos.email)}) again with the current property address.</p>`;
+      }
+    } else {
+      $('uc-jv-title').textContent = deal.address ? `Send JV — ${deal.address}` : 'Send JV agreement';
+      if (confirmBtn) confirmBtn.textContent = 'Yes, send JV';
+      if (body) {
+        body.innerHTML = `
+          <p>Send the JV agreement via SignNow for <strong>${esc(addr)}</strong>?</p>
+          <p class="uc-jv-resend-note">This invites Brandon (${esc(JV_PARTIES.sales.email)}) and Brad (${esc(JV_PARTIES.dispos.email)}) to sign.</p>`;
+      }
     }
     $('uc-jv-dialog')?.showModal();
   }
 
-  /** First click sends immediately; after a prior send, confirm before resend. */
+  /** Always confirm before send (first send or resend). */
   function openSendJv(deal) {
-    const { sent } = jvState(deal);
-    if (sent) {
-      openJvResendWarning(deal);
-      return;
-    }
-    doSendJv(deal);
+    if (!deal?.dealId) return;
+    openJvConfirm(deal);
   }
 
   function amendmentPartyDefaults(deal, contact, party) {
@@ -2759,6 +2818,7 @@
       }
     });
     $('uc-doc-send')?.addEventListener('click', () => { sendDocumentFromPanel(); });
+    $('uc-doc-upload')?.addEventListener('click', () => { uploadDocumentFromPanel(); });
     $('uc-docs-refresh-sn')?.addEventListener('click', () => { refreshSignedDocuments(); });
     $('uc-doc-close-viewer')?.addEventListener('click', closeDocViewer);
     $('uc-docs-list')?.addEventListener('click', (ev) => {
