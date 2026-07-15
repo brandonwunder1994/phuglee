@@ -906,14 +906,33 @@
   function expandPanel(el) {
     if (!el) return null;
     const panel = el.closest?.('.uc-panel') || (el.classList?.contains('uc-panel') ? el : null) || el;
-    if (panel?.classList?.contains('uc-panel')) return setPanelOpen(panel, true);
+    if (!panel?.classList?.contains('uc-panel')) return panel;
+    // Accordion: one section open at a time so content isn't pushed off-screen.
+    document.querySelectorAll('#uc-drawer .uc-panel.is-open').forEach((other) => {
+      if (other !== panel) setPanelOpen(other, false);
+    });
+    setPanelOpen(panel, true);
+    requestAnimationFrame(() => {
+      const drawerBody = document.querySelector('#uc-drawer .uc-drawer-body');
+      const summary = panel.querySelector(':scope > .uc-panel-summary');
+      if (!drawerBody || !summary) {
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const bodyTop = drawerBody.getBoundingClientRect().top;
+      const summaryTop = summary.getBoundingClientRect().top;
+      const nextTop = drawerBody.scrollTop + (summaryTop - bodyTop) - 8;
+      drawerBody.scrollTo({ top: Math.max(0, nextTop), behavior: 'smooth' });
+    });
     return panel;
   }
 
   function togglePanel(panel) {
     if (!panel?.classList?.contains('uc-panel')) return null;
-    const open = !panel.classList.contains('is-open');
-    return setPanelOpen(panel, open);
+    if (panel.classList.contains('is-open')) {
+      return setPanelOpen(panel, false);
+    }
+    return expandPanel(panel);
   }
 
   function pulseSellerSmsSection() {
