@@ -73,9 +73,12 @@ async function main() {
     'Partial review sync is always safe'
   ]);
 
-  // Fast review-queue API must exist and return a large Distressed pending set
+  // Fast review-queue API must exist (Distressed may be small after a long review session).
   const rq = await (await fetch(`${BASE}/analyzer/api/session-review-queue?filter=distressed&limit=50`, { headers: hdr, cache: 'no-store' })).json();
-  ok('review_queue_api', !!rq.ok && Number(rq.pending) > 100, `pending=${rq.pending} keys=${(rq.pendingKeys||[]).length} results=${(rq.results||[]).length}`);
+  ok('review_queue_api', !!rq.ok && Number(rq.pending) >= 0 && Array.isArray(rq.results), `pending=${rq.pending} keys=${(rq.pendingKeys||[]).length} results=${(rq.results||[]).length}`);
+  const rqWm = await (await fetch(`${BASE}/analyzer/api/session-review-queue?filter=well_maintained&limit=50&resultsOnly=1`, { headers: hdr, cache: 'no-store' })).json();
+  ok('review_queue_results_only', !!rqWm.ok && Array.isArray(rqWm.results) && (rqWm.pendingKeys || []).length === 0 && Number(rqWm.pending) > 100,
+    `pending=${rqWm.pending} keys=${(rqWm.pendingKeys||[]).length} results=${(rqWm.results||[]).length}`);
 
   const sum = await (await fetch(`${BASE}/analyzer/api/session-summary`, { headers: hdr, cache: 'no-store' })).json();
   ok('pending_unscanned_zero', Number(sum.pendingUnscanned) === 0, `pending=${sum.pendingUnscanned}`);

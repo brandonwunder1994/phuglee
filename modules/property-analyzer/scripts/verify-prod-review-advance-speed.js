@@ -49,23 +49,39 @@ async function main() {
   const report = await page.evaluate(async () => {
     const R = window.PDA?.env || {};
     if (typeof R.clearAllReviewProgressStashes === 'function') R.clearAllReviewProgressStashes();
-    await R.openReviewMode('distressed', { forceRebuild: true, restart: true });
-    const queue = R.state?.reviewQueue || [];
+    // Prefer WM — Distressed can be nearly empty after a long review session.
+    let filter = 'well_maintained';
+    await R.openReviewMode(filter, { forceRebuild: true, restart: true });
+    let queue = R.state?.reviewQueue || [];
+    if (!R.state?.reviewMode || queue.length < 8) {
+      filter = 'distressed';
+      await R.openReviewMode(filter, { forceRebuild: true, restart: true });
+      queue = R.state?.reviewQueue || [];
+    }
     if (!R.state?.reviewMode || queue.length < 5) {
-      return { ok: false, reason: 'queue_too_small', queueLen: queue.length };
+      return { ok: false, reason: 'queue_too_small', queueLen: queue.length, filter };
     }
 
     // Warm first lead imagery path once, then time subsequent Keeps.
     const samples = [];
     for (let i = 0; i < 4; i++) {
-      const beforeKey = (R.state.reviewQueue || [])[R.state.reviewIndex];
+      const beforeIdx = R.state.reviewIndex;
+      const beforeKey = (R.state.reviewQueue || [])[beforeIdx];
+      if (!beforeKey || beforeIdx >= (R.state.reviewQueue || []).length) {
+        samples.push({ ms: 0, advanced: false, reason: 'queue_exhausted' });
+        break;
+      }
       const t0 = performance.now();
       R.reviewKeep();
-      const afterKey = (R.state.reviewQueue || [])[R.state.reviewIndex];
+      const afterIdx = R.state.reviewIndex;
+      const afterKey = (R.state.reviewQueue || [])[afterIdx];
       const ms = performance.now() - t0;
       samples.push({
         ms: Math.round(ms * 10) / 10,
-        advanced: afterKey && afterKey !== beforeKey
+        advanced: !!(afterKey && afterKey !== beforeKey) || afterIdx > beforeIdx,
+        beforeIdx,
+        afterIdx,
+        filter
       });
     }
 
