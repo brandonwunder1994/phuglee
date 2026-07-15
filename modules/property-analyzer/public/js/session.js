@@ -1592,11 +1592,23 @@ R.ensureReviewedKeyInFilterBucket = function ensureReviewedKeyInFilterBucket(fil
     state.reviewedKeysByFilter = { distressed: [], well_maintained: [], vacant: [], review: [], low_confidence: [], blurred: [], satellite_only: [] };
   }
   const bucket = state.reviewedKeysByFilter[filter] || [];
-  if (!bucket.includes(key)) bucket.push(key);
+  // O(1) membership via side Set — includes() on 1k+ keys was slowing every Keep.
+  if (!state._reviewedKeySets) state._reviewedKeySets = {};
+  let set = state._reviewedKeySets[filter];
+  if (!set || set.size !== bucket.length) {
+    set = new Set(bucket);
+    state._reviewedKeySets[filter] = set;
+  }
+  if (set.has(key)) {
+    state.reviewedKeysByFilter[filter] = bucket;
+    return;
+  }
+  set.add(key);
+  bucket.push(key);
   state.reviewedKeysByFilter[filter] = bucket;
 }
 
-R.markReviewedKey = function markReviewedKey(filter, key, via = 'review') {
+R.markReviewedKey = function markReviewedKey(filter, key, via = 'review', opts = {}) {
   if (!filter || filter === 'all' || !key) return;
   // Soft vias only track queue progress / ghost buckets — they must NEVER stamp a lead
   // as manually reviewed or overwrite a real Keep/Change/Defer decision.
@@ -1617,6 +1629,26 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review') {
     touchManuallyReviewedByKey(key, via);
   }
   sessionDirty = true;
+
+  // During Review Keep/Change: paint the next lead first. Heavy KPI / Vault work is deferred.
+  const deferHeavy = opts.deferHeavy !== false && !!state.reviewMode;
+  if (deferHeavy) {
+    if (typeof notifyResultMutation === 'function') {
+      notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: false });
+    }
+    const stamped = idx != null && idx >= 0 ? state.results[idx] : null;
+    const runHeavy = () => {
+      if (stamped && typeof publishReviewedLeadToVault === 'function') {
+        try { publishReviewedLeadToVault(stamped, via); } catch (err) {
+          console.warn('[Vault] publish on review failed', err);
+        }
+      }
+    };
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(runHeavy, { timeout: 1200 });
+    else setTimeout(runHeavy, 0);
+    return;
+  }
+
   if (typeof notifyResultMutation === 'function') {
     notifyResultMutation({ clearServerTierCounts: true });
   } else {
@@ -1630,7 +1662,6 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review') {
       console.warn('[Vault] publish on review failed', err);
     }
   }
-  // Optimistic awaiting-review refresh (Vault row refreshes after publish succeeds)
   updateSummaryStats?.({ force: true, refreshVault: false });
 }
 
@@ -1639,15 +1670,33 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
   if (!result) return;
   const tier = String(result.leadTier || '').toLowerCase().replace(/-/g, '_');
   if (!['distressed', 'well_maintained', 'vacant'].includes(tier)) return;
+  // Lean payload — never stringify nested profile / imagery blobs on the Keep hot path.
+  const lean = {
+    email: result.email,
+    phone: result.phone,
+    address: result.address,
+    street: result.street,
+    city: result.city,
+    state: result.state,
+    postal: result.postal,
+    zip: result.zip,
+    leadTier: result.leadTier,
+    category: result.category,
+    score: result.score,
+    firstName: result.firstName,
+    lastName: result.lastName,
+    ownerName: result.ownerName,
+    owner: result.owner,
+    manuallyReviewed: true,
+    manuallyReviewedVia: via,
+    manuallyReviewedAt: result.manuallyReviewedAt || Date.now(),
+    reviewResolved: true,
+    needsReviewLater: false,
+    reason: result.reason,
+    indicators: Array.isArray(result.indicators) ? result.indicators.slice(0, 24) : []
+  };
   const payload = JSON.stringify({
-    result: {
-      ...result,
-      manuallyReviewed: true,
-      manuallyReviewedVia: via,
-      manuallyReviewedAt: result.manuallyReviewedAt || Date.now(),
-      reviewResolved: true,
-      needsReviewLater: false
-    },
+    result: lean,
     storageKey: (typeof getSessionUser === 'function' && getSessionUser()) || 'admin'
   });
   const headers = { 'Content-Type': 'application/json' };
@@ -1676,7 +1725,10 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
     .then(() => {
       invalidateVaultMetaCache?.();
       void refreshVaultSummaryRow?.({ force: true, instant: true });
-      updateSummaryStats?.({ force: true, forceVault: true });
+      // Don't force a full 16k recount while still inside Review — Exit refreshes KPIs.
+      if (!state.reviewMode) {
+        updateSummaryStats?.({ force: true, forceVault: true });
+      }
     })
     .catch((err) => {
       console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
@@ -1694,6 +1746,7 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
 R.unmarkReviewedKey = function unmarkReviewedKey(filter, key) {
   if (!key || !state.reviewedKeysByFilter || !filter || filter === 'all') return;
   state.reviewedKeysByFilter[filter] = (state.reviewedKeysByFilter[filter] || []).filter(k => k !== key);
+  if (state._reviewedKeySets?.[filter]) state._reviewedKeySets[filter].delete(key);
 }
 
 /** Persist review position only — do not bulk-mark leads as reviewed when leaving a queue. */

@@ -43,7 +43,7 @@ async function main() {
   ok('html_imagery_tag', !!scriptMap.imagery, scriptMap.imagery || 'missing');
   ok('html_session_tag', !!scriptMap.session, scriptMap.session || 'missing');
   ok('html_state_tag', !!scriptMap.state, scriptMap.state || 'missing');
-  ok('html_cachebust_review_exit', /review-exit1/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
+  ok('html_cachebust_review_fast', /review-fast2/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
 
   async function assertServed(label, src, needles) {
     if (!src) {
@@ -60,13 +60,13 @@ async function main() {
   await assertServed('imagery.js', scriptMap.imagery, [
     'fetchSessionReviewQueue',
     'mergeReviewQueueResults',
-    '_reviewUndoForceKey',
+    'deferHeavy: true',
     'flushReviewProgress'
   ]);
   await assertServed('session.js', scriptMap.session, [
     'isReviewQueueStaleVsPending',
     'clearAllReviewProgressStashes',
-    'Undo must un-stamp'
+    'paint the next lead first'
   ]);
   await assertServed('state.js', scriptMap.state, [
     '_sessionResultsLoadPromise',

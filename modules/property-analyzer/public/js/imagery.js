@@ -291,7 +291,12 @@ R.setReviewImages = function setReviewImages({ streetView = null, satellite = nu
   if (reviewSatWrap) reviewSatWrap.hidden = !dual;
 
   const primaryUrl = streetView || satellite;
-  const remoteLoad = primaryUrl && !fromCache && !isCachedImageryUrl(primaryUrl);
+  const alreadyReady = !!(primaryUrl && (
+    fromCache
+    || isCachedImageryUrl(primaryUrl)
+    || (typeof isReviewImageReady === 'function' && isReviewImageReady(primaryUrl))
+  ));
+  const remoteLoad = !!(primaryUrl && !alreadyReady);
   reviewImages.classList.toggle('loading', remoteLoad);
 
   const clearReviewLoading = () => reviewImages?.classList.remove('loading');
@@ -684,10 +689,18 @@ R.renderReviewLead = function renderReviewLead() {
 
   const renderId = ++reviewRenderGen;
   const urls = getReviewImageUrls(r.address, r);
+  const primary = urls.streetView || urls.satellite;
+  const prefetched = !!(primary && typeof isReviewImageReady === 'function' && isReviewImageReady(primary));
   if (reviewMetaName) reviewMetaName.innerHTML = propertyTitleHtml(r);
   if (reviewMetaStreet) reviewMetaStreet.textContent = propertyStreetLine(r);
-  setReviewImages(urls);
-  prefetchReviewQueueImages(state.reviewIndex + 1, REVIEW_PREFETCH_AHEAD);
+  setReviewImages({ ...urls, fromCache: !!(urls.fromCache || prefetched) });
+  // Prefetch ahead off the critical path so Keep stays snappy.
+  const prefetchFrom = state.reviewIndex + 1;
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(() => prefetchReviewQueueImages(prefetchFrom, REVIEW_PREFETCH_AHEAD), { timeout: 800 });
+  } else {
+    setTimeout(() => prefetchReviewQueueImages(prefetchFrom, REVIEW_PREFETCH_AHEAD), 0);
+  }
 
   const pos = state.reviewIndex + 1;
   const total = state.reviewQueue.length;
@@ -766,11 +779,12 @@ R.reviewAdvance = function reviewAdvance(via = 'review_keep', opts = {}) {
     if (idx != null && idx >= 0) {
       state.results[idx] = finalizeReviewClassification(state.results[idx]);
       if (typeof notifyResultMutation === 'function') {
-        notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: true });
+        notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: false });
       }
     }
   }
-  markReviewedKey(state.reviewFilter, key, via);
+  // Stamp reviewed + paint next lead before any Vault/KPI/training work.
+  markReviewedKey(state.reviewFilter, key, via, { deferHeavy: true });
   state.reviewIndex++;
   renderReviewLead();
   deferReviewAdvanceSideEffects(key, via, opts);
