@@ -2504,10 +2504,22 @@ R.proxyFetchUrl = function proxyFetchUrl(path, params, apiKey) {
   return `${path}?${q.toString()}`;
 }
 
+/** Throw a hard-quota Error the scan loop always recognizes (never Needs Review). */
+R.throwHardQuotaIfNeeded = function throwHardQuotaIfNeeded(data, provider, fallback) {
+  if (!data || data.ok || !data.hardQuota) return;
+  const who = provider === 'maps' ? 'MAPS' : 'GEMINI';
+  const detail = String(data.error || data.rawGoogleError || fallback || 'credits / quota exhausted').slice(0, 280);
+  const err = new Error(`[${who}] QUOTA/CREDITS EXHAUSTED — ${detail}`);
+  err.hardQuota = true;
+  err.status = data.httpStatus || data.status || 429;
+  throw err;
+}
+
 R.fetchSatelliteBase64 = async function fetchSatelliteBase64(address, apiKey) {
   if (!USE_PROXY) throw new Error('Open via launch-analyzer.bat (http://distressos.local:3456)');
   const res = await fetch(proxyFetchUrl('/api/satellite-base64', { address }, apiKey));
   const data = await res.json();
+  throwHardQuotaIfNeeded(data, 'maps', 'Satellite billing/quota');
   if (!data.ok) throw new Error(data.error || 'Satellite failed');
   return {
     base64: data.base64,
@@ -2526,6 +2538,9 @@ R.fetchPropertyImagery = async function fetchPropertyImagery(address, apiKey) {
     throw new Error(`Imagery request failed (${detail}). If this keeps happening, check that launch-analyzer.bat is still running.`);
   }
   const data = await res.json();
+  throwHardQuotaIfNeeded(data, 'maps', 'Imagery billing/quota');
+  if (data?.streetView?.hardQuota) throwHardQuotaIfNeeded(data.streetView, 'maps', 'Street View billing/quota');
+  if (data?.satellite?.hardQuota) throwHardQuotaIfNeeded(data.satellite, 'maps', 'Satellite billing/quota');
   if (!data.ok) throw new Error(data.error || 'Imagery failed');
   return data;
 }
@@ -2559,6 +2574,7 @@ R.fetchSatelliteImagery = async function fetchSatelliteImagery(address, apiKey) 
 R.fetchStreetViewBase64 = async function fetchStreetViewBase64(address, apiKey) {
   if (USE_PROXY) {
     const data = await fetchStreetViewImagery(address, apiKey);
+    throwHardQuotaIfNeeded(data, 'maps', 'Street View billing/quota');
     if (!data.ok) throw new Error(data.error || 'Street View failed');
     return {
       base64: data.base64,
@@ -2632,7 +2648,17 @@ R.callGeminiVision = async function callGeminiVision(base64, mimeType, apiKey, p
     body: JSON.stringify(payload)
   });
   const data = await res.json();
-  if (!data.ok) throw new Error(data.error || 'Gemini vision failed');
+  if (!data.ok) {
+    throwHardQuotaIfNeeded(data, 'gemini', 'Gemini billing/quota');
+    // Also treat server hardQuota flag when throw helper no-ops on missing shape
+    if (data.hardQuota) {
+      const err = new Error(`[GEMINI] QUOTA/CREDITS EXHAUSTED — ${data.error || 'credits / quota exhausted'}`);
+      err.hardQuota = true;
+      err.status = data.httpStatus || data.status || 429;
+      throw err;
+    }
+    throw new Error(data.error || 'Gemini vision failed');
+  }
   return data.text;
 }
 

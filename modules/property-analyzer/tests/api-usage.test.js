@@ -29,6 +29,39 @@ describe('api-usage classification', () => {
     assert.equal(isHardQuotaError(403, 'OVER_QUERY_LIMIT'), true);
     assert.equal(isHardQuotaError(403, 'You must enable billing on this project'), true);
   });
+
+  it('detects Gemini credit exhaustion / spend limit (stop scan, no uncategorized rows)', () => {
+    assert.equal(isHardQuotaError(429, 'Out of credits on this project'), true);
+    assert.equal(isHardQuotaError(403, 'Billing hard limit reached'), true);
+    assert.equal(isHardQuotaError(429, 'CONSUMER_SUSPENDED: purchase additional quota'), true);
+    assert.equal(isHardQuotaError(429, '[GEMINI] QUOTA/CREDITS EXHAUSTED — prepaid credit depleted'), true);
+    assert.equal(classifyApiError(429, 'Out of credits').retryable, false);
+  });
+
+  it('keeps soft per-minute rate limits retryable (not a credit halt)', () => {
+    assert.equal(isSoftRateLimitError(429, 'Too many requests, rate limit — try again in 20s'), true);
+    assert.equal(isHardQuotaError(429, 'Too many requests, rate limit — try again in 20s'), false);
+  });
+});
+
+describe('client scan hard-quota halt policy', () => {
+  it('propagates hardQuota from Gemini/Maps fetchers and never Needs-Reviews billing fails', () => {
+    const renderSrc = fs.readFileSync(path.join(__dirname, '../public/js/render.js'), 'utf8');
+    assert.match(renderSrc, /throwHardQuotaIfNeeded/);
+    assert.match(renderSrc, /QUOTA\/CREDITS EXHAUSTED/);
+    assert.match(renderSrc, /err\.hardQuota\s*=\s*true/);
+
+    const appSrc = fs.readFileSync(path.join(__dirname, '../public/js/app.js'), 'utf8');
+    assert.match(appSrc, /errorIsHardQuota/);
+    assert.match(appSrc, /Never persist uncategorized/);
+
+    const configSrc = fs.readFileSync(path.join(__dirname, '../public/js/config.js'), 'utf8');
+    assert.match(configSrc, /errorIsHardQuota/);
+    assert.match(configSrc, /st\.hardQuotaActive/);
+    assert.match(configSrc, /out of credits/);
+    assert.match(configSrc, /spend\.\?limit/);
+    assert.match(configSrc, /consumer_/);
+  });
 });
 
 describe('api-usage ledger', () => {

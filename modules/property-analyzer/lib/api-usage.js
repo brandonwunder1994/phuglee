@@ -29,14 +29,14 @@ function classifyApiError(status, message = '') {
   const st = Number(status) || 0;
 
   const hardQuota =
-    /exceeded your current quota|quota exceeded|resource_exhausted|billing not enabled|enable billing|free_tier.*limit|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|payment|invoice|account.*disabled|api key not valid.*quota/i.test(
+    /exceeded your current quota|quota exceeded|resource_exhausted|billing not enabled|enable billing|free_tier.*limit|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment|invoice|account.*disabled|api key not valid.*quota|quota\/credits exhausted/i.test(
       m
     ) ||
-    (/quota/i.test(m) && /exhausted|exceeded|daily|monthly|free.?tier/i.test(m)) ||
-    (st === 429 && /quota|resource_exhausted|free.?tier|daily|monthly/i.test(m) && !/try again in|rate/i.test(m));
+    (/quota/i.test(m) && /exhausted|exceeded|daily|monthly|free.?tier|credit/i.test(m)) ||
+    (st === 429 && /quota|resource_exhausted|free.?tier|daily|monthly|credit/i.test(m) && !/try again in|rate/i.test(m));
 
   const mapsHard =
-    /over_query_limit|request_denied.*billing|billing.*not.?enabled|you must enable billing|this api project is not authorized/i.test(
+    /over_query_limit|request_denied.*billing|billing.*not.?enabled|you must enable billing|this api project is not authorized|billing account|maps.*billing|street.?view.*billing/i.test(
       m
     );
 

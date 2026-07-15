@@ -1002,7 +1002,34 @@ function register(ctx) {
       streetView = { ok: false, error: svSettled.reason?.message || 'Street View failed' };
     }
 
-    sendJson(res, 200, { ok: true, satellite, streetView });
+    const { isHardQuotaError } = require('../lib/api-usage');
+    if (streetView && !streetView.ok && isHardQuotaError(streetView.status || 403, streetView.error)) {
+      streetView.hardQuota = true;
+      apiStats.mapsHardQuota = (apiStats.mapsHardQuota || 0) + 1;
+      apiStats.lastHardQuota = {
+        provider: 'maps',
+        at: Date.now(),
+        status: streetView.status || 403,
+        message: String(streetView.error || '').slice(0, 280)
+      };
+    }
+    if (satellite && !satellite.ok && isHardQuotaError(403, satellite.error)) {
+      satellite.hardQuota = true;
+      apiStats.mapsHardQuota = (apiStats.mapsHardQuota || 0) + 1;
+      apiStats.lastHardQuota = {
+        provider: 'maps',
+        at: Date.now(),
+        status: 403,
+        message: String(satellite.error || '').slice(0, 280)
+      };
+    }
+
+    sendJson(res, 200, {
+      ok: true,
+      satellite,
+      streetView,
+      hardQuota: !!(streetView?.hardQuota || satellite?.hardQuota)
+    });
     return true;
   });
 }

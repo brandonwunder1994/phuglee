@@ -1192,11 +1192,12 @@ R.refreshServerStatusUi = async function refreshServerStatusUi() {
     updateServerOfflineBanner();
     fetchServerSafetyStatus().then(updateServerSafetyIndicator);
     const hardMsg = st.lastHardQuota?.message || '';
-    const serverHardQuota = st.hardQuotaActive && isHardQuotaError(hardMsg);
+    // Server sticky hard-quota flag alone is enough — do not require message regex match.
+    const serverHardQuota = !!st.hardQuotaActive || (!!hardMsg && isHardQuotaError(hardMsg));
     if (serverHardQuota) {
       if (state.running) {
         const p = st.lastHardQuota?.provider || 'gemini';
-        haltScanForQuota(p, hardMsg || 'API quota exhausted');
+        haltScanForQuota(p, hardMsg || 'API credits / quota exhausted — scan stopped to avoid uncategorized leads');
       }
       if (diagGemini) setDiag(diagGemini, 'fail', 'Gemini: ⚠ QUOTA / CREDITS EXHAUSTED');
       if (diagFull) setDiag(diagFull, 'fail', 'Full pipeline: ⚠ reload API credits before scanning');
@@ -1600,11 +1601,11 @@ R.waitForRateLimit = async function waitForRateLimit() {
 R.isHardQuotaError = function isHardQuotaError(msg, status) {
   const m = String(msg || '').toLowerCase();
   const st = Number(status) || 0;
-  if (/exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|payment required|over_query_limit|must enable billing|api project is not authorized/i.test(m)) {
+  if (/exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment required|over_query_limit|must enable billing|api project is not authorized|quota\/credits exhausted/i.test(m)) {
     return true;
   }
-  if (/resource_exhausted/i.test(m) && /quota|daily|monthly|free/i.test(m)) return true;
-  if ((st === 429 || /429/.test(m)) && /quota|resource_exhausted|free.?tier|daily|monthly/i.test(m) && !/try again in|per minute|rate/i.test(m)) {
+  if (/resource_exhausted/i.test(m) && /quota|daily|monthly|free|credit/i.test(m)) return true;
+  if ((st === 429 || /429/.test(m)) && /quota|resource_exhausted|free.?tier|daily|monthly|credit/i.test(m) && !/try again in|per minute|rate/i.test(m)) {
     return true;
   }
   // Dead API key / Maps denied / Gemini auth
@@ -1612,9 +1613,17 @@ R.isHardQuotaError = function isHardQuotaError(msg, status) {
     return true;
   }
   if (st === 401 || st === 403) {
-    if (/gemini|maps|street|google|api key|quota|billing|denied/i.test(m)) return true;
+    if (/gemini|maps|street|google|api key|quota|billing|denied|credit/i.test(m)) return true;
   }
   return false;
+}
+
+/** True when an Error (or flag) means stop the scan — never write Needs Review / uncategorized. */
+R.errorIsHardQuota = function errorIsHardQuota(err) {
+  if (!err) return false;
+  if (err.hardQuota === true) return true;
+  const status = err.status || err.httpStatus || err.statusCode;
+  return isHardQuotaError(err.message || err, status);
 }
 
 /** Maps vs Gemini from an error string */
@@ -1755,8 +1764,9 @@ R.noteDiskSpaceError = function noteDiskSpaceError(errMsg) {
 
 /** Count consecutive non-transient API failures; soft 429/503 never halts the scan. */
 R.noteApiScanFailure = function noteApiScanFailure(errMsg, provider) {
-  if (isHardQuotaError(errMsg)) {
-    haltScanForQuota(provider || apiProviderFromError(errMsg), errMsg, { kind: 'quota' });
+  if (isHardQuotaError(errMsg) || (errMsg && errMsg.hardQuota === true)) {
+    const msg = typeof errMsg === 'string' ? errMsg : (errMsg?.message || String(errMsg || ''));
+    haltScanForQuota(provider || apiProviderFromError(msg), msg, { kind: 'quota' });
     return true;
   }
   if (isDiskSpaceError(errMsg)) {

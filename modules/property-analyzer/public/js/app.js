@@ -1045,8 +1045,8 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
           break;
         }
       }
-      // Hard quota → stop immediately (do not burn retries / fail streak).
-      if (isHardQuotaError(err.message)) {
+      // Hard quota / credits → stop immediately (do not burn retries or write Needs Review).
+      if (typeof errorIsHardQuota === 'function' ? errorIsHardQuota(err) : isHardQuotaError(err.message)) {
         const provider = typeof apiProviderFromError === 'function'
           ? apiProviderFromError(err.message)
           : (/street|maps|over_query|billing/i.test(String(err.message || '')) ? 'maps' : 'gemini');
@@ -1080,7 +1080,7 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
     return null;
   }
 
-  if (lastErr && isHardQuotaError(lastErr.message)) {
+  if (lastErr && (typeof errorIsHardQuota === 'function' ? errorIsHardQuota(lastErr) : isHardQuotaError(lastErr.message))) {
     const provider = typeof apiProviderFromError === 'function'
       ? apiProviderFromError(lastErr.message)
       : 'gemini';
@@ -1117,9 +1117,20 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       return null;
     }
     noteRateLimit(lastErr);
-    if (state.aborted) return null;
+    // Re-check after awaits — another worker may have hit billing/quota mid-flight.
+    if (state.aborted || state.quotaHaltShown) return null;
     noteApiScanFailure?.(lastErr.message, apiProviderFromError?.(lastErr.message));
-    if (state.aborted) return null;
+    if (state.aborted || state.quotaHaltShown) return null;
+  }
+  // Never persist uncategorized / Needs Review rows for billing or credit exhaustion.
+  if (state.aborted || state.quotaHaltShown) return null;
+  if (lastErr && (typeof errorIsHardQuota === 'function' ? errorIsHardQuota(lastErr) : isHardQuotaError(lastErr.message))) {
+    haltScanForQuota(
+      apiProviderFromError?.(lastErr.message) || 'gemini',
+      lastErr.message,
+      { kind: 'quota' }
+    );
+    return null;
   }
   const cat = categorizeError(lastErr?.message);
   if (cat === 'streetview') state.failStreetView++;
