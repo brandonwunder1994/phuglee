@@ -812,7 +812,10 @@
     stopPoll();
     state.pollTimer = setInterval(() => {
       loadDeals({ silent: true }).catch(() => {});
-      if (state.activeDealId) refreshTeamMessagesFromState();
+      if (state.activeDealId) {
+        refreshTeamMessagesFromState();
+        autoSyncSignedDocuments({ silent: true }).catch(() => {});
+      }
     }, POLL_MS);
     startMsgPoll();
   }
@@ -821,6 +824,9 @@
     if (!state.pollTimer) {
       state.pollTimer = setInterval(() => {
         loadDeals({ silent: true }).catch(() => {});
+        if (state.activeDealId) {
+          autoSyncSignedDocuments({ silent: true }).catch(() => {});
+        }
       }, POLL_MS);
     }
     if (state.activeDealId) startMsgPoll();
@@ -886,19 +892,28 @@
     return prevUnread !== nextUnread;
   }
 
+  function expandPanel(el) {
+    if (!el) return null;
+    const panel = el.closest?.('details.uc-panel') || (el.matches?.('details.uc-panel') ? el : null) || el;
+    if (panel && panel.tagName === 'DETAILS') panel.open = true;
+    return panel;
+  }
+
   function pulseSellerSmsSection() {
     const pulse = $('uc-sms-pulse');
     if (pulse) {
       pulse.hidden = false;
       pulse.classList.add('is-flash');
     }
-    $('uc-convo-section')?.classList.add('uc-convo--alert');
+    const section = expandPanel($('uc-convo-section'));
+    section?.classList.add('uc-convo--alert');
     setTimeout(() => $('uc-convo-section')?.classList.remove('uc-convo--alert'), 2500);
   }
 
   function scrollToSellerSms() {
     requestAnimationFrame(() => {
-      $('uc-convo-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const section = expandPanel($('uc-convo-section'));
+      section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       $('uc-sms-input')?.focus?.();
     });
   }
@@ -1985,7 +2000,32 @@
       return;
     }
     el.hidden = false;
-    el.textContent = `${pending.length} SignNow package${pending.length === 1 ? '' : 's'} awaiting signatures — click Refresh signed after they finish.`;
+    el.textContent = `${pending.length} SignNow package${pending.length === 1 ? '' : 's'} awaiting signatures — signed copies auto-import into Documents (you can still Refresh signed).`;
+  }
+
+  async function autoSyncSignedDocuments(opts = {}) {
+    const dealId = state.activeDealId;
+    if (!dealId) return;
+    const pending = Array.isArray(state.profile?.signNowPending) ? state.profile.signNowPending : [];
+    if (!pending.length) return;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/sync-signnow`, {
+        method: 'POST',
+        body: '{}'
+      });
+      const n = data.ingested || 0;
+      if (data.deal) {
+        state.profile = data.deal;
+        const idx = state.deals.findIndex((d) => d.dealId === dealId);
+        if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...data.deal };
+        renderDocuments(data.deal.documents || []);
+        renderDocsPending(data.deal);
+        syncDrawerJvButton(data.deal);
+      }
+      if (n && !opts.silent) {
+        showToast(`Auto-imported ${n} signed document${n === 1 ? '' : 's'}`);
+      }
+    } catch (_) { /* silent background sync */ }
   }
 
   function closeDocViewer() {
@@ -2129,7 +2169,8 @@
       if (opts.markTeamRead) await markTeamMessagesRead(dealId);
       if (opts.scrollToTeam) {
         requestAnimationFrame(() => {
-          $('uc-team-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const team = expandPanel($('uc-team-section'));
+          team?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       }
       if (opts.scrollToSms) {

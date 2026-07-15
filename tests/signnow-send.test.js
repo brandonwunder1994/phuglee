@@ -71,6 +71,12 @@ describe('signnow-send helpers', () => {
     assert.match(src, /role: 'Assignee'/);
   });
 
+  it('auto-imports signed SignNow docs via syncPendingSignNowAcrossDeals export', () => {
+    const contracts = require('../lib/leads-platform/contracts');
+    assert.equal(typeof contracts.syncPendingSignNowAcrossDeals, 'function');
+    assert.equal(typeof contracts.syncSignedSignNowDocuments, 'function');
+  });
+
   it('maps template keys to document kinds', () => {
     assert.equal(kindFromTemplateKey('aoc'), 'aoc');
     assert.equal(kindFromTemplateKey('jv'), 'jv');
