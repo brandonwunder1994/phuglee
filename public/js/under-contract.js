@@ -2041,6 +2041,7 @@
     const title = $('uc-doc-viewer-title');
     const openTab = $('uc-doc-open-tab');
     if (!viewer || !frame || !doc?.viewUrl) return;
+    expandPanel(viewer);
     title.textContent = doc.name || 'Document';
     openTab.href = doc.viewUrl;
     frame.src = doc.viewUrl;
@@ -2735,7 +2736,9 @@
       deskUploadMedia(ev.target.files).catch((err) => showToast(err.message || 'Upload failed'));
       ev.target.value = '';
     });
-    $('uc-sms-pulse')?.addEventListener('click', () => {
+    $('uc-sms-pulse')?.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
       scrollToSellerSms();
     });
     $('uc-team-send')?.addEventListener('click', () => { sendTeamMessage(); });
