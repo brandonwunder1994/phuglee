@@ -497,12 +497,17 @@
   function renderTable(deals) {
     const tbody = $('uc-tbody');
     const table = $('uc-table');
+    const cards = $('uc-cards');
     const empty = $('uc-empty');
     const count = $('uc-board-count');
     if (!tbody) return;
 
     if (!deals.length) {
-      table.hidden = true;
+      if (table) table.hidden = true;
+      if (cards) {
+        cards.hidden = true;
+        cards.innerHTML = '';
+      }
       empty.hidden = false;
       count.textContent = '0 deals';
       tbody.innerHTML = '';
@@ -510,7 +515,8 @@
     }
 
     empty.hidden = true;
-    table.hidden = false;
+    if (table) table.hidden = false;
+    if (cards) cards.hidden = false;
     count.textContent = `${deals.length} deal${deals.length === 1 ? '' : 's'}`;
 
     tbody.innerHTML = deals.map((d) => {
@@ -573,6 +579,61 @@
         </td>
       </tr>`;
     }).join('');
+
+    if (cards) {
+      cards.innerHTML = deals.map((d) => {
+        const { street, cityLine } = propertyLines(d);
+        const stage = STAGE_LABELS[d.stage] || d.stage || '—';
+        const releaseBtn = isAdmin()
+          ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
+          : '';
+        return `<article class="uc-deal-card" data-deal-id="${esc(d.dealId)}">
+          <div class="uc-deal-card-head">
+            <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
+              ${thumbHtml(d, 'uc-thumb')}
+            </button>
+            <button type="button" class="uc-property-btn" data-action="open">
+              <span class="uc-property-text">
+                <span class="uc-addr">${esc(street)}</span>
+                <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+              </span>
+            </button>
+            ${d.sellerSmsUnread
+              ? `<button type="button" class="uc-sms-alert" data-action="open-seller-sms" title="${esc(sellerSmsHoverTitle(d))}" aria-label="${esc(sellerSmsHoverTitle(d))}">💬</button>`
+              : ''}
+          </div>
+          <div class="uc-deal-card-meta">
+            <span class="uc-stage" data-stage="${esc(d.stage)}">${esc(stage)}</span>
+            <span class="uc-money">${esc(money(d.purchasePrice))}</span>
+            <span class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</span>
+          </div>
+          <div class="uc-deal-card-pills">
+            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.titleOpened || '')}">Title ${esc(d.titleOpenedLabel || '—')}</span>
+            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.sellerEmdSubmitted || '')}">EMD ${esc(d.sellerEmdLabel || '—')}</span>
+            <span class="uc-pill uc-pill--access" data-access="${esc(d.accessType || '')}">${esc(d.accessDisplay || d.accessLabel || '—')}</span>
+            <span class="uc-pill uc-pill--vacancy" data-vacancy="${esc(d.vacancy || '')}">${esc(d.vacancyLabel || '—')}</span>
+            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.photosAvailable || '')}">Photos ${esc(d.photosLabel || '—')}</span>
+            <button type="button" class="uc-rehab-cell" data-action="view-rehab" title="View rehab info">
+              <span class="uc-pill uc-pill--yn" data-yn="${esc(d.rehabInfoReady || '')}">Rehab ${esc(d.rehabInfoLabel || '—')}</span>
+            </button>
+            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerFound || '')}">Buyer ${esc(d.buyerFoundLabel || '—')}</span>
+            <button type="button" class="uc-funded-cell" data-action="view-funded" title="Funded breakdown">
+              <span class="uc-pill uc-pill--yn" data-yn="${esc(d.funded || '')}">Funded ${esc(d.fundedLabel || '—')}</span>
+            </button>
+          </div>
+          <div class="uc-deal-card-quick">
+            <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
+            <button type="button" class="uc-quick-btn uc-quick-btn--jv" data-action="send-jv">Send JV</button>
+            <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
+          </div>
+          <div class="uc-row-actions uc-deal-card-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="edit">Edit</button>
+            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>
+            ${releaseBtn}
+          </div>
+        </article>`;
+      }).join('');
+    }
   }
 
   /** Street on line 1; city, state zip on line 2 — never stack the full one-line address. */
@@ -2609,9 +2670,9 @@
       loadDeals().then(() => showToast('Payout settings updated')).catch(() => {});
     });
 
-    $('uc-tbody')?.addEventListener('click', (ev) => {
+    function handleDealBoardClick(ev) {
       const btn = ev.target.closest('[data-action]');
-      const row = ev.target.closest('tr[data-deal-id]');
+      const row = ev.target.closest('[data-deal-id]');
       if (!row) return;
       const dealId = row.getAttribute('data-deal-id');
       const deal = state.deals.find((d) => d.dealId === dealId);
@@ -2639,7 +2700,10 @@
       if (action === 'view-rehab') openRehabView(deal);
       if (action === 'view-funded') openFundedView(deal);
       if (action === 'release' && isAdmin()) releaseDeal(deal.dealId, deal.address);
-    });
+    }
+
+    $('uc-tbody')?.addEventListener('click', handleDealBoardClick);
+    $('uc-cards')?.addEventListener('click', handleDealBoardClick);
   }
 
   async function allowContractDesk() {

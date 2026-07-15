@@ -1965,13 +1965,48 @@ body {
   }
 }
 
+@media (max-width: 768px) {
+  .bridge-list-action,
+  .bridge-pagination-btn,
+  .bridge-date-chip,
+  .bridge-type-chip-face {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .bridge-history-dialog-close {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .bridge-datetime-picker input[type='date'],
+  .bridge-city-search.phuglee-input,
+  .bridge-toolbar-field .phuglee-select,
+  .bridge-row select.phuglee-select,
+  body.bridge-page input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  body.bridge-page select,
+  body.bridge-page textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+}
+
 @media (max-width: 640px) {
   .bridge-pipeline-list {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .bridge-pipeline-step,
+  body.bridge-page .bridge-pipeline--slim .bridge-pipeline-step {
+    min-height: 44px;
+  }
+
   .bridge-main {
-    padding: 1.5rem 1rem 2.5rem;
+    padding: 1.5rem max(1rem, env(safe-area-inset-right, 0px))
+      calc(2.5rem + env(safe-area-inset-bottom, 0px))
+      max(1rem, env(safe-area-inset-left, 0px));
   }
 }
 
@@ -3019,6 +3054,134 @@ button.bridge-inventory-filter-chip.is-active {
   min-width: 860px;
   border-collapse: collapse;
   font-size: 0.8rem;
+}
+
+.bridge-lists-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.65rem;
+}
+
+.bridge-results-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.65rem;
+}
+
+.bridge-results-cards[hidden] {
+  display: none !important;
+}
+
+.bridge-results-cards-empty {
+  margin: 0;
+  padding: 0.85rem;
+  color: var(--phuglee-stone, #aea38f);
+  font-size: 0.88rem;
+}
+
+.bridge-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.bridge-result-card--review {
+  border-color: rgba(229, 132, 53, 0.4);
+}
+
+.bridge-result-card-addr {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: var(--phuglee-cream);
+  line-height: 1.3;
+}
+
+.bridge-result-card-issue {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--phuglee-taupe, #aea38f);
+  line-height: 1.4;
+}
+
+.bridge-result-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.bridge-result-card-cat {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.bridge-result-card-foot {
+  margin: 0.15rem 0 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--phuglee-stone);
+}
+
+.bridge-lists-cards[hidden] {
+  display: none !important;
+}
+
+.bridge-list-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.bridge-list-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bridge-list-card-check {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.bridge-list-card-name {
+  min-width: 0;
+  width: 100%;
+}
+
+.bridge-list-card-meta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--phuglee-stone, #aea38f);
+  line-height: 1.35;
+}
+
+.bridge-list-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.bridge-list-card-actions .bridge-list-action {
+  min-height: 44px;
+  padding: 0.55rem 0.85rem;
 }
 
 .bridge-lists-total {
@@ -4223,6 +4386,54 @@ button.bridge-inventory-filter-chip.is-active {
   .bridge-train-actions .phuglee-btn {
     width: 100%;
   }
+
+  /* Inventory: stacked cards instead of 860px swipe table */
+  .bridge-lists-wrap {
+    overflow-x: visible;
+  }
+
+  .bridge-lists-table {
+    display: none !important;
+  }
+
+  .bridge-lists-cards:not([hidden]) {
+    display: flex !important;
+  }
+
+  /* Kept results: cards instead of wide swipe table */
+  .bridge-table-wrap {
+    overflow-x: visible;
+  }
+
+  .bridge-results-table {
+    display: none !important;
+  }
+
+  .bridge-results-cards:not([hidden]) {
+    display: flex !important;
+  }
+
+  .bridge-train-approve,
+  .bridge-train-deny {
+    min-height: 48px;
+    flex: 1 1 auto;
+  }
+
+  .bridge-train-actions {
+    gap: 0.55rem;
+  }
+}
+
+/* Tablet: keep inventory table readable without phone squeeze */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .bridge-lists-table {
+    min-width: 720px;
+  }
+
+  .bridge-desk,
+  .bridge-main {
+    max-width: 100%;
+  }
 }
 
 /* ── Theater motion reduce twins (STATES-04) ───────────────────────────
@@ -4680,7 +4891,7 @@ body.bridge-page .bridge-pipeline--slim .bridge-pipeline-step {
   padding: 0.4rem 0.65rem;
   font-size: 0.62rem;
   letter-spacing: 0.08em;
-  min-height: 2.1rem;
+  min-height: 44px;
   font-family: var(--font-body);
   font-weight: 600;
 }

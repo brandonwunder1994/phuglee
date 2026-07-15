@@ -2,7 +2,7 @@
   'use strict';
 
   const SMART_DEFAULTS_KEY = 'vaultSmartDefaults';
-  const CARD_BREAKPOINT = 720;
+  const CARD_BREAKPOINT = 641;
   const SIGNALS_COLLAPSED = 8;
   const TOAST_MS = 2200;
   const DISPOSITIONS = [
@@ -729,8 +729,19 @@
   }
 
   function applyAutoViewMode() {
+    const narrow = window.innerWidth < CARD_BREAKPOINT;
+    // Phone: always cards (thumb-first). Manual toggle only applies ≥641px.
+    if (narrow) {
+      if (state.viewMode === 'cards') return;
+      state.viewMode = 'cards';
+      state.page = 1;
+      state.leads = [];
+      updateViewToggle();
+      loadLeads();
+      return;
+    }
     if (state.viewModeManual) return;
-    const want = window.innerWidth < CARD_BREAKPOINT ? 'cards' : 'table';
+    const want = 'table';
     if (state.viewMode === want) return;
     state.viewMode = want;
     state.page = 1;
@@ -1708,8 +1719,10 @@
       applySmartDefaults();
     }
 
-    if (!state.viewModeManual) {
-      state.viewMode = window.innerWidth < CARD_BREAKPOINT ? 'cards' : 'table';
+    if (window.innerWidth < CARD_BREAKPOINT) {
+      state.viewMode = 'cards';
+    } else if (!state.viewModeManual) {
+      state.viewMode = 'table';
     }
 
     bindEvents();

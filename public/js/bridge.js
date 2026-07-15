@@ -80,6 +80,7 @@
   const resultsToolbar = document.getElementById('bridge-results-toolbar');
   const tableWrap = document.getElementById('bridge-table-wrap');
   const resultsBody = document.getElementById('bridge-results-body');
+  const resultsCards = document.getElementById('bridge-results-cards');
   const resultsTable = document.getElementById('bridge-results-table');
   const paginationEl = document.getElementById('bridge-pagination');
   const filterSearch = document.getElementById('bridge-filter-search');
@@ -4066,6 +4067,10 @@
     if (resultsMeta) resultsMeta.textContent = '';
     if (kpiGrid) kpiGrid.innerHTML = '';
     if (resultsBody) resultsBody.innerHTML = '';
+    if (resultsCards) {
+      resultsCards.innerHTML = '';
+      setHidden(resultsCards, true);
+    }
     if (filterSearch) filterSearch.value = '';
     if (filterCategory) filterCategory.value = '';
     if (filterTag) filterTag.value = '';
@@ -4623,16 +4628,45 @@
     const pages = Math.max(1, Number(totalPages) || 1);
     if (tableState.page > pages) tableState.page = pages;
 
-    resultsBody.innerHTML = rows.map((row) => (
-      `<tr class="${row.needsReview ? 'bridge-row-review' : ''}">` +
-      `<td>${esc(row.streetAddress)}</td>` +
-      `<td>${esc(row.violationIssueType)}</td>` +
-      `<td>${esc(row.category || '')}</td>` +
-      `<td><span class="bridge-tag bridge-tag--${tagClass(row.distressedSignalTag)}">${esc(row.distressedSignalTag)}</span></td>` +
-      `<td>${esc(row.confidenceLevel)}${row.needsReview ? ' <span class="bridge-review-flag">Review</span>' : ''}</td>` +
-      `<td>${esc(row.violationDate)}</td>` +
-      `</tr>`
-    )).join('') || '<tr><td colspan="6">No rows match the current filters.</td></tr>';
+    if (!rows.length) {
+      if (resultsBody) {
+        resultsBody.innerHTML = '<tr><td colspan="6">No rows match the current filters.</td></tr>';
+      }
+      if (resultsCards) {
+        resultsCards.innerHTML = '<p class="bridge-results-cards-empty">No rows match the current filters.</p>';
+        setHidden(resultsCards, false);
+      }
+    } else {
+      if (resultsBody) {
+        resultsBody.innerHTML = rows.map((row) => (
+          `<tr class="${row.needsReview ? 'bridge-row-review' : ''}">` +
+          `<td>${esc(row.streetAddress)}</td>` +
+          `<td>${esc(row.violationIssueType)}</td>` +
+          `<td>${esc(row.category || '')}</td>` +
+          `<td><span class="bridge-tag bridge-tag--${tagClass(row.distressedSignalTag)}">${esc(row.distressedSignalTag)}</span></td>` +
+          `<td>${esc(row.confidenceLevel)}${row.needsReview ? ' <span class="bridge-review-flag">Review</span>' : ''}</td>` +
+          `<td>${esc(row.violationDate)}</td>` +
+          `</tr>`
+        )).join('');
+      }
+      if (resultsCards) {
+        resultsCards.innerHTML = rows.map((row) => (
+          `<article class="bridge-result-card${row.needsReview ? ' bridge-result-card--review' : ''}">` +
+          `<h3 class="bridge-result-card-addr">${esc(row.streetAddress || '—')}</h3>` +
+          `<p class="bridge-result-card-issue">${esc(row.violationIssueType || '—')}</p>` +
+          `<div class="bridge-result-card-meta">` +
+          `<span class="bridge-result-card-cat">${esc(row.category || '—')}</span>` +
+          `<span class="bridge-tag bridge-tag--${tagClass(row.distressedSignalTag)}">${esc(row.distressedSignalTag || '—')}</span>` +
+          `</div>` +
+          `<p class="bridge-result-card-foot">` +
+          `<span>${esc(row.confidenceLevel || '—')}${row.needsReview ? ' · <span class="bridge-review-flag">Review</span>' : ''}</span>` +
+          `<span>${esc(row.violationDate || '—')}</span>` +
+          `</p>` +
+          `</article>`
+        )).join('');
+        setHidden(resultsCards, false);
+      }
+    }
 
     paginationEl.innerHTML =
       `<span>${total.toLocaleString()} shown · page ${tableState.page} of ${pages}</span>` +
@@ -4651,10 +4685,18 @@
         resultsBody.innerHTML =
           '<tr><td colspan="6">Loading rows…</td></tr>';
       }
+      if (resultsCards) {
+        resultsCards.innerHTML = '<p class="bridge-results-cards-empty">Loading rows…</p>';
+        setHidden(resultsCards, false);
+      }
       loadDraftTablePage(tableState.page).catch((err) => {
+        const msg = (err && err.message) || 'Could not load rows';
         if (resultsBody) {
           resultsBody.innerHTML =
-            `<tr><td colspan="6">${esc((err && err.message) || 'Could not load rows')}</td></tr>`;
+            `<tr><td colspan="6">${esc(msg)}</td></tr>`;
+        }
+        if (resultsCards) {
+          resultsCards.innerHTML = `<p class="bridge-results-cards-empty">${esc(msg)}</p>`;
         }
       });
       return;

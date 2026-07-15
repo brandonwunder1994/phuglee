@@ -84,6 +84,12 @@ Test-Step "Distress OS HTTP endpoints (server must be running)" {
     Write-Host "  All routes returned 200"
 }
 
+Test-Step "Mobile layout (phone widths)" {
+    Set-Location $root
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $root "scripts\verify-mobile.ps1")
+    if ($LASTEXITCODE -ne 0) { throw "verify-mobile exit $LASTEXITCODE" }
+}
+
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Yellow
 if ($failures.Count -eq 0) {

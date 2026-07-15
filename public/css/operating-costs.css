@@ -758,4 +758,97 @@
   .oc-watermark {
     text-align: left;
   }
+
+  .oc-main {
+    padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .oc-brief-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .oc-kind-filter,
+  .oc-cat-chip {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0.55rem 0.75rem;
+  }
+
+  /* Charge log → stacked labeled cards */
+  .oc-table-wrap {
+    overflow-x: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .oc-table thead {
+    display: none;
+  }
+
+  .oc-table,
+  .oc-table tbody,
+  .oc-table tr,
+  .oc-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .oc-table tr {
+    margin-bottom: 0.55rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--border, rgba(174, 163, 143, 0.16));
+    border-radius: 10px;
+    background: var(--surface, rgba(26, 26, 26, 0.92));
+  }
+
+  .oc-table td {
+    border: 0;
+    padding: 0.2rem 0;
+    display: grid;
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: 0.4rem;
+    align-items: start;
+  }
+
+  .oc-table td::before {
+    content: attr(data-label);
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted, #aea38f);
+    padding-top: 0.15rem;
+  }
+
+  .oc-table td.oc-num {
+    text-align: left;
+    font-size: 1.05rem;
+    font-weight: 650;
+  }
+
+  .oc-table .oc-empty,
+  .oc-table td[colspan] {
+    display: block;
+    text-align: center;
+    grid-template-columns: 1fr;
+  }
+
+  .oc-table td[colspan]::before {
+    display: none;
+  }
+}
+
+/* Tablet: keep KPI grids usable */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .oc-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .oc-brief-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

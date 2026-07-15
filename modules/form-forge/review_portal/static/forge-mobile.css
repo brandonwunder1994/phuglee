@@ -1,0 +1,279 @@
+/* Form Forge — mobile / tablet adaptation
+   Stacks sidebar + workspace; wraps topbar; touch-friendly controls. */
+
+@media (hover: none) {
+  .pdf-thumb-overlay {
+    opacity: 1 !important;
+    background: rgba(8, 12, 20, 0.4) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body.stamp-theme {
+    overflow-x: clip;
+    overflow-y: auto;
+  }
+
+  body.stamp-theme .topbar,
+  body.stamp-theme .portal-topbar {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0.65rem max(0.85rem, env(safe-area-inset-right, 0px))
+      0.65rem max(0.85rem, env(safe-area-inset-left, 0px));
+  }
+
+  body.stamp-theme .brand {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  body.stamp-theme .brand h1 {
+    font-size: 1rem;
+  }
+
+  body.stamp-theme .sub {
+    display: none;
+  }
+
+  body.stamp-theme .app-nav {
+    margin-left: 0;
+    padding-left: 0;
+    border-left: none;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  body.stamp-theme .nav-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.45rem 0.75rem;
+  }
+
+  body.stamp-theme .progress-ring-wrap {
+    max-width: none;
+    width: 100%;
+    order: 3;
+  }
+
+  body.stamp-theme .topbar-actions {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  body.stamp-theme .topbar-actions .btn,
+  body.stamp-theme .btn {
+    min-height: 44px;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: calc(100dvh - 64px);
+  }
+
+  body.distress-os-embedded .layout {
+    height: auto;
+    min-height: calc(100dvh - var(--distress-nav-offset, 108px));
+  }
+
+  .sidebar {
+    max-height: min(36dvh, 280px);
+    border-right: none;
+    border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  }
+
+  .workspace {
+    min-height: 58dvh;
+  }
+
+  .editor-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .command-bar .btn {
+    min-height: 44px;
+  }
+
+  .command-spacer {
+    flex-basis: 100%;
+    height: 0;
+    min-width: 0;
+  }
+
+  .portal-filter-chip {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .portal-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(160px, 36vh) minmax(240px, 1fr);
+  }
+
+  .portal-list-panel {
+    max-height: 36vh;
+  }
+
+  .portal-filter-panel input,
+  .portal-filter-panel select,
+  .map-search-wrap input,
+  .prop-label input[type='text'],
+  .prop-label textarea,
+  .settings-grid input,
+  .settings-grid textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+}
+
+.forge-mobile-rail {
+  display: none;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem max(0.85rem, env(safe-area-inset-right, 0px))
+    0.55rem max(0.85rem, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  background: rgba(8, 12, 20, 0.92);
+  position: sticky;
+  top: var(--distress-nav-offset, 0px);
+  z-index: 40;
+}
+
+.forge-mobile-rail[hidden] {
+  display: none !important;
+}
+
+.forge-cities-toggle {
+  min-height: 44px !important;
+  min-width: 7rem;
+}
+
+.forge-mobile-rail-hint {
+  font-size: 0.78rem;
+  color: var(--muted, #9aa3ad);
+}
+
+/* Tablet: true master/detail — city queue + PDF canvas side by side */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    height: calc(100dvh - var(--distress-nav-offset, 64px));
+  }
+
+  .sidebar {
+    max-height: none;
+    border-right: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+    border-bottom: none;
+    overflow: auto;
+  }
+
+  .workspace {
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .portal-layout {
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+  }
+
+  .portal-list-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .forge-mobile-rail:not([hidden]) {
+    display: flex;
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    position: relative;
+  }
+
+  /* Collapsed by default — full-width PDF canvas */
+  .sidebar {
+    display: none;
+    position: fixed;
+    top: calc(var(--distress-nav-offset, 56px) + 3.1rem);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    max-height: none;
+    width: 100%;
+    overflow: auto;
+    background: rgba(8, 12, 20, 0.98);
+    border: none;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.forge-sidebar-open .sidebar {
+    display: flex;
+    flex-direction: column;
+  }
+
+  body.forge-sidebar-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+  }
+
+  .workspace {
+    min-height: calc(100dvh - var(--distress-nav-offset, 56px) - 3.5rem);
+    width: 100%;
+  }
+
+  .editor-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pdf-panel {
+    min-height: 62dvh;
+  }
+
+  .portal-layout {
+    grid-template-rows: 1fr;
+  }
+
+  .portal-list-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 520px) {
+  body.stamp-theme .brand-seal {
+    display: none;
+  }
+
+  body.stamp-theme .stats {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .stat-pill {
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .pdf-panel,
+  .fields-panel {
+    padding: 0.5rem;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

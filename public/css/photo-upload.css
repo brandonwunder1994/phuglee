@@ -6,6 +6,26 @@
   --pu-accent: #c45c26;
   --pu-line: rgba(26, 23, 20, 0.12);
   --pu-ok: #2f6b4f;
+  --pu-error-bg: #fde8e4;
+  --pu-error-ink: #8a2a1a;
+  --pu-thumb-bg: #ddd;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pu-ink: #f5f2e4;
+    --pu-muted: #aea38f;
+    --pu-bg: #12100e;
+    --pu-panel: #1c1814;
+    --pu-accent: #e58435;
+    --pu-line: rgba(245, 242, 228, 0.14);
+    --pu-ok: #6fbf93;
+    --pu-error-bg: rgba(180, 60, 40, 0.22);
+    --pu-error-ink: #f0b4a8;
+    --pu-thumb-bg: #2a2622;
+    color-scheme: dark;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -20,10 +40,33 @@ body.pu-page {
     var(--pu-bg);
 }
 
+@media (prefers-color-scheme: dark) {
+  body.pu-page {
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(229, 132, 53, 0.16), transparent 55%),
+      radial-gradient(900px 500px at 100% 0%, rgba(111, 191, 147, 0.08), transparent 50%),
+      var(--pu-bg);
+  }
+}
+
 .pu-main {
   max-width: 640px;
   margin: 0 auto;
-  padding: 28px 18px 64px;
+  padding: 28px max(18px, env(safe-area-inset-right, 0px))
+    calc(64px + env(safe-area-inset-bottom, 0px))
+    max(18px, env(safe-area-inset-left, 0px));
+}
+
+@media (max-width: 480px) {
+  .pu-head h1 {
+    font-size: 1.45rem;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 .pu-brand {
@@ -114,7 +157,7 @@ body.pu-page {
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 8px;
-  background: #ddd;
+  background: var(--pu-thumb-bg);
 }
 
 .pu-btn {
@@ -141,6 +184,21 @@ body.pu-page {
   margin-top: 16px;
   padding: 12px 14px;
   border-radius: 10px;
-  background: #fde8e4;
-  color: #8a2a1a;
+  background: var(--pu-error-bg);
+  color: var(--pu-error-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  .pu-drop {
+    background: rgba(229, 132, 53, 0.08);
+    border-color: rgba(229, 132, 53, 0.4);
+  }
+
+  .pu-drop.is-drag {
+    background: rgba(229, 132, 53, 0.16);
+  }
+
+  .pu-btn-primary {
+    color: #12100e;
+  }
 }

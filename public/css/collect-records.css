@@ -396,6 +396,27 @@ body.collect-page .collect-hub-grid {
   max-width: min(640px, calc(100vw - 2rem));
 }
 
+/* Tablet wizard: wider desk, taller city master list */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .collect-dialog--wizard {
+    max-width: min(920px, calc(100vw - 2.5rem));
+    width: 100%;
+  }
+
+  .collect-dialog--wizard .collect-dialog-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .collect-city-list-wrap {
+    max-height: min(56vh, 480px);
+  }
+
+  .collect-choice-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .collect-city-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -575,6 +596,21 @@ body.collect-page .collect-hub-grid {
   border: 0;
 }
 
+@media (max-width: 768px) {
+  .collect-city-toolbar-btn {
+    min-height: 44px;
+    padding: 0.55rem 0.85rem;
+    box-sizing: border-box;
+  }
+
+  .collect-dialog-card input:not([type='checkbox']):not([type='radio']),
+  .collect-dialog-card select,
+  .collect-dialog-card textarea {
+    font-size: 16px !important;
+    min-height: 44px;
+  }
+}
+
 @media (max-width: 480px) {
   .collect-dialog-card.phuglee-panel {
     padding: 1.15rem;
@@ -589,6 +625,7 @@ body.collect-page .collect-hub-grid {
   .collect-dialog-actions .btn-landing-secondary,
   .collect-dialog-actions .phuglee-btn {
     width: 100%;
+    min-height: 48px;
     justify-content: center;
   }
 }

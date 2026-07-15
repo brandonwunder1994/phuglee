@@ -2377,9 +2377,53 @@ document.querySelectorAll(".filter").forEach((btn) => btn.addEventListener("clic
 }));
 if ($("#search")) $("#search").addEventListener("input", renderList);
 
+function initMobileCitiesRail() {
+  const rail = document.getElementById("forge-mobile-rail");
+  const toggle = document.getElementById("forge-cities-toggle");
+  const hint = document.getElementById("forge-mobile-rail-hint");
+  if (!rail || !toggle) return;
+
+  const mq = window.matchMedia("(max-width: 640px)");
+  const syncRail = () => {
+    const phone = mq.matches;
+    rail.hidden = !phone;
+    if (!phone) {
+      document.body.classList.remove("forge-sidebar-open");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.textContent = "Cities";
+      if (hint) hint.textContent = "Tap to open queue";
+    }
+  };
+
+  toggle.addEventListener("click", () => {
+    const open = document.body.classList.toggle("forge-sidebar-open");
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.textContent = open ? "Close cities" : "Cities";
+    if (hint) hint.textContent = open ? "Select a city, then close" : "Tap to open queue";
+  });
+
+  document.getElementById("form-list")?.addEventListener("click", (ev) => {
+    if (!mq.matches) return;
+    if (!ev.target.closest("li, button, a")) return;
+    // After picking a city on phone, free the canvas
+    window.setTimeout(() => {
+      if (!document.body.classList.contains("forge-sidebar-open")) return;
+      document.body.classList.remove("forge-sidebar-open");
+      toggle.setAttribute("aria-expanded", "false");
+      toggle.textContent = "Cities";
+      if (hint) hint.textContent = "Tap to open queue";
+    }, 180);
+  });
+
+  syncRail();
+  if (typeof mq.addEventListener === "function") mq.addEventListener("change", syncRail);
+  else if (typeof mq.addListener === "function") mq.addListener(syncRail);
+}
+
 function boot() {
   initSignaturePad();
   initSettingsModal();
+  initMobileCitiesRail();
   window.FormForgeSettings?.init({
     onYourInfo: () => document.getElementById("btn-settings")?.click(),
     onSignature: () => document.getElementById("btn-draw-signature")?.click(),

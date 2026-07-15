@@ -58,10 +58,35 @@ Before you claim work is done, that the site is “live”, or that the user sho
 | Start / restart (no window) | `powershell -File scripts\restart.ps1` |
 | Ensure if down | `powershell -File scripts\ensure-server.ps1` |
 | Stop + remove keep-alive | `powershell -File scripts\stop.ps1` |
+| Verify mobile | `powershell -File scripts\verify-mobile.ps1` |
+| Mobile (scoped) | `powershell -File scripts\verify-mobile.ps1 -Pages "/,/collect"` |
 
 ### Preview after UI edits
 
 After CSS/HTML/JS changes: hard-refresh note for user (`Ctrl+Shift+R`), and confirm health 200 before saying “live”.
+
+## MANDATORY: Mobile check after every site UI edit
+
+**Desktop-looking code that breaks on phones is a regression.** Do not ask the user to “check mobile” — verify it in the same turn.
+
+### Hard rule (non-negotiable)
+
+After any edit to user-facing UI (HTML/CSS/JS under `public/`, `modules/property-analyzer/public/`, `modules/form-forge/review_portal/static/`, or shell/auth/nav chrome):
+
+1. Keep the live-server rule above (health 200).
+2. **Run mobile verify** before claiming done:
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-mobile.ps1
+   ```
+3. If you only touched a few routes, you may scope pages (still required):
+   ```powershell
+   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-mobile.ps1 -Pages "/,/bridge,/collect"
+   ```
+4. Exit code **1** = horizontal overflow or missing viewport → **fix before ending the turn**.
+5. Exit code **2** = server/browser tooling → fix server first (`verify-live.ps1`) or note Edge/Chrome missing.
+6. Design while editing for ≤768px: flex/grid collapse, ≥44px touch targets, `font-size: 16px` on inputs, no page-level horizontal scroll (tables may scroll inside wrappers only).
+
+Do **not** end a UI-edit turn with only desktop assumptions. Quote that mobile verify passed (or list failures you fixed).
 
 ## Filter uploads: lopsided / scanned / redacted violation sheets
 

@@ -1,0 +1,33 @@
+---
+description: After UI edits, verify mobile layout with scripts/verify-mobile.ps1
+globs: public/**/*.{html,css,js},modules/property-analyzer/public/**/*.{html,css,js},modules/form-forge/review_portal/static/**/*.{html,css,js}
+alwaysApply: false
+---
+
+# Mobile verify after UI edits
+
+When you change matching UI files, **do not finish** until mobile is checked.
+
+## Required
+
+1. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1`
+2. `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-mobile.ps1`
+
+Scope pages to what you touched when useful:
+
+```powershell
+powershell -File scripts\verify-mobile.ps1 -Pages "/,/collect,/bridge"
+```
+
+## Pass/fail
+
+- Exit **0**: OK — mention mobile verify passed.
+- Exit **1**: Fix overflow / viewport / touch regressions in this turn.
+- Exit **2**: Bring the server up first; need Edge or Chrome for headless check.
+
+## While coding (≤768px)
+
+- Collapse multi-column layouts; avoid fixed desktop widths.
+- Touch targets ≥44px for nav/buttons.
+- Form inputs ≥16px font (no iOS zoom).
+- No document-level horizontal scroll (inner table scroll is OK).

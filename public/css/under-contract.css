@@ -8,8 +8,65 @@
 #uc-gate[hidden],
 #uc-empty[hidden],
 #uc-table[hidden],
+#uc-cards[hidden],
 #uc-ghl-status[hidden] {
   display: none !important;
+}
+
+.uc-cards {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.15rem 0;
+}
+
+.uc-deal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0.9rem;
+  border: 1px solid var(--vault-border, rgba(174, 163, 143, 0.16));
+  border-radius: 10px;
+  background: var(--vault-surface-raised, rgba(26, 26, 26, 0.95));
+}
+
+.uc-deal-card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.uc-deal-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  align-items: center;
+  font-size: 0.88rem;
+}
+
+.uc-deal-card-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.uc-deal-card-quick {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.uc-deal-card-quick .uc-quick-btn,
+.uc-deal-card-actions .phuglee-btn {
+  min-height: 44px;
+  width: 100%;
+}
+
+.uc-deal-card-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+  gap: 0.45rem;
 }
 
 .uc-hero {
@@ -454,6 +511,34 @@
 @media (max-width: 640px) {
   .uc-rehab-grid {
     grid-template-columns: 1fr;
+  }
+
+  .uc-table-wrap {
+    overflow-x: visible;
+  }
+
+  .uc-table {
+    display: none !important;
+  }
+
+  .uc-cards:not([hidden]) {
+    display: flex !important;
+  }
+
+  .uc-deal-card-quick {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Tablet: two-up deal cards when table still wide */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .uc-table-wrap {
+    overflow-x: auto;
+  }
+
+  .uc-kpi-grid,
+  .uc-hero-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -1759,5 +1844,34 @@ img.uc-profile-hero {
   }
   .uc-drawer {
     width: 100vw;
+    max-width: 100%;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .uc-quick-btn {
+    min-height: 44px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.75rem;
+    box-sizing: border-box;
+  }
+
+  .uc-dialog {
+    width: calc(100% - 1rem);
+    max-width: none;
+    max-height: min(92dvh, 100%);
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (hover: none) {
+  .uc-att-save,
+  .uc-media-card-actions {
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 }

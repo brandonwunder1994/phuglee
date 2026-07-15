@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/static/style.css?v=36" />
   <link rel="stylesheet" href="/static/settings-menu.css?v=3" />
   <link rel="stylesheet" href="/static/phuglee-forge.css?v=4" />
+  <link rel="stylesheet" href="/static/forge-mobile.css?v=3" />
   <link rel="stylesheet" href="/static/phuglee-a11y.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -116,8 +117,15 @@
     </div>
   </header>
 
+  <div class="forge-mobile-rail" id="forge-mobile-rail" hidden>
+    <button type="button" class="btn ghost sm forge-cities-toggle" id="forge-cities-toggle" aria-expanded="false" aria-controls="forge-city-sidebar">
+      Cities
+    </button>
+    <span class="forge-mobile-rail-hint" id="forge-mobile-rail-hint">Tap to open queue</span>
+  </div>
+
   <div class="layout">
-    <aside class="sidebar">
+    <aside class="sidebar" id="forge-city-sidebar">
       <div class="up-next-card" id="up-next-card" hidden>
         <span class="up-next-label">Up next</span>
         <p class="up-next-city" id="up-next-city"></p>
@@ -161,7 +169,7 @@
   </script>
   <script src="/static/phuglee-states.js"></script>
   <script src="/static/settings-menu.js?v=3"></script>
-  <script src="/static/app.js?v=50"></script>
+  <script src="/static/app.js?v=51"></script>
   <p class="forge-trust-line">Public records only · Your data stays on your machine</p>
 </body>
 </html>

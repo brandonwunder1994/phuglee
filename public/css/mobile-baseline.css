@@ -1,0 +1,186 @@
+/* Phuglee — shared mobile / touch baseline (2026)
+   Loaded via shell-bundle + home. Page CSS may refine; this sets the floor:
+   overflow, safe areas, iOS input zoom, touch targets, hover-none affordances. */
+
+:root {
+  --phuglee-touch-min: 44px;
+  --phuglee-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --phuglee-safe-top: env(safe-area-inset-top, 0px);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+img {
+  height: auto;
+}
+
+svg:not([width]):not([height]) {
+  max-width: 100%;
+}
+
+/* Touch devices: never hide primary actions behind hover */
+@media (hover: none) {
+  .auth-pricing-select {
+    opacity: 0.9 !important;
+  }
+
+  .uc-att-save,
+  .uc-media-card-actions,
+  .uc-att-tile .uc-att-save {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .pdf-thumb-overlay {
+    opacity: 1 !important;
+    background: rgba(8, 12, 20, 0.4) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .shell-nav {
+    padding: 0.55rem max(0.85rem, env(safe-area-inset-right, 0px))
+      0.55rem max(0.85rem, env(safe-area-inset-left, 0px));
+  }
+
+  .shell-nav-menu-btn,
+  .shell-nav-palette-btn {
+    min-width: var(--phuglee-touch-min);
+    min-height: var(--phuglee-touch-min);
+    width: var(--phuglee-touch-min);
+    height: var(--phuglee-touch-min);
+    box-sizing: border-box;
+  }
+
+  .shell-links .shell-link,
+  .shell-links .shell-nav-dropdown-trigger {
+    min-height: var(--phuglee-touch-min);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .shell-nav-dropdown-item {
+    min-height: var(--phuglee-touch-min);
+  }
+
+  .shell-footer-inner {
+    padding-bottom: calc(1rem + var(--phuglee-safe-bottom));
+  }
+
+  .phuglee-btn,
+  .btn.primary,
+  .btn.seal,
+  button.phuglee-btn-primary,
+  .btn.accent,
+  .btn.secondary {
+    min-height: var(--phuglee-touch-min);
+  }
+
+  /* Beat page-specific rem sizes so iOS never zooms on focus */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* High-frequency controls across desks */
+  .bridge-list-action,
+  .bridge-pagination-btn,
+  .bridge-history-dialog-close,
+  .bridge-date-chip,
+  .bridge-type-chip-face,
+  .bridge-pipeline-step,
+  .vault-type-tab,
+  .vault-signal-chip,
+  .vault-export-btn,
+  .uc-quick-btn,
+  .collect-city-toolbar-btn,
+  .command-tool-chip,
+  .command-checklist-dismiss,
+  .phuglee-chip,
+  .phuglee-select {
+    min-height: var(--phuglee-touch-min);
+    box-sizing: border-box;
+  }
+
+  .bridge-history-dialog-close {
+    min-width: var(--phuglee-touch-min);
+    width: var(--phuglee-touch-min);
+    height: var(--phuglee-touch-min);
+  }
+
+  .bridge-pagination-btn {
+    min-width: var(--phuglee-touch-min);
+  }
+
+  .bridge-datetime-picker input[type='date'],
+  .bridge-city-search.phuglee-input,
+  .bridge-toolbar-field .phuglee-select,
+  .bridge-row select.phuglee-select {
+    font-size: 16px !important;
+    min-height: var(--phuglee-touch-min);
+  }
+
+  .bridge-table-wrap,
+  .vault-table-wrap,
+  .uc-table-wrap,
+  .oc-table-wrap,
+  [data-table-scroll] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Sticky strips under shell nav when embedded */
+  body.has-shell-chrome .vault-action-strip {
+    top: 0;
+  }
+
+  body.has-shell-chrome .command-bar,
+  body.analyzer-embedded .command-bar {
+    top: var(--distress-nav-offset, 56px);
+  }
+}
+
+@media (max-width: 480px) {
+  .shell-brand-logo {
+    height: 24px;
+    max-width: min(7.5rem, 42vw);
+  }
+
+  .shell-footer-links {
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+  }
+
+  .bridge-main,
+  .vault-main,
+  .command-main,
+  .collect-landing,
+  .uc-main {
+    padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+@media (max-width: 360px) {
+  .shell-nav {
+    gap: 0.35rem;
+  }
+}

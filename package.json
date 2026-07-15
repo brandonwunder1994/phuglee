@@ -7,7 +7,9 @@
     "start": "node server.js",
     "restart": "powershell -ExecutionPolicy Bypass -File scripts/restart.ps1",
     "test": "node --test tests/**/*.test.js",
-    "verify": "powershell -ExecutionPolicy Bypass -File scripts/verify.ps1"
+    "verify": "powershell -ExecutionPolicy Bypass -File scripts/verify.ps1",
+    "verify:live": "powershell -ExecutionPolicy Bypass -File scripts/verify-live.ps1",
+    "verify:mobile": "powershell -ExecutionPolicy Bypass -File scripts/verify-mobile.ps1"
   },
   "dependencies": {
     "jszip": "^3.10.1",
@@ -15,5 +17,8 @@
     "pdf-parse": "^2.4.5",
     "tesseract.js": "^7.0.0",
     "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.61.1"
   }
 }

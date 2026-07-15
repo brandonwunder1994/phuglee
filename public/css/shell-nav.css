@@ -151,8 +151,10 @@ body.has-shell-chrome .shell-footer {
 
 .shell-nav-menu-btn {
   display: none;
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
 }
 
@@ -617,6 +619,11 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
     display: inline-flex;
   }
 
+  .shell-nav-palette-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
   .shell-nav-palette-label {
     display: none;
   }
@@ -646,6 +653,12 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
   .shell-links .shell-link {
     justify-content: flex-start;
     width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  .shell-nav-dropdown-item {
+    min-height: 44px;
   }
 
   .shell-nav-dropdown-menu {

@@ -333,7 +333,29 @@
   }
 
   function boot() {
-    document.querySelectorAll('[data-property-carousel-3d]').forEach(initCarousel);
+    var roots = document.querySelectorAll('[data-property-carousel-3d]');
+    if (!roots.length) return;
+
+    function start(root) {
+      if (root.getAttribute('data-carousel-ready') === '1') return;
+      root.setAttribute('data-carousel-ready', '1');
+      initCarousel(root);
+    }
+
+    // Lazy: only build carousel DOM/animation when near viewport
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries, obs) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          start(entry.target);
+          obs.unobserve(entry.target);
+        });
+      }, { rootMargin: '200px 0px', threshold: 0.01 });
+      roots.forEach(function (root) { io.observe(root); });
+      return;
+    }
+
+    roots.forEach(start);
   }
 
   if (document.readyState === 'loading') {

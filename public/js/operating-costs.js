@@ -423,11 +423,11 @@
         const when = c.time ? `${c.date} ${c.time}` : c.date;
         return (
           `<tr>` +
-          `<td>${esc(when)}</td>` +
-          `<td>${esc(kind)}</td>` +
-          `<td>${esc(label)}</td>` +
-          `<td>${esc(c.description || '—')}</td>` +
-          `<td class="oc-num">${money(c.amountUsd)}</td>` +
+          `<td data-label="Date">${esc(when)}</td>` +
+          `<td data-label="Type">${esc(kind)}</td>` +
+          `<td data-label="Category">${esc(label)}</td>` +
+          `<td data-label="Description">${esc(c.description || '—')}</td>` +
+          `<td class="oc-num" data-label="Amount">${money(c.amountUsd)}</td>` +
           `</tr>`
         );
       })

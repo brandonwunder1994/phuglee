@@ -1587,7 +1587,9 @@
 
 @media (max-width: 640px) {
   .vault-main {
-    padding: 0.75rem 0.75rem 3.25rem;
+    padding: 0.75rem max(0.75rem, env(safe-area-inset-right, 0px))
+      calc(3.25rem + env(safe-area-inset-bottom, 0px))
+      max(0.75rem, env(safe-area-inset-left, 0px));
   }
 
   .vault-gate {
@@ -1598,6 +1600,67 @@
     width: 1.85rem;
     top: 0.85rem;
     right: 0.85rem;
+  }
+
+  .vault-type-tab,
+  .vault-signal-chip,
+  .vault-export-btn,
+  .vault-view-btn {
+    min-height: 44px !important;
+    padding: 0.55rem 0.85rem !important;
+    box-sizing: border-box;
+  }
+
+  /* Phone: cards only — hide table + view toggle */
+  .vault-view-toggle {
+    display: none !important;
+  }
+
+  .vault-table,
+  #vault-table {
+    display: none !important;
+  }
+
+  .vault-cards:not([hidden]) {
+    display: grid !important;
+    grid-template-columns: 1fr;
+  }
+
+  .vault-card {
+    min-height: 0;
+  }
+
+  .vault-card-body {
+    padding: 0.75rem 0.85rem 0.9rem;
+  }
+
+  .vault-section-nav {
+    top: 3.25rem;
+    scroll-margin-top: 3.5rem;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Tablet: keep master/detail desk (filters | results), not phone stack */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .vault-desk {
+    grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr) !important;
+  }
+
+  .vault-filters {
+    position: sticky;
+    top: calc(var(--distress-nav-offset, 56px) + 0.75rem);
+    max-height: calc(100dvh - var(--distress-nav-offset, 56px) - 2rem);
+    overflow: auto;
+  }
+
+  .vault-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

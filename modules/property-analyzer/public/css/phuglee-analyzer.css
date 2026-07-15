@@ -2801,3 +2801,242 @@ body.analyze-phuglee .phuglee-mono-accent {
 body.analyze-phuglee .tool-modal-dialog.phuglee-dialog-wide {
   max-width: min(860px, calc(100vw - 2rem));
 }
+
+/* -- Phone layout: collapse fixed sidebar, full-width desk -- */
+@media (max-width: 720px) {
+  html, body.analyze-phuglee {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  body.analyze-phuglee .app-sidebar {
+    position: fixed;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    width: min(18rem, 86vw);
+    z-index: 140;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.45);
+  }
+
+  body.analyze-phuglee.analyze-nav-open .app-sidebar {
+    transform: translateX(0);
+  }
+
+  body.analyze-phuglee.analyze-nav-open::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    background: rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+  }
+
+  body.analyze-phuglee .app-shell-main {
+    margin-left: 0;
+  }
+
+  body.analyze-phuglee .app-shell .app {
+    padding: 1rem 0.85rem 5rem;
+  }
+
+  body.analyze-phuglee .filter-segment-btn,
+  body.analyze-phuglee .sidebar-nav-btn,
+  body.analyze-phuglee .phuglee-btn,
+  body.analyze-phuglee button.btn {
+    min-height: 44px;
+  }
+
+  body.analyze-phuglee input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  body.analyze-phuglee select,
+  body.analyze-phuglee textarea {
+    font-size: 16px;
+  }
+
+  body.analyze-phuglee .results-filter-bar {
+    gap: 0.45rem;
+  }
+
+  body.analyze-phuglee .analyze-mobile-nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0 0 0.75rem;
+    padding: 0.45rem 0.75rem;
+    font-family: var(--font-body, Outfit, system-ui, sans-serif);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--phuglee-cream);
+    background: rgba(229, 132, 53, 0.14);
+    border: 1px solid rgba(229, 132, 53, 0.35);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 721px) {
+  body.analyze-phuglee .analyze-mobile-nav-toggle {
+    display: none !important;
+  }
+}
+
+/* Embedded in Distress OS shell — sidebar already removed; no duplicate Menu */
+body.analyzer-embedded .analyze-mobile-nav-toggle {
+  display: none !important;
+}
+
+/* Phone usability — sticky chrome, sheets, safe areas, 44px filters */
+@media (max-width: 768px) {
+  body.analyze-phuglee .filter-segment-btn {
+    min-height: 44px;
+    padding-inline: 0.75rem;
+  }
+
+  body.analyzer-embedded .command-bar,
+  body.analyze-phuglee.analyzer-embedded .command-bar {
+    top: var(--distress-nav-offset, 56px);
+  }
+
+  body.analyze-phuglee .analyze-status-footer {
+    padding-bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.analyze-phuglee .app-shell .app {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.analyze-phuglee input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  body.analyze-phuglee select,
+  body.analyze-phuglee textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  body.analyze-phuglee .property-modal-dialog.property-profile-dialog,
+  body.analyze-phuglee .property-modal-dialog.phuglee-dialog,
+  body.analyze-phuglee .property-modal-dialog.property-profile-cinematic {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100dvh !important;
+    border-radius: 16px 16px 0 0 !important;
+    margin-top: auto;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Review: one column — media then meta; action bar is the only sticky chrome */
+  body.analyze-phuglee .review-mode-body,
+  .review-mode-body {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  body.analyze-phuglee .review-mode-meta,
+  .review-mode-meta {
+    max-height: none !important;
+    order: 2;
+  }
+
+  body.analyze-phuglee .review-mode-media,
+  .review-mode-media {
+    order: 1;
+  }
+
+  body.analyze-phuglee .review-mode-inner,
+  .review-mode-inner {
+    padding: 0.65rem 0.75rem calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.65rem;
+  }
+
+  body.analyze-phuglee .review-mode-header,
+  .review-mode-header {
+    position: static !important;
+    gap: 0.5rem;
+  }
+
+  body.analyze-phuglee .review-shortcuts-bar,
+  .review-shortcuts-bar {
+    display: none;
+  }
+
+  body.analyze-phuglee .review-action-bar,
+  .review-action-bar {
+    position: sticky;
+    bottom: calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    z-index: 12;
+    flex-wrap: wrap;
+  }
+
+  body.analyze-phuglee .review-action,
+  .review-action {
+    min-height: 44px;
+    flex: 1 1 calc(50% - 0.35rem);
+  }
+
+  /* Fewer stacked sticky bars under shell nav */
+  body.analyze-phuglee .command-bar {
+    position: static !important;
+  }
+
+  body.analyze-phuglee .app-nav,
+  body.analyze-phuglee .results-filter-bar,
+  body.analyze-phuglee .bulk-edit-bar,
+  body.analyze-phuglee .property-profile-sticky-media {
+    position: static !important;
+  }
+
+  body.analyze-phuglee .analyze-status-footer {
+    position: static;
+  }
+}
+
+/* Tablet Analyze: results + detail breathing room */
+@media (min-width: 768px) and (max-width: 1024px) {
+  body.analyze-phuglee .review-mode-body,
+  .review-mode-body {
+    grid-template-columns: minmax(0, 1.2fr) minmax(240px, 320px);
+  }
+
+  body.analyze-phuglee .app-shell .app {
+    padding-inline: 1rem;
+  }
+}
+
+/* Mobile perf trim — skip glass blur/glow paint cost; Outfit instead of Anton */
+@media (max-width: 768px) {
+  body.analyze-phuglee {
+    --font-display: 'Outfit', system-ui, sans-serif;
+  }
+
+  body.analyze-phuglee .phuglee-panel,
+  body.analyze-phuglee .prop-card,
+  body.analyze-phuglee .scan-desk-v2,
+  body.analyze-phuglee .command-bar,
+  body.analyze-phuglee .review-mode-inner,
+  body.analyze-phuglee .review-action-bar,
+  body.analyze-phuglee .property-modal-dialog,
+  body.analyze-phuglee .tool-modal-dialog {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  body.analyze-phuglee .cyber-grid,
+  body.analyze-phuglee .cyber-grid::before,
+  body.analyze-phuglee .cyber-grid::after {
+    display: none !important;
+  }
+
+  body.analyze-phuglee .prop-card,
+  body.analyze-phuglee .phuglee-panel {
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  }
+
+  body.analyze-phuglee .command-status-dot,
+  body.analyze-phuglee .command-status-dot.scanning {
+    box-shadow: none !important;
+  }
+}

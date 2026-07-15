@@ -75,8 +75,11 @@ body.auth-modal-open {
   top: -0.5rem;
   right: -0.5rem;
   z-index: 10;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 3rem;
+  height: 3rem;
+  min-width: 48px;
+  min-height: 48px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -149,7 +152,9 @@ body.auth-modal-open {
 
 .auth-tab {
   position: relative;
-  padding: 0.62rem 0.85rem;
+  min-height: 48px;
+  padding: 0.7rem 0.85rem;
+  box-sizing: border-box;
   font-family: var(--font-display);
   font-size: 0.82rem;
   letter-spacing: 0.08em;
@@ -306,9 +311,10 @@ body.auth-modal-open {
 
 .auth-field input {
   width: 100%;
+  min-height: 44px;
   padding: 0.7rem 0.85rem;
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 1rem; /* 16px — prevents iOS input zoom */
   color: var(--phuglee-cream);
   background: rgba(0, 0, 0, 0.38);
   border: 1px solid var(--phuglee-stone-warm);
@@ -383,6 +389,7 @@ body.auth-modal-open {
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-height: 48px;
   padding: 0.85rem 1.5rem;
   font-family: var(--font-display);
   font-size: 1rem;
@@ -646,6 +653,12 @@ body.auth-modal-open {
   opacity: 1;
 }
 
+@media (hover: none) {
+  .auth-pricing-select {
+    opacity: 0.9;
+  }
+}
+
 .auth-pricing-note {
   font-size: 0.72rem;
   line-height: 1.5;
@@ -728,18 +741,48 @@ body.auth-modal-open {
 }
 
 @media (max-width: 520px) {
+  .auth-overlay {
+    align-items: flex-end;
+    padding: 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
   .auth-modal,
   .auth-modal--wide {
     width: 100%;
+    max-height: min(92dvh, 100%);
+    border-radius: 16px 16px 0 0;
   }
 
   .auth-panel {
-    padding: 1.35rem 1.2rem 1.15rem;
-    min-height: 400px;
+    padding: 1.25rem 1.1rem calc(1.15rem + env(safe-area-inset-bottom, 0px));
+    min-height: 0;
+    max-height: min(92dvh, 100%);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .auth-modal-grain {
+    border-radius: 16px 16px 0 0;
+  }
+
+  .auth-close {
+    top: 0.65rem;
+    right: 0.65rem;
   }
 
   .auth-field-row {
     grid-template-columns: 1fr;
+  }
+
+  .auth-checkbox {
+    min-height: 44px;
+  }
+
+  .auth-back-link {
+    min-height: 44px;
+    padding: 0.35rem 0;
   }
 }
 
