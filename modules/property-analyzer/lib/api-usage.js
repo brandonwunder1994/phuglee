@@ -28,12 +28,13 @@ function classifyApiError(status, message = '') {
   const m = String(message || '').toLowerCase();
   const st = Number(status) || 0;
 
-  // Explicit prepaid / billing / free-tier daily exhaustion (stop the scan).
+  // Explicit prepaid / billing / free-tier / project spend-cap exhaustion (stop the scan).
+  // Google AI Studio returns 429 "monthly spending cap" / ai.studio/spend — that is NOT a soft RPM.
   const creditExhausted =
-    /exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment required|invoice|account.*disabled|quota\/credits exhausted/i.test(
+    /exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|spending.?cap|monthly spending|project spend|ai\.studio\/spend|manage your project spend|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment required|invoice|account.*disabled|quota\/credits exhausted/i.test(
       m
     ) ||
-    (/quota/i.test(m) && /exhausted|exceeded|daily|monthly|free.?tier|credit/i.test(m)
+    (/quota/i.test(m) && /exhausted|exceeded|daily|monthly|free.?tier|credit|spend/i.test(m)
       && !/per.?minute|rate limit|try again|\/min\b|\brpm\b/i.test(m));
 
   const mapsHard =

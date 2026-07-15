@@ -1651,7 +1651,7 @@ R.isHardQuotaError = function isHardQuotaError(msg, status) {
     && !/billing not enabled|out of credits|credits?.?(exhausted|depleted)|spend.?limit|free_tier|prepaid|purchase additional/i.test(m)) {
     return false;
   }
-  if (/exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment required|over_query_limit|must enable billing|api project is not authorized|quota\/credits exhausted/i.test(m)) {
+  if (/exceeded your current quota|quota exceeded|billing not enabled|enable billing|free_tier|generaterequestsperday|perdayperproject|limit:\s*0\b|insufficient.?credit|out of credits|credits?.?(exhausted|depleted|ran out)|no credits|spend.?limit|spending.?cap|monthly spending|project spend|ai\.studio\/spend|manage your project spend|billing.?hard.?limit|consumer_?suspended|purchase additional|prepaid.?credit|payment required|over_query_limit|must enable billing|api project is not authorized|quota\/credits exhausted/i.test(m)) {
     return true;
   }
   // RESOURCE_EXHAUSTED alone is usually RPM — only hard when paired with credit/daily language.

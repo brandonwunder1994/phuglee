@@ -38,6 +38,15 @@ describe('api-usage classification', () => {
     assert.equal(classifyApiError(429, 'Out of credits').retryable, false);
   });
 
+  it('treats Google AI Studio monthly spending cap as hard (not soft 429 retry)', () => {
+    const msg =
+      'Your project has exceeded its monthly spending cap. Please go to AI Studio at https://ai.studio/spend to manage your project spend cap.';
+    assert.equal(isHardQuotaError(429, msg), true);
+    assert.equal(isSoftRateLimitError(429, msg), false);
+    assert.equal(classifyApiError(429, msg).kind, 'hard_quota');
+    assert.equal(classifyApiError(429, msg).retryable, false);
+  });
+
   it('keeps soft per-minute rate limits retryable (not a credit halt)', () => {
     assert.equal(isSoftRateLimitError(429, 'Too many requests, rate limit — try again in 20s'), true);
     assert.equal(isHardQuotaError(429, 'Too many requests, rate limit — try again in 20s'), false);

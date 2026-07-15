@@ -111,6 +111,10 @@ function shortenGeminiError(status, body) {
   if (status === 503 || /high demand|overloaded|unavailable/i.test(msg)) {
     return 'Gemini is temporarily overloaded (503). Wait and retry — your API key is fine.';
   }
+  // Project spend cap / credits — hard stop (must not be rewritten as a soft "rate limit").
+  if (/spending.?cap|monthly spending|project spend|ai\.studio\/spend|manage your project spend|out of credits|credits?.?(exhausted|depleted)|prepaid.?credit|billing.?hard.?limit/i.test(msg)) {
+    return 'Gemini project spending cap reached. Raise the cap at https://ai.studio/spend — scans cannot continue until Google accepts new billable calls.';
+  }
   // IMPORTANT: do not use bare /rate/ — it matches "generateContent" and mislabels every Gemini error as 429.
   if (status === 429 || /\brate[\s_-]?limit\b|too many requests|resource_exhausted|quota exceeded|exceeded your current quota/i.test(msg)) {
     return 'Gemini rate limit hit (429). Slow down workers or wait a few minutes.';

@@ -184,7 +184,72 @@ async function main() {
     );
   }
 
-  console.log('PASS shell-ui-scan-buckets', last);
+  // Wait for run to finish (or at least 2 done for our 2-row fixture)
+  const endDeadline = Date.now() + 180000;
+  while (Date.now() < endDeadline && last.running && last.batchDone < Math.min(2, last.batchTotal || 2)) {
+    await page.waitForTimeout(2000);
+    last = await page.evaluate(() => ({
+      running: !!(window.PDA?.env?.state?.running),
+      batchTotal: Number(window.PDA?.env?.state?.scanBatchTotal) || 0,
+      batchDone: Number(window.PDA?.env?.state?.scanBatchDone) || 0,
+      liveScanned: document.getElementById('liveScanKpiScanned')?.textContent || '',
+      liveD: document.getElementById('liveScanKpiDistressed')?.textContent || '',
+      liveWm: document.getElementById('liveScanKpiWellMaintained')?.textContent || '',
+      liveLand: document.getElementById('liveScanKpiLand')?.textContent || '',
+      liveReview: document.getElementById('liveScanKpiReview')?.textContent || '',
+      aborted: !!(window.PDA?.env?.state?.aborted),
+      quota: !!(window.PDA?.env?.state?.quotaHaltShown)
+    }));
+    console.log('progress', last);
+  }
+
+  const authFails = apiFails.filter((f) => f.status === 401 || f.status === 403);
+  const geminiFails = apiFails.filter((f) => f.url.includes('gemini-vision') && f.status >= 400);
+  if (authFails.length) {
+    throw new Error(`Auth still blocking scan APIs: ${JSON.stringify(authFails.slice(0, 5))}`);
+  }
+  if (last.batchDone < 1) {
+    throw new Error(`Finished with zero completions; geminiFails=${JSON.stringify(geminiFails.slice(0, 5))}`);
+  }
+
+  // After scan, session awaiting-review strip should be visible and non-zero for this run
+  await page.waitForTimeout(1500);
+  const post = await page.evaluate(() => {
+    const batchKeys = window.PDA?.env?.state?._scanBatchResultKeys;
+    const keys = batchKeys && typeof batchKeys.values === 'function' ? [...batchKeys] : [];
+    const results = window.PDA?.env?.state?.results || [];
+    const batch = results.filter((r) => {
+      const k = typeof window.PDA?.env?.recordKey === 'function' ? window.PDA.env.recordKey(r) : '';
+      return k && keys.includes(k);
+    });
+    const tallies = { distressed: 0, well_maintained: 0, vacant: 0, review: 0, other: 0 };
+    for (const r of batch) {
+      const cat = String(r.category || '').toLowerCase();
+      let t = String(r.leadTier || '').toLowerCase().replace(/-/g, '_');
+      if (cat === 'vacant_lot' || t === 'vacant') tallies.vacant++;
+      else if (t === 'distressed' || t === 'hot_lead') tallies.distressed++;
+      else if (t === 'well_maintained') tallies.well_maintained++;
+      else if (typeof window.PDA?.env?.computeNeedsReview === 'function' && window.PDA.env.computeNeedsReview(r)) tallies.review++;
+      else tallies.other++;
+    }
+    return {
+      summaryHidden: !!document.getElementById('summarySection')?.hidden,
+      liveHidden: !!document.getElementById('liveScanSection')?.hidden,
+      batchDone: Number(window.PDA?.env?.state?.scanBatchDone) || 0,
+      batchLen: batch.length,
+      tallies,
+      sumD: document.getElementById('sumDistressedKpi')?.textContent || '',
+      sumWm: document.getElementById('sumWellMaintained')?.textContent || '',
+      sumVacant: document.getElementById('sumVacant')?.textContent || ''
+    };
+  });
+  console.log('postScan', post);
+  const tierFilled = (post.tallies.distressed + post.tallies.well_maintained + post.tallies.vacant + post.tallies.review);
+  if (post.batchLen < 1 || tierFilled < 1) {
+    throw new Error(`Results did not land in review buckets: ${JSON.stringify(post)}`);
+  }
+
+  console.log('PASS shell-ui-scan-buckets', { last, post });
   try { fs.unlinkSync(tmp); } catch (_) {}
   await browser.close();
 }
