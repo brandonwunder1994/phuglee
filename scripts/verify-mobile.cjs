@@ -44,6 +44,7 @@ function parseArgs(argv) {
     widths: DEFAULT_WIDTHS.slice(),
     touch: true,
     devices: false,
+    webkit: false,
   };
   for (const arg of argv) {
     if (arg.startsWith('--base=')) out.base = arg.slice(7).replace(/\/$/, '');
@@ -59,6 +60,7 @@ function parseArgs(argv) {
       if (Number.isFinite(w) && w > 0) out.widths.push(w);
     } else if (arg === '--no-touch') out.touch = false;
     else if (arg === '--devices') out.devices = true;
+    else if (arg === '--webkit') out.webkit = true;
     else if (arg === '--help' || arg === '-h') out.help = true;
   }
   if (argv.some((a) => a.startsWith('--width='))) {
@@ -70,9 +72,17 @@ function parseArgs(argv) {
   return out;
 }
 
-async function findBrowser(playwright) {
-  const channels = ['msedge', 'chrome', 'chromium'];
+async function findBrowser(playwright, preferWebkit) {
   const errors = [];
+  if (preferWebkit && playwright.webkit) {
+    try {
+      const browser = await playwright.webkit.launch({ headless: true });
+      return { browser, channel: 'webkit' };
+    } catch (err) {
+      errors.push(`webkit: ${err.message}`);
+    }
+  }
+  const channels = ['msedge', 'chrome', 'chromium'];
   for (const channel of channels) {
     try {
       const browser = await playwright.chromium.launch({
@@ -85,7 +95,7 @@ async function findBrowser(playwright) {
     }
   }
   throw new Error(
-    `Could not launch a system browser (Edge/Chrome).\nTried:\n- ${errors.join('\n- ')}\n` +
+    `Could not launch a system browser (Edge/Chrome/WebKit).\nTried:\n- ${errors.join('\n- ')}\n` +
       'Install Microsoft Edge or Google Chrome, then re-run.'
   );
 }
@@ -166,6 +176,10 @@ async function auditPage(page, url, width, height, checkTouch) {
         '.vault-type-tab',
         '.uc-quick-btn',
         '.bridge-pipeline-step',
+        '.pu-btn',
+        '.pu-drop',
+        '.bridge-list-action',
+        '.home-dir-state-btn',
       ];
 
       const touchFails = [];
@@ -265,7 +279,7 @@ Default widths: ${DEFAULT_WIDTHS.join(', ')}
   let browser;
   let channel;
   try {
-    ({ browser, channel } = await findBrowser(playwright));
+    ({ browser, channel } = await findBrowser(playwright, opts.webkit));
   } catch (err) {
     console.error(`FAIL: ${err.message}`);
     process.exit(2);
@@ -341,9 +355,11 @@ Default widths: ${DEFAULT_WIDTHS.join(', ')}
               console.log(`  FAIL ${label} — menu touch target < ${TOUCH_MIN}px`);
             }
             if (result.touchFails && result.touchFails.length) {
-              // Hard-fail shell menu / forge toggle / primary visible phuglee buttons only
+              // Hard-fail primary chrome + desk actions used on phone
               const hard = result.touchFails.filter((t) =>
-                /shell-nav-menu-btn|forge-cities-toggle|auth-close/.test(t.sel)
+                /shell-nav-menu-btn|forge-cities-toggle|auth-close|uc-quick-btn|vault-type-tab|pu-btn/.test(
+                  t.sel
+                )
               );
               const soft = result.touchFails.filter((t) => !hard.includes(t));
               for (const t of hard) {
@@ -393,7 +409,7 @@ Default widths: ${DEFAULT_WIDTHS.join(', ')}
     console.log('Tip: node scripts/verify-mobile.cjs --devices  (iPhone + Android emulation)');
   } else {
     console.log(
-      'P3 note: emulated iPhone/Android passed. Still spot-check real devices for keyboard focus + auth sheet + safe-area notches.'
+      'P3 note: emulated iPhone Safari UA + Android Chrome UA passed (Playwright Chromium). Spot-check a real iPhone/Android for keyboard focus, auth sheet, and notch safe-areas. Optional closer Safari layout: --webkit (requires Playwright WebKit).'
     );
   }
   process.exit(0);

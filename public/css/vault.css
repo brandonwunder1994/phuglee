@@ -1611,13 +1611,27 @@
     box-sizing: border-box;
   }
 
-  /* Phone: cards only — hide table + view toggle */
+  .vault-section-nav {
+    top: 3.25rem;
+    scroll-margin-top: 3.5rem;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Phone + phablet: cards only — hide table/map chrome */
+@media (max-width: 720px) {
   .vault-view-toggle {
     display: none !important;
   }
 
   .vault-table,
-  #vault-table {
+  #vault-table,
+  #vault-map-panel {
     display: none !important;
   }
 
@@ -1632,17 +1646,6 @@
 
   .vault-card-body {
     padding: 0.75rem 0.85rem 0.9rem;
-  }
-
-  .vault-section-nav {
-    top: 3.25rem;
-    scroll-margin-top: 3.5rem;
-  }
-
-  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
-  select,
-  textarea {
-    font-size: 16px !important;
   }
 }
 

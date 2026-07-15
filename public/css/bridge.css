@@ -2309,6 +2309,15 @@ body {
     color: var(--phuglee-taupe);
     opacity: 0.9;
   }
+
+  /* Cards replace tables ≤720 — no swipe chrome */
+  .bridge-lists-wrap::before,
+  .bridge-lists-wrap::after,
+  .bridge-table-wrap::before,
+  .bridge-table-wrap::after {
+    content: none !important;
+    display: none !important;
+  }
 }
 
 .bridge-results-table {
@@ -4415,32 +4424,6 @@ button.bridge-inventory-filter-chip.is-active {
     width: 100%;
   }
 
-  /* Inventory: stacked cards instead of 860px swipe table */
-  .bridge-lists-wrap {
-    overflow-x: visible;
-  }
-
-  .bridge-lists-table {
-    display: none !important;
-  }
-
-  .bridge-lists-cards:not([hidden]) {
-    display: flex !important;
-  }
-
-  /* Kept results: cards instead of wide swipe table */
-  .bridge-table-wrap {
-    overflow-x: visible;
-  }
-
-  .bridge-results-table {
-    display: none !important;
-  }
-
-  .bridge-results-cards:not([hidden]) {
-    display: flex !important;
-  }
-
   .bridge-train-approve,
   .bridge-train-deny {
     min-height: 48px;
@@ -4452,14 +4435,51 @@ button.bridge-inventory-filter-chip.is-active {
   }
 }
 
-/* Tablet: keep inventory table readable without phone squeeze */
-@media (min-width: 641px) and (max-width: 1024px) {
-  .bridge-lists-table {
-    min-width: 720px;
+/* Phone + phablet: cards instead of 860px swipe tables */
+@media (max-width: 720px) {
+  .bridge-lists-wrap,
+  .bridge-table-wrap {
+    overflow-x: visible;
   }
 
-  .bridge-desk,
+  .bridge-lists-table,
+  .bridge-results-table {
+    display: none !important;
+  }
+
+  .bridge-lists-cards:not([hidden]),
+  .bridge-results-cards:not([hidden]) {
+    display: flex !important;
+  }
+
+  .bridge-lists-wrap::before,
+  .bridge-lists-wrap::after,
+  .bridge-table-wrap::before,
+  .bridge-table-wrap::after {
+    content: none !important;
+    display: none !important;
+  }
+}
+
+/* Tablet landscape: compact table, not phone squeeze */
+@media (min-width: 721px) and (max-width: 1024px) {
+  .bridge-lists-table {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .bridge-desk {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 100%;
+  }
+
   .bridge-main {
+    max-width: 100%;
+  }
+
+  .bridge-panel--lists,
+  .bridge-panel--work {
     max-width: 100%;
   }
 }

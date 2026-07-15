@@ -396,16 +396,11 @@ body.collect-page .collect-hub-grid {
   max-width: min(640px, calc(100vw - 2rem));
 }
 
-/* Tablet wizard: wider desk, taller city master list */
+/* Tablet wizard: wider desk, taller city list, two-up workflow choices */
 @media (min-width: 768px) and (max-width: 1024px) {
   .collect-dialog--wizard {
     max-width: min(920px, calc(100vw - 2.5rem));
     width: 100%;
-  }
-
-  .collect-dialog--wizard .collect-dialog-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .collect-city-list-wrap {

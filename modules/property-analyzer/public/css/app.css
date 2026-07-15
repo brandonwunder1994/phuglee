@@ -5351,3 +5351,17 @@
 #apiUsageOpenBtn {
   font-size: 0.84rem;
 }
+
+/* Mobile perf — kill expensive glass paint (desk CSS still loads; visual trim only) */
+@media (max-width: 768px) {
+  .glass-panel,
+  .modal-content,
+  .command-bar,
+  .results-filter-bar,
+  .property-modal-dialog,
+  .tool-modal-dialog,
+  .scan-desk-v2 {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

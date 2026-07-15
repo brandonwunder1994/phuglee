@@ -2,7 +2,7 @@
   'use strict';
 
   const SMART_DEFAULTS_KEY = 'vaultSmartDefaults';
-  const CARD_BREAKPOINT = 641;
+  const CARD_BREAKPOINT = 721;
   const SIGNALS_COLLAPSED = 8;
   const TOAST_MS = 2200;
   const DISPOSITIONS = [
@@ -1214,9 +1214,9 @@
 
   function applyAutoViewMode() {
     const narrow = window.innerWidth < CARD_BREAKPOINT;
-    // Phone: cards by default. Manual Map (or table) toggle sticks until cleared.
+    // Phone/phablet: always cards — no MapLibre / wide table on ≤720.
     if (narrow) {
-      if (state.viewModeManual && (state.viewMode === 'map' || state.viewMode === 'table')) return;
+      state.viewModeManual = false;
       if (state.viewMode === 'cards') return;
       state.viewMode = 'cards';
       state.page = 1;
