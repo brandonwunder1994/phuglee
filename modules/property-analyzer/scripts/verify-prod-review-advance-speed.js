@@ -27,29 +27,21 @@ async function main() {
 
   const page = await browser.newPage();
   page.on('dialog', async (d) => { await d.accept(); });
+  page.setDefaultTimeout(120000);
 
   const loginRes = await page.request.post(`${BASE}/api/auth/login`, {
     data: { username: USER, password: PASS, plan: 'max' }
   });
   if (!loginRes.ok()) throw new Error(`login ${loginRes.status()}`);
 
-  await page.goto(`${BASE}/analyzer/`, { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.evaluate(() => {
-    try {
-      const keys = [];
-      for (let i = 0; i < localStorage.length; i++) keys.push(localStorage.key(i));
-      for (const k of keys) {
-        if (/review|session|pda|distress|analyzer/i.test(k || '')) localStorage.removeItem(k);
-      }
-    } catch (_) {}
-  });
-  await page.reload({ waitUntil: 'domcontentloaded', timeout: 120000 });
+  await page.goto(`${BASE}/analyzer/`, { waitUntil: 'networkidle', timeout: 120000 });
   await page.waitForFunction(
     () => typeof window.PDA?.env?.openReviewMode === 'function'
       && typeof window.PDA?.env?.reviewKeep === 'function',
-    { timeout: 60000 }
+    null,
+    { timeout: 90000 }
   );
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(2000);
 
   const report = await page.evaluate(async () => {
     const R = window.PDA?.env || {};
@@ -67,7 +59,6 @@ async function main() {
       return { ok: false, reason: 'queue_too_small', queueLen: queue.length, filter };
     }
 
-    // Warm first lead imagery path once, then time subsequent Keeps.
     const samples = [];
     for (let i = 0; i < 4; i++) {
       const beforeIdx = R.state.reviewIndex;
@@ -91,10 +82,9 @@ async function main() {
     }
 
     const times = samples.map((s) => s.ms);
-    const avg = times.reduce((a, b) => a + b, 0) / times.length;
-    const max = Math.max(...times);
-    const advancedOk = samples.every((s) => s.advanced);
-    // Hot path budget: sync Keep→next paint should be well under 100ms once warmed.
+    const avg = times.reduce((a, b) => a + b, 0) / Math.max(1, times.length);
+    const max = Math.max(...times, 0);
+    const advancedOk = samples.length > 0 && samples.every((s) => s.advanced);
     const ok = advancedOk && avg < 80 && max < 150;
     return {
       ok,
@@ -102,7 +92,8 @@ async function main() {
       max,
       samples,
       deferHeavy: String(R.markReviewedKey || '').includes('deferHeavy'),
-      leanVault: String(R.publishReviewedLeadToVault || '').includes('Lean payload')
+      leanVault: String(R.publishReviewedLeadToVault || '').includes('Lean payload'),
+      pauseHydrate: !!R.state?._reviewPauseHydrate
     };
   });
 
