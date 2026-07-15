@@ -78,13 +78,24 @@ R.mergeReviewQueueResults = function mergeReviewQueueResults(incoming = []) {
   if (!Array.isArray(incoming) || !incoming.length) return 0;
   const idx = ensureResultKeyIndex();
   let added = 0;
+  const identityKeys = ['email', 'phone', 'address', 'street', 'leadTier', 'category'];
   for (const r of incoming) {
     if (!r) continue;
     const key = recordKey(r);
     if (!key || key === '||') continue;
     const at = idx.get(key);
     if (at != null && at >= 0) {
-      state.results[at] = { ...state.results[at], ...r };
+      const prev = state.results[at] || {};
+      const merged = { ...prev };
+      for (const [k, v] of Object.entries(r)) {
+        // Never let lean stubs wipe identity / tier with empty values (breaks Undo find-by-key).
+        if (identityKeys.includes(k) && (v == null || v === '') && prev[k] != null && prev[k] !== '') {
+          continue;
+        }
+        if (v === undefined) continue;
+        merged[k] = v;
+      }
+      state.results[at] = merged;
     } else {
       idx.set(key, state.results.length);
       state.results.push(r);
@@ -616,30 +627,38 @@ R.renderReviewLead = function renderReviewLead() {
   reviewActionBar?.removeAttribute('hidden');
   reviewCompletePanel?.classList.remove('visible');
 
-  let skipped = 0;
-  const skipBatchMax = 40;
-  while (state.reviewIndex < state.reviewQueue.length && skipped < skipBatchMax) {
-    const key = state.reviewQueue[state.reviewIndex];
-    const r = key ? findResultByKey(key) : null;
-    const stillPending = r
-      && matchesReviewFilter(r, state.reviewFilter)
-      && !isExcludedFromAllReviewQueues(r, key, state.reviewFilter)
-      && !isReviewedInFilter(state.reviewFilter, key);
-    if (stillPending) break;
-    // Advance past stale queue entries without stamping them reviewed.
-    state.reviewIndex++;
-    skipped++;
-  }
-  if (skipped) {
-    if (state.reviewIndex >= state.reviewQueue.length) {
-      showReviewComplete();
-      return;
+  // Undo must land on the previous lead — never skip past it.
+  const forceKey = state._reviewUndoForceKey;
+  if (forceKey) {
+    const forceIdx = state.reviewQueue.indexOf(forceKey);
+    if (forceIdx >= 0) state.reviewIndex = forceIdx;
+    state._reviewUndoForceKey = null;
+  } else {
+    let skipped = 0;
+    const skipBatchMax = 40;
+    while (state.reviewIndex < state.reviewQueue.length && skipped < skipBatchMax) {
+      const key = state.reviewQueue[state.reviewIndex];
+      const r = key ? findResultByKey(key) : null;
+      const stillPending = r
+        && matchesReviewFilter(r, state.reviewFilter)
+        && !isExcludedFromAllReviewQueues(r, key, state.reviewFilter)
+        && !isReviewedInFilter(state.reviewFilter, key);
+      if (stillPending) break;
+      // Advance past stale queue entries without stamping them reviewed.
+      state.reviewIndex++;
+      skipped++;
     }
-    if (skipped >= skipBatchMax) {
-      requestAnimationFrame(() => renderReviewLead());
-      return;
+    if (skipped) {
+      if (state.reviewIndex >= state.reviewQueue.length) {
+        showReviewComplete();
+        return;
+      }
+      if (skipped >= skipBatchMax) {
+        requestAnimationFrame(() => renderReviewLead());
+        return;
+      }
+      if (skipped > 1) persistReviewProgress({ defer: true });
     }
-    if (skipped > 1) persistReviewProgress({ defer: true });
   }
 
   const r = getReviewRecord();
@@ -1170,18 +1189,40 @@ R.reviewUndo = function reviewUndo() {
     if (reviewUndoBtn) reviewUndoBtn.disabled = !state.reviewUndoStack.length;
     return;
   }
-  const idx = state.results.findIndex(r => recordKey(r) === item.key);
-  const address = idx >= 0 ? state.results[idx]?.address : null;
+  let idx = state.results.findIndex(r => recordKey(r) === item.key);
+  // Fallback: address match if lean merge changed email/phone and broke the key.
+  if (idx < 0 && item.snapshot?.address) {
+    idx = state.results.findIndex((r) => r && r.address === item.snapshot.address);
+  }
+  const address = idx >= 0 ? state.results[idx]?.address : (item.snapshot?.address || null);
   if (idx >= 0) {
     state.results[idx] = applyReviewUndoSnapshot(state.results[idx], item.snapshot);
+    // Ensure the restored row still resolves under the queue key Undo was keyed on.
+    const restoredKey = recordKey(state.results[idx]);
+    if (restoredKey !== item.key && item.snapshot) {
+      if (item.snapshot.email != null) state.results[idx].email = item.snapshot.email;
+      if (item.snapshot.phone != null) state.results[idx].phone = item.snapshot.phone;
+      if (item.snapshot.address != null) state.results[idx].address = item.snapshot.address;
+    }
+  } else if (item.snapshot) {
+    state.results.push(applyReviewUndoSnapshot({
+      email: item.snapshot.email || '',
+      phone: item.snapshot.phone || '',
+      address: item.snapshot.address || ''
+    }, item.snapshot));
   }
+  invalidateResultKeyIndex?.();
   if (typeof cancelReviewTrainingForKey === 'function') cancelReviewTrainingForKey(item.key);
   if (item.trainingCommitted && typeof rollbackReviewTrainingForKey === 'function') {
     rollbackReviewTrainingForKey(item.key, address);
   }
   unmarkReviewedKey(state.reviewFilter, item.key);
-  const targetIndex = Number.isFinite(item.queueIndex) ? item.queueIndex : Math.max(0, state.reviewIndex - 1);
-  state.reviewIndex = Math.max(0, Math.min(targetIndex, state.reviewQueue.length - 1));
+  const forceIdx = state.reviewQueue.indexOf(item.key);
+  const targetIndex = forceIdx >= 0
+    ? forceIdx
+    : (Number.isFinite(item.queueIndex) ? item.queueIndex : Math.max(0, state.reviewIndex - 1));
+  state.reviewIndex = Math.max(0, Math.min(targetIndex, Math.max(0, state.reviewQueue.length - 1)));
+  state._reviewUndoForceKey = item.key;
 
   const action = item.action || (item.snapshot?.needsReviewLater ? 'defer' : 'change');
   if (action === 'defer') {
@@ -1198,7 +1239,11 @@ R.reviewUndo = function reviewUndo() {
     state.reviewStats.kept = Math.max(0, (state.reviewStats.kept || 0) - 1);
   }
 
-  invalidateTierCountsCache();
+  if (typeof notifyResultMutation === 'function') {
+    notifyResultMutation({ keepReviewSnapshot: true, clearServerTierCounts: true });
+  } else {
+    invalidateTierCountsCache();
+  }
   if (reviewUndoBtn) reviewUndoBtn.disabled = !state.reviewUndoStack.length;
 
   persistReviewProgress({ reason: 'review-undo' });
@@ -1397,6 +1442,7 @@ R.closeReviewMode = function closeReviewMode() {
   state.reviewQueue = [];
   state.reviewIndex = 0;
   state.reviewUndoStack = [];
+  state._reviewUndoForceKey = null;
   state.reviewStats = { kept: 0, changed: 0, deferred: 0, blurred: 0, satelliteOnly: 0 };
   reviewChromeKey = '';
   reviewQueueStatsSnap = null;

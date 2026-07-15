@@ -43,7 +43,7 @@ async function main() {
   ok('html_imagery_tag', !!scriptMap.imagery, scriptMap.imagery || 'missing');
   ok('html_session_tag', !!scriptMap.session, scriptMap.session || 'missing');
   ok('html_state_tag', !!scriptMap.state, scriptMap.state || 'missing');
-  ok('html_cachebust_review_queues', /review-fast1/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
+  ok('html_cachebust_review_undo', /review-undo1/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
 
   async function assertServed(label, src, needles) {
     if (!src) {
@@ -57,8 +57,17 @@ async function main() {
     ok(`served_${label}`, res.ok && missing.length === 0, missing.length ? `missing ${missing.join(' | ')}` : `ok ${body.length}b @ ${src}`);
   }
 
-  await assertServed('imagery.js', scriptMap.imagery, ['fetchSessionReviewQueue', 'mergeReviewQueueResults', 'discardStaleReviewProgress']);
-  await assertServed('session.js', scriptMap.session, ['isReviewQueueStaleVsPending', 'clearAllReviewProgressStashes']);
+  await assertServed('imagery.js', scriptMap.imagery, [
+    'fetchSessionReviewQueue',
+    'mergeReviewQueueResults',
+    '_reviewUndoForceKey',
+    'discardStaleReviewProgress'
+  ]);
+  await assertServed('session.js', scriptMap.session, [
+    'isReviewQueueStaleVsPending',
+    'clearAllReviewProgressStashes',
+    'Undo must un-stamp'
+  ]);
   await assertServed('state.js', scriptMap.state, ['_sessionResultsLoadPromise', 're-inject a tiny']);
 
   // Fast review-queue API must exist and return a large Distressed pending set

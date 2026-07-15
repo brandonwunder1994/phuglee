@@ -1335,6 +1335,11 @@ R.REVIEW_UNDO_CLEAR_IF_ABSENT = [
 
 R.snapshotRecordForUndo = function snapshotRecordForUndo(r) {
   return {
+    // Identity — needed to re-find / re-insert after lean merges wipe keys
+    email: r.email,
+    phone: r.phone,
+    address: r.address,
+    street: r.street,
     score: r.score,
     leadTier: r.leadTier,
     manualScore: r.manualScore,
@@ -1357,12 +1362,22 @@ R.snapshotRecordForUndo = function snapshotRecordForUndo(r) {
 }
 
 R.applyReviewUndoSnapshot = function applyReviewUndoSnapshot(record, snapshot) {
-  const merged = { ...record, ...snapshot };
+  const snap = snapshot || {};
+  const merged = { ...record, ...snap };
   for (const k of REVIEW_UNDO_CLEAR_IF_ABSENT) {
-    if (!(k in snapshot)) delete merged[k];
+    if (!(k in snap)) delete merged[k];
   }
-  if (!snapshot.indicators) merged.indicators = [];
-  merged.tierRationale = snapshot.tierRationale || buildTierRationale(merged);
+  // Undo must un-stamp Keep/Change — falsy snapshot values must clear, not leave prior true.
+  if (!snap.manuallyReviewed) {
+    delete merged.manuallyReviewed;
+    delete merged.manuallyReviewedAt;
+    delete merged.manuallyReviewedVia;
+  }
+  if (!snap.reviewResolved) delete merged.reviewResolved;
+  if (!snap.needsReviewLater) merged.needsReviewLater = false;
+  if (!snap.satelliteOnly) merged.satelliteOnly = false;
+  if (!snap.indicators) merged.indicators = [];
+  merged.tierRationale = snap.tierRationale || buildTierRationale(merged);
   return merged;
 }
 
@@ -1693,7 +1708,9 @@ R.isReviewedInFilter = function isReviewedInFilter(filter, key) {
   const r = findResultByKey(key);
   if (!r) return false;
   if (filter === 'review' && r.needsReviewLater) return false;
-  return !!(r.manuallyReviewed || r.reviewResolved);
+  if (r.reviewResolved) return true;
+  // Soft vias are queue progress — same rule as isExcludedFromAllReviewQueues / isManuallyReviewed.
+  return typeof isManuallyReviewed === 'function' ? isManuallyReviewed(r) : !!r.manuallyReviewed;
 }
 
 R.purgeGhostReviewedKeys = function purgeGhostReviewedKeys() {
