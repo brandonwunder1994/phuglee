@@ -1167,13 +1167,14 @@ img.uc-profile-hero {
 }
 
 .uc-panel-body {
+  display: none;
   padding: 0 0.85rem 0.85rem;
-  display: grid;
   gap: 0.75rem;
   border-top: 1px solid transparent;
 }
 
 .uc-panel[open] > .uc-panel-body {
+  display: grid;
   border-top-color: var(--vault-border);
   padding-top: 0.75rem;
 }
