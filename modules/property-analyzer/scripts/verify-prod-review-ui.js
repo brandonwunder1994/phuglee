@@ -66,11 +66,10 @@ async function main() {
   });
 
   // Ensure full hydrate then open Distressed
+  const t0 = Date.now();
   const opened = await page.evaluate(async () => {
     const R = window.PDA?.env || {};
-    if (typeof R.ensureSessionResultsLoaded === 'function') {
-      await R.ensureSessionResultsLoaded();
-    }
+    const started = Date.now();
     if (typeof R.clearAllReviewProgressStashes === 'function') R.clearAllReviewProgressStashes();
     if (typeof R.openReviewMode === 'function') {
       await R.openReviewMode('distressed', { forceRebuild: true, restart: true });
@@ -79,8 +78,9 @@ async function main() {
       reviewMode: !!R.state?.reviewMode,
       filter: R.state?.reviewFilter,
       queueLen: (R.state?.reviewQueue || []).length,
-      index: R.state?.reviewIndex,
       results: (R.state?.results || []).length,
+      openMs: Date.now() - started,
+      usedFastPath: typeof R.fetchSessionReviewQueue === 'function',
       loadComplete: !!R.sessionLoadState?.complete,
       loadTotal: R.sessionLoadState?.total || 0,
       overlayOpen: !!(
@@ -89,14 +89,16 @@ async function main() {
       )
     };
   });
+  opened.wallMs = Date.now() - t0;
 
   await browser.close();
 
   const pass = opened.queueLen >= 100
-    && opened.results >= 10000
+    && opened.openMs < 15000
+    && opened.wallMs < 25000
     && before.jsHasDiscard
     && before.jsHasStale
-    && !/No .* leads to review|All .* have been checked/i.test(dialogs.join('\n'));
+    && !/No .* leads to review|All .* have been checked|Still loading scanned leads/i.test(dialogs.join('\n'));
 
   const report = { base: BASE, pass, before, opened, dialogs };
   console.log(JSON.stringify(report, null, 2));

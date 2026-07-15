@@ -78,6 +78,27 @@ function register(ctx) {
     return true;
   });
 
+  /**
+   * Fast Review Leads open: pending keys + lean rows for one bucket.
+   * Avoids waiting for the client to hydrate all ~16k results.
+   */
+  router.get('/api/session-review-queue', async (req, res, url) => {
+    const { buildSessionReviewQueue } = require('../lib/review-queue-server');
+    const filter = String(url.searchParams.get('filter') || '').trim();
+    const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
+    const limit = Math.min(1000, Math.max(1, parseInt(url.searchParams.get('limit') || '300', 10) || 300));
+    const { session } = backups.loadSessionForRequest(req);
+    const finalized = finalizeSession(session);
+    const results = Array.isArray(finalized.results) ? finalized.results : [];
+    const body = buildSessionReviewQueue(results, filter, { offset, limit });
+    if (!body.ok) {
+      sendJson(res, 400, body);
+      return true;
+    }
+    sendJson(res, 200, body);
+    return true;
+  });
+
   /** On-demand full profile for one property (read-only; does not alter disk). */
   router.get('/api/session-result-profile', async (req, res, url) => {
     const { recordKeyFromResult } = require('../lib/backup-logic');

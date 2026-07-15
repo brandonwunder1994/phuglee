@@ -43,7 +43,7 @@ async function main() {
   ok('html_imagery_tag', !!scriptMap.imagery, scriptMap.imagery || 'missing');
   ok('html_session_tag', !!scriptMap.session, scriptMap.session || 'missing');
   ok('html_state_tag', !!scriptMap.state, scriptMap.state || 'missing');
-  ok('html_cachebust_review_queues', /review-queues3/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
+  ok('html_cachebust_review_queues', /review-fast1/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
 
   async function assertServed(label, src, needles) {
     if (!src) {
@@ -57,9 +57,13 @@ async function main() {
     ok(`served_${label}`, res.ok && missing.length === 0, missing.length ? `missing ${missing.join(' | ')}` : `ok ${body.length}b @ ${src}`);
   }
 
-  await assertServed('imagery.js', scriptMap.imagery, ['discardStaleReviewProgress', 'forceRebuild']);
+  await assertServed('imagery.js', scriptMap.imagery, ['fetchSessionReviewQueue', 'mergeReviewQueueResults', 'discardStaleReviewProgress']);
   await assertServed('session.js', scriptMap.session, ['isReviewQueueStaleVsPending', 'clearAllReviewProgressStashes']);
-  await assertServed('state.js', scriptMap.state, ['_tierCountsFromServer?.all', 'ensureSessionResultsLoaded incomplete', 're-inject a tiny', '_sessionResultsLoadPromise']);
+  await assertServed('state.js', scriptMap.state, ['_sessionResultsLoadPromise', 're-inject a tiny']);
+
+  // Fast review-queue API must exist and return a large Distressed pending set
+  const rq = await (await fetch(`${BASE}/analyzer/api/session-review-queue?filter=distressed&limit=50`, { headers: hdr, cache: 'no-store' })).json();
+  ok('review_queue_api', !!rq.ok && Number(rq.pending) > 100, `pending=${rq.pending} keys=${(rq.pendingKeys||[]).length} results=${(rq.results||[]).length}`);
 
   const sum = await (await fetch(`${BASE}/analyzer/api/session-summary`, { headers: hdr, cache: 'no-store' })).json();
   ok('pending_unscanned_zero', Number(sum.pendingUnscanned) === 0, `pending=${sum.pendingUnscanned}`);

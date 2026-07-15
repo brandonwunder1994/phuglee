@@ -73,6 +73,70 @@ R.ensureResultKeyIndex = function ensureResultKeyIndex() {
   return resultKeyToIdx;
 }
 
+/** Merge lean review-queue rows into state.results without wiping the session. */
+R.mergeReviewQueueResults = function mergeReviewQueueResults(incoming = []) {
+  if (!Array.isArray(incoming) || !incoming.length) return 0;
+  const idx = ensureResultKeyIndex();
+  let added = 0;
+  for (const r of incoming) {
+    if (!r) continue;
+    const key = recordKey(r);
+    if (!key || key === '||') continue;
+    const at = idx.get(key);
+    if (at != null && at >= 0) {
+      state.results[at] = { ...state.results[at], ...r };
+    } else {
+      idx.set(key, state.results.length);
+      state.results.push(r);
+      added++;
+    }
+  }
+  invalidateResultKeyIndex();
+  invalidateReviewSnapshotCache?.();
+  return added;
+};
+
+/**
+ * Fast path: server builds pending keys + first lean page so Review opens
+ * without waiting for full ~16k client hydrate.
+ */
+R.fetchSessionReviewQueue = async function fetchSessionReviewQueue(filter, opts = {}) {
+  const offset = Math.max(0, Number(opts.offset) || 0);
+  const limit = Math.min(1000, Math.max(50, Number(opts.limit) || 300));
+  const q = new URLSearchParams({
+    filter: String(filter || ''),
+    offset: String(offset),
+    limit: String(limit)
+  });
+  const res = await apiFetch(`/api/session-review-queue?${q}`, { cache: 'no-store' });
+  if (!res?.ok) {
+    const err = await res?.json?.().catch(() => ({}));
+    throw new Error(err?.error || `review-queue HTTP ${res?.status || 0}`);
+  }
+  return res.json();
+};
+
+R.prefetchRemainingReviewQueueResults = async function prefetchRemainingReviewQueueResults(filter, startOffset, pageSize = 300) {
+  let offset = Math.max(0, Number(startOffset) || 0);
+  const limit = Math.min(1000, Math.max(50, Number(pageSize) || 300));
+  while (state.reviewMode && state.reviewFilter === filter) {
+    let body;
+    try {
+      body = await fetchSessionReviewQueue(filter, { offset, limit });
+    } catch (e) {
+      console.warn('[review] prefetch remaining failed', e);
+      break;
+    }
+    const rows = body?.results || [];
+    if (rows.length) mergeReviewQueueResults(rows);
+    if (!body?.hasMoreResults || !rows.length) break;
+    offset += rows.length;
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  // Keep warming imagery as more rows land
+  if (state.reviewMode && state.reviewFilter === filter) warmReviewImagery?.();
+};
+
 R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
   url = resolveImageryPublicUrl(url);
   if (!url || reviewImagePreloadCache.has(url)) return;
@@ -1142,33 +1206,53 @@ R.reviewUndo = function reviewUndo() {
 }
 
 R.openReviewMode = async function openReviewMode(filter, opts = {}) {
-  // Review needs the FULL result set — never build queues from a partial hydrate.
-  if (typeof ensureSessionResultsLoaded === 'function') {
-    try {
-      const loadedOk = await ensureSessionResultsLoaded();
-      const target = Math.max(
-        Number(sessionLoadState?.total) || 0,
-        Number(sessionLoadState?.serverCanonical) || 0,
-        Number(state._tierCountsFromServer?.all) || 0,
-        Number(state.processed) || 0
-      );
-      if (!loadedOk || (target > 0 && state.results.length < Math.floor(target * 0.95))) {
-        alert(
-          `Still loading scanned leads (${state.results.length.toLocaleString()} of ${target.toLocaleString()}). ` +
-          `Wait for the load to finish, then open Review Leads again — otherwise the queue looks empty.`
-        );
-        return;
-      }
-    } catch (e) {
-      console.warn('[review] ensureSessionResultsLoaded failed', e);
-    }
-  }
-  if (!state.results.length) {
-    alert('No analyzed leads yet — run a scan or restore your saved session first.');
-    return;
-  }
   if (!REVIEW_MODE_FILTERS.includes(filter)) {
     alert('Choose a review mode from Review Leads in the sidebar.');
+    return;
+  }
+
+  // Fast path: server queue — do NOT wait for full 16k hydrate (that made Review feel stuck).
+  let serverQueue = null;
+  if (USE_PROXY && typeof fetchSessionReviewQueue === 'function' && !opts.localOnly) {
+    try {
+      setSessionRestoreBanner?.(`Loading ${reviewFilterLabel(filter)} review…`);
+      serverQueue = await fetchSessionReviewQueue(filter, { offset: 0, limit: 300 });
+      setSessionRestoreBanner?.('');
+    } catch (e) {
+      console.warn('[review] session-review-queue failed, falling back to local hydrate', e);
+      setSessionRestoreBanner?.('');
+      serverQueue = null;
+    }
+  }
+
+  if (!serverQueue?.ok) {
+    // Fallback: full hydrate (slower) then build from in-memory snapshot
+    if (typeof ensureSessionResultsLoaded === 'function') {
+      try {
+        const loadedOk = await ensureSessionResultsLoaded();
+        const target = Math.max(
+          Number(sessionLoadState?.total) || 0,
+          Number(sessionLoadState?.serverCanonical) || 0,
+          Number(state._tierCountsFromServer?.all) || 0,
+          Number(state.processed) || 0
+        );
+        if (!loadedOk || (target > 0 && state.results.length < Math.floor(target * 0.95))) {
+          alert(
+            `Still loading scanned leads (${state.results.length.toLocaleString()} of ${target.toLocaleString()}). ` +
+            `Wait for the load to finish, then open Review Leads again — otherwise the queue looks empty.`
+          );
+          return;
+        }
+      } catch (e) {
+        console.warn('[review] ensureSessionResultsLoaded failed', e);
+      }
+    }
+  } else if (Array.isArray(serverQueue.results) && serverQueue.results.length) {
+    mergeReviewQueueResults(serverQueue.results);
+  }
+
+  if (!state.results.length && !(serverQueue?.pendingKeys || []).length) {
+    alert('No analyzed leads yet — run a scan or restore your saved session first.');
     return;
   }
   closePropertyModal({ save: false });
@@ -1217,8 +1301,7 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   }
 
   // Do NOT resume disk/server stashes when they are smaller than current pending.
-  // rebuild from pendingKeys below. (restore still merges tiny deltas when not stale.)
-  if (!opts.restart && !opts.forceRebuild && restoreReviewProgress(filter)) {
+  if (!opts.restart && !opts.forceRebuild && !serverQueue?.ok && restoreReviewProgress(filter)) {
     const restoredStale = typeof isReviewQueueStaleVsPending === 'function'
       && isReviewQueueStaleVsPending(filter, state.reviewQueue);
     if (!restoredStale) {
@@ -1240,14 +1323,27 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   }
 
   invalidateReviewSnapshotCache?.();
-  const snap = scanReviewFilterSnapshot(filter);
-  const queue = snap.pendingKeys;
-  const { total: totalInFilter, reviewedInFilter: alreadyReviewed, pending } = snap;
+  let queue;
+  let totalInFilter;
+  let alreadyReviewed;
+  let pending;
+  if (serverQueue?.ok) {
+    queue = Array.isArray(serverQueue.pendingKeys) ? serverQueue.pendingKeys.slice() : [];
+    totalInFilter = Number(serverQueue.totalInFilter) || 0;
+    alreadyReviewed = Number(serverQueue.reviewedInFilter) || 0;
+    pending = Number(serverQueue.pending) || queue.length;
+  } else {
+    const snap = scanReviewFilterSnapshot(filter);
+    queue = snap.pendingKeys;
+    totalInFilter = snap.total;
+    alreadyReviewed = snap.reviewedInFilter;
+    pending = snap.pending;
+  }
   if (!queue.length) {
     if (alreadyReviewed > 0) {
       alert(`All ${totalInFilter.toLocaleString()} ${reviewFilterLabel(filter)} leads have been checked in this review queue (${alreadyReviewed.toLocaleString()} saved). New leads will appear after your next scan.`);
     } else {
-      alert(`No ${reviewFilterLabel(filter)} leads to review yet. Loaded ${state.results.length.toLocaleString()} results — if this looks short, hard-refresh and try again.`);
+      alert(`No ${reviewFilterLabel(filter)} leads to review yet.`);
     }
     return;
   }
@@ -1275,6 +1371,15 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
     ? ` (${alreadyReviewed.toLocaleString()} already checked in this queue — skipped)`
     : '';
   log(`${reviewFilterLabel(filter)} review — ${queue.length.toLocaleString()} to review of ${totalInFilter.toLocaleString()} total${skipped}`, 'success');
+
+  // Pull remaining pending rows in the background so later Keep/Change stays instant.
+  if (serverQueue?.hasMoreResults) {
+    void prefetchRemainingReviewQueueResults(filter, (serverQueue.results || []).length, 300);
+  }
+  // Keep full session hydrate going in the background without blocking Review.
+  if (typeof ensureSessionResultsLoaded === 'function' && sessionLoadState && !sessionLoadState.complete) {
+    void ensureSessionResultsLoaded().catch(() => {});
+  }
 }
 
 R.closeReviewMode = function closeReviewMode() {
