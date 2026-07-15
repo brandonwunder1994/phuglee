@@ -753,6 +753,10 @@ R.mergeBrowserReviewMetadata = function mergeBrowserReviewMetadata(localData) {
       const prev = next[filter];
       const incIndex = Number(inc?.index) || 0;
       const prevIndex = Number(prev?.index) || 0;
+      const incQueueLen = Array.isArray(inc?.queue) ? inc.queue.length : 0;
+      const prevQueueLen = Array.isArray(prev?.queue) ? prev.queue.length : 0;
+      // Prefer the longer queue when one side looks like a tiny pre-scan stash.
+      if (prev && prevQueueLen > incQueueLen + 2 && incQueueLen <= 5) continue;
       if (!prev || incIndex > prevIndex || (incIndex === prevIndex && localSavedAt > serverSavedAt)) {
         next[filter] = inc;
         changed = true;

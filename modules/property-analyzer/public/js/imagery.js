@@ -1164,22 +1164,41 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
 
   if (state.appView !== 'dashboard') setAppView('dashboard');
 
-  // Same review already open — just show overlay (do not reset progress)
+  // Drop tiny mid-review stashes left over from before a large scan landed.
+  if (typeof discardStaleReviewProgress === 'function') {
+    discardStaleReviewProgress(filter);
+  }
+
+  // Same review already open — just show overlay (do not reset progress),
+  // unless the in-memory queue is missing most of the current pending set.
   if (!opts.restart && state.reviewMode && state.reviewFilter === filter) {
-    showReviewOverlay();
-    renderReviewLead();
-    warmReviewImagery();
-    return;
+    const staleOpen = typeof isReviewQueueStaleVsPending === 'function'
+      && isReviewQueueStaleVsPending(filter, state.reviewQueue);
+    if (!staleOpen) {
+      showReviewOverlay();
+      renderReviewLead();
+      warmReviewImagery();
+      return;
+    }
+    state.reviewMode = false;
+    state.reviewQueue = [];
+    state.reviewIndex = 0;
   }
 
   // Resume mid-session only (page refresh or overlay hidden — not after Exit)
   if (!opts.restart && !state.reviewMode && hasActiveReviewProgress(filter)) {
-    state.reviewMode = true;
-    showReviewOverlay();
-    renderReviewLead();
-    warmReviewImagery();
-    log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
-    return;
+    const staleActive = typeof isReviewQueueStaleVsPending === 'function'
+      && isReviewQueueStaleVsPending(filter, state.reviewQueue);
+    if (!staleActive) {
+      state.reviewMode = true;
+      showReviewOverlay();
+      renderReviewLead();
+      warmReviewImagery();
+      log(`Resumed ${reviewFilterLabel(filter)} review — lead ${state.reviewIndex + 1} of ${state.reviewQueue.length}`, 'success');
+      return;
+    }
+    state.reviewQueue = [];
+    state.reviewIndex = 0;
   }
 
   // Resume stashed progress when switching between distressed ↔ well maintained without exiting

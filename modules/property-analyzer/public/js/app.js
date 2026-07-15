@@ -1905,6 +1905,13 @@ R.startScanAnalysis = async function startScanAnalysis() {
     flushSaveSession({ sync: true, force: true, reason: saveReason });
     persistScanProgressNow?.(saveReason);
 
+    // New scan results invalidate mid-review stashes (resume must rebuild full pending queues).
+    if (typeof clearAllReviewProgressStashes === 'function') {
+      clearAllReviewProgressStashes();
+    } else {
+      state.reviewProgressByFilter = {};
+    }
+
     // Force JSONL → LATEST merge so Distressed / WM / Vacant see this run immediately.
     let promoteOk = true;
     if (USE_PROXY) {

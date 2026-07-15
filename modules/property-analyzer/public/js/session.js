@@ -1745,15 +1745,66 @@ R.sanitizeReviewQueue = function sanitizeReviewQueue(queue, filter = state.revie
   });
 }
 
+/**
+ * True when a mid-review stash/queue is far behind current pending leads
+ * (classic bug: resume 2-item Distressed queue after a 5k scan left ~900 pending).
+ */
+R.isReviewQueueStaleVsPending = function isReviewQueueStaleVsPending(filter, queue) {
+  const snap = typeof scanReviewFilterSnapshot === 'function'
+    ? scanReviewFilterSnapshot(filter)
+    : null;
+  const pendingKeys = snap?.pendingKeys || [];
+  const pending = pendingKeys.length;
+  if (!pending) return false;
+  const cleaned = sanitizeReviewQueue(queue || [], filter);
+  if (!cleaned.length && pending > 0) return true;
+  if (pending > cleaned.length + 2) return true;
+  const qSet = new Set(cleaned);
+  let missing = 0;
+  for (const key of pendingKeys) {
+    if (!qSet.has(key)) missing++;
+    if (missing > 2) return true;
+  }
+  return false;
+};
+
+/** Drop stashed progress that cannot represent the current awaiting-review set. */
+R.discardStaleReviewProgress = function discardStaleReviewProgress(filter) {
+  if (!filter || filter === 'all') return false;
+  const saved = state.reviewProgressByFilter?.[filter];
+  if (!saved?.queue?.length) return false;
+  if (!isReviewQueueStaleVsPending(filter, saved.queue)) return false;
+  delete state.reviewProgressByFilter[filter];
+  return true;
+};
+
+R.clearAllReviewProgressStashes = function clearAllReviewProgressStashes() {
+  state.reviewProgressByFilter = {};
+};
+
 R.restoreReviewProgress = function restoreReviewProgress(filter) {
+  discardStaleReviewProgress(filter);
   const saved = state.reviewProgressByFilter?.[filter];
   if (!saved || !saved.queue?.length || saved.index >= saved.queue.length) return false;
-  const queue = sanitizeReviewQueue(saved.queue);
+  let queue = sanitizeReviewQueue(saved.queue, filter);
   if (!queue.length) return false;
+
+  // Append any new pending keys that arrived after the stash (small deltas only;
+  // large gaps are discarded above so openReviewMode rebuilds the full queue).
+  const snap = typeof scanReviewFilterSnapshot === 'function'
+    ? scanReviewFilterSnapshot(filter)
+    : null;
+  const pendingKeys = snap?.pendingKeys || [];
+  if (pendingKeys.length) {
+    const qSet = new Set(queue);
+    const extras = pendingKeys.filter((key) => !qSet.has(key));
+    if (extras.length) queue = queue.concat(extras);
+  }
+
   state.reviewFilter = filter;
   state.reviewQueue = queue;
   state.reviewIndex = Math.min(saved.index, queue.length - 1);
-  state.reviewStats = { ...saved.stats };
+  state.reviewStats = { ...(saved.stats || {}) };
   state.reviewUndoStack = cloneReviewUndoStack(saved.undo);
   return true;
 }
