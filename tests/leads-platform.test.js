@@ -116,6 +116,36 @@ test('queryLeads stacks signals with AND logic', () => {
   assert.equal(result.total, 1);
 });
 
+test('queryLeads facet counts follow geo and signal filters', () => {
+  store.upsertLead(fixtureDistressed);
+  store.upsertLead(fixtureWM);
+  store.upsertLead(fixtureLand);
+
+  const all = store.queryLeads({ leadType: 'all' });
+  assert.ok(all.byTypeFiltered);
+  assert.equal(all.byTypeFiltered.all, all.total);
+  assert.ok(all.byTypeFiltered.distressed >= 1);
+  assert.ok(Array.isArray(all.statesFiltered));
+  assert.ok(all.statesFiltered.some((s) => s.name === fixtureDistressed.state));
+
+  const byState = store.queryLeads({
+    leadType: 'distressed',
+    state: fixtureDistressed.state
+  });
+  // Type tabs ignore leadType — distressed filter still reports WM/land in that state
+  assert.equal(byState.total, byState.byTypeFiltered.distressed);
+  assert.ok(byState.byTypeFiltered.all >= byState.byTypeFiltered.distressed);
+  assert.ok(Array.isArray(byState.citiesFiltered));
+  assert.ok(byState.citiesFiltered.some((c) => c.name === fixtureDistressed.city));
+
+  const bySignal = store.queryLeads({
+    leadType: 'all',
+    signals: [String(fixtureDistressed.signalTags[0]).toLowerCase()]
+  });
+  assert.ok(bySignal.byTypeFiltered.all >= 1);
+  assert.ok(bySignal.byTypeFiltered.all <= all.byTypeFiltered.all);
+});
+
 test('publishLead rejects unapproved distressed', () => {
   assert.throws(() => {
     publish.publishLead({ ...fixtureDistressed, reviewStatus: 'pending' });

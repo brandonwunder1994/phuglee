@@ -32,6 +32,8 @@
     selected: new Set(),
     meta: null,
     byTypeFiltered: null,
+    statesFiltered: null,
+    citiesFiltered: null,
     sync: null,
     overlays: { favorites: [], notes: {}, presets: [], dispositions: {} },
     leads: [],
@@ -394,7 +396,6 @@
     const filtered = state.byTypeFiltered && typeof state.byTypeFiltered === 'object'
       ? state.byTypeFiltered
       : null;
-    const activeKey = state.leadType && state.leadType !== 'all' ? state.leadType : 'all';
 
     document.querySelectorAll('.vault-tab-count').forEach((el) => {
       const key = el.dataset.countFor;
@@ -404,10 +405,9 @@
       }
 
       let count = null;
-      // Active tab must match the leads list total exactly
-      if (key === activeKey && state.total != null) {
-        count = state.total;
-      } else if (filtered && filtered[key] != null) {
+      // Always prefer filter-aware facet counts so every CV tab matches the active stack
+      // (state / city / signals / phone / radius), not the unfiltered catalog meta.
+      if (filtered && filtered[key] != null) {
         count = filtered[key];
       } else if (state.meta) {
         count = key === 'all'
@@ -480,10 +480,17 @@
     ).join('');
   }
 
+  function applyListFacets(data = {}) {
+    state.byTypeFiltered = data.byTypeFiltered || null;
+    state.statesFiltered = Array.isArray(data.statesFiltered) ? data.statesFiltered : null;
+    state.citiesFiltered = Array.isArray(data.citiesFiltered) ? data.citiesFiltered : null;
+    renderTypeTabCounts();
+    populateGeoSelects();
+  }
+
   async function loadBootstrap() {
     const data = await fetchJson(`/api/leads/bootstrap?${buildQuery()}`);
     state.meta = data.meta;
-    state.byTypeFiltered = data.byTypeFiltered || null;
     state.sync = data.sync || null;
     state.overlays = data.overlays || { favorites: [], notes: {}, presets: [], dispositions: {} };
     if (!state.overlays.dispositions) state.overlays.dispositions = {};
@@ -493,8 +500,7 @@
     state.page = data.page || 1;
     renderKpis();
     renderSyncStatus();
-    renderTypeTabCounts();
-    populateGeoSelects();
+    applyListFacets(data);
     renderSignalChips();
     renderPresetSelect();
     renderResults();
@@ -916,6 +922,7 @@
       state.mapMarkers = data.markers || [];
       state.total = data.total || state.mapMarkers.length;
       state.totalPages = 1;
+      applyListFacets(data);
       hideSkeleton();
       renderMap();
       renderPagination();
@@ -970,8 +977,7 @@
       state.total = data.total || 0;
       state.totalPages = data.totalPages || 1;
       state.page = data.page || 1;
-      if (data.byTypeFiltered) state.byTypeFiltered = data.byTypeFiltered;
-      renderTypeTabCounts();
+      applyListFacets(data);
       renderResults();
       renderPagination();
       renderResultsMeta();
@@ -993,15 +999,27 @@
     const citySel = $('vault-city');
     if (!stateSel || !citySel || !state.meta) return;
     const byName = (a, b) => String(a.name || '').localeCompare(String(b.name || ''), undefined, { sensitivity: 'base' });
-    const states = [...(state.meta.states || [])].sort(byName);
     const hasState = !!state.state;
     // City is only pickable after a state is chosen — clear orphan city values
     if (!hasState) state.city = '';
+
+    const states = Array.isArray(state.statesFiltered)
+      ? [...state.statesFiltered]
+      : [...(state.meta.states || [])].sort(byName);
     const cities = hasState
-      ? [...(state.meta.citiesByState?.[state.state] || [])].sort(byName)
+      ? (Array.isArray(state.citiesFiltered)
+        ? [...state.citiesFiltered]
+        : [...(state.meta.citiesByState?.[state.state] || [])].sort(byName))
       : [];
     const prevState = state.state;
     const prevCity = state.city;
+    // Keep the selected state even if the current facet set has 0 (e.g. conflicting filters)
+    if (prevState && !states.some((st) => st.name === prevState)) {
+      states.unshift({ name: prevState, count: 0 });
+    }
+    if (prevCity && hasState && !cities.some((c) => c.name === prevCity)) {
+      cities.unshift({ name: prevCity, count: 0 });
+    }
     stateSel.innerHTML = '<option value="">All states</option>' + states.map((st) =>
       `<option value="${esc(st.name)}"${st.name === prevState ? ' selected' : ''}>${esc(st.name)} (${st.count})</option>`
     ).join('');
