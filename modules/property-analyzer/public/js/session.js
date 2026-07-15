@@ -1657,7 +1657,7 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
   try {
     const user = sessionStorage.getItem('phuglee_session') || 'admin';
     headers['X-Phuglee-User'] = user;
-    const plan = sessionStorage.getItem('phuglee_plan') || (user === 'admin' ? 'pro' : 'max');
+    const plan = sessionStorage.getItem('phuglee_plan') || 'max';
     headers['X-Phuglee-Plan'] = plan;
   } catch (_) {
     headers['X-Phuglee-User'] = 'admin';
@@ -1680,9 +1680,14 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
     })
     .catch((err) => {
       console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
-      try {
-        DistressPersistence?.showToast?.('Vault publish failed — lead saved locally', 'error', 5000);
-      } catch (_) {}
+      // Rate-limit toasts — one Keep spam was flooding the UI when publish was broken.
+      const now = Date.now();
+      if (!R._vaultPublishFailToastAt || now - R._vaultPublishFailToastAt > 15000) {
+        R._vaultPublishFailToastAt = now;
+        try {
+          DistressPersistence?.showToast?.('Vault publish failed — lead saved locally', 'error', 5000);
+        } catch (_) {}
+      }
     });
 };
 
