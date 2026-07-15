@@ -805,6 +805,95 @@ R.repairIncompleteImageryResults = function repairIncompleteImageryResults(resul
   return updated;
 }
 
+/**
+ * Detect scan dumps that never got a real look (transport/proxy glitch → Needs Review).
+ * These should return to the forceRescan queue, not sit in Needs Review.
+ */
+R.isGlitchedIncompleteScan = function isGlitchedIncompleteScan(r) {
+  if (!r || r.manualOverride || r.reviewResolved) return false;
+  if (r.manuallyReviewed && !r.needsReviewLater) return false;
+  if (r.tierLocked || r.manualScore || r.manualOverride) return false;
+  const flags = Array.isArray(r.qualityFlags) ? r.qualityFlags : [];
+  const cat = String(r.category || '').toLowerCase();
+  const reason = String(r.reason || '');
+  const incomplete = flags.includes('analysis_incomplete')
+    || cat === 'unavailable'
+    || /imagery unavailable|could not finish analysis|analysis interrupted/i.test(reason);
+  if (!incomplete) return false;
+  const hasImagery = !!(r.viewMeta || r.streetViewUrl || r.svUrl || r.thumbnailUrl
+    || r.satelliteClassification || r.satUrl || (Number(r.score) > 0) || r.aiScore != null);
+  const transportish = (typeof isTransportBlipError === 'function' && isTransportBlipError(reason))
+    || (typeof isProxyInfraError === 'function' && isProxyInfraError(reason))
+    || /failed to fetch|fetch failed|local server|not responding|connection lost|502|503|504|bad gateway|unexpected token/i.test(reason);
+  if (transportish) return true;
+  // Empty dump: incomplete + no imagery + no score (the ~44 glitch signature).
+  return !hasImagery && flags.includes('analysis_incomplete') && !(Number(r.score) > 0);
+}
+
+/**
+ * Pull glitched incomplete dumps out of results and back onto the scan queue.
+ * @returns {{ results: object[], records: object[], requeued: number }}
+ */
+R.requeueGlitchedIncompleteScans = function requeueGlitchedIncompleteScans(results, records) {
+  const list = Array.isArray(results) ? results : [];
+  const queue = Array.isArray(records) ? [...records] : [];
+  const stay = [];
+  const dumped = [];
+  for (const r of list) {
+    if (isGlitchedIncompleteScan(r)) dumped.push(r);
+    else stay.push(r);
+  }
+  if (!dumped.length) return { results: list, records: Array.isArray(records) ? records : [], requeued: 0 };
+
+  const existingKeys = new Set(queue.map((rec) => recordKey(rec)).filter(Boolean));
+  const existingMatch = new Set(queue.map((rec) => addressMatchKey?.(rec)).filter(Boolean));
+  let requeued = 0;
+  for (const r of dumped) {
+    const lean = {
+      firstName: r.firstName || '',
+      lastName: r.lastName || '',
+      phone: r.phone || '',
+      email: r.email || '',
+      street: r.street || String(r.address || '').split(',')[0] || '',
+      city: r.city || '',
+      state: r.state || '',
+      postal: r.postal || r.zip || '',
+      address: r.address || [r.street, r.city, r.state, r.postal || r.zip].filter(Boolean).join(', '),
+      importSource: r.importSource || '',
+      sourceFile: r.sourceFile || '',
+      importBatchId: r.importBatchId || '',
+      importedAt: r.importedAt || Date.now(),
+      leadType: r.leadType || r.importLeadType || 'code_violation',
+      violationType: r.violationType || '',
+      violationDescription: r.violationDescription || '',
+      violationDate: r.violationDate || '',
+      codeType: r.codeType || '',
+      codeCategory: r.codeCategory || '',
+      forceRescan: true
+    };
+    const k = recordKey(lean);
+    const mk = typeof addressMatchKey === 'function' ? addressMatchKey(lean) : '';
+    const hit = queue.find((rec) => (k && recordKey(rec) === k) || (mk && addressMatchKey?.(rec) === mk));
+    if (hit) {
+      hit.forceRescan = true;
+      requeued++;
+      continue;
+    }
+    if ((k && existingKeys.has(k)) || (mk && existingMatch.has(mk))) {
+      requeued++;
+      continue;
+    }
+    if (k) existingKeys.add(k);
+    if (mk) existingMatch.add(mk);
+    queue.push(lean);
+    requeued++;
+  }
+  if (requeued) {
+    log(`Returned ${requeued} glitched incomplete scan${requeued === 1 ? '' : 's'} to the queue (not Needs Review) — Start Scan again`, 'warn');
+  }
+  return { results: stay, records: queue, requeued };
+}
+
 R.migrateLegacyFetchFailedResults = function migrateLegacyFetchFailedResults(results) {
   let migrated = 0;
   const updated = results.map((r) => {
@@ -1020,9 +1109,11 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       return { address: label, status: result.reason, streetViewUrl: urls.streetView, satelliteUrl: urls.satellite, score: result.score };
     } catch (err) {
       lastErr = err;
+      // Only true transport/proxy blips — do NOT treat permanent Street View/Gemini API
+      // denials as "server down" (that used to abort the run and dump peers into Needs Review).
       const maybeTransport = (typeof isTransportBlipError === 'function' && isTransportBlipError(err.message))
         || isServerConnectionError(err.message)
-        || /(street view|satellite|imagery|gemini)\s+request failed/i.test(String(err.message || ''));
+        || (typeof isProxyInfraError === 'function' && isProxyInfraError(err.message));
       if (maybeTransport) {
         const st = await pingServerStatus();
         if (st) {
@@ -1034,19 +1125,24 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
             await sleep(2000 * attempt + Math.floor(Math.random() * 1500));
             continue;
           }
-          // Exhausted retries but proxy is up — defer this address; do NOT write Needs Review.
+          // Exhausted retries but proxy is up — defer via break (never Needs Review).
           break;
-        } else if (!state.serverStopAlertShown) {
+        }
+        // Proxy/status unreachable. Abort once; every worker MUST break — never fall through
+        // to buildNeedsReviewResult (that glitched 40+ rows into Needs Review on deploy blips).
+        if (!state.serverStopAlertShown) {
           serverOnline = false;
           updateServerOfflineBanner();
           state.serverStopAlertShown = true;
           state.aborted = true;
-          const msg = 'Local server is not responding. Double-click "Property Distress Analyzer" on your desktop, wait a few seconds, refresh, then click Start.';
+          const msg = R.IS_EMBEDDED
+            ? 'Analyzer briefly lost connection (deploy or overload). Wait a few seconds, hard-refresh, then Start Scan again — unfinished addresses stay unscanned.'
+            : 'Local server is not responding. Double-click "Property Distress Analyzer" on your desktop, wait a few seconds, refresh, then click Start.';
           showFatalError(msg);
-          log('Scan stopped — local server is not responding', 'error');
-          alert(`Scan stopped — the local server is not responding.\n\n${msg}`);
-          break;
+          log('Scan stopped — server connection lost (addresses left unscanned, not Needs Review)', 'error');
+          alert(`Scan stopped — connection lost.\n\n${msg}`);
         }
+        break;
       }
       // Hard quota / credits → stop immediately (do not burn retries or write Needs Review).
       if (typeof errorIsHardQuota === 'function' ? errorIsHardQuota(err) : isHardQuotaError(err.message)) {
@@ -1092,9 +1188,11 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
   }
   if (lastErr) {
     const deferDisk = isDiskSpaceError?.(lastErr.message) && deferQueue && !state.aborted;
-    const deferTransport = (typeof isTransportBlipError === 'function'
-      ? isTransportBlipError(lastErr.message)
-      : isServerConnectionError?.(lastErr.message)) && deferQueue && !state.aborted;
+    const deferTransport = (
+      (typeof isTransportBlipError === 'function' && isTransportBlipError(lastErr.message))
+      || (typeof isProxyInfraError === 'function' && isProxyInfraError(lastErr.message))
+      || isServerConnectionError?.(lastErr.message)
+    ) && deferQueue && !state.aborted;
     const deferRate = isDeferrableRateLimitError?.(lastErr.message) && deferQueue && !state.aborted;
     if (deferDisk) {
       noteDiskSpaceError?.(lastErr.message);
@@ -1152,17 +1250,24 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
     );
     return null;
   }
-  // Network blips under high concurrency — leave unscanned (never dump into Needs Review).
-  if (lastErr && (typeof isTransportBlipError === 'function'
-    ? isTransportBlipError(lastErr.message)
-    : isServerConnectionError?.(lastErr.message))) {
+  // Network / proxy blips under high concurrency — leave unscanned (never Needs Review).
+  if (lastErr && (
+    (typeof isTransportBlipError === 'function' && isTransportBlipError(lastErr.message))
+    || (typeof isProxyInfraError === 'function' && isProxyInfraError(lastErr.message))
+    || isServerConnectionError?.(lastErr.message)
+  )) {
+    if (deferQueue && !state.aborted) {
+      deferQueue.push(record);
+      log(`⏸ ${label} — network/proxy blip; will retry this run (not marked Needs Review)`, 'warn');
+    } else {
+      log(`⏸ ${label} — network/proxy blip left unscanned for next Start Scan`, 'warn');
+    }
     updateAgentSlot(workerNum, {
       active: false,
       status: 'Paused — network',
       phase: 'idle',
       address: ''
     });
-    log(`⏸ ${label} — network blip left unscanned for next Start Scan`, 'warn');
     if (state.running) scheduleThrottledUi();
     return null;
   }

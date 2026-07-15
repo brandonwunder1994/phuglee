@@ -2071,6 +2071,17 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
     state.results = state.results.map((r, i) => hydrateResultOnLoad(r, i, resultTotal));
     state.results = repairFalseFetchFailures(state.results);
     await yieldToMain();
+    // Pull transport/proxy glitch dumps out of Needs Review before other migrates soften them.
+    let requeuedGlitched = 0;
+    if (typeof requeueGlitchedIncompleteScans === 'function') {
+      const repaired = requeueGlitchedIncompleteScans(state.results, state.records);
+      if (repaired.requeued) {
+        state.results = repaired.results;
+        state.records = repaired.records;
+        state.processed = state.results.length;
+        requeuedGlitched = repaired.requeued;
+      }
+    }
     state.results = migrateLegacyFetchFailedResults(state.results);
     state.results = repairIncompleteImageryResults(state.results);
     if (state.filter === 'fetch_failed') state.filter = 'review';
@@ -2085,7 +2096,7 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
       applySessionTierSchemaUpgrade();
       sessionUpgraded = true;
     }
-    repairsChangedData = beforeRepairSig !== sessionResultsSig(state.results);
+    repairsChangedData = beforeRepairSig !== sessionResultsSig(state.results) || requeuedGlitched > 0;
   }
 
   const brainRestore = applyLearnedBrainFromSession(data, { fromBackup: !!opts.fromBackup });

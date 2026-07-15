@@ -1109,16 +1109,27 @@ R.isRawFetchTransportError = function isRawFetchTransportError(msg) {
 }
 
 /**
+ * Proxy/deploy infra blips (Railway restart, 502 HTML body, etc.) — never Needs Review.
+ */
+R.isProxyInfraError = function isProxyInfraError(msg) {
+  const m = String(msg || '').toLowerCase();
+  if (!m) return false;
+  if (isHardQuotaError?.(m)) return false;
+  return /502|503|504|bad gateway|gateway time-?out|application failed to respond|upstream|cloudflare|<\/?html|unexpected token\s*[<'"]|is not valid json|malformed json|service unavailable/.test(m);
+}
+
+/**
  * Brief browser↔proxy blip under high concurrency — retry/defer, never Needs Review.
- * Matches raw Failed to fetch and wrapped Street View / Satellite / Imagery / Gemini errors.
+ * Matches raw Failed to fetch, deploy/proxy HTML errors, and wrapped imagery/Gemini fetch failures.
  */
 R.isTransportBlipError = function isTransportBlipError(msg) {
   const m = String(msg || '');
   if (!m) return false;
   if (isHardQuotaError?.(m)) return false;
   if (isRawFetchTransportError(m)) return true;
+  if (typeof isProxyInfraError === 'function' ? isProxyInfraError(m) : false) return true;
   return /(street view|satellite|imagery|gemini)\s+request failed/i.test(m)
-    && /failed to fetch|fetch failed|network|timed out|timeout|econnreset|socket hang up|connection/i.test(m);
+    && /failed to fetch|fetch failed|network|timed out|timeout|econnreset|socket hang up|connection|502|503|504|bad gateway|unexpected token/i.test(m);
 }
 
 R.isServerConnectionError = function isServerConnectionError(msg) {
