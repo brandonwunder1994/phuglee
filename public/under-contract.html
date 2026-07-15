@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=49">
+  <link rel="stylesheet" href="/css/under-contract.css?v=50">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -556,6 +556,23 @@
     </form>
   </dialog>
 
+  <dialog id="uc-aoc-remind-dialog" class="uc-dialog">
+    <form method="dialog" id="uc-aoc-remind-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-aoc-remind-title">Send AOC reminder</h3>
+        <button type="button" id="uc-aoc-remind-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <input type="hidden" id="uc-aoc-remind-deal-id" value="">
+      <div id="uc-aoc-remind-body" class="uc-jv-resend-body">
+        <p>Send a reminder to everyone who has not signed the AOC yet?</p>
+      </div>
+      <div class="uc-edit-actions">
+        <button type="submit" id="uc-aoc-remind-confirm" value="save" class="phuglee-btn phuglee-btn-primary">Yes, send reminder</button>
+        <button type="button" id="uc-aoc-remind-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="uc-amendment-dialog" class="uc-dialog">
     <form method="dialog" id="uc-amendment-form" class="uc-edit-form">
       <div class="uc-dialog-head">
@@ -660,6 +677,6 @@
   <script src="/js/shell-nav.js?v=17" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=53" defer></script>
+  <script src="/js/under-contract.js?v=54" defer></script>
 </body>
 </html>

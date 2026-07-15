@@ -912,6 +912,35 @@
   color: #c8c8c8;
 }
 
+.uc-quick-btn--aoc-sent,
+#uc-drawer-buyer-found.uc-btn-aoc-sent {
+  opacity: 0.85;
+  filter: grayscale(0.35) brightness(0.92);
+  border-color: rgba(160, 160, 160, 0.45);
+  background: rgba(120, 120, 120, 0.16);
+  color: #c4c4c4;
+}
+
+.uc-quick-btn--aoc-signed,
+#uc-drawer-buyer-found.uc-btn-aoc-signed {
+  filter: grayscale(0.9) brightness(0.78);
+  opacity: 0.72;
+  border-color: rgba(160, 160, 160, 0.4);
+  background: rgba(120, 120, 120, 0.14);
+  color: #b0b0b0;
+}
+
+.uc-quick-btn--aoc-sent:hover,
+#uc-drawer-buyer-found.uc-btn-aoc-sent:hover,
+.uc-quick-btn--aoc-signed:hover,
+#uc-drawer-buyer-found.uc-btn-aoc-signed:hover {
+  filter: grayscale(0.55) brightness(0.9);
+  opacity: 0.92;
+  background: rgba(140, 140, 140, 0.22);
+  border-color: rgba(180, 180, 180, 0.55);
+  color: #d0d0d0;
+}
+
 .uc-thumb,
 .uc-profile-hero img.uc-profile-hero,
 img.uc-thumb,

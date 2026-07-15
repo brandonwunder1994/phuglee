@@ -616,7 +616,7 @@
                 : ''}
             </div>
             <div class="uc-property-quick">
-              <button type="button" class="uc-quick-btn" data-action="buyer-found">Send AOC</button>
+              ${aocQuickBtnHtml(d)}
               ${jvQuickBtnHtml(d)}
               <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
             </div>
@@ -694,7 +694,7 @@
             ${dealChecklistHtml(d)}
           </div>
           <div class="uc-deal-card-quick">
-            <button type="button" class="uc-quick-btn" data-action="buyer-found">Send AOC</button>
+            ${aocQuickBtnHtml(d)}
             ${jvQuickBtnHtml(d)}
             <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
           </div>
@@ -1647,6 +1647,7 @@
     if (backdrop) backdrop.hidden = false;
     document.body.classList.add('uc-drawer-open');
     syncDrawerJvButton(deal);
+    syncDrawerAocButton(deal);
 
     $('uc-drawer-title').textContent = deal.address || 'Contract profile';
     const url = photoUrl(deal);
@@ -1993,6 +1994,7 @@
         renderDocuments(data.deal.documents || []);
         renderDocsPending(data.deal);
         syncDrawerJvButton(data.deal);
+        syncDrawerAocButton(data.deal);
       }
       if (n && !opts.silent) {
         showToast(`Auto-imported ${n} signed document${n === 1 ? '' : 's'}`);
@@ -2079,7 +2081,7 @@
       return;
     }
     if (kind === 'aoc') {
-      if (state.profile) openBuyerFound(state.profile);
+      if (state.profile) openAocAction(state.profile);
       return;
     }
     if (kind === 'jv') {
@@ -2194,6 +2196,122 @@
     $('uc-aoc-coe').value = aoc.closingDate || deal.closingDate || deal.closingDisplay || '';
     $('uc-aoc-terms').value = aoc.additionalTerms && aoc.additionalTerms !== 'NA' ? aoc.additionalTerms : '';
     $('uc-buyer-dialog').showModal();
+  }
+
+  /** First send opens the AOC form; after send, confirm before reminding unsigned parties. */
+  function openAocAction(deal) {
+    if (!deal?.dealId) return;
+    const { sent } = aocState(deal);
+    if (sent) {
+      openAocRemindConfirm(deal);
+      return;
+    }
+    openBuyerFound(deal);
+  }
+
+  function aocState(deal) {
+    const aoc = deal?.aocSend && typeof deal.aocSend === 'object' ? deal.aocSend : null;
+    if (!aoc) return { sent: false, signed: false, aoc: null };
+    const status = String(aoc.status || '').toLowerCase();
+    const signed = status === 'signed' || Boolean(aoc.signedAt);
+    const sent = signed
+      || status === 'sent'
+      || status === 'sending'
+      || status === 'reminded'
+      || Boolean(aoc.signNowDocumentId)
+      || Boolean(aoc.requestedAt);
+    return { sent, signed, aoc };
+  }
+
+  function aocQuickBtnHtml(deal) {
+    const { sent, signed } = aocState(deal);
+    const cls = ['uc-quick-btn'];
+    if (signed) cls.push('uc-quick-btn--aoc-signed');
+    else if (sent) cls.push('uc-quick-btn--aoc-sent');
+    const label = signed ? 'AOC signed' : (sent ? 'AOC Reminder' : 'Send AOC');
+    const title = signed
+      ? 'AOC fully signed — click to remind anyone still pending'
+      : (sent ? 'AOC already sent — click to remind unsigned parties' : 'Send AOC via SignNow');
+    return `<button type="button" class="${cls.join(' ')}" data-action="buyer-found" title="${esc(title)}">${esc(label)}</button>`;
+  }
+
+  function syncDrawerAocButton(deal) {
+    const btn = $('uc-drawer-buyer-found');
+    if (!btn) return;
+    const { sent, signed } = aocState(deal);
+    btn.classList.toggle('uc-btn-aoc-signed', signed);
+    btn.classList.toggle('uc-btn-aoc-sent', sent && !signed);
+    btn.textContent = signed ? 'AOC signed' : (sent ? 'AOC Reminder' : 'Send AOC');
+  }
+
+  function openAocRemindConfirm(deal) {
+    const { aoc, signed } = aocState(deal);
+    $('uc-aoc-remind-deal-id').value = deal.dealId;
+    $('uc-aoc-remind-title').textContent = deal.address
+      ? `AOC reminder — ${deal.address}`
+      : 'Send AOC reminder';
+    const buyer = aoc?.buyerEmail || deal.buyerAssignment?.buyerEmail || 'the assignee';
+    const sentWhen = formatJvWhen(aoc?.requestedAt) || 'unknown time';
+    const remindedWhen = formatJvWhen(aoc?.lastRemindedAt);
+    const body = $('uc-aoc-remind-body');
+    const confirmBtn = $('uc-aoc-remind-confirm');
+    if (signed) {
+      if (confirmBtn) confirmBtn.textContent = 'Check & remind anyway';
+      if (body) {
+        body.innerHTML = `
+          <p>This AOC looks fully signed.</p>
+          <p>We can still check SignNow and remind anyone who somehow has not finished.</p>
+          <ul class="uc-jv-resend-meta">
+            <li><strong>Originally sent:</strong> ${esc(sentWhen)}</li>
+            <li><strong>Assignee email:</strong> ${esc(buyer)}</li>
+          </ul>`;
+      }
+    } else {
+      if (confirmBtn) confirmBtn.textContent = 'Yes, send reminder';
+      if (body) {
+        body.innerHTML = `
+          <p>Send a reminder to everyone who has <strong>not signed</strong> the AOC yet?</p>
+          <ul class="uc-jv-resend-meta">
+            <li><strong>Originally sent:</strong> ${esc(sentWhen)}</li>
+            <li><strong>Assignee email on file:</strong> ${esc(buyer)}</li>
+            ${remindedWhen ? `<li><strong>Last reminder:</strong> ${esc(remindedWhen)}</li>` : ''}
+          </ul>
+          <p class="uc-jv-resend-note">SignNow will email only pending signers (Assignor / Assignee who have not completed).</p>`;
+      }
+    }
+    $('uc-aoc-remind-dialog')?.showModal();
+  }
+
+  function closeAocRemindConfirm() {
+    $('uc-aoc-remind-dialog')?.close();
+  }
+
+  async function doRemindAoc(deal) {
+    if (!deal?.dealId) return;
+    try {
+      showToast('Sending AOC reminder…', 8000);
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/remind-aoc`, {
+        method: 'POST',
+        body: '{}'
+      });
+      showToast(data.reminder?.message || 'AOC reminder sent', 7000);
+      await loadDeals();
+      if (state.activeDealId === deal.dealId && data.deal) {
+        renderProfile(data.deal, state.contact);
+      }
+    } catch (err) {
+      showToast(err.message || 'AOC reminder failed', 9000);
+    }
+  }
+
+  async function submitAocRemind(ev) {
+    ev.preventDefault();
+    const id = $('uc-aoc-remind-deal-id').value;
+    const deal = state.deals.find((d) => d.dealId === id)
+      || (state.profile?.dealId === id ? state.profile : null)
+      || { dealId: id };
+    $('uc-aoc-remind-dialog')?.close();
+    await doRemindAoc(deal);
   }
 
   const JV_PARTIES = {
@@ -2780,8 +2898,11 @@
     });
     $('uc-drawer-buyer-found')?.addEventListener('click', () => {
       closeDrawerMoreMenu();
-      if (state.profile) openBuyerFound(state.profile);
+      if (state.profile) openAocAction(state.profile);
     });
+    $('uc-aoc-remind-form')?.addEventListener('submit', submitAocRemind);
+    $('uc-aoc-remind-cancel')?.addEventListener('click', closeAocRemindConfirm);
+    $('uc-aoc-remind-close')?.addEventListener('click', closeAocRemindConfirm);
     $('uc-drawer-send-jv')?.addEventListener('click', () => {
       closeDrawerMoreMenu();
       if (state.profile) openSendJv(state.profile);
@@ -2960,7 +3081,7 @@
         return;
       }
       if (action === 'edit') openEdit(deal);
-      if (action === 'buyer-found') openBuyerFound(deal);
+      if (action === 'buyer-found') openAocAction(deal);
       if (action === 'send-jv') openSendJv(deal);
       if (action === 'amendment') openAmendment(deal);
       if (action === 'view-rehab') openRehabView(deal);
