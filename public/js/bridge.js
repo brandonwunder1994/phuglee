@@ -70,6 +70,7 @@
   const outcomeTypeSelect = document.getElementById('bridge-outcome-type');
   const typePanel = document.getElementById('bridge-type-panel');
   const uploadPanel = document.getElementById('bridge-upload-panel');
+  const uploadLockHint = document.getElementById('bridge-upload-lock-hint');
   const loadingPanel = document.getElementById('bridge-loading-panel');
   const loadingCopy = document.getElementById('bridge-loading-copy');
   const loadingEta = document.getElementById('bridge-loading-eta');
