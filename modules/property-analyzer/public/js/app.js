@@ -1469,14 +1469,26 @@ R.startScanAnalysis = async function startScanAnalysis() {
     if (USE_PROXY) {
       const hint = $('startBlockHint');
       if (hint) {
-        hint.textContent = 'Connecting to local server…';
+        hint.textContent = R.IS_EMBEDDED ? 'Connecting to Analyze…' : 'Connecting to local server…';
         hint.hidden = false;
       }
-      const st = await waitForServerReady({ attempts: 12, delayMs: 1500 });
+      // Clear sticky quota BEFORE readiness polling so a stale flag cannot abort the run.
+      try {
+        await apiFetch('/api/usage/clear-quota', { method: 'POST' });
+        state.quotaHaltShown = false;
+      } catch (_) { /* non-fatal */ }
+      const st = await waitForServerReady({
+        attempts: R.IS_EMBEDDED ? 4 : 12,
+        delayMs: R.IS_EMBEDDED ? 500 : 1500
+      });
       if (!st) {
         serverOnline = false;
         updateServerOfflineBanner();
-        alert('Server not responding.\n\nDouble-click "Property Distress Analyzer" on your desktop (no window needs to stay open), wait a few seconds, refresh this page, then click Start again.');
+        alert(
+          R.IS_EMBEDDED
+            ? 'Analyze server not responding.\n\nHard-refresh (Ctrl+Shift+R), stay logged in, then click Start Scan again.'
+            : 'Server not responding.\n\nDouble-click "Property Distress Analyzer" on your desktop (no window needs to stay open), wait a few seconds, refresh this page, then click Start again.'
+        );
         updateStartButton();
         updateScanReadyUi?.();
         return;
@@ -1553,11 +1565,6 @@ R.startScanAnalysis = async function startScanAnalysis() {
     state.diskSpaceWarned = false;
     state.quotaHaltShown = false;
     state.apiFailStreak = 0;
-    // Clear sticky "exhausted" flag from a prior soft rate-limit misclassify.
-    // Real credit exhaustion will re-halt on the first hard Google error.
-    if (USE_PROXY && typeof apiFetch === 'function') {
-      apiFetch('/api/usage/clear-quota', { method: 'POST' }).catch(() => {});
-    }
     if (USE_PROXY && typeof requestDiskCleanup === 'function') {
       requestDiskCleanup().catch(() => {});
     }

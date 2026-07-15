@@ -68,6 +68,9 @@ describe('client scan hard-quota halt policy', () => {
     assert.match(configSrc, /out of credits/);
     assert.match(configSrc, /spend\.\?limit/);
     assert.match(configSrc, /consumer_/);
+    // Sticky quota flag must not abort a running scan (Railway Start Scan freeze).
+    assert.match(configSrc, /Never abort a running scan from it/);
+    assert.match(configSrc, /apiFetch\('\/api\/status'/);
   });
 });
 

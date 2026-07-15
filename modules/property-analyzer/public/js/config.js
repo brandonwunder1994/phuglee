@@ -108,7 +108,7 @@ if (R.IS_EMBEDDED && typeof window !== 'undefined' && !window.__PDA_FETCH_PATCHE
   const nativeFetch = window.fetch.bind(window);
   window.fetch = function pdaFetch(input, init) {
     if (typeof input === 'string') input = R.resolveModuleApiUrl(input);
-    const nextInit = { ...(init || {}) };
+    const nextInit = { credentials: 'same-origin', ...(init || {}) };
     if (typeof input === 'string' && (input.includes('/api/') || input.endsWith('/api'))) {
       const headers = R.applyPhugleeSessionHeaders(
         nextInit.headers && typeof nextInit.headers === 'object' && !(nextInit.headers instanceof Headers)
@@ -157,7 +157,9 @@ R.fetchServerConfig = async function fetchServerConfig() {
   if (serverConfigLoadPromise) return serverConfigLoadPromise;
   serverConfigLoadPromise = (async () => {
     try {
-      const res = await fetch('/api/config');
+      const res = typeof apiFetch === 'function'
+        ? await apiFetch('/api/config')
+        : await fetch(resolveModuleApiUrl('/api/config'), { credentials: 'same-origin' });
       const data = await res.json();
       if (data?.ok) {
         serverConfig = data;
@@ -1144,8 +1146,17 @@ R.pingServerStatus = async function pingServerStatus() {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 8000);
   try {
-    const res = await fetch('/api/status', { cache: 'no-store', signal: ctrl.signal });
-    const st = await res.json();
+    // Must use apiFetch so /analyzer prefix + session cookies apply on Railway.
+    // Bare fetch('/api/status') hits the shell (404) and Start Scan never begins.
+    const res = typeof apiFetch === 'function'
+      ? await apiFetch('/api/status', { cache: 'no-store', signal: ctrl.signal })
+      : await fetch(resolveModuleApiUrl('/api/status'), {
+        cache: 'no-store',
+        credentials: 'same-origin',
+        signal: ctrl.signal
+      });
+    if (!res.ok) return null;
+    const st = await res.json().catch(() => null);
     return st?.ok ? st : null;
   } catch (_) {
     return null;
@@ -1155,10 +1166,13 @@ R.pingServerStatus = async function pingServerStatus() {
 }
 
 R.waitForServerReady = async function waitForServerReady({ attempts = 10, delayMs = 1500 } = {}) {
-  for (let i = 0; i < attempts; i++) {
+  // Embedded Railway: fail fast — long retries looked like a dead Analyze page.
+  const tries = R.IS_EMBEDDED ? Math.min(attempts, 4) : attempts;
+  const delay = R.IS_EMBEDDED ? Math.min(delayMs, 600) : delayMs;
+  for (let i = 0; i < tries; i++) {
     const st = await pingServerStatus();
     if (st) return st;
-    if (i < attempts - 1) await sleep(delayMs);
+    if (i < tries - 1) await sleep(delay);
   }
   return null;
 }
@@ -1184,7 +1198,13 @@ R.updateServerOfflineBanner = function updateServerOfflineBanner() {
 R.fetchServerSafetyStatus = async function fetchServerSafetyStatus() {
   if (!USE_PROXY) return null;
   try {
-    const res = await fetch('/api/safety-status', { cache: 'no-store' });
+    const res = typeof apiFetch === 'function'
+      ? await apiFetch('/api/safety-status', { cache: 'no-store' })
+      : await fetch(resolveModuleApiUrl('/api/safety-status'), {
+        cache: 'no-store',
+        credentials: 'same-origin'
+      });
+    if (!res.ok) return null;
     const data = await res.json();
     return data?.ok ? data : null;
   } catch (_) {
@@ -1218,15 +1238,13 @@ R.refreshServerStatusUi = async function refreshServerStatusUi() {
     updateServerOfflineBanner();
     fetchServerSafetyStatus().then(updateServerSafetyIndicator);
     const hardMsg = st.lastHardQuota?.message || '';
-    // Server sticky hard-quota flag alone is enough — do not require message regex match.
+    // Sticky ledger flag is UI-only. Never abort a running scan from it — that raced
+    // with clear-quota and killed Start Scan immediately after click (looked "stuck").
+    // Live hard-quota stops still come from Gemini/Maps response hardQuota flags.
     const serverHardQuota = !!st.hardQuotaActive || (!!hardMsg && isHardQuotaError(hardMsg));
     if (serverHardQuota) {
-      if (state.running) {
-        const p = st.lastHardQuota?.provider || 'gemini';
-        haltScanForQuota(p, hardMsg || 'API credits / quota exhausted — scan stopped to avoid uncategorized leads');
-      }
-      if (diagGemini) setDiag(diagGemini, 'fail', 'Gemini: ⚠ QUOTA / CREDITS EXHAUSTED');
-      if (diagFull) setDiag(diagFull, 'fail', 'Full pipeline: ⚠ reload API credits before scanning');
+      if (diagGemini) setDiag(diagGemini, 'fail', 'Gemini: ⚠ prior quota flag (scan still runs — clear if credits remain)');
+      if (diagFull) setDiag(diagFull, 'warn', 'Full pipeline: prior quota flag set — Start Scan clears it');
     } else if (st.gemini?.rateLimited) {
       // Only throttle when the Gemini queue is actually backed up — recent429 alone
       // stays true for 2 minutes and was hammering scale-down every poll.
