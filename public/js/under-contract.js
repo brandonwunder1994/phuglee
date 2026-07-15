@@ -494,6 +494,73 @@
       || 'Seller text';
   }
 
+  function statusYn(value) {
+    const v = String(value || '').trim().toLowerCase();
+    if (v === 'yes') return 'yes';
+    if (v === 'no') return 'no';
+    return '';
+  }
+
+  /** Scannable status chip for board table + cards. */
+  function statusChip(opts) {
+    const label = opts.label || '';
+    const kind = opts.kind || 'yn';
+    if (kind === 'access') {
+      return (
+        `<span class="uc-status uc-status--access" data-access="${esc(opts.value || '')}">` +
+        `<span class="uc-status-label">${esc(label)}</span>` +
+        `<span class="uc-status-value">${esc(opts.text || '—')}</span>` +
+        `</span>`
+      );
+    }
+    if (kind === 'vacancy') {
+      return (
+        `<span class="uc-status uc-status--vacancy" data-vacancy="${esc(opts.value || '')}">` +
+        `<span class="uc-status-label">${esc(label)}</span>` +
+        `<span class="uc-status-value">${esc(opts.text || '—')}</span>` +
+        `</span>`
+      );
+    }
+    const yn = statusYn(opts.yn);
+    const text = opts.text || (yn === 'yes' ? 'Yes' : yn === 'no' ? 'No' : '—');
+    return (
+      `<span class="uc-status uc-status--yn" data-yn="${esc(yn)}">` +
+      `<span class="uc-status-label">${esc(label)}</span>` +
+      `<span class="uc-status-value">${esc(text)}</span>` +
+      `</span>`
+    );
+  }
+
+  function dealChecklistHtml(d) {
+    return (
+      statusChip({ label: 'Title', yn: d.titleOpened, text: d.titleOpenedLabel }) +
+      statusChip({ label: 'EMD', yn: d.sellerEmdSubmitted, text: d.sellerEmdLabel }) +
+      statusChip({
+        kind: 'access',
+        label: 'Access',
+        value: d.accessType,
+        text: d.accessDisplay || d.accessLabel
+      }) +
+      statusChip({
+        kind: 'vacancy',
+        label: 'Vacancy',
+        value: d.vacancy,
+        text: d.vacancyLabel
+      }) +
+      statusChip({ label: 'Photos', yn: d.photosAvailable, text: d.photosLabel }) +
+      `<button type="button" class="uc-rehab-cell uc-status-action" data-action="view-rehab" title="View rehab info">` +
+      statusChip({ label: 'Rehab', yn: d.rehabInfoReady, text: d.rehabInfoLabel }) +
+      `<span class="uc-rehab-link">View</span>` +
+      `</button>` +
+      statusChip({ label: 'Buyer', yn: d.buyerFound, text: d.buyerFoundLabel }) +
+      statusChip({ label: 'Buyer EMD', yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel }) +
+      `<button type="button" class="uc-funded-cell uc-status-action" data-action="view-funded" title="Funded breakdown">` +
+      statusChip({ label: 'Funded', yn: d.funded, text: d.fundedLabel }) +
+      `<span class="uc-funded-link">View</span>` +
+      `</button>`
+    );
+  }
+
   function renderTable(deals) {
     const tbody = $('uc-tbody');
     const table = $('uc-table');
@@ -552,23 +619,33 @@
         <td><span class="uc-stage" data-stage="${esc(d.stage)}">${esc(stage)}</span></td>
         <td class="uc-money">${esc(money(d.purchasePrice))}</td>
         <td class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</td>
-        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.titleOpened || '')}">${esc(d.titleOpenedLabel || '—')}</span></td>
-        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.sellerEmdSubmitted || '')}">${esc(d.sellerEmdLabel || '—')}</span></td>
-        <td><span class="uc-pill uc-pill--access" data-access="${esc(d.accessType || '')}">${esc(d.accessDisplay || d.accessLabel || '—')}</span></td>
-        <td><span class="uc-pill uc-pill--vacancy" data-vacancy="${esc(d.vacancy || '')}">${esc(d.vacancyLabel || '—')}</span></td>
-        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.photosAvailable || '')}">${esc(d.photosLabel || '—')}</span></td>
+        <td>${statusChip({ label: 'Title', yn: d.titleOpened, text: d.titleOpenedLabel })}</td>
+        <td>${statusChip({ label: 'EMD', yn: d.sellerEmdSubmitted, text: d.sellerEmdLabel })}</td>
+        <td>${statusChip({
+          kind: 'access',
+          label: 'Access',
+          value: d.accessType,
+          text: d.accessDisplay || d.accessLabel
+        })}</td>
+        <td>${statusChip({
+          kind: 'vacancy',
+          label: 'Vacancy',
+          value: d.vacancy,
+          text: d.vacancyLabel
+        })}</td>
+        <td>${statusChip({ label: 'Photos', yn: d.photosAvailable, text: d.photosLabel })}</td>
         <td>
-          <button type="button" class="uc-rehab-cell" data-action="view-rehab" title="View rehab info">
-            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.rehabInfoReady || '')}">${esc(d.rehabInfoLabel || '—')}</span>
-            <span class="uc-rehab-link">Click Here</span>
+          <button type="button" class="uc-rehab-cell uc-status-action" data-action="view-rehab" title="View rehab info">
+            ${statusChip({ label: 'Rehab', yn: d.rehabInfoReady, text: d.rehabInfoLabel })}
+            <span class="uc-rehab-link">View</span>
           </button>
         </td>
-        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerFound || '')}">${esc(d.buyerFoundLabel || '—')}</span></td>
-        <td><span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerEmdSubmitted || '')}">${esc(d.buyerEmdLabel || '—')}</span></td>
+        <td>${statusChip({ label: 'Buyer', yn: d.buyerFound, text: d.buyerFoundLabel })}</td>
+        <td>${statusChip({ label: 'Buyer EMD', yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel })}</td>
         <td>
-          <button type="button" class="uc-funded-cell" data-action="view-funded" title="Funded breakdown">
-            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.funded || '')}">${esc(d.fundedLabel || '—')}</span>
-            <span class="uc-funded-link">Click here</span>
+          <button type="button" class="uc-funded-cell uc-status-action" data-action="view-funded" title="Funded breakdown">
+            ${statusChip({ label: 'Funded', yn: d.funded, text: d.fundedLabel })}
+            <span class="uc-funded-link">View</span>
           </button>
         </td>
         <td>
@@ -607,19 +684,8 @@
             <span class="uc-money">${esc(money(d.purchasePrice))}</span>
             <span class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</span>
           </div>
-          <div class="uc-deal-card-pills">
-            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.titleOpened || '')}">Title ${esc(d.titleOpenedLabel || '—')}</span>
-            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.sellerEmdSubmitted || '')}">EMD ${esc(d.sellerEmdLabel || '—')}</span>
-            <span class="uc-pill uc-pill--access" data-access="${esc(d.accessType || '')}">${esc(d.accessDisplay || d.accessLabel || '—')}</span>
-            <span class="uc-pill uc-pill--vacancy" data-vacancy="${esc(d.vacancy || '')}">${esc(d.vacancyLabel || '—')}</span>
-            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.photosAvailable || '')}">Photos ${esc(d.photosLabel || '—')}</span>
-            <button type="button" class="uc-rehab-cell" data-action="view-rehab" title="View rehab info">
-              <span class="uc-pill uc-pill--yn" data-yn="${esc(d.rehabInfoReady || '')}">Rehab ${esc(d.rehabInfoLabel || '—')}</span>
-            </button>
-            <span class="uc-pill uc-pill--yn" data-yn="${esc(d.buyerFound || '')}">Buyer ${esc(d.buyerFoundLabel || '—')}</span>
-            <button type="button" class="uc-funded-cell" data-action="view-funded" title="Funded breakdown">
-              <span class="uc-pill uc-pill--yn" data-yn="${esc(d.funded || '')}">Funded ${esc(d.fundedLabel || '—')}</span>
-            </button>
+          <div class="uc-deal-card-checklist" aria-label="Deal checklist">
+            ${dealChecklistHtml(d)}
           </div>
           <div class="uc-deal-card-quick">
             <button type="button" class="uc-quick-btn" data-action="buyer-found">Buyer Found</button>
@@ -2017,9 +2083,15 @@
     }
   }
 
+  function closeDrawerMoreMenu() {
+    const more = document.querySelector('#uc-drawer .uc-drawer-more');
+    if (more) more.open = false;
+  }
+
   function closeProfile() {
     state.activeDealId = null;
     closeDocViewer();
+    closeDrawerMoreMenu();
     const drawer = $('uc-drawer');
     const backdrop = $('uc-drawer-backdrop');
     if (drawer) drawer.hidden = true;
@@ -2526,12 +2598,15 @@
       openEdit(deal);
     });
     $('uc-drawer-buyer-found')?.addEventListener('click', () => {
+      closeDrawerMoreMenu();
       if (state.profile) openBuyerFound(state.profile);
     });
     $('uc-drawer-send-jv')?.addEventListener('click', () => {
+      closeDrawerMoreMenu();
       if (state.profile) openSendJv(state.profile);
     });
     $('uc-drawer-amendment')?.addEventListener('click', () => {
+      closeDrawerMoreMenu();
       if (state.profile) openAmendment(state.profile);
     });
     $('uc-sync-ghl')?.addEventListener('click', () => { syncGhl(); });

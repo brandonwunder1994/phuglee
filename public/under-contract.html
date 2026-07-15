@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=34">
+  <link rel="stylesheet" href="/css/under-contract.css?v=35">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -230,9 +230,14 @@
       <h2 id="uc-drawer-title">Contract profile</h2>
       <div class="uc-drawer-head-actions">
         <button type="button" id="uc-drawer-edit" class="phuglee-btn phuglee-btn-primary">Edit</button>
-        <button type="button" id="uc-drawer-buyer-found" class="phuglee-btn phuglee-btn-secondary">Buyer Found</button>
-        <button type="button" id="uc-drawer-send-jv" class="phuglee-btn phuglee-btn-secondary">Send JV</button>
-        <button type="button" id="uc-drawer-amendment" class="phuglee-btn phuglee-btn-secondary">Amendment</button>
+        <details class="uc-drawer-more">
+          <summary class="phuglee-btn phuglee-btn-secondary uc-drawer-more-summary">Actions</summary>
+          <div class="uc-drawer-more-menu" role="group" aria-label="Deal actions">
+            <button type="button" id="uc-drawer-buyer-found" class="phuglee-btn phuglee-btn-secondary">Buyer Found</button>
+            <button type="button" id="uc-drawer-send-jv" class="phuglee-btn phuglee-btn-secondary">Send JV</button>
+            <button type="button" id="uc-drawer-amendment" class="phuglee-btn phuglee-btn-secondary">Amendment</button>
+          </div>
+        </details>
         <button type="button" id="uc-drawer-close" class="phuglee-btn phuglee-btn-ghost">Close</button>
       </div>
     </div>
@@ -647,6 +652,6 @@
   <script src="/js/shell-nav.js?v=16" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js" defer></script>
-  <script src="/js/under-contract.js?v=40" defer></script>
+  <script src="/js/under-contract.js?v=41" defer></script>
 </body>
 </html>
