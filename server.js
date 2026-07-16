@@ -658,6 +658,13 @@ function startStandaloneServer() {
     console.log(`Form Forge proxy: http://${publicHost}:${config.PORT}${config.FORGE_PREFIX}/`);
     console.log(`Property Analyzer proxy: http://${publicHost}:${config.PORT}${config.ANALYZER_PREFIX}/`);
     runListOpsMigrations();
+    try {
+      const { warmCatalogIndex } = require('./lib/leads-platform/store');
+      const warmed = warmCatalogIndex();
+      console.log(`[Leads catalog] warmed index leads=${warmed.leads} in ${warmed.ms}ms`);
+    } catch (err) {
+      console.warn('[Leads catalog] warm failed:', err.message);
+    }
     bootModules().catch((err) => {
       console.error('[Distress OS] Module boot error:', err);
     });

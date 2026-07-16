@@ -407,20 +407,17 @@
 
   function thumbHtml(lead) {
     const alt = lead.address || 'Lot';
+    // List view: only show stored satellite/thumb. Never kick off live Street View
+    // for every row — vacant lots rarely have useful SV and 50× /sv-image stalls the page.
     let src = leadPhotoUrl(lead);
-    const fallback = liveSvUrlForLead(lead);
-    if (src.includes('/cached-imagery/') && fallback) {
+    if (!src) {
+      return '<span class="vault-thumb vault-thumb--empty" aria-hidden="true"></span>';
+    }
+    if (src.includes('/cached-imagery/')) {
       const addr = [lead.address, lead.city, lead.state].filter(Boolean).join(', ');
       if (addr) src = `${src}${src.includes('?') ? '&' : '?'}address=${encodeURIComponent(addr)}`;
     }
-    if (!src && !fallback) {
-      return '<span class="vault-thumb vault-thumb--empty" aria-hidden="true"></span>';
-    }
-    const initial = src || fallback;
-    const dataFb = src && src !== initial
-      ? ` data-fallback-src="${esc(src)}"`
-      : (fallback && fallback !== initial ? ` data-fallback-src="${esc(fallback)}"` : '');
-    return `<img class="vault-thumb" src="${esc(initial)}" alt="${esc(alt)}" loading="lazy" decoding="async"${dataFb}>`;
+    return `<img class="vault-thumb" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
   }
 
   function wireImageryFallbacks(root) {
@@ -2484,10 +2481,12 @@
     bindEvents();
     syncFilterControls();
 
-    try {
-      const scriptData = await fetchJson('/api/leads/land/tax-dirt-script');
-      if (scriptData.script) state.taxDirtScript = scriptData.script;
-    } catch (_) { /* offline / gate — inline fallback in UI */ }
+    // Tax-dirt script is drawer-only — load in parallel, never block the table.
+    const taxDirtPromise = fetchJson('/api/leads/land/tax-dirt-script')
+      .then((scriptData) => {
+        if (scriptData.script) state.taxDirtScript = scriptData.script;
+      })
+      .catch(() => { /* offline / gate — inline fallback in UI */ });
 
     try {
       showSkeleton();
@@ -2499,6 +2498,8 @@
     } finally {
       hideSkeleton();
     }
+
+    await taxDirtPromise;
 
     const deepLink = readLeadQueryParam();
     if (deepLink) {

@@ -59,6 +59,8 @@ function assert(cond, msg) {
   assert(js.body.includes('format=pdf'), 'missing format=pdf PDF download');
   assert(js.body.includes('save-disposition') || js.body.includes('land-disposition'), 'missing disposition workflow');
   assert(js.body.includes('land-vault-map') || js.body.includes('viewMode'), 'missing map view');
+  assert(js.body.includes('vault-thumb--empty'), 'missing empty-thumb fast path');
+  assert(!/thumbHtml[\s\S]{0,400}liveSvUrlForLead\(lead\)/.test(js.body), 'list thumbs must not auto-fetch street view');
   assert(js.body.includes('promote') || js.body.includes('copy-tax-dirt') || js.body.includes('builder-packet'), 'missing polish symbols');
   assert(js.body.includes('needsScreen') || js.body.includes('fundShaped') || js.body.includes('landQueue'), 'missing KPI queue wiring');
 
