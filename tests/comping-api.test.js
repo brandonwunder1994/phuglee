@@ -121,6 +121,23 @@ function ohLead() {
   };
 }
 
+const SAMPLE_COMPS = [
+  { address: 'a', price: 270000, soldDate: '2026-01-01', sqft: 1400, beds: 3, baths: 2 },
+  { address: 'b', price: 280000, soldDate: '2026-02-01', sqft: 1450, beds: 3, baths: 2 },
+  { address: 'c', price: 275000, soldDate: '2026-03-01', sqft: 1420, beds: 3, baths: 2 }
+];
+
+async function attachPropelio(leadId) {
+  const pdf = Buffer.from('%PDF-1.4 propelio-test');
+  const uploadRes = await callApi(`/api/leads/${leadId}/comp/report-file`, 'POST', {
+    contentBase64: pdf.toString('base64'),
+    filename: 'Propelio Report.pdf',
+    mime: 'application/pdf'
+  });
+  assert.equal(uploadRes.statusCode, 200);
+  return JSON.parse(uploadRes.body);
+}
+
 test('POST /api/leads/:id/comp on TX lead returns needsManual without inventing ARV', async () => {
   const lead = txLead();
   store.upsertLead(lead);
@@ -135,17 +152,28 @@ test('POST /api/leads/:id/comp on TX lead returns needsManual without inventing 
   assert.equal(saved.compedAt, null);
 });
 
-test('POST /api/leads/:id/comp/manual saves estARV', async () => {
+test('POST /api/leads/:id/comp/manual without report file returns REPORT_FILE_REQUIRED', async () => {
   const lead = txLead();
   store.upsertLead(lead);
-  const comps = [
-    { address: 'a', price: 270000, soldDate: '2026-01-01', sqft: 1400, beds: 3, baths: 2 },
-    { address: 'b', price: 280000, soldDate: '2026-02-01', sqft: 1450, beds: 3, baths: 2 },
-    { address: 'c', price: 275000, soldDate: '2026-03-01', sqft: 1420, beds: 3, baths: 2 }
-  ];
   const res = await callApi('/api/leads/tx-comp-lead/comp/manual', 'POST', {
     arv: 275000,
-    comps,
+    comps: SAMPLE_COMPS,
+    note: 'Propelio CMA'
+  });
+  assert.equal(res.statusCode, 400);
+  const body = JSON.parse(res.body);
+  assert.equal(body.ok, false);
+  assert.equal(body.code, 'REPORT_FILE_REQUIRED');
+  assert.equal(store.getLead('tx-comp-lead').estARV, null);
+});
+
+test('POST /api/leads/:id/comp/manual saves estARV after report upload', async () => {
+  const lead = txLead();
+  store.upsertLead(lead);
+  await attachPropelio('tx-comp-lead');
+  const res = await callApi('/api/leads/tx-comp-lead/comp/manual', 'POST', {
+    arv: 275000,
+    comps: SAMPLE_COMPS,
     note: 'Propelio CMA'
   });
   assert.equal(res.statusCode, 200);
@@ -157,19 +185,16 @@ test('POST /api/leads/:id/comp/manual saves estARV', async () => {
   assert.equal(body.report.arv, 275000);
   const saved = store.getLead('tx-comp-lead');
   assert.equal(saved.estARV, 275000);
+  assert.ok(Array.isArray(saved.compReportFiles) && saved.compReportFiles.length >= 1);
 });
 
 test('POST /api/leads/:id/comp on comped lead without replace returns confirmReplace, ARV unchanged', async () => {
   const lead = txLead();
   store.upsertLead(lead);
-  const comps = [
-    { address: 'a', price: 270000, soldDate: '2026-01-01', sqft: 1400, beds: 3, baths: 2 },
-    { address: 'b', price: 280000, soldDate: '2026-02-01', sqft: 1450, beds: 3, baths: 2 },
-    { address: 'c', price: 275000, soldDate: '2026-03-01', sqft: 1420, beds: 3, baths: 2 }
-  ];
+  await attachPropelio('tx-comp-lead');
   const manualRes = await callApi('/api/leads/tx-comp-lead/comp/manual', 'POST', {
     arv: 275000,
-    comps,
+    comps: SAMPLE_COMPS,
     note: 'Propelio CMA'
   });
   assert.equal(manualRes.statusCode, 200);
@@ -191,14 +216,10 @@ test('POST /api/leads/:id/comp on comped lead without replace returns confirmRep
 test('POST /api/leads/:id/comp with replace:true on comped TX lead proceeds to needsManual', async () => {
   const lead = txLead();
   store.upsertLead(lead);
-  const comps = [
-    { address: 'a', price: 270000, soldDate: '2026-01-01', sqft: 1400, beds: 3, baths: 2 },
-    { address: 'b', price: 280000, soldDate: '2026-02-01', sqft: 1450, beds: 3, baths: 2 },
-    { address: 'c', price: 275000, soldDate: '2026-03-01', sqft: 1420, beds: 3, baths: 2 }
-  ];
+  await attachPropelio('tx-comp-lead');
   await callApi('/api/leads/tx-comp-lead/comp/manual', 'POST', {
     arv: 275000,
-    comps,
+    comps: SAMPLE_COMPS,
     note: 'Propelio CMA'
   });
 
@@ -209,6 +230,26 @@ test('POST /api/leads/:id/comp with replace:true on comped TX lead proceeds to n
   assert.equal(body.needsManual, true);
   assert.equal(body.confirmReplace, undefined);
   assert.equal(body.state, 'TX');
+});
+
+test('POST /api/leads/:id/comp/block-pass saves pass and kill', async () => {
+  const lead = ohLead();
+  store.upsertLead(lead);
+  const passRes = await callApi('/api/leads/oh-comp-lead/comp/block-pass', 'POST', { pass: 'pass' });
+  assert.equal(passRes.statusCode, 200);
+  const passBody = JSON.parse(passRes.body);
+  assert.equal(passBody.ok, true);
+  assert.equal(passBody.compBlockPass, 'pass');
+  assert.equal(store.getLead('oh-comp-lead').compBlockPass, 'pass');
+
+  const killRes = await callApi('/api/leads/oh-comp-lead/comp/block-pass', 'POST', { pass: 'kill' });
+  assert.equal(killRes.statusCode, 200);
+  const killBody = JSON.parse(killRes.body);
+  assert.equal(killBody.compBlockPass, 'kill');
+  assert.equal(store.getLead('oh-comp-lead').compBlockPass, 'kill');
+
+  const bad = await callApi('/api/leads/oh-comp-lead/comp/block-pass', 'POST', { pass: 'maybe' });
+  assert.equal(bad.statusCode, 400);
 });
 
 test('POST /api/leads/:id/comp on OH lead without API key returns 503', async () => {
