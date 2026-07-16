@@ -171,6 +171,183 @@
   margin-top: 0.65rem;
 }
 
+/* LAO calculator panel */
+.land-lao-section h3 {
+  margin-bottom: 0.25rem;
+}
+
+.land-lao-intro {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+}
+
+.land-lao-hint {
+  margin: 0 0 0.65rem;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.72rem;
+  color: #f0b27a;
+  border: 1px solid rgba(240, 178, 122, 0.35);
+  border-radius: 0.35rem;
+  background: rgba(240, 178, 122, 0.08);
+}
+
+.land-lao-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.land-lao-site-costs .vault-field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.land-lao-site-parts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.land-lao-part {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.68rem;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.land-lao-part input {
+  font-size: 0.78rem;
+}
+
+.land-lao-site-total {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+}
+
+.land-lao-derived {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--vault-border, rgba(255, 255, 255, 0.1));
+  border-radius: 0.4rem;
+  background: var(--vault-surface, rgba(255, 255, 255, 0.03));
+}
+
+.land-lao-derived-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+.land-lao-derived-row strong {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.8rem;
+}
+
+.land-lao-sanity {
+  margin-top: 0.65rem;
+}
+
+.land-lao-sanity .vault-field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.land-lao-sanity-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.land-lao-sanity-row select {
+  flex: 1 1 8rem;
+  min-width: 0;
+  font-size: 0.78rem;
+}
+
+.land-lao-sanity-arv {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+
+.land-lao-bands {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.land-lao-warning {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: #f0b27a;
+}
+
+.land-lao-comps-details {
+  margin-top: 0.65rem;
+  border: 1px solid var(--vault-border, rgba(255, 255, 255, 0.08));
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.55rem;
+}
+
+.land-lao-comps-summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.land-lao-comps-head {
+  display: none;
+}
+
+.land-lao-comp-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.3rem;
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--vault-border, rgba(255, 255, 255, 0.06));
+}
+
+.land-lao-comp-row:first-of-type {
+  margin-top: 0.55rem;
+}
+
+.land-lao-comp-field {
+  font-size: 0.78rem;
+}
+
+.land-lao-formula {
+  margin: 0.75rem 0 0;
+  padding: 0.45rem 0.55rem;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.8));
+  border: 1px dashed var(--vault-border, rgba(255, 255, 255, 0.12));
+  border-radius: 0.35rem;
+  word-break: break-word;
+}
+
+.land-lao-actions {
+  margin-top: 0.65rem;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (max-width: 768px) {
   .land-vault-desk {
     flex-direction: column;
@@ -194,5 +371,13 @@
 
   .land-vault-col-fund {
     max-width: 5rem;
+  }
+
+  .land-lao-site-parts {
+    grid-template-columns: 1fr;
+  }
+
+  .land-lao-sanity-row {
+    flex-direction: column;
   }
 }

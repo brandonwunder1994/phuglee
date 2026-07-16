@@ -31,6 +31,14 @@
     toss: 'Toss'
   };
 
+  const DEFAULT_INVESTOR_GAP = 5000;
+  const LAO_POCKETS = {
+    sticks: { buy: 0.10, sell: 0.15, label: 'Sticks (10/15)' },
+    suburbia: { buy: 0.15, sell: 0.20, label: 'Suburbia (15/20)' },
+    prime: { buy: 0.20, sell: 0.25, label: 'Prime (20/25)' }
+  };
+  const LAO_COMP_ROWS = 3;
+
   const state = {
     state: '',
     city: '',
@@ -51,7 +59,8 @@
     loading: false,
     searchTimer: null,
     toastTimer: null,
-    focusRestoreEl: null
+    focusRestoreEl: null,
+    laoLocked: false
   };
 
   const $ = (id) => document.getElementById(id);
@@ -150,6 +159,112 @@
       screenedAt: src.screenedAt || null,
       screenedBy: src.screenedBy || null
     };
+  }
+
+  function laoMoney(v) {
+    if (v == null || v === '') return null;
+    const n = Number(v);
+    if (!Number.isFinite(n)) return null;
+    return Math.round(n);
+  }
+
+  function laoNonNegMoney(v, fallback = null) {
+    const n = laoMoney(v);
+    if (n == null) return fallback;
+    return Math.max(0, n);
+  }
+
+  function laoSumSiteCostParts(parts = {}) {
+    const clearing = laoNonNegMoney(parts.clearing, 0) || 0;
+    const demo = laoNonNegMoney(parts.demo, 0) || 0;
+    const grade = laoNonNegMoney(parts.grade, 0) || 0;
+    const other = laoNonNegMoney(parts.other, 0) || 0;
+    return clearing + demo + grade + other;
+  }
+
+  function laoNormalizeSiteCostParts(raw = {}) {
+    const src = raw && typeof raw === 'object' ? raw : {};
+    return {
+      clearing: laoNonNegMoney(src.clearing, 0) || 0,
+      demo: laoNonNegMoney(src.demo, 0) || 0,
+      grade: laoNonNegMoney(src.grade, 0) || 0,
+      other: laoNonNegMoney(src.other, 0) || 0
+    };
+  }
+
+  function laoComputeSanityBands({ pocket, newBuildArv } = {}) {
+    const key = String(pocket || '').toLowerCase();
+    const factors = LAO_POCKETS[key] || null;
+    const arv = laoMoney(newBuildArv);
+    if (!factors || arv == null || arv <= 0) {
+      return { pocket: factors ? key : null, newBuildArv: arv, buyBand: null, sellBand: null };
+    }
+    return {
+      pocket: key,
+      newBuildArv: arv,
+      buyBand: Math.round(arv * factors.buy),
+      sellBand: Math.round(arv * factors.sell)
+    };
+  }
+
+  function laoSanityWarning(landFmv, sanity) {
+    if (landFmv == null || !sanity || sanity.buyBand == null || sanity.sellBand == null) {
+      return null;
+    }
+    if (landFmv > sanity.sellBand * 1.15) {
+      return `FMV ($${landFmv.toLocaleString()}) is well above the ~${sanity.pocket} sell band ($${sanity.sellBand.toLocaleString()}). Walk if comps disagree.`;
+    }
+    if (landFmv < sanity.buyBand * 0.7) {
+      return `FMV ($${landFmv.toLocaleString()}) is far below the ~${sanity.pocket} buy band ($${sanity.buyBand.toLocaleString()}). Double-check comps.`;
+    }
+    return null;
+  }
+
+  function laoComputeStack(input = {}) {
+    const landFmv = laoMoney(input.landFmv);
+    const parts = input.siteCostParts && typeof input.siteCostParts === 'object'
+      ? laoNormalizeSiteCostParts(input.siteCostParts)
+      : null;
+    let siteCosts = laoMoney(input.siteCosts);
+    if (parts) {
+      const fromParts = laoSumSiteCostParts(parts);
+      if (fromParts > 0 || siteCosts == null) siteCosts = fromParts;
+    }
+    if (siteCosts == null) siteCosts = 0;
+
+    const investorGap = laoNonNegMoney(input.investorGap, DEFAULT_INVESTOR_GAP);
+    const assignmentFee = laoNonNegMoney(input.assignmentFee, 0) || 0;
+
+    let buyerCeiling = null;
+    let contractTarget = null;
+    let lao = laoMoney(input.lao);
+
+    if (landFmv != null) {
+      buyerCeiling = landFmv - siteCosts - investorGap;
+      contractTarget = buyerCeiling - assignmentFee;
+      if (lao == null) lao = contractTarget;
+    }
+
+    return {
+      landFmv,
+      siteCosts,
+      siteCostParts: parts || laoNormalizeSiteCostParts({}),
+      investorGap,
+      assignmentFee,
+      buyerCeiling,
+      contractTarget,
+      lao
+    };
+  }
+
+  function formatLaoMoney(n) {
+    if (n == null || !Number.isFinite(n)) return '—';
+    return `$${n.toLocaleString()}`;
+  }
+
+  function formatLaoInput(n) {
+    if (n == null || !Number.isFinite(n)) return '';
+    return String(n);
   }
 
   function recommendLandVerdict(screenInput = {}) {
@@ -634,7 +749,113 @@
     </section>`;
   }
 
-  function renderDrawerBody(l, note, landScreen, fundMatches) {
+  function renderLaoCompRow(idx, comp = {}) {
+    return `<div class="land-lao-comp-row" data-comp-idx="${idx}">
+      <input type="text" class="phuglee-input land-lao-input land-lao-comp-field" data-lao-field="compsManual.${idx}.address" placeholder="Address" value="${esc(comp.address || '')}">
+      <input type="number" class="phuglee-input land-lao-input land-lao-comp-field" data-lao-field="compsManual.${idx}.soldPrice" placeholder="Sold $" inputmode="numeric" value="${esc(formatLaoInput(comp.soldPrice))}">
+      <input type="date" class="phuglee-input land-lao-input land-lao-comp-field" data-lao-field="compsManual.${idx}.soldDate" value="${esc(comp.soldDate || '')}">
+      <input type="number" class="phuglee-input land-lao-input land-lao-comp-field" data-lao-field="compsManual.${idx}.acres" placeholder="Acres" step="any" value="${comp.acres != null && comp.acres !== '' ? esc(comp.acres) : ''}">
+      <input type="text" class="phuglee-input land-lao-input land-lao-comp-field" data-lao-field="compsManual.${idx}.notes" placeholder="Notes" value="${esc(comp.notes || '')}">
+    </div>`;
+  }
+
+  function renderLaoSection(landUnderwriting, landScreen) {
+    const uw = landUnderwriting && typeof landUnderwriting === 'object' ? landUnderwriting : {};
+    const parts = laoNormalizeSiteCostParts(uw.siteCostParts || {});
+    const stack = laoComputeStack({
+      landFmv: uw.landFmv,
+      siteCostParts: parts,
+      investorGap: uw.investorGap == null ? DEFAULT_INVESTOR_GAP : uw.investorGap,
+      assignmentFee: uw.assignmentFee,
+      lao: uw.lao
+    });
+    const sanityIn = uw.sanity && typeof uw.sanity === 'object' ? uw.sanity : {};
+    const pocket = sanityIn.pocket || '';
+    const newBuildArv = sanityIn.newBuildArv;
+    const sanity = laoComputeSanityBands({ pocket, newBuildArv });
+    const warning = laoSanityWarning(stack.landFmv, sanity);
+    const comps = Array.isArray(uw.compsManual) ? uw.compsManual : [];
+    const compRows = Array.from({ length: LAO_COMP_ROWS }, (_, i) =>
+      renderLaoCompRow(i, comps[i] || {})
+    ).join('');
+
+    const pocketOpts = ['', 'sticks', 'suburbia', 'prime'].map((key) => {
+      const label = key ? (LAO_POCKETS[key]?.label || key) : 'Pocket (optional)';
+      const sel = key === pocket ? ' selected' : '';
+      return `<option value="${key}"${sel}>${esc(label)}</option>`;
+    }).join('');
+
+    const clearedFail = normalizeLandScreen(landScreen).checks.cleared.status === 'fail';
+    const clearingHint = clearedFail
+      ? '<p class="land-lao-hint">Heavy trees often need ~$10K clearing — add under clearing.</p>'
+      : '';
+
+    return `<section class="vault-dossier-section land-lao-section" id="land-lao-section">
+      <h3>LAO</h3>
+      <p class="vault-field-hint land-lao-intro">Land offer math — no house ARV rules.</p>
+      ${clearingHint}
+      <div class="land-lao-grid">
+        <label class="vault-field">
+          <span class="vault-field-label">Land FMV ($)</span>
+          <input type="number" class="phuglee-input land-lao-input" data-lao-field="landFmv" inputmode="numeric" value="${esc(formatLaoInput(stack.landFmv))}">
+        </label>
+        <div class="land-lao-site-costs">
+          <span class="vault-field-label">Site costs</span>
+          <div class="land-lao-site-parts">
+            <label class="land-lao-part"><span>Clearing</span><input type="number" class="phuglee-input land-lao-input" data-lao-field="siteCostParts.clearing" inputmode="numeric" value="${esc(formatLaoInput(parts.clearing))}"></label>
+            <label class="land-lao-part"><span>Demo</span><input type="number" class="phuglee-input land-lao-input" data-lao-field="siteCostParts.demo" inputmode="numeric" value="${esc(formatLaoInput(parts.demo))}"></label>
+            <label class="land-lao-part"><span>Grade</span><input type="number" class="phuglee-input land-lao-input" data-lao-field="siteCostParts.grade" inputmode="numeric" value="${esc(formatLaoInput(parts.grade))}"></label>
+            <label class="land-lao-part"><span>Other</span><input type="number" class="phuglee-input land-lao-input" data-lao-field="siteCostParts.other" inputmode="numeric" value="${esc(formatLaoInput(parts.other))}"></label>
+          </div>
+          <p class="land-lao-site-total">Site total: <strong data-lao-display="siteCosts">${formatLaoMoney(stack.siteCosts)}</strong></p>
+        </div>
+        <label class="vault-field">
+          <span class="vault-field-label">Investor gap ($)</span>
+          <input type="number" class="phuglee-input land-lao-input" data-lao-field="investorGap" inputmode="numeric" value="${esc(formatLaoInput(stack.investorGap))}">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Assignment fee ($)</span>
+          <input type="number" class="phuglee-input land-lao-input" data-lao-field="assignmentFee" inputmode="numeric" value="${esc(formatLaoInput(stack.assignmentFee))}">
+        </label>
+        <div class="land-lao-derived">
+          <div class="land-lao-derived-row"><span>Buyer ceiling</span><strong data-lao-display="buyerCeiling">${formatLaoMoney(stack.buyerCeiling)}</strong></div>
+          <div class="land-lao-derived-row"><span>Contract target</span><strong data-lao-display="contractTarget">${formatLaoMoney(stack.contractTarget)}</strong></div>
+        </div>
+        <label class="vault-field">
+          <span class="vault-field-label">LAO ($)</span>
+          <input type="number" class="phuglee-input land-lao-input" data-lao-field="lao" id="land-lao-offer" inputmode="numeric" value="${esc(formatLaoInput(stack.lao))}">
+        </label>
+      </div>
+      <div class="land-lao-sanity">
+        <span class="vault-field-label">Sanity bands (optional)</span>
+        <div class="land-lao-sanity-row">
+          <select class="phuglee-select land-lao-input" data-lao-field="sanity.pocket">${pocketOpts}</select>
+          <label class="land-lao-sanity-arv">
+            <span class="sr-only">New-build ARV</span>
+            <input type="number" class="phuglee-input land-lao-input" data-lao-field="sanity.newBuildArv" placeholder="New-build ARV ($)" inputmode="numeric" value="${esc(formatLaoInput(newBuildArv))}">
+          </label>
+        </div>
+        <p class="land-lao-bands" data-lao-display="bands"${sanity.buyBand == null ? ' hidden' : ''}>
+          Buy band: <strong data-lao-display="buyBand">${formatLaoMoney(sanity.buyBand)}</strong>
+          · Sell band: <strong data-lao-display="sellBand">${formatLaoMoney(sanity.sellBand)}</strong>
+        </p>
+        <p class="land-lao-warning" data-lao-display="warning"${warning ? '' : ' hidden'}>${warning ? esc(warning) : ''}</p>
+      </div>
+      <details class="land-lao-comps-details">
+        <summary class="land-lao-comps-summary">Manual comps (up to 3)</summary>
+        <div class="land-lao-comps-head" aria-hidden="true">
+          <span>Address</span><span>Sold $</span><span>Date</span><span>Acres</span><span>Notes</span>
+        </div>
+        ${compRows}
+      </details>
+      <p class="land-lao-formula" data-lao-display="formula">FMV − site − gap = ceiling − fee = target → LAO</p>
+      <div class="land-lao-actions">
+        <button type="button" class="phuglee-btn phuglee-btn-primary" data-action="save-lao">Save LAO</button>
+      </div>
+    </section>`;
+  }
+
+  function renderDrawerBody(l, note, landScreen, fundMatches, landUnderwriting) {
     const signals = Array.isArray(l.signalTags) ? l.signalTags : [];
     const signalHtml = signals.length
       ? `<ul class="land-vault-signal-list">${signals.map((s) =>
@@ -679,9 +900,173 @@
         </section>
         ${renderFundMatchesSection(fundMatches)}
         ${renderScreenSection(landScreen)}
+        ${renderLaoSection(landUnderwriting, landScreen)}
         ${noteBlock}
       </div>
     `;
+  }
+
+  function getLaoFieldValue(body, field) {
+    const el = body.querySelector(`[data-lao-field="${field}"]`);
+    if (!el) return '';
+    return el.value;
+  }
+
+  function collectLaoFromDrawer() {
+    const body = $('land-vault-drawer-body');
+    if (!body) return {};
+    const parts = laoNormalizeSiteCostParts({
+      clearing: getLaoFieldValue(body, 'siteCostParts.clearing'),
+      demo: getLaoFieldValue(body, 'siteCostParts.demo'),
+      grade: getLaoFieldValue(body, 'siteCostParts.grade'),
+      other: getLaoFieldValue(body, 'siteCostParts.other')
+    });
+    const compsManual = [];
+    for (let i = 0; i < LAO_COMP_ROWS; i++) {
+      const address = String(getLaoFieldValue(body, `compsManual.${i}.address`) || '').trim();
+      const soldPrice = laoMoney(getLaoFieldValue(body, `compsManual.${i}.soldPrice`));
+      const soldDate = String(getLaoFieldValue(body, `compsManual.${i}.soldDate`) || '').trim();
+      const acresRaw = getLaoFieldValue(body, `compsManual.${i}.acres`);
+      const acres = acresRaw === '' ? null : Number(acresRaw);
+      const notes = String(getLaoFieldValue(body, `compsManual.${i}.notes`) || '').trim();
+      if (address || soldPrice != null) {
+        compsManual.push({
+          address,
+          soldPrice,
+          soldDate,
+          acres: Number.isFinite(acres) ? acres : null,
+          notes
+        });
+      }
+    }
+    const laoEl = body.querySelector('[data-lao-field="lao"]');
+    const stack = laoComputeStack({
+      landFmv: getLaoFieldValue(body, 'landFmv'),
+      siteCostParts: parts,
+      investorGap: getLaoFieldValue(body, 'investorGap'),
+      assignmentFee: getLaoFieldValue(body, 'assignmentFee'),
+      lao: laoEl ? laoEl.value : null
+    });
+    const sanity = laoComputeSanityBands({
+      pocket: getLaoFieldValue(body, 'sanity.pocket'),
+      newBuildArv: getLaoFieldValue(body, 'sanity.newBuildArv')
+    });
+    return {
+      landFmv: stack.landFmv,
+      siteCosts: stack.siteCosts,
+      siteCostParts: stack.siteCostParts,
+      investorGap: stack.investorGap,
+      assignmentFee: stack.assignmentFee,
+      buyerCeiling: stack.buyerCeiling,
+      contractTarget: stack.contractTarget,
+      lao: stack.lao,
+      sanity,
+      compsManual
+    };
+  }
+
+  function recomputeLaoDisplay(opts = {}) {
+    const body = $('land-vault-drawer-body');
+    if (!body || !body.querySelector('#land-lao-section')) return;
+    const fmvChanged = !!opts.fmvChanged;
+    const laoTouched = !!opts.laoTouched;
+
+    if (laoTouched) state.laoLocked = true;
+
+    const collected = collectLaoFromDrawer();
+    let laoVal = collected.lao;
+    const laoEl = body.querySelector('[data-lao-field="lao"]');
+
+    if (!state.laoLocked && (fmvChanged || !laoEl?.value?.trim())) {
+      laoVal = collected.contractTarget;
+      if (laoEl) laoEl.value = formatLaoInput(laoVal);
+    } else if (laoEl) {
+      laoVal = laoMoney(laoEl.value);
+    }
+
+    const stack = laoComputeStack({
+      landFmv: collected.landFmv,
+      siteCostParts: collected.siteCostParts,
+      investorGap: collected.investorGap,
+      assignmentFee: collected.assignmentFee,
+      lao: laoVal
+    });
+    const warning = laoSanityWarning(stack.landFmv, collected.sanity);
+
+    const setDisplay = (key, text) => {
+      const el = body.querySelector(`[data-lao-display="${key}"]`);
+      if (el) el.textContent = text;
+    };
+
+    setDisplay('siteCosts', formatLaoMoney(stack.siteCosts));
+    setDisplay('buyerCeiling', formatLaoMoney(stack.buyerCeiling));
+    setDisplay('contractTarget', formatLaoMoney(stack.contractTarget));
+
+    const bandsEl = body.querySelector('[data-lao-display="bands"]');
+    if (bandsEl) {
+      const show = collected.sanity.buyBand != null;
+      bandsEl.hidden = !show;
+      if (show) {
+        setDisplay('buyBand', formatLaoMoney(collected.sanity.buyBand));
+        setDisplay('sellBand', formatLaoMoney(collected.sanity.sellBand));
+      }
+    }
+
+    const warnEl = body.querySelector('[data-lao-display="warning"]');
+    if (warnEl) {
+      warnEl.hidden = !warning;
+      warnEl.textContent = warning || '';
+    }
+
+    const formulaEl = body.querySelector('[data-lao-display="formula"]');
+    if (formulaEl) {
+      if (stack.landFmv != null) {
+        formulaEl.textContent = `${formatLaoMoney(stack.landFmv)} − ${formatLaoMoney(stack.siteCosts)} − ${formatLaoMoney(stack.investorGap)} = ${formatLaoMoney(stack.buyerCeiling)} − ${formatLaoMoney(stack.assignmentFee)} = ${formatLaoMoney(stack.contractTarget)} → ${formatLaoMoney(stack.lao)}`;
+      } else {
+        formulaEl.textContent = 'FMV − site − gap = ceiling − fee = target → LAO';
+      }
+    }
+  }
+
+  async function saveLao() {
+    const leadId = state.activeLeadId;
+    if (!leadId) return;
+    const btn = document.querySelector('[data-action="save-lao"]');
+    if (btn) btn.disabled = true;
+    try {
+      const payload = collectLaoFromDrawer();
+      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/land-underwriting`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ landUnderwriting: payload })
+      });
+      showToast('LAO saved');
+      const note = state.overlays?.notes?.[leadId] || '';
+      const detail = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`);
+      const l = detail.lead || data.lead || {};
+      const landScreen = normalizeLandScreen(l.landScreen || {});
+      const fundMatches = await ensureFundMatches(leadId, l);
+      const uw = data.landUnderwriting || l.landUnderwriting || payload;
+      const stack = laoComputeStack({
+        landFmv: uw.landFmv,
+        siteCostParts: uw.siteCostParts,
+        investorGap: uw.investorGap,
+        assignmentFee: uw.assignmentFee,
+        lao: uw.lao
+      });
+      state.laoLocked = uw.lao != null && stack.contractTarget != null && uw.lao !== stack.contractTarget;
+      const body = $('land-vault-drawer-body');
+      if (body) {
+        body.innerHTML = renderDrawerBody(l, note, landScreen, fundMatches, uw);
+        wireDrawerScreenEvents();
+        wireImageryFallbacks(body);
+        recomputeLaoDisplay();
+      }
+    } catch (err) {
+      showToast(err.message || 'Could not save LAO');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   function collectScreenFromDrawer() {
@@ -786,10 +1171,12 @@
           l,
           note,
           data.landScreen || savedLead.landScreen || screen,
-          fundMatches
+          fundMatches,
+          l.landUnderwriting || {}
         );
         wireDrawerScreenEvents();
         wireImageryFallbacks(body);
+        recomputeLaoDisplay();
       }
       await refreshList();
     } catch (err) {
@@ -858,6 +1245,7 @@
     }
 
     state.activeLeadId = leadId;
+    state.laoLocked = false;
     drawer.hidden = false;
     body.innerHTML = '<p class="vault-drawer-loading">Loading…</p>';
     updateDrawerNav();
@@ -872,12 +1260,25 @@
         return;
       }
       const landScreen = normalizeLandScreen(l.landScreen || {});
+      const landUnderwriting = l.landUnderwriting || {};
+      const stack = laoComputeStack({
+        landFmv: landUnderwriting.landFmv,
+        siteCostParts: landUnderwriting.siteCostParts,
+        investorGap: landUnderwriting.investorGap,
+        assignmentFee: landUnderwriting.assignmentFee,
+        lao: landUnderwriting.lao
+      });
+      if (landUnderwriting.lao != null && stack.contractTarget != null
+        && landUnderwriting.lao !== stack.contractTarget) {
+        state.laoLocked = true;
+      }
       const fundMatches = await ensureFundMatches(leadId, l);
       if (title) title.textContent = l.address || 'Lot';
       const note = data.note || state.overlays?.notes?.[leadId] || '';
-      body.innerHTML = renderDrawerBody(l, note, landScreen, fundMatches);
+      body.innerHTML = renderDrawerBody(l, note, landScreen, fundMatches, landUnderwriting);
       wireDrawerScreenEvents();
       wireImageryFallbacks(body);
+      recomputeLaoDisplay();
       $('land-vault-drawer-close')?.focus();
     } catch (err) {
       body.innerHTML = `<p class="phuglee-error">${esc(err.message)}</p>`;
@@ -995,6 +1396,33 @@
     $('land-vault-drawer-backdrop')?.addEventListener('click', closeDrawer);
     $('land-vault-drawer-prev')?.addEventListener('click', () => navigateDrawer(-1));
     $('land-vault-drawer-next')?.addEventListener('click', () => navigateDrawer(1));
+
+    $('land-vault-drawer-body')?.addEventListener('click', (e) => {
+      const saveBtn = e.target.closest('[data-action="save-lao"]');
+      if (saveBtn) {
+        e.preventDefault();
+        saveLao().catch((err) => showToast(err.message || 'Save failed'));
+      }
+    });
+
+    $('land-vault-drawer-body')?.addEventListener('input', (e) => {
+      const inp = e.target.closest('.land-lao-input');
+      if (!inp) return;
+      const field = inp.dataset.laoField || '';
+      const fmvChanged = field === 'landFmv';
+      const laoTouched = field === 'lao';
+      recomputeLaoDisplay({ fmvChanged, laoTouched });
+    });
+
+    $('land-vault-drawer-body')?.addEventListener('change', (e) => {
+      const inp = e.target.closest('.land-lao-input');
+      if (!inp) return;
+      const field = inp.dataset.laoField || '';
+      recomputeLaoDisplay({
+        fmvChanged: field === 'landFmv',
+        laoTouched: field === 'lao'
+      });
+    });
 
     document.addEventListener('keydown', (e) => {
       const drawerOpen = $('land-vault-drawer') && !$('land-vault-drawer').hidden;
