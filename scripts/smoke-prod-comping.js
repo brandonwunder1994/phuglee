@@ -75,10 +75,25 @@ async function main() {
 
   const vaultJs = await fetchUrl(`${BASE}/js/vault-app.js`);
   if (vaultJs.status !== 200) fail('vault-app-js', { status: vaultJs.status });
-  const symbols = ['needsManual', 'confirmReplace', 'Comping Rules', 'hasArvCompingReport', '/comp/manual'];
+  const symbols = [
+    'needsManual',
+    'confirmReplace',
+    'Comping Rules',
+    'hasArvCompingReport',
+    '/comp/manual',
+    'data-block-pass',
+    'arvPreserved',
+    'Upload a Propelio report before saving'
+  ];
   const missing = symbols.filter((s) => !vaultJs.body.includes(s));
   if (missing.length) fail('vault-app-symbols', { missing, bytes: vaultJs.body.length });
   pass('vault-app-symbols', { bytes: vaultJs.body.length, symbols });
+
+  const vaultHtml = await fetchUrl(`${BASE}/vault`);
+  if (vaultHtml.status !== 200 || !vaultHtml.body.includes('vault-app.js?v=26')) {
+    fail('vault-html-cachebust', { status: vaultHtml.status, hasV26: vaultHtml.body.includes('vault-app.js?v=26') });
+  }
+  pass('vault-html-cachebust', { v: 26 });
 
   const login = await fetchUrl(`${BASE}/api/auth/login`, {
     method: 'POST',
@@ -125,6 +140,43 @@ async function main() {
   });
 
   if (!tx) fail('tx-lead', 'No TX house lead found in first page for needsManual smoke');
+
+  const manualNoFile = await fetchUrl(`${BASE}/api/leads/${encodeURIComponent(tx.leadId)}/comp/manual`, {
+    method: 'POST',
+    headers: h,
+    body: {
+      arv: 100000,
+      comps: [
+        { address: 'a', price: 100000 },
+        { address: 'b', price: 101000 },
+        { address: 'c', price: 102000 }
+      ]
+    }
+  });
+  const manualNoFileBody = parseJson(manualNoFile.body) || {};
+  // If lead already has report files, skip this assertion
+  const txDetail0 = await fetchUrl(`${BASE}/api/leads/${encodeURIComponent(tx.leadId)}`, { headers: h });
+  const txLead0 = (parseJson(txDetail0.body) || {}).lead || parseJson(txDetail0.body);
+  const hasFiles = Array.isArray(txLead0?.compReportFiles) && txLead0.compReportFiles.length > 0;
+  if (!hasFiles) {
+    if (manualNoFile.status !== 400 || manualNoFileBody.code !== 'REPORT_FILE_REQUIRED') {
+      fail('manual-requires-report', { status: manualNoFile.status, body: manualNoFileBody });
+    }
+    pass('manual-requires-report', { code: 'REPORT_FILE_REQUIRED' });
+  } else {
+    pass('manual-requires-report-skipped', { reason: 'lead already has report files', leadId: tx.leadId });
+  }
+
+  const blockPass = await fetchUrl(`${BASE}/api/leads/${encodeURIComponent(tx.leadId)}/comp/block-pass`, {
+    method: 'POST',
+    headers: h,
+    body: { pass: 'pass' }
+  });
+  const blockPassBody = parseJson(blockPass.body) || {};
+  if (blockPass.status !== 200 || blockPassBody.compBlockPass !== 'pass') {
+    fail('block-pass', { status: blockPass.status, body: blockPassBody });
+  }
+  pass('block-pass', { pass: 'pass', leadId: tx.leadId });
 
   const txBefore = await fetchUrl(`${BASE}/api/leads/${encodeURIComponent(tx.leadId)}`, { headers: h });
   const txLeadBefore = (parseJson(txBefore.body) || {}).lead || parseJson(txBefore.body);
