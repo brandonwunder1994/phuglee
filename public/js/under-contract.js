@@ -47,7 +47,9 @@
     },
     buyerOffers: [],
     buyerOfferEditIds: {},
-    buyerOfferDrafts: []
+    buyerOfferDrafts: [],
+    investorBaseUrl: '',
+    investorBaseEditing: false
   };
 
   function teamUserKey() {
@@ -1710,6 +1712,9 @@
     state.buyerOfferEditIds = {};
     state.buyerOfferDrafts = [];
     renderBuyerOffers();
+    state.investorBaseUrl = deal.investorBaseUrl || '';
+    state.investorBaseEditing = !state.investorBaseUrl;
+    renderInvestorBase();
     state.teamMessages = deal.teamMessages || [];
     renderTeamMessages();
     renderDocuments(deal.documents || []);
@@ -2130,6 +2135,126 @@
         await persistBuyerOffers(next, 'Buyer offer saved');
       } catch (err) {
         showToast(err.message || 'Could not save buyer offer');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+  }
+
+  function investorBaseHref(url) {
+    const raw = String(url || '').trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return `https://${raw}`;
+  }
+
+  function syncInvestorBaseHint() {
+    const hint = $('uc-investor-base-hint');
+    if (!hint) return;
+    hint.textContent = state.investorBaseUrl
+      ? 'Marketing URL saved'
+      : 'Marketing site URL for this property';
+  }
+
+  function renderInvestorBase() {
+    const box = $('uc-investor-base-body');
+    if (!box) return;
+    const url = state.investorBaseUrl || '';
+    const editing = Boolean(state.investorBaseEditing) || !url;
+
+    if (editing) {
+      box.innerHTML =
+        `<div class="uc-investor-base-row is-editing">` +
+          `<label class="vault-field">` +
+            `<span class="vault-field-label">Marketing URL</span>` +
+            `<input type="url" id="uc-investor-base-input" class="phuglee-input" value="${esc(url)}" placeholder="https://…" autocomplete="off">` +
+          `</label>` +
+          `<div class="uc-investor-base-actions">` +
+            `<button type="button" class="phuglee-btn phuglee-btn-primary" data-investor-base-action="save">Save</button>` +
+            (url
+              ? `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="cancel">Cancel</button>`
+              : '') +
+            (url
+              ? `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="clear">Clear</button>`
+              : '') +
+          `</div>` +
+        `</div>`;
+    } else {
+      const href = investorBaseHref(url);
+      box.innerHTML =
+        `<div class="uc-investor-base-row is-locked">` +
+          `<p class="uc-investor-base-url"><a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a></p>` +
+          `<div class="uc-investor-base-actions">` +
+            `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="edit">Edit</button>` +
+            `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="clear">Clear</button>` +
+          `</div>` +
+        `</div>`;
+    }
+    syncInvestorBaseHint();
+  }
+
+  async function persistInvestorBaseUrl(nextUrl, toastMsg) {
+    const dealId = state.activeDealId;
+    if (!dealId) {
+      showToast('Open a property first, then save');
+      return null;
+    }
+    const data = await saveDealFields(dealId, { investorBaseUrl: nextUrl });
+    const saved = data.deal?.investorBaseUrl != null ? data.deal.investorBaseUrl : nextUrl;
+    state.investorBaseUrl = saved || '';
+    state.investorBaseEditing = !state.investorBaseUrl;
+    if (data.deal) {
+      mergeDealIntoState(data.deal);
+      state.profile = { ...(state.profile || {}), ...data.deal };
+    }
+    showToast(toastMsg || 'Investor Base URL saved');
+    renderInvestorBase();
+    return data;
+  }
+
+  async function onInvestorBaseAction(ev) {
+    const btn = ev.target.closest('[data-investor-base-action]');
+    if (!btn) return;
+    const action = btn.getAttribute('data-investor-base-action');
+
+    if (action === 'edit') {
+      state.investorBaseEditing = true;
+      renderInvestorBase();
+      $('uc-investor-base-input')?.focus();
+      return;
+    }
+
+    if (action === 'cancel') {
+      state.investorBaseEditing = false;
+      renderInvestorBase();
+      return;
+    }
+
+    if (action === 'clear') {
+      btn.disabled = true;
+      try {
+        await persistInvestorBaseUrl('', 'Investor Base URL cleared');
+      } catch (err) {
+        showToast(err.message || 'Could not clear URL');
+      } finally {
+        btn.disabled = false;
+      }
+      return;
+    }
+
+    if (action === 'save') {
+      const input = $('uc-investor-base-input');
+      const next = (input?.value || '').trim();
+      if (!next) {
+        showToast('Paste the marketing URL first');
+        input?.focus();
+        return;
+      }
+      btn.disabled = true;
+      try {
+        await persistInvestorBaseUrl(next, 'Investor Base URL saved');
+      } catch (err) {
+        showToast(err.message || 'Could not save URL');
       } finally {
         btn.disabled = false;
       }
@@ -3067,6 +3192,9 @@
     $('uc-buyer-offer-add')?.addEventListener('click', () => { addBuyerOfferDraft(); });
     $('uc-buyer-offers-list')?.addEventListener('click', (ev) => {
       onBuyerOfferAction(ev).catch((err) => showToast(err.message || 'Buyer offer action failed'));
+    });
+    $('uc-investor-base-body')?.addEventListener('click', (ev) => {
+      onInvestorBaseAction(ev).catch((err) => showToast(err.message || 'Investor Base action failed'));
     });
     $('uc-photo-copy-url-sms')?.addEventListener('click', () => { copyUploadUrl(); });
     $('uc-photo-sms-send')?.addEventListener('click', () => { sendPhotographerSms(); });

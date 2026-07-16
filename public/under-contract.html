@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=53">
+  <link rel="stylesheet" href="/css/under-contract.css?v=54">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -314,6 +314,16 @@
           <div class="uc-panel-toolbar uc-buyer-offers-toolbar">
             <button type="button" id="uc-buyer-offer-add" class="phuglee-btn phuglee-btn-secondary">Add another buyer</button>
           </div>
+        </div>
+      </section>
+
+      <section id="uc-investor-base-section" class="uc-panel uc-investor-base" aria-label="Investor Base">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
+          <span class="uc-panel-title">Investor Base</span>
+          <span class="uc-panel-hint" id="uc-investor-base-hint">Marketing site URL for this property</span>
+        </button>
+        <div class="uc-panel-body" hidden>
+          <div id="uc-investor-base-body" class="uc-investor-base-body"></div>
         </div>
       </section>
 
@@ -665,6 +675,6 @@
   <script src="/js/command-palette.js?v=3" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=61" defer></script>
+  <script src="/js/under-contract.js?v=62" defer></script>
 </body>
 </html>

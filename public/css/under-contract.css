@@ -713,6 +713,49 @@
   font-size: 0.9rem;
 }
 
+.uc-investor-base-body {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.uc-investor-base-row {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--vault-border, #444) 75%, transparent);
+  border-radius: 0.45rem;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.uc-investor-base-url {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.35;
+  word-break: break-all;
+}
+
+.uc-investor-base-url a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.uc-investor-base-empty {
+  margin: 0;
+  opacity: 0.75;
+  font-size: 0.9rem;
+}
+
+.uc-investor-base-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.uc-investor-base-actions .phuglee-btn {
+  min-height: 44px;
+}
+
 @media (max-width: 640px) {
   .uc-rehab-grid {
     grid-template-columns: 1fr;
@@ -1313,6 +1356,7 @@ section.uc-panel.uc-media,
 section.uc-panel.uc-communication,
 section.uc-panel.uc-condition-scan,
 section.uc-panel.uc-buyer-offers,
+section.uc-panel.uc-investor-base,
 section.uc-panel.uc-team {
   margin: 0;
   padding: 0;
