@@ -906,10 +906,25 @@
     dialog.showModal();
   }
 
+  function closeAddDialog() {
+    const dialog = $('tf-add-dialog');
+    const errEl = $('tf-add-error');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    if (dialog && dialog.open) dialog.close();
+  }
+
   async function submitAddBuyer(ev) {
-    const submitter = ev.submitter;
-    if (!submitter || submitter.value !== 'save') return;
     ev.preventDefault();
+    const submitter = ev.submitter;
+    // Cancel / Escape / method=dialog without Save must never hit required-field validation.
+    if (submitter && submitter.value && submitter.value !== 'save') {
+      closeAddDialog();
+      return;
+    }
+    if (submitter && submitter.id === 'tf-add-cancel') {
+      closeAddDialog();
+      return;
+    }
     const form = $('tf-add-form');
     const errEl = $('tf-add-error');
     if (!form) return;
@@ -1009,7 +1024,13 @@
     });
     $('tf-load-deal')?.addEventListener('click', openLoadDialog);
     $('tf-add-buyer')?.addEventListener('click', openAddDialog);
+    $('tf-add-cancel')?.addEventListener('click', closeAddDialog);
+    $('tf-add-cancel-x')?.addEventListener('click', closeAddDialog);
     $('tf-add-form')?.addEventListener('submit', submitAddBuyer);
+    $('tf-add-dialog')?.addEventListener('cancel', (ev) => {
+      ev.preventDefault();
+      closeAddDialog();
+    });
     $('tf-pitch-sheet-btn')?.addEventListener('click', openPitchSheet);
     $('tf-pitch-sheet-print')?.addEventListener('click', () => window.print());
     $('tf-pitch-sheet-close')?.addEventListener('click', () => $('tf-pitch-sheet')?.close());

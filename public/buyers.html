@@ -196,7 +196,7 @@
     <form id="tf-add-form" class="tf-dialog-form" method="dialog">
       <div class="tf-dialog-head">
         <h3>Add buyer</h3>
-        <button type="submit" value="cancel" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="tf-add-cancel-x" class="uc-dialog-x" aria-label="Close">×</button>
       </div>
       <p class="tf-dialog-lead">Add a known cash buyer to the catalog. Buy box is built from the fields below.</p>
       <div class="tf-add-grid">
@@ -295,7 +295,7 @@
       </div>
       <p id="tf-add-error" class="tf-dialog-error" hidden></p>
       <div class="tf-dialog-actions">
-        <button type="submit" value="cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+        <button type="button" id="tf-add-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
         <button type="submit" value="save" id="tf-add-save" class="phuglee-btn phuglee-btn-primary">Save buyer</button>
       </div>
     </form>
@@ -328,6 +328,6 @@
   <script src="/js/buyers-load-deal.js?v=11" defer></script>
   <script src="/js/buyers-map.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/buyers-app.js?v=11" defer></script>
+  <script src="/js/buyers-app.js?v=12" defer></script>
 </body>
 </html>
