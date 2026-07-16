@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Land Vault</title>
+  <meta name="description" content="Land Desk — vacant lot leads screened for builders. Max plan.">
+  <meta property="og:title" content="Phuglee — Land Vault">
+  <meta property="og:description" content="Screen and match vacant land leads — Max plan access.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/phuglee-logo-hd.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
+  <link rel="stylesheet" href="/css/vault.css?v=24">
+  <link rel="stylesheet" href="/css/land-vault.css?v=8">
+  <script src="/js/auth-session.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js"></script>
+</head>
+<body class="phuglee-app has-premium-bg vault-page land-vault-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
+  <div id="distress-os-nav-mount"></div>
+
+  <div id="land-vault-toast" class="vault-toast" hidden role="status" aria-live="polite"></div>
+
+  <main id="main" class="vault-main vault-main--app">
+    <section id="land-vault-gate" class="vault-gate" hidden aria-labelledby="land-vault-gate-title">
+      <div class="vault-gate-inner">
+        <p class="vault-eyebrow">Land Vault · Max plan</p>
+        <h1 id="land-vault-gate-title" class="vault-title">Upgrade to unlock land leads</h1>
+        <p class="vault-lead vault-lead--honest">
+          <strong>Max plan only.</strong> Land Vault is our vacant-lot desk — screened for builders, not house flip math.
+          House leads live on <a href="/vault">Home Vault</a>. Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
+        </p>
+        <ul class="vault-perks">
+          <li>Vacant lots with motivation signals</li>
+          <li>Owner contact when available</li>
+          <li>Satellite imagery for lot context</li>
+          <li>7-check screen + builder / fund match</li>
+        </ul>
+        <div class="vault-cta-row">
+          <a href="mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan" class="phuglee-btn phuglee-btn-primary vault-upgrade-btn">Upgrade to Max — $297/mo</a>
+          <p class="vault-price-note">Full DIY toolkit on Pro · Done-for-you leads on Max</p>
+        </div>
+      </div>
+    </section>
+
+    <div id="land-vault-app" class="vault-app" hidden>
+      <header id="land-vault-hero" class="vault-hero">
+        <div class="vault-hero-copy">
+          <p class="vault-eyebrow">Land Vault</p>
+          <h1 class="vault-title vault-title--desk">Land Desk</h1>
+          <p class="vault-hero-sub">Vacant lots · screened inventory · builder / fund match</p>
+        </div>
+        <div id="land-vault-kpis" class="vault-kpis land-vault-kpis" aria-label="Land queue snapshot">
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="" title="Show all lots">
+            <span class="vault-kpi-val" data-kpi="total">—</span>
+            <span class="vault-kpi-label">Lots</span>
+          </button>
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="pending" title="Filter: Needs screen">
+            <span class="vault-kpi-val" data-kpi="needsScreen">—</span>
+            <span class="vault-kpi-label">Needs screen</span>
+          </button>
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="keep" title="Filter: Keep">
+            <span class="vault-kpi-val" data-kpi="keep">—</span>
+            <span class="vault-kpi-label">Keep</span>
+          </button>
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="fund-shaped" title="Filter: Fund-shaped">
+            <span class="vault-kpi-val" data-kpi="fundShaped">—</span>
+            <span class="vault-kpi-label">Fund-shaped</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="vault-desk land-vault-desk">
+        <aside id="land-vault-filters" class="vault-filters">
+          <h2 class="vault-filters-title">Filters</h2>
+          <label class="vault-field">
+            <span class="vault-field-label">Search</span>
+            <input type="search" id="land-vault-search" class="phuglee-input" placeholder="Address, owner, phone…" autocomplete="off">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">State</span>
+            <select id="land-vault-state" class="phuglee-select"><option value="">All states</option></select>
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">City</span>
+            <select id="land-vault-city" class="phuglee-select" disabled title="Select a state first"><option value="">Select a state first</option></select>
+          </label>
+          <label class="vault-field vault-field--check">
+            <input type="checkbox" id="land-vault-has-phone" class="vault-check">
+            <span class="vault-field-label">Has phone</span>
+          </label>
+          <div class="vault-field">
+            <span class="vault-field-label">Queue</span>
+            <div id="land-vault-verdict-tabs" class="vault-type-tabs land-vault-verdict-tabs" role="tablist" aria-label="Screen queue">
+              <button type="button" class="vault-type-tab is-active" role="tab" data-verdict="all" aria-selected="true">All</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="pending" aria-selected="false">Needs screen</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="keep" aria-selected="false">Keep</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="toss" aria-selected="false">Toss</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="fund-shaped" aria-selected="false">Fund-shaped</button>
+            </div>
+          </div>
+          <div class="vault-field">
+            <span class="vault-field-label">Asset</span>
+            <div id="land-vault-asset-tabs" class="vault-type-tabs land-vault-asset-tabs" role="tablist" aria-label="Asset class">
+              <button type="button" class="vault-type-tab is-active" role="tab" data-asset="all" aria-selected="true">All</button>
+              <button type="button" class="vault-type-tab" role="tab" data-asset="vacant_lot" aria-selected="false">Vacant lot</button>
+              <button type="button" class="vault-type-tab" role="tab" data-asset="teardown" aria-selected="false">Teardown</button>
+            </div>
+          </div>
+          <div class="vault-field">
+            <span class="vault-field-label">Land signals</span>
+            <div id="land-vault-signal-chips" class="vault-signal-chips land-vault-signal-chips" role="group" aria-label="Land signal filters"></div>
+          </div>
+          <button type="button" id="land-vault-clear-filters" class="phuglee-btn phuglee-btn-ghost vault-clear-btn">Clear filters</button>
+        </aside>
+
+        <section class="vault-results-wrap" id="land-vault-results-panel" aria-label="Land leads">
+          <div id="land-vault-results-toolbar" class="vault-results-toolbar land-vault-results-toolbar">
+            <p id="land-vault-results-meta" class="vault-results-meta">Loading…</p>
+          </div>
+          <div id="land-vault-results" class="vault-results">
+            <table class="vault-table" id="land-vault-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="vault-col-thumb">Photo</th>
+                  <th scope="col"><button type="button" class="vault-sort-btn" data-sort="address" aria-sort="none">Address</button></th>
+                  <th scope="col" class="vault-col-city"><button type="button" class="vault-sort-btn" data-sort="city" aria-sort="none">City</button></th>
+                  <th scope="col" class="land-vault-col-acres">Acres</th>
+                  <th scope="col" class="land-vault-col-zoning">Zoning</th>
+                  <th scope="col">Signal</th>
+                  <th scope="col">Verdict</th>
+                  <th scope="col">Fund</th>
+                  <th scope="col"><button type="button" class="vault-sort-btn is-sorted" data-sort="priorityScore" aria-sort="descending">Score</button></th>
+                  <th scope="col" class="vault-col-owner">Owner</th>
+                  <th scope="col" class="vault-col-phone">Phone</th>
+                </tr>
+              </thead>
+              <tbody id="land-vault-results-body"></tbody>
+            </table>
+            <div id="land-vault-skeleton" class="vault-skeleton" hidden aria-hidden="true"></div>
+            <div id="land-vault-empty" class="phuglee-empty-state" hidden>
+              <p class="phuglee-empty-title">No lots match</p>
+              <p class="phuglee-empty-copy">Clear filters or finish reviewing land leads in Analyze, then refresh.</p>
+            </div>
+          </div>
+          <nav id="land-vault-pagination" class="vault-pagination" aria-label="Results pages"></nav>
+        </section>
+      </div>
+    </div>
+
+    <aside id="land-vault-drawer" class="vault-drawer" hidden aria-labelledby="land-vault-drawer-title" aria-modal="true" role="dialog">
+      <div class="vault-drawer-backdrop" id="land-vault-drawer-backdrop" tabindex="-1"></div>
+      <div class="vault-drawer-panel">
+        <header class="vault-drawer-header">
+          <div class="vault-drawer-nav">
+            <button type="button" id="land-vault-drawer-prev" class="phuglee-btn phuglee-btn-ghost" aria-label="Previous lot">←</button>
+            <button type="button" id="land-vault-drawer-next" class="phuglee-btn phuglee-btn-ghost" aria-label="Next lot">→</button>
+          </div>
+          <div class="vault-drawer-heading">
+            <h2 id="land-vault-drawer-title" class="vault-drawer-title">Lot</h2>
+            <p id="land-vault-drawer-pos" class="vault-drawer-pos" hidden></p>
+          </div>
+          <button type="button" id="land-vault-drawer-close" class="phuglee-btn phuglee-btn-ghost" aria-label="Close">Close</button>
+        </header>
+        <div id="land-vault-drawer-body" class="vault-drawer-body"></div>
+      </div>
+    </aside>
+  </main>
+
+  <div id="distress-os-footer-mount"></div>
+  <script src="/js/phuglee-motion.js" defer></script>
+  <script src="/js/phuglee-states.js" defer></script>
+  <script src="/js/settings-menu.js?v=4" defer></script>
+  <script src="/js/command-palette.js" defer></script>
+  <script src="/js/distress-status.js" defer></script>
+  <script src="/js/shell-nav.js?v=20" defer></script>
+  <script src="/js/team-alert-banner.js?v=1" defer></script>
+  <script src="/js/auth.js?v=distress20" defer></script>
+  <script src="/js/land-vault-app.js?v=7" defer></script>
+</body>
+</html>

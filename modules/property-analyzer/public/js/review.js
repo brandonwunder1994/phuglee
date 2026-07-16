@@ -299,9 +299,11 @@ R.REVIEW_FILTER_LABELS = {
 
 R.LEAD_TYPES = [
   { id: 'code_violation', label: 'Code Violation' },
+  { id: 'pre_lien', label: 'Pre-lien' },
   { id: 'pre_foreclosure', label: 'Pre-Foreclosure' },
   { id: 'probate', label: 'Probate' },
   { id: 'tax_lien', label: 'Tax Lien' },
+  { id: 'fire', label: 'Fire-damaged' },
   { id: 'water_shut_off', label: 'Water Shut Off' }
 ];
 
@@ -311,14 +313,27 @@ R.LEAD_TYPE_ALIASES = {
   code_violation: 'code_violation',
   codeviolation: 'code_violation',
   'code violation': 'code_violation',
+  pre_lien: 'pre_lien',
+  prelien: 'pre_lien',
+  'pre lien': 'pre_lien',
+  'pre-lien': 'pre_lien',
   pre_foreclosure: 'pre_foreclosure',
   preforeclosure: 'pre_foreclosure',
   'pre foreclosure': 'pre_foreclosure',
   'pre-foreclosure': 'pre_foreclosure',
+  lis_pendens: 'pre_foreclosure',
+  lispendens: 'pre_foreclosure',
+  'lis pendens': 'pre_foreclosure',
+  nod: 'pre_foreclosure',
   probate: 'probate',
   tax_lien: 'tax_lien',
   taxlien: 'tax_lien',
   'tax lien': 'tax_lien',
+  tax_delinquent: 'tax_lien',
+  'tax delinquent': 'tax_lien',
+  fire: 'fire',
+  fire_damaged: 'fire',
+  'fire damaged': 'fire',
   water_shut_off: 'water_shut_off',
   watershutoff: 'water_shut_off',
   'water shut off': 'water_shut_off',
@@ -361,7 +376,29 @@ R.initLeadTypeSelects = function initLeadTypeSelects() {
     leadTypeFilter.innerHTML = `<option value="all">All lead types</option>${typeOptions}`;
     leadTypeFilter.value = state.leadTypeFilter || 'all';
   }
-}
+  updateImportLandRouteHint();
+};
+
+/** Phase 5 — tax / vacant Filter lists prefer Land review queue (not NOD). */
+R.updateImportLandRouteHint = function updateImportLandRouteHint() {
+  const hint = $('importLandRouteHint');
+  if (!hint) return;
+  const id = normalizeLeadType(
+    $('importLeadTypeSelect')?.value || state.importLeadType || DEFAULT_LEAD_TYPE
+  );
+  if (id === 'tax_lien') {
+    hint.hidden = false;
+    hint.textContent = 'Tax Dirt list — prefer Land review for vacant parcels (Keep Land → Land Vault). Pre-foreclosure stays house path.';
+    return;
+  }
+  if (id === 'pre_foreclosure') {
+    hint.hidden = false;
+    hint.textContent = 'Pre-foreclosure / NOD is not a primary land source — review as houses unless the parcel is clearly vacant lot.';
+    return;
+  }
+  hint.hidden = true;
+  hint.textContent = '';
+};
 
 R.TIER_META = {
   distressed: { label: 'Distressed', emoji: '⚠️', defaultScore: DISTRESSED_MIN_SCORE },

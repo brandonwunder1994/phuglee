@@ -29,7 +29,8 @@ test('detects violation-specific column headers', () => {
 test('validates upload types', () => {
   assert.equal(validateUploadType('code_violation'), 'code_violation');
   assert.equal(validateUploadType('water_shut_off'), 'water_shut_off');
-  assert.throws(() => validateUploadType('probate'), /Invalid upload type/);
+  assert.equal(validateUploadType('probate'), 'probate');
+  assert.throws(() => validateUploadType('not_a_real_type'), /Invalid upload type/);
 });
 
 test('usable address heuristic keeps property rows', () => {
@@ -125,8 +126,21 @@ test('tracks discard reason stats', () => {
   assert.equal(stats.discardReasons['No usable street address'], 1);
 });
 
-test('upload type ids are stable', () => {
-  assert.deepEqual(UPLOAD_TYPE_IDS, ['code_violation', 'water_shut_off']);
+test('upload type ids include gov-list types', () => {
+  assert.deepEqual(UPLOAD_TYPE_IDS, [
+    'code_violation',
+    'pre_lien',
+    'tax_delinquent',
+    'lis_pendens',
+    'probate',
+    'fire',
+    'water_shut_off'
+  ]);
+  assert.equal(validateUploadType('pre_lien'), 'pre_lien');
+  assert.equal(validateUploadType('tax_delinquent'), 'tax_delinquent');
+  assert.equal(validateUploadType('lis_pendens'), 'lis_pendens');
+  assert.equal(validateUploadType('probate'), 'probate');
+  assert.equal(validateUploadType('fire'), 'fire');
 });
 
 // --- SHAPE-01 / SHAPE-02: matchedIndicators array on process; join on export ---

@@ -58,7 +58,28 @@
     mapMarkers: [],
     mapInstance: null,
     mapPopup: null,
-    mapLibReady: null
+    mapLibReady: null,
+    compRunning: false,
+    manualCompLeadId: null,
+    manualCompLead: null,
+    manualCompFiles: []
+  };
+
+  const COMP_RULE_LABELS = {
+    usable_price: 'Sale price',
+    size_band: 'Size band',
+    beds_baths: 'Beds/baths',
+    distance: 'Distance',
+    recency: 'Recency',
+    age: 'Age',
+    property_type: 'Property type',
+    renovation: 'Renovation',
+    barrier: 'Road barrier'
+  };
+
+  const HAIRCUT_LABELS = {
+    dom_soft: 'Active DOM soft cut',
+    conservative: 'Conservative trim'
   };
 
   const $ = (id) => document.getElementById(id);
@@ -337,6 +358,7 @@
   function buildQuery() {
     const params = new URLSearchParams();
     if (state.leadType && state.leadType !== 'all') params.set('leadType', state.leadType);
+    params.set('surface', 'home');
     if (state.state) params.set('state', state.state);
     if (state.city) params.set('city', state.city);
     if (state.q) params.set('q', state.q);
@@ -1440,6 +1462,582 @@
     return '$' + Math.round(num).toLocaleString();
   }
 
+  function ruleIdLabel(id) {
+    return COMP_RULE_LABELS[id] || String(id || '').replace(/_/g, ' ');
+  }
+
+  function compConfidenceBadge(conf) {
+    const c = String(conf || '').toLowerCase();
+    if (!c) return '';
+    return `<span class="vault-comp-conf vault-comp-conf--${esc(c)}">${esc(c)}</span>`;
+  }
+
+  function formatCompDate(iso) {
+    if (!iso) return '';
+    return String(iso).slice(0, 10);
+  }
+
+  function renderRuleResults(results) {
+    if (!Array.isArray(results) || !results.length) return '—';
+    return results.map((r) => {
+      const status = String(r.status || 'pass');
+      return `<span class="vault-rule-pill vault-rule-pill--${esc(status)}" title="${esc(r.detail || '')}">${esc(ruleIdLabel(r.id))}</span>`;
+    }).join(' ');
+  }
+
+  function hasArvCompingReport(l) {
+    if (!l) return false;
+    if (l.compedAt) return true;
+    if (l.compingReport?.arv != null) return true;
+    const r = l.compingReport;
+    return !!(r && (r.generatedAt || r.confidence || r.arvMethod));
+  }
+
+  function hasCompsList(l) {
+    return Array.isArray(l?.comps) && l.comps.length > 0;
+  }
+
+  function hasCompingContent(l) {
+    return hasArvCompingReport(l) || hasCompsList(l);
+  }
+
+  function renderCompActionStrip(l) {
+    const comped = !!l.compedAt;
+    const arvChip = comped && moneyFmt(l.estARV)
+      ? `<span class="vault-arv-chip">${moneyFmt(l.estARV)}${compConfidenceBadge(l.compConfidence)}</span>`
+      : '';
+    const btnLabel = state.compRunning ? 'Comping…' : (comped ? 'Re-comp' : 'Comp');
+    const busy = state.compRunning ? ' disabled aria-busy="true"' : '';
+    return `${arvChip}<button type="button" id="vault-comp-btn" class="phuglee-btn phuglee-btn-primary vault-comp-btn"${busy}>${btnLabel}</button>`;
+  }
+
+  function renderHowWeGotHere(report) {
+    if (!report) return '';
+    const bits = [];
+    if (report.arvMethod) bits.push(`Method: ${report.arvMethod}`);
+    if (report.marketTag) bits.push(`Market: ${report.marketTag}`);
+    if (report.ladderLevel != null) bits.push(`Ladder: ${report.ladderLevel}`);
+    if (report.source) {
+      bits.push(report.source === 'manual_propelio' ? 'Source: Propelio manual' : `Source: ${report.source}`);
+    }
+    const haircuts = Array.isArray(report.haircuts) ? report.haircuts : [];
+    const haircutHtml = haircuts.length
+      ? `<ul class="vault-haircut-list">${haircuts.map((h) =>
+          `<li>${esc(HAIRCUT_LABELS[h.id] || h.id)}${h.pct != null ? `: ${h.pct}%` : ''}${
+            h.before != null && h.after != null ? ` (${moneyFmt(h.before)} → ${moneyFmt(h.after)})` : ''
+          }</li>`
+        ).join('')}</ul>`
+      : '';
+    const manualNote = report.manualNote ? `<p class="vault-comp-note">${esc(report.manualNote)}</p>` : '';
+    if (!bits.length && !haircutHtml && !manualNote) return '';
+    return `<div class="vault-comp-block">
+      <h4 class="vault-comp-subhead">How we got here</h4>
+      ${bits.length ? `<p class="vault-comp-meta">${esc(bits.join(' · '))}</p>` : ''}
+      ${haircutHtml}
+      ${manualNote}
+    </div>`;
+  }
+
+  function renderRulesSummaryBlock(summary) {
+    if (!Array.isArray(summary) || !summary.length) return '';
+    const rows = summary.map((r) =>
+      `<li class="vault-rule-summary-row">
+        <span class="vault-rule-summary-id">${esc(ruleIdLabel(r.id))}</span>
+        <span class="vault-rule-summary-counts">
+          <span class="vault-rule-pill vault-rule-pill--pass">${Number(r.pass) || 0} pass</span>
+          <span class="vault-rule-pill vault-rule-pill--soft">${Number(r.soft) || 0} soft</span>
+          <span class="vault-rule-pill vault-rule-pill--fail">${Number(r.fail) || 0} fail</span>
+        </span>
+      </li>`
+    ).join('');
+    return `<div class="vault-comp-block">
+      <h4 class="vault-comp-subhead">Comping Rules</h4>
+      <ul class="vault-rule-summary">${rows}</ul>
+    </div>`;
+  }
+
+  function renderSanityBlock(sanity) {
+    if (!sanity) return '';
+    const avm = sanity.avm != null ? moneyFmt(sanity.avm) : null;
+    const ceiling = sanity.newConstructionCeiling != null ? moneyFmt(sanity.newConstructionCeiling) : null;
+    const notes = Array.isArray(sanity.notes) ? sanity.notes : [];
+    if (!avm && !ceiling && !notes.length) return '';
+    return `<div class="vault-comp-block vault-comp-sanity">
+      <h4 class="vault-comp-subhead">Sanity checks</h4>
+      ${avm ? `<p class="vault-comp-avm"><span class="vault-comp-avm-label">AVM estimate</span> <strong>${esc(avm)}</strong> <span class="vault-comp-avm-note">— estimate, not ARV</span></p>` : ''}
+      ${ceiling ? `<p class="vault-comp-meta">New-build ceiling: ${esc(ceiling)}</p>` : ''}
+      ${notes.map((n) => `<p class="vault-comp-meta">${esc(n)}</p>`).join('')}
+    </div>`;
+  }
+
+  function renderStreetViewLinks(l, report) {
+    const links = [];
+    const subject = report?.subject;
+    if (subject?.streetViewUrl) {
+      links.push({ label: 'Subject', url: subject.streetViewUrl });
+    } else if (l) {
+      const url = liveSvUrlForLead(l);
+      if (url) links.push({ label: 'Subject', url });
+    }
+    const comps = Array.isArray(l?.comps) ? l.comps : [];
+    comps.slice(0, 8).forEach((c, i) => {
+      if (c.streetViewUrl) {
+        links.push({ label: c.address || `Comp ${i + 1}`, url: c.streetViewUrl });
+      }
+    });
+    if (!links.length) return '';
+    return `<div class="vault-comp-block">
+      <h4 class="vault-comp-subhead">Street View</h4>
+      <div class="vault-sv-links">${links.map((link) =>
+        `<a href="${esc(link.url)}" class="phuglee-btn phuglee-btn-ghost vault-sv-link" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a>`
+      ).join('')}</div>
+      ${l.compBlockPass ? `<p class="vault-comp-meta">Block check: <strong>${esc(l.compBlockPass)}</strong></p>` : ''}
+    </div>`;
+  }
+
+  function renderCompFiles(l) {
+    const files = Array.isArray(l.compReportFiles) ? l.compReportFiles : [];
+    if (!files.length) return '';
+    const leadId = l.leadId;
+    const rows = files.map((f) => {
+      const url = `/api/leads/${encodeURIComponent(leadId)}/comp/report-file/${encodeURIComponent(f.id)}`;
+      const dl = `${url}?download=1`;
+      const size = f.size ? `${Math.round(f.size / 1024)} KB` : '';
+      return `<li class="vault-comp-file">
+        <a href="${esc(url)}" class="vault-comp-file-link" target="_blank" rel="noopener noreferrer">${esc(f.filename || 'Report')}</a>
+        <a href="${esc(dl)}" class="vault-comp-file-dl" download>Download</a>
+        ${size ? `<span class="vault-comp-file-size">${esc(size)}</span>` : ''}
+      </li>`;
+    }).join('');
+    return `<div class="vault-comp-block">
+      <h4 class="vault-comp-subhead">Report files</h4>
+      <ul class="vault-comp-files">${rows}</ul>
+    </div>`;
+  }
+
+  function renderCompsTable(comps, opts = {}) {
+    if (!Array.isArray(comps) || !comps.length) return '';
+    const extended = opts.extended !== false;
+    if (!extended) {
+      const rows = comps.slice(0, 5).map((c) =>
+        `<tr>
+          <td>${esc(c.address || '—')}</td>
+          <td>${c.price != null ? '$' + Number(c.price).toLocaleString() : '—'}</td>
+          <td>${esc(c.soldDate || '—')}</td>
+        </tr>`
+      ).join('');
+      return `<table class="vault-comps-table">
+        <thead><tr><th>Address</th><th>Price</th><th>Sold</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    }
+    const rows = comps.map((c) => {
+      const included = c.includedInArv !== false;
+      const inclCls = included ? 'vault-comp-included' : 'vault-comp-excluded';
+      const inclLabel = included ? 'Included' : 'Excluded';
+      const renov = c.renovation ? esc(c.renovation) : '—';
+      const dist = c.distanceMi != null ? `${Number(c.distanceMi).toFixed(2)} mi` : '—';
+      const sv = c.streetViewUrl
+        ? `<a href="${esc(c.streetViewUrl)}" class="vault-sv-mini" target="_blank" rel="noopener noreferrer">SV</a>`
+        : '—';
+      return `<tr class="${inclCls}">
+        <td>${esc(c.address || '—')}</td>
+        <td>${c.price != null ? '$' + Number(c.price).toLocaleString() : '—'}</td>
+        <td>${esc(c.soldDate || '—')}</td>
+        <td>${esc(dist)}</td>
+        <td><span class="vault-comp-incl-badge">${inclLabel}</span></td>
+        <td class="vault-comp-rules-col">${renderRuleResults(c.ruleResults)}</td>
+        <td>${renov}</td>
+        <td>${sv}</td>
+      </tr>`;
+    }).join('');
+    return `<div class="vault-comps-wrap">
+      <h4 class="vault-comp-subhead">Comps</h4>
+      <div class="vault-comps-scroll">
+        <table class="vault-comps-table vault-comps-table--full">
+          <thead><tr>
+            <th>Address</th><th>Price</th><th>Sold</th><th>Dist</th><th>In ARV</th><th>Rules</th><th>Reno</th><th>SV</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  function renderCompingSection(l) {
+    if (!hasCompingContent(l)) return '';
+    const hasReport = hasArvCompingReport(l);
+    const report = l.compingReport || {};
+    const heroHtml = hasReport
+      ? (() => {
+          const arv = report.arv != null ? report.arv : (l.compedAt ? l.estARV : null);
+          const conf = report.confidence || l.compConfidence;
+          const arvDisplay = moneyFmt(arv) || '—';
+          const when = formatCompDate(report.generatedAt || l.compedAt);
+          return `<div class="vault-comp-hero">
+        <p class="vault-comp-hero-label">ARV</p>
+        <p class="vault-comp-hero-val">${esc(arvDisplay)}</p>
+        <div class="vault-comp-hero-meta">${compConfidenceBadge(conf)}${when ? `<span class="vault-comp-date">Comped ${esc(when)}</span>` : ''}</div>
+      </div>`;
+        })()
+      : '';
+    return `<div class="vault-comp-report">
+      ${heroHtml}
+      ${hasReport ? renderHowWeGotHere(report) : ''}
+      ${hasReport ? renderRulesSummaryBlock(report.rulesSummary) : ''}
+      ${renderCompsTable(l.comps, { extended: true })}
+      ${hasReport ? renderSanityBlock(report.sanity) : ''}
+      ${renderStreetViewLinks(l, report)}
+      ${hasReport ? renderCompFiles(l) : ''}
+    </div>`;
+  }
+
+  function patchLeadInState(lead) {
+    if (!lead?.leadId) return;
+    const idx = state.leads.findIndex((r) => r.leadId === lead.leadId);
+    if (idx >= 0) state.leads[idx] = { ...state.leads[idx], ...lead };
+  }
+
+  function blankManualCompRow() {
+    return { address: '', price: '', soldDate: '', sqft: '', beds: '', baths: '' };
+  }
+
+  function renderManualCompRows(rows) {
+    return rows.map((row, i) =>
+      `<div class="vault-manual-comp-row" data-row="${i}">
+        <input type="text" class="phuglee-input vault-manual-field" data-field="address" placeholder="Address" value="${esc(row.address || '')}" aria-label="Comp ${i + 1} address">
+        <input type="number" class="phuglee-input vault-manual-field" data-field="price" placeholder="Price" value="${esc(row.price || '')}" aria-label="Comp ${i + 1} price" inputmode="numeric">
+        <input type="text" class="phuglee-input vault-manual-field" data-field="soldDate" placeholder="Sold date" value="${esc(row.soldDate || '')}" aria-label="Comp ${i + 1} sold date">
+        <input type="number" class="phuglee-input vault-manual-field" data-field="sqft" placeholder="Sqft" value="${esc(row.sqft || '')}" aria-label="Comp ${i + 1} sqft" inputmode="numeric">
+        <input type="number" class="phuglee-input vault-manual-field" data-field="beds" placeholder="Beds" value="${esc(row.beds || '')}" aria-label="Comp ${i + 1} beds" inputmode="numeric">
+        <input type="number" class="phuglee-input vault-manual-field" data-field="baths" placeholder="Baths" value="${esc(row.baths || '')}" aria-label="Comp ${i + 1} baths" inputmode="decimal">
+        <button type="button" class="phuglee-btn phuglee-btn-ghost vault-manual-remove" data-remove-row="${i}" aria-label="Remove comp ${i + 1}"${rows.length <= 3 ? ' disabled' : ''}>×</button>
+      </div>`
+    ).join('');
+  }
+
+  function readManualCompRowsFromDom() {
+    const wrap = $('vault-manual-comp-rows');
+    if (!wrap) return [];
+    return [...wrap.querySelectorAll('.vault-manual-comp-row')].map((rowEl) => {
+      const row = {};
+      rowEl.querySelectorAll('.vault-manual-field').forEach((input) => {
+        const field = input.dataset.field;
+        if (!field) return;
+        row[field] = input.value.trim();
+      });
+      return row;
+    });
+  }
+
+  function rerenderManualCompRows(rows) {
+    const wrap = $('vault-manual-comp-rows');
+    if (!wrap) return;
+    wrap.innerHTML = renderManualCompRows(rows);
+  }
+
+  function bindManualCompRowEvents() {
+    const wrap = $('vault-manual-comp-rows');
+    if (!wrap || wrap.dataset.bound === '1') return;
+    wrap.dataset.bound = '1';
+    wrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-remove-row]');
+      if (!btn || btn.disabled) return;
+      const idx = Number(btn.dataset.removeRow);
+      const rows = readManualCompRowsFromDom();
+      if (!Number.isFinite(idx) || rows.length <= 3) return;
+      rows.splice(idx, 1);
+      rerenderManualCompRows(rows);
+    });
+  }
+
+  function renderManualFileList() {
+    const list = $('vault-manual-file-list');
+    if (!list) return;
+    if (!state.manualCompFiles.length) {
+      list.innerHTML = '';
+      return;
+    }
+    list.innerHTML = state.manualCompFiles.map((f, i) =>
+      `<li class="vault-manual-file-item">${esc(f.name)} <button type="button" class="vault-text-btn" data-remove-file="${i}">Remove</button></li>`
+    ).join('');
+    list.querySelectorAll('[data-remove-file]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.removeFile);
+        if (Number.isFinite(idx)) {
+          state.manualCompFiles.splice(idx, 1);
+          renderManualFileList();
+        }
+      });
+    });
+  }
+
+  function addManualCompFiles(fileList) {
+    const allowed = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
+    for (const file of fileList) {
+      const mime = file.type || 'application/octet-stream';
+      if (!allowed.includes(mime) && !/\.(pdf|png|jpe?g|webp)$/i.test(file.name || '')) {
+        showToast(`Skipped ${file.name}: unsupported type`);
+        continue;
+      }
+      if (file.size > 25 * 1024 * 1024) {
+        showToast(`${file.name} exceeds 25 MB`);
+        continue;
+      }
+      state.manualCompFiles.push(file);
+    }
+    renderManualFileList();
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = String(reader.result || '');
+        resolve(result.split(',')[1] || '');
+      };
+      reader.onerror = () => reject(reader.error || new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function ensureManualCompPanel() {
+    let panel = $('vault-manual-comp');
+    if (panel) return panel;
+    const el = document.createElement('aside');
+    el.id = 'vault-manual-comp';
+    el.className = 'vault-manual-comp';
+    el.hidden = true;
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-labelledby', 'vault-manual-comp-title');
+    el.innerHTML = `
+      <div class="vault-manual-comp-backdrop" id="vault-manual-comp-backdrop" tabindex="-1"></div>
+      <div class="vault-manual-comp-panel">
+        <header class="vault-manual-comp-header">
+          <h2 id="vault-manual-comp-title" class="vault-manual-comp-title">Manual Comp</h2>
+          <button type="button" id="vault-manual-comp-close" class="phuglee-btn phuglee-btn-ghost" aria-label="Close">Close</button>
+        </header>
+        <div class="vault-manual-comp-body" id="vault-manual-comp-body"></div>
+      </div>
+    `;
+    document.body.appendChild(el);
+    el.querySelector('#vault-manual-comp-close')?.addEventListener('click', closeManualCompPanel);
+    el.querySelector('#vault-manual-comp-backdrop')?.addEventListener('click', closeManualCompPanel);
+    return el;
+  }
+
+  function closeManualCompPanel() {
+    const panel = $('vault-manual-comp');
+    if (panel) panel.hidden = true;
+    state.manualCompLeadId = null;
+    state.manualCompLead = null;
+    state.manualCompFiles = [];
+  }
+
+  function bindManualCompEvents(leadId, lead) {
+    bindManualCompRowEvents();
+
+    $('vault-manual-add-row')?.addEventListener('click', () => {
+      const rows = readManualCompRowsFromDom();
+      rows.push(blankManualCompRow());
+      rerenderManualCompRows(rows);
+    });
+
+    $('vault-manual-copy-addr')?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(fullAddress(lead));
+        showToast('Address copied');
+      } catch (_) {
+        showToast('Could not copy address');
+      }
+    });
+
+    const dropzone = $('vault-manual-dropzone');
+    const fileInput = $('vault-manual-file');
+    dropzone?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('is-dragover');
+    });
+    dropzone?.addEventListener('dragleave', () => dropzone.classList.remove('is-dragover'));
+    dropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('is-dragover');
+      if (e.dataTransfer?.files?.length) addManualCompFiles(e.dataTransfer.files);
+    });
+    fileInput?.addEventListener('change', (e) => {
+      if (e.target.files?.length) addManualCompFiles(e.target.files);
+      e.target.value = '';
+    });
+
+    $('vault-manual-save')?.addEventListener('click', () => {
+      saveManualComp(leadId).catch((err) => showToast(err.message || 'Could not save comp'));
+    });
+  }
+
+  function openManualCompPanel(leadId, data, lead) {
+    const panel = ensureManualCompPanel();
+    const body = $('vault-manual-comp-body');
+    if (!body) return;
+    state.manualCompLeadId = leadId;
+    state.manualCompLead = lead || null;
+    state.manualCompFiles = [];
+    const l = lead || {};
+    const st = data?.state || l.state || '';
+    const rows = [blankManualCompRow(), blankManualCompRow(), blankManualCompRow()];
+    body.innerHTML = `
+      <p class="vault-manual-hint">Use <strong>Propelio</strong> for MLS sold comps in <strong>${esc(st || 'this state')}</strong>, then enter ARV and at least 3 comps below.</p>
+      <div class="vault-manual-actions-top">
+        <button type="button" id="vault-manual-copy-addr" class="phuglee-btn phuglee-btn-secondary">Copy address</button>
+      </div>
+      <label class="vault-field">
+        <span class="vault-field-label">ARV</span>
+        <input type="number" id="vault-manual-arv" class="phuglee-input" placeholder="After-repair value" inputmode="numeric">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Note (optional)</span>
+        <input type="text" id="vault-manual-note" class="phuglee-input" placeholder="Propelio CMA reference">
+      </label>
+      <div class="vault-field">
+        <span class="vault-field-label">Comps (min 3)</span>
+        <div id="vault-manual-comp-rows" class="vault-manual-comp-rows">${renderManualCompRows(rows)}</div>
+        <button type="button" id="vault-manual-add-row" class="phuglee-btn phuglee-btn-ghost">Add comp</button>
+      </div>
+      <div class="vault-field">
+        <span class="vault-field-label">Propelio report (PDF or image)</span>
+        <div class="vault-manual-dropzone" id="vault-manual-dropzone">
+          <p>Drop files here or <label class="vault-manual-file-label"><input type="file" id="vault-manual-file" class="vault-manual-file-input" accept=".pdf,image/png,image/jpeg,image/webp" multiple hidden>choose files</label></p>
+          <ul id="vault-manual-file-list" class="vault-manual-file-list"></ul>
+        </div>
+      </div>
+      <div class="vault-manual-footer">
+        <button type="button" id="vault-manual-save" class="phuglee-btn phuglee-btn-primary vault-comp-btn">Save Comp Report</button>
+      </div>
+    `;
+    bindManualCompEvents(leadId, l);
+    panel.hidden = false;
+    $('vault-manual-arv')?.focus();
+  }
+
+  async function saveManualComp(leadId) {
+    const arvRaw = $('vault-manual-arv')?.value;
+    const arv = Number(arvRaw);
+    if (!Number.isFinite(arv) || arv <= 0) {
+      showToast('Enter a valid ARV');
+      $('vault-manual-arv')?.focus();
+      return;
+    }
+    const rows = readManualCompRowsFromDom();
+    const comps = rows.map((row) => ({
+      address: row.address,
+      price: row.price === '' ? null : Number(row.price),
+      soldDate: row.soldDate || undefined,
+      sqft: row.sqft === '' ? undefined : Number(row.sqft),
+      beds: row.beds === '' ? undefined : Number(row.beds),
+      baths: row.baths === '' ? undefined : Number(row.baths)
+    })).filter((c) => c.address || c.price != null);
+    if (comps.length < 3) {
+      showToast('Add at least 3 comps with address and price');
+      return;
+    }
+    for (const c of comps) {
+      if (!c.address || !Number.isFinite(c.price) || c.price <= 0) {
+        showToast('Each comp needs address and price');
+        return;
+      }
+    }
+    const note = ($('vault-manual-note')?.value || '').trim();
+    const saveBtn = $('vault-manual-save');
+    if (saveBtn) saveBtn.disabled = true;
+    try {
+      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/manual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ arv, comps, note: note || undefined })
+      });
+      let lead = data.lead;
+      for (const file of state.manualCompFiles) {
+        const contentBase64 = await fileToBase64(file);
+        const uploaded = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/report-file`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            mime: file.type || 'application/pdf',
+            contentBase64
+          })
+        });
+        if (uploaded.lead) lead = uploaded.lead;
+      }
+      closeManualCompPanel();
+      if (lead) patchLeadInState(lead);
+      state.drawerSection = 'comping';
+      await openDrawer(leadId);
+      showToast('Comp report saved');
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+    }
+  }
+
+  async function postCompRequest(leadId, replace) {
+    const res = await fetch(`/api/leads/${encodeURIComponent(leadId)}/comp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ replace })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || res.statusText || 'Comp failed');
+    }
+    return data;
+  }
+
+  async function runComp(leadId, { replace = false } = {}) {
+    if (state.compRunning) return;
+    state.compRunning = true;
+    const btn = $('vault-comp-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Comping…';
+    }
+    try {
+      let data = await postCompRequest(leadId, replace);
+      if (data.confirmReplace) {
+        if (!window.confirm('Replace existing comps and ARV on this lead?')) return;
+        data = await postCompRequest(leadId, true);
+      }
+      if (data.needsManual) {
+        let lead = data.lead;
+        if (!lead) {
+          const detail = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`);
+          lead = detail.lead;
+        }
+        openManualCompPanel(leadId, data, lead);
+        return;
+      }
+      if (data.lead) {
+        patchLeadInState(data.lead);
+        state.drawerSection = 'comping';
+        await openDrawer(leadId);
+        showToast(data.report?.confidence === 'blocked' ? 'Comp complete — ARV blocked' : 'Comp complete');
+      }
+    } catch (err) {
+      showToast(err.message || 'Comp failed');
+    } finally {
+      state.compRunning = false;
+      if (state.activeLeadId === leadId) {
+        const detail = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`).catch(() => null);
+        const l = detail?.lead;
+        const compBtn = $('vault-comp-btn');
+        if (compBtn && l) {
+          compBtn.disabled = false;
+          compBtn.textContent = l.compedAt ? 'Re-comp' : 'Comp';
+        }
+      }
+    }
+  }
+
   function dlRows(pairs) {
     return pairs
       .filter(([, v]) => v != null && v !== '' && v !== '—')
@@ -1462,12 +2060,40 @@
     const adminBtn = isVaultAdmin()
       ? '<button type="button" id="vault-under-contract-btn" class="phuglee-btn phuglee-btn-primary">Move to Under Contract</button>'
       : '';
+    const houseType = l.leadType === 'distressed' || l.leadType === 'well_maintained';
+    const promoteBtn = houseType
+      ? `<button type="button" id="vault-promote-land-btn" class="phuglee-btn phuglee-btn-secondary">Underwrite as land</button>`
+      : '';
     return `<div class="vault-action-strip">
+      ${renderCompActionStrip(l)}
       <a href="${esc(mapsUrl(l))}" class="phuglee-btn phuglee-btn-secondary" target="_blank" rel="noopener noreferrer">Maps</a>
       <a href="${esc(analyzeUrl(l))}" class="phuglee-btn phuglee-btn-ghost" target="_blank" rel="noopener noreferrer">Analyze</a>
       <button type="button" id="vault-copy-addr" class="phuglee-btn phuglee-btn-ghost">Copy address</button>
       <button type="button" id="vault-fav-btn" class="phuglee-btn phuglee-btn-ghost" data-fav="${favorite ? '1' : '0'}">${favorite ? '★ Saved' : '☆ Favorite'}</button>
+      ${promoteBtn}
       ${adminBtn}
+    </div>
+    <div id="vault-promote-land-panel" class="vault-panel-block vault-promote-land-panel" hidden>
+      <p class="vault-field-hint">Moves this lead to <strong>Land Vault</strong> as a teardown (leaves Home Vault). Pitch: builder / new-construction path — vacant-lot FMV − demo − ≥$5K − fee → LAO.</p>
+      <label class="vault-field">
+        <span class="vault-field-label">Demo estimate ($)</span>
+        <input type="number" id="vault-promote-demo" class="phuglee-input" min="0" step="500" placeholder="e.g. 12000" inputmode="decimal">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Structure note</span>
+        <input type="text" id="vault-promote-note" class="phuglee-input" maxlength="240" placeholder="Older / small footprint, corridor cues…">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Reason</span>
+        <select id="vault-promote-reason" class="phuglee-select">
+          <option value="operator">Operator judgment</option>
+          <option value="contract_below_land_value">Contract below land value</option>
+        </select>
+      </label>
+      <div class="vault-promote-land-actions">
+        <button type="button" id="vault-promote-land-confirm" class="phuglee-btn phuglee-btn-primary">Promote to Land Vault</button>
+        <button type="button" id="vault-promote-land-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
     </div>`;
   }
 
@@ -1484,7 +2110,7 @@
     const distressBody = [renderDistressSection(l), renderCodeViolationSection(l)].filter(Boolean).join('');
     const propertyBody = renderPropertySection(l);
     const mortgageBody = renderMortgageTaxSection(l);
-    const compsBody = renderComps(l.comps);
+    const compingBody = renderCompingSection(l);
     const notesBody = `
       <div class="vault-panel-block">
         ${renderDispositionChips(data.disposition || '')}
@@ -1499,7 +2125,7 @@
       { id: 'distress', label: 'Distress', html: stripSectionShell(distressBody) },
       { id: 'property', label: 'Property', html: stripSectionShell(propertyBody) },
       { id: 'mortgage', label: 'Mortgage', html: stripSectionShell(mortgageBody) },
-      { id: 'comps', label: 'Comps', html: stripSectionShell(compsBody) },
+      ...(compingBody ? [{ id: 'comping', label: hasArvCompingReport(l) ? 'ARV Report' : 'Comps', html: compingBody }] : []),
       { id: 'notes', label: 'Notes', html: notesBody }
     ].filter((s) => String(s.html || '').trim());
 
@@ -1798,20 +2424,11 @@
   }
 
   function renderComps(comps) {
-    if (!Array.isArray(comps) || !comps.length) return '';
-    const rows = comps.slice(0, 5).map((c) =>
-      `<tr>
-        <td>${esc(c.address || '—')}</td>
-        <td>${c.price != null ? '$' + Number(c.price).toLocaleString() : '—'}</td>
-        <td>${esc(c.soldDate || '—')}</td>
-      </tr>`
-    ).join('');
+    const table = renderCompsTable(comps, { extended: false });
+    if (!table) return '';
     return `<section class="vault-dossier-section">
       <h3>Comps</h3>
-      <table class="vault-comps-table">
-        <thead><tr><th>Address</th><th>Price</th><th>Sold</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
+      ${table}
     </section>`;
   }
 
@@ -1869,6 +2486,10 @@
     try {
       const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`);
       const l = data.lead;
+      if (l && l.leadType === 'land') {
+        window.location.replace(`/land-vault?lead=${encodeURIComponent(leadId)}`);
+        return;
+      }
       if (title) title.textContent = l.address || 'Lead';
 
       body.innerHTML = `
@@ -1958,6 +2579,46 @@
       }
     });
 
+    $('vault-promote-land-btn')?.addEventListener('click', () => {
+      const panel = $('vault-promote-land-panel');
+      if (panel) panel.hidden = false;
+      $('vault-promote-demo')?.focus();
+    });
+
+    $('vault-promote-land-cancel')?.addEventListener('click', () => {
+      const panel = $('vault-promote-land-panel');
+      if (panel) panel.hidden = true;
+    });
+
+    $('vault-promote-land-confirm')?.addEventListener('click', async () => {
+      if (!window.confirm(
+        `Promote ${l.address || 'this lead'} to Land Vault as a teardown?\n\nIt will leave Home Vault and use land underwriting (demo → LAO).`
+      )) return;
+      const btn = $('vault-promote-land-confirm');
+      if (btn) btn.disabled = true;
+      const demoRaw = $('vault-promote-demo')?.value;
+      const demoEstimate = demoRaw === '' || demoRaw == null ? null : Number(demoRaw);
+      const structureNote = String($('vault-promote-note')?.value || '').trim();
+      const reason = String($('vault-promote-reason')?.value || 'operator').trim();
+      try {
+        const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/promote-to-land`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            demoEstimate: Number.isFinite(demoEstimate) ? demoEstimate : null,
+            structureNote,
+            reason
+          })
+        });
+        showToast('Promoted to Land Vault');
+        const dest = data.redirect || `/land-vault?lead=${encodeURIComponent(leadId)}`;
+        window.location.assign(dest);
+      } catch (err) {
+        showToast(err.message || 'Could not promote lead');
+        if (btn) btn.disabled = false;
+      }
+    });
+
     $('vault-copy-addr')?.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(fullAddress(l));
@@ -1965,6 +2626,10 @@
       } catch (_) {
         showToast('Could not copy address');
       }
+    });
+
+    $('vault-comp-btn')?.addEventListener('click', () => {
+      runComp(leadId).catch((err) => showToast(err.message || 'Comp failed'));
     });
 
     $('vault-hero-img')?.addEventListener('click', () => {
@@ -2523,8 +3188,10 @@
     document.addEventListener('keydown', (e) => {
       const drawerOpen = $('vault-drawer') && !$('vault-drawer').hidden;
       const lightboxOpen = $('vault-lightbox') && !$('vault-lightbox').hidden;
+      const manualOpen = $('vault-manual-comp') && !$('vault-manual-comp').hidden;
       if (e.key === 'Escape') {
         if (lightboxOpen) closeLightbox();
+        else if (manualOpen) closeManualCompPanel();
         else if (drawerOpen) closeDrawer();
         return;
       }

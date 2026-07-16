@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee — The Vault</title>
-  <meta name="description" content="Curated dial-ready leads for Max members — distressed, well-maintained, and land opportunities scrubbed by our pipeline.">
-  <meta property="og:title" content="Phuglee — The Vault">
-  <meta property="og:description" content="Browse, filter, and export curated leads — Max plan access.">
+  <title>Phuglee — Home Vault</title>
+  <meta name="description" content="Curated dial-ready house leads for Max members — distressed and well-maintained inventory scrubbed by our pipeline.">
+  <meta property="og:title" content="Phuglee — Home Vault">
+  <meta property="og:description" content="Browse, filter, and export curated house leads — Max plan access.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/vault.css?v=22">
+  <link rel="stylesheet" href="/css/vault.css?v=24">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -30,14 +30,14 @@
   <main id="main" class="vault-main vault-main--app">
     <section id="vault-gate" class="vault-gate" hidden aria-labelledby="vault-gate-title">
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">The Vault · Max plan</p>
-        <h1 id="vault-gate-title" class="vault-title">Upgrade to unlock curated leads</h1>
+        <p class="vault-eyebrow">Home Vault · Max plan</p>
+        <h1 id="vault-gate-title" class="vault-title">Upgrade to unlock curated house leads</h1>
         <p class="vault-lead vault-lead--honest">
-          <strong>Max plan only.</strong> The Vault is our done-for-you leads database — pre-scrubbed, scored, and ready to dial.
-          Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
+          <strong>Max plan only.</strong> Home Vault is our done-for-you house leads database — pre-scrubbed, scored, and ready to dial.
+          Land lots live on <a href="/land-vault">Land Vault</a>. Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
         </p>
         <ul class="vault-perks">
-          <li>Distressed, code-violation, and land leads in one desk</li>
+          <li>Distressed and code-violation house leads</li>
           <li>Stack motivation signals to surface top priorities</li>
           <li>Owner contact and property context when available</li>
           <li>Export selections for your dialer or CRM</li>
@@ -52,8 +52,8 @@
     <div id="vault-app" class="vault-app" hidden>
       <header id="vault-hero" class="vault-hero">
         <div class="vault-hero-copy">
-          <p class="vault-eyebrow">The Vault</p>
-          <h1 class="vault-title vault-title--desk">Curated leads</h1>
+          <p class="vault-eyebrow">Home Vault</p>
+          <h1 class="vault-title vault-title--desk">Curated house leads</h1>
           <p class="vault-hero-sub">40%+ equity · independently owned · $500K max value · SFH &amp; multi-unit</p>
         </div>
         <div id="vault-kpis" class="vault-kpis" aria-label="Catalog snapshot">
@@ -189,7 +189,6 @@
                 <button type="button" class="vault-type-tab is-active" role="tab" id="vault-tab-all" aria-controls="vault-results" aria-selected="true" data-type="all">All <span class="vault-tab-count" data-count-for="all"></span></button>
                 <button type="button" class="vault-type-tab" role="tab" id="vault-tab-well" aria-controls="vault-results" aria-selected="false" data-type="well_maintained">Code <span class="vault-tab-count" data-count-for="well_maintained"></span></button>
                 <button type="button" class="vault-type-tab" role="tab" id="vault-tab-distressed" aria-controls="vault-results" aria-selected="false" data-type="distressed">Distressed <span class="vault-tab-count" data-count-for="distressed"></span></button>
-                <button type="button" class="vault-type-tab" role="tab" id="vault-tab-land" aria-controls="vault-results" aria-selected="false" data-type="land">Land <span class="vault-tab-count" data-count-for="land"></span></button>
               </div>
             </div>
             <div class="vault-results-actions">
@@ -282,6 +281,6 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=19" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/vault-app.js?v=24" defer></script>
+  <script src="/js/vault-app.js?v=26" defer></script>
 </body>
 </html>

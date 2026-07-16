@@ -1,0 +1,3075 @@
+{
+  "version": 3,
+  "updatedAt": "2026-07-16",
+  "maoReminder": "Our MAO stays ARV × 90% − (Repairs × 2). Fund buy-box % notes are exit intel only — never replace our underwrite.",
+  "funds": [
+    {
+      "id": "test-flipper-llc-3",
+      "name": "Test Flipper LLC",
+      "oneLiner": "Test Flipper LLC — custom buyer",
+      "type": "Known buyer",
+      "strategy": "",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "",
+      "notBuying": [],
+      "sourcePath": null,
+      "buyerType": "local",
+      "kind": "known-buyer",
+      "source": "manual",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "Alex",
+        "phone": "555-0100",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab",
+      "buyBoxes": [
+        {
+          "id": "primary",
+          "label": "Primary box",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas",
+            "fort worth"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Markets: dallas, fort worth",
+            "States: TX"
+          ],
+          "marketAliases": []
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "test-flipper-llc-2",
+      "name": "Test Flipper LLC",
+      "oneLiner": "Test Flipper LLC — custom buyer",
+      "type": "Known buyer",
+      "strategy": "",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "",
+      "notBuying": [],
+      "sourcePath": null,
+      "buyerType": "local",
+      "kind": "known-buyer",
+      "source": "manual",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "Alex",
+        "phone": "555-0100",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab",
+      "buyBoxes": [
+        {
+          "id": "primary",
+          "label": "Primary box",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas",
+            "fort worth"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Markets: dallas, fort worth",
+            "States: TX"
+          ],
+          "marketAliases": []
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "test-flipper-llc",
+      "name": "Test Flipper LLC",
+      "oneLiner": "Test Flipper LLC — custom buyer",
+      "type": "Known buyer",
+      "strategy": "",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "",
+      "notBuying": [],
+      "sourcePath": null,
+      "buyerType": "local",
+      "kind": "known-buyer",
+      "source": "manual",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "Alex",
+        "phone": "555-0100",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab",
+      "buyBoxes": [
+        {
+          "id": "primary",
+          "label": "Primary box",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas",
+            "fort worth"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Markets: dallas, fort worth",
+            "States: TX"
+          ],
+          "marketAliases": []
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "siren",
+      "name": "Siren Fund",
+      "oneLiner": "Brick DFW house, good neighborhood, 1970s+, $30–60k rehab, ARV $300–400k → Siren-shaped.",
+      "type": "Active Dallas hedge fund · ~2 homes/week in strong DFW suburbs",
+      "strategy": "Clean brick SFH · predictable rehab · strong rental demand",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Typically ~75%–78% of ARV minus repairs (exit intel). Target rent $2,000+.",
+      "notBuying": [
+        "Heavy structural",
+        "Full-gut",
+        "Pools",
+        "Flood zones"
+      ],
+      "sourcePath": "brain/buyers/siren-fund.md",
+      "buyBoxes": [
+        {
+          "id": "dfw-brick",
+          "label": "DFW brick SFH",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "garland",
+            "allen",
+            "anna",
+            "watauga",
+            "burleson",
+            "rowlett",
+            "rockwall",
+            "the colony",
+            "carrollton",
+            "coppell",
+            "roanoke",
+            "corinth",
+            "frisco",
+            "wylie",
+            "bedford",
+            "hurst",
+            "north richland hills",
+            "haltom city",
+            "saginaw",
+            "haslet",
+            "justin",
+            "benbrook",
+            "aledo",
+            "irving",
+            "grand prairie",
+            "duncanville",
+            "euless",
+            "keller",
+            "dallas",
+            "fort worth",
+            "dfw",
+            "plano",
+            "arlington"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1250,
+          "maxSqft": null,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": 1970,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": 300000,
+          "maxArv": 400000,
+          "minRehab": 30000,
+          "maxRehab": 60000,
+          "brickPreferred": true,
+          "garageRequired": true,
+          "anyCondition": false,
+          "conditionBand": "light-medium",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Single-family brick",
+            "1970s or newer",
+            "1,250+ sqft · 3+/2+",
+            "2-car attached garage",
+            "Light–medium rehab $30–60k",
+            "ARV $300–400k · DFW suburbs"
+          ],
+          "marketAliases": [
+            "dallas fort worth",
+            "dallas-fort worth",
+            "dfw metroplex"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "weekly",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "brick",
+          "dfw"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.75,
+      "exitPctArvMax": 0.78,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "odin",
+      "name": "Odin Fund",
+      "oneLiner": "Clean light–med flip with strong comps in Monroe County → Odin-shaped.",
+      "type": "Aggressive, well-capitalized (~$10M ready)",
+      "strategy": "Fix & flip",
+      "buyerStyle": "Cash · fast · sight-unseen OK if pics are solid",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Not overly price-sensitive when comps support. Ideal 1950s–1980s builds.",
+      "notBuying": [
+        "Full gut"
+      ],
+      "sourcePath": "brain/buyers/odin-fund.md",
+      "buyBoxes": [
+        {
+          "id": "monroe-ny",
+          "label": "Monroe County NY flip",
+          "states": [
+            "NY"
+          ],
+          "markets": [
+            "monroe",
+            "rochester",
+            "monroe county"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1200,
+          "maxSqft": 1600,
+          "minBeds": 3,
+          "minBaths": 1,
+          "minYear": 1950,
+          "maxYear": 1989,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "light-medium",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "sqftFlexible": true,
+          "criteriaSummary": [
+            "Monroe County, NY SFH",
+            "Light–medium rehab only",
+            "Ideal ~1,200–1,600 sqft · 3/1–2",
+            "1950s–1980s preferred",
+            "Strong comps required"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "sight-unseen"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "neptune",
+      "name": "Neptune Fund",
+      "oneLiner": "Ohio SFH, light rehab, under $250k — especially with seller open to leaseback → Neptune-shaped.",
+      "type": "Major institutional Ohio buyer · ~100 houses/month",
+      "strategy": "Light–medium SFH; leasebacks preferred",
+      "buyerStyle": "Cash · process-driven",
+      "strategyClusters": [
+        "fix-flip",
+        "leaseback"
+      ],
+      "pitchNotes": "Pitch 1–3 yr seller stay at below-market rent when open. Often better pricing + faster approvals on leasebacks. Solar must be paid off.",
+      "notBuying": [
+        "Multifamily",
+        "Full-gut",
+        "Major structural",
+        "Solar liens"
+      ],
+      "sourcePath": "brain/buyers/neptune-fund.md",
+      "buyBoxes": [
+        {
+          "id": "ohio-sfh",
+          "label": "Ohio SFH (+ leaseback)",
+          "states": [
+            "OH"
+          ],
+          "markets": [
+            "columbus",
+            "cleveland",
+            "akron",
+            "cincinnati",
+            "dayton",
+            "ohio"
+          ],
+          "zipPrefixes": [
+            "430",
+            "432",
+            "440",
+            "441",
+            "442",
+            "443",
+            "450",
+            "451",
+            "452",
+            "453",
+            "454"
+          ],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 850,
+          "maxSqft": null,
+          "minBeds": 3,
+          "minBaths": 1,
+          "minBedsLeaseback": 2,
+          "minBathsLeaseback": 1,
+          "minYear": 1900,
+          "maxYear": null,
+          "maxPurchase": 250000,
+          "minArv": 75000,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": 40000,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "light-medium",
+          "offMarketPreferred": false,
+          "leasebackPreferred": true,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Ohio SFH only (no multifamily)",
+            "1900+ · 850+ sqft",
+            "3+/1+ (2/1 OK on leaseback)",
+            "Max purchase $250k · max rehab ~$40k",
+            "Leasebacks preferred"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "process",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "leaseback"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.78,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "kraken",
+      "name": "Kraken Fund",
+      "oneLiner": "Off-market FL SFH in listed counties/JAX, ≤$250k, enough spread for 15–20% after costs → Kraken-shaped.",
+      "type": "Florida fix & flip buyer",
+      "strategy": "Off-market discounted houses with real spread",
+      "buyerStyle": "Needs meat on the bone (not skinny deals)",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Their formula ~75% ARV − Repairs (exit intel). Needs 15–20% profit after closing costs. Block homes 1960+; wood frame 1970+.",
+      "notBuying": [
+        "Mobile",
+        "Manufactured",
+        "Vacant lots",
+        "On-market only skinny deals"
+      ],
+      "sourcePath": "brain/buyers/kraken-fund.md",
+      "buyBoxes": [
+        {
+          "id": "central-fl",
+          "label": "Central FL + JAX flips",
+          "states": [
+            "FL"
+          ],
+          "markets": [
+            "brevard",
+            "citrus",
+            "lake",
+            "orange",
+            "osceola",
+            "polk",
+            "seminole",
+            "sumter",
+            "volusia",
+            "marion",
+            "hillsborough",
+            "jacksonville",
+            "orlando",
+            "tampa",
+            "melbourne",
+            "daytona",
+            "ocala",
+            "lakeland",
+            "kissimmee"
+          ],
+          "zipPrefixes": [
+            "322"
+          ],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": 1960,
+          "maxYear": null,
+          "maxPurchase": 250000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "flip",
+          "offMarketPreferred": true,
+          "offMarketRequired": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "profitSpreadRequired": true,
+          "criteriaSummary": [
+            "Central FL counties + Jacksonville",
+            "Off-market SFH only",
+            "Max purchase $250k",
+            "Block 1960+ / frame 1970+",
+            "Needs 15–20% profit room"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "off-market",
+          "spread"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "vulcan",
+      "name": "Vulcan Fund",
+      "oneLiner": "Detroit/Tri-Cities with $200k+ ARV flip upside or livable Detroit under $35k light work → Vulcan-shaped.",
+      "type": "Michigan buyer · Detroit Metro + Tri-Cities",
+      "strategy": "Ugly houses with upside; flips or cheap livable",
+      "buyerStyle": "Discounted upside only",
+      "strategyClusters": [
+        "fix-flip",
+        "opportunistic"
+      ],
+      "pitchNotes": "Two boxes: higher-ARV flips, or cheap livable Detroit under $35k. Vacant preferred at close on flips.",
+      "notBuying": [
+        "Retail pricing",
+        "Major problem rentals (box 1)",
+        "Destroyed / major rehab (box 2)"
+      ],
+      "sourcePath": "brain/buyers/vulcan-fund.md",
+      "buyBoxes": [
+        {
+          "id": "mi-arv-flips",
+          "label": "Higher ARV flips",
+          "states": [
+            "MI"
+          ],
+          "markets": [
+            "detroit",
+            "saginaw",
+            "bay city",
+            "midland",
+            "warren",
+            "dearborn",
+            "livonia",
+            "sterling heights",
+            "pontiac",
+            "flint",
+            "tri-cities",
+            "metro detroit"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh",
+            "duplex"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": 200000,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "flip",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Detroit Metro + Tri-Cities (~1 hr)",
+            "SFH / duplex conversions",
+            "ARV $200k+ preferred",
+            "Vacant at closing preferred",
+            "Off-market preferred"
+          ]
+        },
+        {
+          "id": "detroit-cheap",
+          "label": "Cheap Detroit livable",
+          "states": [
+            "MI"
+          ],
+          "markets": [
+            "detroit"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 35000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "light",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "livableRequired": true,
+          "criteriaSummary": [
+            "Detroit only",
+            "Purchase under $35k",
+            "Must be livable",
+            "Light rehab only"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "detroit",
+          "flip"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "atlas",
+      "name": "Atlas Fund",
+      "oneLiner": "Sac off-market fixer ≤$500k or SFV/LA/OC inner-tract headache house ≤$1.5M → Atlas-shaped.",
+      "type": "California fix & flip / cash-exit buyer",
+      "strategy": "Off-market fixers where seller needs a clean cash exit",
+      "buyerStyle": "Often sight-unseen yes/no within hours if box fits",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Two boxes: Sacramento ≤$500k, or SoCal inner-tract ≤$1.5M.",
+      "notBuying": [
+        "Tear-downs",
+        "New construction",
+        "Major expansions",
+        "Major road properties",
+        "Commercial-adjacent",
+        "HOA-heavy",
+        "Auctions",
+        "Probate court confirmation",
+        "ADU-heavy projects"
+      ],
+      "sourcePath": "brain/buyers/atlas-fund.md",
+      "buyBoxes": [
+        {
+          "id": "sacramento",
+          "label": "Sacramento fixers",
+          "states": [
+            "CA"
+          ],
+          "markets": [
+            "sacramento",
+            "sac"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1100,
+          "maxSqft": 2000,
+          "minBeds": 3,
+          "minBaths": 1.5,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 500000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "fixer",
+          "offMarketPreferred": true,
+          "offMarketRequired": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "vacantPreferred": true,
+          "criteriaSummary": [
+            "Sacramento, CA SFH",
+            "Fixer uppers · off-market",
+            "1,100–2,000 sqft · 3+/1.5+",
+            "Max price $500k",
+            "Vacant at close preferred"
+          ],
+          "marketAliases": [
+            "sacramento ca",
+            "sac"
+          ]
+        },
+        {
+          "id": "socal",
+          "label": "SFV / LA / OC inner-tract",
+          "states": [
+            "CA"
+          ],
+          "markets": [
+            "san fernando",
+            "sfv",
+            "los angeles",
+            "orange county",
+            "oc",
+            "van nuys",
+            "burbank",
+            "glendale",
+            "pasadena",
+            "anaheim",
+            "santa ana",
+            "irvine",
+            "long beach",
+            "torrance"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1000,
+          "maxSqft": 2200,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 1500000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "fixer",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "innerTractOnly": true,
+          "criteriaSummary": [
+            "SFV / LA / OC",
+            "Inner-tract only",
+            "1,000–2,200+ sqft · 3+/2+",
+            "Under $1.5M",
+            "Headache / fixer / clean cash exit"
+          ],
+          "marketAliases": [
+            "los angeles",
+            "l.a.",
+            "la county",
+            "san fernando valley",
+            "orange county"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "hours",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "sight-unseen",
+          "fixer"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "titan",
+      "name": "Titan Fund",
+      "oneLiner": "SFH/duplex in Clayton or Macon-Bibb listed zips with clean title → Titan-shaped (fast closer).",
+      "type": "Georgia fix & flip buyer",
+      "strategy": "SFH and duplexes in working-class flip markets",
+      "buyerStyle": "No DD · $10k NR EMD · close when title ready",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "No due diligence period. $10,000 non-refundable EMD. Clean title path is critical.",
+      "notBuying": [
+        "Messy title without clear path"
+      ],
+      "sourcePath": "brain/buyers/titan-fund.md",
+      "buyBoxes": [
+        {
+          "id": "ga-clayton-macon",
+          "label": "Clayton + Macon-Bibb",
+          "states": [
+            "GA"
+          ],
+          "markets": [
+            "clayton",
+            "macon",
+            "bibb",
+            "forest park",
+            "jonesboro",
+            "morrow",
+            "riverdale",
+            "macon-bibb"
+          ],
+          "zipPrefixes": [
+            "31204",
+            "31210",
+            "31211",
+            "31216",
+            "31217",
+            "31220"
+          ],
+          "assetTypes": [
+            "sfh",
+            "duplex"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "flip",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Clayton County or Macon-Bibb, GA",
+            "SFH or duplex",
+            "Working-class flip markets",
+            "Off-market preferred",
+            "Clean title · $10k NR EMD · no DD"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "title-ready",
+        "pay": "cash",
+        "dd": "none",
+        "emd": "$10k NR",
+        "tags": [
+          "no-dd"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.8,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "summit",
+      "name": "Summit Fund",
+      "oneLiner": "Denver SFH, 3/2, ≤2,000 sqft — cash or creative, any condition → Summit-shaped.",
+      "type": "Denver-based SFH buyer",
+      "strategy": "Simple residential deals; cash or creative finance",
+      "buyerStyle": "Cash or creative · any condition",
+      "strategyClusters": [
+        "fix-flip",
+        "opportunistic"
+      ],
+      "pitchNotes": "Flexible on condition and occupancy. Creative finance considered.",
+      "notBuying": [],
+      "sourcePath": "brain/buyers/summit-fund.md",
+      "buyBoxes": [
+        {
+          "id": "denver",
+          "label": "Denver SFH",
+          "states": [
+            "CO"
+          ],
+          "markets": [
+            "denver",
+            "aurora",
+            "lakewood",
+            "arvada",
+            "westminster",
+            "thornton"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": 2000,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "any",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "creativeOk": true,
+          "criteriaSummary": [
+            "Denver, CO SFH",
+            "3+/2+ · up to 2,000 sqft",
+            "Any condition",
+            "Vacant or occupied",
+            "Cash or creative"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash-or-creative",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "creative"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": null,
+      "exitPctArvMax": null,
+      "exitFormula": null
+    },
+    {
+      "id": "harbor",
+      "name": "Harbor Fund",
+      "oneLiner": "Lexington NC SFH, 3/2, 1,500+ sqft — waterfront is premium; cash or creative → Harbor-shaped.",
+      "type": "North Carolina SFH buyer focused on Lexington",
+      "strategy": "Normal residential demand; waterfront preferred but not required",
+      "buyerStyle": "Cash or creative · any condition",
+      "strategyClusters": [
+        "fix-flip",
+        "opportunistic"
+      ],
+      "pitchNotes": "Waterfront is a premium pitch, not a hard requirement. Don't skip good non-water deals.",
+      "notBuying": [],
+      "sourcePath": "brain/buyers/harbor-fund.md",
+      "buyBoxes": [
+        {
+          "id": "lexington-nc",
+          "label": "Lexington NC",
+          "states": [
+            "NC"
+          ],
+          "markets": [
+            "lexington"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1500,
+          "maxSqft": null,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "any",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": true,
+          "landOnly": false,
+          "creativeOk": true,
+          "criteriaSummary": [
+            "Lexington, NC SFH",
+            "3+/2+ · 1,500+ sqft",
+            "Any condition · vacant or occupied",
+            "Waterfront preferred (bonus)",
+            "Cash or creative"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash-or-creative",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "waterfront",
+          "creative"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": null,
+      "exitPctArvMax": null,
+      "exitFormula": null
+    },
+    {
+      "id": "gaia",
+      "name": "Gaia Fund",
+      "oneLiner": "Vacant lot or teardown in 75203 / 08 / 12 / 16 / 41, buildable, no flood → Gaia-shaped.",
+      "type": "Dallas-based fund · infill land and teardown houses",
+      "strategy": "Feed builder / infill demand in hot Dallas zips",
+      "buyerStyle": "Cash · deep discount · can move same day",
+      "strategyClusters": [
+        "land"
+      ],
+      "pitchNotes": "Target contract around $100k when possible. Typical lot value $150–200k+. Common assignment $15–30k+.",
+      "notBuying": [
+        "Flood zones",
+        "Non-buildable"
+      ],
+      "sourcePath": "brain/buyers/gaia-fund.md",
+      "buyBoxes": [
+        {
+          "id": "dallas-infill",
+          "label": "Dallas infill / teardown",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas"
+          ],
+          "zipPrefixes": [
+            "75203",
+            "75208",
+            "75212",
+            "75216",
+            "75241"
+          ],
+          "assetTypes": [
+            "land",
+            "teardown"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "minAcres": 0.08,
+          "maxAcres": 0.5,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "land",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": true,
+          "noFlood": true,
+          "criteriaSummary": [
+            "Dallas zips 75203 / 08 / 12 / 16 / 41",
+            "Vacant land or teardown",
+            "0.08–0.5 acres · buildable",
+            "No flood zones",
+            "~40 ft lot width preferred"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "same-day",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "land",
+          "dallas"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": null,
+      "exitPctArvMax": null,
+      "exitFormula": null
+    },
+    {
+      "id": "leviathan",
+      "name": "Leviathan Fund",
+      "oneLiner": "Off-market FL vacant land, res/MF zoning, 0.15–5 ac, road + address, ≤$300k, ~30%+ under market → Leviathan-shaped.",
+      "type": "Florida cash buyer · vacant residential / multifamily land",
+      "strategy": "Off-market discounted lots (esp. Southwest FL)",
+      "buyerStyle": "Cash · 5–10 business day close when box fits",
+      "strategyClusters": [
+        "land"
+      ],
+      "pitchNotes": "Typically 30%+ below market. Must have road access and an address.",
+      "notBuying": [
+        "Swamp",
+        "Landlocked",
+        "Weird unwanted parcels"
+      ],
+      "sourcePath": "brain/buyers/leviathan-fund.md",
+      "buyBoxes": [
+        {
+          "id": "fl-vacant",
+          "label": "FL vacant land",
+          "states": [
+            "FL"
+          ],
+          "markets": [
+            "lee",
+            "charlotte",
+            "citrus",
+            "hendry",
+            "palm beach",
+            "cape coral",
+            "lehigh acres",
+            "alva",
+            "fort myers",
+            "port charlotte",
+            "punta gorda",
+            "placida",
+            "englewood",
+            "rotonda",
+            "citrus springs",
+            "labelle"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "land"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 300000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "minAcres": 0.15,
+          "maxAcres": 5,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "land",
+          "offMarketPreferred": true,
+          "offMarketRequired": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": true,
+          "roadAccessRequired": true,
+          "addressRequired": true,
+          "criteriaSummary": [
+            "SW FL + listed counties",
+            "Vacant land · res/MF zoning",
+            "0.15–5 acres",
+            "Road access + address required",
+            "Max $300k · ~30%+ under market · off-market"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "5-10 days",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "land",
+          "off-market"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "blackfin",
+      "name": "Blackfin Fund",
+      "oneLiner": "Buildable South FL residential infill for SFH/duplex, utils nearby preferred → Blackfin-shaped.",
+      "type": "South Florida land buyer · residential infill",
+      "strategy": "Buildable lots for SFH or duplex builders",
+      "buyerStyle": "Any lot size · utilities nearby preferred",
+      "strategyClusters": [
+        "land"
+      ],
+      "pitchNotes": "Best near existing development, utilities, roads, and active new construction.",
+      "notBuying": [],
+      "sourcePath": "brain/buyers/blackfin-fund.md",
+      "buyBoxes": [
+        {
+          "id": "south-fl-infill",
+          "label": "South FL infill lots",
+          "states": [
+            "FL"
+          ],
+          "markets": [
+            "miami",
+            "miami-dade",
+            "broward",
+            "palm beach",
+            "lee",
+            "collier",
+            "martin",
+            "st. lucie",
+            "st lucie",
+            "charlotte",
+            "fort lauderdale",
+            "west palm",
+            "naples",
+            "cape coral"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "land"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "minAcres": null,
+          "maxAcres": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "land",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": true,
+          "infillPreferred": true,
+          "criteriaSummary": [
+            "South FL counties",
+            "Residential infill lots",
+            "SFH or duplex development",
+            "Any lot size · buildable",
+            "Utilities nearby preferred"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "infill",
+          "land"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.8,
+      "exitFormula": "arv_pct_minus_rehab"
+    }
+  ],
+  "presets": [
+    {
+      "id": "dfw-brick",
+      "label": "DFW brick",
+      "deal": {
+        "city": "Garland",
+        "state": "TX",
+        "assetType": "sfh",
+        "sqft": 1400,
+        "beds": 3,
+        "baths": 2,
+        "yearBuilt": 1985,
+        "arv": 350000,
+        "rehab": 45000,
+        "condition": "light-medium",
+        "brick": true,
+        "garage": true,
+        "offMarket": null,
+        "leaseback": null,
+        "waterfront": null
+      }
+    },
+    {
+      "id": "ohio-leaseback",
+      "label": "Ohio leaseback",
+      "deal": {
+        "city": "Columbus",
+        "state": "OH",
+        "zip": "43215",
+        "assetType": "sfh",
+        "sqft": 1100,
+        "beds": 3,
+        "baths": 1,
+        "yearBuilt": 1955,
+        "asking": 180000,
+        "rehab": 25000,
+        "condition": "light",
+        "leaseback": true,
+        "brick": null,
+        "garage": null
+      }
+    },
+    {
+      "id": "dallas-land",
+      "label": "Dallas land 75212",
+      "deal": {
+        "city": "Dallas",
+        "state": "TX",
+        "zip": "75212",
+        "assetType": "land",
+        "acres": 0.2,
+        "buildable": true,
+        "roadAccess": true,
+        "utilitiesNearby": null,
+        "offMarket": null
+      }
+    },
+    {
+      "id": "swfl-lot",
+      "label": "SWFL lot",
+      "deal": {
+        "city": "Cape Coral",
+        "state": "FL",
+        "assetType": "land",
+        "acres": 0.5,
+        "asking": 180000,
+        "offMarket": true,
+        "buildable": true,
+        "roadAccess": true
+      }
+    },
+    {
+      "id": "denver-32",
+      "label": "Denver 3/2",
+      "deal": {
+        "city": "Denver",
+        "state": "CO",
+        "assetType": "sfh",
+        "sqft": 1800,
+        "beds": 3,
+        "baths": 2,
+        "condition": "fixer",
+        "offMarket": true
+      }
+    }
+  ],
+  "title": "Buyers",
+  "description": "Known cash buyers and fund buy boxes — cross-referenced on Under Contract.",
+  "buyers": [
+    {
+      "id": "test-flipper-llc-3",
+      "name": "Test Flipper LLC",
+      "oneLiner": "Test Flipper LLC — custom buyer",
+      "type": "Known buyer",
+      "strategy": "",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "",
+      "notBuying": [],
+      "sourcePath": null,
+      "buyerType": "local",
+      "kind": "known-buyer",
+      "source": "manual",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "Alex",
+        "phone": "555-0100",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab",
+      "buyBoxes": [
+        {
+          "id": "primary",
+          "label": "Primary box",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas",
+            "fort worth"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Markets: dallas, fort worth",
+            "States: TX"
+          ],
+          "marketAliases": []
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "test-flipper-llc-2",
+      "name": "Test Flipper LLC",
+      "oneLiner": "Test Flipper LLC — custom buyer",
+      "type": "Known buyer",
+      "strategy": "",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "",
+      "notBuying": [],
+      "sourcePath": null,
+      "buyerType": "local",
+      "kind": "known-buyer",
+      "source": "manual",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "Alex",
+        "phone": "555-0100",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab",
+      "buyBoxes": [
+        {
+          "id": "primary",
+          "label": "Primary box",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas",
+            "fort worth"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Markets: dallas, fort worth",
+            "States: TX"
+          ],
+          "marketAliases": []
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "test-flipper-llc",
+      "name": "Test Flipper LLC",
+      "oneLiner": "Test Flipper LLC — custom buyer",
+      "type": "Known buyer",
+      "strategy": "",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "",
+      "notBuying": [],
+      "sourcePath": null,
+      "buyerType": "local",
+      "kind": "known-buyer",
+      "source": "manual",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "Alex",
+        "phone": "555-0100",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab",
+      "buyBoxes": [
+        {
+          "id": "primary",
+          "label": "Primary box",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas",
+            "fort worth"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Markets: dallas, fort worth",
+            "States: TX"
+          ],
+          "marketAliases": []
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "siren",
+      "name": "Siren Fund",
+      "oneLiner": "Brick DFW house, good neighborhood, 1970s+, $30–60k rehab, ARV $300–400k → Siren-shaped.",
+      "type": "Active Dallas hedge fund · ~2 homes/week in strong DFW suburbs",
+      "strategy": "Clean brick SFH · predictable rehab · strong rental demand",
+      "buyerStyle": "Cash",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Typically ~75%–78% of ARV minus repairs (exit intel). Target rent $2,000+.",
+      "notBuying": [
+        "Heavy structural",
+        "Full-gut",
+        "Pools",
+        "Flood zones"
+      ],
+      "sourcePath": "brain/buyers/siren-fund.md",
+      "buyBoxes": [
+        {
+          "id": "dfw-brick",
+          "label": "DFW brick SFH",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "garland",
+            "allen",
+            "anna",
+            "watauga",
+            "burleson",
+            "rowlett",
+            "rockwall",
+            "the colony",
+            "carrollton",
+            "coppell",
+            "roanoke",
+            "corinth",
+            "frisco",
+            "wylie",
+            "bedford",
+            "hurst",
+            "north richland hills",
+            "haltom city",
+            "saginaw",
+            "haslet",
+            "justin",
+            "benbrook",
+            "aledo",
+            "irving",
+            "grand prairie",
+            "duncanville",
+            "euless",
+            "keller",
+            "dallas",
+            "fort worth",
+            "dfw",
+            "plano",
+            "arlington"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1250,
+          "maxSqft": null,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": 1970,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": 300000,
+          "maxArv": 400000,
+          "minRehab": 30000,
+          "maxRehab": 60000,
+          "brickPreferred": true,
+          "garageRequired": true,
+          "anyCondition": false,
+          "conditionBand": "light-medium",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Single-family brick",
+            "1970s or newer",
+            "1,250+ sqft · 3+/2+",
+            "2-car attached garage",
+            "Light–medium rehab $30–60k",
+            "ARV $300–400k · DFW suburbs"
+          ],
+          "marketAliases": [
+            "dallas fort worth",
+            "dallas-fort worth",
+            "dfw metroplex"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "weekly",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "brick",
+          "dfw"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.75,
+      "exitPctArvMax": 0.78,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "odin",
+      "name": "Odin Fund",
+      "oneLiner": "Clean light–med flip with strong comps in Monroe County → Odin-shaped.",
+      "type": "Aggressive, well-capitalized (~$10M ready)",
+      "strategy": "Fix & flip",
+      "buyerStyle": "Cash · fast · sight-unseen OK if pics are solid",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Not overly price-sensitive when comps support. Ideal 1950s–1980s builds.",
+      "notBuying": [
+        "Full gut"
+      ],
+      "sourcePath": "brain/buyers/odin-fund.md",
+      "buyBoxes": [
+        {
+          "id": "monroe-ny",
+          "label": "Monroe County NY flip",
+          "states": [
+            "NY"
+          ],
+          "markets": [
+            "monroe",
+            "rochester",
+            "monroe county"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1200,
+          "maxSqft": 1600,
+          "minBeds": 3,
+          "minBaths": 1,
+          "minYear": 1950,
+          "maxYear": 1989,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "light-medium",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "sqftFlexible": true,
+          "criteriaSummary": [
+            "Monroe County, NY SFH",
+            "Light–medium rehab only",
+            "Ideal ~1,200–1,600 sqft · 3/1–2",
+            "1950s–1980s preferred",
+            "Strong comps required"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "fast",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "sight-unseen"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "neptune",
+      "name": "Neptune Fund",
+      "oneLiner": "Ohio SFH, light rehab, under $250k — especially with seller open to leaseback → Neptune-shaped.",
+      "type": "Major institutional Ohio buyer · ~100 houses/month",
+      "strategy": "Light–medium SFH; leasebacks preferred",
+      "buyerStyle": "Cash · process-driven",
+      "strategyClusters": [
+        "fix-flip",
+        "leaseback"
+      ],
+      "pitchNotes": "Pitch 1–3 yr seller stay at below-market rent when open. Often better pricing + faster approvals on leasebacks. Solar must be paid off.",
+      "notBuying": [
+        "Multifamily",
+        "Full-gut",
+        "Major structural",
+        "Solar liens"
+      ],
+      "sourcePath": "brain/buyers/neptune-fund.md",
+      "buyBoxes": [
+        {
+          "id": "ohio-sfh",
+          "label": "Ohio SFH (+ leaseback)",
+          "states": [
+            "OH"
+          ],
+          "markets": [
+            "columbus",
+            "cleveland",
+            "akron",
+            "cincinnati",
+            "dayton",
+            "ohio"
+          ],
+          "zipPrefixes": [
+            "430",
+            "432",
+            "440",
+            "441",
+            "442",
+            "443",
+            "450",
+            "451",
+            "452",
+            "453",
+            "454"
+          ],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 850,
+          "maxSqft": null,
+          "minBeds": 3,
+          "minBaths": 1,
+          "minBedsLeaseback": 2,
+          "minBathsLeaseback": 1,
+          "minYear": 1900,
+          "maxYear": null,
+          "maxPurchase": 250000,
+          "minArv": 75000,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": 40000,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "light-medium",
+          "offMarketPreferred": false,
+          "leasebackPreferred": true,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Ohio SFH only (no multifamily)",
+            "1900+ · 850+ sqft",
+            "3+/1+ (2/1 OK on leaseback)",
+            "Max purchase $250k · max rehab ~$40k",
+            "Leasebacks preferred"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "process",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "leaseback"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.78,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "kraken",
+      "name": "Kraken Fund",
+      "oneLiner": "Off-market FL SFH in listed counties/JAX, ≤$250k, enough spread for 15–20% after costs → Kraken-shaped.",
+      "type": "Florida fix & flip buyer",
+      "strategy": "Off-market discounted houses with real spread",
+      "buyerStyle": "Needs meat on the bone (not skinny deals)",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Their formula ~75% ARV − Repairs (exit intel). Needs 15–20% profit after closing costs. Block homes 1960+; wood frame 1970+.",
+      "notBuying": [
+        "Mobile",
+        "Manufactured",
+        "Vacant lots",
+        "On-market only skinny deals"
+      ],
+      "sourcePath": "brain/buyers/kraken-fund.md",
+      "buyBoxes": [
+        {
+          "id": "central-fl",
+          "label": "Central FL + JAX flips",
+          "states": [
+            "FL"
+          ],
+          "markets": [
+            "brevard",
+            "citrus",
+            "lake",
+            "orange",
+            "osceola",
+            "polk",
+            "seminole",
+            "sumter",
+            "volusia",
+            "marion",
+            "hillsborough",
+            "jacksonville",
+            "orlando",
+            "tampa",
+            "melbourne",
+            "daytona",
+            "ocala",
+            "lakeland",
+            "kissimmee"
+          ],
+          "zipPrefixes": [
+            "322"
+          ],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": 1960,
+          "maxYear": null,
+          "maxPurchase": 250000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "flip",
+          "offMarketPreferred": true,
+          "offMarketRequired": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "profitSpreadRequired": true,
+          "criteriaSummary": [
+            "Central FL counties + Jacksonville",
+            "Off-market SFH only",
+            "Max purchase $250k",
+            "Block 1960+ / frame 1970+",
+            "Needs 15–20% profit room"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "off-market",
+          "spread"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "vulcan",
+      "name": "Vulcan Fund",
+      "oneLiner": "Detroit/Tri-Cities with $200k+ ARV flip upside or livable Detroit under $35k light work → Vulcan-shaped.",
+      "type": "Michigan buyer · Detroit Metro + Tri-Cities",
+      "strategy": "Ugly houses with upside; flips or cheap livable",
+      "buyerStyle": "Discounted upside only",
+      "strategyClusters": [
+        "fix-flip",
+        "opportunistic"
+      ],
+      "pitchNotes": "Two boxes: higher-ARV flips, or cheap livable Detroit under $35k. Vacant preferred at close on flips.",
+      "notBuying": [
+        "Retail pricing",
+        "Major problem rentals (box 1)",
+        "Destroyed / major rehab (box 2)"
+      ],
+      "sourcePath": "brain/buyers/vulcan-fund.md",
+      "buyBoxes": [
+        {
+          "id": "mi-arv-flips",
+          "label": "Higher ARV flips",
+          "states": [
+            "MI"
+          ],
+          "markets": [
+            "detroit",
+            "saginaw",
+            "bay city",
+            "midland",
+            "warren",
+            "dearborn",
+            "livonia",
+            "sterling heights",
+            "pontiac",
+            "flint",
+            "tri-cities",
+            "metro detroit"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh",
+            "duplex"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": 200000,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "flip",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Detroit Metro + Tri-Cities (~1 hr)",
+            "SFH / duplex conversions",
+            "ARV $200k+ preferred",
+            "Vacant at closing preferred",
+            "Off-market preferred"
+          ]
+        },
+        {
+          "id": "detroit-cheap",
+          "label": "Cheap Detroit livable",
+          "states": [
+            "MI"
+          ],
+          "markets": [
+            "detroit"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 35000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "light",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "livableRequired": true,
+          "criteriaSummary": [
+            "Detroit only",
+            "Purchase under $35k",
+            "Must be livable",
+            "Light rehab only"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "detroit",
+          "flip"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "atlas",
+      "name": "Atlas Fund",
+      "oneLiner": "Sac off-market fixer ≤$500k or SFV/LA/OC inner-tract headache house ≤$1.5M → Atlas-shaped.",
+      "type": "California fix & flip / cash-exit buyer",
+      "strategy": "Off-market fixers where seller needs a clean cash exit",
+      "buyerStyle": "Often sight-unseen yes/no within hours if box fits",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "Two boxes: Sacramento ≤$500k, or SoCal inner-tract ≤$1.5M.",
+      "notBuying": [
+        "Tear-downs",
+        "New construction",
+        "Major expansions",
+        "Major road properties",
+        "Commercial-adjacent",
+        "HOA-heavy",
+        "Auctions",
+        "Probate court confirmation",
+        "ADU-heavy projects"
+      ],
+      "sourcePath": "brain/buyers/atlas-fund.md",
+      "buyBoxes": [
+        {
+          "id": "sacramento",
+          "label": "Sacramento fixers",
+          "states": [
+            "CA"
+          ],
+          "markets": [
+            "sacramento",
+            "sac"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1100,
+          "maxSqft": 2000,
+          "minBeds": 3,
+          "minBaths": 1.5,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 500000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "fixer",
+          "offMarketPreferred": true,
+          "offMarketRequired": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "vacantPreferred": true,
+          "criteriaSummary": [
+            "Sacramento, CA SFH",
+            "Fixer uppers · off-market",
+            "1,100–2,000 sqft · 3+/1.5+",
+            "Max price $500k",
+            "Vacant at close preferred"
+          ],
+          "marketAliases": [
+            "sacramento ca",
+            "sac"
+          ]
+        },
+        {
+          "id": "socal",
+          "label": "SFV / LA / OC inner-tract",
+          "states": [
+            "CA"
+          ],
+          "markets": [
+            "san fernando",
+            "sfv",
+            "los angeles",
+            "orange county",
+            "oc",
+            "van nuys",
+            "burbank",
+            "glendale",
+            "pasadena",
+            "anaheim",
+            "santa ana",
+            "irvine",
+            "long beach",
+            "torrance"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1000,
+          "maxSqft": 2200,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 1500000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "fixer",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "innerTractOnly": true,
+          "criteriaSummary": [
+            "SFV / LA / OC",
+            "Inner-tract only",
+            "1,000–2,200+ sqft · 3+/2+",
+            "Under $1.5M",
+            "Headache / fixer / clean cash exit"
+          ],
+          "marketAliases": [
+            "los angeles",
+            "l.a.",
+            "la county",
+            "san fernando valley",
+            "orange county"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "hours",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "sight-unseen",
+          "fixer"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "titan",
+      "name": "Titan Fund",
+      "oneLiner": "SFH/duplex in Clayton or Macon-Bibb listed zips with clean title → Titan-shaped (fast closer).",
+      "type": "Georgia fix & flip buyer",
+      "strategy": "SFH and duplexes in working-class flip markets",
+      "buyerStyle": "No DD · $10k NR EMD · close when title ready",
+      "strategyClusters": [
+        "fix-flip"
+      ],
+      "pitchNotes": "No due diligence period. $10,000 non-refundable EMD. Clean title path is critical.",
+      "notBuying": [
+        "Messy title without clear path"
+      ],
+      "sourcePath": "brain/buyers/titan-fund.md",
+      "buyBoxes": [
+        {
+          "id": "ga-clayton-macon",
+          "label": "Clayton + Macon-Bibb",
+          "states": [
+            "GA"
+          ],
+          "markets": [
+            "clayton",
+            "macon",
+            "bibb",
+            "forest park",
+            "jonesboro",
+            "morrow",
+            "riverdale",
+            "macon-bibb"
+          ],
+          "zipPrefixes": [
+            "31204",
+            "31210",
+            "31211",
+            "31216",
+            "31217",
+            "31220"
+          ],
+          "assetTypes": [
+            "sfh",
+            "duplex"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": false,
+          "conditionBand": "flip",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "criteriaSummary": [
+            "Clayton County or Macon-Bibb, GA",
+            "SFH or duplex",
+            "Working-class flip markets",
+            "Off-market preferred",
+            "Clean title · $10k NR EMD · no DD"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "title-ready",
+        "pay": "cash",
+        "dd": "none",
+        "emd": "$10k NR",
+        "tags": [
+          "no-dd"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.8,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "summit",
+      "name": "Summit Fund",
+      "oneLiner": "Denver SFH, 3/2, ≤2,000 sqft — cash or creative, any condition → Summit-shaped.",
+      "type": "Denver-based SFH buyer",
+      "strategy": "Simple residential deals; cash or creative finance",
+      "buyerStyle": "Cash or creative · any condition",
+      "strategyClusters": [
+        "fix-flip",
+        "opportunistic"
+      ],
+      "pitchNotes": "Flexible on condition and occupancy. Creative finance considered.",
+      "notBuying": [],
+      "sourcePath": "brain/buyers/summit-fund.md",
+      "buyBoxes": [
+        {
+          "id": "denver",
+          "label": "Denver SFH",
+          "states": [
+            "CO"
+          ],
+          "markets": [
+            "denver",
+            "aurora",
+            "lakewood",
+            "arvada",
+            "westminster",
+            "thornton"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": null,
+          "maxSqft": 2000,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "any",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": false,
+          "creativeOk": true,
+          "criteriaSummary": [
+            "Denver, CO SFH",
+            "3+/2+ · up to 2,000 sqft",
+            "Any condition",
+            "Vacant or occupied",
+            "Cash or creative"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash-or-creative",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "creative"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": null,
+      "exitPctArvMax": null,
+      "exitFormula": null
+    },
+    {
+      "id": "harbor",
+      "name": "Harbor Fund",
+      "oneLiner": "Lexington NC SFH, 3/2, 1,500+ sqft — waterfront is premium; cash or creative → Harbor-shaped.",
+      "type": "North Carolina SFH buyer focused on Lexington",
+      "strategy": "Normal residential demand; waterfront preferred but not required",
+      "buyerStyle": "Cash or creative · any condition",
+      "strategyClusters": [
+        "fix-flip",
+        "opportunistic"
+      ],
+      "pitchNotes": "Waterfront is a premium pitch, not a hard requirement. Don't skip good non-water deals.",
+      "notBuying": [],
+      "sourcePath": "brain/buyers/harbor-fund.md",
+      "buyBoxes": [
+        {
+          "id": "lexington-nc",
+          "label": "Lexington NC",
+          "states": [
+            "NC"
+          ],
+          "markets": [
+            "lexington"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "sfh"
+          ],
+          "minSqft": 1500,
+          "maxSqft": null,
+          "minBeds": 3,
+          "minBaths": 2,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "any",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": true,
+          "landOnly": false,
+          "creativeOk": true,
+          "criteriaSummary": [
+            "Lexington, NC SFH",
+            "3+/2+ · 1,500+ sqft",
+            "Any condition · vacant or occupied",
+            "Waterfront preferred (bonus)",
+            "Cash or creative"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash-or-creative",
+        "dd": "normal",
+        "emd": null,
+        "tags": [
+          "waterfront",
+          "creative"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": null,
+      "exitPctArvMax": null,
+      "exitFormula": null
+    },
+    {
+      "id": "gaia",
+      "name": "Gaia Fund",
+      "oneLiner": "Vacant lot or teardown in 75203 / 08 / 12 / 16 / 41, buildable, no flood → Gaia-shaped.",
+      "type": "Dallas-based fund · infill land and teardown houses",
+      "strategy": "Feed builder / infill demand in hot Dallas zips",
+      "buyerStyle": "Cash · deep discount · can move same day",
+      "strategyClusters": [
+        "land"
+      ],
+      "pitchNotes": "Target contract around $100k when possible. Typical lot value $150–200k+. Common assignment $15–30k+.",
+      "notBuying": [
+        "Flood zones",
+        "Non-buildable"
+      ],
+      "sourcePath": "brain/buyers/gaia-fund.md",
+      "buyBoxes": [
+        {
+          "id": "dallas-infill",
+          "label": "Dallas infill / teardown",
+          "states": [
+            "TX"
+          ],
+          "markets": [
+            "dallas"
+          ],
+          "zipPrefixes": [
+            "75203",
+            "75208",
+            "75212",
+            "75216",
+            "75241"
+          ],
+          "assetTypes": [
+            "land",
+            "teardown"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "minAcres": 0.08,
+          "maxAcres": 0.5,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "land",
+          "offMarketPreferred": false,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": true,
+          "noFlood": true,
+          "criteriaSummary": [
+            "Dallas zips 75203 / 08 / 12 / 16 / 41",
+            "Vacant land or teardown",
+            "0.08–0.5 acres · buildable",
+            "No flood zones",
+            "~40 ft lot width preferred"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "same-day",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "land",
+          "dallas"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": null,
+      "exitPctArvMax": null,
+      "exitFormula": null
+    },
+    {
+      "id": "leviathan",
+      "name": "Leviathan Fund",
+      "oneLiner": "Off-market FL vacant land, res/MF zoning, 0.15–5 ac, road + address, ≤$300k, ~30%+ under market → Leviathan-shaped.",
+      "type": "Florida cash buyer · vacant residential / multifamily land",
+      "strategy": "Off-market discounted lots (esp. Southwest FL)",
+      "buyerStyle": "Cash · 5–10 business day close when box fits",
+      "strategyClusters": [
+        "land"
+      ],
+      "pitchNotes": "Typically 30%+ below market. Must have road access and an address.",
+      "notBuying": [
+        "Swamp",
+        "Landlocked",
+        "Weird unwanted parcels"
+      ],
+      "sourcePath": "brain/buyers/leviathan-fund.md",
+      "buyBoxes": [
+        {
+          "id": "fl-vacant",
+          "label": "FL vacant land",
+          "states": [
+            "FL"
+          ],
+          "markets": [
+            "lee",
+            "charlotte",
+            "citrus",
+            "hendry",
+            "palm beach",
+            "cape coral",
+            "lehigh acres",
+            "alva",
+            "fort myers",
+            "port charlotte",
+            "punta gorda",
+            "placida",
+            "englewood",
+            "rotonda",
+            "citrus springs",
+            "labelle"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "land"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": 300000,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "minAcres": 0.15,
+          "maxAcres": 5,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "land",
+          "offMarketPreferred": true,
+          "offMarketRequired": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": true,
+          "roadAccessRequired": true,
+          "addressRequired": true,
+          "criteriaSummary": [
+            "SW FL + listed counties",
+            "Vacant land · res/MF zoning",
+            "0.15–5 acres",
+            "Road access + address required",
+            "Max $300k · ~30%+ under market · off-market"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "5-10 days",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "land",
+          "off-market"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.65,
+      "exitPctArvMax": 0.75,
+      "exitFormula": "arv_pct_minus_rehab"
+    },
+    {
+      "id": "blackfin",
+      "name": "Blackfin Fund",
+      "oneLiner": "Buildable South FL residential infill for SFH/duplex, utils nearby preferred → Blackfin-shaped.",
+      "type": "South Florida land buyer · residential infill",
+      "strategy": "Buildable lots for SFH or duplex builders",
+      "buyerStyle": "Any lot size · utilities nearby preferred",
+      "strategyClusters": [
+        "land"
+      ],
+      "pitchNotes": "Best near existing development, utilities, roads, and active new construction.",
+      "notBuying": [],
+      "sourcePath": "brain/buyers/blackfin-fund.md",
+      "buyBoxes": [
+        {
+          "id": "south-fl-infill",
+          "label": "South FL infill lots",
+          "states": [
+            "FL"
+          ],
+          "markets": [
+            "miami",
+            "miami-dade",
+            "broward",
+            "palm beach",
+            "lee",
+            "collier",
+            "martin",
+            "st. lucie",
+            "st lucie",
+            "charlotte",
+            "fort lauderdale",
+            "west palm",
+            "naples",
+            "cape coral"
+          ],
+          "zipPrefixes": [],
+          "assetTypes": [
+            "land"
+          ],
+          "minSqft": null,
+          "maxSqft": null,
+          "minBeds": null,
+          "minBaths": null,
+          "minYear": null,
+          "maxYear": null,
+          "maxPurchase": null,
+          "minArv": null,
+          "maxArv": null,
+          "minRehab": null,
+          "maxRehab": null,
+          "minAcres": null,
+          "maxAcres": null,
+          "brickPreferred": false,
+          "garageRequired": false,
+          "anyCondition": true,
+          "conditionBand": "land",
+          "offMarketPreferred": true,
+          "leasebackPreferred": false,
+          "waterfrontPreferred": false,
+          "landOnly": true,
+          "infillPreferred": true,
+          "criteriaSummary": [
+            "South FL counties",
+            "Residential infill lots",
+            "SFH or duplex development",
+            "Any lot size · buildable",
+            "Utilities nearby preferred"
+          ]
+        }
+      ],
+      "personality": {
+        "speed": "normal",
+        "pay": "cash",
+        "dd": "light",
+        "emd": null,
+        "tags": [
+          "infill",
+          "land"
+        ]
+      },
+      "buyerType": "hedge-fund",
+      "kind": "known-buyer",
+      "source": "wholesale-brain",
+      "updatedAt": "2026-07-16",
+      "contact": {
+        "name": "",
+        "phone": "",
+        "email": "",
+        "notes": ""
+      },
+      "exitPctArvMin": 0.7,
+      "exitPctArvMax": 0.8,
+      "exitFormula": "arv_pct_minus_rehab"
+    }
+  ]
+}

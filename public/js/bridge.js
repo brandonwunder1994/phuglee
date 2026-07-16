@@ -3315,7 +3315,7 @@
 
   function defaultNameFromResult(data) {
     if (!data) return '';
-    const typeLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
+    const typeLabel = uploadTypeDisplayLabel(data.uploadType);
     const city = data.city?.city || selectedCity?.city || 'List';
     const when = new Date();
     const datePart = when.toLocaleString(undefined, {
@@ -3415,7 +3415,22 @@
     } catch (_) { /* ignore */ }
   }
 
-  /** Saved-list kind chip: hazard for code violation, water for shut-off. */
+  const UPLOAD_TYPE_LABELS = {
+    code_violation: 'Code Violation',
+    pre_lien: 'Pre-lien',
+    tax_delinquent: 'Tax Delinquent',
+    lis_pendens: 'Pre-foreclosure (LP / NOD)',
+    probate: 'Probate / Estate',
+    fire: 'Fire-damaged',
+    water_shut_off: 'Water Shut Off'
+  };
+
+  function uploadTypeDisplayLabel(uploadType) {
+    const key = String(uploadType || '').trim();
+    return UPLOAD_TYPE_LABELS[key] || key.replace(/_/g, ' ') || 'List';
+  }
+
+  /** Saved-list kind chip by upload type. */
   function listUploadTypeBadge(uploadType) {
     const t = String(uploadType || '').trim().toLowerCase();
     if (t === 'water_shut_off' || t === 'water' || t.includes('water')) {
@@ -3426,7 +3441,46 @@
         title: 'Water shut-off list'
       };
     }
-    // Default / code_violation / anything else → hazard (code violation)
+    if (t === 'pre_lien' || t.includes('lien')) {
+      return {
+        kind: 'lien',
+        emoji: '📋',
+        label: 'Pre-lien',
+        title: 'Pre-lien list'
+      };
+    }
+    if (t === 'tax_delinquent' || t.includes('tax')) {
+      return {
+        kind: 'tax',
+        emoji: '🏦',
+        label: 'Tax delinquent',
+        title: 'Tax delinquent list'
+      };
+    }
+    if (t === 'lis_pendens' || t.includes('foreclos') || t === 'nod') {
+      return {
+        kind: 'foreclosure',
+        emoji: '🏛️',
+        label: 'Pre-foreclosure',
+        title: 'Pre-foreclosure list'
+      };
+    }
+    if (t === 'probate') {
+      return {
+        kind: 'probate',
+        emoji: '📜',
+        label: 'Probate',
+        title: 'Probate list'
+      };
+    }
+    if (t === 'fire') {
+      return {
+        kind: 'fire',
+        emoji: '🔥',
+        label: 'Fire',
+        title: 'Fire-damaged list'
+      };
+    }
     return {
       kind: 'violation',
       emoji: '⚠️',
@@ -3825,6 +3879,9 @@
       const kind = listUploadTypeBadge(list.uploadType);
       const id = String(list.id || '');
       const checked = inventorySelectedIds.has(id) ? ' checked' : '';
+      const landBadge = list.landRoute && list.landRoute.preferLand
+        ? `<span class="bridge-list-land-badge" title="Prefer Land Desk / vacant review">Land path</span>`
+        : '';
       return (
         `<tr data-list-id="${esc(list.id)}" data-upload-type="${esc(list.uploadType || kind.kind)}" data-list-kind="${esc(kind.kind)}">` +
         `<td class="bridge-list-check-col">` +
@@ -3834,7 +3891,7 @@
         `<button type="button" class="bridge-list-type bridge-list-type--${esc(kind.kind)} bridge-list-type-filter-btn" data-inventory-filter="${esc(kind.kind)}" title="Filter to ${esc(kind.title)}">` +
         `<span class="bridge-list-type-emoji" aria-hidden="true">${kind.emoji}</span>` +
         `<span class="bridge-list-type-text">${esc(kind.label)}</span>` +
-        `</button></td>` +
+        `</button>${landBadge}</td>` +
         `<td><input type="text" class="bridge-list-name-input" data-action="rename" value="${esc(list.name)}" maxlength="120" aria-label="List name" /></td>` +
         `<td>${esc(formatListWhen(list.createdAt))}</td>` +
         `<td>${Number(list.recordCount || 0).toLocaleString()}</td>` +
@@ -3856,6 +3913,9 @@
         const id = String(list.id || '');
         const checked = inventorySelectedIds.has(id) ? ' checked' : '';
         const rec = Number(list.recordCount || 0).toLocaleString();
+        const landBadge = list.landRoute && list.landRoute.preferLand
+          ? `<span class="bridge-list-land-badge" title="Prefer Land Desk / vacant review">Land path</span>`
+          : '';
         return (
           `<article class="bridge-list-card" data-list-id="${esc(list.id)}" data-upload-type="${esc(list.uploadType || kind.kind)}" data-list-kind="${esc(kind.kind)}">` +
           `<div class="bridge-list-card-top">` +
@@ -3865,7 +3925,7 @@
           `<button type="button" class="bridge-list-type bridge-list-type--${esc(kind.kind)} bridge-list-type-filter-btn" data-inventory-filter="${esc(kind.kind)}" title="Filter to ${esc(kind.title)}">` +
           `<span class="bridge-list-type-emoji" aria-hidden="true">${kind.emoji}</span>` +
           `<span class="bridge-list-type-text">${esc(kind.label)}</span>` +
-          `</button>` +
+          `</button>${landBadge}` +
           `<span class="bridge-list-status bridge-list-status--${esc(list.status || 'ready')}">${esc(statusLabel(list.status))}</span>` +
           `</div>` +
           `<input type="text" class="bridge-list-name-input bridge-list-card-name" data-action="rename" value="${esc(list.name)}" maxlength="120" aria-label="List name" />` +
@@ -4911,7 +4971,7 @@
     const stats = data.stats || {};
     const rows = data.rows || [];
     const displayCount = Number(data.rowsTotal) || rows.length;
-    const uploadLabel = data.uploadType === 'water_shut_off' ? 'Water Shut Off' : 'Code Violation';
+    const uploadLabel = uploadTypeDisplayLabel(data.uploadType);
     const fileCount = Number(data.fileCount) || (Array.isArray(data.sourceFiles) ? data.sourceFiles.length : 1) || 1;
     const fileLabel = fileCount > 1
       ? `${fileCount} files (${data.sourceFile})`

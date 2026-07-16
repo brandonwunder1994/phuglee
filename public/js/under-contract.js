@@ -725,19 +725,20 @@
   }
 
   function trustFundBadgeHtml(deal) {
-    const flag = deal && deal.trustFundMatch;
+    const flag = deal && (deal.buyerMatch || deal.trustFundMatch);
     if (!flag || !flag.hit) return '';
     const cls = flag.tier === 'partial' ? 'uc-tf-alert uc-tf-alert--partial' : 'uc-tf-alert';
-    const short = flag.tier === 'strong' ? 'TF Fit' : 'TF Maybe';
-    return `<button type="button" class="${cls}" data-action="trust-fund" title="${esc(flag.label)}" aria-label="${esc(flag.label)}"><span class="uc-tf-alert-dot" aria-hidden="true"></span>${esc(short)}</button>`;
+    const short = flag.tier === 'strong' ? 'Buyer Fit' : 'Buyer Maybe';
+    return `<button type="button" class="${cls}" data-action="buyer-fit" title="${esc(flag.label)}" aria-label="${esc(flag.label)}"><span class="uc-tf-alert-dot" aria-hidden="true"></span>${esc(short)}</button>`;
   }
 
   async function enrichTrustFundFlags(deals) {
-    if (!window.TrustFundsDealFlag || typeof window.TrustFundsDealFlag.flagDeals !== 'function') {
+    const flagApi = window.BuyersDealFlag || window.TrustFundsDealFlag;
+    if (!flagApi || typeof flagApi.flagDeals !== 'function') {
       return deals || [];
     }
     try {
-      return await window.TrustFundsDealFlag.flagDeals(deals || []);
+      return await flagApi.flagDeals(deals || []);
     } catch (_) {
       return deals || [];
     }
@@ -2154,8 +2155,8 @@
 
   async function openProfile(dealId, opts = {}) {
     state.activeDealId = dealId;
-    const tfLink = $('uc-trust-funds-link');
-    if (tfLink) tfLink.href = `/trust-funds?deal=${encodeURIComponent(dealId)}`;
+    const buyersLink = $('uc-buyers-link') || $('uc-trust-funds-link');
+    if (buyersLink) buyersLink.href = `/buyers?deal=${encodeURIComponent(dealId)}`;
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`);
       renderProfile(data.deal, data.contact);
@@ -3025,10 +3026,10 @@
       }
     });
     $('uc-drawer-hero')?.addEventListener('click', (ev) => {
-      const tf = ev.target.closest('[data-action="trust-fund"]');
+      const tf = ev.target.closest('[data-action="buyer-fit"], [data-action="trust-fund"]');
       if (tf && state.activeDealId) {
         ev.preventDefault();
-        window.location.href = `/trust-funds?deal=${encodeURIComponent(state.activeDealId)}`;
+        window.location.href = `/buyers?deal=${encodeURIComponent(state.activeDealId)}`;
         return;
       }
       const zoom = ev.target.closest('[data-action="zoom-photo"]');
@@ -3104,11 +3105,11 @@
         openProfile(dealId, { scrollToSms: true });
         return;
       }
-      if (action === 'trust-fund') {
+      if (action === 'trust-fund' || action === 'buyer-fit') {
         ev.preventDefault();
         ev.stopPropagation();
-        const href = (deal.trustFundMatch && deal.trustFundMatch.href)
-          || `/trust-funds?deal=${encodeURIComponent(dealId)}`;
+        const flag = deal && (deal.buyerMatch || deal.trustFundMatch);
+        const href = (flag && flag.href) || `/buyers?deal=${encodeURIComponent(dealId)}`;
         window.location.href = href;
         return;
       }

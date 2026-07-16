@@ -1,0 +1,60 @@
+{
+  "comps": [
+    {
+      "id": "z1",
+      "address": "2 Oak St, Columbus, OH",
+      "lastSaleAmount": 0,
+      "lastSaleDate": "2026-05-01",
+      "squareFeet": 1480,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "yearBuilt": 1984,
+      "latitude": 39.9612,
+      "longitude": -82.9885,
+      "distance": 0.12,
+      "propertyType": "SFR"
+    },
+    {
+      "id": "z2",
+      "address": "4 Maple Ave, Columbus, OH",
+      "lastSaleAmount": 0,
+      "lastSaleDate": "2026-04-15",
+      "squareFeet": 1510,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "yearBuilt": 1986,
+      "latitude": 39.9588,
+      "longitude": -82.9912,
+      "distance": 0.18,
+      "propertyType": "SFR"
+    },
+    {
+      "id": "z3",
+      "address": "8 Pine Rd, Columbus, OH",
+      "lastSaleAmount": 0,
+      "lastSaleDate": "2026-03-20",
+      "squareFeet": 1460,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "yearBuilt": 1983,
+      "latitude": 39.9625,
+      "longitude": -82.9850,
+      "distance": 0.22,
+      "propertyType": "SFR"
+    },
+    {
+      "id": "z4",
+      "address": "12 Elm Ct, Columbus, OH",
+      "lastSaleAmount": 0,
+      "lastSaleDate": "2026-02-10",
+      "squareFeet": 1495,
+      "bedrooms": 3,
+      "bathrooms": 2,
+      "yearBuilt": 1987,
+      "latitude": 39.9575,
+      "longitude": -82.9930,
+      "distance": 0.28,
+      "propertyType": "SFR"
+    }
+  ]
+}
