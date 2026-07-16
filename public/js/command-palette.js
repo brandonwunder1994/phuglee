@@ -4,6 +4,8 @@
   var COMMANDS = [
     { group: 'Navigate', label: 'Dashboard', href: '/command', meta: 'Pipeline dashboard' },
     { group: 'Navigate', label: 'Collect', href: '/collect', meta: 'Hit up the city' },
+    { group: 'Navigate', label: 'Government Lists', href: '/government-lists', meta: 'Source phonebook' },
+    { group: 'Navigate', label: 'Pre-liens', href: '/pre-liens', meta: 'Complaint extract → skip' },
     { group: 'Navigate', label: 'Coverage Map', href: '/forge/map', meta: 'Map' },
     { group: 'Navigate', label: 'How It Works', href: '/heat', meta: 'Guide' },
     { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },

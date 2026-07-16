@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-16T00:00:00.000Z",
+  "title": "County playbooks",
+  "description": "Per-county SOPs for pulling government lists — clerk URLs, filters, fees, what worked.",
+  "playbooks": [
+    {
+      "id": "oh-licking",
+      "county": "Licking",
+      "state": "OH",
+      "stateName": "Ohio",
+      "assetFocus": "houses",
+      "lastVerified": null,
+      "preLien": {
+        "courtUrl": "",
+        "caseTypes": "Small claims / civil debt collection complaints (pre-judgment)",
+        "filters": "Newly filed last 7–30 days; prefer under ~$15k–$50k",
+        "fees": "",
+        "loginNotes": "",
+        "cadence": "weekly",
+        "whatWorked": "Ginn demo market — pull complaint PDFs, not judgments.",
+        "blockers": ""
+      },
+      "assessor": {
+        "url": "",
+        "notes": "Owner-match defendant name to owner of record before outreach."
+      },
+      "lists": {
+        "code_violation": { "url": "", "method": "", "cadence": "weekly", "notes": "" },
+        "tax_delinquent": { "url": "", "method": "", "cadence": "monthly", "notes": "" },
+        "lis_pendens": { "url": "", "method": "recorder", "cadence": "weekly", "notes": "" },
+        "probate": { "url": "", "method": "court", "cadence": "weekly", "notes": "" },
+        "fire": { "url": "", "method": "", "cadence": "", "notes": "" },
+        "eviction": { "url": "", "method": "", "cadence": "", "notes": "" },
+        "water_shutoff": { "url": "", "method": "", "cadence": "", "notes": "Often denied — try once." }
+      },
+      "notes": "Starter template from Wholesale Brain pre-lien SOP. Fill court URL after first pull."
+    },
+    {
+      "id": "tx-tarrant",
+      "county": "Tarrant",
+      "state": "TX",
+      "stateName": "Texas",
+      "assetFocus": "houses",
+      "lastVerified": null,
+      "preLien": {
+        "courtUrl": "",
+        "caseTypes": "Civil / small claims debt complaints",
+        "filters": "New filings weekly",
+        "fees": "",
+        "loginNotes": "",
+        "cadence": "weekly",
+        "whatWorked": "",
+        "blockers": ""
+      },
+      "assessor": {
+        "url": "",
+        "notes": "Tarrant CAD / appraisal district for owner match."
+      },
+      "lists": {
+        "code_violation": { "url": "", "method": "request", "cadence": "weekly", "notes": "" },
+        "tax_delinquent": { "url": "", "method": "", "cadence": "monthly", "notes": "" },
+        "lis_pendens": {
+          "url": "https://tarrant.tx.publicsearch.us",
+          "method": "recorder",
+          "cadence": "weekly",
+          "notes": "Official records — search NOD / LP / trustee sale doc types."
+        },
+        "probate": { "url": "", "method": "court", "cadence": "weekly", "notes": "" },
+        "fire": { "url": "", "method": "", "cadence": "", "notes": "" },
+        "eviction": { "url": "", "method": "", "cadence": "", "notes": "" },
+        "water_shutoff": { "url": "", "method": "", "cadence": "", "notes": "" }
+      },
+      "notes": "Seeded with publicsearch.us official records link from gov-lists examples."
+    }
+  ]
+}

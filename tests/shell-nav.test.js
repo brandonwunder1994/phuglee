@@ -29,28 +29,36 @@ function loadShellNavApi(sessionUser) {
   return sandbox.window.DistressOSShellNav;
 }
 
-test('shell nav groups Collect, Filter, and Analyze under Data', () => {
+test('shell nav groups Collect, Government Lists, Pre-liens, Filter, and Analyze under Data', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/collect');
   assert.ok(nav.includes('shell-data-trigger'));
   assert.ok(nav.includes('Data'));
   assert.match(nav, /shell-nav-dropdown-label">Collect</);
+  assert.match(nav, /shell-nav-dropdown-label">Government Lists</);
+  assert.match(nav, /shell-nav-dropdown-label">Pre-liens</);
   assert.match(nav, /shell-nav-dropdown-label">Filter</);
   assert.match(nav, /shell-nav-dropdown-label">Analyze</);
   assert.ok(!nav.includes('City Tracker'));
   assert.ok(!nav.includes('>Properties<'));
   assert.equal(api.activeId('/collect'), 'collect');
+  assert.equal(api.activeId('/government-lists'), 'government-lists');
+  assert.equal(api.activeId('/pre-liens'), 'pre-liens');
   assert.equal(api.activeId('/bridge'), 'bridge');
   assert.equal(api.activeId('/analyzer/'), 'analyzer');
   assert.ok(api.isDataSectionActive('collect'));
+  assert.ok(api.isDataSectionActive('government-lists'));
+  assert.ok(api.isDataSectionActive('pre-liens'));
   assert.ok(!api.isDataSectionActive('command'));
 });
 
-test('shell nav keeps Dashboard and The Vault as top-level links', () => {
+test('shell nav keeps Dashboard, Home Vault, and Land Vault as top-level links', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/command');
   assert.ok(nav.includes('>Dashboard<'));
-  assert.ok(nav.includes('>The Vault<'));
+  assert.ok(nav.includes('>Home Vault<'));
+  assert.ok(nav.includes('>Land Vault<'));
+  assert.ok(!nav.includes('>The Vault<'));
   assert.ok(!nav.includes('href="/collect" class="shell-link'));
 });
 

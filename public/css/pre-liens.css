@@ -1,0 +1,276 @@
+/* Pre-liens desk */
+
+.pl-page .vault-main--app {
+  max-width: 960px;
+}
+
+.pl-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.pl-count {
+  margin: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.78rem;
+  color: var(--phuglee-meta-text);
+}
+
+.pl-steps {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 0.85rem 0.85rem 1.75rem;
+  border: 1px solid rgba(176, 169, 156, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.pl-steps li + li {
+  margin-top: 0.35rem;
+}
+
+.pl-panel {
+  margin-bottom: 1.15rem;
+  padding: 1rem;
+  border: 1px solid rgba(176, 169, 156, 0.28);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.pl-panel-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+.pl-panel-lead {
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  color: var(--phuglee-meta-text);
+}
+
+.pl-drop {
+  border: 1px dashed rgba(238, 183, 70, 0.45);
+  border-radius: 8px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pl-drop.is-drag {
+  background: rgba(238, 183, 70, 0.1);
+}
+
+.pl-drop-label {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.pl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.pl-status {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: var(--phuglee-meta-text);
+  min-height: 1.2em;
+}
+
+.pl-paste {
+  width: 100%;
+  font-size: 16px;
+  margin-bottom: 0.65rem;
+}
+
+.pl-results-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.pl-results-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pl-include-possible {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pl-include-possible input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.pl-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pl-row {
+  border: 1px solid rgba(176, 169, 156, 0.28);
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.pl-row-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.pl-row-addr {
+  font-weight: 600;
+}
+
+.pl-row-meta {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.72rem;
+  color: var(--phuglee-meta-text);
+}
+
+.pl-row-sub {
+  font-size: 0.85rem;
+  color: var(--phuglee-meta-text);
+  margin-bottom: 0.45rem;
+}
+
+.pl-row-check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 44px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pl-row--matched {
+  border-color: rgba(61, 154, 106, 0.55);
+}
+
+.pl-row--possible {
+  border-color: rgba(201, 162, 39, 0.55);
+}
+
+.pl-row--no_match {
+  border-color: rgba(176, 80, 80, 0.4);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.pl-playbook-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.pl-playbook-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  max-width: 28rem;
+}
+
+.pl-field-label {
+  font-size: 0.8rem;
+  color: var(--phuglee-meta-text);
+}
+
+.pl-select {
+  width: 100%;
+  min-height: 44px;
+  font-size: 16px;
+}
+
+.pl-playbook-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pl-playbook-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pl-playbook-meta {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 8rem) 1fr;
+  gap: 0.4rem 0.75rem;
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.pl-playbook-meta dt {
+  margin: 0;
+  color: var(--phuglee-meta-text);
+  font-weight: 500;
+}
+
+.pl-playbook-meta dd {
+  margin: 0;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .pl-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pl-actions .phuglee-btn,
+  .pl-playbook-actions .phuglee-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .pl-playbook-meta {
+    grid-template-columns: 1fr;
+    gap: 0.15rem 0;
+  }
+
+  .pl-playbook-meta dt {
+    margin-top: 0.35rem;
+  }
+}

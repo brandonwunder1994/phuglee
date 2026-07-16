@@ -21,6 +21,9 @@ modules/form-forge/.env
 data/filter-lists/
 data/filter-drafts/
 
+# County government-list playbooks (runtime edits; seed stays in seed-catalog.json)
+data/gov-playbooks/catalog.json
+
 # Filter global brain (runtime)
 data/bridge-brain/
 

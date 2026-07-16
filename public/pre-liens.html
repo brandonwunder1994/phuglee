@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Pre-liens</title>
+  <meta name="description" content="Pull civil complaint PDFs, owner-match defendants, export matched CSV for skip tracing.">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
+  <link rel="stylesheet" href="/css/vault.css?v=16">
+  <link rel="stylesheet" href="/css/pre-liens.css?v=6">
+  <script src="/js/auth-session.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js?v=2"></script>
+</head>
+<body class="phuglee-app has-premium-bg vault-page pl-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
+  <div id="distress-os-nav-mount"></div>
+  <div id="pl-toast" class="vault-toast" hidden role="status" aria-live="polite"></div>
+
+  <main id="main" class="vault-main vault-main--app pl-main">
+    <header class="pl-hero">
+      <div>
+        <p class="vault-eyebrow">Highest-edge list</p>
+        <h1 class="vault-title vault-title--desk">Pre-liens</h1>
+        <p class="vault-hero-sub">Civil complaints before judgment — extract → owner-match → export for skip.</p>
+      </div>
+      <p id="pl-count" class="pl-count" aria-live="polite"></p>
+    </header>
+
+    <ol class="pl-steps" aria-label="Workflow">
+      <li><strong>Pick</strong> a county playbook (court URL + filters)</li>
+      <li><strong>Download</strong> new complaint PDFs (not judgments)</li>
+      <li><strong>Drop</strong> PDFs here → extract defendants + service address</li>
+      <li><strong>Confirm</strong> defendant ≈ owner (Auto owner-match / assessor)</li>
+      <li><strong>Download matched</strong> → your skip-trace tool</li>
+    </ol>
+
+    <section class="pl-panel" aria-labelledby="pl-playbook-title">
+      <div class="pl-playbook-head">
+        <h2 id="pl-playbook-title" class="pl-panel-title">County playbook</h2>
+        <a class="phuglee-btn phuglee-btn-ghost" href="/government-lists?tab=playbooks" id="pl-playbook-edit">Edit playbooks</a>
+      </div>
+      <p class="pl-panel-lead">Select the market you’re pulling so clerk URL, filters, and assessor notes stay in front of you.</p>
+      <label class="pl-field pl-playbook-pick" for="pl-playbook-select">
+        <span class="pl-field-label">County</span>
+        <select id="pl-playbook-select" class="phuglee-select pl-select">
+          <option value="">Loading playbooks…</option>
+        </select>
+      </label>
+      <div id="pl-playbook-card" class="pl-playbook-card" hidden>
+        <div class="pl-playbook-actions">
+          <a id="pl-open-court" class="phuglee-btn phuglee-btn-primary" href="#" target="_blank" rel="noopener" hidden>Open court search</a>
+          <a id="pl-open-assessor" class="phuglee-btn phuglee-btn-ghost" href="#" target="_blank" rel="noopener" hidden>Open assessor</a>
+        </div>
+        <dl id="pl-playbook-meta" class="pl-playbook-meta"></dl>
+      </div>
+      <p id="pl-playbook-empty" class="pl-status" hidden>No playbooks yet — create one under Government Lists → County playbooks.</p>
+    </section>
+
+    <section class="pl-panel" aria-labelledby="pl-drop-title">
+      <h2 id="pl-drop-title" class="pl-panel-title">Complaint PDFs</h2>
+      <p class="pl-panel-lead">Drop up to 25 complaint/summons PDFs. Text PDFs are fastest; scanned/image PDFs run OCR automatically (slower).</p>
+      <div id="pl-drop" class="pl-drop" tabindex="0" role="button" aria-label="Drop PDF files here">
+        <input type="file" id="pl-files" accept=".pdf,application/pdf" multiple hidden />
+        <p class="pl-drop-label">Drop PDFs or click to choose</p>
+      </div>
+      <div class="pl-actions">
+        <button type="button" id="pl-extract" class="phuglee-btn phuglee-btn-primary" disabled>Extract</button>
+        <button type="button" id="pl-owner-match" class="phuglee-btn phuglee-btn-ghost" disabled>Auto owner-match</button>
+        <button type="button" id="pl-clear" class="phuglee-btn phuglee-btn-ghost">Clear</button>
+        <a class="phuglee-btn phuglee-btn-ghost" href="/government-lists?type=pre_lien">Source phonebook</a>
+        <a class="phuglee-btn phuglee-btn-ghost" href="/filter">Open Filter</a>
+      </div>
+      <p id="pl-status" class="pl-status" role="status"></p>
+    </section>
+
+    <section class="pl-panel" aria-labelledby="pl-paste-title">
+      <h2 id="pl-paste-title" class="pl-panel-title">Or paste complaint text</h2>
+      <label class="pl-field" for="pl-paste">
+        <span class="visually-hidden">Paste complaint text</span>
+        <textarea id="pl-paste" class="phuglee-textarea pl-paste" rows="6" placeholder="Paste one complaint text block…"></textarea>
+      </label>
+      <button type="button" id="pl-extract-text" class="phuglee-btn phuglee-btn-ghost">Extract from paste</button>
+    </section>
+
+    <section class="pl-panel" id="pl-results-panel" hidden aria-labelledby="pl-results-title">
+      <div class="pl-results-head">
+        <h2 id="pl-results-title" class="pl-panel-title">Extracted rows</h2>
+        <div class="pl-results-actions">
+          <label class="pl-include-possible" id="pl-include-possible-wrap" hidden>
+            <input type="checkbox" id="pl-include-possible" />
+            <span>Include possibles</span>
+          </label>
+          <button type="button" id="pl-download-skip" class="phuglee-btn phuglee-btn-primary" hidden>Download for skip</button>
+          <button type="button" id="pl-download" class="phuglee-btn phuglee-btn-ghost" hidden>Download all CSV</button>
+        </div>
+      </div>
+      <p id="pl-lookup-tip" class="pl-panel-lead">Auto owner-match looks up the property owner (RealEstateAPI) and scores defendant ≈ owner — not skip tracing. Mark overrides manually if needed.</p>
+      <div id="pl-results" class="pl-results" role="list"></div>
+    </section>
+  </main>
+
+  <script src="/js/settings-menu.js?v=4" defer></script>
+  <script src="/js/shell-nav.js?v=21" defer></script>
+  <script src="/js/team-alert-banner.js?v=1" defer></script>
+  <script src="/js/command-palette.js?v=2" defer></script>
+  <script src="/js/pre-liens-app.js?v=8" defer></script>
+</body>
+</html>

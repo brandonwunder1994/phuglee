@@ -59,6 +59,18 @@ function getBuyersApi() {
   return buyersApiModule;
 }
 
+let preLienApiModule = null;
+function getPreLienApi() {
+  if (!preLienApiModule) preLienApiModule = require('./lib/pre-lien-api');
+  return preLienApiModule;
+}
+
+let govPlaybooksApiModule = null;
+function getGovPlaybooksApi() {
+  if (!govPlaybooksApiModule) govPlaybooksApiModule = require('./lib/gov-playbooks/api');
+  return govPlaybooksApiModule;
+}
+
 function send(res, status, body, type, extraHeaders = {}) {
   res.writeHead(status, {
     'Content-Type': type || 'text/plain; charset=utf-8',
@@ -404,6 +416,16 @@ async function handleRequest(req, res) {
 
   if (pathname.startsWith('/api/buyers')) {
     const handled = await getBuyersApi().handle(req, res, pathname);
+    if (handled) return;
+  }
+
+  if (pathname.startsWith('/api/pre-lien')) {
+    const handled = await getPreLienApi().handle(req, res, pathname);
+    if (handled) return;
+  }
+
+  if (pathname.startsWith('/api/gov-playbooks')) {
+    const handled = await getGovPlaybooksApi().handle(req, res, pathname);
     if (handled) return;
   }
 

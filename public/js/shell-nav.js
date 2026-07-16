@@ -3,6 +3,8 @@
 
   const DATA_LINKS = [
     { id: 'collect', label: 'Collect', href: '/collect' },
+    { id: 'government-lists', label: 'Government Lists', href: '/government-lists' },
+    { id: 'pre-liens', label: 'Pre-liens', href: '/pre-liens' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
     { id: 'analyzer', label: 'Analyze', href: '/analyzer/' }
   ];
@@ -159,6 +161,8 @@
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Collect</a>
+      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
+      <a href="/pre-liens" class="shell-footer-link">Pre-liens</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Analyze</a>
       <a href="/vault" class="shell-footer-link">The Vault</a>
