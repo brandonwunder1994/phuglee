@@ -19,6 +19,7 @@
     city: '',
     signals: [],
     minScore: 0,
+    minDistressTier: 8,
     since: '',
     q: '',
     page: 1,
@@ -62,7 +63,8 @@
     compRunning: false,
     manualCompLeadId: null,
     manualCompLead: null,
-    manualCompFiles: []
+    manualCompFiles: [],
+    skipTraceBusy: false
   };
 
   const COMP_RULE_LABELS = {
@@ -238,18 +240,6 @@
     return [lead.address, lead.city, lead.state, lead.zip].filter(Boolean).join(', ');
   }
 
-  /** Comp addresses may be REAPI nested objects until re-comp coerces them. */
-  function formatCompAddress(addr) {
-    if (!addr) return '';
-    if (typeof addr === 'string') return addr;
-    if (typeof addr === 'object') {
-      if (typeof addr.address === 'string' && addr.address.trim()) return addr.address.trim();
-      if (typeof addr.fullAddress === 'string' && addr.fullAddress.trim()) return addr.fullAddress.trim();
-      return [addr.street, addr.city, addr.state, addr.zip].filter(Boolean).join(', ');
-    }
-    return String(addr);
-  }
-
   function mapsUrl(lead) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress(lead))}`;
   }
@@ -305,8 +295,9 @@
   }
 
   function applySmartDefaults() {
-    state.hasPhone = true;
+    state.minDistressTier = 8;
     state.leadType = 'distressed';
+    state.hasPhone = false;
     syncFilterControls();
     syncTypeTabs();
   }
@@ -375,6 +366,7 @@
     if (state.city) params.set('city', state.city);
     if (state.q) params.set('q', state.q);
     if (state.minScore > 0) params.set('minScore', String(state.minScore));
+    if (state.minDistressTier > 0) params.set('minDistressTier', String(state.minDistressTier));
     if (state.since) params.set('since', state.since);
     if (state.favoritesOnly) params.set('favoritesOnly', '1');
     if (state.hasPhone) params.set('hasPhone', '1');
@@ -408,6 +400,7 @@
       city: state.city,
       signals: [...state.signals],
       minScore: state.minScore,
+      minDistressTier: state.minDistressTier,
       since: state.since,
       q: state.q,
       favoritesOnly: state.favoritesOnly,
@@ -430,6 +423,7 @@
       || state.city
       || state.signals.length
       || state.minScore > 0
+      || state.minDistressTier > 0
       || state.since
       || state.q
       || state.favoritesOnly
@@ -449,6 +443,7 @@
     state.city = snapshot.city || '';
     state.signals = Array.isArray(snapshot.signals) ? [...snapshot.signals] : [];
     state.minScore = Number(snapshot.minScore) || 0;
+    state.minDistressTier = Number(snapshot.minDistressTier) || 0;
     state.since = snapshot.since || '';
     state.q = snapshot.q || '';
     state.favoritesOnly = !!snapshot.favoritesOnly;
@@ -527,6 +522,9 @@
       $('vault-min-score').setAttribute('aria-valuenow', String(state.minScore));
     }
     if ($('vault-min-score-val')) $('vault-min-score-val').textContent = String(state.minScore);
+    if ($('vault-distress-level')) {
+      $('vault-distress-level').value = state.minDistressTier > 0 ? String(state.minDistressTier) : '';
+    }
     if ($('vault-favorites-only')) $('vault-favorites-only').checked = state.favoritesOnly;
     if ($('vault-has-phone')) $('vault-has-phone').checked = state.hasPhone;
     if ($('vault-has-photo')) $('vault-has-photo').checked = state.hasImagery;
@@ -547,6 +545,7 @@
     return [
       'Pre-foreclosure', 'Tax delinquent', 'Vacant', 'Code violation',
       'Water shut-off', 'Probate / estate', 'Absentee owner', 'High equity',
+      'Long Open Case', 'Repeat Enforcement', 'Chronic Property',
       'Liens', 'Bankruptcy', 'Divorce', 'Fire damage'
     ];
   }
@@ -1170,6 +1169,23 @@
     return row.topSignal || (row.signalTags && row.signalTags[0]) || '—';
   }
 
+  function signalChipHtml(row, max = 3) {
+    const tags = Array.isArray(row.signalTags) && row.signalTags.length
+      ? row.signalTags
+      : (primarySignal(row) !== '—' ? [primarySignal(row)] : []);
+    if (!tags.length) return '<span class="vault-signal">—</span>';
+    return `<span class="vault-signal-stack">${tags.slice(0, max).map((t) =>
+      `<span class="vault-signal${hotSignalClass(t)}">${esc(t)}</span>`
+    ).join('')}</span>`;
+  }
+
+  function whyLineHtml(row) {
+    const why = String(row.whySurfaced || '').trim();
+    if (!why) return '';
+    const short = why.length > 96 ? `${why.slice(0, 93)}…` : why;
+    return `<p class="vault-why-line" title="${esc(why)}">${esc(short)}</p>`;
+  }
+
   function renderTable() {
     const body = $('vault-results-body');
     const empty = $('vault-empty');
@@ -1211,7 +1227,6 @@
       if (cards) cards.hidden = true;
       if (table) table.hidden = false;
       body.innerHTML = state.leads.map((row) => {
-        const signal = primarySignal(row);
         const phoneHtml = formatPhoneStack(row.phones, {
           max: 2,
           totalCount: row.phoneCount != null ? row.phoneCount : (row.phones || []).length
@@ -1225,9 +1240,9 @@
         return `<tr class="vault-row${fav}" data-lead-id="${esc(row.leadId)}" tabindex="0">
           <td class="vault-col-check" data-no-open="1"><input type="checkbox" class="vault-row-check" data-id="${esc(row.leadId)}" aria-label="Select lead"${checked}></td>
           <td class="vault-col-thumb">${thumbHtml(row.thumbUrl, row)}</td>
-          <td>${esc(row.address)}</td>
+          <td>${esc(row.address)}${whyLineHtml(row)}</td>
           <td>${esc(row.city)}, ${esc(row.state)}</td>
-          <td><span class="vault-signal${hotSignalClass(signal)}">${esc(signal)}</span></td>
+          <td class="vault-col-signal">${signalChipHtml(row, 3)}</td>
           <td><span class="vault-score${scoreCls}">${esc(row.priorityScore)}</span>${tier}</td>
           <td class="vault-col-owner">${esc(row.ownerName || '—')}</td>
           <td class="vault-col-phone">${phoneHtml}</td>
@@ -1260,7 +1275,6 @@
   }
 
   function renderCard(row) {
-    const signal = primarySignal(row);
     const phoneHtml = formatPhoneStack(row.phones, {
       max: 2,
       totalCount: row.phoneCount != null ? row.phoneCount : (row.phones || []).length
@@ -1273,7 +1287,8 @@
         <label class="vault-card-check" data-no-open="1"><input type="checkbox" class="vault-row-check" data-id="${esc(row.leadId)}" aria-label="Select ${esc(row.address)} lead"${checked}></label>
         <h3 class="vault-card-address">${esc(row.address)}</h3>
         <p class="vault-card-meta">${esc(row.city)}, ${esc(row.state)} · <span class="vault-score${scoreCls}">${esc(row.priorityScore)}</span></p>
-        <p class="vault-card-signal${hotSignalClass(signal)}">${esc(signal)}</p>
+        <div class="vault-card-signal">${signalChipHtml(row, 3)}</div>
+        ${whyLineHtml(row)}
         ${phoneHtml !== '—' ? `<div class="vault-card-phone">${phoneHtml}</div>` : ''}
       </div>
     </article>`;
@@ -1594,25 +1609,16 @@
     const comps = Array.isArray(l?.comps) ? l.comps : [];
     comps.slice(0, 8).forEach((c, i) => {
       if (c.streetViewUrl) {
-        links.push({ label: formatCompAddress(c.address) || `Comp ${i + 1}`, url: c.streetViewUrl });
+        links.push({ label: c.address || `Comp ${i + 1}`, url: c.streetViewUrl });
       }
     });
-    const pass = String(l?.compBlockPass || '').toLowerCase();
-    const passActive = pass === 'pass' ? ' is-active' : '';
-    const killActive = pass === 'kill' ? ' is-active' : '';
-    return `<div class="vault-comp-block" id="vault-sv-block">
+    if (!links.length) return '';
+    return `<div class="vault-comp-block">
       <h4 class="vault-comp-subhead">Street View</h4>
-      ${links.length
-        ? `<div class="vault-sv-links">${links.map((link) =>
-          `<a href="${esc(link.url)}" class="phuglee-btn phuglee-btn-ghost vault-sv-link" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a>`
-        ).join('')}</div>`
-        : '<p class="vault-comp-meta">Open Street View for the subject and comps, then Pass or Kill the barrier call.</p>'}
-      <div class="vault-block-pass" role="group" aria-label="Barrier Street View check">
-        <span class="vault-block-pass-label">Barrier check</span>
-        <button type="button" class="phuglee-btn phuglee-btn-ghost vault-block-pass-btn${passActive}" data-block-pass="pass" aria-pressed="${pass === 'pass' ? 'true' : 'false'}">Pass</button>
-        <button type="button" class="phuglee-btn phuglee-btn-ghost vault-block-pass-btn vault-block-pass-btn--kill${killActive}" data-block-pass="kill" aria-pressed="${pass === 'kill' ? 'true' : 'false'}">Kill</button>
-        ${pass ? `<span class="vault-block-pass-status">Saved: <strong>${esc(pass)}</strong></span>` : '<span class="vault-block-pass-status vault-block-pass-status--empty">Not set</span>'}
-      </div>
+      <div class="vault-sv-links">${links.map((link) =>
+        `<a href="${esc(link.url)}" class="phuglee-btn phuglee-btn-ghost vault-sv-link" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a>`
+      ).join('')}</div>
+      ${l.compBlockPass ? `<p class="vault-comp-meta">Block check: <strong>${esc(l.compBlockPass)}</strong></p>` : ''}
     </div>`;
   }
 
@@ -1642,7 +1648,7 @@
     if (!extended) {
       const rows = comps.slice(0, 5).map((c) =>
         `<tr>
-          <td>${esc(formatCompAddress(c.address) || '—')}</td>
+          <td>${esc(c.address || '—')}</td>
           <td>${c.price != null ? '$' + Number(c.price).toLocaleString() : '—'}</td>
           <td>${esc(c.soldDate || '—')}</td>
         </tr>`
@@ -1662,7 +1668,7 @@
         ? `<a href="${esc(c.streetViewUrl)}" class="vault-sv-mini" target="_blank" rel="noopener noreferrer">SV</a>`
         : '—';
       return `<tr class="${inclCls}">
-        <td>${esc(formatCompAddress(c.address) || '—')}</td>
+        <td>${esc(c.address || '—')}</td>
         <td>${c.price != null ? '$' + Number(c.price).toLocaleString() : '—'}</td>
         <td>${esc(c.soldDate || '—')}</td>
         <td>${esc(dist)}</td>
@@ -1925,14 +1931,11 @@
         <button type="button" id="vault-manual-add-row" class="phuglee-btn phuglee-btn-ghost">Add comp</button>
       </div>
       <div class="vault-field">
-        <span class="vault-field-label">Propelio report (required — PDF or image)</span>
+        <span class="vault-field-label">Propelio report (PDF or image)</span>
         <div class="vault-manual-dropzone" id="vault-manual-dropzone">
           <p>Drop files here or <label class="vault-manual-file-label"><input type="file" id="vault-manual-file" class="vault-manual-file-input" accept=".pdf,image/png,image/jpeg,image/webp" multiple hidden>choose files</label></p>
           <ul id="vault-manual-file-list" class="vault-manual-file-list"></ul>
         </div>
-        ${Array.isArray(l.compReportFiles) && l.compReportFiles.length
-          ? `<p class="vault-comp-meta">This lead already has ${l.compReportFiles.length} report file(s) on file.</p>`
-          : '<p class="vault-comp-meta">A Propelio report upload is required before save.</p>'}
       </div>
       <div class="vault-manual-footer">
         <button type="button" id="vault-manual-save" class="phuglee-btn phuglee-btn-primary vault-comp-btn">Save Comp Report</button>
@@ -1970,20 +1973,16 @@
         return;
       }
     }
-    const existing = state.manualCompLead
-      || state.leads.find((x) => x.leadId === leadId)
-      || null;
-    const existingFiles = Array.isArray(existing?.compReportFiles) ? existing.compReportFiles.length : 0;
-    if (!state.manualCompFiles.length && !existingFiles) {
-      showToast('Upload a Propelio report before saving');
-      $('vault-manual-dropzone')?.classList.add('is-required-miss');
-      return;
-    }
     const note = ($('vault-manual-note')?.value || '').trim();
     const saveBtn = $('vault-manual-save');
     if (saveBtn) saveBtn.disabled = true;
     try {
-      let lead = existing || null;
+      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/manual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ arv, comps, note: note || undefined })
+      });
+      let lead = data.lead;
       for (const file of state.manualCompFiles) {
         const contentBase64 = await fileToBase64(file);
         const uploaded = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/report-file`, {
@@ -1997,12 +1996,6 @@
         });
         if (uploaded.lead) lead = uploaded.lead;
       }
-      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/manual`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ arv, comps, note: note || undefined })
-      });
-      if (data.lead) lead = data.lead;
       closeManualCompPanel();
       if (lead) patchLeadInState(lead);
       state.drawerSection = 'comping';
@@ -2054,13 +2047,7 @@
         patchLeadInState(data.lead);
         state.drawerSection = 'comping';
         await openDrawer(leadId);
-        const blocked = data.report?.confidence === 'blocked';
-        const kept = data.report?.arvPreserved === true;
-        showToast(
-          blocked
-            ? (kept ? 'Comp blocked — prior ARV kept' : 'Comp complete — ARV blocked')
-            : 'Comp complete'
-        );
+        showToast(data.report?.confidence === 'blocked' ? 'Comp complete — ARV blocked' : 'Comp complete');
       }
     } catch (err) {
       showToast(err.message || 'Comp failed');
@@ -2236,6 +2223,7 @@
       }</p>`;
     }
 
+    const whyCopy = String(l.whySurfaced || '').trim();
     const proofBits = [
       l.sourceCity ? `Sourced · ${l.sourceCity}` : null,
       l.publishedAt ? `Published ${String(l.publishedAt).slice(0, 10)}` : null,
@@ -2243,12 +2231,13 @@
       Array.isArray(l.phones) && l.phones.length ? `${l.phones.length} phone${l.phones.length === 1 ? '' : 's'}` : 'No phone yet'
     ].filter(Boolean);
 
-    const hasProof = scoreRows || signals || summary || findingChips || cvLine || proofBits.length;
+    const hasProof = whyCopy || scoreRows || signals || summary || findingChips || cvLine || proofBits.length;
     if (!hasProof) return '';
 
     return `<div class="vault-why-panel">
-      <p class="vault-why-headline">Why this lead <span class="vault-why-score">${esc(score ?? '—')}</span></p>
-      <p class="vault-why-sub">Clerk-reviewed catalog proof — not a scraped skip-trace dump.</p>
+      <p class="vault-why-headline">Why this surfaced <span class="vault-why-score">${esc(score ?? '—')}</span></p>
+      ${whyCopy ? `<p class="vault-why-copy">${esc(whyCopy)}</p>` : ''}
+      <p class="vault-why-sub">Clerk-reviewed catalog proof — not a raw municipal dump.</p>
       ${scoreRows ? `<ul class="vault-why-score-list">${scoreRows}</ul>` : ''}
       ${distressBits.length ? `<p class="vault-why-distress">${esc(distressBits.join(' · '))}</p>` : ''}
       ${summary}
@@ -2256,6 +2245,32 @@
       ${cvLine}
       ${signals ? `<div class="vault-signal-chips vault-why-signals">${signals}</div>` : ''}
       <p class="vault-why-provenance">${esc(proofBits.join(' · '))}</p>
+    </div>`;
+  }
+
+  function renderSkipTraceBlock(l) {
+    const st = l.skipTrace && typeof l.skipTrace === 'object' ? l.skipTrace : null;
+    const phones = Array.isArray(l.phones) ? l.phones.filter(Boolean) : [];
+    const cached = !!(st && st.tracedAt);
+    let statusLine = 'Lookup caches phones already on this lead — no third-party spend.';
+    if (cached && st.status === 'hit') {
+      statusLine = `Cached hit · ${String(st.tracedAt).slice(0, 10)}${st.source ? ` · ${st.source}` : ''}`;
+    } else if (cached && st.status === 'miss') {
+      statusLine = `Cached miss · ${String(st.tracedAt).slice(0, 10)} — no phone on file yet`;
+    } else if (phones.length) {
+      statusLine = `${phones.length} phone${phones.length === 1 ? '' : 's'} on lead — tap Lookup to cache`;
+    }
+    const badge = cached
+      ? `<span class="vault-skip-badge vault-skip-badge--cached">Cached</span>`
+      : `<span class="vault-skip-badge">Not cached</span>`;
+    return `<div class="vault-skip-block">
+      <div class="vault-skip-row">
+        <span class="vault-skip-label">Contact lookup ${badge}</span>
+        <button type="button" id="vault-skip-trace-btn" class="phuglee-btn phuglee-btn-secondary"${state.skipTraceBusy ? ' disabled' : ''}>${
+          state.skipTraceBusy ? 'Looking up…' : (cached ? 'Reload cache' : 'Lookup')
+        }</button>
+      </div>
+      <p class="vault-skip-status">${esc(statusLine)}</p>
     </div>`;
   }
 
@@ -2274,6 +2289,7 @@
       ${phoneBlock}
       ${l.email ? `<p class="vault-dial-email">${esc(l.email)}</p>` : ''}
       ${l.mailingAddress ? `<p class="vault-dial-mail">Mail: ${esc(l.mailingAddress)}</p>` : ''}
+      ${renderSkipTraceBlock(l)}
       <p class="vault-dial-script">${esc(buildDialScript(l))}</p>
       ${signals ? `<div class="vault-signal-chips vault-dial-signals">${signals}</div>` : ''}
     </div>`;
@@ -2625,6 +2641,34 @@
       $('vault-promote-demo')?.focus();
     });
 
+    $('vault-skip-trace-btn')?.addEventListener('click', async () => {
+      if (state.skipTraceBusy) return;
+      const btn = $('vault-skip-trace-btn');
+      state.skipTraceBusy = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Looking up…';
+      }
+      try {
+        const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/skip-trace`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: '{}'
+        });
+        showToast(data.cached ? 'Loaded from cache' : (data.message || 'Contact lookup saved'));
+        state.drawerSection = 'owner';
+        await openDrawer(leadId);
+      } catch (err) {
+        showToast(err.message || 'Lookup failed');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Lookup';
+        }
+      } finally {
+        state.skipTraceBusy = false;
+      }
+    });
+
     $('vault-promote-land-cancel')?.addEventListener('click', () => {
       const panel = $('vault-promote-land-panel');
       if (panel) panel.hidden = true;
@@ -2670,28 +2714,6 @@
 
     $('vault-comp-btn')?.addEventListener('click', () => {
       runComp(leadId).catch((err) => showToast(err.message || 'Comp failed'));
-    });
-
-    document.querySelectorAll('[data-block-pass]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const pass = btn.dataset.blockPass;
-        if (pass !== 'pass' && pass !== 'kill') return;
-        document.querySelectorAll('[data-block-pass]').forEach((b) => { b.disabled = true; });
-        try {
-          const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/block-pass`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pass })
-          });
-          if (data.lead) patchLeadInState(data.lead);
-          state.drawerSection = 'comping';
-          await openDrawer(leadId);
-          showToast(pass === 'pass' ? 'Barrier check: Pass' : 'Barrier check: Kill');
-        } catch (err) {
-          showToast(err.message || 'Could not save barrier check');
-          document.querySelectorAll('[data-block-pass]').forEach((b) => { b.disabled = false; });
-        }
-      });
     });
 
     $('vault-hero-img')?.addEventListener('click', () => {
@@ -2973,6 +2995,14 @@
       }, 200);
     });
 
+    $('vault-distress-level')?.addEventListener('change', (e) => {
+      const raw = e.target.value;
+      state.minDistressTier = raw === '' ? 0 : (Number(raw) || 0);
+      state.page = 1;
+      state.leads = [];
+      refreshCurrentView();
+    });
+
     $('vault-signal-chips')?.addEventListener('click', (e) => {
       const chip = e.target.closest('.vault-signal-chip');
       if (!chip) return;
@@ -2996,6 +3026,7 @@
       state.city = '';
       state.signals = [];
       state.minScore = 0;
+      state.minDistressTier = 0;
       state.since = '';
       state.q = '';
       state.favoritesOnly = false;
@@ -3010,6 +3041,8 @@
       state.page = 1;
       state.leads = [];
       if ($('vault-smart-defaults')) $('vault-smart-defaults').checked = false;
+      state.smartDefaults = false;
+      writeSmartDefaultsPref(false);
       if ($('vault-radius-address')) $('vault-radius-address').value = '';
       updateRadiusStatus();
       syncFilterControls();
