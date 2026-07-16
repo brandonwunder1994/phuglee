@@ -31,10 +31,17 @@ describe('reapi-client', () => {
       baseUrl: 'https://api.realestateapi.com',
       fetchImpl,
     });
-    await client.propertyComps({ latitude: 39.96, longitude: -82.99, radius: 0.5 });
+    await client.propertyComps({
+      address: '1 Main St, Columbus, OH 43215',
+      max_radius_miles: 0.5,
+    });
     assert.match(captured.url, /PropertyComps/);
     assert.equal(captured.init.headers['x-api-key'], 'test-key');
     assert.equal(captured.init.method, 'POST');
+    const sent = JSON.parse(captured.init.body);
+    assert.equal(sent.address, '1 Main St, Columbus, OH 43215');
+    assert.equal(sent.max_radius_miles, 0.5);
+    assert.equal(sent.latitude, undefined);
   });
 
   it('falls back to v2 PropertyComps when v3 fails', async () => {
@@ -58,7 +65,7 @@ describe('reapi-client', () => {
       baseUrl: 'https://api.realestateapi.com',
       fetchImpl,
     });
-    await client.propertyComps({ latitude: 1, longitude: 2 });
+    await client.propertyComps({ address: '1 Main St, Columbus, OH 43215', max_radius_miles: 0.5 });
     assert.equal(urls.length, 2);
     assert.match(urls[0], /\/v3\/PropertyComps/);
     assert.match(urls[1], /\/v2\/PropertyComps/);
@@ -119,34 +126,48 @@ describe('runAutoComp', () => {
   });
 
   it('persists ARV patch for disclosure subject with priced comps', async () => {
+    const compsBodies = [];
     const out = await runAutoComp(
       {
         leadId: '1',
         address: '1 Main St',
         city: 'Columbus',
         state: 'OH',
+        zip: '43215',
         lat: 39.96,
         lng: -82.99,
         propertyDetails: { sqft: 1500, beds: 3, baths: 2, yearBuilt: 1985 },
       },
       {
         reapi: {
-          propertyDetail: async () => ({
-            id: 's1',
-            squareFeet: 1500,
-            bedrooms: 3,
-            bathrooms: 2,
-            yearBuilt: 1985,
-            latitude: 39.96,
-            longitude: -82.99,
-            estimatedValue: 999999,
-          }),
-          propertyComps: async () => mockComps,
+          propertyDetail: async (body) => {
+            assert.equal(body.address, '1 Main St, Columbus, OH 43215');
+            assert.equal(body.latitude, undefined);
+            return {
+              id: 's1',
+              squareFeet: 1500,
+              bedrooms: 3,
+              bathrooms: 2,
+              yearBuilt: 1985,
+              latitude: 39.96,
+              longitude: -82.99,
+              estimatedValue: 999999,
+            };
+          },
+          propertyComps: async (body) => {
+            compsBodies.push(body);
+            return mockComps;
+          },
           propertySearch: async () => ({ data: [] }),
         },
         checkRoadBarrier: async () => ({ crossed: false, degraded: false }),
       }
     );
+    assert.ok(compsBodies.length >= 1);
+    assert.equal(compsBodies[0].address, '1 Main St, Columbus, OH 43215');
+    assert.equal(typeof compsBodies[0].max_radius_miles, 'number');
+    assert.equal(compsBodies[0].latitude, undefined);
+    assert.equal(compsBodies[0].radius, undefined);
     assert.equal(out.ok, true);
     assert.ok(out.leadPatch.estARV > 0);
     assert.notEqual(out.leadPatch.estARV, 999999);
