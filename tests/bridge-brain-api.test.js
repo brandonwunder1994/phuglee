@@ -282,13 +282,13 @@ test('oversized body returns 413 PAYLOAD_TOO_LARGE', async () => {
   assert.equal(json.code, 'PAYLOAD_TOO_LARGE');
 });
 
-test('water_shut_off uploadType returns 400 WATER_TRAINING_UNSUPPORTED', async () => {
+test('water_shut_off uploadType returns 400 TRAINING_UNSUPPORTED_UPLOAD_TYPE', async () => {
   const { status, json } = await callBridge('POST', '/api/bridge/brain/decisions', {
     headers: adminHeaders(),
     body: jsonBody(denyDistressedBody({ uploadType: 'water_shut_off' }))
   });
   assert.equal(status, 400);
-  assert.equal(json.code, 'WATER_TRAINING_UNSUPPORTED');
+  assert.equal(json.code, 'TRAINING_UNSUPPORTED_UPLOAD_TYPE');
 });
 
 test('invalid action returns 400', async () => {

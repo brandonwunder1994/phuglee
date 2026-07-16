@@ -358,6 +358,7 @@
   function buildQuery() {
     const params = new URLSearchParams();
     if (state.leadType && state.leadType !== 'all') params.set('leadType', state.leadType);
+    params.set('surface', 'home');
     if (state.state) params.set('state', state.state);
     if (state.city) params.set('city', state.city);
     if (state.q) params.set('q', state.q);
@@ -1584,22 +1585,13 @@
         links.push({ label: c.address || `Comp ${i + 1}`, url: c.streetViewUrl });
       }
     });
-    const pass = String(l?.compBlockPass || '').toLowerCase();
-    const passActive = pass === 'pass' ? ' is-active' : '';
-    const killActive = pass === 'kill' ? ' is-active' : '';
-    return `<div class="vault-comp-block" id="vault-sv-block">
+    if (!links.length) return '';
+    return `<div class="vault-comp-block">
       <h4 class="vault-comp-subhead">Street View</h4>
-      ${links.length
-        ? `<div class="vault-sv-links">${links.map((link) =>
-          `<a href="${esc(link.url)}" class="phuglee-btn phuglee-btn-ghost vault-sv-link" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a>`
-        ).join('')}</div>`
-        : '<p class="vault-comp-meta">Open Street View for the subject and comps, then Pass or Kill the barrier call.</p>'}
-      <div class="vault-block-pass" role="group" aria-label="Barrier Street View check">
-        <span class="vault-block-pass-label">Barrier check</span>
-        <button type="button" class="phuglee-btn phuglee-btn-ghost vault-block-pass-btn${passActive}" data-block-pass="pass" aria-pressed="${pass === 'pass' ? 'true' : 'false'}">Pass</button>
-        <button type="button" class="phuglee-btn phuglee-btn-ghost vault-block-pass-btn vault-block-pass-btn--kill${killActive}" data-block-pass="kill" aria-pressed="${pass === 'kill' ? 'true' : 'false'}">Kill</button>
-        ${pass ? `<span class="vault-block-pass-status">Saved: <strong>${esc(pass)}</strong></span>` : '<span class="vault-block-pass-status vault-block-pass-status--empty">Not set</span>'}
-      </div>
+      <div class="vault-sv-links">${links.map((link) =>
+        `<a href="${esc(link.url)}" class="phuglee-btn phuglee-btn-ghost vault-sv-link" target="_blank" rel="noopener noreferrer">${esc(link.label)}</a>`
+      ).join('')}</div>
+      ${l.compBlockPass ? `<p class="vault-comp-meta">Block check: <strong>${esc(l.compBlockPass)}</strong></p>` : ''}
     </div>`;
   }
 
@@ -1912,14 +1904,11 @@
         <button type="button" id="vault-manual-add-row" class="phuglee-btn phuglee-btn-ghost">Add comp</button>
       </div>
       <div class="vault-field">
-        <span class="vault-field-label">Propelio report (required — PDF or image)</span>
+        <span class="vault-field-label">Propelio report (PDF or image)</span>
         <div class="vault-manual-dropzone" id="vault-manual-dropzone">
           <p>Drop files here or <label class="vault-manual-file-label"><input type="file" id="vault-manual-file" class="vault-manual-file-input" accept=".pdf,image/png,image/jpeg,image/webp" multiple hidden>choose files</label></p>
           <ul id="vault-manual-file-list" class="vault-manual-file-list"></ul>
         </div>
-        ${Array.isArray(l.compReportFiles) && l.compReportFiles.length
-          ? `<p class="vault-comp-meta">This lead already has ${l.compReportFiles.length} report file(s) on file.</p>`
-          : '<p class="vault-comp-meta">A Propelio report upload is required before save.</p>'}
       </div>
       <div class="vault-manual-footer">
         <button type="button" id="vault-manual-save" class="phuglee-btn phuglee-btn-primary vault-comp-btn">Save Comp Report</button>
@@ -1957,20 +1946,16 @@
         return;
       }
     }
-    const existing = state.manualCompLead
-      || state.leads.find((x) => x.leadId === leadId)
-      || null;
-    const existingFiles = Array.isArray(existing?.compReportFiles) ? existing.compReportFiles.length : 0;
-    if (!state.manualCompFiles.length && !existingFiles) {
-      showToast('Upload a Propelio report before saving');
-      $('vault-manual-dropzone')?.classList.add('is-required-miss');
-      return;
-    }
     const note = ($('vault-manual-note')?.value || '').trim();
     const saveBtn = $('vault-manual-save');
     if (saveBtn) saveBtn.disabled = true;
     try {
-      let lead = existing || null;
+      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/manual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ arv, comps, note: note || undefined })
+      });
+      let lead = data.lead;
       for (const file of state.manualCompFiles) {
         const contentBase64 = await fileToBase64(file);
         const uploaded = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/report-file`, {
@@ -1984,12 +1969,6 @@
         });
         if (uploaded.lead) lead = uploaded.lead;
       }
-      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/manual`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ arv, comps, note: note || undefined })
-      });
-      if (data.lead) lead = data.lead;
       closeManualCompPanel();
       if (lead) patchLeadInState(lead);
       state.drawerSection = 'comping';
@@ -2041,13 +2020,7 @@
         patchLeadInState(data.lead);
         state.drawerSection = 'comping';
         await openDrawer(leadId);
-        const blocked = data.report?.confidence === 'blocked';
-        const kept = data.report?.arvPreserved === true;
-        showToast(
-          blocked
-            ? (kept ? 'Comp blocked — prior ARV kept' : 'Comp complete — ARV blocked')
-            : 'Comp complete'
-        );
+        showToast(data.report?.confidence === 'blocked' ? 'Comp complete — ARV blocked' : 'Comp complete');
       }
     } catch (err) {
       showToast(err.message || 'Comp failed');
@@ -2087,13 +2060,40 @@
     const adminBtn = isVaultAdmin()
       ? '<button type="button" id="vault-under-contract-btn" class="phuglee-btn phuglee-btn-primary">Move to Under Contract</button>'
       : '';
+    const houseType = l.leadType === 'distressed' || l.leadType === 'well_maintained';
+    const promoteBtn = houseType
+      ? `<button type="button" id="vault-promote-land-btn" class="phuglee-btn phuglee-btn-secondary">Underwrite as land</button>`
+      : '';
     return `<div class="vault-action-strip">
       ${renderCompActionStrip(l)}
       <a href="${esc(mapsUrl(l))}" class="phuglee-btn phuglee-btn-secondary" target="_blank" rel="noopener noreferrer">Maps</a>
       <a href="${esc(analyzeUrl(l))}" class="phuglee-btn phuglee-btn-ghost" target="_blank" rel="noopener noreferrer">Analyze</a>
       <button type="button" id="vault-copy-addr" class="phuglee-btn phuglee-btn-ghost">Copy address</button>
       <button type="button" id="vault-fav-btn" class="phuglee-btn phuglee-btn-ghost" data-fav="${favorite ? '1' : '0'}">${favorite ? '★ Saved' : '☆ Favorite'}</button>
+      ${promoteBtn}
       ${adminBtn}
+    </div>
+    <div id="vault-promote-land-panel" class="vault-panel-block vault-promote-land-panel" hidden>
+      <p class="vault-field-hint">Moves this lead to <strong>Land Vault</strong> as a teardown (leaves Home Vault). Pitch: builder / new-construction path — vacant-lot FMV − demo − ≥$5K − fee → LAO.</p>
+      <label class="vault-field">
+        <span class="vault-field-label">Demo estimate ($)</span>
+        <input type="number" id="vault-promote-demo" class="phuglee-input" min="0" step="500" placeholder="e.g. 12000" inputmode="decimal">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Structure note</span>
+        <input type="text" id="vault-promote-note" class="phuglee-input" maxlength="240" placeholder="Older / small footprint, corridor cues…">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Reason</span>
+        <select id="vault-promote-reason" class="phuglee-select">
+          <option value="operator">Operator judgment</option>
+          <option value="contract_below_land_value">Contract below land value</option>
+        </select>
+      </label>
+      <div class="vault-promote-land-actions">
+        <button type="button" id="vault-promote-land-confirm" class="phuglee-btn phuglee-btn-primary">Promote to Land Vault</button>
+        <button type="button" id="vault-promote-land-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
     </div>`;
   }
 
@@ -2486,6 +2486,10 @@
     try {
       const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`);
       const l = data.lead;
+      if (l && l.leadType === 'land') {
+        window.location.replace(`/land-vault?lead=${encodeURIComponent(leadId)}`);
+        return;
+      }
       if (title) title.textContent = l.address || 'Lead';
 
       body.innerHTML = `
@@ -2575,6 +2579,46 @@
       }
     });
 
+    $('vault-promote-land-btn')?.addEventListener('click', () => {
+      const panel = $('vault-promote-land-panel');
+      if (panel) panel.hidden = false;
+      $('vault-promote-demo')?.focus();
+    });
+
+    $('vault-promote-land-cancel')?.addEventListener('click', () => {
+      const panel = $('vault-promote-land-panel');
+      if (panel) panel.hidden = true;
+    });
+
+    $('vault-promote-land-confirm')?.addEventListener('click', async () => {
+      if (!window.confirm(
+        `Promote ${l.address || 'this lead'} to Land Vault as a teardown?\n\nIt will leave Home Vault and use land underwriting (demo → LAO).`
+      )) return;
+      const btn = $('vault-promote-land-confirm');
+      if (btn) btn.disabled = true;
+      const demoRaw = $('vault-promote-demo')?.value;
+      const demoEstimate = demoRaw === '' || demoRaw == null ? null : Number(demoRaw);
+      const structureNote = String($('vault-promote-note')?.value || '').trim();
+      const reason = String($('vault-promote-reason')?.value || 'operator').trim();
+      try {
+        const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/promote-to-land`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            demoEstimate: Number.isFinite(demoEstimate) ? demoEstimate : null,
+            structureNote,
+            reason
+          })
+        });
+        showToast('Promoted to Land Vault');
+        const dest = data.redirect || `/land-vault?lead=${encodeURIComponent(leadId)}`;
+        window.location.assign(dest);
+      } catch (err) {
+        showToast(err.message || 'Could not promote lead');
+        if (btn) btn.disabled = false;
+      }
+    });
+
     $('vault-copy-addr')?.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(fullAddress(l));
@@ -2586,28 +2630,6 @@
 
     $('vault-comp-btn')?.addEventListener('click', () => {
       runComp(leadId).catch((err) => showToast(err.message || 'Comp failed'));
-    });
-
-    document.querySelectorAll('[data-block-pass]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const pass = btn.dataset.blockPass;
-        if (pass !== 'pass' && pass !== 'kill') return;
-        document.querySelectorAll('[data-block-pass]').forEach((b) => { b.disabled = true; });
-        try {
-          const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/comp/block-pass`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pass })
-          });
-          if (data.lead) patchLeadInState(data.lead);
-          state.drawerSection = 'comping';
-          await openDrawer(leadId);
-          showToast(pass === 'pass' ? 'Barrier check: Pass' : 'Barrier check: Kill');
-        } catch (err) {
-          showToast(err.message || 'Could not save barrier check');
-          document.querySelectorAll('[data-block-pass]').forEach((b) => { b.disabled = false; });
-        }
-      });
     });
 
     $('vault-hero-img')?.addEventListener('click', () => {

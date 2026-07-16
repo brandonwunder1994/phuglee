@@ -11,6 +11,7 @@
   var DISPOS_USER = 'brad';
   var DISPOS_PATHS = {
     '/vault': true,
+    '/land-vault': true,
     '/under-contract': true,
     '/pipeline': true,
     '/buyers': true,
@@ -18,7 +19,7 @@
   };
   var DISPOS_HOME = '/under-contract';
   var VAULT_ONLY_USER = 'matt';
-  var VAULT_ONLY_PATHS = { '/vault': true };
+  var VAULT_ONLY_PATHS = { '/vault': true, '/land-vault': true };
   var VAULT_ONLY_HOME = '/vault';
 
   function sessionApi() {
