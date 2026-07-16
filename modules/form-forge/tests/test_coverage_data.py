@@ -50,7 +50,7 @@ def test_coverage_geojson_has_point_features():
 
 def test_coverage_excludes_unavailable_lead_states():
     payload = build_coverage_payload()
-    blocked = {"Alabama", "Arkansas", "Delaware", "Kentucky", "South Carolina", "Tennessee", "Virginia"}
+    blocked = {"Alabama", "Arkansas", "Delaware", "Kentucky", "South Carolina", "Virginia"}
     states = {s["name"] for s in payload["states"]}
     city_states = {c["state"] for c in payload["cities"]}
     assert not states & blocked
@@ -66,7 +66,6 @@ def test_unavailable_states_constant_matches_blocked_list():
         "Delaware",
         "Kentucky",
         "South Carolina",
-        "Tennessee",
         "Virginia",
     })
 

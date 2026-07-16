@@ -21,7 +21,6 @@ LEADS_UNAVAILABLE_STATES = frozenset({
     "Delaware",
     "Kentucky",
     "South Carolina",
-    "Tennessee",
     "Virginia",
 })
 

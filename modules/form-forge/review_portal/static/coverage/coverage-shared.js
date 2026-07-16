@@ -16,7 +16,6 @@
     'Delaware',
     'Kentucky',
     'South Carolina',
-    'Tennessee',
     'Virginia'
   ]);
 

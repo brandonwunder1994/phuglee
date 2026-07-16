@@ -1,17 +1,15 @@
 (function () {
   const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
 
-  const PROPERTIES_LINKS = [
+  const DATA_LINKS = [
     { id: 'collect', label: 'Collect', href: '/collect' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
-    { id: 'analyzer', label: 'Analyze', href: '/analyzer/' },
-    { id: 'forge-portal', label: 'City Tracker', href: '/forge/portal' }
+    { id: 'analyzer', label: 'Analyze', href: '/analyzer/' }
   ];
 
-  const ADMIN_PROPERTIES_LINKS = [
-    { id: 'pipeline', label: 'Sales Pipeline', href: '/pipeline' },
-    { id: 'under-contract', label: 'Contract Tracker', href: '/under-contract' },
-    { id: 'operating-costs', label: 'Operating Costs', href: '/operating-costs' }
+  const PIPELINE_LINKS = [
+    { id: 'under-contract', label: 'Under Contract', href: '/under-contract' },
+    { id: 'pipeline', label: 'All Leads', href: '/pipeline' }
   ];
 
   function isAdminUser() {
@@ -54,15 +52,9 @@
     return isAdminUser() || isDisposUser();
   }
 
-  function propertiesLinks() {
-    if (isDisposUser() || isVaultOnlyUser()) return [];
-    if (!isAdminUser()) return PROPERTIES_LINKS.slice();
-    return PROPERTIES_LINKS.concat(ADMIN_PROPERTIES_LINKS);
-  }
-
   const FORGE_LINKS = [
     { id: 'forge-desk', label: 'PDF Filler', href: '/forge/' },
-    { id: 'forge-portal', label: 'Request Tracker', href: '/forge/portal' },
+    { id: 'forge-portal', label: 'Track Progress', href: '/forge/portal' },
     { id: 'forge-map', label: 'Map', href: '/forge/map' },
     { id: 'forge-pdfs', label: 'Request PDFs', href: '/forge/portal/request-pdfs' },
     { id: 'forge-submit', label: 'Submit Portals', href: '/forge/portal/submit-portals' },
@@ -105,14 +97,23 @@
     for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
     }
-    for (const link of propertiesLinks()) {
+    for (const link of DATA_LINKS) {
       if (matchLink(p, link.href)) return link.id;
     }
     return null;
   }
 
+  function isDataSectionActive(current) {
+    return DATA_LINKS.some((l) => l.id === current);
+  }
+
+  function isPipelineSectionActive(current) {
+    return PIPELINE_LINKS.some((l) => l.id === current);
+  }
+
+  // Back-compat alias for older tests / callers.
   function isPropertiesSectionActive(current) {
-    return propertiesLinks().some((l) => l.id === current);
+    return isDataSectionActive(current);
   }
 
   function linkClass(id, current) {
@@ -186,54 +187,83 @@
     }
   }
 
-  function buildPropertiesDropdown(current) {
-    const sectionActive = isPropertiesSectionActive(current);
+  function buildNavDropdown(opts) {
+    const {
+      id,
+      label,
+      links,
+      sectionActive
+    } = opts;
     const triggerClass = sectionActive
       ? 'shell-link shell-nav-dropdown-trigger active'
       : 'shell-link shell-nav-dropdown-trigger';
-    const itemsHtml = propertiesLinks().map((l) => {
-      const itemActive = current === l.id;
-      const icon = l.emoji ? `<span class="shell-nav-dropdown-icon" aria-hidden="true">${l.emoji}</span>` : '';
+    const itemsHtml = links.map((l) => {
+      const itemActive = opts.current === l.id;
+      const icon = l.emoji
+        ? `<span class="shell-nav-dropdown-icon" aria-hidden="true">${l.emoji}</span>`
+        : '';
       return `<a href="${l.href}" class="shell-nav-dropdown-item${itemActive ? ' active' : ''}" role="menuitem"${itemActive ? ' aria-current="page"' : ''}>${icon}<span class="shell-nav-dropdown-label">${l.label}</span></a>`;
     }).join('');
 
+    const wrapId = `shell-${id}-dropdown-wrap`;
+    const triggerId = `shell-${id}-trigger`;
+    const menuId = `shell-${id}-menu`;
+
     return `
-      <div class="shell-nav-dropdown" id="shell-properties-dropdown-wrap">
+      <div class="shell-nav-dropdown" id="${wrapId}" data-shell-dropdown="${id}">
         <button
           type="button"
           class="${triggerClass}"
-          id="shell-properties-trigger"
+          id="${triggerId}"
           aria-expanded="false"
           aria-haspopup="true"
-          aria-controls="shell-properties-menu"
+          aria-controls="${menuId}"
         >
-          Properties
+          ${label}
           <svg class="shell-nav-dropdown-chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
             <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="shell-nav-dropdown-menu" id="shell-properties-menu" role="menu" hidden>
+        <div class="shell-nav-dropdown-menu" id="${menuId}" role="menu" hidden>
           ${itemsHtml}
         </div>
       </div>`;
   }
 
+  function buildDataDropdown(current) {
+    return buildNavDropdown({
+      id: 'data',
+      label: 'Data',
+      links: DATA_LINKS,
+      sectionActive: isDataSectionActive(current),
+      current
+    });
+  }
+
+  function buildPipelineDropdown(current) {
+    return buildNavDropdown({
+      id: 'pipeline',
+      label: 'Pipeline',
+      links: PIPELINE_LINKS,
+      sectionActive: isPipelineSectionActive(current),
+      current
+    });
+  }
+
   function buildNav(pathname) {
     const current = activeId(pathname);
     const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>The Vault</a>`;
-    const pipelineHtml = `<a href="/pipeline" class="${linkClass('pipeline', current)}"${current === 'pipeline' ? ' aria-current="page"' : ''}>Sales Pipeline</a>`;
-    const contractHtml = `<a href="/under-contract" class="${linkClass('under-contract', current)}"${current === 'under-contract' ? ' aria-current="page"' : ''}>Contract Tracker</a>`;
 
     let linksHtml;
     if (isVaultOnlyUser()) {
       linksHtml = vaultHtml;
     } else if (isDisposUser()) {
-      // Disposition partner: Tracker + Pipeline glance + Vault
-      linksHtml = contractHtml + pipelineHtml + vaultHtml;
+      linksHtml = buildPipelineDropdown(current) + vaultHtml;
     } else {
       const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
-      const propertiesHtml = buildPropertiesDropdown(current);
-      linksHtml = dashboardHtml + vaultHtml + propertiesHtml;
+      const dataHtml = buildDataDropdown(current);
+      const pipelineHtml = isAdminUser() ? buildPipelineDropdown(current) : '';
+      linksHtml = dashboardHtml + vaultHtml + dataHtml + pipelineHtml;
     }
 
     const actionsHtml = isAuthenticated()
@@ -321,55 +351,58 @@
     });
   }
 
-  function closePropertiesDropdown() {
-    const menu = document.getElementById('shell-properties-menu');
-    const trigger = document.getElementById('shell-properties-trigger');
-    const wrap = document.getElementById('shell-properties-dropdown-wrap');
-    if (!menu) return;
-    menu.hidden = true;
+  function closeDropdown(wrap) {
+    if (!wrap) return;
+    const menu = wrap.querySelector('.shell-nav-dropdown-menu');
+    const trigger = wrap.querySelector('.shell-nav-dropdown-trigger');
+    if (menu) menu.hidden = true;
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    wrap?.classList.remove('is-open');
+    wrap.classList.remove('is-open');
   }
 
-  function openPropertiesDropdown() {
-    const menu = document.getElementById('shell-properties-menu');
-    const trigger = document.getElementById('shell-properties-trigger');
-    const wrap = document.getElementById('shell-properties-dropdown-wrap');
-    if (!menu) return;
-    menu.hidden = false;
+  function openDropdown(wrap) {
+    if (!wrap) return;
+    const menu = wrap.querySelector('.shell-nav-dropdown-menu');
+    const trigger = wrap.querySelector('.shell-nav-dropdown-trigger');
+    if (menu) menu.hidden = false;
     if (trigger) trigger.setAttribute('aria-expanded', 'true');
-    wrap?.classList.add('is-open');
+    wrap.classList.add('is-open');
   }
 
-  function togglePropertiesDropdown() {
-    const menu = document.getElementById('shell-properties-menu');
-    if (!menu) return;
-    if (menu.hidden) openPropertiesDropdown();
-    else closePropertiesDropdown();
-  }
-
-  function bindPropertiesDropdown(root) {
-    if (!root || root.dataset.propertiesBound === '1') return;
-    const wrap = root.querySelector('#shell-properties-dropdown-wrap');
-    const trigger = root.querySelector('#shell-properties-trigger');
-    if (!wrap || !trigger) return;
-    root.dataset.propertiesBound = '1';
-
-    trigger.addEventListener('click', (e) => {
-      e.stopPropagation();
-      togglePropertiesDropdown();
+  function closeAllDropdowns(root) {
+    (root || document).querySelectorAll('[data-shell-dropdown]').forEach((wrap) => {
+      closeDropdown(wrap);
     });
+  }
 
-    wrap.querySelectorAll('.shell-nav-dropdown-item').forEach((link) => {
-      link.addEventListener('click', () => closePropertiesDropdown());
+  function bindNavDropdowns(root) {
+    if (!root || root.dataset.dropdownsBound === '1') return;
+    const wraps = root.querySelectorAll('[data-shell-dropdown]');
+    if (!wraps.length) return;
+    root.dataset.dropdownsBound = '1';
+
+    wraps.forEach((wrap) => {
+      const trigger = wrap.querySelector('.shell-nav-dropdown-trigger');
+      if (!trigger) return;
+
+      trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wasOpen = wrap.classList.contains('is-open');
+        closeAllDropdowns(root);
+        if (!wasOpen) openDropdown(wrap);
+      });
+
+      wrap.querySelectorAll('.shell-nav-dropdown-item').forEach((link) => {
+        link.addEventListener('click', () => closeAllDropdowns(root));
+      });
     });
 
     document.addEventListener('click', (e) => {
-      if (!wrap.contains(e.target)) closePropertiesDropdown();
+      if (![...wraps].some((w) => w.contains(e.target))) closeAllDropdowns(root);
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closePropertiesDropdown();
+      if (e.key === 'Escape') closeAllDropdowns(root);
     });
   }
 
@@ -448,7 +481,7 @@
         document.body.style.paddingTop = h + 'px';
       }
       guardNavLinks(wrap);
-      bindPropertiesDropdown(wrap);
+      bindNavDropdowns(wrap);
       bindMobileChrome(wrap);
     }
 
@@ -476,7 +509,7 @@
     }
   }
 
-  // Cookie-restored sessions arrive async — remount once so admin Contract Tracker appears.
+  // Cookie-restored sessions arrive async — remount once so admin Pipeline menu appears.
   if (window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
     window.PhugleeSession.syncSessionFromServerCookie().then(function (data) {
       if (data && data.username) mount();
@@ -488,7 +521,11 @@
     buildNav,
     buildFooter,
     activeId,
-    PROPERTIES_LINKS,
+    DATA_LINKS,
+    PIPELINE_LINKS,
+    PROPERTIES_LINKS: DATA_LINKS,
+    isDataSectionActive,
+    isPipelineSectionActive,
     isPropertiesSectionActive,
     isAdminUser,
     isDisposUser,

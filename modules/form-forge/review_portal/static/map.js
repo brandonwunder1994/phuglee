@@ -116,7 +116,6 @@ const LEADS_UNAVAILABLE_STATES = new Set([
   "Delaware",
   "Kentucky",
   "South Carolina",
-  "Tennessee",
   "Virginia",
 ]);
 

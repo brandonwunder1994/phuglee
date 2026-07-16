@@ -92,10 +92,10 @@
       '<div class="shell-settings-section">' +
         '<div class="shell-settings-section-label">Contract desk</div>' +
         '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
-          '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
+          '<span class="shell-settings-item-icon">◇</span> Under Contract' +
         '</a>' +
         '<a href="/pipeline" class="shell-settings-item" role="menuitem">' +
-          '<span class="shell-settings-item-icon">▦</span> Sales Pipeline' +
+          '<span class="shell-settings-item-icon">▦</span> All Leads' +
         '</a>' +
       '</div>'
     );
@@ -116,12 +116,6 @@
       '<div class="shell-settings-section" data-admin-only>' +
         '<div class="shell-settings-section-label">Admin</div>' +
         analyzerItems +
-        '<a href="/pipeline" class="shell-settings-item" role="menuitem">' +
-          '<span class="shell-settings-item-icon">▦</span> Sales Pipeline' +
-        '</a>' +
-        '<a href="/under-contract" class="shell-settings-item" role="menuitem">' +
-          '<span class="shell-settings-item-icon">◇</span> Contract Tracker' +
-        '</a>' +
         '<a href="/operating-costs" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">$</span> Operating Costs' +
         '</a>' +
@@ -132,7 +126,7 @@
           '<span class="shell-settings-item-icon">📄</span> PDF Filler' +
         '</a>' +
         '<a href="/forge/portal" class="shell-settings-item" role="menuitem">' +
-          '<span class="shell-settings-item-icon">📋</span> Request Tracker' +
+          '<span class="shell-settings-item-icon">📋</span> Track Progress' +
         '</a>' +
         '<a href="/forge/portal/portal-errors" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">⚠</span> Portal Errors' +
