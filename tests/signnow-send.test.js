@@ -160,4 +160,80 @@ describe('signnow-send helpers', () => {
       /return api\('POST', `\/document\/\$\{documentId\}\/invite`, \{[\s\S]*?subject/
     );
   });
+
+  it('skips JV for opened/signed team alerts', () => {
+    const { shouldNotifySignNowKind } = require('../lib/leads-platform/signnow-send');
+    assert.equal(shouldNotifySignNowKind('aoc'), true);
+    assert.equal(shouldNotifySignNowKind('amendment'), true);
+    assert.equal(shouldNotifySignNowKind('jv'), false);
+    assert.equal(shouldNotifySignNowKind('jv_agreement', 'jv'), false);
+  });
+});
+
+describe('SignNow open detection', () => {
+  const {
+    detectCounterpartyOpened,
+    inviteStatusLooksOpened
+  } = require('../lib/leads-platform/signnow-client');
+
+  const team = ['brandon@wunderhausgroup.com', 'buyhomes995@gmail.com'];
+
+  it('treats open/viewed/fulfilled invite statuses as opened', () => {
+    assert.equal(inviteStatusLooksOpened('opened'), true);
+    assert.equal(inviteStatusLooksOpened('viewed'), true);
+    assert.equal(inviteStatusLooksOpened('fulfilled'), true);
+    assert.equal(inviteStatusLooksOpened('pending'), false);
+    assert.equal(inviteStatusLooksOpened('created'), false);
+  });
+
+  it('detects counterparty open from invite status and ignores team', () => {
+    const doc = {
+      field_invites: [
+        { email: 'brandon@wunderhausgroup.com', status: 'fulfilled' },
+        { email: 'buyer@example.com', status: 'opened' }
+      ]
+    };
+    const hit = detectCounterpartyOpened(doc, [], { teamEmails: team });
+    assert.equal(hit.opened, true);
+    assert.equal(hit.byEmail, 'buyer@example.com');
+    assert.equal(hit.source, 'invite_status');
+  });
+
+  it('detects counterparty open from history events', () => {
+    const doc = {
+      field_invites: [
+        { email: 'brandon@wunderhausgroup.com', status: 'fulfilled' },
+        { email: 'seller@example.com', status: 'pending' }
+      ]
+    };
+    const history = [
+      { event: 'document_open', email: 'brandon@wunderhausgroup.com' },
+      { event: 'document_viewed', email: 'seller@example.com' }
+    ];
+    const hit = detectCounterpartyOpened(doc, history, { teamEmails: team });
+    assert.equal(hit.opened, true);
+    assert.equal(hit.byEmail, 'seller@example.com');
+    assert.equal(hit.source, 'history');
+  });
+
+  it('does not treat team-only opens as counterparty opened', () => {
+    const doc = {
+      field_invites: [
+        { email: 'brandon@wunderhausgroup.com', status: 'fulfilled' },
+        { email: 'buyer@example.com', status: 'pending' }
+      ]
+    };
+    const history = [{ event: 'document_open', email: 'brandon@wunderhausgroup.com' }];
+    const hit = detectCounterpartyOpened(doc, history, { teamEmails: team });
+    assert.equal(hit.opened, false);
+  });
+});
+
+describe('SignNow alert copy helpers', () => {
+  it('labels document kinds for SMS/email subjects', () => {
+    const { docKindLabel } = require('../lib/leads-platform/team-notify');
+    assert.equal(docKindLabel('aoc'), 'AOC');
+    assert.equal(docKindLabel('amendment'), 'Amendment');
+    assert.equal(docKindLabel('jv'), 'JV');
+  });
 });
