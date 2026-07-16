@@ -3,6 +3,7 @@
 /* ── [hidden] must win over display:flex on overlays ── */
 .vault-lightbox[hidden],
 .vault-drawer[hidden],
+.vault-manual-comp[hidden],
 .vault-bulk-bar[hidden],
 #vault-gate[hidden],
 #vault-app[hidden],
@@ -1540,6 +1541,442 @@
   color: var(--phuglee-stone);
 }
 
+/* ── Comp / ARV report ── */
+.vault-comp-btn {
+  background: var(--phuglee-gold) !important;
+  color: var(--phuglee-black) !important;
+  border-color: rgba(238, 183, 70, 0.55) !important;
+  font-weight: 700;
+  min-height: 2.75rem;
+}
+
+.vault-comp-btn:hover:not(:disabled) {
+  background: #f5c85a !important;
+}
+
+.vault-arv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--phuglee-cream);
+  background: rgba(238, 183, 70, 0.12);
+  border: 1px solid rgba(238, 183, 70, 0.35);
+  border-radius: var(--radius-pill);
+}
+
+.vault-comp-conf {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.38rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--vault-border);
+}
+
+.vault-comp-conf--high,
+.vault-comp-conf--manual {
+  color: var(--phuglee-gold);
+  border-color: rgba(238, 183, 70, 0.35);
+  background: rgba(238, 183, 70, 0.1);
+}
+
+.vault-comp-conf--medium {
+  color: var(--phuglee-orange);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.1);
+}
+
+.vault-comp-conf--low,
+.vault-comp-conf--blocked {
+  color: var(--phuglee-stone);
+  border-color: var(--vault-border);
+  background: rgba(156, 150, 138, 0.12);
+}
+
+.vault-comp-report {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.vault-comp-hero {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(238, 183, 70, 0.28);
+  background: rgba(238, 183, 70, 0.06);
+}
+
+.vault-comp-hero-label {
+  margin: 0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.vault-comp-hero-val {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--phuglee-gold);
+}
+
+.vault-comp-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.vault-comp-date {
+  font-size: 0.72rem;
+  color: var(--vault-muted);
+}
+
+.vault-comp-block {
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid rgba(176, 169, 156, 0.1);
+}
+
+.vault-comp-block:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.vault-comp-subhead {
+  margin: 0 0 0.35rem;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.vault-comp-meta,
+.vault-comp-note {
+  margin: 0.2rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--vault-muted);
+}
+
+.vault-haircut-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1rem;
+  font-size: 0.76rem;
+  color: var(--phuglee-taupe);
+}
+
+.vault-rule-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.vault-rule-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.65rem;
+  font-size: 0.76rem;
+}
+
+.vault-rule-summary-id {
+  color: var(--phuglee-cream);
+  font-weight: 600;
+}
+
+.vault-rule-summary-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.vault-rule-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--vault-border);
+}
+
+.vault-rule-pill--pass {
+  color: var(--phuglee-gold);
+  border-color: rgba(238, 183, 70, 0.35);
+}
+
+.vault-rule-pill--soft {
+  color: var(--phuglee-orange);
+  border-color: rgba(229, 132, 53, 0.35);
+}
+
+.vault-rule-pill--fail {
+  color: #d48484;
+  border-color: rgba(212, 132, 132, 0.35);
+}
+
+.vault-comps-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.vault-comps-table--full {
+  min-width: 36rem;
+}
+
+.vault-comp-included td {
+  color: var(--phuglee-cream);
+}
+
+.vault-comp-excluded td {
+  color: var(--phuglee-stone);
+  opacity: 0.75;
+}
+
+.vault-comp-incl-badge {
+  display: inline-block;
+  padding: 0.08rem 0.32rem;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  background: var(--vault-surface-raised);
+  border: 1px solid var(--vault-border);
+}
+
+.vault-comp-included .vault-comp-incl-badge {
+  color: var(--phuglee-gold);
+  border-color: rgba(238, 183, 70, 0.35);
+}
+
+.vault-comp-excluded .vault-comp-incl-badge {
+  color: var(--phuglee-stone);
+}
+
+.vault-comp-rules-col {
+  min-width: 7rem;
+}
+
+.vault-sv-mini {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--phuglee-orange);
+  text-decoration: none;
+}
+
+.vault-sv-mini:hover {
+  color: var(--phuglee-gold);
+}
+
+.vault-comp-avm-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-stone);
+}
+
+.vault-comp-avm-note {
+  font-size: 0.72rem;
+  color: var(--phuglee-stone);
+  font-style: italic;
+}
+
+.vault-sv-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.vault-sv-link {
+  min-height: 2.5rem;
+}
+
+.vault-comp-files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.vault-comp-file {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.vault-comp-file-link {
+  color: var(--phuglee-cream);
+  text-decoration: none;
+}
+
+.vault-comp-file-link:hover {
+  color: var(--phuglee-gold);
+}
+
+.vault-comp-file-dl {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--phuglee-orange);
+}
+
+.vault-comp-file-size {
+  font-size: 0.68rem;
+  color: var(--vault-muted);
+}
+
+/* Manual Comp panel */
+.vault-manual-comp {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+}
+
+.vault-manual-comp-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.68);
+}
+
+.vault-manual-comp-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: min(100%, 28rem);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--vault-surface);
+  border-left: 1px solid var(--vault-border-strong);
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.45);
+}
+
+.vault-manual-comp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--vault-border);
+}
+
+.vault-manual-comp-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-cream);
+}
+
+.vault-manual-comp-body {
+  padding: 0.85rem 1rem 1.5rem;
+  overflow: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.vault-manual-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--vault-muted);
+}
+
+.vault-manual-comp-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-bottom: 0.45rem;
+}
+
+.vault-manual-comp-row {
+  display: grid;
+  grid-template-columns: 1fr 5.5rem;
+  gap: 0.35rem;
+}
+
+.vault-manual-comp-row .vault-manual-field:nth-child(1) {
+  grid-column: 1 / -1;
+}
+
+.vault-manual-remove {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+
+.vault-manual-dropzone {
+  padding: 0.85rem;
+  border: 1px dashed rgba(238, 183, 70, 0.35);
+  border-radius: var(--radius-md);
+  background: rgba(238, 183, 70, 0.04);
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--vault-muted);
+}
+
+.vault-manual-dropzone.is-dragover {
+  border-color: var(--phuglee-gold);
+  background: rgba(238, 183, 70, 0.1);
+}
+
+.vault-manual-file-label {
+  color: var(--phuglee-orange);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.vault-manual-file-list {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  text-align: left;
+}
+
+.vault-manual-file-item {
+  font-size: 0.76rem;
+  color: var(--phuglee-cream);
+  padding: 0.2rem 0;
+}
+
+.vault-manual-footer {
+  margin-top: 0.35rem;
+}
+
+.vault-manual-footer .vault-comp-btn {
+  width: 100%;
+  min-height: 2.85rem;
+}
+
 .vault-keyboard-hint {
   margin: 0.5rem 0 0;
   font-size: 0.66rem;
@@ -1759,7 +2196,10 @@
   .vault-type-tab,
   .vault-signal-chip,
   .vault-export-btn,
-  .vault-view-btn {
+  .vault-view-btn,
+  .vault-comp-btn,
+  .vault-sv-link,
+  .vault-manual-remove {
     min-height: 44px !important;
     padding: 0.55rem 0.85rem !important;
     box-sizing: border-box;
