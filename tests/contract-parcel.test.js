@@ -81,6 +81,25 @@ describe('contract parcel from REAPI', () => {
     assert.equal(next.aocSend.legalDescription, 'Legal from REAPI');
   });
 
+  it('treats title-company placeholder as blank and overwrites aocSend', () => {
+    const deal = {
+      aocSend: {
+        apn: 'Q6521033000054',
+        legalDescription: 'To be provided by title company'
+      }
+    };
+    assert.equal(
+      needsContractParcelPull(readContractParcelFields({}, deal)),
+      true
+    );
+    const { deal: next, changed } = seedAocSendParcel(deal, {
+      apn: 'Q6521033000054',
+      legalDescription: 'REAL LEGAL LOT 1'
+    });
+    assert.equal(changed, true);
+    assert.equal(next.aocSend.legalDescription, 'REAL LEGAL LOT 1');
+  });
+
   it('needsContractParcelPull detects blanks', () => {
     assert.equal(needsContractParcelPull({ apn: '1', legalDescription: 'x' }), false);
     assert.equal(needsContractParcelPull({ apn: '1', legalDescription: '' }), true);
