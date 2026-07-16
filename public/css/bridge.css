@@ -3318,6 +3318,21 @@ button.bridge-inventory-filter-chip.is-active {
   color: #9ec8f0;
 }
 
+.bridge-list-land-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  color: #c9a227;
+  border: 1px solid rgba(201, 162, 39, 0.4);
+  background: rgba(201, 162, 39, 0.1);
+}
+
 .bridge-list-status {
   display: inline-block;
   padding: 0.18rem 0.5rem;
