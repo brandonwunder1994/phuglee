@@ -159,6 +159,58 @@ test('POST /api/leads/:id/comp/manual saves estARV', async () => {
   assert.equal(saved.estARV, 275000);
 });
 
+test('POST /api/leads/:id/comp on comped lead without replace returns confirmReplace, ARV unchanged', async () => {
+  const lead = txLead();
+  store.upsertLead(lead);
+  const comps = [
+    { address: 'a', price: 270000, soldDate: '2026-01-01', sqft: 1400, beds: 3, baths: 2 },
+    { address: 'b', price: 280000, soldDate: '2026-02-01', sqft: 1450, beds: 3, baths: 2 },
+    { address: 'c', price: 275000, soldDate: '2026-03-01', sqft: 1420, beds: 3, baths: 2 }
+  ];
+  const manualRes = await callApi('/api/leads/tx-comp-lead/comp/manual', 'POST', {
+    arv: 275000,
+    comps,
+    note: 'Propelio CMA'
+  });
+  assert.equal(manualRes.statusCode, 200);
+  const savedBefore = store.getLead('tx-comp-lead');
+  assert.equal(savedBefore.estARV, 275000);
+  assert.ok(savedBefore.compedAt);
+
+  const res = await callApi('/api/leads/tx-comp-lead/comp', 'POST', {});
+  assert.equal(res.statusCode, 200);
+  const body = JSON.parse(res.body);
+  assert.equal(body.ok, true);
+  assert.equal(body.confirmReplace, true);
+  assert.equal(body.needsManual, undefined);
+  const savedAfter = store.getLead('tx-comp-lead');
+  assert.equal(savedAfter.estARV, 275000);
+  assert.equal(savedAfter.compedAt, savedBefore.compedAt);
+});
+
+test('POST /api/leads/:id/comp with replace:true on comped TX lead proceeds to needsManual', async () => {
+  const lead = txLead();
+  store.upsertLead(lead);
+  const comps = [
+    { address: 'a', price: 270000, soldDate: '2026-01-01', sqft: 1400, beds: 3, baths: 2 },
+    { address: 'b', price: 280000, soldDate: '2026-02-01', sqft: 1450, beds: 3, baths: 2 },
+    { address: 'c', price: 275000, soldDate: '2026-03-01', sqft: 1420, beds: 3, baths: 2 }
+  ];
+  await callApi('/api/leads/tx-comp-lead/comp/manual', 'POST', {
+    arv: 275000,
+    comps,
+    note: 'Propelio CMA'
+  });
+
+  const res = await callApi('/api/leads/tx-comp-lead/comp', 'POST', { replace: true });
+  assert.equal(res.statusCode, 200);
+  const body = JSON.parse(res.body);
+  assert.equal(body.ok, true);
+  assert.equal(body.needsManual, true);
+  assert.equal(body.confirmReplace, undefined);
+  assert.equal(body.state, 'TX');
+});
+
 test('POST /api/leads/:id/comp on OH lead without API key returns 503', async () => {
   const lead = ohLead();
   store.upsertLead(lead);
