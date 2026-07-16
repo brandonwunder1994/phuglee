@@ -13,7 +13,9 @@ const {
   TEMPLATES,
   SENDER,
   BRAD,
-  WUNDERHAUS_JV_ROLE
+  WUNDERHAUS_JV_ROLE,
+  splitAcrossLines,
+  estimateTextFieldCapacity
 } = require('../lib/leads-platform/signnow-send');
 const { fieldPayloadFromDoc } = require('../lib/leads-platform/signnow-client');
 
@@ -167,6 +169,22 @@ describe('signnow-send helpers', () => {
     assert.equal(shouldNotifySignNowKind('amendment'), true);
     assert.equal(shouldNotifySignNowKind('jv'), false);
     assert.equal(shouldNotifySignNowKind('jv_agreement', 'jv'), false);
+  });
+
+  it('fills amendment term fields to capacity before wrapping to the next line', () => {
+    const words = Array.from({ length: 40 }, (_, i) => `word${i}`);
+    const text = words.join(' ');
+    const lines = splitAcrossLines(text, [50, 50, 50, 50, 50]);
+    assert.equal(lines.length, 5);
+    assert.ok(lines[0].length >= 40, `expected full first line, got ${lines[0].length}: ${lines[0]}`);
+    assert.ok(lines[0].length <= 50);
+    const used = lines.filter((l) => l);
+    assert.equal(used.join(' '), text);
+  });
+
+  it('estimates SignNow text capacity from field width', () => {
+    const caps = estimateTextFieldCapacity({ width: 500, height: 18, size: 11 });
+    assert.ok(caps >= 90, `expected ~full-width capacity, got ${caps}`);
   });
 });
 
