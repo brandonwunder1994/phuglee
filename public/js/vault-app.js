@@ -2060,13 +2060,40 @@
     const adminBtn = isVaultAdmin()
       ? '<button type="button" id="vault-under-contract-btn" class="phuglee-btn phuglee-btn-primary">Move to Under Contract</button>'
       : '';
+    const houseType = l.leadType === 'distressed' || l.leadType === 'well_maintained';
+    const promoteBtn = houseType
+      ? `<button type="button" id="vault-promote-land-btn" class="phuglee-btn phuglee-btn-secondary">Underwrite as land</button>`
+      : '';
     return `<div class="vault-action-strip">
       ${renderCompActionStrip(l)}
       <a href="${esc(mapsUrl(l))}" class="phuglee-btn phuglee-btn-secondary" target="_blank" rel="noopener noreferrer">Maps</a>
       <a href="${esc(analyzeUrl(l))}" class="phuglee-btn phuglee-btn-ghost" target="_blank" rel="noopener noreferrer">Analyze</a>
       <button type="button" id="vault-copy-addr" class="phuglee-btn phuglee-btn-ghost">Copy address</button>
       <button type="button" id="vault-fav-btn" class="phuglee-btn phuglee-btn-ghost" data-fav="${favorite ? '1' : '0'}">${favorite ? '★ Saved' : '☆ Favorite'}</button>
+      ${promoteBtn}
       ${adminBtn}
+    </div>
+    <div id="vault-promote-land-panel" class="vault-panel-block vault-promote-land-panel" hidden>
+      <p class="vault-field-hint">Moves this lead to <strong>Land Vault</strong> as a teardown (leaves Home Vault). Pitch: builder / new-construction path — vacant-lot FMV − demo − ≥$5K − fee → LAO.</p>
+      <label class="vault-field">
+        <span class="vault-field-label">Demo estimate ($)</span>
+        <input type="number" id="vault-promote-demo" class="phuglee-input" min="0" step="500" placeholder="e.g. 12000" inputmode="decimal">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Structure note</span>
+        <input type="text" id="vault-promote-note" class="phuglee-input" maxlength="240" placeholder="Older / small footprint, corridor cues…">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Reason</span>
+        <select id="vault-promote-reason" class="phuglee-select">
+          <option value="operator">Operator judgment</option>
+          <option value="contract_below_land_value">Contract below land value</option>
+        </select>
+      </label>
+      <div class="vault-promote-land-actions">
+        <button type="button" id="vault-promote-land-confirm" class="phuglee-btn phuglee-btn-primary">Promote to Land Vault</button>
+        <button type="button" id="vault-promote-land-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
     </div>`;
   }
 
@@ -2548,6 +2575,46 @@
         try { await loadBootstrap(); } catch (_) { /* list already updated */ }
       } catch (err) {
         showToast(err.message || 'Could not move lead');
+        if (btn) btn.disabled = false;
+      }
+    });
+
+    $('vault-promote-land-btn')?.addEventListener('click', () => {
+      const panel = $('vault-promote-land-panel');
+      if (panel) panel.hidden = false;
+      $('vault-promote-demo')?.focus();
+    });
+
+    $('vault-promote-land-cancel')?.addEventListener('click', () => {
+      const panel = $('vault-promote-land-panel');
+      if (panel) panel.hidden = true;
+    });
+
+    $('vault-promote-land-confirm')?.addEventListener('click', async () => {
+      if (!window.confirm(
+        `Promote ${l.address || 'this lead'} to Land Vault as a teardown?\n\nIt will leave Home Vault and use land underwriting (demo → LAO).`
+      )) return;
+      const btn = $('vault-promote-land-confirm');
+      if (btn) btn.disabled = true;
+      const demoRaw = $('vault-promote-demo')?.value;
+      const demoEstimate = demoRaw === '' || demoRaw == null ? null : Number(demoRaw);
+      const structureNote = String($('vault-promote-note')?.value || '').trim();
+      const reason = String($('vault-promote-reason')?.value || 'operator').trim();
+      try {
+        const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/promote-to-land`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            demoEstimate: Number.isFinite(demoEstimate) ? demoEstimate : null,
+            structureNote,
+            reason
+          })
+        });
+        showToast('Promoted to Land Vault');
+        const dest = data.redirect || `/land-vault?lead=${encodeURIComponent(leadId)}`;
+        window.location.assign(dest);
+      } catch (err) {
+        showToast(err.message || 'Could not promote lead');
         if (btn) btn.disabled = false;
       }
     });

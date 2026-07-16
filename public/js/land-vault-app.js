@@ -40,6 +40,12 @@
   const LAO_COMP_ROWS = 3;
   const LAND_COMP_MANUAL_ROWS = 3;
 
+  const LAND_SIGNAL_CHIPS = [
+    'Tax delinquent',
+    'Code (vacant)',
+    'Auction/tax sale'
+  ];
+
   const state = {
     state: '',
     city: '',
@@ -49,6 +55,8 @@
     sortDir: 'desc',
     hasPhone: false,
     landVerdict: 'all',
+    assetClass: 'all',
+    signals: [],
     meta: null,
     statesFiltered: null,
     citiesFiltered: null,
@@ -58,6 +66,7 @@
     totalPages: 1,
     activeLeadId: null,
     loading: false,
+    taxDirtScript: null,
     searchTimer: null,
     toastTimer: null,
     focusRestoreEl: null,
@@ -118,6 +127,10 @@
     if (state.landVerdict && state.landVerdict !== 'all') {
       params.set('landVerdict', state.landVerdict);
     }
+    if (state.assetClass && state.assetClass !== 'all') {
+      params.set('assetClass', state.assetClass);
+    }
+    (state.signals || []).forEach((s) => params.append('signal', s));
     params.set('page', String(state.page));
     params.set('sort', state.sort);
     params.set('sortDir', state.sortDir);
@@ -126,7 +139,9 @@
 
   function filtersAreActive() {
     return !!(state.state || state.city || state.q || state.hasPhone
-      || (state.landVerdict && state.landVerdict !== 'all'));
+      || (state.landVerdict && state.landVerdict !== 'all')
+      || (state.assetClass && state.assetClass !== 'all')
+      || (state.signals && state.signals.length));
   }
 
   function emptyChecks() {
@@ -424,8 +439,40 @@
     }</div>`;
   }
 
+  function leadHasTaxDirtSignal(l) {
+    const blob = [
+      ...(Array.isArray(l.signalTags) ? l.signalTags : []),
+      l.topSignal
+    ].map((s) => String(s || '').toLowerCase()).join(' ');
+    return /\btax\b/.test(blob) || blob.includes('auction') || blob.includes('delinquent');
+  }
+
+  function renderTaxDirtSection(l) {
+    if (!leadHasTaxDirtSignal(l)) return '';
+    const script = state.taxDirtScript || {
+      title: 'Tax Dirt script',
+      frame: 'Frame unused land as an expense (tax bill), not an investment.',
+      lines: [
+        'You’re still paying property taxes on that dirt every year, right?',
+        'Would it help if I just took that off your hands so you don’t have to keep paying for something you’re not using?'
+      ],
+      notes: ['Pause after the first question — let them answer.']
+    };
+    const linesHtml = (script.lines || []).map((line, i) =>
+      `<li><span class="land-vault-tax-dirt-num">${i + 1}.</span> ${esc(line)}</li>`
+    ).join('');
+    const notesHtml = (script.notes || []).map((n) => `<li>${esc(n)}</li>`).join('');
+    return `<section class="vault-dossier-section land-vault-tax-dirt">
+      <h3>${esc(script.title || 'Tax Dirt script')}</h3>
+      <p class="vault-field-hint">${esc(script.frame || '')}</p>
+      <ol class="land-vault-tax-dirt-lines">${linesHtml}</ol>
+      ${notesHtml ? `<ul class="land-vault-tax-dirt-notes">${notesHtml}</ul>` : ''}
+      <button type="button" class="phuglee-btn phuglee-btn-secondary" data-action="copy-tax-dirt">Copy script</button>
+    </section>`;
+  }
+
   function hotSignalClass(signal) {
-    const hot = ['pre-foreclosure', 'vacant', 'water shut-off', 'tax delinquent'];
+    const hot = ['pre-foreclosure', 'vacant', 'water shut-off', 'tax delinquent', 'auction/tax sale', 'code (vacant)'];
     return hot.includes(String(signal || '').toLowerCase()) ? ' vault-signal--hot' : '';
   }
 
@@ -454,6 +501,8 @@
     }
     if ($('land-vault-has-phone')) $('land-vault-has-phone').checked = state.hasPhone;
     syncVerdictTabs();
+    syncAssetClassTabs();
+    syncSignalChips();
   }
 
   function syncVerdictTabs() {
@@ -462,6 +511,23 @@
       tab.classList.toggle('is-active', active);
       tab.setAttribute('aria-selected', active ? 'true' : 'false');
     });
+  }
+
+  function syncAssetClassTabs() {
+    document.querySelectorAll('#land-vault-asset-tabs .vault-type-tab').forEach((tab) => {
+      const active = (tab.dataset.asset || 'all') === state.assetClass;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+
+  function syncSignalChips() {
+    const wrap = $('land-vault-signal-chips');
+    if (!wrap) return;
+    wrap.innerHTML = LAND_SIGNAL_CHIPS.map((label) => {
+      const active = (state.signals || []).includes(label);
+      return `<button type="button" class="vault-signal-chip${active ? ' is-active' : ''}" data-signal="${esc(label)}" aria-pressed="${active ? 'true' : 'false'}">${esc(label)}</button>`;
+    }).join('');
   }
 
   function applyListFacets(data = {}) {
@@ -514,14 +580,22 @@
     const wrap = $('land-vault-kpis');
     if (!wrap) return;
     const m = state.meta || {};
+    const q = m.landQueue || {};
     const set = (key, val) => {
       const el = wrap.querySelector(`[data-kpi="${key}"]`);
       if (el) el.textContent = val == null ? '—' : Number(val).toLocaleString();
     };
     set('total', m.total);
-    set('phone', m.withPhone);
-    set('fresh', m.freshThisWeek);
-    set('mapped', m.withCoords);
+    set('needsScreen', q.needsScreen);
+    set('keep', q.keep);
+    set('fundShaped', q.fundShaped);
+    wrap.querySelectorAll('.vault-kpi--btn').forEach((btn) => {
+      const filter = btn.dataset.kpiFilter || '';
+      const active = filter
+        ? state.landVerdict === filter
+        : (!state.landVerdict || state.landVerdict === 'all');
+      btn.classList.toggle('is-active', active);
+    });
   }
 
   function showSkeleton() {
@@ -581,10 +655,19 @@
       const verdict = row.landVerdict || 'pending';
       const verdictCls = verdictBadgeClass(verdict);
       const fundName = row.topFundName ? String(row.topFundName) : '—';
+      const teardownBadge = row.assetClass === 'teardown'
+        ? '<span class="land-vault-teardown-badge" title="Promoted house → land teardown">Teardown</span>'
+        : '';
+      const acres = row.acres != null && Number(row.acres) > 0
+        ? String(Math.round(Number(row.acres) * 100) / 100)
+        : '—';
+      const zoning = row.zoning ? String(row.zoning) : '—';
       return `<tr class="vault-row" data-lead-id="${esc(row.leadId)}" tabindex="0">
         <td class="vault-col-thumb">${thumbHtml(row)}</td>
-        <td>${esc(row.address)}</td>
+        <td>${esc(row.address)}${teardownBadge ? ` ${teardownBadge}` : ''}</td>
         <td>${esc(row.city || '—')}</td>
+        <td class="land-vault-col-acres">${esc(acres)}</td>
+        <td class="land-vault-col-zoning">${esc(zoning)}</td>
         <td><span class="vault-signal${hotSignalClass(signal)}">${esc(signal)}</span></td>
         <td><span class="land-vault-verdict${verdictCls}">${esc(formatVerdictLabel(verdict))}</span></td>
         <td class="land-vault-col-fund">${esc(fundName)}</td>
@@ -990,14 +1073,50 @@
         </section>`
       : '';
 
+    const isTeardown = l.assetClass === 'teardown' || (l.teardown && l.teardown.promotedAt);
+    const teardownBlock = isTeardown
+      ? `<section class="vault-dossier-section land-vault-teardown-section">
+          <h3>Teardown <span class="land-vault-teardown-badge">Teardown</span></h3>
+          <p class="vault-field-hint">Not a fix-and-flip — builder / new-construction path. Offer math: vacant-lot FMV − demo − ≥$5K − fee → LAO.</p>
+          <dl class="vault-dl">
+            <div><dt>Promoted from</dt><dd>${esc(l.teardown?.promotedFromLeadType || '—')}</dd></div>
+            <div><dt>Demo estimate</dt><dd>${l.teardown?.demoEstimate != null ? `$${Number(l.teardown.demoEstimate).toLocaleString()}` : '—'}</dd></div>
+            <div><dt>Reason</dt><dd>${esc(l.teardown?.reason || 'operator')}</dd></div>
+            <div><dt>Structure note</dt><dd>${esc(l.teardown?.structureNote || '—')}</dd></div>
+          </dl>
+        </section>`
+      : '';
+
+    const pd = l.propertyDetails && typeof l.propertyDetails === 'object' ? l.propertyDetails : {};
+    let acresVal = pd.acres != null ? Number(pd.acres) : null;
+    if ((!Number.isFinite(acresVal) || acresVal <= 0) && pd.lotSqft != null) {
+      acresVal = Number(pd.lotSqft) / 43560;
+    }
+    const acresLabel = Number.isFinite(acresVal) && acresVal > 0
+      ? `${Math.round(acresVal * 100) / 100} ac`
+      : '—';
+    const zoningLabel = String(pd.zoning || pd.zoningCode || pd.landUse || '').trim() || '—';
+
     return `
       ${hero}
       <div class="vault-dossier land-vault-dossier">
+        <div class="land-vault-packet-actions">
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" data-action="download-builder-packet">Download builder packet</button>
+          <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="copy-builder-packet">Copy packet</button>
+        </div>
         <section class="vault-dossier-section">
           <h3>Address</h3>
-          <p class="land-vault-drawer-address">${esc(fullAddress(l))}</p>
+          <p class="land-vault-drawer-address">${esc(fullAddress(l))}${isTeardown ? ' <span class="land-vault-teardown-badge">Teardown</span>' : ''}</p>
           <p><a href="${esc(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress(l))}`)}" class="vault-text-btn" target="_blank" rel="noopener noreferrer">Open in Maps</a></p>
         </section>
+        <section class="vault-dossier-section">
+          <h3>Parcel</h3>
+          <dl class="vault-dl">
+            <div><dt>Acres</dt><dd>${esc(acresLabel)}</dd></div>
+            <div><dt>Zoning</dt><dd>${esc(zoningLabel)}</dd></div>
+          </dl>
+        </section>
+        ${teardownBlock}
         <section class="vault-dossier-section">
           <h3>Owner</h3>
           <p>${esc(l.ownerName || '—')}</p>
@@ -1014,6 +1133,7 @@
         ${renderScreenSection(landScreen)}
         ${renderLandCompSection(l)}
         ${renderLaoSection(landUnderwriting, landScreen)}
+        ${renderTaxDirtSection(l)}
         ${noteBlock}
       </div>
     `;
@@ -1591,9 +1711,12 @@
     state.q = '';
     state.hasPhone = false;
     state.landVerdict = 'all';
+    state.assetClass = 'all';
+    state.signals = [];
     state.page = 1;
     syncFilterControls();
     populateGeoSelects();
+    renderKpis();
     refreshList().catch((err) => showToast(err.message || 'Could not refresh'));
   }
 
@@ -1640,6 +1763,44 @@
       state.landVerdict = verdict;
       state.page = 1;
       syncVerdictTabs();
+      renderKpis();
+      refreshList().catch((err) => showToast(err.message || 'Could not filter'));
+    });
+
+    $('land-vault-kpis')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.vault-kpi--btn[data-kpi-filter]');
+      if (!btn) return;
+      const verdict = btn.dataset.kpiFilter || 'all';
+      const next = verdict || 'all';
+      if (state.landVerdict === next) return;
+      state.landVerdict = next;
+      state.page = 1;
+      syncVerdictTabs();
+      renderKpis();
+      refreshList().catch((err) => showToast(err.message || 'Could not filter'));
+    });
+
+    $('land-vault-asset-tabs')?.addEventListener('click', (e) => {
+      const tab = e.target.closest('.vault-type-tab[data-asset]');
+      if (!tab) return;
+      const asset = tab.dataset.asset || 'all';
+      if (state.assetClass === asset) return;
+      state.assetClass = asset;
+      state.page = 1;
+      syncAssetClassTabs();
+      refreshList().catch((err) => showToast(err.message || 'Could not filter'));
+    });
+
+    $('land-vault-signal-chips')?.addEventListener('click', (e) => {
+      const chip = e.target.closest('.vault-signal-chip[data-signal]');
+      if (!chip) return;
+      const signal = chip.dataset.signal;
+      if (!signal) return;
+      const idx = state.signals.indexOf(signal);
+      if (idx >= 0) state.signals.splice(idx, 1);
+      else state.signals.push(signal);
+      state.page = 1;
+      syncSignalChips();
       refreshList().catch((err) => showToast(err.message || 'Could not filter'));
     });
 
@@ -1708,6 +1869,28 @@
             })
             .catch((err) => showToast(err.message || 'Could not refresh'));
         }
+        return;
+      }
+      if (act === 'copy-tax-dirt') {
+        e.preventDefault();
+        const script = state.taxDirtScript || {};
+        const copyText = [
+          script.frame || 'Frame unused land as an expense (tax bill), not an investment.',
+          '',
+          ...(script.lines || [
+            'You’re still paying property taxes on that dirt every year, right?',
+            'Would it help if I just took that off your hands so you don’t have to keep paying for something you’re not using?'
+          ]).map((line, i) => `${i + 1}. ${line}`)
+        ].join('\n');
+        navigator.clipboard.writeText(copyText)
+          .then(() => showToast('Tax Dirt script copied'))
+          .catch(() => showToast('Could not copy'));
+        return;
+      }
+      if (act === 'download-builder-packet' || act === 'copy-builder-packet') {
+        e.preventDefault();
+        downloadOrCopyBuilderPacket(act === 'copy-builder-packet')
+          .catch((err) => showToast(err.message || 'Packet failed'));
       }
     });
 
@@ -1752,6 +1935,29 @@
     }
   }
 
+  async function downloadOrCopyBuilderPacket(copyOnly) {
+    const leadId = state.activeLeadId;
+    if (!leadId) throw new Error('No lead open');
+    const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/builder-packet`);
+    const text = data.packet || '';
+    if (!text) throw new Error('Empty packet');
+    if (copyOnly) {
+      await navigator.clipboard.writeText(text);
+      showToast('Builder packet copied');
+      return;
+    }
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = data.filename || 'builder-packet.txt';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    showToast('Builder packet downloaded');
+  }
+
   async function init() {
     let me = {};
     try {
@@ -1767,6 +1973,11 @@
 
     bindEvents();
     syncFilterControls();
+
+    try {
+      const scriptData = await fetchJson('/api/leads/land/tax-dirt-script');
+      if (scriptData.script) state.taxDirtScript = scriptData.script;
+    } catch (_) { /* offline / gate — inline fallback in UI */ }
 
     try {
       showSkeleton();

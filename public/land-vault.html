@@ -15,8 +15,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/vault.css?v=22">
-  <link rel="stylesheet" href="/css/land-vault.css?v=5">
+  <link rel="stylesheet" href="/css/vault.css?v=24">
+  <link rel="stylesheet" href="/css/land-vault.css?v=8">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -57,11 +57,23 @@
           <h1 class="vault-title vault-title--desk">Land Desk</h1>
           <p class="vault-hero-sub">Vacant lots · screened inventory · builder / fund match</p>
         </div>
-        <div id="land-vault-kpis" class="vault-kpis" aria-label="Land catalog snapshot">
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="total">—</span><span class="vault-kpi-label">Lots</span></div>
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="phone">—</span><span class="vault-kpi-label">Dial-ready</span></div>
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="fresh">—</span><span class="vault-kpi-label">Fresh 7d</span></div>
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="mapped">—</span><span class="vault-kpi-label">Mapped</span></div>
+        <div id="land-vault-kpis" class="vault-kpis land-vault-kpis" aria-label="Land queue snapshot">
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="" title="Show all lots">
+            <span class="vault-kpi-val" data-kpi="total">—</span>
+            <span class="vault-kpi-label">Lots</span>
+          </button>
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="pending" title="Filter: Needs screen">
+            <span class="vault-kpi-val" data-kpi="needsScreen">—</span>
+            <span class="vault-kpi-label">Needs screen</span>
+          </button>
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="keep" title="Filter: Keep">
+            <span class="vault-kpi-val" data-kpi="keep">—</span>
+            <span class="vault-kpi-label">Keep</span>
+          </button>
+          <button type="button" class="vault-kpi vault-kpi--btn" data-kpi-filter="fund-shaped" title="Filter: Fund-shaped">
+            <span class="vault-kpi-val" data-kpi="fundShaped">—</span>
+            <span class="vault-kpi-label">Fund-shaped</span>
+          </button>
         </div>
       </header>
 
@@ -94,6 +106,18 @@
               <button type="button" class="vault-type-tab" role="tab" data-verdict="fund-shaped" aria-selected="false">Fund-shaped</button>
             </div>
           </div>
+          <div class="vault-field">
+            <span class="vault-field-label">Asset</span>
+            <div id="land-vault-asset-tabs" class="vault-type-tabs land-vault-asset-tabs" role="tablist" aria-label="Asset class">
+              <button type="button" class="vault-type-tab is-active" role="tab" data-asset="all" aria-selected="true">All</button>
+              <button type="button" class="vault-type-tab" role="tab" data-asset="vacant_lot" aria-selected="false">Vacant lot</button>
+              <button type="button" class="vault-type-tab" role="tab" data-asset="teardown" aria-selected="false">Teardown</button>
+            </div>
+          </div>
+          <div class="vault-field">
+            <span class="vault-field-label">Land signals</span>
+            <div id="land-vault-signal-chips" class="vault-signal-chips land-vault-signal-chips" role="group" aria-label="Land signal filters"></div>
+          </div>
           <button type="button" id="land-vault-clear-filters" class="phuglee-btn phuglee-btn-ghost vault-clear-btn">Clear filters</button>
         </aside>
 
@@ -108,6 +132,8 @@
                   <th scope="col" class="vault-col-thumb">Photo</th>
                   <th scope="col"><button type="button" class="vault-sort-btn" data-sort="address" aria-sort="none">Address</button></th>
                   <th scope="col" class="vault-col-city"><button type="button" class="vault-sort-btn" data-sort="city" aria-sort="none">City</button></th>
+                  <th scope="col" class="land-vault-col-acres">Acres</th>
+                  <th scope="col" class="land-vault-col-zoning">Zoning</th>
                   <th scope="col">Signal</th>
                   <th scope="col">Verdict</th>
                   <th scope="col">Fund</th>
@@ -157,6 +183,6 @@
   <script src="/js/shell-nav.js?v=20" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/auth.js?v=distress20" defer></script>
-  <script src="/js/land-vault-app.js?v=4" defer></script>
+  <script src="/js/land-vault-app.js?v=7" defer></script>
 </body>
 </html>

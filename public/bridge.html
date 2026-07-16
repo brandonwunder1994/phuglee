@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/bridge.css?v=82">
+  <link rel="stylesheet" href="/css/bridge.css?v=83">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -195,6 +195,11 @@
             <label for="bridge-outcome-type">Request type
               <select id="bridge-outcome-type" class="phuglee-select">
                 <option value="code_violation">Code violation</option>
+                <option value="pre_lien">Pre-lien</option>
+                <option value="tax_delinquent">Tax delinquent</option>
+                <option value="lis_pendens">Pre-foreclosure</option>
+                <option value="probate">Probate</option>
+                <option value="fire">Fire</option>
                 <option value="water_shutoff">Water shutoff</option>
               </select>
             </label>
@@ -212,6 +217,26 @@
         <label class="bridge-type-chip phuglee-chip">
           <input type="radio" name="bridge-upload-type" value="code_violation" checked />
           <span class="bridge-type-chip-face phuglee-chip-face">Code violation</span>
+        </label>
+        <label class="bridge-type-chip phuglee-chip">
+          <input type="radio" name="bridge-upload-type" value="pre_lien" />
+          <span class="bridge-type-chip-face phuglee-chip-face">Pre-lien</span>
+        </label>
+        <label class="bridge-type-chip phuglee-chip">
+          <input type="radio" name="bridge-upload-type" value="tax_delinquent" />
+          <span class="bridge-type-chip-face phuglee-chip-face">Tax delinquent</span>
+        </label>
+        <label class="bridge-type-chip phuglee-chip">
+          <input type="radio" name="bridge-upload-type" value="lis_pendens" />
+          <span class="bridge-type-chip-face phuglee-chip-face">Pre-foreclosure</span>
+        </label>
+        <label class="bridge-type-chip phuglee-chip">
+          <input type="radio" name="bridge-upload-type" value="probate" />
+          <span class="bridge-type-chip-face phuglee-chip-face">Probate</span>
+        </label>
+        <label class="bridge-type-chip phuglee-chip">
+          <input type="radio" name="bridge-upload-type" value="fire" />
+          <span class="bridge-type-chip-face phuglee-chip-face">Fire</span>
         </label>
         <label class="bridge-type-chip phuglee-chip">
           <input type="radio" name="bridge-upload-type" value="water_shut_off" />
@@ -571,6 +596,6 @@
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=85" defer></script>
+  <script src="/js/bridge.js?v=86" defer></script>
 </body>
 </html>

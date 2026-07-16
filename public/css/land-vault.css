@@ -49,6 +49,103 @@
   margin-top: 0.35rem;
 }
 
+.land-vault-asset-tabs {
+  margin-top: 0.35rem;
+}
+
+.land-vault-kpis .vault-kpi--btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius-md, 8px);
+  font: inherit;
+}
+
+.land-vault-kpis .vault-kpi--btn:hover,
+.land-vault-kpis .vault-kpi--btn.is-active {
+  border-color: rgba(232, 194, 122, 0.35);
+  background: rgba(232, 194, 122, 0.08);
+}
+
+.land-vault-col-acres,
+.land-vault-col-zoning {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.land-vault-packet-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0 0 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .land-vault-col-zoning {
+    display: none;
+  }
+}
+
+.land-vault-signal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.land-vault-tax-dirt {
+  border-left: 2px solid rgba(232, 194, 122, 0.45);
+  padding-left: 0.75rem;
+}
+
+.land-vault-tax-dirt-lines {
+  margin: 0.5rem 0 0.65rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.land-vault-tax-dirt-lines li {
+  margin: 0.4rem 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.land-vault-tax-dirt-num {
+  color: #e8c27a;
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.land-vault-tax-dirt-notes {
+  margin: 0 0 0.75rem;
+  padding-left: 1.1rem;
+  font-size: 0.78rem;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.65));
+}
+
+.land-vault-teardown-badge {
+  display: inline-block;
+  margin-left: 0.35rem;
+  vertical-align: middle;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.4rem;
+  border-radius: var(--radius-pill, 999px);
+  color: #e8c27a;
+  border: 1px solid rgba(232, 194, 122, 0.4);
+  background: rgba(232, 194, 122, 0.1);
+}
+
+.land-vault-teardown-section .vault-dl {
+  margin-top: 0.5rem;
+}
+
 .land-vault-verdict {
   display: inline-block;
   font-size: 0.68rem;

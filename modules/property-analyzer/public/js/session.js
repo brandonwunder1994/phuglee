@@ -2092,6 +2092,7 @@ $('leadTypeFilter')?.addEventListener('change', (e) => {
 
 $('importLeadTypeSelect')?.addEventListener('change', (e) => {
   state.importLeadType = normalizeLeadType(e.target.value);
+  if (typeof updateImportLandRouteHint === 'function') updateImportLandRouteHint();
 });
 
 bindDistressedSummaryClick($('sumDistressedKpiCard'));

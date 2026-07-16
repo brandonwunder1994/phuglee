@@ -1006,6 +1006,32 @@
   z-index: 3;
 }
 
+.vault-promote-land-panel {
+  margin-top: 0.35rem;
+  padding: 0.85rem 0.9rem;
+  border: 1px solid var(--vault-border, rgba(255, 255, 255, 0.12));
+  border-radius: var(--radius-md, 8px);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.vault-promote-land-panel .vault-field {
+  display: block;
+  margin-top: 0.65rem;
+}
+
+.vault-promote-land-panel .phuglee-input,
+.vault-promote-land-panel .phuglee-select {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.vault-promote-land-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.85rem;
+}
+
 .vault-section-nav {
   display: flex;
   flex-wrap: nowrap;
