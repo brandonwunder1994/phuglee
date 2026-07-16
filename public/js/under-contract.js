@@ -44,7 +44,10 @@
     mediaLightbox: {
       items: [],
       index: 0
-    }
+    },
+    buyerOffers: [],
+    buyerOfferEditIds: {},
+    buyerOfferDrafts: []
   };
 
   function teamUserKey() {
@@ -1703,6 +1706,10 @@
     ).join('');
 
     fillRehabForm(deal.rehabInfo || {});
+    state.buyerOffers = Array.isArray(deal.buyerOffers) ? deal.buyerOffers.slice() : [];
+    state.buyerOfferEditIds = {};
+    state.buyerOfferDrafts = [];
+    renderBuyerOffers();
     state.teamMessages = deal.teamMessages || [];
     renderTeamMessages();
     renderDocuments(deal.documents || []);
@@ -1922,6 +1929,210 @@
       showToast(err.message || 'Could not save rehab info');
     } finally {
       if (btn) btn.disabled = false;
+    }
+  }
+
+  function buyerOfferDraftId() {
+    return `draft_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function syncBuyerOffersHint() {
+    const hint = $('uc-buyer-offers-hint');
+    if (!hint) return;
+    const n = (state.buyerOffers || []).length;
+    hint.textContent = n
+      ? `${n} offer${n === 1 ? '' : 's'} on this property`
+      : 'Offers pitched on this property';
+  }
+
+  function parseOfferAmountInput(raw) {
+    const n = Number(String(raw || '').replace(/[^0-9.-]/g, ''));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function renderBuyerOffers() {
+    const box = $('uc-buyer-offers-list');
+    if (!box) return;
+    const offers = Array.isArray(state.buyerOffers) ? state.buyerOffers : [];
+    const drafts = Array.isArray(state.buyerOfferDrafts) ? state.buyerOfferDrafts : [];
+    const parts = [];
+
+    if (!offers.length && !drafts.length) {
+      parts.push('<p class="uc-buyer-offers-empty">No buyer offers yet. Add who pitched and at what price.</p>');
+    }
+
+    for (const offer of offers) {
+      const id = offer.id;
+      const editing = Boolean(state.buyerOfferEditIds[id]);
+      if (editing) {
+        parts.push(
+          `<div class="uc-buyer-offer-row is-editing" data-offer-id="${esc(id)}">` +
+            `<label class="vault-field">` +
+              `<span class="vault-field-label">Buyer name</span>` +
+              `<input type="text" class="phuglee-input uc-buyer-offer-name" value="${esc(offer.buyerName || '')}" autocomplete="off">` +
+            `</label>` +
+            `<label class="vault-field">` +
+              `<span class="vault-field-label">Offer amount</span>` +
+              `<input type="text" inputmode="decimal" class="phuglee-input uc-buyer-offer-amount" value="${esc(offer.offerAmount ?? '')}" placeholder="88000">` +
+            `</label>` +
+            `<div class="uc-buyer-offer-actions">` +
+              `<button type="button" class="phuglee-btn phuglee-btn-primary" data-buyer-offer-action="save">Save</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="cancel">Cancel</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="remove">Remove</button>` +
+            `</div>` +
+          `</div>`
+        );
+      } else {
+        parts.push(
+          `<div class="uc-buyer-offer-row is-locked" data-offer-id="${esc(id)}">` +
+            `<p class="uc-buyer-offer-locked-name">${esc(offer.buyerName || '—')}</p>` +
+            `<p class="uc-buyer-offer-locked-amount">${esc(money(offer.offerAmount))}</p>` +
+            `<div class="uc-buyer-offer-actions">` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="edit">Edit</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="remove">Remove</button>` +
+            `</div>` +
+          `</div>`
+        );
+      }
+    }
+
+    for (const draft of drafts) {
+      parts.push(
+        `<div class="uc-buyer-offer-row is-draft" data-offer-id="${esc(draft.id)}" data-draft="1">` +
+          `<label class="vault-field">` +
+            `<span class="vault-field-label">Buyer name</span>` +
+            `<input type="text" class="phuglee-input uc-buyer-offer-name" value="${esc(draft.buyerName || '')}" placeholder="Buyer name" autocomplete="off">` +
+          `</label>` +
+          `<label class="vault-field">` +
+            `<span class="vault-field-label">Offer amount</span>` +
+            `<input type="text" inputmode="decimal" class="phuglee-input uc-buyer-offer-amount" value="${esc(draft.offerAmount ?? '')}" placeholder="88000">` +
+          `</label>` +
+          `<div class="uc-buyer-offer-actions">` +
+            `<button type="button" class="phuglee-btn phuglee-btn-primary" data-buyer-offer-action="save">Save</button>` +
+            `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="remove">Remove</button>` +
+          `</div>` +
+        `</div>`
+      );
+    }
+
+    box.innerHTML = parts.join('');
+    syncBuyerOffersHint();
+  }
+
+  function readBuyerOfferRow(row) {
+    const name = (row.querySelector('.uc-buyer-offer-name')?.value || '').trim();
+    const amount = parseOfferAmountInput(row.querySelector('.uc-buyer-offer-amount')?.value);
+    return { buyerName: name, offerAmount: amount };
+  }
+
+  async function persistBuyerOffers(nextList, toastMsg) {
+    const dealId = state.activeDealId;
+    if (!dealId) {
+      showToast('Open a property first, then save');
+      return null;
+    }
+    const data = await saveDealFields(dealId, { buyerOffers: nextList });
+    const saved = Array.isArray(data.deal?.buyerOffers) ? data.deal.buyerOffers : nextList;
+    state.buyerOffers = saved.slice();
+    if (data.deal) {
+      mergeDealIntoState(data.deal);
+      state.profile = { ...(state.profile || {}), ...data.deal };
+    }
+    state.buyerOfferEditIds = {};
+    showToast(toastMsg || 'Buyer offer saved');
+    renderBuyerOffers();
+    return data;
+  }
+
+  function addBuyerOfferDraft() {
+    state.buyerOfferDrafts = (state.buyerOfferDrafts || []).concat([{
+      id: buyerOfferDraftId(),
+      buyerName: '',
+      offerAmount: ''
+    }]);
+    renderBuyerOffers();
+    const list = $('uc-buyer-offers-list');
+    const last = list?.querySelector('.uc-buyer-offer-row.is-draft:last-child .uc-buyer-offer-name');
+    last?.focus();
+  }
+
+  async function onBuyerOfferAction(ev) {
+    const btn = ev.target.closest('[data-buyer-offer-action]');
+    if (!btn) return;
+    const row = btn.closest('.uc-buyer-offer-row');
+    if (!row) return;
+    const action = btn.getAttribute('data-buyer-offer-action');
+    const id = row.getAttribute('data-offer-id') || '';
+    const isDraft = row.getAttribute('data-draft') === '1';
+
+    if (action === 'edit') {
+      state.buyerOfferEditIds = { ...(state.buyerOfferEditIds || {}), [id]: true };
+      renderBuyerOffers();
+      return;
+    }
+
+    if (action === 'cancel') {
+      delete state.buyerOfferEditIds[id];
+      renderBuyerOffers();
+      return;
+    }
+
+    if (action === 'remove') {
+      if (isDraft) {
+        state.buyerOfferDrafts = (state.buyerOfferDrafts || []).filter((d) => d.id !== id);
+        renderBuyerOffers();
+        return;
+      }
+      const next = (state.buyerOffers || []).filter((o) => o.id !== id);
+      try {
+        await persistBuyerOffers(next, 'Buyer offer removed');
+      } catch (err) {
+        showToast(err.message || 'Could not remove buyer offer');
+      }
+      return;
+    }
+
+    if (action === 'save') {
+      const parsed = readBuyerOfferRow(row);
+      if (!parsed.buyerName) {
+        showToast('Enter the buyer name');
+        row.querySelector('.uc-buyer-offer-name')?.focus();
+        return;
+      }
+      if (parsed.offerAmount == null) {
+        showToast('Enter the offer amount');
+        row.querySelector('.uc-buyer-offer-amount')?.focus();
+        return;
+      }
+      btn.disabled = true;
+      try {
+        let next;
+        if (isDraft) {
+          next = (state.buyerOffers || []).concat([{
+            buyerName: parsed.buyerName,
+            offerAmount: parsed.offerAmount,
+            updatedBy: teamUserKey()
+          }]);
+          state.buyerOfferDrafts = (state.buyerOfferDrafts || []).filter((d) => d.id !== id);
+        } else {
+          next = (state.buyerOffers || []).map((o) => (
+            o.id === id
+              ? {
+                ...o,
+                buyerName: parsed.buyerName,
+                offerAmount: parsed.offerAmount,
+                updatedBy: teamUserKey(),
+                updatedAt: new Date().toISOString()
+              }
+              : o
+          ));
+        }
+        await persistBuyerOffers(next, 'Buyer offer saved');
+      } catch (err) {
+        showToast(err.message || 'Could not save buyer offer');
+      } finally {
+        btn.disabled = false;
+      }
     }
   }
 
@@ -2853,6 +3064,10 @@
     $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
+    $('uc-buyer-offer-add')?.addEventListener('click', () => { addBuyerOfferDraft(); });
+    $('uc-buyer-offers-list')?.addEventListener('click', (ev) => {
+      onBuyerOfferAction(ev).catch((err) => showToast(err.message || 'Buyer offer action failed'));
+    });
     $('uc-photo-copy-url-sms')?.addEventListener('click', () => { copyUploadUrl(); });
     $('uc-photo-sms-send')?.addEventListener('click', () => { sendPhotographerSms(); });
     $('uc-photo-sms-refresh')?.addEventListener('click', () => {
