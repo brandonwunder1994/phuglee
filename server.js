@@ -53,6 +53,12 @@ function getOperatingCostsApi() {
   return operatingCostsApiModule;
 }
 
+let buyersApiModule = null;
+function getBuyersApi() {
+  if (!buyersApiModule) buyersApiModule = require('./lib/buyers/api');
+  return buyersApiModule;
+}
+
 function send(res, status, body, type, extraHeaders = {}) {
   res.writeHead(status, {
     'Content-Type': type || 'text/plain; charset=utf-8',
@@ -393,6 +399,11 @@ async function handleRequest(req, res) {
 
   if (pathname.startsWith('/api/admin/operating-costs')) {
     const handled = await getOperatingCostsApi().handle(req, res, pathname, url);
+    if (handled) return;
+  }
+
+  if (pathname.startsWith('/api/buyers')) {
+    const handled = await getBuyersApi().handle(req, res, pathname);
     if (handled) return;
   }
 

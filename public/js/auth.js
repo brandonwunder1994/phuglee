@@ -774,7 +774,7 @@
       if (user === 'matt' && path !== '/vault') {
         return '/vault';
       }
-      if (user === 'brad' && path !== '/vault' && path !== '/under-contract' && path !== '/pipeline') {
+      if (user === 'brad' && path !== '/vault' && path !== '/under-contract' && path !== '/pipeline' && path !== '/buyers' && path !== '/trust-funds') {
         return '/under-contract';
       }
       return dest;
