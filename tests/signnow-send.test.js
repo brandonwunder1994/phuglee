@@ -171,6 +171,60 @@ describe('signnow-send helpers', () => {
     assert.equal(shouldNotifySignNowKind('jv_agreement', 'jv'), false);
   });
 
+  it('matches SignNow library doc names to deal address', () => {
+    const {
+      signNowDocNameMatchesDeal,
+      inferTemplateKeyFromDocName,
+      normalizeMatchText
+    } = require('../lib/leads-platform/signnow-send');
+    const deal = {
+      address: '910 Delaware Ave',
+      city: 'Middletown',
+      state: 'OH',
+      zip: '45044'
+    };
+    assert.equal(
+      signNowDocNameMatchesDeal('Amendment 910 Delaware Ave Middletown OH 45044', deal),
+      true
+    );
+    assert.equal(
+      signNowDocNameMatchesDeal('Amendment — 910 Delaware Ave, Middletown, OH 45044', deal),
+      true
+    );
+    assert.equal(
+      signNowDocNameMatchesDeal('Amendment 910 Delaware Ave Longmont CO 80501', deal),
+      false
+    );
+    assert.equal(inferTemplateKeyFromDocName('Amendment 910 Delaware Ave'), 'amendment');
+    assert.equal(inferTemplateKeyFromDocName('AOC - 910 Delaware Ave'), 'aoc');
+    assert.equal(inferTemplateKeyFromDocName('JV for 910 Delaware Ave'), 'jv');
+    assert.equal(normalizeMatchText('910 Delaware Ave,'), '910 delaware ave');
+  });
+
+  it('fires opened alert even when package is already fully signed', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    assert.match(src, /Fire "opened\/viewed" even when we first notice/);
+    assert.doesNotMatch(
+      src,
+      /if \(opened && !openedAlertedAt && !signed\)/
+    );
+  });
+
+  it('starts server-side SignNow background sync', () => {
+    const contracts = require('../lib/leads-platform/contracts');
+    assert.equal(typeof contracts.startSignNowBackgroundSync, 'function');
+    assert.equal(typeof contracts.rehydrateSignNowPendingFromLibrary, 'function');
+    assert.equal(typeof contracts.ensureSignNowPendingForDeal, 'function');
+    const serverSrc = require('fs').readFileSync(
+      require('path').join(__dirname, '../server.js'),
+      'utf8'
+    );
+    assert.match(serverSrc, /startSignNowBackgroundSync/);
+  });
+
   it('fills amendment term fields to capacity before wrapping to the next line', () => {
     const words = Array.from({ length: 40 }, (_, i) => `word${i}`);
     const text = words.join(' ');

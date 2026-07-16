@@ -665,6 +665,12 @@ function startStandaloneServer() {
     } catch (err) {
       console.warn('[Leads catalog] warm failed:', err.message);
     }
+    try {
+      const { startSignNowBackgroundSync } = require('./lib/leads-platform/contracts');
+      startSignNowBackgroundSync({ intervalMs: 60000 });
+    } catch (err) {
+      console.warn('[signnow] background sync start failed:', err.message);
+    }
     bootModules().catch((err) => {
       console.error('[Distress OS] Module boot error:', err);
     });
