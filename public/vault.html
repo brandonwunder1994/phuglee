@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/vault.css?v=24">
+  <link rel="stylesheet" href="/css/vault.css?v=25">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -133,6 +133,15 @@
               </select>
             </label>
             <label class="vault-field">
+              <span class="vault-field-label">Distress level</span>
+              <select id="vault-distress-level" class="phuglee-select" title="Filter by Analyze distress tier">
+                <option value="">All tiers</option>
+                <option value="5">Moderate (5+)</option>
+                <option value="8" selected>High (8+)</option>
+                <option value="9">Severe (9+)</option>
+              </select>
+            </label>
+            <label class="vault-field">
               <span class="vault-field-label">Min score <span id="vault-min-score-val" class="vault-range-val">0</span></span>
               <input type="range" id="vault-min-score" class="vault-range" min="0" max="100" value="0" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
             </label>
@@ -159,7 +168,7 @@
             </label>
             <label class="vault-field vault-field--check">
               <input type="checkbox" id="vault-smart-defaults" class="vault-check">
-              <span class="vault-field-label">Smart start (phone + distressed)</span>
+              <span class="vault-field-label">Smart start (High distress)</span>
             </label>
           </details>
 
@@ -281,6 +290,6 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=21" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/vault-app.js?v=28" defer></script>
+  <script src="/js/vault-app.js?v=27" defer></script>
 </body>
 </html>
