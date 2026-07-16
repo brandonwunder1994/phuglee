@@ -2217,6 +2217,40 @@
     $('uc-aoc-coe').value = aoc.closingDate || deal.closingDate || deal.closingDisplay || '';
     $('uc-aoc-terms').value = aoc.additionalTerms && aoc.additionalTerms !== 'NA' ? aoc.additionalTerms : '';
     $('uc-buyer-dialog').showModal();
+    ensureAocParcelFields(deal).catch(() => {});
+  }
+
+  async function ensureAocParcelFields(deal) {
+    if (!deal?.dealId) return;
+    const legalEl = $('uc-aoc-legal');
+    const apnEl = $('uc-aoc-apn');
+    const needLegal = !(legalEl && legalEl.value.trim());
+    const needApn = !(apnEl && apnEl.value.trim());
+    if (!needLegal && !needApn) return;
+    try {
+      const data = await api(
+        `/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/ensure-parcel`,
+        { method: 'POST', body: JSON.stringify({}) }
+      );
+      const fields = data.fields || {};
+      if (needLegal && fields.legalDescription && legalEl) {
+        legalEl.value = fields.legalDescription;
+      }
+      if (needApn && fields.apn && apnEl) {
+        apnEl.value = fields.apn;
+      }
+      if (data.deal) {
+        const idx = state.deals.findIndex((d) => d.dealId === data.deal.dealId);
+        if (idx >= 0) state.deals[idx] = data.deal;
+      }
+      if ((needLegal && fields.legalDescription) || (needApn && fields.apn)) {
+        showToast('APN / legal description filled from property records');
+      }
+    } catch (err) {
+      if (needLegal || needApn) {
+        showToast(err.message || 'Could not auto-fill APN / legal');
+      }
+    }
   }
 
   /** First send opens the AOC form; after send, confirm before reminding unsigned parties. */

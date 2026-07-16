@@ -36,6 +36,7 @@ describe('mapReapiDetail nested PropertyDetail', () => {
     const d = mapReapiDetail(fixture);
     assert.equal(d.zoning, 'R-1');
     assert.equal(d.apn, '011279232');
+    assert.match(d.legalDescription, /LOT 12/);
     assert.equal(d.county, 'Pinellas');
     assert.equal(d.landUse, 'VACANT LAND');
     assert.equal(d.lotSqft, 10890);
