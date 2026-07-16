@@ -171,6 +171,147 @@
   margin-top: 0.65rem;
 }
 
+/* Land Comp panel */
+.land-comp-section h3 {
+  margin-bottom: 0.25rem;
+}
+
+.land-comp-intro {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+}
+
+.land-comp-actions {
+  margin-bottom: 0.65rem;
+}
+
+.land-comp-report {
+  margin-top: 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--vault-border, rgba(255, 255, 255, 0.1));
+  border-radius: 0.45rem;
+  background: var(--vault-surface, rgba(255, 255, 255, 0.03));
+}
+
+.land-comp-hero-label {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.65));
+}
+
+.land-comp-hero-val {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.land-comp-hero-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.land-comp-conf {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.land-comp-comp-list {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.land-comp-comp-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.72rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--vault-border, rgba(255, 255, 255, 0.06));
+}
+
+.land-comp-comp-item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.land-comp-comp-addr {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.land-comp-comp-price {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.land-comp-comp-dist {
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.65));
+  white-space: nowrap;
+}
+
+.land-comp-warning {
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+  color: #f0b27a;
+}
+
+.land-comp-manual {
+  margin-top: 0.65rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(240, 178, 122, 0.35);
+  border-radius: 0.45rem;
+  background: rgba(240, 178, 122, 0.06);
+}
+
+.land-comp-manual-hint {
+  margin: 0 0 0.55rem;
+  font-size: 0.72rem;
+  color: #f0b27a;
+}
+
+.land-comp-manual-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.land-comp-manual-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.3rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--vault-border, rgba(255, 255, 255, 0.08));
+}
+
+.land-comp-manual-row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.land-comp-manual-field {
+  font-size: 0.78rem;
+}
+
+.land-comp-manual-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
 /* LAO calculator panel */
 .land-lao-section h3 {
   margin-bottom: 0.25rem;

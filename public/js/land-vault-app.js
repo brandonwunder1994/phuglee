@@ -38,6 +38,7 @@
     prime: { buy: 0.20, sell: 0.25, label: 'Prime (20/25)' }
   };
   const LAO_COMP_ROWS = 3;
+  const LAND_COMP_MANUAL_ROWS = 3;
 
   const state = {
     state: '',
@@ -60,7 +61,10 @@
     searchTimer: null,
     toastTimer: null,
     focusRestoreEl: null,
-    laoLocked: false
+    laoLocked: false,
+    landCompRunning: false,
+    showManualLandComp: false,
+    manualLandCompReason: ''
   };
 
   const $ = (id) => document.getElementById(id);
@@ -759,6 +763,114 @@
     </div>`;
   }
 
+  function formatLandCompDate(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      if (!Number.isFinite(d.getTime())) return '';
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function renderLandCompReport(lead) {
+    const report = lead.landCompingReport;
+    if (!report || typeof report !== 'object') return '';
+    const fmv = report.landFmv != null ? report.landFmv : lead.landUnderwriting?.landFmv;
+    const conf = report.confidence || lead.landCompConfidence || '';
+    const method = report.fmvMethod || report.source || lead.landCompSource || '';
+    const included = report.includedCount != null
+      ? report.includedCount
+      : (Array.isArray(report.comps) ? report.comps.filter((c) => c.includedInFmv !== false).length : 0);
+    const when = formatLandCompDate(report.generatedAt || lead.landCompedAt);
+    const comps = Array.isArray(report.comps) ? report.comps
+      : (Array.isArray(lead.landComps) ? lead.landComps : []);
+    const includedComps = comps.filter((c) => c.includedInFmv !== false);
+    const compItems = includedComps.slice(0, 8).map((c) => {
+      const dist = c.distanceMi != null ? `${Number(c.distanceMi).toFixed(2)} mi` : '—';
+      const price = c.price != null ? `$${Number(c.price).toLocaleString()}` : '—';
+      return `<li class="land-comp-comp-item">
+        <span class="land-comp-comp-addr">${esc(c.address || '—')}</span>
+        <span class="land-comp-comp-price">${esc(price)}</span>
+        <span class="land-comp-comp-dist">${esc(dist)}</span>
+      </li>`;
+    }).join('');
+    const warn = report.sanity?.warning;
+    const metaBits = [
+      conf ? `<span class="land-comp-conf">${esc(conf)}</span>` : '',
+      method ? esc(method) : '',
+      `${included} comp${included === 1 ? '' : 's'}`,
+      when ? esc(when) : ''
+    ].filter(Boolean).join(' · ');
+    return `<div class="land-comp-report">
+      <div class="land-comp-hero">
+        <p class="land-comp-hero-label">Lot FMV</p>
+        <p class="land-comp-hero-val">${esc(formatLaoMoney(fmv))}</p>
+        ${metaBits ? `<p class="land-comp-hero-meta">${metaBits}</p>` : ''}
+      </div>
+      ${compItems ? `<ul class="land-comp-comp-list">${compItems}</ul>` : ''}
+      ${warn ? `<p class="land-comp-warning">${esc(warn)}</p>` : ''}
+    </div>`;
+  }
+
+  function renderManualLandCompRow(idx, row = {}) {
+    return `<div class="land-comp-manual-row" data-land-comp-row="${idx}">
+      <input type="text" class="phuglee-input land-comp-manual-field" data-land-comp-field="address" placeholder="Address" value="${esc(row.address || '')}">
+      <input type="number" class="phuglee-input land-comp-manual-field" data-land-comp-field="price" placeholder="Price" inputmode="numeric" value="${esc(formatLaoInput(row.price ?? row.soldPrice))}">
+      <input type="date" class="phuglee-input land-comp-manual-field" data-land-comp-field="soldDate" value="${esc(row.soldDate || '')}">
+      <input type="number" class="phuglee-input land-comp-manual-field" data-land-comp-field="lotSqft" placeholder="Lot sqft" inputmode="numeric" value="${row.lotSqft != null && row.lotSqft !== '' ? esc(row.lotSqft) : ''}">
+      <input type="number" class="phuglee-input land-comp-manual-field" data-land-comp-field="acres" placeholder="Acres" step="any" value="${row.acres != null && row.acres !== '' ? esc(row.acres) : ''}">
+    </div>`;
+  }
+
+  function renderManualLandCompPanel(lead, reason) {
+    const uw = lead.landUnderwriting || {};
+    const fmv = uw.landFmv ?? lead.landCompingReport?.landFmv ?? '';
+    const existingComps = Array.isArray(lead.landComps) ? lead.landComps : [];
+    const rowCount = Math.max(LAND_COMP_MANUAL_ROWS, existingComps.length);
+    const rows = Array.from({ length: rowCount }, (_, i) => {
+      const c = existingComps[i] || {};
+      return {
+        address: c.address,
+        price: c.price,
+        soldDate: c.soldDate,
+        lotSqft: c.lotSqft,
+        acres: c.acres
+      };
+    });
+    const reasonHint = reason === 'non_disclosure'
+      ? 'Non-disclosure state — enter lot FMV and comps manually.'
+      : 'Thin market or auto comp unavailable — enter lot FMV and at least 2 lot comps.';
+    return `<div class="land-comp-manual" id="land-comp-manual-panel">
+      <p class="land-comp-manual-hint">${esc(reasonHint)}</p>
+      <label class="vault-field">
+        <span class="vault-field-label">Lot FMV ($)</span>
+        <input type="number" class="phuglee-input" id="land-comp-manual-fmv" inputmode="numeric" value="${esc(formatLaoInput(fmv))}">
+      </label>
+      <div class="land-comp-manual-rows">${rows.map((r, i) => renderManualLandCompRow(i, r)).join('')}</div>
+      <div class="land-comp-manual-actions">
+        <button type="button" class="phuglee-btn phuglee-btn-primary" data-action="save-manual-land-comp">Save Land Comp</button>
+        <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="cancel-manual-land-comp">Cancel</button>
+      </div>
+    </div>`;
+  }
+
+  function renderLandCompSection(lead) {
+    const comped = !!lead.landCompedAt;
+    const btnLabel = state.landCompRunning ? 'Comping…' : (comped ? 'Re-run Land Comp' : 'Land Comp');
+    const busy = state.landCompRunning ? ' disabled aria-busy="true"' : '';
+    return `<section class="vault-dossier-section land-comp-section" id="land-comp-section">
+      <h3>Land Comp</h3>
+      <p class="vault-field-hint land-comp-intro">Lot FMV from sold land comps — not house ARV.</p>
+      <div class="land-comp-actions">
+        <button type="button" class="phuglee-btn phuglee-btn-primary" data-action="run-land-comp"${busy}>${btnLabel}</button>
+      </div>
+      ${renderLandCompReport(lead)}
+      ${state.showManualLandComp ? renderManualLandCompPanel(lead, state.manualLandCompReason) : ''}
+    </section>`;
+  }
+
   function renderLaoSection(landUnderwriting, landScreen) {
     const uw = landUnderwriting && typeof landUnderwriting === 'object' ? landUnderwriting : {};
     const parts = laoNormalizeSiteCostParts(uw.siteCostParts || {});
@@ -900,6 +1012,7 @@
         </section>
         ${renderFundMatchesSection(fundMatches)}
         ${renderScreenSection(landScreen)}
+        ${renderLandCompSection(l)}
         ${renderLaoSection(landUnderwriting, landScreen)}
         ${noteBlock}
       </div>
@@ -1025,6 +1138,171 @@
       } else {
         formulaEl.textContent = 'FMV − site − gap = ceiling − fee = target → LAO';
       }
+    }
+  }
+
+  async function refreshDrawerFromLead(l) {
+    const leadId = l.leadId || state.activeLeadId;
+    if (!leadId) return;
+    const note = state.overlays?.notes?.[leadId] || '';
+    const landScreen = normalizeLandScreen(l.landScreen || {});
+    const landUnderwriting = l.landUnderwriting || {};
+    const stack = laoComputeStack({
+      landFmv: landUnderwriting.landFmv,
+      siteCostParts: landUnderwriting.siteCostParts,
+      investorGap: landUnderwriting.investorGap,
+      assignmentFee: landUnderwriting.assignmentFee,
+      lao: landUnderwriting.lao
+    });
+    state.laoLocked = landUnderwriting.lao != null && stack.contractTarget != null
+      && landUnderwriting.lao !== stack.contractTarget;
+    const fundMatches = await ensureFundMatches(leadId, l);
+    const body = $('land-vault-drawer-body');
+    if (body) {
+      body.innerHTML = renderDrawerBody(l, note, landScreen, fundMatches, landUnderwriting);
+      wireDrawerScreenEvents();
+      wireImageryFallbacks(body);
+      recomputeLaoDisplay();
+    }
+    patchLeadInList(l);
+  }
+
+  async function postLandCompRequest(leadId, replace) {
+    const res = await fetch(`/api/leads/${encodeURIComponent(leadId)}/land-comp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(replace ? { replace: true } : {})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok && !data.needsManual && !data.confirmReplace) {
+      throw new Error(data.error || res.statusText || 'Land Comp failed');
+    }
+    return data;
+  }
+
+  async function runLandComp(leadId, { replace = false } = {}) {
+    if (!leadId || state.landCompRunning) return;
+    state.landCompRunning = true;
+    const btn = document.querySelector('[data-action="run-land-comp"]');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Comping…';
+    }
+    try {
+      let data = await postLandCompRequest(leadId, replace);
+      if (data.confirmReplace) {
+        if (!window.confirm('Replace existing land comp and lot FMV on this lot?')) return;
+        data = await postLandCompRequest(leadId, true);
+      }
+      if (data.needsManual) {
+        state.showManualLandComp = true;
+        state.manualLandCompReason = data.reason || 'thin_market';
+        let lead = data.lead;
+        if (!lead) {
+          const detail = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`);
+          lead = detail.lead;
+        }
+        if (lead) await refreshDrawerFromLead(lead);
+        showToast('Manual land comp needed');
+        return;
+      }
+      if (data.ok && data.lead) {
+        state.showManualLandComp = false;
+        state.manualLandCompReason = '';
+        state.laoLocked = false;
+        const fmv = data.report?.landFmv ?? data.lead.landUnderwriting?.landFmv;
+        showToast(fmv != null ? `Lot FMV: ${formatLaoMoney(fmv)}` : 'Land Comp saved');
+        await refreshDrawerFromLead(data.lead);
+        return;
+      }
+      if (!data.ok && data.error) {
+        throw new Error(data.error);
+      }
+    } catch (err) {
+      showToast(err.message || 'Land Comp failed');
+    } finally {
+      state.landCompRunning = false;
+      if (state.activeLeadId === leadId) {
+        const detail = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`).catch(() => null);
+        const l = detail?.lead;
+        const compBtn = document.querySelector('[data-action="run-land-comp"]');
+        if (compBtn && l) {
+          compBtn.disabled = false;
+          compBtn.textContent = l.landCompedAt ? 'Re-run Land Comp' : 'Land Comp';
+        }
+      }
+    }
+  }
+
+  function collectManualLandCompFromDrawer() {
+    const panel = $('land-comp-manual-panel');
+    if (!panel) return null;
+    const fmv = laoMoney($('land-comp-manual-fmv')?.value);
+    const comps = [];
+    panel.querySelectorAll('.land-comp-manual-row').forEach((row) => {
+      const get = (field) => {
+        const el = row.querySelector(`[data-land-comp-field="${field}"]`);
+        return el ? el.value : '';
+      };
+      const address = String(get('address') || '').trim();
+      const price = laoMoney(get('price'));
+      const soldDate = String(get('soldDate') || '').trim();
+      const lotSqftRaw = get('lotSqft');
+      const lotSqft = lotSqftRaw === '' ? null : Number(lotSqftRaw);
+      const acresRaw = get('acres');
+      const acres = acresRaw === '' ? null : Number(acresRaw);
+      if (address || price != null) {
+        comps.push({
+          address,
+          price,
+          soldDate: soldDate || undefined,
+          lotSqft: Number.isFinite(lotSqft) ? lotSqft : undefined,
+          acres: Number.isFinite(acres) ? acres : undefined
+        });
+      }
+    });
+    return { landFmv: fmv, comps };
+  }
+
+  async function saveManualLandComp() {
+    const leadId = state.activeLeadId;
+    if (!leadId) return;
+    const collected = collectManualLandCompFromDrawer();
+    if (!collected) return;
+    if (collected.landFmv == null || collected.landFmv <= 0) {
+      showToast('Enter a valid lot FMV');
+      $('land-comp-manual-fmv')?.focus();
+      return;
+    }
+    if (collected.comps.length < 2) {
+      showToast('Add at least 2 lot comps with address and price');
+      return;
+    }
+    for (const c of collected.comps) {
+      if (!c.address || c.price == null || c.price <= 0) {
+        showToast('Each comp needs address and price');
+        return;
+      }
+    }
+    const btn = document.querySelector('[data-action="save-manual-land-comp"]');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/land-comp/manual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(collected)
+      });
+      state.showManualLandComp = false;
+      state.manualLandCompReason = '';
+      state.laoLocked = false;
+      const fmv = data.report?.landFmv ?? data.lead?.landUnderwriting?.landFmv;
+      showToast(fmv != null ? `Lot FMV: ${formatLaoMoney(fmv)}` : 'Land Comp saved');
+      if (data.lead) await refreshDrawerFromLead(data.lead);
+    } catch (err) {
+      showToast(err.message || 'Could not save land comp');
+    } finally {
+      if (btn) btn.disabled = false;
     }
   }
 
@@ -1246,6 +1524,8 @@
 
     state.activeLeadId = leadId;
     state.laoLocked = false;
+    state.showManualLandComp = false;
+    state.manualLandCompReason = '';
     drawer.hidden = false;
     body.innerHTML = '<p class="vault-drawer-loading">Loading…</p>';
     updateDrawerNav();
@@ -1398,10 +1678,36 @@
     $('land-vault-drawer-next')?.addEventListener('click', () => navigateDrawer(1));
 
     $('land-vault-drawer-body')?.addEventListener('click', (e) => {
-      const saveBtn = e.target.closest('[data-action="save-lao"]');
-      if (saveBtn) {
+      const action = e.target.closest('[data-action]');
+      if (!action) return;
+      const act = action.dataset.action;
+      if (act === 'save-lao') {
         e.preventDefault();
         saveLao().catch((err) => showToast(err.message || 'Save failed'));
+        return;
+      }
+      if (act === 'run-land-comp') {
+        e.preventDefault();
+        runLandComp(state.activeLeadId).catch((err) => showToast(err.message || 'Land Comp failed'));
+        return;
+      }
+      if (act === 'save-manual-land-comp') {
+        e.preventDefault();
+        saveManualLandComp().catch((err) => showToast(err.message || 'Save failed'));
+        return;
+      }
+      if (act === 'cancel-manual-land-comp') {
+        e.preventDefault();
+        state.showManualLandComp = false;
+        state.manualLandCompReason = '';
+        if (state.activeLeadId) {
+          fetchJson(`/api/leads/${encodeURIComponent(state.activeLeadId)}`)
+            .then((detail) => {
+              if (detail.lead) return refreshDrawerFromLead(detail.lead);
+              return null;
+            })
+            .catch((err) => showToast(err.message || 'Could not refresh'));
+        }
       }
     });
 
