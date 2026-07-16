@@ -1,0 +1,38 @@
+{
+  "data": {
+    "id": 190787647,
+    "estimatedValue": 45000,
+    "floodZone": true,
+    "floodZoneDescription": "AREA OF MINIMAL FLOOD HAZARD",
+    "floodZoneType": "X",
+    "lotInfo": {
+      "apn": "011279232",
+      "apnUnformatted": "011279232",
+      "landUse": "VACANT LAND",
+      "lotAcres": 0.25,
+      "lotSquareFeet": 10890,
+      "lotDepthFeet": 120,
+      "lotWidthFeet": 90,
+      "zoning": "R-1",
+      "propertyUse": "Vacant Residential"
+    },
+    "propertyInfo": {
+      "latitude": 27.767,
+      "longitude": -82.64,
+      "bedrooms": 0,
+      "bathrooms": 0,
+      "livingSquareFeet": 0,
+      "yearBuilt": 0,
+      "propertyType": "LAND",
+      "utilitiesWaterSource": "PUBLIC",
+      "utilitiesSewageUsage": "PUBLIC",
+      "address": {
+        "address": "123 Vacant Lot St",
+        "city": "Saint Petersburg",
+        "state": "FL",
+        "zip": "33701",
+        "county": "Pinellas"
+      }
+    }
+  }
+}

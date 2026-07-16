@@ -1472,6 +1472,7 @@
           </div>
           <div class="land-vault-parcel-actions">
             <button type="button" class="phuglee-btn phuglee-btn-primary" data-action="save-parcel">Save parcel</button>
+            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="enrich-parcel-reapi">Fill from REAPI</button>
           </div>
         </section>
         <section class="vault-dossier-section land-vault-dispo-section">
@@ -2307,6 +2308,11 @@
         saveParcel().catch((err) => showToast(err.message || 'Save failed'));
         return;
       }
+      if (act === 'enrich-parcel-reapi') {
+        e.preventDefault();
+        enrichParcelFromReapi().catch((err) => showToast(err.message || 'REAPI fill failed'));
+        return;
+      }
       if (act === 'save-disposition') {
         e.preventDefault();
         saveDisposition().catch((err) => showToast(err.message || 'Save failed'));
@@ -2421,6 +2427,25 @@
     });
     if (data.lead) await refreshDrawerFromLead(data.lead);
     showToast('Parcel saved');
+    refreshList().catch(() => {});
+  }
+
+  async function enrichParcelFromReapi() {
+    const leadId = state.activeLeadId;
+    if (!leadId) throw new Error('No lead open');
+    showToast('Pulling parcel from REAPI…');
+    const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/enrich-parcel-reapi`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    if (data.skipped) {
+      showToast('Parcel already filled');
+      return;
+    }
+    if (data.lead) await refreshDrawerFromLead(data.lead);
+    const filled = [...(data.filled || []), ...(data.coordsFilled || [])];
+    showToast(filled.length ? `Filled: ${filled.join(', ')}` : 'No new parcel fields');
     refreshList().catch(() => {});
   }
 
