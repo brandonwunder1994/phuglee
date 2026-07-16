@@ -206,7 +206,9 @@ describe('runAutoComp', () => {
     assert.equal(out.report.confidence, 'blocked');
     assert.equal(out.report.arv, null);
     assert.equal(out.report.includedCount, 2);
+    // AVM-only estARV without prior Comp is not preserved
     assert.equal(out.leadPatch.estARV, null);
+    assert.equal(out.report.arvPreserved, false);
     assert.equal(out.leadPatch.compConfidence, 'blocked');
   });
 
@@ -241,5 +243,39 @@ describe('runAutoComp', () => {
     const priceFails = out.leadPatch.comps.flatMap((c) => c.ruleResults || [])
       .filter((r) => r.id === 'usable_price' && r.status === 'fail');
     assert.ok(priceFails.length >= 3);
+  });
+
+  it('preserves prior Comp ARV when re-comp is blocked', async () => {
+    const thinComps = { comps: mockComps.comps.slice(0, 2) };
+    const out = await runAutoComp(
+      {
+        leadId: '1',
+        address: '1 Main St',
+        city: 'Columbus',
+        state: 'OH',
+        lat: 39.96,
+        lng: -82.99,
+        propertyDetails: { sqft: 1500, beds: 3, baths: 2, yearBuilt: 1985 },
+        estARV: 248000,
+        compedAt: '2026-07-01T00:00:00.000Z',
+        compSource: 'reapi',
+        compConfidence: 'high',
+      },
+      {
+        reapi: {
+          propertyDetail: async () => ({ id: 's1' }),
+          propertyComps: async () => thinComps,
+          propertySearch: async () => ({ data: [] }),
+        },
+        checkRoadBarrier: async () => ({ crossed: false, degraded: false }),
+      }
+    );
+    assert.equal(out.ok, true);
+    assert.equal(out.report.confidence, 'blocked');
+    assert.equal(out.report.arv, null);
+    assert.equal(out.report.arvPreserved, true);
+    assert.equal(out.report.preservedArv, 248000);
+    assert.equal(out.leadPatch.estARV, 248000);
+    assert.equal(out.leadPatch.compConfidence, 'blocked');
   });
 });
