@@ -1,12 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee â€” The Vault</title>
-  <meta name="description" content="Curated dial-ready leads for Max members â€” distressed, well-maintained, and land opportunities scrubbed by our pipeline.">
-  <meta property="og:title" content="Phuglee â€” The Vault">
-  <meta property="og:description" content="Browse, filter, and export curated leads â€” Max plan access.">
+  <title>Phuglee — The Vault</title>
+  <meta name="description" content="Curated dial-ready leads for Max members — distressed, well-maintained, and land opportunities scrubbed by our pipeline.">
+  <meta property="og:title" content="Phuglee — The Vault">
+  <meta property="og:description" content="Browse, filter, and export curated leads — Max plan access.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/vault.css?v=24">
+  <link rel="stylesheet" href="/css/vault.css?v=23">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -30,10 +30,10 @@
   <main id="main" class="vault-main vault-main--app">
     <section id="vault-gate" class="vault-gate" hidden aria-labelledby="vault-gate-title">
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">The Vault Â· Max plan</p>
+        <p class="vault-eyebrow">The Vault · Max plan</p>
         <h1 id="vault-gate-title" class="vault-title">Upgrade to unlock curated leads</h1>
         <p class="vault-lead vault-lead--honest">
-          <strong>Max plan only.</strong> The Vault is our done-for-you leads database â€” pre-scrubbed, scored, and ready to dial.
+          <strong>Max plan only.</strong> The Vault is our done-for-you leads database — pre-scrubbed, scored, and ready to dial.
           Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
         </p>
         <ul class="vault-perks">
@@ -43,8 +43,8 @@
           <li>Export selections for your dialer or CRM</li>
         </ul>
         <div class="vault-cta-row">
-          <a href="mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan" class="phuglee-btn phuglee-btn-primary vault-upgrade-btn">Upgrade to Max â€” $297/mo</a>
-          <p class="vault-price-note">Full DIY toolkit on Pro Â· Done-for-you leads on Max</p>
+          <a href="mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan" class="phuglee-btn phuglee-btn-primary vault-upgrade-btn">Upgrade to Max — $297/mo</a>
+          <p class="vault-price-note">Full DIY toolkit on Pro · Done-for-you leads on Max</p>
         </div>
       </div>
     </section>
@@ -54,13 +54,13 @@
         <div class="vault-hero-copy">
           <p class="vault-eyebrow">The Vault</p>
           <h1 class="vault-title vault-title--desk">Curated leads</h1>
-          <p class="vault-hero-sub">40%+ equity Â· independently owned Â· $500K max value Â· SFH &amp; multi-unit</p>
+          <p class="vault-hero-sub">40%+ equity · independently owned · $500K max value · SFH &amp; multi-unit</p>
         </div>
         <div id="vault-kpis" class="vault-kpis" aria-label="Catalog snapshot">
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="total">â€”</span><span class="vault-kpi-label">Inventory</span></div>
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="phone">â€”</span><span class="vault-kpi-label">Dial-ready</span></div>
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="fresh">â€”</span><span class="vault-kpi-label">Fresh 7d</span></div>
-          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="mapped">â€”</span><span class="vault-kpi-label">Mapped</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="total">—</span><span class="vault-kpi-label">Inventory</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="phone">—</span><span class="vault-kpi-label">Dial-ready</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="fresh">—</span><span class="vault-kpi-label">Fresh 7d</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="mapped">—</span><span class="vault-kpi-label">Mapped</span></div>
         </div>
       </header>
 
@@ -69,7 +69,7 @@
           <h2 class="vault-filters-title">Filters</h2>
           <label class="vault-field">
             <span class="vault-field-label">Search</span>
-            <input type="search" id="vault-search" class="phuglee-input" placeholder="Address, owner, phoneâ€¦" autocomplete="off">
+            <input type="search" id="vault-search" class="phuglee-input" placeholder="Address, owner, phone…" autocomplete="off">
           </label>
           <label class="vault-field">
             <span class="vault-field-label">State</span>
@@ -81,7 +81,7 @@
           </label>
           <div class="vault-field">
             <span class="vault-field-label">Motivation signals <span class="vault-and-badge">AND</span></span>
-            <p class="vault-field-hint">Stack chips â€” match all selected</p>
+            <p class="vault-field-hint">Stack chips — match all selected</p>
             <div id="vault-signal-chips" class="vault-signal-chips"></div>
             <button type="button" id="vault-signals-more" class="vault-text-btn" hidden>More signals</button>
           </div>
@@ -90,7 +90,7 @@
             <summary>Map radius</summary>
             <label class="vault-field">
               <span class="vault-field-label">Miles from</span>
-              <input type="search" id="vault-radius-address" class="phuglee-input" placeholder="Address or cityâ€¦" autocomplete="off">
+              <input type="search" id="vault-radius-address" class="phuglee-input" placeholder="Address or city…" autocomplete="off">
             </label>
             <label class="vault-field">
               <span class="vault-field-label">Radius (miles)</span>
@@ -165,9 +165,9 @@
 
           <div class="vault-field">
             <span class="vault-field-label">Saved pulls</span>
-            <p class="vault-field-hint">Save your filter stack Â· reload anytime Â· export the pack</p>
+            <p class="vault-field-hint">Save your filter stack · reload anytime · export the pack</p>
             <div class="vault-preset-row">
-              <select id="vault-presets" class="phuglee-select"><option value="">Load pullâ€¦</option></select>
+              <select id="vault-presets" class="phuglee-select"><option value="">Load pull…</option></select>
             </div>
             <div class="vault-preset-save-row">
               <input type="text" id="vault-preset-name" class="phuglee-input" placeholder="e.g. TX distressed phone" maxlength="48" autocomplete="off">
@@ -184,7 +184,7 @@
         <section class="vault-results-wrap" role="tabpanel" id="vault-results-panel" aria-labelledby="vault-tab-all">
           <div id="vault-results-toolbar" class="vault-results-toolbar">
             <div class="vault-results-toolbar-main">
-              <p id="vault-results-meta" class="vault-results-meta">Loadingâ€¦</p>
+              <p id="vault-results-meta" class="vault-results-meta">Loading…</p>
               <div id="vault-type-tabs" class="vault-type-tabs" role="tablist" aria-label="Lead type">
                 <button type="button" class="vault-type-tab is-active" role="tab" id="vault-tab-all" aria-controls="vault-results" aria-selected="true" data-type="all">All <span class="vault-tab-count" data-count-for="all"></span></button>
                 <button type="button" class="vault-type-tab" role="tab" id="vault-tab-well" aria-controls="vault-results" aria-selected="false" data-type="well_maintained">Code <span class="vault-tab-count" data-count-for="well_maintained"></span></button>
@@ -245,8 +245,8 @@
       <div class="vault-drawer-panel">
         <header class="vault-drawer-header">
           <div class="vault-drawer-nav">
-            <button type="button" id="vault-drawer-prev" class="phuglee-btn phuglee-btn-ghost" aria-label="Previous lead">â†</button>
-            <button type="button" id="vault-drawer-next" class="phuglee-btn phuglee-btn-ghost" aria-label="Next lead">â†’</button>
+            <button type="button" id="vault-drawer-prev" class="phuglee-btn phuglee-btn-ghost" aria-label="Previous lead">←</button>
+            <button type="button" id="vault-drawer-next" class="phuglee-btn phuglee-btn-ghost" aria-label="Next lead">→</button>
           </div>
           <div class="vault-drawer-heading">
             <h2 id="vault-drawer-title" class="vault-drawer-title">Lead</h2>
@@ -269,7 +269,7 @@
     </div>
 
     <div id="vault-lightbox" class="vault-lightbox" hidden role="dialog" aria-modal="true" aria-label="Property image">
-      <button type="button" id="vault-lightbox-close" class="vault-lightbox-close" aria-label="Close image">Ã—</button>
+      <button type="button" id="vault-lightbox-close" class="vault-lightbox-close" aria-label="Close image">×</button>
       <img id="vault-lightbox-img" class="vault-lightbox-img" alt="">
     </div>
   </main>
@@ -282,7 +282,6 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=19" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/vault-app.js?v=26" defer></script>
+  <script src="/js/vault-app.js?v=25" defer></script>
 </body>
 </html>
-
