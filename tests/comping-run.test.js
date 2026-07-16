@@ -1,7 +1,7 @@
 const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { createReapiClient, mapReapiCompsResponse } = require('../lib/leads-platform/comping/reapi-client');
-const { runAutoComp } = require('../lib/leads-platform/comping/run-comp');
+const { runAutoComp, buildPropertyCompsBody } = require('../lib/leads-platform/comping/run-comp');
 const mockComps = require('./fixtures/comping/reapi-comps-mock.json');
 const zeroComps = require('./fixtures/comping/reapi-comps-zero-mock.json');
 
@@ -85,6 +85,42 @@ describe('reapi-client', () => {
       () => client.propertyDetail({ id: 'x' }),
       (err) => err.status === 401 && /Unauthorized/.test(err.message)
     );
+  });
+});
+
+describe('buildPropertyCompsBody', () => {
+  const subject = {
+    fullAddress: '527 Huron Ave, Sandusky, OH 44870',
+    sqft: 504,
+    beds: 1,
+    baths: 1.5,
+    yearBuilt: 1940,
+  };
+
+  it('pulls wider than ±10% and omits year_built filters', () => {
+    const body = buildPropertyCompsBody(subject, { radius: 0.5, ladderLevel: 0 });
+    assert.equal(body.address, subject.fullAddress);
+    assert.equal(body.max_radius_miles, 0.5);
+    assert.equal(body.max_days_back, 180);
+    assert.equal(body.year_built_min, undefined);
+    assert.equal(body.year_built_max, undefined);
+    // ±25% of 504 = 126, abs floor 200 → 304–704
+    assert.equal(body.living_square_feet_min, 304);
+    assert.equal(body.living_square_feet_max, 704);
+    assert.equal(body.bedrooms_min, 0);
+    assert.equal(body.bedrooms_max, 2);
+  });
+
+  it('widens thin ladder pull for small / starved markets', () => {
+    const body = buildPropertyCompsBody(subject, { radius: 5, ladderLevel: 2 });
+    assert.equal(body.max_radius_miles, 5);
+    assert.equal(body.max_days_back, 730);
+    assert.equal(body.year_built_min, undefined);
+    // ±40% of 504 = 202, abs floor 350 → 154–854
+    assert.equal(body.living_square_feet_min, 154);
+    assert.equal(body.living_square_feet_max, 854);
+    assert.equal(body.bedrooms_max, 3);
+    assert.equal(body.bathrooms_max, 3.5);
   });
 });
 

@@ -71,7 +71,7 @@ describe('Comping Rules scorer', () => {
     assert.equal(priceRule.status, 'fail');
   });
 
-  it('hard-fails size beyond ±10%', () => {
+  it('hard-fails size beyond max(±10%, ±250 sf)', () => {
     const r = scoreComp(
       { sqft: 1500, beds: 3, baths: 2, yearBuilt: 1980, lat: 30, lng: -97 },
       { price: 280000, sqft: 2200, beds: 3, baths: 2, distanceMi: 0.2, soldDate: '2026-05-01' }
@@ -79,6 +79,27 @@ describe('Comping Rules scorer', () => {
     assert.equal(r.status, 'fail');
     const sizeRule = r.rules.find((rule) => rule.id === 'size_band');
     assert.equal(sizeRule.status, 'fail');
+  });
+
+  it('allows small-home comps within ±250 sf even when over ±10%', () => {
+    // 504 → ±10% is only ±50; brain max ±250 keeps 640 in-band
+    const r = scoreComp(
+      { sqft: 504, beds: 1, baths: 1.5, yearBuilt: 1940, propertyType: 'sfr', lat: 41.4, lng: -82.7 },
+      {
+        price: 60000,
+        sqft: 640,
+        beds: 1,
+        baths: 1,
+        distanceMi: 0.44,
+        soldDate: '2025-01-03',
+        yearBuilt: 1930,
+        propertyType: 'sfr',
+      },
+      { ladderLevel: 2 }
+    );
+    const sizeRule = r.rules.find((rule) => rule.id === 'size_band');
+    assert.notEqual(sizeRule.status, 'fail');
+    assert.equal(r.includedEligible, true);
   });
 
   it('passes a well-matched comp from fixtures', () => {
