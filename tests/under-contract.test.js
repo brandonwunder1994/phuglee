@@ -158,6 +158,74 @@ test('createDealFromVaultLead hides lead and lists in contracts', () => {
   assert.ok(contracts.listDeals().some((d) => d.dealId === deal.dealId));
 });
 
+test('ensureDealContractParcel seeds APN and legal from mock REAPI', async () => {
+  const lead = store.upsertLead({
+    address: '300 Parcel Ln',
+    city: 'Tempe',
+    state: 'AZ',
+    zip: '85281',
+    leadType: 'distressed',
+    reviewStatus: 'approved',
+    signalTags: ['code'],
+    catalogStatus: 'active'
+  });
+  const deal = contracts.createDealFromVaultLead(lead.leadId, {
+    purchasePrice: 100000,
+    assignmentFee: 8000
+  });
+  const reapi = {
+    async propertyDetail() {
+      return {
+        apn: '123-45-678',
+        legalDescription: 'LOT 9 BLOCK 2 SUNSET SUB'
+      };
+    }
+  };
+  const out = await contracts.ensureDealContractParcel(deal.dealId, { reapi });
+  assert.equal(out.fields.apn, '123-45-678');
+  assert.match(out.fields.legalDescription, /LOT 9/);
+  assert.ok(out.filled.includes('apn'));
+  assert.ok(out.filled.includes('legalDescription'));
+  const savedLead = store.getLead(lead.leadId);
+  assert.equal(savedLead.propertyDetails.apn, '123-45-678');
+  assert.equal(savedLead.parcel, '123-45-678');
+  assert.match(savedLead.propertyDetails.legalDescription, /LOT 9/);
+  const savedDeal = contracts.getDeal(deal.dealId);
+  assert.equal(savedDeal.aocSend.apn, '123-45-678');
+  assert.match(savedDeal.aocSend.legalDescription, /LOT 9/);
+});
+
+test('ensureDealContractParcel skips REAPI when complete', async () => {
+  const lead = store.upsertLead({
+    address: '301 Parcel Ln',
+    city: 'Tempe',
+    state: 'AZ',
+    zip: '85281',
+    leadType: 'distressed',
+    reviewStatus: 'approved',
+    signalTags: ['code'],
+    catalogStatus: 'active',
+    parcel: 'KEEP-APN',
+    propertyDetails: {
+      apn: 'KEEP-APN',
+      legalDescription: 'KEEP LEGAL'
+    }
+  });
+  const deal = contracts.createDealFromVaultLead(lead.leadId, {});
+  let called = 0;
+  const reapi = {
+    async propertyDetail() {
+      called += 1;
+      return { apn: 'NEW', legalDescription: 'NEW LEGAL' };
+    }
+  };
+  const out = await contracts.ensureDealContractParcel(deal.dealId, { reapi });
+  assert.equal(called, 0);
+  assert.equal(out.skipped, true);
+  assert.equal(out.fields.apn, 'KEEP-APN');
+  assert.equal(out.fields.legalDescription, 'KEEP LEGAL');
+});
+
 test('ghl opportunity upsert merges by ghlOpportunityId and may link lead', () => {
   const lead = store.upsertLead({
     address: '55 Sync Ln',
