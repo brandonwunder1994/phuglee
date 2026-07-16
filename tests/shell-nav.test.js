@@ -52,14 +52,32 @@ test('shell nav groups Collect, Government Lists, Pre-liens, Filter, and Analyze
   assert.ok(!api.isDataSectionActive('command'));
 });
 
-test('shell nav keeps Dashboard, Home Vault, and Land Vault as top-level links', () => {
+test('shell nav groups Homes and Land under Vaults dropdown', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/command');
   assert.ok(nav.includes('>Dashboard<'));
-  assert.ok(nav.includes('>Home Vault<'));
-  assert.ok(nav.includes('>Land Vault<'));
+  assert.ok(nav.includes('shell-vaults-trigger'));
+  assert.ok(nav.includes('Vaults'));
+  assert.match(nav, /shell-nav-dropdown-label">Homes</);
+  assert.match(nav, /shell-nav-dropdown-label">Land</);
+  assert.ok(!nav.includes('>Home Vault<'));
+  assert.ok(!nav.includes('>Land Vault<'));
   assert.ok(!nav.includes('>The Vault<'));
   assert.ok(!nav.includes('href="/collect" class="shell-link'));
+  assert.ok(api.isVaultsSectionActive('vault'));
+  assert.ok(api.isVaultsSectionActive('land-vault'));
+  assert.equal(api.activeId('/vault'), 'vault');
+  assert.equal(api.activeId('/land-vault'), 'land-vault');
+});
+
+test('matt vault-only shell nav shows Vaults dropdown only', () => {
+  const api = loadShellNavApi('matt');
+  const nav = api.buildNav('/vault');
+  assert.ok(nav.includes('shell-vaults-trigger'));
+  assert.match(nav, /shell-nav-dropdown-label">Homes</);
+  assert.match(nav, /shell-nav-dropdown-label">Land</);
+  assert.ok(!nav.includes('>Dashboard<'));
+  assert.ok(!nav.includes('shell-data-trigger'));
 });
 
 test('admin shell nav groups Under Contract, All Leads, and Buyers under Pipeline', () => {
