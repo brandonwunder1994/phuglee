@@ -83,7 +83,16 @@ describe('runLandAutoComp', () => {
     const sold = new Date(Date.now() - 45 * 86400000).toISOString().slice(0, 10);
     const reapi = {
       async propertyDetail() {
-        return { lotSqft: 7000, acres: 7000 / 43560, propertyType: 'land', lat: 32.7, lng: -96.8 };
+        return {
+          lotSqft: 7000,
+          acres: 7000 / 43560,
+          propertyType: 'land',
+          lat: 32.7,
+          lng: -96.8,
+          zoning: 'R-2',
+          county: 'Lee',
+          apn: '99-1'
+        };
       },
       async propertyComps() {
         return {
@@ -124,6 +133,8 @@ describe('runLandAutoComp', () => {
     assert.equal(out.leadPatch.landUnderwriting.method, 'engine');
     assert.ok(out.report.landFmv);
     assert.ok(out.leadPatch.landUnderwriting.buyerCeiling != null);
+    assert.equal(out.leadPatch.propertyDetails.zoning, 'R-2');
+    assert.ok(out.leadPatch.propertyDetails.lotSqft >= 7000);
   });
 });
 
