@@ -1,7 +1,9 @@
-const { describe, it } = require('node:test');
+const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { isNonDisclosureState } = require('../lib/leads-platform/comping/nd-states');
 const { scoreComp, classifyRenovation } = require('../lib/leads-platform/comping/rules');
+const { streetViewUrl } = require('../lib/leads-platform/comping/street-view');
+const { checkRoadBarrier, clearBarrierCache } = require('../lib/leads-platform/comping/barriers');
 const { computeArvFromComps } = require('../lib/leads-platform/comping/arv');
 const { assessConfidence } = require('../lib/leads-platform/comping/confidence');
 const { normalizeLeadRecord } = require('../lib/leads-platform/schema');
@@ -89,6 +91,18 @@ describe('Comping Rules scorer', () => {
     assert.equal(barrierRule.status, 'fail');
   });
 
+  it('soft-fails barrier when barrierUnavailable is set', () => {
+    const r = scoreComp(
+      subjectFixture,
+      { price: 250000, sqft: 1480, beds: 3, baths: 2, distanceMi: 0.2, soldDate: '2026-05-01', yearBuilt: 1982 },
+      { barrierUnavailable: true }
+    );
+    assert.equal(r.status, 'soft');
+    const barrierRule = r.rules.find((rule) => rule.id === 'barrier');
+    assert.equal(barrierRule.status, 'soft');
+    assert.match(barrierRule.detail, /unavailable/i);
+  });
+
   it('classifies likely renovated comp with cash flip signals', () => {
     const renovation = classifyRenovation(
       { price: 280000, sqft: 1500, cashBuyer: true, priorSaleDate: '2024-06-01', soldDate: '2025-12-01' },
@@ -165,6 +179,109 @@ describe('confidence', () => {
 
   it('returns low when thin ladder expanded', () => {
     assert.equal(assessConfidence({ included: 4, ladderLevel: 2, renovationLikelyCount: 2 }), 'low');
+  });
+});
+
+describe('street-view', () => {
+  it('builds google street view URL from coordinates', () => {
+    const u = streetViewUrl({ lat: 30.27, lng: -97.74 });
+    assert.match(u, /google\.com\/maps/);
+    assert.match(u, /30\.27/);
+    assert.match(u, /-97\.74/);
+  });
+
+  it('builds google street view URL from address', () => {
+    const u = streetViewUrl({ address: '123 Main St, Austin, TX' });
+    assert.match(u, /google\.com\/maps/);
+    assert.match(u, /123/);
+  });
+});
+
+describe('barriers', () => {
+  beforeEach(() => {
+    clearBarrierCache();
+  });
+
+  it('degrades gracefully when overpass fails', async () => {
+    const r = await checkRoadBarrier(
+      { lat: 30, lng: -97 },
+      { lat: 30.01, lng: -97.01 },
+      { fetchImpl: async () => { throw new Error('network'); } }
+    );
+    assert.equal(r.degraded, true);
+    assert.equal(r.crossed, false);
+    assert.match(r.detail, /unavailable/i);
+  });
+
+  it('maps degraded barrier check to scoreComp soft-fail', async () => {
+    const barrier = await checkRoadBarrier(
+      { lat: 30, lng: -97 },
+      { lat: 30.01, lng: -97.01 },
+      { fetchImpl: async () => { throw new Error('network'); } }
+    );
+    assert.equal(barrier.degraded, true);
+    const r = scoreComp(
+      subjectFixture,
+      { price: 250000, sqft: 1480, beds: 3, baths: 2, distanceMi: 0.2, soldDate: '2026-05-01', yearBuilt: 1982 },
+      { barrierUnavailable: barrier.degraded }
+    );
+    assert.equal(r.status, 'soft');
+    const barrierRule = r.rules.find((rule) => rule.id === 'barrier');
+    assert.equal(barrierRule.status, 'soft');
+  });
+
+  it('detects highway crossing from overpass geometry', async () => {
+    const overpassResponse = {
+      elements: [{
+        type: 'way',
+        tags: { highway: 'primary' },
+        geometry: [
+          { lat: 30.0, lon: -97.005 },
+          { lat: 30.02, lon: -97.005 },
+        ],
+      }],
+    };
+    const r = await checkRoadBarrier(
+      { lat: 30, lng: -97 },
+      { lat: 30.01, lng: -97.01 },
+      {
+        fetchImpl: async () => ({
+          ok: true,
+          json: async () => overpassResponse,
+        }),
+      }
+    );
+    assert.equal(r.crossed, true);
+    assert.equal(r.degraded, false);
+    assert.match(r.detail, /primary|barrier|highway/i);
+  });
+
+  it('passes when no highways intersect the path', async () => {
+    const r = await checkRoadBarrier(
+      { lat: 30, lng: -97 },
+      { lat: 30.01, lng: -97.01 },
+      {
+        fetchImpl: async () => ({
+          ok: true,
+          json: async () => ({ elements: [] }),
+        }),
+      }
+    );
+    assert.equal(r.crossed, false);
+    assert.equal(r.degraded, false);
+  });
+
+  it('caches results per subject-candidate pair', async () => {
+    let calls = 0;
+    const fetchImpl = async () => {
+      calls += 1;
+      return { ok: true, json: async () => ({ elements: [] }) };
+    };
+    const subject = { lat: 30, lng: -97 };
+    const candidate = { lat: 30.01, lng: -97.01 };
+    await checkRoadBarrier(subject, candidate, { fetchImpl });
+    await checkRoadBarrier(subject, candidate, { fetchImpl });
+    assert.equal(calls, 1);
   });
 });
 
