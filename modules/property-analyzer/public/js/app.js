@@ -1121,6 +1121,7 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       }
       noteApiScanSuccess?.();
       if (record && typeof record === 'object') delete record.forceRescan;
+      delete result.forceRescan;
       for (const r of state.records || []) {
         if (recordKey(r) === recordKey(record)) delete r.forceRescan;
       }

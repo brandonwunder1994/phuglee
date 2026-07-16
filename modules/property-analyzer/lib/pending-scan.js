@@ -109,13 +109,22 @@ function healStaleForceRescanFlags(session) {
   if (!session || typeof session !== 'object') return { cleared: 0, session };
   const results = Array.isArray(session.results) ? session.results : [];
   const records = Array.isArray(session.records) ? session.records : [];
-  if (!records.length || !results.length) return { cleared: 0, session };
+  if (!results.length && !records.length) return { cleared: 0, session };
 
   const known = buildKnownAddressKeySet(results, []);
   const existingIdentityKeys = buildResultIdentitySet(results);
   const resultIndex = buildResultMatchIndex(results);
   let cleared = 0;
   for (const r of records) {
+    if (!r || !r.forceRescan) continue;
+    if (isRecordAlreadyScanned(r, known, existingIdentityKeys, resultIndex)) {
+      delete r.forceRescan;
+      cleared++;
+    }
+  }
+  // Scan copies forceRescan onto result rows (`{ ...record, ...analysis }`).
+  // Leaving it there makes the UI recount completed rows as "to scan" after refresh.
+  for (const r of results) {
     if (!r || !r.forceRescan) continue;
     if (isRecordAlreadyScanned(r, known, existingIdentityKeys, resultIndex)) {
       delete r.forceRescan;
