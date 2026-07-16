@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Land Vault</title>
+  <meta name="description" content="Land Desk — vacant lot leads screened for builders. Max plan.">
+  <meta property="og:title" content="Phuglee — Land Vault">
+  <meta property="og:description" content="Screen and match vacant land leads — Max plan access.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/images/phuglee-logo-hd.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
+  <link rel="stylesheet" href="/css/vault.css?v=22">
+  <link rel="stylesheet" href="/css/land-vault.css?v=1">
+  <script src="/js/auth-session.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js"></script>
+</head>
+<body class="phuglee-app has-premium-bg vault-page land-vault-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
+  <div id="distress-os-nav-mount"></div>
+
+  <div id="land-vault-toast" class="vault-toast" hidden role="status" aria-live="polite"></div>
+
+  <main id="main" class="vault-main vault-main--app">
+    <section id="land-vault-gate" class="vault-gate" hidden aria-labelledby="land-vault-gate-title">
+      <div class="vault-gate-inner">
+        <p class="vault-eyebrow">Land Vault · Max plan</p>
+        <h1 id="land-vault-gate-title" class="vault-title">Upgrade to unlock land leads</h1>
+        <p class="vault-lead vault-lead--honest">
+          <strong>Max plan only.</strong> Land Vault is our vacant-lot desk — screened for builders, not house flip math.
+        </p>
+        <div class="vault-cta-row">
+          <a href="mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan" class="phuglee-btn phuglee-btn-primary vault-upgrade-btn">Upgrade to Max — $297/mo</a>
+        </div>
+      </div>
+    </section>
+
+    <div id="land-vault-app" class="vault-app" hidden>
+      <header id="land-vault-hero" class="vault-hero">
+        <div class="vault-hero-copy">
+          <p class="vault-eyebrow">Land Vault</p>
+          <h1 class="vault-title vault-title--desk">Land Desk</h1>
+          <p class="vault-hero-sub">Vacant lots · 7-check screen · builder / fund match</p>
+        </div>
+        <div id="land-vault-kpis" class="vault-kpis" aria-label="Land catalog snapshot">
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="total">—</span><span class="vault-kpi-label">Lots</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="phone">—</span><span class="vault-kpi-label">Dial-ready</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="fresh">—</span><span class="vault-kpi-label">Fresh 7d</span></div>
+          <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="mapped">—</span><span class="vault-kpi-label">Mapped</span></div>
+        </div>
+      </header>
+      <p class="vault-hero-sub" style="padding:0 1.25rem 1rem">Land Desk app loading…</p>
+    </div>
+  </main>
+
+  <script src="/js/shell-nav.js?v=20" defer></script>
+  <script src="/js/auth.js?v=distress20" defer></script>
+</body>
+</html>

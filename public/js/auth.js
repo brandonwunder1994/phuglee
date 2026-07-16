@@ -660,7 +660,8 @@
       if (path === '/command') return 'Dashboard';
       if (path.indexOf('/analyzer') === 0) return 'Analyze';
       if (path.indexOf('/forge') === 0) return 'City Tracker';
-      if (path === '/vault') return 'The Vault';
+      if (path === '/vault') return 'Home Vault';
+      if (path === '/land-vault') return 'Land Vault';
       return path;
     } catch (_) {
       return '';
@@ -771,10 +772,10 @@
       if (path === '/' || path === '/index.html' || path === '/heat' || path === '/command') {
         return home;
       }
-      if (user === 'matt' && path !== '/vault') {
+      if (user === 'matt' && path !== '/vault' && path !== '/land-vault') {
         return '/vault';
       }
-      if (user === 'brad' && path !== '/vault' && path !== '/under-contract' && path !== '/pipeline') {
+      if (user === 'brad' && path !== '/vault' && path !== '/land-vault' && path !== '/under-contract' && path !== '/pipeline' && path !== '/buyers' && path !== '/trust-funds') {
         return '/under-contract';
       }
       return dest;

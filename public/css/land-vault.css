@@ -1,0 +1,5 @@
+/* Land Vault — layout deltas on top of vault.css */
+
+.land-vault-page .vault-title--desk {
+  letter-spacing: 0.02em;
+}
