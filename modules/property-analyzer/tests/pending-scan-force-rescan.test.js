@@ -63,4 +63,15 @@ describe('forceRescan pending queue', () => {
     assert.equal(session.records[0].forceRescan, undefined);
     assert.equal(countPendingUnscanned(session), 0);
   });
+
+  it('heals forceRescan left on completed result rows', () => {
+    const session = {
+      records: [{ ...record, forceRescan: undefined }],
+      results: [{ ...result, importedAt, forceRescan: true }]
+    };
+    const { cleared } = healStaleForceRescanFlags(session);
+    assert.equal(cleared, 1);
+    assert.equal(session.results[0].forceRescan, undefined);
+    assert.equal(countPendingUnscanned(session), 0);
+  });
 });

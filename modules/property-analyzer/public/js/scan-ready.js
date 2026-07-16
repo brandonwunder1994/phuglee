@@ -168,13 +168,15 @@
         // Match Start Scan: fresh drop scans every row in the list.
         pendingUnscanned = localQueue;
       } else if (hasRecords && (state.records || []).some((r) => r?.forceRescan)) {
-        pendingUnscanned = localQueue || localPending;
+        // forceRescan queue: use pending math (completed rescans are not pending).
+        // Never fall back to raw queue length — `0 || localQueue` re-showed 750 after a full scan.
+        pendingUnscanned = localPending;
       } else if (Number.isFinite(serverPending) && serverPending > 0 && !hasRecords) {
         pendingUnscanned = serverPending;
       } else if (hasRecords) {
         // Prefer real Start-Scan pending (excludes already-scanned) over raw queue length
         // so the top number never lies about what Start will run.
-        pendingUnscanned = localPending || localQueue;
+        pendingUnscanned = localPending;
       } else {
         pendingUnscanned = Math.max(0, Number(state._pendingUnscanned) || 0);
       }

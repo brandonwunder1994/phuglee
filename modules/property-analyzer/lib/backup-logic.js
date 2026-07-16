@@ -70,6 +70,15 @@ function applyIncomingResult(prev, incoming) {
   if (!shouldReplaceSessionResult(prev, incoming)) return prev;
   // Field-merge so partial review patches (Exit Review) never wipe imagery / indicators.
   const merged = { ...prev, ...incoming };
+  // JSON omits deleted keys — `{ ...prev, ...incoming }` would keep a stale forceRescan
+  // forever after a completed rescan. Drop it when the incoming row is done.
+  if (merged.forceRescan && !Object.prototype.hasOwnProperty.call(incoming, 'forceRescan')) {
+    const importedAt = Number(incoming.importedAt || prev.importedAt) || 0;
+    const analyzedAt = Number(incoming.analyzedAt || merged.analyzedAt) || 0;
+    if (analyzedAt > 0 && (!importedAt || analyzedAt >= importedAt)) {
+      delete merged.forceRescan;
+    }
+  }
   return preserveProfileFromPrevious(prev, merged);
 }
 

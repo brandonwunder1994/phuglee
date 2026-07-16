@@ -420,6 +420,17 @@ R.countPendingScanLeads = function countPendingScanLeads(records = state.records
   let n = 0;
   for (const r of records) {
     if (r?.forceRescan) {
+      // Same rule as server pending-scan: completed rescans (analyzedAt >= importedAt) are done.
+      const importedAt = Number(r.importedAt) || 0;
+      const analyzedAt = Number(r.analyzedAt) || 0;
+      let resultAt = 0;
+      if (typeof recordKey === 'function') {
+        const rk = recordKey(r);
+        const match = (results || []).find((row) => recordKey(row) === rk);
+        resultAt = Number(match?.analyzedAt || match?.savedAt) || 0;
+      }
+      if (importedAt > 0 && (resultAt >= importedAt || analyzedAt >= importedAt)) continue;
+      if (!importedAt && (resultAt > 0 || analyzedAt > 0)) continue;
       n += 1;
       continue;
     }
