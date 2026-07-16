@@ -1,6 +1,6 @@
 const { describe, it, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
-const { createReapiClient, mapReapiCompsResponse } = require('../lib/leads-platform/comping/reapi-client');
+const { createReapiClient, mapReapiCompsResponse, formatReapiAddress } = require('../lib/leads-platform/comping/reapi-client');
 const { runAutoComp, buildPropertyCompsBody } = require('../lib/leads-platform/comping/run-comp');
 const mockComps = require('./fixtures/comping/reapi-comps-mock.json');
 const zeroComps = require('./fixtures/comping/reapi-comps-zero-mock.json');
@@ -15,6 +15,31 @@ describe('reapi-client', () => {
     const zero = mapped.find((c) => c.id === 'c6-zero');
     assert.equal(zero.unusable, true);
     assert.equal(zero.price, 0);
+  });
+
+  it('coerces nested REAPI address objects to strings', () => {
+    const mapped = mapReapiCompsResponse({
+      comps: [{
+        id: 'nested-addr',
+        lastSaleAmount: 100000,
+        squareFeet: 600,
+        bedrooms: 2,
+        bathrooms: 1,
+        address: {
+          street: '1019 Winnebago Ave',
+          city: 'Sandusky',
+          state: 'OH',
+          zip: '44870',
+          address: '1019 Winnebago Ave, Sandusky, OH 44870',
+        },
+      }],
+    });
+    assert.equal(mapped[0].address, '1019 Winnebago Ave, Sandusky, OH 44870');
+    assert.equal(typeof mapped[0].address, 'string');
+    assert.equal(
+      formatReapiAddress({ street: '1 Main', city: 'Columbus', state: 'OH', zip: '43215' }),
+      '1 Main, Columbus, OH, 43215'
+    );
   });
 
   it('posts to PropertyComps with x-api-key header', async () => {

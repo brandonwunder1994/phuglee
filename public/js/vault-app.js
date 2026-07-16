@@ -238,6 +238,18 @@
     return [lead.address, lead.city, lead.state, lead.zip].filter(Boolean).join(', ');
   }
 
+  /** Comp addresses may be REAPI nested objects until re-comp coerces them. */
+  function formatCompAddress(addr) {
+    if (!addr) return '';
+    if (typeof addr === 'string') return addr;
+    if (typeof addr === 'object') {
+      if (typeof addr.address === 'string' && addr.address.trim()) return addr.address.trim();
+      if (typeof addr.fullAddress === 'string' && addr.fullAddress.trim()) return addr.fullAddress.trim();
+      return [addr.street, addr.city, addr.state, addr.zip].filter(Boolean).join(', ');
+    }
+    return String(addr);
+  }
+
   function mapsUrl(lead) {
     return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress(lead))}`;
   }
@@ -1582,7 +1594,7 @@
     const comps = Array.isArray(l?.comps) ? l.comps : [];
     comps.slice(0, 8).forEach((c, i) => {
       if (c.streetViewUrl) {
-        links.push({ label: c.address || `Comp ${i + 1}`, url: c.streetViewUrl });
+        links.push({ label: formatCompAddress(c.address) || `Comp ${i + 1}`, url: c.streetViewUrl });
       }
     });
     const pass = String(l?.compBlockPass || '').toLowerCase();
@@ -1630,7 +1642,7 @@
     if (!extended) {
       const rows = comps.slice(0, 5).map((c) =>
         `<tr>
-          <td>${esc(c.address || '—')}</td>
+          <td>${esc(formatCompAddress(c.address) || '—')}</td>
           <td>${c.price != null ? '$' + Number(c.price).toLocaleString() : '—'}</td>
           <td>${esc(c.soldDate || '—')}</td>
         </tr>`
@@ -1650,7 +1662,7 @@
         ? `<a href="${esc(c.streetViewUrl)}" class="vault-sv-mini" target="_blank" rel="noopener noreferrer">SV</a>`
         : '—';
       return `<tr class="${inclCls}">
-        <td>${esc(c.address || '—')}</td>
+        <td>${esc(formatCompAddress(c.address) || '—')}</td>
         <td>${c.price != null ? '$' + Number(c.price).toLocaleString() : '—'}</td>
         <td>${esc(c.soldDate || '—')}</td>
         <td>${esc(dist)}</td>
