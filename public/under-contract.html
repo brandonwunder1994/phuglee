@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=52">
+  <link rel="stylesheet" href="/css/under-contract.css?v=53">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -301,6 +301,19 @@
             <button type="button" id="uc-doc-send" class="phuglee-btn phuglee-btn-primary">Send Document</button>
           </div>
           <p id="uc-docs-pending" class="uc-docs-pending" hidden></p>
+        </div>
+      </section>
+
+      <section id="uc-buyers-section" class="uc-panel uc-buyer-offers" aria-label="Buyer offers">
+        <button type="button" class="uc-panel-summary" aria-expanded="false">
+          <span class="uc-panel-title">Buyers</span>
+          <span class="uc-panel-hint" id="uc-buyer-offers-hint">Offers pitched on this property</span>
+        </button>
+        <div class="uc-panel-body" hidden>
+          <div id="uc-buyer-offers-list" class="uc-buyer-offers-list"></div>
+          <div class="uc-panel-toolbar uc-buyer-offers-toolbar">
+            <button type="button" id="uc-buyer-offer-add" class="phuglee-btn phuglee-btn-secondary">Add another buyer</button>
+          </div>
         </div>
       </section>
 
@@ -652,6 +665,6 @@
   <script src="/js/command-palette.js?v=3" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=60" defer></script>
+  <script src="/js/under-contract.js?v=61" defer></script>
 </body>
 </html>
