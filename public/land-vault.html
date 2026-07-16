@@ -16,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=22">
-  <link rel="stylesheet" href="/css/land-vault.css?v=2">
+  <link rel="stylesheet" href="/css/land-vault.css?v=3">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -41,7 +41,7 @@
           <li>Vacant lots with motivation signals</li>
           <li>Owner contact when available</li>
           <li>Satellite imagery for lot context</li>
-          <li>Builder / fund match workflow (coming soon)</li>
+          <li>7-check screen + builder / fund match</li>
         </ul>
         <div class="vault-cta-row">
           <a href="mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan" class="phuglee-btn phuglee-btn-primary vault-upgrade-btn">Upgrade to Max — $297/mo</a>
@@ -84,6 +84,16 @@
             <input type="checkbox" id="land-vault-has-phone" class="vault-check">
             <span class="vault-field-label">Has phone</span>
           </label>
+          <div class="vault-field">
+            <span class="vault-field-label">Queue</span>
+            <div id="land-vault-verdict-tabs" class="vault-type-tabs land-vault-verdict-tabs" role="tablist" aria-label="Screen queue">
+              <button type="button" class="vault-type-tab is-active" role="tab" data-verdict="all" aria-selected="true">All</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="pending" aria-selected="false">Needs screen</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="keep" aria-selected="false">Keep</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="toss" aria-selected="false">Toss</button>
+              <button type="button" class="vault-type-tab" role="tab" data-verdict="fund-shaped" aria-selected="false">Fund-shaped</button>
+            </div>
+          </div>
           <button type="button" id="land-vault-clear-filters" class="phuglee-btn phuglee-btn-ghost vault-clear-btn">Clear filters</button>
         </aside>
 
@@ -99,6 +109,8 @@
                   <th scope="col"><button type="button" class="vault-sort-btn" data-sort="address" aria-sort="none">Address</button></th>
                   <th scope="col" class="vault-col-city"><button type="button" class="vault-sort-btn" data-sort="city" aria-sort="none">City</button></th>
                   <th scope="col">Signal</th>
+                  <th scope="col">Verdict</th>
+                  <th scope="col">Fund</th>
                   <th scope="col"><button type="button" class="vault-sort-btn is-sorted" data-sort="priorityScore" aria-sort="descending">Score</button></th>
                   <th scope="col" class="vault-col-owner">Owner</th>
                   <th scope="col" class="vault-col-phone">Phone</th>
@@ -145,6 +157,6 @@
   <script src="/js/shell-nav.js?v=20" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/auth.js?v=distress20" defer></script>
-  <script src="/js/land-vault-app.js?v=1" defer></script>
+  <script src="/js/land-vault-app.js?v=2" defer></script>
 </body>
 </html>

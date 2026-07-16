@@ -5,6 +5,32 @@
   const SEARCH_DELAY = 320;
   const PAGE_SIZE = 50;
 
+  const CHECK_IDS = [
+    'infill',
+    'utilities',
+    'pavedAccess',
+    'cleared',
+    'flat',
+    'flood',
+    'zoning'
+  ];
+
+  const CHECK_LABELS = {
+    infill: 'Infill',
+    utilities: 'Utilities',
+    pavedAccess: 'Paved access',
+    cleared: 'Cleared',
+    flat: 'Flat',
+    flood: 'Flood',
+    zoning: 'Zoning'
+  };
+
+  const VERDICT_LABELS = {
+    pending: 'Needs screen',
+    keep: 'Keep',
+    toss: 'Toss'
+  };
+
   const state = {
     state: '',
     city: '',
@@ -13,6 +39,7 @@
     sort: 'priorityScore',
     sortDir: 'desc',
     hasPhone: false,
+    landVerdict: 'all',
     meta: null,
     statesFiltered: null,
     citiesFiltered: null,
@@ -75,6 +102,9 @@
     if (state.city) params.set('city', state.city);
     if (state.q) params.set('q', state.q);
     if (state.hasPhone) params.set('hasPhone', '1');
+    if (state.landVerdict && state.landVerdict !== 'all') {
+      params.set('landVerdict', state.landVerdict);
+    }
     params.set('page', String(state.page));
     params.set('sort', state.sort);
     params.set('sortDir', state.sortDir);
@@ -82,7 +112,102 @@
   }
 
   function filtersAreActive() {
-    return !!(state.state || state.city || state.q || state.hasPhone);
+    return !!(state.state || state.city || state.q || state.hasPhone
+      || (state.landVerdict && state.landVerdict !== 'all'));
+  }
+
+  function emptyChecks() {
+    const checks = {};
+    for (const id of CHECK_IDS) {
+      checks[id] = { status: 'unknown', note: '' };
+    }
+    return checks;
+  }
+
+  function normalizeCheck(raw = {}) {
+    const status = ['pass', 'fail', 'unknown'].includes(String(raw.status || '').toLowerCase())
+      ? String(raw.status).toLowerCase()
+      : 'unknown';
+    return { status, note: String(raw.note || '').trim() };
+  }
+
+  function normalizeLandScreen(raw = {}) {
+    const src = raw && typeof raw === 'object' ? raw : {};
+    const checksIn = src.checks && typeof src.checks === 'object' ? src.checks : {};
+    const checks = emptyChecks();
+    for (const id of CHECK_IDS) {
+      checks[id] = normalizeCheck(checksIn[id] || {});
+    }
+    const verdict = ['pending', 'keep', 'toss'].includes(String(src.verdict || '').toLowerCase())
+      ? String(src.verdict).toLowerCase()
+      : 'pending';
+    return {
+      demandBuilders: normalizeCheck(src.demandBuilders || {}),
+      checks,
+      verdict,
+      verdictNote: String(src.verdictNote || '').trim(),
+      recommendedVerdict: src.recommendedVerdict || null,
+      screenedAt: src.screenedAt || null,
+      screenedBy: src.screenedBy || null
+    };
+  }
+
+  function recommendLandVerdict(screenInput = {}) {
+    const screen = normalizeLandScreen(screenInput);
+    if (screen.demandBuilders.status === 'fail') return 'toss';
+    for (const id of CHECK_IDS) {
+      if (screen.checks[id].status === 'fail') return 'toss';
+    }
+    if (screen.demandBuilders.status !== 'pass') return null;
+    for (const id of CHECK_IDS) {
+      if (screen.checks[id].status !== 'pass') return null;
+    }
+    return 'keep';
+  }
+
+  function verdictBadgeClass(verdict) {
+    const v = String(verdict || 'pending').toLowerCase();
+    if (v === 'keep') return ' land-vault-verdict--keep';
+    if (v === 'toss') return ' land-vault-verdict--toss';
+    return ' land-vault-verdict--pending';
+  }
+
+  function formatVerdictLabel(verdict) {
+    const v = String(verdict || 'pending').toLowerCase();
+    return VERDICT_LABELS[v] || v;
+  }
+
+  function statusSelectHtml(field, value) {
+    const v = String(value || 'unknown').toLowerCase();
+    const opts = ['unknown', 'pass', 'fail'].map((s) =>
+      `<option value="${s}"${s === v ? ' selected' : ''}>${s}</option>`
+    ).join('');
+    return `<select class="phuglee-select land-vault-status-select" data-screen-field="${esc(field)}">${opts}</select>`;
+  }
+
+  function fundMatchesStale(lead = {}) {
+    const matches = Array.isArray(lead.fundMatches) ? lead.fundMatches : [];
+    if (!matches.length) return true;
+    const screenedAt = lead.landScreen?.screenedAt;
+    const matchedAt = lead.fundMatchedAt;
+    if (screenedAt && matchedAt) {
+      const s = Date.parse(screenedAt);
+      const m = Date.parse(matchedAt);
+      if (Number.isFinite(s) && Number.isFinite(m) && s > m) return true;
+    }
+    return false;
+  }
+
+  async function ensureFundMatches(leadId, lead) {
+    if (!fundMatchesStale(lead)) {
+      return Array.isArray(lead.fundMatches) ? lead.fundMatches : [];
+    }
+    const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/fund-match`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    return Array.isArray(data.fundMatches) ? data.fundMatches : [];
   }
 
   function normalizeImageryUrl(url) {
@@ -209,6 +334,15 @@
       $('land-vault-city').disabled = !state.state;
     }
     if ($('land-vault-has-phone')) $('land-vault-has-phone').checked = state.hasPhone;
+    syncVerdictTabs();
+  }
+
+  function syncVerdictTabs() {
+    document.querySelectorAll('#land-vault-verdict-tabs .vault-type-tab').forEach((tab) => {
+      const active = (tab.dataset.verdict || 'all') === state.landVerdict;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
   }
 
   function applyListFacets(data = {}) {
@@ -325,11 +459,16 @@
         totalCount: row.phoneCount != null ? row.phoneCount : (row.phones || []).length
       });
       const scoreCls = scoreHeatClass(row.priorityScore);
+      const verdict = row.landVerdict || 'pending';
+      const verdictCls = verdictBadgeClass(verdict);
+      const fundName = row.topFundName ? String(row.topFundName) : '—';
       return `<tr class="vault-row" data-lead-id="${esc(row.leadId)}" tabindex="0">
         <td class="vault-col-thumb">${thumbHtml(row)}</td>
         <td>${esc(row.address)}</td>
         <td>${esc(row.city || '—')}</td>
         <td><span class="vault-signal${hotSignalClass(signal)}">${esc(signal)}</span></td>
+        <td><span class="land-vault-verdict${verdictCls}">${esc(formatVerdictLabel(verdict))}</span></td>
+        <td class="land-vault-col-fund">${esc(fundName)}</td>
         <td><span class="vault-score${scoreCls}">${esc(row.priorityScore)}</span></td>
         <td class="vault-col-owner">${esc(row.ownerName || '—')}</td>
         <td class="vault-col-phone">${phoneHtml}</td>
@@ -425,7 +564,77 @@
     }
   }
 
-  function renderDrawerBody(l, note) {
+  function renderFundMatchesSection(fundMatches) {
+    const matches = Array.isArray(fundMatches) ? fundMatches : [];
+    if (!matches.length) {
+      return `<section class="vault-dossier-section land-vault-fund-section">
+        <h3>Buyer shape</h3>
+        <p class="vault-field-hint">No fund matches yet — run match after screening flood/utilities when known.</p>
+      </section>`;
+    }
+    const chips = matches.map((m) => {
+      const reasons = (m.reasons || []).map((r) => `<li>${esc(r)}</li>`).join('');
+      const gaps = (m.gaps || []).map((g) => `<li class="land-vault-gap">${esc(g)}</li>`).join('');
+      const detail = (reasons || gaps)
+        ? `<ul class="land-vault-fund-detail">${reasons}${gaps}</ul>`
+        : '';
+      return `<div class="land-vault-fund-chip">
+        <div class="land-vault-fund-chip-head">
+          <strong>${esc(m.fundName || m.fundId)}</strong>
+          <span class="land-vault-fund-score">${esc(m.score)}</span>
+        </div>
+        ${m.oneLiner ? `<p class="land-vault-fund-oneliner">${esc(m.oneLiner)}</p>` : ''}
+        ${detail}
+      </div>`;
+    }).join('');
+    return `<section class="vault-dossier-section land-vault-fund-section">
+      <h3>Buyer shape</h3>
+      <div class="land-vault-fund-chips">${chips}</div>
+    </section>`;
+  }
+
+  function renderScreenSection(landScreen) {
+    const screen = normalizeLandScreen(landScreen);
+    const recommended = recommendLandVerdict(screen);
+    const recText = recommended === 'keep'
+      ? 'Recommended: Keep — demand + all seven checks pass.'
+      : (recommended === 'toss'
+        ? 'Recommended: Toss — demand or a check failed.'
+        : 'Recommended: Still needs screen — unknowns remain.');
+
+    const demandRow = `<div class="land-vault-check-row">
+      <span class="land-vault-check-label">Demand builders</span>
+      ${statusSelectHtml('demandBuilders', screen.demandBuilders.status)}
+      <input type="text" class="phuglee-input land-vault-check-note" data-screen-note="demandBuilders" placeholder="Note" value="${esc(screen.demandBuilders.note)}">
+    </div>`;
+
+    const checkRows = CHECK_IDS.map((id) =>
+      `<div class="land-vault-check-row">
+        <span class="land-vault-check-label">${esc(CHECK_LABELS[id] || id)}</span>
+        ${statusSelectHtml(`checks.${id}`, screen.checks[id].status)}
+        <input type="text" class="phuglee-input land-vault-check-note" data-screen-note="checks.${id}" placeholder="Note" value="${esc(screen.checks[id].note)}">
+      </div>`
+    ).join('');
+
+    return `<section class="vault-dossier-section land-vault-screen-section">
+      <h3>7-check screen</h3>
+      <div class="land-vault-checks">
+        ${demandRow}
+        ${checkRows}
+      </div>
+      <p class="land-vault-recommended" data-land-recommended>${esc(recText)}</p>
+      <label class="vault-field land-vault-verdict-note-field">
+        <span class="vault-field-label">Verdict note</span>
+        <textarea id="land-vault-verdict-note" class="phuglee-input land-vault-verdict-note" rows="3" placeholder="Required when keeping a failing lot…">${esc(screen.verdictNote)}</textarea>
+      </label>
+      <div class="land-vault-verdict-actions">
+        <button type="button" class="phuglee-btn phuglee-btn-primary" data-verdict-action="keep">Keep</button>
+        <button type="button" class="phuglee-btn phuglee-btn-ghost" data-verdict-action="toss">Toss</button>
+      </div>
+    </section>`;
+  }
+
+  function renderDrawerBody(l, note, landScreen, fundMatches) {
     const signals = Array.isArray(l.signalTags) ? l.signalTags : [];
     const signalHtml = signals.length
       ? `<ul class="land-vault-signal-list">${signals.map((s) =>
@@ -468,9 +677,143 @@
           <h3>Signals</h3>
           ${signalHtml}
         </section>
+        ${renderFundMatchesSection(fundMatches)}
+        ${renderScreenSection(landScreen)}
         ${noteBlock}
       </div>
     `;
+  }
+
+  function collectScreenFromDrawer() {
+    const body = $('land-vault-drawer-body');
+    if (!body) return normalizeLandScreen({});
+    const screen = normalizeLandScreen({});
+    body.querySelectorAll('.land-vault-status-select').forEach((sel) => {
+      const field = sel.dataset.screenField || '';
+      const val = { status: sel.value, note: '' };
+      if (field === 'demandBuilders') {
+        screen.demandBuilders = val;
+      } else if (field.startsWith('checks.')) {
+        const id = field.slice('checks.'.length);
+        if (screen.checks[id]) screen.checks[id] = val;
+      }
+    });
+    body.querySelectorAll('.land-vault-check-note').forEach((inp) => {
+      const field = inp.dataset.screenNote || '';
+      const note = (inp.value || '').trim();
+      if (field === 'demandBuilders') {
+        screen.demandBuilders.note = note;
+      } else if (field.startsWith('checks.')) {
+        const id = field.slice('checks.'.length);
+        if (screen.checks[id]) screen.checks[id].note = note;
+      }
+    });
+    const noteEl = $('land-vault-verdict-note');
+    screen.verdictNote = noteEl ? String(noteEl.value || '').trim() : '';
+    screen.recommendedVerdict = recommendLandVerdict(screen);
+    return screen;
+  }
+
+  function updateRecommendedInDrawer() {
+    const el = document.querySelector('[data-land-recommended]');
+    if (!el) return;
+    const screen = collectScreenFromDrawer();
+    const recommended = recommendLandVerdict(screen);
+    el.textContent = recommended === 'keep'
+      ? 'Recommended: Keep — demand + all seven checks pass.'
+      : (recommended === 'toss'
+        ? 'Recommended: Toss — demand or a check failed.'
+        : 'Recommended: Still needs screen — unknowns remain.');
+  }
+
+  function screenHasFail(screen) {
+    if (screen.demandBuilders.status === 'fail') return true;
+    return CHECK_IDS.some((id) => screen.checks[id].status === 'fail');
+  }
+
+  function verdictNoteRequired(screen, verdict) {
+    if (verdict !== 'keep') return false;
+    const recommended = recommendLandVerdict(screen);
+    return recommended === 'toss' || screenHasFail(screen);
+  }
+
+  function patchLeadInList(lead) {
+    if (!lead || !lead.leadId) return;
+    const idx = state.leads.findIndex((r) => r.leadId === lead.leadId);
+    if (idx < 0) return;
+    const row = state.leads[idx];
+    const screen = lead.landScreen || {};
+    const top = Array.isArray(lead.fundMatches) && lead.fundMatches[0] ? lead.fundMatches[0] : null;
+    state.leads[idx] = {
+      ...row,
+      priorityScore: lead.priorityScore != null ? lead.priorityScore : row.priorityScore,
+      landVerdict: screen.verdict || row.landVerdict || 'pending',
+      topFundName: top ? (top.fundName || top.fundId) : (row.topFundName || ''),
+      fundMatchCount: Array.isArray(lead.fundMatches) ? lead.fundMatches.length : row.fundMatchCount
+    };
+    renderTable();
+  }
+
+  async function saveLandVerdict(verdict) {
+    const leadId = state.activeLeadId;
+    if (!leadId) return;
+    const screen = collectScreenFromDrawer();
+    screen.verdict = verdict;
+    screen.recommendedVerdict = recommendLandVerdict(screen);
+    if (verdictNoteRequired(screen, verdict) && !screen.verdictNote) {
+      showToast('Verdict note required when keeping a failing lot');
+      $('land-vault-verdict-note')?.focus();
+      return;
+    }
+    const actions = document.querySelectorAll('[data-verdict-action]');
+    actions.forEach((btn) => { btn.disabled = true; });
+    try {
+      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/land-screen`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ landScreen: screen })
+      });
+      const savedLead = data.lead || { leadId, landScreen: data.landScreen || screen };
+      patchLeadInList(savedLead);
+      showToast(verdict === 'keep' ? 'Marked Keep' : 'Marked Toss');
+      const note = state.overlays?.notes?.[leadId] || '';
+      const fundMatches = await ensureFundMatches(leadId, savedLead);
+      const body = $('land-vault-drawer-body');
+      if (body) {
+        const detail = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`);
+        const l = detail.lead || savedLead;
+        body.innerHTML = renderDrawerBody(
+          l,
+          note,
+          data.landScreen || savedLead.landScreen || screen,
+          fundMatches
+        );
+        wireDrawerScreenEvents();
+        wireImageryFallbacks(body);
+      }
+      await refreshList();
+    } catch (err) {
+      showToast(err.message || 'Could not save screen');
+    } finally {
+      actions.forEach((btn) => { btn.disabled = false; });
+    }
+  }
+
+  function wireDrawerScreenEvents() {
+    const body = $('land-vault-drawer-body');
+    if (!body) return;
+    body.querySelectorAll('.land-vault-status-select, .land-vault-check-note').forEach((el) => {
+      el.addEventListener('change', updateRecommendedInDrawer);
+      el.addEventListener('input', updateRecommendedInDrawer);
+    });
+    body.querySelectorAll('[data-verdict-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const verdict = btn.dataset.verdictAction;
+        if (verdict === 'keep' || verdict === 'toss') {
+          saveLandVerdict(verdict).catch((err) => showToast(err.message || 'Save failed'));
+        }
+      });
+    });
   }
 
   function closeDrawer() {
@@ -528,9 +871,12 @@
         window.location.replace(`/vault?lead=${encodeURIComponent(leadId)}`);
         return;
       }
+      const landScreen = normalizeLandScreen(l.landScreen || {});
+      const fundMatches = await ensureFundMatches(leadId, l);
       if (title) title.textContent = l.address || 'Lot';
       const note = data.note || state.overlays?.notes?.[leadId] || '';
-      body.innerHTML = renderDrawerBody(l, note);
+      body.innerHTML = renderDrawerBody(l, note, landScreen, fundMatches);
+      wireDrawerScreenEvents();
       wireImageryFallbacks(body);
       $('land-vault-drawer-close')?.focus();
     } catch (err) {
@@ -563,6 +909,7 @@
     state.city = '';
     state.q = '';
     state.hasPhone = false;
+    state.landVerdict = 'all';
     state.page = 1;
     syncFilterControls();
     populateGeoSelects();
@@ -601,6 +948,17 @@
     $('land-vault-has-phone')?.addEventListener('change', (e) => {
       state.hasPhone = !!e.target.checked;
       state.page = 1;
+      refreshList().catch((err) => showToast(err.message || 'Could not filter'));
+    });
+
+    $('land-vault-verdict-tabs')?.addEventListener('click', (e) => {
+      const tab = e.target.closest('.vault-type-tab[data-verdict]');
+      if (!tab) return;
+      const verdict = tab.dataset.verdict || 'all';
+      if (state.landVerdict === verdict) return;
+      state.landVerdict = verdict;
+      state.page = 1;
+      syncVerdictTabs();
       refreshList().catch((err) => showToast(err.message || 'Could not filter'));
     });
 

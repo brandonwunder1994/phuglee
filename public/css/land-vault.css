@@ -45,6 +45,132 @@
   color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.72));
 }
 
+.land-vault-verdict-tabs {
+  margin-top: 0.35rem;
+}
+
+.land-vault-verdict {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--vault-border, rgba(255, 255, 255, 0.12));
+}
+
+.land-vault-verdict--keep {
+  color: #7dcea0;
+  border-color: rgba(125, 206, 160, 0.35);
+  background: rgba(125, 206, 160, 0.08);
+}
+
+.land-vault-verdict--toss {
+  color: #f1948a;
+  border-color: rgba(241, 148, 138, 0.35);
+  background: rgba(241, 148, 138, 0.08);
+}
+
+.land-vault-verdict--pending {
+  color: var(--phuglee-stone, rgba(255, 255, 255, 0.55));
+}
+
+.land-vault-col-fund {
+  font-size: 0.72rem;
+  max-width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.land-vault-fund-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.land-vault-fund-chip {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--vault-border, rgba(255, 255, 255, 0.1));
+  border-radius: 0.45rem;
+  background: var(--vault-surface, rgba(255, 255, 255, 0.03));
+}
+
+.land-vault-fund-chip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.land-vault-fund-score {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.land-vault-fund-oneliner {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.land-vault-fund-detail {
+  margin: 0.4rem 0 0;
+  padding-left: 1rem;
+  font-size: 0.72rem;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.72));
+}
+
+.land-vault-gap {
+  color: #f0b27a;
+}
+
+.land-vault-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.land-vault-check-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 1fr) 5.5rem 1fr;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.land-vault-check-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.land-vault-status-select {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.35rem;
+}
+
+.land-vault-check-note {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.4rem;
+}
+
+.land-vault-recommended {
+  margin: 0.75rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.8));
+}
+
+.land-vault-verdict-note {
+  min-height: 4rem;
+  resize: vertical;
+}
+
+.land-vault-verdict-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
 @media (max-width: 768px) {
   .land-vault-desk {
     flex-direction: column;
@@ -60,5 +186,13 @@
 
   #land-vault-table .vault-col-owner {
     max-width: 6rem;
+  }
+
+  .land-vault-check-row {
+    grid-template-columns: 1fr;
+  }
+
+  .land-vault-col-fund {
+    max-width: 5rem;
   }
 }
