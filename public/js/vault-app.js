@@ -337,6 +337,7 @@
   function buildQuery() {
     const params = new URLSearchParams();
     if (state.leadType && state.leadType !== 'all') params.set('leadType', state.leadType);
+    params.set('surface', 'home');
     if (state.state) params.set('state', state.state);
     if (state.city) params.set('city', state.city);
     if (state.q) params.set('q', state.q);
@@ -1869,6 +1870,10 @@
     try {
       const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}`);
       const l = data.lead;
+      if (l && l.leadType === 'land') {
+        window.location.replace(`/land-vault?lead=${encodeURIComponent(leadId)}`);
+        return;
+      }
       if (title) title.textContent = l.address || 'Lead';
 
       body.innerHTML = `

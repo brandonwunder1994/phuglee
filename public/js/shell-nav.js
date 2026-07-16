@@ -3,6 +3,8 @@
 
   const DATA_LINKS = [
     { id: 'collect', label: 'Collect', href: '/collect' },
+    { id: 'government-lists', label: 'Government Lists', href: '/government-lists' },
+    { id: 'pre-liens', label: 'Pre-liens', href: '/pre-liens' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
     { id: 'analyzer', label: 'Analyze', href: '/analyzer/' }
   ];
@@ -10,7 +12,7 @@
   const PIPELINE_LINKS = [
     { id: 'under-contract', label: 'Under Contract', href: '/under-contract' },
     { id: 'pipeline', label: 'All Leads', href: '/pipeline' },
-    { id: 'trust-funds', label: 'Trust Funds', href: '/trust-funds' }
+    { id: 'buyers', label: 'Buyers', href: '/buyers' }
   ];
 
   function isAdminUser() {
@@ -90,10 +92,13 @@
     const p = normalizePath(path);
     if (p === '/command') return 'command';
     if (p === '/vault') return 'vault';
+    if (p === '/land-vault') return 'land-vault';
     if (p === '/pipeline') return 'pipeline';
     if (p === '/under-contract') return 'under-contract';
-    if (p === '/trust-funds') return 'trust-funds';
+    if (p === '/buyers' || p === '/trust-funds') return 'buyers';
     if (p === '/operating-costs') return 'operating-costs';
+    if (p === '/government-lists') return 'government-lists';
+    if (p === '/pre-liens') return 'pre-liens';
     if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
@@ -134,10 +139,11 @@
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">The Vault</span>
+      <span class="shell-footer-meta">Home Vault · Land Vault</span>
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/vault" class="shell-footer-link">The Vault</a>
+      <a href="/vault" class="shell-footer-link">Home Vault</a>
+      <a href="/land-vault" class="shell-footer-link">Land Vault</a>
     </nav>
   </div>
 </footer>`;
@@ -158,6 +164,8 @@
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Collect</a>
+      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
+      <a href="/pre-liens" class="shell-footer-link">Pre-liens</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Analyze</a>
       <a href="/vault" class="shell-footer-link">The Vault</a>
@@ -254,7 +262,8 @@
 
   function buildNav(pathname) {
     const current = activeId(pathname);
-    const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>The Vault</a>`;
+    const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>Home Vault</a>`
+      + `<a href="/land-vault" class="${linkClass('land-vault', current)}"${current === 'land-vault' ? ' aria-current="page"' : ''}>Land Vault</a>`;
 
     let linksHtml;
     if (isVaultOnlyUser()) {

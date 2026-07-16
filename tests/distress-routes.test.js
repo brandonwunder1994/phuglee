@@ -30,13 +30,22 @@ for (const [route, file] of Object.entries(config.DISTRESS_ROUTES)) {
   });
 }
 
-test('GET /vault serves vault.html', async () => {
+test('GET /vault serves Home Vault', async () => {
   const res = mockRes();
   await handleRequest({ method: 'GET', url: '/vault', headers: { host: '127.0.0.1:3000' } }, res);
   assert.equal(res.statusCode, 200);
   assert.match(res.headers['Content-Type'] || '', /text\/html/);
   assert.match(res.body, /id="vault-app"/);
-  assert.match(res.body, /The Vault/);
+  assert.match(res.body, /Home Vault/);
+});
+
+test('GET /land-vault serves Land Desk', async () => {
+  const res = mockRes();
+  await handleRequest({ method: 'GET', url: '/land-vault', headers: { host: '127.0.0.1:3000' } }, res);
+  assert.equal(res.statusCode, 200);
+  assert.match(res.headers['Content-Type'] || '', /text\/html/);
+  assert.match(res.body, /id="land-vault-app"/);
+  assert.match(res.body, /Land Desk/);
 });
 
 test('GET /filter serves Filter desk', async () => {
