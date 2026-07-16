@@ -166,6 +166,31 @@ module.exports = function createBackups(deps) {
     return true;
   }
 
+  /** Drop completed forceRescan flags (JSONL / scan rows often keep them forever). */
+  function stripCompletedForceRescan(row) {
+    if (!row || !row.forceRescan) return row;
+    const importedAt = Number(row.importedAt) || 0;
+    const analyzedAt = Number(row.analyzedAt || row.savedAt) || 0;
+    if (analyzedAt > 0 && (!importedAt || analyzedAt >= importedAt)) {
+      const out = { ...row };
+      delete out.forceRescan;
+      return out;
+    }
+    return row;
+  }
+
+  /** Regex fallback when full session JSON.stringify (~50MB) fails to write. */
+  function stripForceRescanFlagsInJsonFile(filePath) {
+    if (!fs.existsSync(filePath)) return 0;
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const next = raw
+      .replace(/,"forceRescan":true/g, '')
+      .replace(/"forceRescan":true,/g, '');
+    if (next === raw) return 0;
+    writeFileAtomic(filePath, next);
+    return (raw.match(/"forceRescan":true/g) || []).length;
+  }
+
   function mergeIncrementalIntoSession(session) {
     const base = session && typeof session === 'object'
       ? session
@@ -185,7 +210,7 @@ module.exports = function createBackups(deps) {
       const k = recordKeyFromResult(r);
       const prev = existing.get(k);
       if (!shouldReplaceSessionResult(prev, r)) continue;
-      const merged = { ...r };
+      const merged = stripCompletedForceRescan({ ...r });
       if (!merged.leadType) {
         merged.leadType = prev?.leadType || recordLeadTypeByKey.get(k) || 'code_violation';
       }
@@ -451,9 +476,21 @@ module.exports = function createBackups(deps) {
         if (cleared > 0) {
           console.log(`[Session] Cleared ${cleared} stale forceRescan flags (${scope.storageKey})`);
         }
-        console.log(`[Session] Pruned stale reviewProgressByFilter (${scope.storageKey})`);
       } catch (err) {
         console.warn('[Session] session heal write failed:', err.message);
+      }
+      // Large sessions (~50MB) often fail full rewrite; always regex-strip flags on disk.
+      if (cleared > 0) {
+        try {
+          const latestPath = scopeSessionPath(DATA_ROOT, SESSION_LATEST_FILE, scope);
+          const stripped = stripForceRescanFlagsInJsonFile(latestPath);
+          invalidateSessionCaches();
+          if (stripped > 0) {
+            console.log(`[Session] Regex-stripped ${stripped} forceRescan flags on disk (${scope.storageKey})`);
+          }
+        } catch (stripErr) {
+          console.warn('[Session] forceRescan disk strip failed:', stripErr.message);
+        }
       }
     }
     return { scope, session };
