@@ -6,7 +6,8 @@ const { mapReapiDetail } = require('../lib/leads-platform/comping/reapi-client')
 const {
   fillBlankParcelFromDetail,
   parcelPatchFromDetail,
-  enrichLandLeadFromReapi
+  enrichLandLeadFromReapi,
+  buildPropertyDetailBody
 } = require('../lib/leads-platform/land/enrich-from-reapi');
 const { extractParcelFields } = require('../lib/leads-platform/land/parcel');
 
@@ -16,6 +17,19 @@ const fixture = JSON.parse(
     'utf8'
   )
 );
+
+describe('buildPropertyDetailBody', () => {
+  it('sends fully formatted address for PropertyDetail', () => {
+    const body = buildPropertyDetailBody({
+      address: '120 Veterans Dr',
+      city: 'Cape Coral',
+      state: 'FL',
+      zip: '33990'
+    });
+    assert.equal(body.address, '120 Veterans Dr, Cape Coral FL 33990');
+    assert.equal(body.street, undefined);
+  });
+});
 
 describe('mapReapiDetail nested PropertyDetail', () => {
   it('reads lotInfo + propertyInfo for land parcel fields', () => {
