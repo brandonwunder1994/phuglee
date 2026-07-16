@@ -1837,6 +1837,47 @@
   min-height: 2.5rem;
 }
 
+.vault-block-pass {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.vault-block-pass-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--vault-muted);
+}
+
+.vault-block-pass-btn {
+  min-height: 2.75rem;
+  min-width: 4.5rem;
+}
+
+.vault-block-pass-btn.is-active {
+  border-color: var(--phuglee-gold);
+  color: var(--phuglee-cream);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.vault-block-pass-btn--kill.is-active {
+  border-color: #c45c4a;
+  background: rgba(196, 92, 74, 0.14);
+}
+
+.vault-block-pass-status {
+  font-size: 0.78rem;
+  color: var(--phuglee-cream);
+}
+
+.vault-block-pass-status--empty {
+  color: var(--vault-muted);
+}
+
 .vault-comp-files {
   list-style: none;
   margin: 0;
@@ -1971,6 +2012,11 @@
 .vault-manual-dropzone.is-dragover {
   border-color: var(--phuglee-gold);
   background: rgba(238, 183, 70, 0.1);
+}
+
+.vault-manual-dropzone.is-required-miss {
+  border-color: #c45c4a;
+  background: rgba(196, 92, 74, 0.1);
 }
 
 .vault-manual-file-label {

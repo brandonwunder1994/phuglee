@@ -42,6 +42,24 @@ describe('schema comp fields', () => {
 });
 
 describe('Comping Rules scorer', () => {
+  it('hard-fails token sale prices below $10k floor', () => {
+    const { scoreComp } = require('../lib/leads-platform/comping/rules');
+    const subject = require('./fixtures/comping/subject.json');
+    const scored = scoreComp(subject, {
+      address: 'junk',
+      price: 300,
+      soldDate: '2026-03-01',
+      sqft: 1000,
+      beds: 3,
+      baths: 2,
+      distanceMi: 0.2,
+      yearBuilt: 1985,
+      propertyType: 'sfr'
+    }, { ladderLevel: 0, neighborhoodPpsfMedian: 120 });
+    assert.equal(scored.includedEligible, false);
+    assert.ok(scored.rules.some((r) => r.id === 'usable_price' && r.status === 'fail'));
+  });
+
   it('hard-fails zero sale price', () => {
     const r = scoreComp(
       { sqft: 1500, beds: 3, baths: 2, yearBuilt: 1980, lat: 30, lng: -97 },

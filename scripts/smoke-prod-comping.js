@@ -89,12 +89,6 @@ async function main() {
   if (missing.length) fail('vault-app-symbols', { missing, bytes: vaultJs.body.length });
   pass('vault-app-symbols', { bytes: vaultJs.body.length, symbols });
 
-  const vaultHtml = await fetchUrl(`${BASE}/vault`);
-  if (vaultHtml.status !== 200 || !vaultHtml.body.includes('vault-app.js?v=26')) {
-    fail('vault-html-cachebust', { status: vaultHtml.status, hasV26: vaultHtml.body.includes('vault-app.js?v=26') });
-  }
-  pass('vault-html-cachebust', { v: 26 });
-
   const login = await fetchUrl(`${BASE}/api/auth/login`, {
     method: 'POST',
     body: { username: 'admin', password: PASS }
@@ -107,6 +101,12 @@ async function main() {
   pass('login', { username: loginBody.username, plan: loginBody.plan });
 
   const h = { Cookie: cookie, Accept: 'application/json' };
+
+  const vaultHtml = await fetchUrl(`${BASE}/vault`, { headers: { Cookie: cookie, Accept: 'text/html' } });
+  if (vaultHtml.status !== 200 || !vaultHtml.body.includes('vault-app.js?v=27')) {
+    fail('vault-html-cachebust', { status: vaultHtml.status, hasV27: vaultHtml.body.includes('vault-app.js?v=27') });
+  }
+  pass('vault-html-cachebust', { v: 27 });
 
   // Find house leads: prefer TX (manual) and a disclosure state (auto).
   const list = await fetchUrl(`${BASE}/api/leads?limit=80&status=active`, { headers: h });
