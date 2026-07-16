@@ -14,7 +14,7 @@ const files = [...walk('public'), path.join('lib', 'rewrite.js')];
 for (const file of files) {
   const before = fs.readFileSync(file, 'utf8');
   const after = before
-    .replace(/shell-nav\.js\?v=[^"]+/g, 'shell-nav.js?v=18')
+    .replace(/shell-nav\.js\?v=[^"]+/g, 'shell-nav.js?v=19')
     .replace(/settings-menu\.js\?v=[^"]+/g, 'settings-menu.js?v=4');
   if (after !== before) {
     fs.writeFileSync(file, after);

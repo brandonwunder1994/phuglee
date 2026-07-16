@@ -9,7 +9,8 @@
 
   const PIPELINE_LINKS = [
     { id: 'under-contract', label: 'Under Contract', href: '/under-contract' },
-    { id: 'pipeline', label: 'All Leads', href: '/pipeline' }
+    { id: 'pipeline', label: 'All Leads', href: '/pipeline' },
+    { id: 'trust-funds', label: 'Trust Funds', href: '/trust-funds' }
   ];
 
   function isAdminUser() {
@@ -91,6 +92,7 @@
     if (p === '/vault') return 'vault';
     if (p === '/pipeline') return 'pipeline';
     if (p === '/under-contract') return 'under-contract';
+    if (p === '/trust-funds') return 'trust-funds';
     if (p === '/operating-costs') return 'operating-costs';
     if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);

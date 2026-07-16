@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Trust Funds</title>
+  <meta name="description" content="Match deals to hedge fund buy boxes — Brad + admin dispo desk.">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
+  <link rel="stylesheet" href="/css/vault.css?v=16">
+  <link rel="stylesheet" href="/css/trust-funds.css?v=10">
+  <script src="/js/auth-session.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js?v=2"></script>
+</head>
+<body class="phuglee-app has-premium-bg vault-page tf-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
+  <div id="distress-os-nav-mount"></div>
+  <div id="tf-toast" class="vault-toast" hidden role="status" aria-live="polite"></div>
+
+  <main id="main" class="vault-main vault-main--app tf-main">
+    <section id="tf-gate" class="vault-gate" hidden>
+      <div class="vault-gate-inner">
+        <p class="vault-eyebrow">Exit desk</p>
+        <h1 class="vault-title">Trust Funds</h1>
+        <p class="vault-lead">Sign in as admin or disposition partner to match deals against fund buy boxes.</p>
+        <a href="/" class="phuglee-btn phuglee-btn-primary">Back home</a>
+      </div>
+    </section>
+
+    <div id="tf-app" class="tf-app" hidden>
+      <header class="tf-hero">
+        <div>
+          <p class="vault-eyebrow">Cash exit intel</p>
+          <h1 class="vault-title vault-title--desk">Trust Funds</h1>
+          <p class="vault-hero-sub">Type a deal once — see which fund buy boxes fit</p>
+        </div>
+        <div class="tf-hero-actions">
+          <button type="button" id="tf-load-deal" class="phuglee-btn phuglee-btn-ghost">Load deal…</button>
+          <button type="button" id="tf-copy-link" class="phuglee-btn phuglee-btn-ghost">Copy link</button>
+          <p id="tf-count" class="tf-count" aria-live="polite"></p>
+        </div>
+      </header>
+
+      <p id="tf-deal-chip" class="tf-deal-chip" hidden></p>
+
+      <div class="tf-layout">
+        <aside class="tf-rail" aria-label="Deal matcher">
+          <section class="tf-presets" aria-label="Deal presets">
+            <span class="tf-presets-label">Presets</span>
+            <div id="tf-preset-bar" class="tf-preset-bar"></div>
+          </section>
+
+          <section class="tf-matcher" aria-labelledby="tf-matcher-title">
+            <div class="tf-matcher-head">
+              <h2 id="tf-matcher-title" class="tf-section-title">Deal check</h2>
+              <button type="button" id="tf-clear" class="phuglee-btn phuglee-btn-ghost">Clear</button>
+            </div>
+            <form id="tf-form" class="tf-form" autocomplete="off">
+              <label class="tf-field tf-field--wide">
+                <span>City / market</span>
+                <input type="text" id="tf-city" class="phuglee-input" placeholder="Garland, Cape Coral…" name="city">
+              </label>
+              <label class="tf-field">
+                <span>State</span>
+                <input type="text" id="tf-state" class="phuglee-input" placeholder="TX" maxlength="20" name="state">
+              </label>
+              <label class="tf-field">
+                <span>ZIP</span>
+                <input type="text" id="tf-zip" class="phuglee-input" placeholder="75212" inputmode="numeric" name="zip">
+              </label>
+              <label class="tf-field tf-field--wide">
+                <span>Asset</span>
+                <select id="tf-asset" class="phuglee-input" name="assetType">
+                  <option value="" selected>Any — pick to rank</option>
+                  <option value="sfh">Single-family</option>
+                  <option value="duplex">Duplex</option>
+                  <option value="land">Vacant land</option>
+                  <option value="teardown">Teardown / infill</option>
+                </select>
+              </label>
+              <label class="tf-field tf-house-field">
+                <span>Sqft</span>
+                <input type="number" id="tf-sqft" class="phuglee-input" min="0" step="1" name="sqft">
+              </label>
+              <label class="tf-field tf-house-field">
+                <span>Beds</span>
+                <input type="number" id="tf-beds" class="phuglee-input" min="0" step="1" name="beds">
+              </label>
+              <label class="tf-field tf-house-field">
+                <span>Baths</span>
+                <input type="number" id="tf-baths" class="phuglee-input" min="0" step="0.5" name="baths">
+              </label>
+              <label class="tf-field tf-house-field">
+                <span>Year built</span>
+                <input type="number" id="tf-year" class="phuglee-input" min="1800" max="2100" step="1" name="yearBuilt">
+              </label>
+              <label class="tf-field">
+                <span>Asking / contract</span>
+                <input type="number" id="tf-asking" class="phuglee-input" min="0" step="1000" name="asking">
+              </label>
+              <label class="tf-field tf-house-field">
+                <span>ARV</span>
+                <input type="number" id="tf-arv" class="phuglee-input" min="0" step="1000" name="arv">
+              </label>
+              <label class="tf-field tf-house-field">
+                <span>Rehab est.</span>
+                <input type="number" id="tf-rehab" class="phuglee-input" min="0" step="1000" name="rehab">
+              </label>
+              <label class="tf-field tf-land-field">
+                <span>Acres</span>
+                <input type="number" id="tf-acres" class="phuglee-input" min="0" step="0.01" name="acres" placeholder="0.15–5">
+              </label>
+              <label class="tf-field tf-house-field tf-field--wide">
+                <span>Condition</span>
+                <select id="tf-condition" class="phuglee-input" name="condition">
+                  <option value="">—</option>
+                  <option value="light">Light</option>
+                  <option value="light-medium">Light–medium</option>
+                  <option value="medium">Medium</option>
+                  <option value="fixer">Fixer</option>
+                  <option value="heavy">Heavy / gut</option>
+                </select>
+              </label>
+
+              <div class="tf-tri-grid tf-house-flags" aria-label="House flags">
+                <div class="tf-tri" data-flag="brick"><span>Brick</span><div class="tf-tri-btns" role="group"></div></div>
+                <div class="tf-tri" data-flag="garage"><span>Garage</span><div class="tf-tri-btns" role="group"></div></div>
+                <div class="tf-tri" data-flag="leaseback"><span>Leaseback</span><div class="tf-tri-btns" role="group"></div></div>
+                <div class="tf-tri" data-flag="waterfront"><span>Waterfront</span><div class="tf-tri-btns" role="group"></div></div>
+              </div>
+              <div class="tf-tri-grid tf-land-flags" aria-label="Land flags">
+                <div class="tf-tri" data-flag="buildable"><span>Buildable</span><div class="tf-tri-btns" role="group"></div></div>
+                <div class="tf-tri" data-flag="roadAccess"><span>Road</span><div class="tf-tri-btns" role="group"></div></div>
+                <div class="tf-tri" data-flag="utilitiesNearby"><span>Utils</span><div class="tf-tri-btns" role="group"></div></div>
+              </div>
+              <div class="tf-tri-grid">
+                <div class="tf-tri" data-flag="offMarket"><span>Off-market</span><div class="tf-tri-btns" role="group"></div></div>
+              </div>
+            </form>
+          </section>
+
+          <section class="tf-filters" aria-label="Strategy filters">
+            <button type="button" class="tf-chip is-active" data-cluster="" aria-pressed="true">All</button>
+            <button type="button" class="tf-chip" data-cluster="fix-flip" aria-pressed="false">Fix &amp; flip</button>
+            <button type="button" class="tf-chip" data-cluster="opportunistic" aria-pressed="false">Opportunistic</button>
+            <button type="button" class="tf-chip" data-cluster="leaseback" aria-pressed="false">Leaseback</button>
+            <button type="button" class="tf-chip" data-cluster="land" aria-pressed="false">Land</button>
+          </section>
+        </aside>
+
+        <section class="tf-results-pane">
+          <div id="tf-fit-strip" class="tf-fit-strip" hidden aria-label="Fit summary"></div>
+          <div id="tf-land-hint" class="tf-land-hint" hidden></div>
+          <div id="tf-map" class="tf-map" aria-label="Fund markets map"></div>
+          <section id="tf-results" class="tf-results" aria-live="polite" aria-label="Fund matches"></section>
+        </section>
+      </div>
+
+      <aside id="tf-compare" class="tf-compare" hidden>
+        <div class="tf-compare-inner">
+          <div class="tf-compare-head">
+            <h2 class="tf-section-title">Compare</h2>
+            <div class="tf-compare-actions">
+              <button type="button" id="tf-compare-copy" class="phuglee-btn phuglee-btn-ghost">Copy summary</button>
+              <button type="button" id="tf-compare-clear" class="phuglee-btn phuglee-btn-ghost">Clear</button>
+            </div>
+          </div>
+          <div id="tf-compare-body" class="tf-compare-body"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="tf-load-dialog" class="tf-dialog">
+    <form method="dialog" class="tf-dialog-form" id="tf-load-form">
+      <div class="tf-dialog-head">
+        <h3>Load deal</h3>
+        <button type="submit" value="cancel" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <p class="tf-dialog-lead">Pick an Under Contract / pipeline deal to fill the matcher.</p>
+      <div id="tf-load-list" class="tf-load-list"></div>
+      <div class="tf-dialog-actions">
+        <button type="submit" value="cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/js/settings-menu.js?v=4" defer></script>
+  <script src="/js/shell-nav.js?v=19" defer></script>
+  <script src="/js/team-alert-banner.js?v=1" defer></script>
+  <script src="/js/command-palette.js?v=2" defer></script>
+  <script src="/js/trust-funds-match.js?v=10" defer></script>
+  <script src="/js/trust-funds-presets.js?v=10" defer></script>
+  <script src="/js/trust-funds-pitch.js?v=10" defer></script>
+  <script src="/js/trust-funds-url.js?v=10" defer></script>
+  <script src="/js/trust-funds-load-deal.js?v=10" defer></script>
+  <script src="/js/trust-funds-map.js?v=10" defer></script>
+  <script src="/js/trust-funds-app.js?v=10" defer></script>
+</body>
+</html>

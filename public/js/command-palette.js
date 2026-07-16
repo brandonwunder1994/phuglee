@@ -11,6 +11,7 @@
     { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
     { group: 'Pipeline', label: 'All Leads', href: '/pipeline', meta: 'GHL DTS kanban', contractDeskOnly: true },
     { group: 'Pipeline', label: 'Under Contract', href: '/under-contract', meta: 'Proof desk', contractDeskOnly: true },
+    { group: 'Pipeline', label: 'Trust Funds', href: '/trust-funds', meta: 'Buy-box matcher', contractDeskOnly: true },
     { group: 'Settings', label: 'Operating Costs', href: '/operating-costs', meta: 'Railway · GHL · APIs', adminOnly: true },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
     { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
@@ -135,7 +136,10 @@
         return cmd.href === '/vault';
       }
       if (isDisposUser()) {
-        return cmd.href === '/vault' || cmd.href === '/under-contract' || cmd.href === '/pipeline';
+        return cmd.href === '/vault'
+          || cmd.href === '/under-contract'
+          || cmd.href === '/pipeline'
+          || cmd.href === '/trust-funds';
       }
       return true;
     });

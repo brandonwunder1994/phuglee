@@ -54,16 +54,35 @@ test('shell nav keeps Dashboard and The Vault as top-level links', () => {
   assert.ok(!nav.includes('href="/collect" class="shell-link'));
 });
 
-test('admin shell nav groups Under Contract and All Leads under Pipeline', () => {
+test('admin shell nav groups Under Contract, All Leads, and Trust Funds under Pipeline', () => {
   const api = loadShellNavApi('admin');
   const nav = api.buildNav('/pipeline');
   assert.ok(nav.includes('shell-pipeline-trigger'));
   assert.ok(nav.includes('Pipeline'));
   assert.match(nav, /shell-nav-dropdown-label">Under Contract</);
   assert.match(nav, /shell-nav-dropdown-label">All Leads</);
+  assert.match(nav, /shell-nav-dropdown-label">Trust Funds</);
   assert.ok(!nav.includes('Contract Tracker'));
   assert.ok(!nav.includes('Sales Pipeline'));
   assert.ok(!nav.includes('Operating Costs'));
   assert.ok(api.isPipelineSectionActive('pipeline'));
   assert.ok(api.isPipelineSectionActive('under-contract'));
+  assert.ok(api.isPipelineSectionActive('trust-funds'));
+  assert.equal(api.activeId('/trust-funds'), 'trust-funds');
+});
+
+test('brad shell nav includes Trust Funds under Pipeline', () => {
+  const api = loadShellNavApi('brad');
+  const nav = api.buildNav('/trust-funds');
+  assert.ok(nav.includes('shell-pipeline-trigger'));
+  assert.match(nav, /shell-nav-dropdown-label">Trust Funds</);
+  assert.ok(nav.includes('href="/trust-funds"'));
+  assert.equal(api.activeId('/trust-funds'), 'trust-funds');
+});
+
+test('non-desk shell nav hides Pipeline and Trust Funds', () => {
+  const api = loadShellNavApi(null);
+  const nav = api.buildNav('/collect');
+  assert.ok(!nav.includes('shell-pipeline-trigger'));
+  assert.ok(!nav.includes('Trust Funds'));
 });
