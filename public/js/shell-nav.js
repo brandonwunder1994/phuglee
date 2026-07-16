@@ -15,6 +15,11 @@
     { id: 'buyers', label: 'Buyers', href: '/buyers' }
   ];
 
+  const VAULT_LINKS = [
+    { id: 'vault', label: 'Homes', href: '/vault' },
+    { id: 'land-vault', label: 'Land', href: '/land-vault' }
+  ];
+
   function isAdminUser() {
     if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function') {
       return window.PhugleeSettings.isAdmin() === true;
@@ -97,6 +102,8 @@
     if (p === '/under-contract') return 'under-contract';
     if (p === '/buyers' || p === '/trust-funds') return 'buyers';
     if (p === '/operating-costs') return 'operating-costs';
+    if (p === '/government-lists') return 'government-lists';
+    if (p === '/pre-liens') return 'pre-liens';
     if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
@@ -114,6 +121,10 @@
 
   function isPipelineSectionActive(current) {
     return PIPELINE_LINKS.some((l) => l.id === current);
+  }
+
+  function isVaultsSectionActive(current) {
+    return VAULT_LINKS.some((l) => l.id === current);
   }
 
   // Back-compat alias for older tests / callers.
@@ -137,10 +148,11 @@
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">Home Vault · Land Vault</span>
+      <span class="shell-footer-meta">Homes · Land</span>
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/vault" class="shell-footer-link">The Vault</a>
+      <a href="/vault" class="shell-footer-link">Homes</a>
+      <a href="/land-vault" class="shell-footer-link">Land</a>
     </nav>
   </div>
 </footer>`;
@@ -165,7 +177,8 @@
       <a href="/pre-liens" class="shell-footer-link">Pre-liens</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Analyze</a>
-      <a href="/vault" class="shell-footer-link">The Vault</a>
+      <a href="/vault" class="shell-footer-link">Homes</a>
+      <a href="/land-vault" class="shell-footer-link">Land</a>
     </nav>
   </div>
   ${trustLine}
@@ -257,10 +270,19 @@
     });
   }
 
+  function buildVaultsDropdown(current) {
+    return buildNavDropdown({
+      id: 'vaults',
+      label: 'Vaults',
+      links: VAULT_LINKS,
+      sectionActive: isVaultsSectionActive(current),
+      current
+    });
+  }
+
   function buildNav(pathname) {
     const current = activeId(pathname);
-    const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>Home Vault</a>`
-      + `<a href="/land-vault" class="${linkClass('land-vault', current)}"${current === 'land-vault' ? ' aria-current="page"' : ''}>Land Vault</a>`;
+    const vaultHtml = buildVaultsDropdown(current);
 
     let linksHtml;
     if (isVaultOnlyUser()) {
@@ -531,9 +553,11 @@
     activeId,
     DATA_LINKS,
     PIPELINE_LINKS,
+    VAULT_LINKS,
     PROPERTIES_LINKS: DATA_LINKS,
     isDataSectionActive,
     isPipelineSectionActive,
+    isVaultsSectionActive,
     isPropertiesSectionActive,
     isAdminUser,
     isDisposUser,

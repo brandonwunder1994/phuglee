@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee — Land Vault</title>
-  <meta name="description" content="Land Desk — vacant lot leads screened for builders. Max plan.">
-  <meta property="og:title" content="Phuglee — Land Vault">
+  <title>Phuglee — Land</title>
+  <meta name="description" content="Land desk — vacant lot leads screened for builders. Max plan.">
+  <meta property="og:title" content="Phuglee — Land">
   <meta property="og:description" content="Screen and match vacant land leads — Max plan access.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
@@ -16,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=24">
-  <link rel="stylesheet" href="/css/land-vault.css?v=8">
+  <link rel="stylesheet" href="/css/land-vault.css?v=9">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -31,11 +31,11 @@
   <main id="main" class="vault-main vault-main--app">
     <section id="land-vault-gate" class="vault-gate" hidden aria-labelledby="land-vault-gate-title">
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">Land Vault · Max plan</p>
-        <h1 id="land-vault-gate-title" class="vault-title">Upgrade to unlock land leads</h1>
+        <p class="vault-eyebrow">Land · Max plan</p>
+        <h1 id="land-vault-gate-title" class="vault-title">Upgrade to unlock Land</h1>
         <p class="vault-lead vault-lead--honest">
-          <strong>Max plan only.</strong> Land Vault is our vacant-lot desk — screened for builders, not house flip math.
-          House leads live on <a href="/vault">Home Vault</a>. Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
+          <strong>Max plan only.</strong> Land is our vacant-lot desk — screened for builders, not house flip math.
+          House leads live under <a href="/vault">Vaults → Homes</a>. Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
         </p>
         <ul class="vault-perks">
           <li>Vacant lots with motivation signals</li>
@@ -53,7 +53,7 @@
     <div id="land-vault-app" class="vault-app" hidden>
       <header id="land-vault-hero" class="vault-hero">
         <div class="vault-hero-copy">
-          <p class="vault-eyebrow">Land Vault</p>
+          <p class="vault-eyebrow">Land</p>
           <h1 class="vault-title vault-title--desk">Land Desk</h1>
           <p class="vault-hero-sub">Vacant lots · screened inventory · builder / fund match</p>
         </div>
@@ -107,6 +107,20 @@
             </div>
           </div>
           <div class="vault-field">
+            <span class="vault-field-label">Disposition</span>
+            <select id="land-vault-dispo" class="phuglee-select" aria-label="Disposition status">
+              <option value="all">All statuses</option>
+              <option value="new">New</option>
+              <option value="screening">Screening</option>
+              <option value="ready">Ready to pitch</option>
+              <option value="pitched">Pitched</option>
+              <option value="waiting">Waiting on buyer</option>
+              <option value="won">Won</option>
+              <option value="passed">Passed</option>
+              <option value="dead">Dead</option>
+            </select>
+          </div>
+          <div class="vault-field">
             <span class="vault-field-label">Asset</span>
             <div id="land-vault-asset-tabs" class="vault-type-tabs land-vault-asset-tabs" role="tablist" aria-label="Asset class">
               <button type="button" class="vault-type-tab is-active" role="tab" data-asset="all" aria-selected="true">All</button>
@@ -124,6 +138,12 @@
         <section class="vault-results-wrap" id="land-vault-results-panel" aria-label="Land leads">
           <div id="land-vault-results-toolbar" class="vault-results-toolbar land-vault-results-toolbar">
             <p id="land-vault-results-meta" class="vault-results-meta">Loading…</p>
+            <div class="vault-results-actions">
+              <div class="vault-view-toggle" role="group" aria-label="View mode">
+                <button type="button" class="vault-view-btn is-active" data-view="table" aria-pressed="true">Table</button>
+                <button type="button" class="vault-view-btn" data-view="map" aria-pressed="false">Map</button>
+              </div>
+            </div>
           </div>
           <div id="land-vault-results" class="vault-results">
             <table class="vault-table" id="land-vault-table">
@@ -136,6 +156,7 @@
                   <th scope="col" class="land-vault-col-zoning">Zoning</th>
                   <th scope="col">Signal</th>
                   <th scope="col">Verdict</th>
+                  <th scope="col" class="land-vault-col-dispo">Dispo</th>
                   <th scope="col">Fund</th>
                   <th scope="col"><button type="button" class="vault-sort-btn is-sorted" data-sort="priorityScore" aria-sort="descending">Score</button></th>
                   <th scope="col" class="vault-col-owner">Owner</th>
@@ -144,6 +165,10 @@
               </thead>
               <tbody id="land-vault-results-body"></tbody>
             </table>
+            <div id="land-vault-map-panel" class="vault-map-panel" hidden>
+              <div id="land-vault-map" class="vault-map" role="application" aria-label="Land lot locations map"></div>
+              <p id="land-vault-map-hint" class="vault-map-hint">Click a pin to open the lot. Pins need lat/lng on the lead.</p>
+            </div>
             <div id="land-vault-skeleton" class="vault-skeleton" hidden aria-hidden="true"></div>
             <div id="land-vault-empty" class="phuglee-empty-state" hidden>
               <p class="phuglee-empty-title">No lots match</p>
@@ -183,6 +208,6 @@
   <script src="/js/shell-nav.js?v=21" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/auth.js?v=distress20" defer></script>
-  <script src="/js/land-vault-app.js?v=7" defer></script>
+  <script src="/js/land-vault-app.js?v=8" defer></script>
 </body>
 </html>

@@ -8,12 +8,6 @@
   min-width: 15rem;
 }
 
-.land-vault-results-toolbar {
-  border-bottom: 1px solid var(--vault-border, rgba(255, 255, 255, 0.08));
-  padding-bottom: 0.75rem;
-  margin-bottom: 0.25rem;
-}
-
 .land-vault-drawer-hero .vault-hero-img {
   width: 100%;
   max-height: 14rem;
@@ -82,6 +76,88 @@
   flex-wrap: wrap;
   gap: 0.45rem;
   margin: 0 0 0.85rem;
+}
+
+.land-vault-col-dispo {
+  white-space: nowrap;
+}
+
+.land-vault-dispo {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 0.35rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.75));
+}
+
+.land-vault-dispo--ready,
+.land-vault-dispo--pitched {
+  background: rgba(232, 194, 122, 0.15);
+  color: #e8c27a;
+}
+
+.land-vault-dispo--waiting {
+  background: rgba(100, 149, 237, 0.15);
+  color: #8eb6f0;
+}
+
+.land-vault-dispo--won {
+  background: rgba(61, 154, 106, 0.2);
+  color: #6bc494;
+}
+
+.land-vault-dispo--passed,
+.land-vault-dispo--dead {
+  background: rgba(168, 90, 74, 0.18);
+  color: #d4a090;
+}
+
+.land-vault-parcel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem 0.75rem;
+}
+
+.land-vault-parcel-span {
+  grid-column: 1 / -1;
+}
+
+.land-vault-parcel-actions,
+.land-vault-dispo-actions {
+  margin-top: 0.75rem;
+}
+
+.land-vault-pitch-heading {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.land-vault-pitch-list {
+  margin: 0 0 0.65rem;
+  padding-left: 1.1rem;
+  color: var(--phuglee-text-muted, rgba(255, 255, 255, 0.75));
+}
+
+.land-vault-pitch-form {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr 1fr auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.land-vault-results-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--vault-border, rgba(255, 255, 255, 0.08));
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.25rem;
 }
 
 @media (max-width: 900px) {
@@ -609,6 +685,18 @@
 
   .land-vault-col-fund {
     max-width: 5rem;
+  }
+
+  .land-vault-parcel-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .land-vault-pitch-form {
+    grid-template-columns: 1fr;
+  }
+
+  .land-vault-col-dispo {
+    max-width: 5.5rem;
   }
 
   .land-lao-site-parts {

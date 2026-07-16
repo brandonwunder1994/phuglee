@@ -7,18 +7,27 @@ const path = require('path');
 const os = require('os');
 const {
   buildBuilderPacket,
+  buildBuilderPacketPdf,
   leadAcres,
   leadZoning
 } = require('../lib/leads-platform/land/builder-packet');
+const {
+  extractParcelFields,
+  mergeParcelIntoLead
+} = require('../lib/leads-platform/land/parcel');
+const {
+  applyLandDispositionPatch,
+  normalizeLandDisposition
+} = require('../lib/leads-platform/land/disposition');
 
 describe('builder packet', () => {
-  it('formats acres from lotSqft and zoning', () => {
+  it('formats acres from lotSqft and zoning, and builds PDF', async () => {
     const lead = {
       leadId: 'x1',
       address: '1 Lot Rd',
       city: 'Dallas',
       state: 'TX',
-      propertyDetails: { lotSqft: 21780, zoning: 'R-1' },
+      propertyDetails: { lotSqft: 21780, zoning: 'R-1', water: 'City', sewer: 'City' },
       landScreen: {
         verdict: 'keep',
         demandBuilders: 'pass',
@@ -45,7 +54,7 @@ describe('builder packet', () => {
     };
     assert.equal(leadAcres(lead), 0.5);
     assert.equal(leadZoning(lead), 'R-1');
-    const packet = buildBuilderPacket(lead, { note: 'Builder corridor' });
+    const packet = await buildBuilderPacket(lead, { note: 'Builder corridor' });
     assert.match(packet.text, /BUILDER PACKET/);
     assert.match(packet.text, /0\.5 ac/);
     assert.match(packet.text, /Zoning: R-1/);
@@ -54,6 +63,38 @@ describe('builder packet', () => {
     assert.match(packet.text, /Gaia/);
     assert.match(packet.text, /Builder corridor/);
     assert.match(packet.filename, /\.txt$/);
+    assert.match(packet.pdfFilename, /\.pdf$/);
+    assert.ok(Buffer.isBuffer(packet.pdfBuffer));
+    assert.ok(packet.pdfBuffer.length > 500);
+    assert.equal(packet.pdfBuffer.toString('utf8', 0, 4), '%PDF');
+  });
+});
+
+describe('parcel + disposition helpers', () => {
+  it('merges parcel fields without wiping omitted keys', () => {
+    const lead = {
+      propertyDetails: { acres: 0.3, zoning: 'R-1', water: 'City' }
+    };
+    const next = mergeParcelIntoLead(lead, { sewer: 'Septic', acres: 0.4 });
+    assert.equal(next.propertyDetails.acres, 0.4);
+    assert.equal(next.propertyDetails.zoning, 'R-1');
+    assert.equal(next.propertyDetails.water, 'City');
+    assert.equal(next.propertyDetails.sewer, 'Septic');
+    const fields = extractParcelFields(next);
+    assert.equal(fields.sewer, 'Septic');
+  });
+
+  it('tracks disposition status and pitches', () => {
+    let d = normalizeLandDisposition({});
+    assert.equal(d.status, 'new');
+    d = applyLandDispositionPatch(d, { status: 'ready', note: 'Screened' }, 'matt');
+    assert.equal(d.status, 'ready');
+    d = applyLandDispositionPatch(d, {
+      pitch: { fundName: 'Gaia', status: 'waiting', note: 'Sent packet' }
+    }, 'matt');
+    assert.equal(d.status, 'waiting');
+    assert.equal(d.pitches.length, 1);
+    assert.equal(d.pitches[0].fundName, 'Gaia');
   });
 });
 
@@ -78,7 +119,8 @@ describe('land queue meta + acres index', () => {
       signalTags: ['Tax delinquent'],
       propertyDetails: { acres: 0.25, zoning: 'SF-3' },
       landScreen: { verdict: 'keep' },
-      fundMatches: [{ fundId: 'gaia', fundName: 'Gaia' }]
+      fundMatches: [{ fundId: 'gaia', fundName: 'Gaia' }],
+      landDisposition: { status: 'ready' }
     });
     store.upsertLead({
       leadId: 'land-pending-1',
@@ -105,6 +147,7 @@ describe('land queue meta + acres index', () => {
     const pending = list.leads.find((l) => l.leadId === 'land-pending-1');
     assert.equal(keep.acres, 0.25);
     assert.equal(keep.zoning, 'SF-3');
+    assert.equal(keep.landDispoStatus, 'ready');
     assert.equal(pending.acres, 1);
     assert.equal(pending.zoning, 'AG');
 
@@ -114,6 +157,10 @@ describe('land queue meta + acres index', () => {
     assert.equal(meta.landQueue.needsScreen, 1);
     assert.equal(meta.landQueue.fundShaped, 1);
     assert.ok(meta.withAcres >= 2);
+
+    const readyOnly = store.queryLeads({ surface: 'land', landDispo: 'ready', limit: 20 });
+    assert.equal(readyOnly.leads.length, 1);
+    assert.equal(readyOnly.leads[0].leadId, 'land-keep-1');
   });
 });
 
@@ -127,19 +174,29 @@ describe('builder-packet API', () => {
     return {
       statusCode: null,
       body: '',
-      writeHead(status) { this.statusCode = status; },
-      end(chunk) { if (chunk) this.body += chunk; }
+      headers: {},
+      writeHead(status, headers) {
+        this.statusCode = status;
+        this.headers = headers || {};
+      },
+      end(chunk) {
+        if (chunk) {
+          if (Buffer.isBuffer(chunk)) this.body = chunk;
+          else this.body += chunk;
+        }
+      }
     };
   }
 
-  function maxReq(urlPath) {
+  function maxReq(urlPath, accept) {
     return {
       method: 'GET',
       url: urlPath,
       headers: {
         host: '127.0.0.1:3000',
         'x-phuglee-user': 'alice',
-        'x-phuglee-plan': 'max'
+        'x-phuglee-plan': 'max',
+        accept: accept || 'application/json'
       },
       async *[Symbol.asyncIterator]() {}
     };
@@ -166,18 +223,32 @@ describe('builder-packet API', () => {
     delete process.env.LEADS_CATALOG_ROOT;
   });
 
-  it('GET builder-packet returns text packet', async () => {
+  it('GET builder-packet returns text packet JSON by default', async () => {
     process.env.LEADS_CATALOG_ROOT = tmpRoot;
     store.invalidateIndexCache();
     const id = fixtureLand.leadId;
     const res = mockRes();
     const url = new URL(`http://127.0.0.1/api/leads/${id}/builder-packet`);
     await api.handle(maxReq(url.pathname), res, url.pathname, url);
-    assert.equal(res.statusCode, 200, res.body);
+    assert.equal(res.statusCode, 200, String(res.body));
     const body = JSON.parse(res.body);
     assert.equal(body.ok, true);
     assert.match(body.packet, /BUILDER PACKET/);
     assert.match(body.packet, /0\.4 ac/);
     assert.ok(body.filename.endsWith('.txt'));
+    assert.ok(body.pdfFilename.endsWith('.pdf'));
+  });
+
+  it('GET builder-packet?format=pdf returns PDF bytes', async () => {
+    process.env.LEADS_CATALOG_ROOT = tmpRoot;
+    store.invalidateIndexCache();
+    const id = fixtureLand.leadId;
+    const res = mockRes();
+    const url = new URL(`http://127.0.0.1/api/leads/${id}/builder-packet?format=pdf`);
+    await api.handle(maxReq(url.pathname + url.search, 'application/pdf'), res, url.pathname, url);
+    assert.equal(res.statusCode, 200);
+    assert.match(String(res.headers['Content-Type'] || ''), /pdf/i);
+    assert.ok(Buffer.isBuffer(res.body));
+    assert.equal(res.body.toString('utf8', 0, 4), '%PDF');
   });
 });

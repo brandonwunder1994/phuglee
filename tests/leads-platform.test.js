@@ -206,12 +206,13 @@ test('server routes /api/leads through handleRequest', async () => {
   assert.equal(res.statusCode, 200);
 });
 
-test('GET /vault serves vault app shell', async () => {
+test('GET /vault serves Homes vault app shell', async () => {
   const res = mockRes();
   await handleRequest({ method: 'GET', url: '/vault', headers: { host: '127.0.0.1:3000' } }, res);
   assert.equal(res.statusCode, 200);
   assert.match(res.body, /id="vault-app"/);
-  assert.match(res.body, /The Vault/);
+  assert.match(res.body, /Homes/);
+  assert.doesNotMatch(res.body, /vault-tab-land/);
 });
 
 test('analyzer sync publishes manually reviewed tier leads', () => {

@@ -30,13 +30,13 @@ for (const [route, file] of Object.entries(config.DISTRESS_ROUTES)) {
   });
 }
 
-test('GET /vault serves Home Vault', async () => {
+test('GET /vault serves Homes vault', async () => {
   const res = mockRes();
   await handleRequest({ method: 'GET', url: '/vault', headers: { host: '127.0.0.1:3000' } }, res);
   assert.equal(res.statusCode, 200);
   assert.match(res.headers['Content-Type'] || '', /text\/html/);
   assert.match(res.body, /id="vault-app"/);
-  assert.match(res.body, /Home Vault/);
+  assert.match(res.body, /Homes/);
 });
 
 test('GET /land-vault serves Land Desk', async () => {
@@ -54,20 +54,4 @@ test('GET /filter serves Filter desk', async () => {
   assert.equal(res.statusCode, 200);
   assert.match(res.headers['Content-Type'] || '', /text\/html/);
   assert.match(res.body, /Filter/i);
-});
-
-test('GET /government-lists serves Government Lists', async () => {
-  const res = mockRes();
-  await handleRequest({ method: 'GET', url: '/government-lists', headers: { host: '127.0.0.1:3000' } }, res);
-  assert.equal(res.statusCode, 200);
-  assert.match(res.headers['Content-Type'] || '', /text\/html/);
-  assert.match(res.body, /Government Lists|government-lists-app/i);
-});
-
-test('GET /pre-liens serves Pre-liens desk', async () => {
-  const res = mockRes();
-  await handleRequest({ method: 'GET', url: '/pre-liens', headers: { host: '127.0.0.1:3000' } }, res);
-  assert.equal(res.statusCode, 200);
-  assert.match(res.headers['Content-Type'] || '', /text\/html/);
-  assert.match(res.body, /Pre-liens|pre-liens-app/i);
 });

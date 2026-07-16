@@ -46,6 +46,19 @@
     'Auction/tax sale'
   ];
 
+  const DISPO_LABELS = {
+    new: 'New',
+    screening: 'Screening',
+    ready: 'Ready to pitch',
+    pitched: 'Pitched',
+    waiting: 'Waiting',
+    won: 'Won',
+    passed: 'Passed',
+    dead: 'Dead'
+  };
+
+  const DISPO_STATUSES = Object.keys(DISPO_LABELS);
+
   const state = {
     state: '',
     city: '',
@@ -55,8 +68,10 @@
     sortDir: 'desc',
     hasPhone: false,
     landVerdict: 'all',
+    landDispo: 'all',
     assetClass: 'all',
     signals: [],
+    viewMode: 'table',
     meta: null,
     statesFiltered: null,
     citiesFiltered: null,
@@ -73,7 +88,11 @@
     laoLocked: false,
     landCompRunning: false,
     showManualLandComp: false,
-    manualLandCompReason: ''
+    manualLandCompReason: '',
+    mapLibReady: null,
+    mapInstance: null,
+    mapPopup: null,
+    mapMarkers: []
   };
 
   const $ = (id) => document.getElementById(id);
@@ -127,6 +146,9 @@
     if (state.landVerdict && state.landVerdict !== 'all') {
       params.set('landVerdict', state.landVerdict);
     }
+    if (state.landDispo && state.landDispo !== 'all') {
+      params.set('landDispo', state.landDispo);
+    }
     if (state.assetClass && state.assetClass !== 'all') {
       params.set('assetClass', state.assetClass);
     }
@@ -140,6 +162,7 @@
   function filtersAreActive() {
     return !!(state.state || state.city || state.q || state.hasPhone
       || (state.landVerdict && state.landVerdict !== 'all')
+      || (state.landDispo && state.landDispo !== 'all')
       || (state.assetClass && state.assetClass !== 'all')
       || (state.signals && state.signals.length));
   }
@@ -500,9 +523,11 @@
       $('land-vault-city').disabled = !state.state;
     }
     if ($('land-vault-has-phone')) $('land-vault-has-phone').checked = state.hasPhone;
+    if ($('land-vault-dispo')) $('land-vault-dispo').value = state.landDispo || 'all';
     syncVerdictTabs();
     syncAssetClassTabs();
     syncSignalChips();
+    updateViewToggle();
   }
 
   function syncVerdictTabs() {
@@ -633,7 +658,10 @@
     const body = $('land-vault-results-body');
     const empty = $('land-vault-empty');
     const table = $('land-vault-table');
+    const mapPanel = $('land-vault-map-panel');
     if (!body) return;
+
+    if (mapPanel) mapPanel.hidden = true;
 
     if (!state.leads.length) {
       body.innerHTML = '';
@@ -655,6 +683,8 @@
       const verdict = row.landVerdict || 'pending';
       const verdictCls = verdictBadgeClass(verdict);
       const fundName = row.topFundName ? String(row.topFundName) : '—';
+      const dispo = row.landDispoStatus || 'new';
+      const dispoLabel = DISPO_LABELS[dispo] || dispo;
       const teardownBadge = row.assetClass === 'teardown'
         ? '<span class="land-vault-teardown-badge" title="Promoted house → land teardown">Teardown</span>'
         : '';
@@ -670,6 +700,7 @@
         <td class="land-vault-col-zoning">${esc(zoning)}</td>
         <td><span class="vault-signal${hotSignalClass(signal)}">${esc(signal)}</span></td>
         <td><span class="land-vault-verdict${verdictCls}">${esc(formatVerdictLabel(verdict))}</span></td>
+        <td class="land-vault-col-dispo"><span class="land-vault-dispo land-vault-dispo--${esc(dispo)}">${esc(dispoLabel)}</span></td>
         <td class="land-vault-col-fund">${esc(fundName)}</td>
         <td><span class="vault-score${scoreCls}">${esc(row.priorityScore)}</span></td>
         <td class="vault-col-owner">${esc(row.ownerName || '—')}</td>
@@ -710,9 +741,37 @@
     state.totalPages = data.totalPages || 1;
     state.page = data.page || 1;
     applyListFacets(data);
-    renderTable();
+    if (state.viewMode === 'map') {
+      renderMapShell();
+    } else {
+      renderTable();
+    }
     renderPagination();
     renderResultsMeta();
+  }
+
+  function updateViewToggle() {
+    document.querySelectorAll('.vault-view-btn').forEach((btn) => {
+      const active = (btn.dataset.view || 'table') === state.viewMode;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+
+  function renderMapShell() {
+    const table = $('land-vault-table');
+    const mapPanel = $('land-vault-map-panel');
+    const empty = $('land-vault-empty');
+    if (table) table.hidden = true;
+    if (mapPanel) mapPanel.hidden = false;
+    if (empty) empty.hidden = state.mapMarkers.length > 0;
+    updateViewToggle();
+    requestAnimationFrame(() => state.mapInstance?.resize());
+  }
+
+  async function refreshCurrentView() {
+    if (state.viewMode === 'map') return loadMapMarkers();
+    return loadLeads();
   }
 
   async function loadBootstrap() {
@@ -722,12 +781,17 @@
     applyListPayload(data);
     renderKpis();
     hideSkeleton();
+    if (state.viewMode === 'map') await loadMapMarkers();
   }
 
   async function loadLeads() {
     state.loading = true;
     showSkeleton();
     try {
+      const table = $('land-vault-table');
+      const mapPanel = $('land-vault-map-panel');
+      if (mapPanel) mapPanel.hidden = true;
+      if (table) table.hidden = false;
       const data = await fetchJson(`/api/leads?${buildQuery()}`);
       applyListPayload(data);
     } finally {
@@ -737,11 +801,261 @@
   }
 
   async function refreshList() {
+    if (state.viewMode === 'map') {
+      await loadMapMarkers();
+      return;
+    }
     if (state.page === 1 && !state.leads.length) {
       await loadBootstrap();
       return;
     }
     await loadLeads();
+  }
+
+  function loadStylesheet(href) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`link[href="${href}"]`)) {
+        resolve();
+        return;
+      }
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = href;
+      link.onload = () => resolve();
+      link.onerror = () => reject(new Error(`css failed: ${href}`));
+      document.head.appendChild(link);
+    });
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      if (window.maplibregl) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.defer = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`script failed: ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensureMapLibre() {
+    if (window.maplibregl) return window.maplibregl;
+    if (state.mapLibReady) return state.mapLibReady;
+    state.mapLibReady = (async () => {
+      const cssUrls = [
+        '/forge/static/vendor/maplibre-gl.css',
+        'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css'
+      ];
+      const jsUrls = [
+        '/forge/static/vendor/maplibre-gl.js',
+        'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'
+      ];
+      let cssOk = false;
+      for (const href of cssUrls) {
+        try {
+          await loadStylesheet(href);
+          cssOk = true;
+          break;
+        } catch (_) { /* try next */ }
+      }
+      if (!cssOk) throw new Error('Could not load map styles');
+      let jsOk = false;
+      for (const src of jsUrls) {
+        try {
+          await loadScript(src);
+          if (window.maplibregl) {
+            jsOk = true;
+            break;
+          }
+        } catch (_) { /* try next */ }
+      }
+      if (!jsOk || !window.maplibregl) throw new Error('Could not load map engine');
+      return window.maplibregl;
+    })();
+    return state.mapLibReady;
+  }
+
+  function landMapStyle() {
+    return {
+      version: 8,
+      sources: {
+        carto: {
+          type: 'raster',
+          tiles: ['https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'],
+          tileSize: 256,
+          attribution: '&copy; OpenStreetMap &copy; CARTO'
+        }
+      },
+      layers: [{ id: 'carto', type: 'raster', source: 'carto' }]
+    };
+  }
+
+  function markersToGeoJson(markers) {
+    return {
+      type: 'FeatureCollection',
+      features: (markers || []).map((m) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [m.lng, m.lat] },
+        properties: {
+          leadId: m.leadId,
+          address: m.address || '',
+          city: m.city || '',
+          state: m.state || '',
+          priorityScore: m.priorityScore || 0,
+          topSignal: m.topSignal || '',
+          landVerdict: m.landVerdict || '',
+          landDispoStatus: m.landDispoStatus || 'new',
+          acres: m.acres != null ? String(m.acres) : '',
+          zoning: m.zoning || ''
+        }
+      }))
+    };
+  }
+
+  function ensureMapLayers(map) {
+    if (map.getSource('land-leads')) return;
+    map.addSource('land-leads', {
+      type: 'geojson',
+      data: markersToGeoJson([])
+    });
+    map.addLayer({
+      id: 'land-leads-circle',
+      type: 'circle',
+      source: 'land-leads',
+      paint: {
+        'circle-radius': [
+          'interpolate', ['linear'], ['zoom'],
+          4, 3,
+          10, 6,
+          14, 9
+        ],
+        'circle-color': [
+          'match', ['get', 'landVerdict'],
+          'keep', '#3d9a6a',
+          'toss', '#a85a4a',
+          '#e58435'
+        ],
+        'circle-stroke-width': 1.5,
+        'circle-stroke-color': '#1a1a1a',
+        'circle-opacity': 0.92
+      }
+    });
+  }
+
+  async function ensureMapInstance() {
+    const maplibregl = await ensureMapLibre();
+    const el = $('land-vault-map');
+    if (!el) throw new Error('Map container missing');
+    if (state.mapInstance) {
+      state.mapInstance.resize();
+      return state.mapInstance;
+    }
+    const map = new maplibregl.Map({
+      container: el,
+      style: landMapStyle(),
+      center: [-97.5, 31.5],
+      zoom: 5.2,
+      attributionControl: true
+    });
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
+    state.mapPopup = new maplibregl.Popup({
+      closeButton: false,
+      closeOnClick: false,
+      offset: 10,
+      maxWidth: '240px'
+    });
+    map.on('load', () => ensureMapLayers(map));
+    map.on('mouseenter', 'land-leads-circle', (e) => {
+      map.getCanvas().style.cursor = 'pointer';
+      const f = e.features && e.features[0];
+      if (!f || !state.mapPopup) return;
+      const p = f.properties || {};
+      const acres = p.acres ? `${esc(p.acres)} ac` : '';
+      const zoning = p.zoning ? esc(p.zoning) : '';
+      const meta = [acres, zoning].filter(Boolean).join(' · ');
+      state.mapPopup
+        .setLngLat(f.geometry.coordinates)
+        .setHTML(
+          `<strong>${esc(p.address || 'Lot')}</strong><br>`
+          + `${esc(p.city || '')}${p.city && p.state ? ', ' : ''}${esc(p.state || '')}`
+          + (meta ? `<br>${meta}` : '')
+          + (p.landDispoStatus ? `<br>${esc(DISPO_LABELS[p.landDispoStatus] || p.landDispoStatus)}` : '')
+        )
+        .addTo(map);
+    });
+    map.on('mouseleave', 'land-leads-circle', () => {
+      map.getCanvas().style.cursor = '';
+      state.mapPopup?.remove();
+    });
+    map.on('click', 'land-leads-circle', (e) => {
+      const f = e.features && e.features[0];
+      const leadId = f && f.properties && f.properties.leadId;
+      if (leadId) openDrawer(leadId);
+    });
+    state.mapInstance = map;
+    return map;
+  }
+
+  function fitMapToMarkers(markers) {
+    const map = state.mapInstance;
+    if (!map || !window.maplibregl || !markers.length) return;
+    if (markers.length === 1) {
+      map.easeTo({ center: [markers[0].lng, markers[0].lat], zoom: 13, duration: 500 });
+      return;
+    }
+    const bounds = markers.reduce(
+      (b, m) => b.extend([m.lng, m.lat]),
+      new window.maplibregl.LngLatBounds([markers[0].lng, markers[0].lat], [markers[0].lng, markers[0].lat])
+    );
+    map.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 600 });
+  }
+
+  function paintMapData(markers) {
+    const map = state.mapInstance;
+    if (!map) return;
+    const apply = () => {
+      ensureMapLayers(map);
+      const src = map.getSource('land-leads');
+      if (src) src.setData(markersToGeoJson(markers));
+      fitMapToMarkers(markers);
+    };
+    if (map.isStyleLoaded()) apply();
+    else map.once('load', apply);
+  }
+
+  async function loadMapMarkers() {
+    state.loading = true;
+    showSkeleton();
+    try {
+      await ensureMapInstance();
+      const data = await fetchJson(`/api/leads/map?${buildQuery()}`);
+      state.mapMarkers = data.markers || [];
+      state.total = data.total || state.mapMarkers.length;
+      state.totalPages = 1;
+      applyListFacets(data);
+      hideSkeleton();
+      renderMapShell();
+      renderPagination();
+      renderResultsMeta();
+      paintMapData(state.mapMarkers);
+    } catch (err) {
+      hideSkeleton();
+      showToast(err.message || 'Map failed to load');
+      const empty = $('land-vault-empty');
+      if (empty) {
+        empty.hidden = false;
+        const title = empty.querySelector('.phuglee-empty-title');
+        const copy = empty.querySelector('.phuglee-empty-copy');
+        if (title) title.textContent = 'Map unavailable';
+        if (copy) copy.textContent = err.message || 'Try again in a moment.';
+      }
+    } finally {
+      state.loading = false;
+    }
   }
 
   function activeLeadIndex() {
@@ -1092,29 +1406,105 @@
     if ((!Number.isFinite(acresVal) || acresVal <= 0) && pd.lotSqft != null) {
       acresVal = Number(pd.lotSqft) / 43560;
     }
-    const acresLabel = Number.isFinite(acresVal) && acresVal > 0
-      ? `${Math.round(acresVal * 100) / 100} ac`
-      : '—';
-    const zoningLabel = String(pd.zoning || pd.zoningCode || pd.landUse || '').trim() || '—';
+    const acresInput = Number.isFinite(acresVal) && acresVal > 0
+      ? String(Math.round(acresVal * 1000) / 1000)
+      : '';
+    const lotSqft = pd.lotSqft != null && Number(pd.lotSqft) > 0 ? String(Math.round(Number(pd.lotSqft))) : '';
+    const dispo = (l.landDisposition && typeof l.landDisposition === 'object')
+      ? l.landDisposition
+      : { status: 'new', note: '', pitches: [] };
+    const dispoStatus = dispo.status || 'new';
+    const dispoOpts = DISPO_STATUSES.map((s) =>
+      `<option value="${esc(s)}"${s === dispoStatus ? ' selected' : ''}>${esc(DISPO_LABELS[s])}</option>`
+    ).join('');
+    const pitches = Array.isArray(dispo.pitches) ? dispo.pitches : [];
+    const pitchesHtml = pitches.length
+      ? `<ul class="land-vault-pitch-list">${pitches.map((p) =>
+          `<li><strong>${esc(p.fundName || p.fundId)}</strong> · ${esc(DISPO_LABELS[p.status] || p.status)}${p.note ? ` — ${esc(p.note)}` : ''}</li>`
+        ).join('')}</ul>`
+      : '<p class="vault-field-hint">No builder pitches logged yet.</p>';
 
     return `
       ${hero}
       <div class="vault-dossier land-vault-dossier">
         <div class="land-vault-packet-actions">
-          <button type="button" class="phuglee-btn phuglee-btn-secondary" data-action="download-builder-packet">Download builder packet</button>
-          <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="copy-builder-packet">Copy packet</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" data-action="download-builder-packet">Download PDF packet</button>
+          <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="copy-builder-packet">Copy text</button>
         </div>
         <section class="vault-dossier-section">
           <h3>Address</h3>
           <p class="land-vault-drawer-address">${esc(fullAddress(l))}${isTeardown ? ' <span class="land-vault-teardown-badge">Teardown</span>' : ''}</p>
           <p><a href="${esc(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress(l))}`)}" class="vault-text-btn" target="_blank" rel="noopener noreferrer">Open in Maps</a></p>
         </section>
-        <section class="vault-dossier-section">
+        <section class="vault-dossier-section land-vault-parcel-section">
           <h3>Parcel</h3>
-          <dl class="vault-dl">
-            <div><dt>Acres</dt><dd>${esc(acresLabel)}</dd></div>
-            <div><dt>Zoning</dt><dd>${esc(zoningLabel)}</dd></div>
-          </dl>
+          <div class="land-vault-parcel-grid">
+            <label class="vault-field"><span class="vault-field-label">Acres</span>
+              <input type="number" step="0.001" min="0" class="phuglee-input" data-parcel-field="acres" value="${esc(acresInput)}" placeholder="0.25">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">Lot sqft</span>
+              <input type="number" step="1" min="0" class="phuglee-input" data-parcel-field="lotSqft" value="${esc(lotSqft)}" placeholder="10890">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">Zoning</span>
+              <input type="text" class="phuglee-input" data-parcel-field="zoning" value="${esc(pd.zoning || pd.zoningCode || '')}" placeholder="R-1">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">Land use</span>
+              <input type="text" class="phuglee-input" data-parcel-field="landUse" value="${esc(pd.landUse || '')}" placeholder="Vacant residential">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">County</span>
+              <input type="text" class="phuglee-input" data-parcel-field="county" value="${esc(pd.county || '')}">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">APN</span>
+              <input type="text" class="phuglee-input" data-parcel-field="apn" value="${esc(pd.apn || l.parcel || '')}">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">Water</span>
+              <input type="text" class="phuglee-input" data-parcel-field="water" value="${esc(pd.water || pd.waterService || '')}" placeholder="City / well">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">Sewer</span>
+              <input type="text" class="phuglee-input" data-parcel-field="sewer" value="${esc(pd.sewer || pd.sewerService || '')}" placeholder="City / septic">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">Flood</span>
+              <input type="text" class="phuglee-input" data-parcel-field="flood" value="${esc(pd.flood || pd.floodZone || '')}" placeholder="X / AE">
+            </label>
+            <label class="vault-field"><span class="vault-field-label">Frontage</span>
+              <input type="text" class="phuglee-input" data-parcel-field="frontage" value="${esc(pd.frontage || pd.roadFrontage || '')}" placeholder="60 ft paved">
+            </label>
+            <label class="vault-field land-vault-parcel-span"><span class="vault-field-label">Topography</span>
+              <input type="text" class="phuglee-input" data-parcel-field="topography" value="${esc(pd.topography || '')}" placeholder="Flat / gentle slope">
+            </label>
+          </div>
+          <div class="land-vault-parcel-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-primary" data-action="save-parcel">Save parcel</button>
+          </div>
+        </section>
+        <section class="vault-dossier-section land-vault-dispo-section">
+          <h3>Disposition</h3>
+          <p class="vault-field-hint">Track builder outreach — not a PSA.</p>
+          <label class="vault-field">
+            <span class="vault-field-label">Status</span>
+            <select class="phuglee-select" data-dispo-field="status">${dispoOpts}</select>
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Note</span>
+            <textarea class="phuglee-input" data-dispo-field="note" rows="2" placeholder="Pitch notes…">${esc(dispo.note || '')}</textarea>
+          </label>
+          <div class="land-vault-pitch-log">
+            <h4 class="land-vault-pitch-heading">Pitch log</h4>
+            ${pitchesHtml}
+            <div class="land-vault-pitch-form">
+              <input type="text" class="phuglee-input" data-pitch-field="fundName" placeholder="Fund / builder">
+              <select class="phuglee-select" data-pitch-field="status">
+                <option value="waiting">Waiting</option>
+                <option value="passed">Passed</option>
+                <option value="won">Won</option>
+              </select>
+              <input type="text" class="phuglee-input" data-pitch-field="note" placeholder="Note">
+              <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="add-pitch">Log pitch</button>
+            </div>
+          </div>
+          <div class="land-vault-dispo-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-primary" data-action="save-disposition">Save disposition</button>
+          </div>
         </section>
         ${teardownBlock}
         <section class="vault-dossier-section">
@@ -1531,10 +1921,21 @@
       ...row,
       priorityScore: lead.priorityScore != null ? lead.priorityScore : row.priorityScore,
       landVerdict: screen.verdict || row.landVerdict || 'pending',
+      landDispoStatus: lead.landDisposition?.status || row.landDispoStatus || 'new',
+      acres: (() => {
+        const pd = lead.propertyDetails || {};
+        if (pd.acres != null && Number(pd.acres) > 0) return Math.round(Number(pd.acres) * 100) / 100;
+        if (pd.lotSqft != null && Number(pd.lotSqft) > 0) return Math.round((Number(pd.lotSqft) / 43560) * 100) / 100;
+        return row.acres;
+      })(),
+      zoning: (() => {
+        const pd = lead.propertyDetails || {};
+        return String(pd.zoning || pd.zoningCode || pd.landUse || row.zoning || '').trim();
+      })(),
       topFundName: top ? (top.fundName || top.fundId) : (row.topFundName || ''),
       fundMatchCount: Array.isArray(lead.fundMatches) ? lead.fundMatches.length : row.fundMatchCount
     };
-    renderTable();
+    if (state.viewMode !== 'map') renderTable();
   }
 
   async function saveLandVerdict(verdict) {
@@ -1711,6 +2112,7 @@
     state.q = '';
     state.hasPhone = false;
     state.landVerdict = 'all';
+    state.landDispo = 'all';
     state.assetClass = 'all';
     state.signals = [];
     state.page = 1;
@@ -1753,6 +2155,22 @@
       state.hasPhone = !!e.target.checked;
       state.page = 1;
       refreshList().catch((err) => showToast(err.message || 'Could not filter'));
+    });
+
+    $('land-vault-dispo')?.addEventListener('change', (e) => {
+      state.landDispo = e.target.value || 'all';
+      state.page = 1;
+      refreshList().catch((err) => showToast(err.message || 'Could not filter'));
+    });
+
+    document.querySelector('.vault-view-toggle')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.vault-view-btn');
+      if (!btn) return;
+      const next = btn.dataset.view || 'table';
+      if (state.viewMode === next) return;
+      state.viewMode = next;
+      updateViewToggle();
+      refreshCurrentView().catch((err) => showToast(err.message || 'Could not switch view'));
     });
 
     $('land-vault-verdict-tabs')?.addEventListener('click', (e) => {
@@ -1887,6 +2305,21 @@
           .catch(() => showToast('Could not copy'));
         return;
       }
+      if (act === 'save-parcel') {
+        e.preventDefault();
+        saveParcel().catch((err) => showToast(err.message || 'Save failed'));
+        return;
+      }
+      if (act === 'save-disposition') {
+        e.preventDefault();
+        saveDisposition().catch((err) => showToast(err.message || 'Save failed'));
+        return;
+      }
+      if (act === 'add-pitch') {
+        e.preventDefault();
+        saveDisposition({ addPitch: true }).catch((err) => showToast(err.message || 'Save failed'));
+        return;
+      }
       if (act === 'download-builder-packet' || act === 'copy-builder-packet') {
         e.preventDefault();
         downloadOrCopyBuilderPacket(act === 'copy-builder-packet')
@@ -1938,24 +2371,101 @@
   async function downloadOrCopyBuilderPacket(copyOnly) {
     const leadId = state.activeLeadId;
     if (!leadId) throw new Error('No lead open');
-    const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/builder-packet`);
-    const text = data.packet || '';
-    if (!text) throw new Error('Empty packet');
     if (copyOnly) {
+      const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/builder-packet?format=json`);
+      const text = data.packet || '';
+      if (!text) throw new Error('Empty packet');
       await navigator.clipboard.writeText(text);
       showToast('Builder packet copied');
       return;
     }
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const res = await fetch(`/api/leads/${encodeURIComponent(leadId)}/builder-packet?format=pdf`, {
+      credentials: 'same-origin',
+      headers: { Accept: 'application/pdf' }
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || res.statusText || 'PDF download failed');
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get('Content-Disposition') || '';
+    const match = /filename="([^"]+)"/.exec(cd);
+    const filename = match ? match[1] : 'builder-packet.pdf';
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = data.filename || 'builder-packet.txt';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1500);
-    showToast('Builder packet downloaded');
+    showToast('PDF builder packet downloaded');
+  }
+
+  function collectParcelFromDrawer() {
+    const body = $('land-vault-drawer-body');
+    if (!body) return {};
+    const patch = {};
+    body.querySelectorAll('[data-parcel-field]').forEach((el) => {
+      const key = el.dataset.parcelField;
+      if (!key) return;
+      patch[key] = el.value;
+    });
+    return patch;
+  }
+
+  async function saveParcel() {
+    const leadId = state.activeLeadId;
+    if (!leadId) throw new Error('No lead open');
+    const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/parcel`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parcel: collectParcelFromDrawer() })
+    });
+    if (data.lead) await refreshDrawerFromLead(data.lead);
+    showToast('Parcel saved');
+    refreshList().catch(() => {});
+  }
+
+  function collectDispositionFromDrawer(extraPitch) {
+    const body = $('land-vault-drawer-body');
+    if (!body) return {};
+    const statusEl = body.querySelector('[data-dispo-field="status"]');
+    const noteEl = body.querySelector('[data-dispo-field="note"]');
+    const patch = {
+      status: statusEl ? statusEl.value : 'new',
+      note: noteEl ? noteEl.value : ''
+    };
+    if (extraPitch) patch.pitch = extraPitch;
+    return patch;
+  }
+
+  function collectPitchDraft() {
+    const body = $('land-vault-drawer-body');
+    if (!body) return null;
+    const fundName = body.querySelector('[data-pitch-field="fundName"]')?.value || '';
+    const status = body.querySelector('[data-pitch-field="status"]')?.value || 'waiting';
+    const note = body.querySelector('[data-pitch-field="note"]')?.value || '';
+    if (!String(fundName).trim()) return null;
+    return { fundName: String(fundName).trim(), status, note: String(note).trim() };
+  }
+
+  async function saveDisposition(opts = {}) {
+    const leadId = state.activeLeadId;
+    if (!leadId) throw new Error('No lead open');
+    const pitch = opts.addPitch ? collectPitchDraft() : null;
+    if (opts.addPitch && !pitch) {
+      showToast('Enter a fund / builder name');
+      return;
+    }
+    const data = await fetchJson(`/api/leads/${encodeURIComponent(leadId)}/land-disposition`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ landDisposition: collectDispositionFromDrawer(pitch) })
+    });
+    if (data.lead) await refreshDrawerFromLead(data.lead);
+    showToast(opts.addPitch ? 'Pitch logged' : 'Disposition saved');
+    refreshList().catch(() => {});
   }
 
   async function init() {
