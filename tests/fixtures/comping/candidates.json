@@ -1,0 +1,49 @@
+[
+  {
+    "id": "good-nearby",
+    "price": 248000,
+    "sqft": 1480,
+    "beds": 3,
+    "baths": 2,
+    "distanceMi": 0.2,
+    "soldDate": "2026-05-01",
+    "yearBuilt": 1982,
+    "propertyType": "sfr",
+    "garage": 2
+  },
+  {
+    "id": "zero-price",
+    "price": 0,
+    "sqft": 1480,
+    "beds": 3,
+    "baths": 2,
+    "distanceMi": 0.2,
+    "soldDate": "2026-05-01",
+    "yearBuilt": 1982,
+    "propertyType": "sfr"
+  },
+  {
+    "id": "oversized",
+    "price": 280000,
+    "sqft": 2200,
+    "beds": 3,
+    "baths": 2,
+    "distanceMi": 0.2,
+    "soldDate": "2026-05-01",
+    "yearBuilt": 1982,
+    "propertyType": "sfr"
+  },
+  {
+    "id": "cash-flip",
+    "price": 280000,
+    "sqft": 1500,
+    "beds": 3,
+    "baths": 2,
+    "distanceMi": 0.3,
+    "soldDate": "2025-12-01",
+    "priorSaleDate": "2024-06-01",
+    "cashBuyer": true,
+    "yearBuilt": 1980,
+    "propertyType": "sfr"
+  }
+]
