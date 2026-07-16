@@ -1484,8 +1484,20 @@
     }).join(' ');
   }
 
+  function hasArvCompingReport(l) {
+    if (!l) return false;
+    if (l.compedAt) return true;
+    if (l.compingReport?.arv != null) return true;
+    const r = l.compingReport;
+    return !!(r && (r.generatedAt || r.confidence || r.arvMethod));
+  }
+
+  function hasCompsList(l) {
+    return Array.isArray(l?.comps) && l.comps.length > 0;
+  }
+
   function hasCompingContent(l) {
-    return !!(l?.compingReport || (Array.isArray(l?.comps) && l.comps.length));
+    return hasArvCompingReport(l) || hasCompsList(l);
   }
 
   function renderCompActionStrip(l) {
@@ -1643,7 +1655,7 @@
       <div class="vault-comps-scroll">
         <table class="vault-comps-table vault-comps-table--full">
           <thead><tr>
-            <th>Address</th><th>Price</th><th>Sold</th><th>Dist</th><th>ARV</th><th>Rules</th><th>Reno</th><th>SV</th>
+            <th>Address</th><th>Price</th><th>Sold</th><th>Dist</th><th>In ARV</th><th>Rules</th><th>Reno</th><th>SV</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
@@ -1653,23 +1665,29 @@
 
   function renderCompingSection(l) {
     if (!hasCompingContent(l)) return '';
+    const hasReport = hasArvCompingReport(l);
     const report = l.compingReport || {};
-    const arv = report.arv != null ? report.arv : l.estARV;
-    const conf = report.confidence || l.compConfidence;
-    const arvDisplay = moneyFmt(arv) || '—';
-    const when = formatCompDate(report.generatedAt || l.compedAt);
-    return `<div class="vault-comp-report">
-      <div class="vault-comp-hero">
+    const heroHtml = hasReport
+      ? (() => {
+          const arv = report.arv != null ? report.arv : (l.compedAt ? l.estARV : null);
+          const conf = report.confidence || l.compConfidence;
+          const arvDisplay = moneyFmt(arv) || '—';
+          const when = formatCompDate(report.generatedAt || l.compedAt);
+          return `<div class="vault-comp-hero">
         <p class="vault-comp-hero-label">ARV</p>
         <p class="vault-comp-hero-val">${esc(arvDisplay)}</p>
         <div class="vault-comp-hero-meta">${compConfidenceBadge(conf)}${when ? `<span class="vault-comp-date">Comped ${esc(when)}</span>` : ''}</div>
-      </div>
-      ${renderHowWeGotHere(report)}
-      ${renderRulesSummaryBlock(report.rulesSummary)}
+      </div>`;
+        })()
+      : '';
+    return `<div class="vault-comp-report">
+      ${heroHtml}
+      ${hasReport ? renderHowWeGotHere(report) : ''}
+      ${hasReport ? renderRulesSummaryBlock(report.rulesSummary) : ''}
       ${renderCompsTable(l.comps, { extended: true })}
-      ${renderSanityBlock(report.sanity)}
+      ${hasReport ? renderSanityBlock(report.sanity) : ''}
       ${renderStreetViewLinks(l, report)}
-      ${renderCompFiles(l)}
+      ${hasReport ? renderCompFiles(l) : ''}
     </div>`;
   }
 
@@ -1960,6 +1978,20 @@
     }
   }
 
+  async function postCompRequest(leadId, replace) {
+    const res = await fetch(`/api/leads/${encodeURIComponent(leadId)}/comp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ replace })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data.error || res.statusText || 'Comp failed');
+    }
+    return data;
+  }
+
   async function runComp(leadId, { replace = false } = {}) {
     if (state.compRunning) return;
     state.compRunning = true;
@@ -1969,15 +2001,10 @@
       btn.textContent = 'Comping…';
     }
     try {
-      const res = await fetch(`/api/leads/${encodeURIComponent(leadId)}/comp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ replace })
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.error || res.statusText || 'Comp failed');
+      let data = await postCompRequest(leadId, replace);
+      if (data.confirmReplace) {
+        if (!window.confirm('Replace existing comps and ARV on this lead?')) return;
+        data = await postCompRequest(leadId, true);
       }
       if (data.needsManual) {
         let lead = data.lead;
@@ -1987,10 +2014,6 @@
         }
         openManualCompPanel(leadId, data, lead);
         return;
-      }
-      if (data.confirmReplace) {
-        if (!window.confirm('Replace existing comps and ARV on this lead?')) return;
-        return runComp(leadId, { replace: true });
       }
       if (data.lead) {
         patchLeadInState(data.lead);
@@ -2074,7 +2097,7 @@
       { id: 'distress', label: 'Distress', html: stripSectionShell(distressBody) },
       { id: 'property', label: 'Property', html: stripSectionShell(propertyBody) },
       { id: 'mortgage', label: 'Mortgage', html: stripSectionShell(mortgageBody) },
-      ...(compingBody ? [{ id: 'comping', label: 'ARV Report', html: compingBody }] : []),
+      ...(compingBody ? [{ id: 'comping', label: hasArvCompingReport(l) ? 'ARV Report' : 'Comps', html: compingBody }] : []),
       { id: 'notes', label: 'Notes', html: notesBody }
     ].filter((s) => String(s.html || '').trim());
 
