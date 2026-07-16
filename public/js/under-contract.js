@@ -2839,26 +2839,40 @@
 
   function amendmentPartyDefaults(deal, contact, party) {
     const key = party === 'end_buyer' ? 'end_buyer' : 'seller';
-    const fromApi = deal?.amendmentDefaults?.[key];
-    if (fromApi && (fromApi.counterpartyName || fromApi.counterpartyEmail || fromApi.originalAgreementDate)) {
-      return {
-        originalAgreementDate: fromApi.originalAgreementDate || '',
-        name: fromApi.counterpartyName || '',
-        email: fromApi.counterpartyEmail || ''
-      };
-    }
+    const fromApi = deal?.amendmentDefaults?.[key] || {};
     if (key === 'end_buyer') {
       const ba = deal?.buyerAssignment || {};
       return {
-        originalAgreementDate: deal?.originalAgreementDate || contact?.contractSignedDate || '',
-        name: ba.buyerEntity || ba.buyerContactName || deal?.cashBuyerName || contact?.cashBuyerName || '',
-        email: ba.buyerEmail || ''
+        originalAgreementDate: fromApi.originalAgreementDate
+          || deal?.originalAgreementDate
+          || contact?.contractSignedDate
+          || '',
+        name: fromApi.counterpartyName
+          || ba.buyerEntity
+          || ba.buyerContactName
+          || deal?.cashBuyerName
+          || contact?.cashBuyerName
+          || '',
+        email: fromApi.counterpartyEmail || ba.buyerEmail || ''
       };
     }
+    // Prefer GHL contact email when deal store / amendmentDefaults lack it
     return {
-      originalAgreementDate: deal?.originalAgreementDate || contact?.contractSignedDate || '',
-      name: deal?.ownerName || deal?.sellerNames || contact?.sellersName || contact?.name || '',
-      email: deal?.ownerEmail || deal?.email || contact?.email || ''
+      originalAgreementDate: fromApi.originalAgreementDate
+        || deal?.originalAgreementDate
+        || contact?.contractSignedDate
+        || '',
+      name: fromApi.counterpartyName
+        || deal?.ownerName
+        || deal?.sellerNames
+        || contact?.sellersName
+        || contact?.name
+        || '',
+      email: fromApi.counterpartyEmail
+        || deal?.ownerEmail
+        || deal?.email
+        || contact?.email
+        || ''
     };
   }
 
@@ -2889,22 +2903,30 @@
 
   async function openAmendment(deal) {
     let full = deal;
-    let contact = (state.activeDealId === deal.dealId) ? state.contact : null;
-    if (state.activeDealId === deal.dealId && state.profile) {
-      full = state.profile;
-    } else {
-      try {
-        const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}`);
-        full = data.deal || deal;
-        contact = data.contact || null;
-      } catch (_) { /* use row data */ }
+    let contact = null;
+    // Always refresh from API so seller email comes from the GHL contact page
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}`);
+      full = data.deal || deal;
+      contact = data.contact || null;
+    } catch (_) {
+      if (state.activeDealId === deal.dealId) {
+        full = state.profile || deal;
+        contact = state.contact || null;
+      }
     }
     state._amendmentDeal = full;
     state._amendmentContact = contact;
+    state._amendmentSending = false;
     $('uc-amendment-deal-id').value = full.dealId;
     $('uc-amendment-title').textContent = full.address ? `Amendment — ${full.address}` : 'Send Amendment';
     $('uc-amendment-terms').value = '';
     if ($('uc-amendment-party')) $('uc-amendment-party').value = 'seller';
+    const submitBtn = $('uc-amendment-submit');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Amendment';
+    }
     applyAmendmentPartyFields();
     $('uc-amendment-dialog').showModal();
   }
@@ -2953,13 +2975,26 @@
 
   async function submitAmendment(ev) {
     ev.preventDefault();
+    if (state._amendmentSending) return;
     const id = $('uc-amendment-deal-id').value;
     const partyType = $('uc-amendment-party')?.value || 'seller';
     const name = $('uc-amendment-seller-name').value.trim();
     const email = $('uc-amendment-seller-email').value.trim();
+    const terms = $('uc-amendment-terms').value.trim();
+    if (!id || !name || !email || !terms) return;
+
+    const btn = $('uc-amendment-submit');
+    const prevLabel = btn?.textContent || 'Send Amendment';
+    state._amendmentSending = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+    }
+    showToast('Sending amendment via SignNow…', 12000);
+
     const body = {
       partyType,
-      amendmentTerms: $('uc-amendment-terms').value.trim(),
+      amendmentTerms: terms,
       // Original agreement date is locked to PSA — server resolves it; do not send edits
       sellerName: name,
       sellerEmail: email,
@@ -2979,7 +3014,13 @@
         renderProfile(data.deal, state.contact);
       }
     } catch (err) {
-      showToast(err.message || 'Send Amendment failed');
+      showToast(err.message || 'Send Amendment failed', 9000);
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prevLabel;
+      }
+    } finally {
+      state._amendmentSending = false;
     }
   }
 
