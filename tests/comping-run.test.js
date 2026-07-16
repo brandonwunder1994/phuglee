@@ -186,6 +186,34 @@ describe('runAutoComp', () => {
     assert.match(out.error, /land/i);
   });
 
+  it('does not call PropertySearch by default (credit bomb)', async () => {
+    let searchCalls = 0;
+    await runAutoComp(
+      {
+        leadId: '1',
+        address: '1 Main St',
+        city: 'Columbus',
+        state: 'OH',
+        zip: '43215',
+        lat: 39.96,
+        lng: -82.99,
+        propertyDetails: { sqft: 1500, beds: 3, baths: 2, yearBuilt: 1985 },
+      },
+      {
+        reapi: {
+          propertyDetail: async () => ({ id: 's1', sqft: 1500, beds: 3, baths: 2 }),
+          propertyComps: async () => mockComps,
+          propertySearch: async () => {
+            searchCalls += 1;
+            return { data: [{ daysOnMarket: 120 }] };
+          },
+        },
+        checkRoadBarrier: async () => ({ crossed: false, degraded: false }),
+      }
+    );
+    assert.equal(searchCalls, 0);
+  });
+
   it('persists ARV patch for disclosure subject with priced comps', async () => {
     const compsBodies = [];
     const out = await runAutoComp(
