@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { createReapiClient, mapReapiCompsResponse } = require('../lib/leads-platform/comping/reapi-client');
 const { runAutoComp } = require('../lib/leads-platform/comping/run-comp');
 const mockComps = require('./fixtures/comping/reapi-comps-mock.json');
+const zeroComps = require('./fixtures/comping/reapi-comps-zero-mock.json');
 
 describe('reapi-client', () => {
   it('maps comps with positive lastSaleAmount to internal shape', () => {
@@ -97,6 +98,17 @@ describe('runAutoComp', () => {
     assert.equal(called, false);
   });
 
+  it('returns needsManual for ND lead without calling REAPI comps', async () => {
+    let called = false;
+    const out = await runAutoComp(
+      { leadId: '1', address: '1 Main', city: 'Fargo', state: 'ND', lat: 46.88, lng: -96.79 },
+      { reapi: { propertyComps: async () => { called = true; return {}; } } }
+    );
+    assert.equal(out.needsManual, true);
+    assert.equal(out.ok, false);
+    assert.equal(called, false);
+  });
+
   it('rejects land leads out of scope', async () => {
     const out = await runAutoComp(
       { leadId: '1', address: '1 Lot', city: 'Columbus', state: 'OH', leadType: 'land', lat: 39.96, lng: -82.99 },
@@ -145,7 +157,7 @@ describe('runAutoComp', () => {
     assert.ok(out.report.subject.streetViewUrl);
   });
 
-  it('does not set estARV when confidence is blocked', async () => {
+  it('blocks disclosure lead when thin market yields fewer than 3 included comps', async () => {
     const thinComps = {
       comps: mockComps.comps.slice(0, 2),
     };
@@ -171,7 +183,42 @@ describe('runAutoComp', () => {
     );
     assert.equal(out.ok, true);
     assert.equal(out.report.confidence, 'blocked');
+    assert.equal(out.report.arv, null);
+    assert.equal(out.report.includedCount, 2);
     assert.equal(out.leadPatch.estARV, null);
     assert.equal(out.leadPatch.compConfidence, 'blocked');
+  });
+
+  it('blocks disclosure lead when all comps have zero sale price', async () => {
+    const out = await runAutoComp(
+      {
+        leadId: '1',
+        address: '1 Main St',
+        city: 'Columbus',
+        state: 'OH',
+        lat: 39.96,
+        lng: -82.99,
+        propertyDetails: { sqft: 1500, beds: 3, baths: 2, yearBuilt: 1985 },
+        estARV: 300000,
+      },
+      {
+        reapi: {
+          propertyDetail: async () => ({ id: 's1' }),
+          propertyComps: async () => zeroComps,
+          propertySearch: async () => ({ data: [] }),
+        },
+        checkRoadBarrier: async () => ({ crossed: false, degraded: false }),
+      }
+    );
+    assert.equal(out.ok, true);
+    assert.equal(out.report.confidence, 'blocked');
+    assert.equal(out.report.arv, null);
+    assert.equal(out.report.includedCount, 0);
+    assert.equal(out.leadPatch.estARV, null);
+    assert.equal(out.leadPatch.compConfidence, 'blocked');
+    assert.ok(out.leadPatch.comps.every((c) => !c.includedInArv));
+    const priceFails = out.leadPatch.comps.flatMap((c) => c.ruleResults || [])
+      .filter((r) => r.id === 'usable_price' && r.status === 'fail');
+    assert.ok(priceFails.length >= 3);
   });
 });
