@@ -136,7 +136,8 @@ describe('signnow-send helpers', () => {
     assert.match(src, /'Legal Description'/);
     assert.match(src, /'Assignor Signature Field'/);
     assert.match(src, /loadOwnerArtifactsFromTemplate/);
-    assert.match(src, /applyOwnerArtifacts/);
+    assert.match(src, /applyPrefillStampingRole/);
+    assert.match(src, /stampRole: 'Assignor'/);
     assert.match(src, /role: 'Assignee'/);
     assert.doesNotMatch(src, /role: 'Assignor'/);
   });
@@ -203,6 +204,11 @@ describe('signnow-send helpers', () => {
     assert.equal(arts.signatures[0].page_number, 3);
     assert.equal(arts.texts.length, 1);
     assert.equal(arts.texts[0].data, 'Wunderhaus');
+  });
+
+  it('exports applyPrefillStampingRole for Assignor skip-signer sends', () => {
+    const client = require('../lib/leads-platform/signnow-client');
+    assert.equal(typeof client.applyPrefillStampingRole, 'function');
   });
 
   it('auto-imports signed SignNow docs via syncPendingSignNowAcrossDeals export', () => {
