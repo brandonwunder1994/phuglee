@@ -2822,10 +2822,10 @@
     const cls = ['uc-quick-btn', 'uc-quick-btn--jv'];
     if (signed) cls.push('uc-quick-btn--jv-signed');
     else if (sent) cls.push('uc-quick-btn--jv-sent');
-    const label = signed ? 'JV signed' : (sent ? 'JV sent' : 'Send JV');
+    const label = signed ? 'JV signed' : (sent ? 'JV done' : 'Complete JV');
     const title = signed
-      ? 'JV fully signed — click to resend with confirmation'
-      : (sent ? 'JV already sent — click to resend with confirmation' : 'Send JV agreement via SignNow — confirmation required');
+      ? 'JV already signed — click to redo with confirmation'
+      : (sent ? 'JV already completed — click to redo with confirmation' : 'Complete JV — auto-sign both parties and import PDF');
     return `<button type="button" class="${cls.join(' ')}" data-action="send-jv" title="${esc(title)}">${esc(label)}</button>`;
   }
 
@@ -2835,7 +2835,7 @@
     const { sent, signed } = jvState(deal);
     btn.classList.toggle('uc-btn-jv-signed', signed);
     btn.classList.toggle('uc-btn-jv-sent', sent && !signed);
-    btn.textContent = signed ? 'JV signed' : (sent ? 'JV sent' : 'Send JV');
+    btn.textContent = signed ? 'JV signed' : (sent ? 'JV done' : 'Complete JV');
   }
 
   async function doSendJv(deal) {
@@ -2851,12 +2851,12 @@
       disposEmail: JV_PARTIES.dispos.email
     };
     try {
-      showToast('Sending JV via SignNow…', 8000);
+      showToast('Completing JV (auto-sign + import)…', 8000);
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/send-jv`, {
         method: 'POST',
         body: JSON.stringify(body)
       });
-      showToast(data.jv?.message || 'JV sent via SignNow — check Brandon + Brad email', 7000);
+      showToast(data.jv?.message || 'JV signed and imported into this deal', 7000);
       await loadDeals();
       if (state.activeDealId === deal.dealId && data.deal) {
         renderProfile(data.deal, state.contact);
@@ -2874,31 +2874,31 @@
     const addr = deal.address || 'this property';
 
     if (sent) {
-      $('uc-jv-title').textContent = deal.address ? `Resend JV — ${deal.address}` : 'Resend JV agreement';
-      if (confirmBtn) confirmBtn.textContent = 'Yes, resend JV';
+      $('uc-jv-title').textContent = deal.address ? `Redo JV — ${deal.address}` : 'Redo JV agreement';
+      if (confirmBtn) confirmBtn.textContent = 'Yes, redo JV';
       const who = (jv && jv.requestedBy) ? jv.requestedBy : 'unknown';
       const sentWhen = formatJvWhen(jv?.requestedAt) || 'unknown time';
       const doneWhen = signed
         ? (formatJvWhen(jv?.signedAt) || 'completed (time unknown)')
-        : 'Not fully signed yet — still awaiting signatures';
+        : 'Not completed yet';
       if (body) {
         body.innerHTML = `
-          <p>We already sent this JV agreement out.</p>
-          <p>Are you sure you want to resend it?</p>
+          <p>This deal already has a JV on file.</p>
+          <p>Create a fresh auto-signed JV and import it again?</p>
           <ul class="uc-jv-resend-meta">
-            <li><strong>Originally sent by:</strong> ${esc(who)}</li>
-            <li><strong>Sent at:</strong> ${esc(sentWhen)}</li>
-            <li><strong>Signatures completed:</strong> ${esc(doneWhen)}</li>
+            <li><strong>Originally run by:</strong> ${esc(who)}</li>
+            <li><strong>Run at:</strong> ${esc(sentWhen)}</li>
+            <li><strong>Completed:</strong> ${esc(doneWhen)}</li>
           </ul>
-          <p class="uc-jv-resend-note">Resend invites Brandon (${esc(JV_PARTIES.sales.email)}) and Brad (${esc(JV_PARTIES.dispos.email)}) again with the current property address.</p>`;
+          <p class="uc-jv-resend-note">No SignNow invites — Brandon + Brad signatures/dates/initials auto-apply and the PDF imports into Documents.</p>`;
       }
     } else {
-      $('uc-jv-title').textContent = deal.address ? `Send JV — ${deal.address}` : 'Send JV agreement';
-      if (confirmBtn) confirmBtn.textContent = 'Yes, send JV';
+      $('uc-jv-title').textContent = deal.address ? `Complete JV — ${deal.address}` : 'Complete JV agreement';
+      if (confirmBtn) confirmBtn.textContent = 'Yes, complete JV';
       if (body) {
         body.innerHTML = `
-          <p>Send the JV agreement via SignNow for <strong>${esc(addr)}</strong>?</p>
-          <p class="uc-jv-resend-note">This invites Brandon (${esc(JV_PARTIES.sales.email)}) and Brad (${esc(JV_PARTIES.dispos.email)}) to sign.</p>`;
+          <p>Complete the JV agreement for <strong>${esc(addr)}</strong>?</p>
+          <p class="uc-jv-resend-note">Property fills automatically. Brandon + Brad (BL) signatures and dates apply automatically. PDF imports into this deal — no email signing.</p>`;
       }
     }
     $('uc-jv-dialog')?.showModal();

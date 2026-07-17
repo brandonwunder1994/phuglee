@@ -134,7 +134,7 @@ describe('signnow-send helpers', () => {
     assert.equal(fields[0].prefilled_text, '');
   });
 
-  it('wires JV invite roles and emails to Brandon and Brad', () => {
+  it('wires JV party roles and emails to Brandon and Brad', () => {
     assert.equal(WUNDERHAUS_JV_ROLE, 'Wunderhaus Group LLC');
     assert.equal(SENDER.email, 'brandon@wunderhausgroup.com');
     assert.equal(BRAD.signNowRole, 'Green Oasis Solutions LLC');
@@ -224,6 +224,43 @@ describe('signnow-send helpers', () => {
   it('exports applyPrefillStampingRole for Assignor skip-signer sends', () => {
     const client = require('../lib/leads-platform/signnow-client');
     assert.equal(typeof client.applyPrefillStampingRole, 'function');
+  });
+
+  it('exports applyCompleteOwnerStamp for full auto-complete (JV)', () => {
+    const client = require('../lib/leads-platform/signnow-client');
+    assert.equal(typeof client.applyCompleteOwnerStamp, 'function');
+    assert.equal(typeof client.loadOwnerArtifactsFromDocument, 'function');
+  });
+
+  it('JV config includes Brad artifact donor + BL initials', () => {
+    assert.ok(TEMPLATES.jv.bradArtifactsDocId);
+    assert.equal(TEMPLATES.jv.bradInitials, 'BL');
+  });
+
+  it('JV send auto-stamps both parties and does not invite', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    const jvFn = src.slice(src.indexOf('async function sendJvForDeal'), src.indexOf('function documentSignedAt'));
+    assert.match(jvFn, /applyCompleteOwnerStamp/);
+    assert.match(jvFn, /loadOwnerArtifactsFromDocument/);
+    assert.match(jvFn, /Date and Time 2/);
+    assert.match(jvFn, /Date and Time 3/);
+    assert.match(jvFn, /status: 'signed'/);
+    assert.doesNotMatch(jvFn, /sendInvite/);
+  });
+
+  it('requestJvSend imports PDF and marks signed (no pending invite queue)', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/contracts.js'),
+      'utf8'
+    );
+    const fn = src.slice(src.indexOf('async function requestJvSend'), src.indexOf('async function requestAmendmentSend'));
+    assert.match(fn, /status: 'signed'/);
+    assert.match(fn, /addDealDocument/);
+    assert.match(fn, /downloadDocumentPdf/);
+    assert.doesNotMatch(fn, /pushSignNowPending/);
   });
 
   it('auto-imports signed SignNow docs via syncPendingSignNowAcrossDeals export', () => {
