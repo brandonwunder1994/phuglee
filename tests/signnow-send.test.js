@@ -244,13 +244,16 @@ describe('signnow-send helpers', () => {
     );
     const jvFn = src.slice(src.indexOf('async function sendJvForDeal'), src.indexOf('function documentSignedAt'));
     assert.match(jvFn, /whiteoutJvPartyASignature/);
+    assert.match(jvFn, /repairJvSignatureUnderlines/);
     assert.match(jvFn, /uploadDocumentPdf/);
     assert.match(jvFn, /loadOwnerArtifactsFromDocument/);
     assert.match(jvFn, /Date and Time 2/);
     assert.match(jvFn, /Date and Time 3/);
     assert.match(jvFn, /status: 'signed'/);
     assert.doesNotMatch(jvFn, /sendInvite/);
-    // Typed/script bake-in is wiped; only hand-drawn Brandon image is re-stamped.
+    assert.match(src, /signaturePngWhiteToTransparent/);
+    assert.doesNotMatch(src, /drawText\('Signature:'/);
+    assert.match(src, /never white out the label/);
     assert.match(src, /typed\/script signature AND hand-drawn/);
   });
 
