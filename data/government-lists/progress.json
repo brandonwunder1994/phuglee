@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-17T17:58:38.364Z",
+  "totalSlots": 18208,
+  "byStatus": {
+    "verified": 6067,
+    "not_found": 110,
+    "unverified": 9508,
+    "pdf_only": 752,
+    "email_only": 1771
+  },
+  "byWave": {
+    "A": 2890,
+    "B": 5118,
+    "C": 10200
+  },
+  "publishable": 8590,
+  "remaining": 9508,
+  "acceptedThisRun": 0,
+  "rejectedThisRun": 0,
+  "rejected": [],
+  "researchPaused": true,
+  "pausedAt": "2026-07-17T18:04:21.735Z",
+  "pausedNote": "Operator pause — keep published data; resume research later. Weak CivicPlus marketing + dead Baldwin URLs rolled back."
+}
