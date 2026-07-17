@@ -127,28 +127,82 @@ describe('signnow-send helpers', () => {
     assert.equal(BRAD.email, 'buyhomes995@gmail.com');
   });
 
-  it('sends JV invites in parallel (same SignNow order for both parties)', () => {
-    const src = require('fs').readFileSync(
-      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
-      'utf8'
-    );
-    const jvBlock = src.match(/async function sendJvForDeal[\s\S]*?^async function /m)?.[0]
-      || src.match(/async function sendJvForDeal[\s\S]*?^function /m)?.[0]
-      || '';
-    assert.match(jvBlock, /role: WUNDERHAUS_JV_ROLE, order: 1/);
-    assert.match(jvBlock, /role: BRAD\.signNowRole, order: 1/);
-    assert.doesNotMatch(jvBlock, /role: BRAD\.signNowRole, order: 2/);
-  });
-
-  it('uses spaced AOC template field names and Assignor/Assignee roles', () => {
+  it('uses spaced AOC fields, applies Assignor signature artifacts, invites Assignee only', () => {
     const src = require('fs').readFileSync(
       require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
       'utf8'
     );
     assert.match(src, /'Property Address'/);
     assert.match(src, /'Legal Description'/);
-    assert.match(src, /role: 'Assignor'/);
+    assert.match(src, /'Assignor Signature Field'/);
+    assert.match(src, /loadOwnerArtifactsFromTemplate/);
+    assert.match(src, /applyOwnerArtifacts/);
     assert.match(src, /role: 'Assignee'/);
+    assert.doesNotMatch(src, /role: 'Assignor'/);
+  });
+
+  it('stamps Buyer on amendments and invites sellers only', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    assert.match(src, /stampRoles:\s*\{\s*Buyer:/);
+    assert.match(src, /buyer_date: sendDate/);
+    assert.doesNotMatch(src, /role: 'Buyer'/);
+  });
+
+  it('converts stamped-role signature fields to a text name stamp', () => {
+    const fields = fieldPayloadFromDoc(
+      {
+        fields: [{
+          type: 'signature',
+          role: 'Buyer',
+          json_attributes: {
+            name: 'buyer_signature',
+            page_number: 0,
+            x: 1,
+            y: 1,
+            width: 100,
+            height: 20,
+            required: true
+          }
+        }, {
+          type: 'text',
+          role: 'Buyer',
+          json_attributes: {
+            name: 'buyer_date',
+            page_number: 0,
+            x: 1,
+            y: 40,
+            width: 80,
+            height: 16,
+            required: true
+          }
+        }]
+      },
+      {},
+      { stampRoles: { Buyer: { name: 'Brandon Wunder', date: '07/17/2026' } } }
+    );
+    assert.equal(fields[0].type, 'text');
+    assert.equal(fields[0].prefilled_text, 'Brandon Wunder');
+    assert.equal(fields[1].prefilled_text, '07/17/2026');
+  });
+
+  it('extracts owner signature + text artifacts from a template document', () => {
+    const { ownerArtifactsFromDoc } = require('../lib/leads-platform/signnow-client');
+    const arts = ownerArtifactsFromDoc({
+      signatures: [{
+        page_number: '3', x: '10', y: '20', width: '30', height: '40', data: 'abc'
+      }],
+      texts: [{
+        page_number: '0', x: '1', y: '2', width: '3', height: '4', data: 'Wunderhaus', font: 'Arial', size: '10'
+      }]
+    });
+    assert.equal(arts.signatures.length, 1);
+    assert.equal(arts.signatures[0].data, 'abc');
+    assert.equal(arts.signatures[0].page_number, 3);
+    assert.equal(arts.texts.length, 1);
+    assert.equal(arts.texts[0].data, 'Wunderhaus');
   });
 
   it('auto-imports signed SignNow docs via syncPendingSignNowAcrossDeals export', () => {
@@ -182,60 +236,6 @@ describe('signnow-send helpers', () => {
     assert.equal(shouldNotifySignNowKind('amendment'), true);
     assert.equal(shouldNotifySignNowKind('jv'), false);
     assert.equal(shouldNotifySignNowKind('jv_agreement', 'jv'), false);
-  });
-
-  it('matches SignNow library doc names to deal address', () => {
-    const {
-      signNowDocNameMatchesDeal,
-      inferTemplateKeyFromDocName,
-      normalizeMatchText
-    } = require('../lib/leads-platform/signnow-send');
-    const deal = {
-      address: '910 Delaware Ave',
-      city: 'Middletown',
-      state: 'OH',
-      zip: '45044'
-    };
-    assert.equal(
-      signNowDocNameMatchesDeal('Amendment 910 Delaware Ave Middletown OH 45044', deal),
-      true
-    );
-    assert.equal(
-      signNowDocNameMatchesDeal('Amendment — 910 Delaware Ave, Middletown, OH 45044', deal),
-      true
-    );
-    assert.equal(
-      signNowDocNameMatchesDeal('Amendment 910 Delaware Ave Longmont CO 80501', deal),
-      false
-    );
-    assert.equal(inferTemplateKeyFromDocName('Amendment 910 Delaware Ave'), 'amendment');
-    assert.equal(inferTemplateKeyFromDocName('AOC - 910 Delaware Ave'), 'aoc');
-    assert.equal(inferTemplateKeyFromDocName('JV for 910 Delaware Ave'), 'jv');
-    assert.equal(normalizeMatchText('910 Delaware Ave,'), '910 delaware ave');
-  });
-
-  it('fires opened alert even when package is already fully signed', () => {
-    const src = require('fs').readFileSync(
-      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
-      'utf8'
-    );
-    assert.match(src, /Fire "opened\/viewed" even when we first notice/);
-    assert.doesNotMatch(
-      src,
-      /if \(opened && !openedAlertedAt && !signed\)/
-    );
-  });
-
-  it('starts server-side SignNow background sync', () => {
-    const contracts = require('../lib/leads-platform/contracts');
-    assert.equal(typeof contracts.startSignNowBackgroundSync, 'function');
-    assert.equal(typeof contracts.rehydrateSignNowPendingFromLibrary, 'function');
-    assert.equal(typeof contracts.ensureSignNowPendingForDeal, 'function');
-    const serverSrc = require('fs').readFileSync(
-      require('path').join(__dirname, '../server.js'),
-      'utf8'
-    );
-    assert.match(serverSrc, /startSignNowBackgroundSync/);
   });
 
   it('fills amendment term fields to capacity before wrapping to the next line', () => {

@@ -2740,7 +2740,7 @@
             <li><strong>Assignee email on file:</strong> ${esc(buyer)}</li>
             ${remindedWhen ? `<li><strong>Last reminder:</strong> ${esc(remindedWhen)}</li>` : ''}
           </ul>
-          <p class="uc-jv-resend-note">SignNow will email only pending signers (Assignor / Assignee who have not completed).</p>`;
+          <p class="uc-jv-resend-note">SignNow will email only pending signers (buyer / Assignee who have not completed).</p>`;
       }
     }
     $('uc-aoc-remind-dialog')?.showModal();
