@@ -142,6 +142,38 @@ describe('signnow-send helpers', () => {
     assert.equal(BRAD.email, 'buyhomes995@gmail.com');
   });
 
+  it('always uses Wunderhaus Group LLC — never Wunder Real Estate LLC', () => {
+    const {
+      SENDER: sender,
+      LEGACY_WUNDER_ENTITY,
+      rewriteWunderhausEntity,
+      rewriteWunderhausEntityTexts
+    } = require('../lib/leads-platform/signnow-send');
+    assert.equal(sender.entity, 'Wunderhaus Group LLC');
+    assert.equal(LEGACY_WUNDER_ENTITY, 'Wunder Real Estate LLC');
+    assert.equal(
+      rewriteWunderhausEntity('Wunder Real Estate LLC'),
+      'Wunderhaus Group LLC'
+    );
+    assert.equal(
+      rewriteWunderhausEntity('Assignor: Wunder Real Estate LLC — signed'),
+      'Assignor: Wunderhaus Group LLC — signed'
+    );
+    assert.equal(rewriteWunderhausEntity('Wunderhaus Group LLC'), 'Wunderhaus Group LLC');
+    const texts = rewriteWunderhausEntityTexts([
+      { data: 'Wunder Real Estate LLC', page_number: 3 },
+      { data: 'Brandon Wunder', page_number: 3 }
+    ]);
+    assert.equal(texts[0].data, 'Wunderhaus Group LLC');
+    assert.equal(texts[1].data, 'Brandon Wunder');
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    assert.match(src, /rewriteWunderhausEntityTexts\(ownerArtifacts\.texts/);
+    assert.doesNotMatch(src, /entity:\s*'Wunder Real Estate LLC'/);
+  });
+
   it('uses spaced AOC fields, applies Assignor signature artifacts, invites Assignee only', () => {
     const src = require('fs').readFileSync(
       require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
