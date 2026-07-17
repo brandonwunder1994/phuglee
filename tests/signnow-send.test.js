@@ -127,6 +127,19 @@ describe('signnow-send helpers', () => {
     assert.equal(BRAD.email, 'buyhomes995@gmail.com');
   });
 
+  it('sends JV invites in parallel (same SignNow order for both parties)', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    const jvBlock = src.match(/async function sendJvForDeal[\s\S]*?^async function /m)?.[0]
+      || src.match(/async function sendJvForDeal[\s\S]*?^function /m)?.[0]
+      || '';
+    assert.match(jvBlock, /role: WUNDERHAUS_JV_ROLE, order: 1/);
+    assert.match(jvBlock, /role: BRAD\.signNowRole, order: 1/);
+    assert.doesNotMatch(jvBlock, /role: BRAD\.signNowRole, order: 2/);
+  });
+
   it('uses spaced AOC template field names and Assignor/Assignee roles', () => {
     const src = require('fs').readFileSync(
       require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
