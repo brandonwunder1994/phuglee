@@ -7,6 +7,7 @@ const {
 } = require('../lib/leads-platform/deal-property-address');
 const {
   formatMoney,
+  formatMoneyAmount,
   propertyLine,
   propertyLines,
   kindFromTemplateKey,
@@ -67,6 +68,20 @@ describe('signnow-send helpers', () => {
   it('formats money with dollar sign', () => {
     assert.equal(formatMoney(85000), '$85,000.00');
     assert.equal(formatMoney('$1,000'), '$1,000');
+  });
+
+  it('formats EMD amount without a dollar sign (template already has $)', () => {
+    assert.equal(formatMoneyAmount(1000), '1,000.00');
+    assert.equal(formatMoneyAmount('$1,500'), '1,500.00');
+    assert.equal(formatMoneyAmount('2500.5'), '2,500.50');
+  });
+
+  it('AOC EMD uses amount-only formatting', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    assert.match(src, /'Assignee EMD': formatMoneyAmount\(/);
   });
 
   it('builds property line from deal fields', () => {
