@@ -815,3 +815,118 @@ test('vault-only role (matt) allows /vault and /land-vault', () => {
   assert.equal(roles.defaultHomeForUsername('matt'), '/vault');
   assert.equal(roles.roleForUsername('matt').id, 'vault');
 });
+
+test('compareDealsByProcess ranks closer-to-funding higher', () => {
+  const funded = { dealId: 'a', stage: 'funded', createdAt: '2026-01-01T00:00:00.000Z' };
+  const buyer = { dealId: 'b', stage: 'buyer_found', createdAt: '2026-01-01T00:00:00.000Z' };
+  const uc = { dealId: 'c', stage: 'under_contract', createdAt: '2026-01-01T00:00:00.000Z' };
+  const term = { dealId: 'd', stage: 'terminated', createdAt: '2026-01-01T00:00:00.000Z' };
+  const ordered = [term, uc, funded, buyer].sort(schema.compareDealsByProcess);
+  assert.deepEqual(ordered.map((d) => d.stage), [
+    'funded',
+    'buyer_found',
+    'under_contract',
+    'terminated'
+  ]);
+});
+
+test('listDeals orders by process stage not updatedAt', () => {
+  const funded = contracts.upsertDeal({
+    address: '1 Sort Funded St',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'funded',
+    fundedAt: '2026-06-01T00:00:00.000Z',
+    createdAt: '2026-01-01T00:00:00.000Z'
+  });
+  const buyer = contracts.upsertDeal({
+    address: '2 Sort Buyer St',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'buyer_found',
+    createdAt: '2026-01-02T00:00:00.000Z'
+  });
+  const uc = contracts.upsertDeal({
+    address: '3 Sort UC St',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'under_contract',
+    createdAt: '2026-01-03T00:00:00.000Z'
+  });
+  const term = contracts.upsertDeal({
+    address: '4 Sort Term St',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'terminated',
+    createdAt: '2026-01-04T00:00:00.000Z'
+  });
+
+  // Bump updatedAt on the least-progress deal — must not leap above funded/buyer
+  contracts.upsertDeal({
+    ...contracts.getDeal(uc.dealId),
+    notes: 'touch for updatedAt'
+  });
+
+  const ids = new Set([funded.dealId, buyer.dealId, uc.dealId, term.dealId]);
+  const ordered = contracts.listDeals().filter((d) => ids.has(d.dealId));
+  assert.deepEqual(ordered.map((d) => d.dealId), [
+    funded.dealId,
+    buyer.dealId,
+    uc.dealId,
+    term.dealId
+  ]);
+});
+
+test('listDeals ranks checklist progress within under_contract; updatedAt ignored', () => {
+  const low = contracts.upsertDeal({
+    address: '10 Progress Low Ave',
+    city: 'Mesa',
+    state: 'AZ',
+    stage: 'under_contract',
+    titleOpened: 'yes',
+    createdAt: '2026-02-01T00:00:00.000Z'
+  });
+  const high = contracts.upsertDeal({
+    address: '11 Progress High Ave',
+    city: 'Mesa',
+    state: 'AZ',
+    stage: 'under_contract',
+    buyerEmdSubmitted: 'yes',
+    cashBuyerName: 'Cash Buyer LLC',
+    createdAt: '2026-02-02T00:00:00.000Z'
+  });
+
+  // Newer updatedAt on the lower-progress deal must not reorder
+  contracts.upsertDeal({
+    ...contracts.getDeal(low.dealId),
+    notes: 'sms peek bump'
+  });
+
+  const ids = new Set([low.dealId, high.dealId]);
+  const ordered = contracts.listDeals().filter((d) => ids.has(d.dealId));
+  assert.deepEqual(ordered.map((d) => d.dealId), [high.dealId, low.dealId]);
+  assert.ok(schema.dealProcessProgressScore(high) > schema.dealProcessProgressScore(low));
+});
+
+test('listDeals ranks funded peers by fundedAt newest first', () => {
+  const older = contracts.upsertDeal({
+    address: '20 Funded Old Rd',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'funded',
+    fundedAt: '2026-03-01T00:00:00.000Z',
+    createdAt: '2026-02-01T00:00:00.000Z'
+  });
+  const newer = contracts.upsertDeal({
+    address: '21 Funded New Rd',
+    city: 'Tempe',
+    state: 'AZ',
+    stage: 'funded',
+    fundedAt: '2026-05-01T00:00:00.000Z',
+    createdAt: '2026-02-02T00:00:00.000Z'
+  });
+
+  const ids = new Set([older.dealId, newer.dealId]);
+  const ordered = contracts.listDeals().filter((d) => ids.has(d.dealId));
+  assert.deepEqual(ordered.map((d) => d.dealId), [newer.dealId, older.dealId]);
+});

@@ -9,6 +9,17 @@
     funded: 'Funded',
     terminated: 'Terminated'
   };
+  /** Lower = closer to funding = higher on the board. Must match schema.js. */
+  const STAGE_PROCESS_RANK = {
+    funded: 0,
+    buyer_found: 1,
+    under_contract: 2,
+    contract_sent: 3,
+    verbal_offer: 4,
+    warm: 5,
+    interested: 6,
+    terminated: 7
+  };
   const DOC_LABELS = {
     purchase_contract: 'Purchase contract',
     addendum: 'Addendum',
@@ -508,6 +519,68 @@
     return '';
   }
 
+  function processYes(value) {
+    if (value === true || value === 1) return true;
+    if (value === false || value === 0) return false;
+    const v = String(value == null ? '' : value).trim().toLowerCase();
+    return v === 'yes' || v === 'y' || v === 'true' || v === '1' || v === 'submitted';
+  }
+
+  function processRehabFilled(rehab) {
+    if (processYes(rehab)) return true;
+    if (!rehab || typeof rehab !== 'object') return false;
+    return Boolean(
+      rehab.roof || rehab.ac || rehab.foundation
+      || rehab.electrical || rehab.plumbing
+      || rehab.other || rehab.notes || rehab.custom
+    );
+  }
+
+  function processBuyerFound(d) {
+    const stage = d?.stage || '';
+    if (stage === 'buyer_found' || stage === 'funded') return true;
+    if (String(d?.cashBuyerName || '').trim()) return true;
+    if (processYes(d?.buyerFound)) return true;
+    const ba = d?.buyerAssignment;
+    if (ba && (ba.buyerEntity || ba.buyerEmail || ba.buyerContactName)) return true;
+    return false;
+  }
+
+  function dealProcessProgressScore(d) {
+    let score = 0;
+    if (processYes(d?.buyerEmdSubmitted)) score += 32;
+    if (processBuyerFound(d)) score += 16;
+    if (processYes(d?.rehabInfoReady) || processRehabFilled(d?.rehabInfo)) score += 8;
+    if (processYes(d?.photosAvailable)) score += 4;
+    if (processYes(d?.titleOpened)) score += 2;
+    if (processYes(d?.sellerEmdSubmitted)) score += 1;
+    return score;
+  }
+
+  /** Closer to funding first; stable within stage — ignore updatedAt churn. */
+  function compareDealsByProcess(a, b) {
+    const rankA = STAGE_PROCESS_RANK[a?.stage] ?? 50;
+    const rankB = STAGE_PROCESS_RANK[b?.stage] ?? 50;
+    if (rankA !== rankB) return rankA - rankB;
+
+    const progressDiff = dealProcessProgressScore(b) - dealProcessProgressScore(a);
+    if (progressDiff) return progressDiff;
+
+    if (a?.stage === 'funded') {
+      const fundedCmp = String(b?.fundedAt || '').localeCompare(String(a?.fundedAt || ''));
+      if (fundedCmp) return fundedCmp;
+    }
+
+    const createdCmp = String(a?.createdAt || '').localeCompare(String(b?.createdAt || ''));
+    if (createdCmp) return createdCmp;
+
+    return String(a?.dealId || '').localeCompare(String(b?.dealId || ''));
+  }
+
+  function sortDealsByProcess(deals) {
+    return (deals || []).slice().sort(compareDealsByProcess);
+  }
+
   /** Scannable status chip for board table + cards. */
   function statusChip(opts) {
     const label = opts.label || '';
@@ -578,7 +651,7 @@
 
     // Contract Tracker only shows dispo stages (API also filters board=contracts)
     const DISPO = new Set(['under_contract', 'buyer_found', 'funded', 'terminated']);
-    deals = (deals || []).filter((d) => DISPO.has(d.stage));
+    deals = sortDealsByProcess((deals || []).filter((d) => DISPO.has(d.stage)));
 
     if (!deals.length) {
       if (table) table.hidden = true;
