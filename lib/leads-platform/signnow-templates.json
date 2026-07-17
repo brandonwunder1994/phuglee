@@ -5,7 +5,9 @@
   },
   "jv": {
     "templateId": "539369380bcc40bd9362f4c49222023510330af1",
-    "name": "JV Agreement"
+    "name": "JV Agreement",
+    "bradArtifactsDocId": "d4e41a2146304b1b88de5dc49cb75013b7b3e9e0",
+    "bradInitials": "BL"
   },
   "amendment": {
     "templateId": "77a037b041c340c2b336023247c3a9719b44a792",
