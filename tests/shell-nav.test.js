@@ -52,12 +52,13 @@ test('shell nav groups Collect, Government Lists, Pre-liens, Filter, and Analyze
   assert.ok(!api.isDataSectionActive('command'));
 });
 
-test('shell nav groups Homes and Land under Vaults dropdown', () => {
+test('shell nav groups Homes and Land under Leads dropdown', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/command');
   assert.ok(nav.includes('>Dashboard<'));
   assert.ok(nav.includes('shell-vaults-trigger'));
-  assert.ok(nav.includes('Vaults'));
+  assert.ok(nav.includes('Leads'));
+  assert.ok(!nav.includes('>Vaults<'));
   assert.match(nav, /shell-nav-dropdown-label">Homes</);
   assert.match(nav, /shell-nav-dropdown-label">Land</);
   assert.ok(!nav.includes('>Home Vault<'));
@@ -70,7 +71,7 @@ test('shell nav groups Homes and Land under Vaults dropdown', () => {
   assert.equal(api.activeId('/land-vault'), 'land-vault');
 });
 
-test('matt vault-only shell nav shows Vaults dropdown only', () => {
+test('matt vault-only shell nav shows Leads dropdown only', () => {
   const api = loadShellNavApi('matt');
   const nav = api.buildNav('/vault');
   assert.ok(nav.includes('shell-vaults-trigger'));
