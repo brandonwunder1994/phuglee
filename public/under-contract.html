@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=55">
+  <link rel="stylesheet" href="/css/under-contract.css?v=56">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=3"></script>
@@ -601,15 +601,13 @@
     </form>
   </dialog>
 
-  </dialog>
-
   <dialog id="uc-psa-dialog" class="uc-dialog uc-dialog--psa">
     <form method="dialog" id="uc-psa-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-psa-title">Send New PSA</h3>
         <button type="button" id="uc-psa-close" class="uc-dialog-x" aria-label="Close">×</button>
       </div>
-      <p class="uc-jv-lead">Pick a Vault lead, confirm seller(s), then send the Cash Purchase Agreement via SignNow. The deal appears under Waiting for Signatures until signed.</p>
+      <p class="uc-jv-lead">Pick a Vault lead, confirm seller(s), then send the Cash Purchase Agreement via SignNow. Closing is 14 days from the effective date on the contract. The deal appears under Waiting for Signatures until signed.</p>
 
       <fieldset class="uc-psa-step" data-psa-step="1">
         <legend class="uc-psa-step-label">1 · Vault property</legend>
@@ -619,12 +617,11 @@
         </label>
         <div id="uc-psa-results" class="uc-psa-results" role="listbox" aria-label="Matching Vault leads"></div>
         <input type="hidden" id="uc-psa-lead-id" value="">
-        <p id="uc-psa-selected" class="uc-psa-selected" hidden></p>
       </fieldset>
 
       <fieldset class="uc-psa-step" data-psa-step="2">
         <legend class="uc-psa-step-label">2 · Sellers</legend>
-        <p class="uc-field-hint">Confirm Seller 1 matches the person signing — Vault may be outdated.</p>
+        <p class="uc-field-hint">Confirm Seller 1 name and email — Vault email is pulled in when available.</p>
         <div class="uc-psa-seller-count" role="radiogroup" aria-label="Number of sellers">
           <label class="uc-psa-radio"><input type="radio" name="uc-psa-seller-count" value="1" checked> 1 seller</label>
           <label class="uc-psa-radio"><input type="radio" name="uc-psa-seller-count" value="2"> 2 sellers</label>
@@ -653,15 +650,11 @@
         <legend class="uc-psa-step-label">3 · PSA terms</legend>
         <label class="vault-field">
           <span class="vault-field-label">Purchase price</span>
-          <input type="text" id="uc-psa-price" class="phuglee-input" inputmode="decimal" required placeholder="85000">
-        </label>
-        <label class="vault-field">
-          <span class="vault-field-label">Closing date</span>
-          <input type="text" id="uc-psa-closing" class="phuglee-input" placeholder="MM/DD/YYYY">
+          <input type="text" id="uc-psa-price" class="phuglee-input" inputmode="decimal" required placeholder="$85,000.00">
         </label>
         <label class="vault-field">
           <span class="vault-field-label">EMD deposit</span>
-          <input type="text" id="uc-psa-emd" class="phuglee-input" inputmode="decimal" placeholder="1000">
+          <input type="text" id="uc-psa-emd" class="phuglee-input" inputmode="decimal" value="$100.00" placeholder="$100.00">
         </label>
         <label class="vault-field">
           <span class="vault-field-label">Inspection days</span>
@@ -791,6 +784,6 @@
   <script src="/js/command-palette.js?v=3" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=64" defer></script>
+  <script src="/js/under-contract.js?v=65" defer></script>
 </body>
 </html>

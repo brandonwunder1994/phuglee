@@ -3242,24 +3242,36 @@
     el.textContent = msg;
   }
 
-  function openSendNewPsa() {
+  function formatPsaMoneyInput(v, fallback) {
+    const raw = String(v == null ? '' : v).trim();
+    if (!raw && fallback != null) return formatPsaMoneyInput(fallback);
+    if (!raw) return '';
+    if (raw.startsWith('$')) return raw;
+    const n = Number(String(raw).replace(/[^0-9.]/g, ''));
+    if (!Number.isFinite(n)) return raw;
+    return n.toLocaleString('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 2
+    });
+  }
+
+  function clearPsaLeadSelection({ keepSearch = false } = {}) {
     psaSelectedLead = null;
-    setPsaError('');
     if ($('uc-psa-lead-id')) $('uc-psa-lead-id').value = '';
-    if ($('uc-psa-search')) $('uc-psa-search').value = '';
+    if (!keepSearch && $('uc-psa-search')) $('uc-psa-search').value = '';
+  }
+
+  function openSendNewPsa() {
+    clearPsaLeadSelection();
+    setPsaError('');
     if ($('uc-psa-results')) $('uc-psa-results').innerHTML = '';
-    const selected = $('uc-psa-selected');
-    if (selected) {
-      selected.hidden = true;
-      selected.textContent = '';
-    }
     if ($('uc-psa-s1-name')) $('uc-psa-s1-name').value = '';
     if ($('uc-psa-s1-email')) $('uc-psa-s1-email').value = '';
     if ($('uc-psa-s2-name')) $('uc-psa-s2-name').value = '';
     if ($('uc-psa-s2-email')) $('uc-psa-s2-email').value = '';
     if ($('uc-psa-price')) $('uc-psa-price').value = '';
-    if ($('uc-psa-closing')) $('uc-psa-closing').value = '';
-    if ($('uc-psa-emd')) $('uc-psa-emd').value = '';
+    if ($('uc-psa-emd')) $('uc-psa-emd').value = '$100.00';
     if ($('uc-psa-inspection')) $('uc-psa-inspection').value = '10';
     if ($('uc-psa-closing-loc')) $('uc-psa-closing-loc').value = "Buyer's Choice";
     if ($('uc-psa-terms')) $('uc-psa-terms').value = '';
@@ -3278,25 +3290,26 @@
   function selectPsaLead(lead) {
     psaSelectedLead = lead;
     if ($('uc-psa-lead-id')) $('uc-psa-lead-id').value = lead.leadId || '';
-    const line = [lead.address, [lead.city, lead.state, lead.zip].filter(Boolean).join(', ')].filter(Boolean).join(' — ');
-    const selected = $('uc-psa-selected');
-    if (selected) {
-      selected.hidden = false;
-      selected.textContent = `Selected: ${line}${lead.ownerName ? ` · Vault owner: ${lead.ownerName}` : ''}`;
-    }
+    const line = [lead.address, [lead.city, lead.state, lead.zip].filter(Boolean).join(', ')].filter(Boolean).join(', ');
+    if ($('uc-psa-search')) $('uc-psa-search').value = line;
+    if ($('uc-psa-results')) $('uc-psa-results').innerHTML = '';
     if ($('uc-psa-s1-name')) $('uc-psa-s1-name').value = lead.ownerName || '';
     if ($('uc-psa-s1-email')) $('uc-psa-s1-email').value = lead.email || '';
-    if ($('uc-psa-results')) {
-      $('uc-psa-results').querySelectorAll('[data-lead-id]').forEach((el) => {
-        el.classList.toggle('is-selected', el.getAttribute('data-lead-id') === lead.leadId);
-      });
+    if (!lead.email) {
+      setPsaError('No email on this Vault lead — enter Seller 1 email before sending.');
+    } else {
+      setPsaError('');
     }
-    setPsaError('');
   }
 
   async function searchVaultForPsa(q) {
     const box = $('uc-psa-results');
     if (!box) return;
+    // Already picked — do not reopen dropdown until the user edits/clears the search.
+    if (psaSelectedLead && ($('uc-psa-lead-id')?.value || '')) {
+      box.innerHTML = '';
+      return;
+    }
     const query = String(q || '').trim();
     if (query.length < 2) {
       box.innerHTML = query
@@ -3314,12 +3327,13 @@
       }
       box.innerHTML = leads.map((l) => {
         const cityLine = [l.city, l.state, l.zip].filter(Boolean).join(', ');
+        const emailBit = l.email ? ` · ${esc(l.email)}` : '';
         return `<button type="button" class="uc-psa-result" role="option" data-lead-id="${esc(l.leadId)}"
           data-address="${esc(l.address || '')}" data-city="${esc(l.city || '')}"
           data-state="${esc(l.state || '')}" data-zip="${esc(l.zip || '')}"
           data-owner="${esc(l.ownerName || '')}" data-email="${esc(l.email || '')}">
           <span class="uc-psa-result-addr">${esc(l.address || '—')}</span>
-          <span class="uc-psa-result-meta">${esc(cityLine || '—')}${l.ownerName ? ` · ${esc(l.ownerName)}` : ''}</span>
+          <span class="uc-psa-result-meta">${esc(cityLine || '—')}${l.ownerName ? ` · ${esc(l.ownerName)}` : ''}${emailBit}</span>
         </button>`;
       }).join('');
     } catch (err) {
@@ -3362,9 +3376,8 @@
       leadId,
       sellerCount,
       sellers,
-      purchasePrice,
-      closingDate: ($('uc-psa-closing')?.value || '').trim(),
-      emdDeposit: ($('uc-psa-emd')?.value || '').trim() || null,
+      purchasePrice: formatPsaMoneyInput(purchasePrice) || purchasePrice,
+      emdDeposit: formatPsaMoneyInput(($('uc-psa-emd')?.value || '').trim(), 100),
       inspectionDays: ($('uc-psa-inspection')?.value || '').trim() || '10',
       closingLocation: ($('uc-psa-closing-loc')?.value || '').trim() || "Buyer's Choice",
       additionalTerms: ($('uc-psa-terms')?.value || '').trim()
@@ -3607,8 +3620,25 @@
     $('uc-send-new-psa')?.addEventListener('click', () => openSendNewPsa());
     $('uc-psa-form')?.addEventListener('submit', submitSendNewPsa);
     $('uc-psa-search')?.addEventListener('input', () => {
+      // Editing/clearing the filled address unlocks search again.
+      if (psaSelectedLead) {
+        clearPsaLeadSelection({ keepSearch: true });
+        if ($('uc-psa-s1-name')) $('uc-psa-s1-name').value = '';
+        if ($('uc-psa-s1-email')) $('uc-psa-s1-email').value = '';
+        setPsaError('');
+      }
       clearTimeout(psaSearchTimer);
       psaSearchTimer = setTimeout(() => searchVaultForPsa($('uc-psa-search')?.value || ''), 220);
+    });
+    $('uc-psa-price')?.addEventListener('blur', () => {
+      const el = $('uc-psa-price');
+      if (!el || !el.value.trim()) return;
+      el.value = formatPsaMoneyInput(el.value);
+    });
+    $('uc-psa-emd')?.addEventListener('blur', () => {
+      const el = $('uc-psa-emd');
+      if (!el) return;
+      el.value = formatPsaMoneyInput(el.value, 100);
     });
     $('uc-psa-results')?.addEventListener('click', (ev) => {
       const btn = ev.target.closest('[data-lead-id]');
