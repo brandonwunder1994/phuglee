@@ -878,6 +878,7 @@ R.reviewFilterTag = $('reviewFilterTag');
 R.reviewStatsEl = $('reviewStatsEl');
 R.reviewCheckpointEl = $('reviewCheckpointEl');
 R.reviewExitBtn = $('reviewExitBtn');
+R.reviewFullProfileBtn = $('reviewFullProfileBtn');
 R.reviewBody = $('reviewBody');
 R.reviewImages = $('reviewImages');
 R.reviewSatWrap = $('reviewSatWrap');

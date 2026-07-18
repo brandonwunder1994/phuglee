@@ -2443,6 +2443,14 @@ R.focusReviewShortcuts = function focusReviewShortcuts() {
 
 reviewExitBtn?.addEventListener('click', () => closeReviewMode());
 reviewCompleteExitBtn?.addEventListener('click', () => closeReviewMode());
+reviewFullProfileBtn?.addEventListener('click', () => {
+  // Open the current lead's full profile over the Review overlay. This never touches
+  // reviewQueue/reviewIndex, so closing the profile (Esc / ×) returns to the same spot.
+  if (!state.reviewMode) return;
+  const r = typeof getReviewRecord === 'function' ? getReviewRecord() : null;
+  if (!r || typeof showInspector !== 'function') return;
+  showInspector(r, { scrollList: false, scrollFeed: false, animateGauge: false });
+});
 reviewKeepBtn?.addEventListener('click', () => { reviewKeep(); focusReviewShortcuts(); });
 reviewChangeBtn?.addEventListener('click', () => { void reviewApplyChange(); focusReviewShortcuts(); });
 reviewDeferBtn?.addEventListener('click', () => { reviewDeferLater(); focusReviewShortcuts(); });
@@ -2548,6 +2556,17 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   if (state.reviewMode) {
+    // Full profile open over Review: Esc closes the profile back to the queue (does not
+    // exit Review); review number shortcuts pause until the profile is closed.
+    if (state.propertyModalOpen) {
+      if (e.key === 'Escape' && !imageLightbox.classList.contains('open')) {
+        e.preventDefault();
+        e.stopPropagation();
+        closePropertyModal();
+        return;
+      }
+      return;
+    }
     // Number shortcuts must work even if focus was left on dashboard search/settings.
     if (e.key === 'Escape' && !imageLightbox.classList.contains('open')) {
       e.preventDefault();
