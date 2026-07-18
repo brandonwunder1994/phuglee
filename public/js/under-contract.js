@@ -314,16 +314,18 @@
     const t = totals || {};
     const by = t.byStage || {};
     $('uc-kpi-uc').textContent = String(by.under_contract || t.underContract || 0);
-    $('uc-kpi-buyer').textContent = String(by.buyer_found || t.buyerFound || 0);
-    // Closing stage removed — keep element hidden-safe if present
-    if ($('uc-kpi-closing')) $('uc-kpi-closing').textContent = '—';
+    if ($('uc-kpi-pending-sign')) {
+      // Server total; renderTable overrides with the live Waiting-for-Signatures group count.
+      $('uc-kpi-pending-sign').textContent = String(t.pendingSignatures ?? by.contract_sent ?? 0);
+    }
     if ($('uc-kpi-open-fees')) {
       $('uc-kpi-open-fees').textContent = money(t.openAssignmentFees || 0);
     }
     $('uc-kpi-funded').textContent = String(by.funded || t.funded || t.closedCount || 0);
     $('uc-kpi-fees').textContent = money(t.closedAssignmentFees ?? t.totalAssignmentFees ?? 0);
-    if ($('uc-kpi-acq')) $('uc-kpi-acq').textContent = money(t.closedAcqPay ?? t.totalAcqPay ?? 0);
-    if ($('uc-kpi-dispo')) $('uc-kpi-dispo').textContent = money(t.closedDispoPay ?? t.totalDispoPay ?? 0);
+    if ($('uc-kpi-avg-funded')) {
+      $('uc-kpi-avg-funded').textContent = money(t.avgFundedAssignmentFee ?? 0);
+    }
   }
 
   function formatCountdown(msRemaining, expired) {
@@ -754,6 +756,11 @@
     const all = Array.isArray(deals) ? deals : [];
     const waiting = all.filter((d) => isWaitingForSignatures(d));
     deals = sortDealsByProcess(all.filter((d) => DISPO.has(d.stage)));
+
+    // Pending Signatures KPI mirrors the Waiting-for-Signatures group exactly.
+    if ($('uc-kpi-pending-sign')) {
+      $('uc-kpi-pending-sign').textContent = String(waiting.length);
+    }
 
     renderWaitingSection(waiting);
 

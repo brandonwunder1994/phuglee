@@ -199,6 +199,23 @@ test('contract_sent PSA deals appear on contracts board Waiting section, not in 
   assert.doesNotThrow(() => contracts.assertBradCanWriteDeal(deal, 'brad'));
 });
 
+test('proofTotals reports pending signatures and average funded assignment fee', () => {
+  const deals = [
+    { dealId: 'a', stage: 'funded', assignmentFee: 10000 },
+    { dealId: 'b', stage: 'funded', assignmentFee: 20000 },
+    { dealId: 'c', stage: 'funded', assignmentFee: null }, // no fee → excluded from average
+    { dealId: 'd', stage: 'contract_sent', assignmentFee: 5000 },
+    { dealId: 'e', stage: 'contract_sent' },
+    { dealId: 'f', stage: 'under_contract', assignmentFee: 8000 }
+  ];
+  const totals = contracts.proofTotals(deals);
+  assert.equal(totals.pendingSignatures, 2);
+  assert.equal(totals.funded, 3);
+  assert.equal(totals.closedAssignmentFees, 30000);
+  assert.equal(totals.fundedFeeCount, 2);
+  assert.equal(totals.avgFundedAssignmentFee, 15000);
+});
+
 test('ensureDealContractParcel seeds APN and legal from mock REAPI', async () => {
   const lead = store.upsertLead({
     address: '300 Parcel Ln',
