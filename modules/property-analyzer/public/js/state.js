@@ -1850,6 +1850,10 @@ R.applySessionSummary = async function applySessionSummary(summary) {
   initLeadTypeSelects();
   setViewMode(state.viewMode, false);
   updateProgress();
+  // Server awaiting-bucket counts so the KPI strip is truthful before full hydrate.
+  if ((summary.results || 0) > 0) {
+    void fetchAwaitingCounts?.().then((c) => { if (c) updateSummaryStats?.({ instant: true }); });
+  }
   // Instant session totals from server tierCounts (no crawl-up from partial pages)
   updateSummaryStats({ instant: true });
   updateFilterLabels?.();
@@ -2242,7 +2246,7 @@ R.applySessionFromData = async function applySessionFromData(data, opts = {}) {
   state.totalReviewCheckpoints = Math.max(0, Number(data.totalReviewCheckpoints) || 0);
   state.reviewMode = false;
   const savedView = ['setup', 'dashboard', 'scan', 'property'].includes(data.appView) ? data.appView : null;
-  resultSearch.value = state.searchQuery;
+  if (resultSearch) resultSearch.value = state.searchQuery;
   if (locationHubSearch) locationHubSearch.value = state.locationHubQuery || '';
   if (state.records.length) {
     if (heroCount) heroCount.textContent = state.records.length.toLocaleString();
@@ -2628,7 +2632,7 @@ R.clearSession = function clearSession() {
   state.setupCollapsed = false;
   state.appView = 'setup';
   initLeadTypeSelects();
-  resultSearch.value = '';
+  if (resultSearch) resultSearch.value = '';
   collapseSetup(false);
   progressSection?.classList.remove('review-minimal');
   $('failStats')?.classList.remove('visible');
@@ -2660,9 +2664,9 @@ R.clearSession = function clearSession() {
   document.body.style.overflow = '';
   setHudStatus('STANDBY');
   resetVirtualScrollDom();
-  cardsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">◎</div>Results appear here — newest uploads at the top</div>';
-  resultsBody.innerHTML = '<tr><td colspan="13" class="empty-state">No results</td></tr>';
-  $('resultCount').textContent = '';
+  if (cardsGrid) cardsGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">◎</div>Results appear here — newest uploads at the top</div>';
+  if (resultsBody) resultsBody.innerHTML = '<tr><td colspan="13" class="empty-state">No results</td></tr>';
+  { const rc = $('resultCount'); if (rc) rc.textContent = ''; }
   updateSummaryStats();
   updateStartButton();
   updateScanFeedUi();

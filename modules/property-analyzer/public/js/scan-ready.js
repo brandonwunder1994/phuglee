@@ -46,6 +46,7 @@
       const workBtn = document.getElementById('openResultsWorkbenchBtn');
 
       if (pipeline) pipeline.hidden = !z.showPipeline;
+      if (typeof paintAnalyzePipeline === 'function') paintAnalyzePipeline();
       if (desk) desk.hidden = !z.showScanDesk;
 
       if (live) live.hidden = !z.showLiveScan;

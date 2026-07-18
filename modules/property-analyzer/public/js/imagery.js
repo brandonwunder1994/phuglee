@@ -691,6 +691,11 @@ R.showReviewComplete = function showReviewComplete() {
     reviewCompleteText.textContent =
       `${state.reviewQueue.length} leads reviewed — ${kept} kept, ${changed} changed${extraNote}. Training signals saved for your next scan batch.`;
   }
+  // Loop back into The Vault for the bucket just worked. Approved (kept/changed)
+  // distressed / well-maintained / land leads publish to the Vault catalog.
+  if (typeof updateReviewVaultCta === 'function') {
+    updateReviewVaultCta(state.reviewFilter, kept + changed);
+  }
   if (reviewProgress) reviewProgress.textContent = 'Done';
 }
 
