@@ -795,6 +795,7 @@ test('dispos role allows /pipeline path', () => {
   assert.equal(roles.isPathAllowedForUsername('brad', '/land-vault'), true);
   assert.equal(roles.isPathAllowedForUsername('brad', '/buyers'), true);
   assert.equal(roles.isPathAllowedForUsername('brad', '/trust-funds'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/government-lists'), true);
   assert.equal(roles.isPathAllowedForUsername('brad', '/filter'), false);
 });
 

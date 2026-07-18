@@ -139,10 +139,12 @@
       }
       if (isDisposUser()) {
         return cmd.href === '/vault'
+          || cmd.href === '/land-vault'
           || cmd.href === '/under-contract'
           || cmd.href === '/pipeline'
           || cmd.href === '/buyers'
-          || cmd.href === '/trust-funds';
+          || cmd.href === '/trust-funds'
+          || cmd.href === '/government-lists';
       }
       return true;
     });

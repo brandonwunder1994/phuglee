@@ -157,6 +157,25 @@
   </div>
 </footer>`;
     }
+    if (isDisposUser()) {
+      return `
+<footer class="shell-footer" id="distress-os-footer">
+  <div class="shell-footer-inner">
+    <div class="shell-footer-brand-block">
+      <span class="shell-footer-brand">PHUGLEE</span>
+      <span class="shell-footer-meta">Disposition desk</span>
+    </div>
+    <nav class="shell-footer-links" aria-label="Footer">
+      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
+      <a href="/under-contract" class="shell-footer-link">Under Contract</a>
+      <a href="/pipeline" class="shell-footer-link">All Leads</a>
+      <a href="/buyers" class="shell-footer-link">Buyers</a>
+      <a href="/vault" class="shell-footer-link">Homes</a>
+      <a href="/land-vault" class="shell-footer-link">Land</a>
+    </nav>
+  </div>
+</footer>`;
+    }
     const metaLine = onAnalyzer
       ? ''
       : '<span class="shell-footer-meta">Distress OS · Collect. Filter. Analyze.</span>';
@@ -288,7 +307,8 @@
     if (isVaultOnlyUser()) {
       linksHtml = vaultHtml;
     } else if (isDisposUser()) {
-      linksHtml = buildPipelineDropdown(current) + vaultHtml;
+      const govHtml = `<a href="/government-lists" class="${linkClass('government-lists', current)}"${current === 'government-lists' ? ' aria-current="page"' : ''}>Government Lists</a>`;
+      linksHtml = govHtml + buildPipelineDropdown(current) + vaultHtml;
     } else {
       const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
       const dataHtml = buildDataDropdown(current);
