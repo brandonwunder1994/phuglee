@@ -123,6 +123,18 @@
     return VERIFY_BADGES[status] || VERIFY_BADGES.unverified;
   }
 
+  // A row whose workflow is "send a request" (email/PDF FOIA) but has no
+  // send-to address captured yet. These are dead-ends until we find the clerk email.
+  function needsSendEmail(s) {
+    if (!s || s.isPlaybook) return false;
+    const emailWorkflow =
+      s.method === 'email' ||
+      s.method === 'pdf' ||
+      s.verifyStatus === 'email_only' ||
+      s.verifyStatus === 'pdf_only';
+    return emailWorkflow && !(s.contactEmail && String(s.contactEmail).trim());
+  }
+
   function computeRailCounts(sources) {
     const byType = {};
     const byState = {};
@@ -196,17 +208,19 @@
     const c = computeRailCounts(state.filtered);
     const live = state.filtered.filter((s) => !s.isPlaybook);
     const places = new Set(live.map(placeKey)).size;
+    const noEmail = live.filter(needsSendEmail).length;
     const cells = [
       ['Sources', live.length],
       ['Places', places],
       ['Verified', c.byVerify.verified || 0],
       ['PDF', c.byVerify.pdf_only || 0],
-      ['Email', c.byVerify.email_only || 0]
+      ['Email', c.byVerify.email_only || 0],
+      ['Needs email', noEmail]
     ];
     host.innerHTML = cells
       .map(
         ([l, v]) =>
-          `<span class="gl-orient-cell"><span class="gl-orient-label">${esc(l)}</span><strong>${Number(v).toLocaleString()}</strong></span>`
+          `<span class="gl-orient-cell${l === 'Needs email' && v ? ' gl-orient-cell--warn' : ''}"><span class="gl-orient-label">${esc(l)}</span><strong>${Number(v).toLocaleString()}</strong></span>`
       )
       .join('');
   }
@@ -225,7 +239,11 @@
       if (type && s.listType !== type) return false;
       if (st && s.state !== st) return false;
       if (method && s.method !== method) return false;
-      if (verify && s.verifyStatus !== verify) return false;
+      if (verify === 'needs_email') {
+        if (!needsSendEmail(s)) return false;
+      } else if (verify && s.verifyStatus !== verify) {
+        return false;
+      }
       if (!q) return true;
       const hay = [
         s.city, s.county, s.state, s.notes, s.listType, typeLabel(s.listType),
@@ -271,10 +289,14 @@
           .map((s) => {
             const b = verifyBadge(s.verifyStatus);
             const active = s.id === state.openId ? ' is-active' : '';
+            const needMail = needsSendEmail(s)
+              ? '<span class="gl-badge gl-badge--needsmail" title="No send-to email captured yet">No email</span>'
+              : '';
             return `<button type="button" class="gl-list-row${active}" role="listitem" data-id="${esc(s.id)}">
               <span class="gl-list-type">${esc(typeLabel(s.listType))}</span>
               <span class="gl-list-method">${esc(methodLabel(s.method))}</span>
               <span class="gl-badge ${b.cls}">${esc(b.label)}</span>
+              ${needMail}
               <span class="gl-list-go" aria-hidden="true">&rarr;</span>
             </button>`;
           })
@@ -317,7 +339,9 @@
       : '—';
     const emailHtml = src.contactEmail
       ? `<a href="mailto:${esc(src.contactEmail)}">${esc(src.contactEmail)}</a>`
-      : '—';
+      : (needsSendEmail(src)
+        ? '<span class="gl-needsmail-note">No send-to email yet — find the clerk/code-enforcement address before sending.</span>'
+        : '—');
 
     const collectLink = (src.listType === 'code_violation' || src.listType === 'water_shutoff')
       ? `<a class="phuglee-btn phuglee-btn-primary" href="/collect">Open Collect</a>`
@@ -749,7 +773,8 @@
           { value: 'verified', label: 'Verified' },
           { value: 'pdf_only', label: 'PDF only' },
           { value: 'email_only', label: 'Email only' },
-          { value: 'unverified', label: 'Unverified' }
+          { value: 'unverified', label: 'Unverified' },
+          { value: 'needs_email', label: 'Needs send-to email' }
         ],
         'Any status'
       );
