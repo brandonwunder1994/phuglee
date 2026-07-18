@@ -171,17 +171,43 @@
     }
   }
 
-  function renderTypeChips() {
-    const host = $('gl-type-chips');
+  function renderTypeRail() {
+    const host = $('gl-type-rail') || $('gl-type-chips');
     if (!host) return;
+    const counts = computeRailCounts(state.sources).byType;
     const active = ($('gl-type') && $('gl-type').value) || '';
     host.innerHTML = state.listTypes
       .slice()
       .sort((a, b) => a.priority - b.priority)
       .map((t) => {
         const pressed = active === t.id ? 'true' : 'false';
-        return `<button type="button" class="gl-chip" data-type="${esc(t.id)}" aria-pressed="${pressed}">${esc(t.label)}</button>`;
+        const n = counts[t.id] || 0;
+        return `<button type="button" class="gl-type-row" data-type="${esc(t.id)}" aria-pressed="${pressed}">
+          <span class="gl-type-row-label">${esc(t.label)}</span>
+          <span class="gl-type-row-count">${n.toLocaleString()}</span>
+        </button>`;
       })
+      .join('');
+  }
+
+  function renderOrient() {
+    const host = $('gl-orient');
+    if (!host) return;
+    const c = computeRailCounts(state.filtered);
+    const live = state.filtered.filter((s) => !s.isPlaybook);
+    const places = new Set(live.map(placeKey)).size;
+    const cells = [
+      ['Sources', live.length],
+      ['Places', places],
+      ['Verified', c.byVerify.verified || 0],
+      ['PDF', c.byVerify.pdf_only || 0],
+      ['Email', c.byVerify.email_only || 0]
+    ];
+    host.innerHTML = cells
+      .map(
+        ([l, v]) =>
+          `<span class="gl-orient-cell"><span class="gl-orient-label">${esc(l)}</span><strong>${Number(v).toLocaleString()}</strong></span>`
+      )
       .join('');
   }
 
@@ -191,6 +217,7 @@
     const type = ($('gl-type') && $('gl-type').value) || '';
     const st = ($('gl-state') && $('gl-state').value) || '';
     const method = ($('gl-method') && $('gl-method').value) || '';
+    const verify = ($('gl-verify') && $('gl-verify').value) || '';
     const hidePlaybook = $('gl-hide-playbook') ? $('gl-hide-playbook').checked : true;
 
     state.filtered = state.sources.filter((s) => {
@@ -198,6 +225,7 @@
       if (type && s.listType !== type) return false;
       if (st && s.state !== st) return false;
       if (method && s.method !== method) return false;
+      if (verify && s.verifyStatus !== verify) return false;
       if (!q) return true;
       const hay = [
         s.city, s.county, s.state, s.notes, s.listType, typeLabel(s.listType),
@@ -212,7 +240,8 @@
       renderDetail(null);
     }
     renderResults();
-    renderTypeChips();
+    renderTypeRail();
+    renderOrient();
   }
 
   function renderResults() {
@@ -221,13 +250,14 @@
     const count = $('gl-count');
     if (!host) return;
 
-    const slice = state.filtered.slice(0, state.visibleCount);
+    const groups = groupByPlace(state.filtered);
     if (count && state.tab === 'sources') {
       count.textContent = state.filtered.length
-        ? `${state.filtered.length.toLocaleString()} sources`
+        ? `${state.filtered.length.toLocaleString()} sources · ${groups.length.toLocaleString()} places`
         : '0 sources';
     }
 
+    const slice = groups.slice(0, state.visibleCount);
     if (!slice.length) {
       host.innerHTML = '';
       if (empty) empty.hidden = false;
@@ -236,22 +266,33 @@
     if (empty) empty.hidden = true;
 
     host.innerHTML = slice
-      .map((s) => {
-        const active = s.id === state.openId ? ' is-active' : '';
-        return `<button type="button" class="gl-row${active}" role="listitem" data-id="${esc(s.id)}">
-          <div class="gl-row-top">
-            <span class="gl-row-place">${esc(placeLabel(s))}</span>
-            <span class="gl-row-meta">${esc(typeLabel(s.listType))} · ${esc(methodLabel(s.method))}</span>
-          </div>
-          <div class="gl-row-sub">${esc(s.url || s.contactEmail || s.notes || 'No URL yet')}</div>
-        </button>`;
+      .map((g) => {
+        const rows = g.items
+          .map((s) => {
+            const b = verifyBadge(s.verifyStatus);
+            const active = s.id === state.openId ? ' is-active' : '';
+            return `<button type="button" class="gl-list-row${active}" role="listitem" data-id="${esc(s.id)}">
+              <span class="gl-list-type">${esc(typeLabel(s.listType))}</span>
+              <span class="gl-list-method">${esc(methodLabel(s.method))}</span>
+              <span class="gl-badge ${b.cls}">${esc(b.label)}</span>
+              <span class="gl-list-go" aria-hidden="true">&rarr;</span>
+            </button>`;
+          })
+          .join('');
+        return `<article class="gl-place">
+          <header class="gl-place-head">
+            <h3 class="gl-place-name">${esc(g.label)}</h3>
+            <span class="gl-place-count">${g.items.length} list${g.items.length === 1 ? '' : 's'}</span>
+          </header>
+          <div class="gl-place-rows">${rows}</div>
+        </article>`;
       })
       .join('');
 
-    if (state.filtered.length > state.visibleCount) {
+    if (groups.length > state.visibleCount) {
       host.insertAdjacentHTML(
         'beforeend',
-        `<button type="button" class="phuglee-btn phuglee-btn-ghost" id="gl-more" style="margin-top:0.5rem">Show more (${(state.filtered.length - state.visibleCount).toLocaleString()} left)</button>`
+        `<button type="button" class="phuglee-btn phuglee-btn-ghost gl-more" id="gl-more">Show more (${(groups.length - state.visibleCount).toLocaleString()} places left)</button>`
       );
     }
   }
@@ -602,20 +643,28 @@
       tab.addEventListener('click', () => setTab(tab.getAttribute('data-tab')));
     });
 
-    ['gl-search', 'gl-type', 'gl-state', 'gl-method', 'gl-hide-playbook'].forEach((id) => {
+    ['gl-search', 'gl-type', 'gl-state', 'gl-method', 'gl-verify', 'gl-hide-playbook'].forEach((id) => {
       const el = $(id);
       if (!el) return;
       const evt = el.tagName === 'INPUT' && el.type === 'search' ? 'input' : 'change';
       el.addEventListener(evt, applyFilters);
     });
 
-    $('gl-type-chips')?.addEventListener('click', (e) => {
+    ($('gl-type-rail') || $('gl-type-chips'))?.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-type]');
       if (!btn) return;
       const type = btn.getAttribute('data-type');
       const sel = $('gl-type');
       if (!sel) return;
       sel.value = sel.value === type ? '' : type;
+      applyFilters();
+    });
+
+    $('gl-clear')?.addEventListener('click', () => {
+      ['gl-search', 'gl-type', 'gl-state', 'gl-method', 'gl-verify'].forEach((id) => {
+        const el = $(id);
+        if (el) el.value = '';
+      });
       applyFilters();
     });
 
@@ -693,6 +742,16 @@
         $('gl-state'),
         states.map((s) => ({ value: s, label: s })),
         'All states'
+      );
+      fillSelect(
+        $('gl-verify'),
+        [
+          { value: 'verified', label: 'Verified' },
+          { value: 'pdf_only', label: 'PDF only' },
+          { value: 'email_only', label: 'Email only' },
+          { value: 'unverified', label: 'Unverified' }
+        ],
+        'Any status'
       );
 
       if (typeQ && state.listTypes.some((t) => t.id === typeQ) && $('gl-type')) {
