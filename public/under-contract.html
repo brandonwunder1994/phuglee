@@ -683,10 +683,10 @@
     <form method="dialog" id="uc-amendment-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-amendment-title">Send Amendment</h3>
-        <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">?</button>
+        <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">×</button>
       </div>
       <input type="hidden" id="uc-amendment-deal-id" value="">
-      <p class="uc-jv-lead">Wunderhaus signs as Buyer. Pick who the other party is ? we fill name/email and original agreement date from the deal / GHL.</p>
+      <p class="uc-jv-lead">Wunderhaus signs as Buyer (real signature). Sellers are prefilled from the Cash PSA when available.</p>
       <label class="vault-field">
         <span class="vault-field-label">Amendment for</span>
         <select id="uc-amendment-party" class="phuglee-select">
@@ -703,14 +703,40 @@
         <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="Awaiting PSA signed date?" readonly required tabindex="-1">
         <span id="uc-amendment-orig-hint" class="uc-field-hint"></span>
       </label>
-      <label class="vault-field">
-        <span class="vault-field-label" id="uc-amendment-name-label">Seller name</span>
-        <input type="text" id="uc-amendment-seller-name" class="phuglee-input" required>
-      </label>
-      <label class="vault-field">
-        <span class="vault-field-label" id="uc-amendment-email-label">Seller email</span>
-        <input type="email" id="uc-amendment-seller-email" class="phuglee-input" required>
-      </label>
+      <div id="uc-amendment-seller-block">
+        <div class="uc-psa-seller-count" role="radiogroup" aria-label="Number of sellers">
+          <label class="uc-psa-radio"><input type="radio" name="uc-amendment-seller-count" value="1" checked> 1 seller</label>
+          <label class="uc-psa-radio"><input type="radio" name="uc-amendment-seller-count" value="2"> 2 sellers</label>
+        </div>
+        <label class="vault-field">
+          <span class="vault-field-label" id="uc-amendment-s1-name-label">Seller 1 name</span>
+          <input type="text" id="uc-amendment-s1-name" class="phuglee-input" required autocomplete="name">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label" id="uc-amendment-s1-email-label">Seller 1 email</span>
+          <input type="email" id="uc-amendment-s1-email" class="phuglee-input" required autocomplete="email">
+        </label>
+        <div id="uc-amendment-seller2" class="uc-psa-seller2" hidden>
+          <label class="vault-field">
+            <span class="vault-field-label">Seller 2 name</span>
+            <input type="text" id="uc-amendment-s2-name" class="phuglee-input" autocomplete="name">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Seller 2 email</span>
+            <input type="email" id="uc-amendment-s2-email" class="phuglee-input" autocomplete="email">
+          </label>
+        </div>
+      </div>
+      <div id="uc-amendment-end-buyer-block" hidden>
+        <label class="vault-field">
+          <span class="vault-field-label">End buyer name</span>
+          <input type="text" id="uc-amendment-buyer-name" class="phuglee-input" autocomplete="name">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">End buyer email</span>
+          <input type="email" id="uc-amendment-buyer-email" class="phuglee-input" autocomplete="email">
+        </label>
+      </div>
       <div class="uc-edit-actions">
         <button type="submit" id="uc-amendment-submit" value="save" class="phuglee-btn phuglee-btn-primary">Send Amendment</button>
         <button type="button" id="uc-amendment-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
