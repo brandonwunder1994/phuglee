@@ -3226,6 +3226,15 @@
 
   let psaSearchTimer = null;
   let psaSelectedLead = null;
+  let psaSearchSeq = 0;
+
+  function setPsaResultsHtml(html) {
+    const box = $('uc-psa-results');
+    if (!box) return;
+    const content = String(html || '').trim();
+    box.innerHTML = content;
+    box.hidden = !content;
+  }
 
   function syncPsaSeller2Visibility() {
     const count = document.querySelector('input[name="uc-psa-seller-count"]:checked')?.value || '1';
@@ -3272,7 +3281,7 @@
   function openSendNewPsa() {
     clearPsaLeadSelection();
     setPsaError('');
-    if ($('uc-psa-results')) $('uc-psa-results').innerHTML = '';
+    setPsaResultsHtml('');
     if ($('uc-psa-s1-name')) $('uc-psa-s1-name').value = '';
     if ($('uc-psa-s1-email')) $('uc-psa-s1-email').value = '';
     if ($('uc-psa-s2-name')) $('uc-psa-s2-name').value = '';
@@ -3299,7 +3308,7 @@
     if ($('uc-psa-lead-id')) $('uc-psa-lead-id').value = lead.leadId || '';
     const line = [lead.address, [lead.city, lead.state, lead.zip].filter(Boolean).join(', ')].filter(Boolean).join(', ');
     if ($('uc-psa-search')) $('uc-psa-search').value = line;
-    if ($('uc-psa-results')) $('uc-psa-results').innerHTML = '';
+    setPsaResultsHtml('');
     if ($('uc-psa-s1-name')) $('uc-psa-s1-name').value = lead.ownerName || '';
     if ($('uc-psa-s1-email')) $('uc-psa-s1-email').value = lead.email || '';
     if (!lead.email) {
@@ -3309,30 +3318,54 @@
     }
   }
 
+  function leadMatchesPsaQuery(lead, query) {
+    const q = String(query || '').trim().toLowerCase();
+    if (!q) return false;
+    const tokens = q.split(/\s+/).filter(Boolean);
+    const hay = [
+      lead.address,
+      lead.city,
+      lead.state,
+      lead.zip,
+      lead.ownerName,
+      lead.email
+    ].join(' ').toLowerCase();
+    const compact = hay.replace(/[^a-z0-9]+/g, '');
+    return tokens.every((token) => {
+      if (hay.includes(token)) return true;
+      const t = token.replace(/[^a-z0-9]+/g, '');
+      return t.length >= 2 && compact.includes(t);
+    });
+  }
+
   async function searchVaultForPsa(q) {
     const box = $('uc-psa-results');
     if (!box) return;
     // Already picked — do not reopen dropdown until the user edits/clears the search.
     if (psaSelectedLead && ($('uc-psa-lead-id')?.value || '')) {
-      box.innerHTML = '';
+      setPsaResultsHtml('');
       return;
     }
     const query = String(q || '').trim();
+    const seq = ++psaSearchSeq;
     if (query.length < 2) {
-      box.innerHTML = query
+      setPsaResultsHtml(query
         ? '<p class="uc-psa-results-empty">Type at least 2 characters…</p>'
-        : '';
+        : '');
       return;
     }
-    box.innerHTML = '<p class="uc-psa-results-empty">Searching Vault…</p>';
+    setPsaResultsHtml('<p class="uc-psa-results-empty">Searching Vault…</p>');
     try {
       const data = await api(`/api/leads/admin/contracts/vault-search?q=${encodeURIComponent(query)}&limit=12`);
-      const leads = data.leads || [];
+      if (seq !== psaSearchSeq) return; // stale response — ignore
+      const current = String($('uc-psa-search')?.value || '').trim();
+      if (current !== query) return;
+      const leads = (data.leads || []).filter((l) => leadMatchesPsaQuery(l, query));
       if (!leads.length) {
-        box.innerHTML = '<p class="uc-psa-results-empty">No active Vault leads match.</p>';
+        setPsaResultsHtml('<p class="uc-psa-results-empty">No active Vault leads match that address.</p>');
         return;
       }
-      box.innerHTML = leads.map((l) => {
+      setPsaResultsHtml(leads.map((l) => {
         const cityLine = [l.city, l.state, l.zip].filter(Boolean).join(', ');
         const emailBit = l.email ? ` · ${esc(l.email)}` : '';
         return `<button type="button" class="uc-psa-result" role="option" data-lead-id="${esc(l.leadId)}"
@@ -3342,9 +3375,10 @@
           <span class="uc-psa-result-addr">${esc(l.address || '—')}</span>
           <span class="uc-psa-result-meta">${esc(cityLine || '—')}${l.ownerName ? ` · ${esc(l.ownerName)}` : ''}${emailBit}</span>
         </button>`;
-      }).join('');
+      }).join(''));
     } catch (err) {
-      box.innerHTML = `<p class="uc-psa-results-empty">${esc(err.message || 'Search failed')}</p>`;
+      if (seq !== psaSearchSeq) return;
+      setPsaResultsHtml(`<p class="uc-psa-results-empty">${esc(err.message || 'Search failed')}</p>`);
     }
   }
 

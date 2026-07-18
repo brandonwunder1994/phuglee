@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=56">
+  <link rel="stylesheet" href="/css/under-contract.css?v=57">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=3"></script>
@@ -610,11 +610,13 @@
 
       <fieldset class="uc-psa-step" data-psa-step="1">
         <legend class="uc-psa-step-label">1 · Vault property</legend>
-        <label class="vault-field">
-          <span class="vault-field-label">Search address or owner</span>
-          <input type="search" id="uc-psa-search" class="phuglee-input" placeholder="e.g. 910 Delaware" autocomplete="off">
-        </label>
-        <div id="uc-psa-results" class="uc-psa-results" role="listbox" aria-label="Matching Vault leads"></div>
+        <div class="uc-psa-search-block">
+          <label class="vault-field uc-psa-search-label">
+            <span class="vault-field-label">Search address or owner</span>
+            <input type="search" id="uc-psa-search" class="phuglee-input" placeholder="e.g. 910 Delaware" autocomplete="off" aria-autocomplete="list" aria-controls="uc-psa-results">
+          </label>
+          <div id="uc-psa-results" class="uc-psa-results" role="listbox" aria-label="Matching Vault leads" hidden></div>
+        </div>
         <input type="hidden" id="uc-psa-lead-id" value="">
       </fieldset>
 
@@ -783,6 +785,6 @@
   <script src="/js/command-palette.js?v=3" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=65" defer></script>
+  <script src="/js/under-contract.js?v=66" defer></script>
 </body>
 </html>
