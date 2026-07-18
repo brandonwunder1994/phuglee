@@ -340,3 +340,53 @@ test('collectMatchingLeadIds respects hasPhone filter', () => {
   assert.ok(withPhone.ids.includes(fixtureDistressed.leadId));
   assert.ok(!withPhone.ids.includes(fixtureWM.leadId));
 });
+
+test('searchActiveVaultLeads ranks street addresses over phone digit matches', () => {
+  store.upsertLead({
+    ...fixtureDistressed,
+    leadId: 'addr-7731-cedar',
+    address: '7731 Cedar Hollow Rd',
+    city: 'Memphis',
+    state: 'TN',
+    zip: '38117',
+    phones: ['(901) 555-9999'],
+    firstPhone: '(901) 555-9999',
+    priorityScore: 10
+  });
+  store.upsertLead({
+    ...fixtureWM,
+    leadId: 'phone-only-7731',
+    address: '9 Pine St',
+    city: 'Nashville',
+    state: 'TN',
+    zip: '37203',
+    phones: ['(615) 773-1555'],
+    firstPhone: '(615) 773-1555',
+    priorityScore: 99
+  });
+
+  const byNumber = store.searchActiveVaultLeads('7731', { limit: 12 });
+  assert.ok(byNumber.some((l) => l.leadId === 'addr-7731-cedar'));
+  assert.ok(!byNumber.some((l) => l.leadId === 'phone-only-7731'),
+    'digit-heavy search must not return phone-only hits');
+  assert.equal(byNumber[0].leadId, 'addr-7731-cedar');
+
+  const byTokens = store.searchActiveVaultLeads('7731 cedar', { limit: 12 });
+  assert.equal(byTokens.length, 1);
+  assert.equal(byTokens[0].address, '7731 Cedar Hollow Rd');
+});
+
+test('queryLeads token AND matches split address terms', () => {
+  store.upsertLead({
+    ...fixtureDistressed,
+    leadId: 'token-and-addr',
+    address: '910 Delaware Ave',
+    city: 'Tyler',
+    state: 'TX',
+    zip: '75701'
+  });
+  const hit = store.queryLeads({ q: '910 delaware', limit: 20 });
+  assert.ok(hit.leads.some((l) => l.leadId === 'token-and-addr'));
+  const miss = store.queryLeads({ q: '910 missingstreet', limit: 20 });
+  assert.ok(!miss.leads.some((l) => l.leadId === 'token-and-addr'));
+});
