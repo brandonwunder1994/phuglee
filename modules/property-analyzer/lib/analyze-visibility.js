@@ -7,11 +7,15 @@
     root.PDA.lib.analyzeVisibility = factory();
   }
 })(typeof globalThis !== 'undefined' ? globalThis : this, function analyzeVisibilityFactory() {
+  /**
+   * Rankings / cards / table workbench on Analyze is retired.
+   * Session results data stays; operators use Review Leads → Vault.
+   */
+  const RESULTS_WORKBENCH_ENABLED = false;
+
   function getAnalyzeZones(input) {
-    const hasRecords = !!input.hasRecords;
     const hasResults = !!input.hasResults;
     const isScanning = !!input.isScanning;
-    const resultsWorkbenchOpen = !!input.resultsWorkbenchOpen;
     const pastMarketsOpen = !!input.pastMarketsOpen;
 
     const showPipeline = true;
@@ -19,7 +23,8 @@
     const showLiveScan = isScanning;
     // Live scan KPIs own the five buckets while scanning; session strip is post-scan truth only
     const showSessionKpis = hasResults && !isScanning;
-    const showResultsWorkbench = !isScanning && hasResults && resultsWorkbenchOpen;
+    // Intentionally ignore resultsWorkbenchOpen — UI removed from Analyze
+    const showResultsWorkbench = false;
     let pastMarketsMode = 'control';
     if (pastMarketsOpen) pastMarketsMode = 'expanded';
 
@@ -30,9 +35,10 @@
       showSessionKpis,
       showResultsWorkbench,
       showPastMarketsExpanded: pastMarketsMode === 'expanded',
-      pastMarketsMode
+      pastMarketsMode,
+      resultsWorkbenchEnabled: RESULTS_WORKBENCH_ENABLED
     };
   }
 
-  return { getAnalyzeZones };
+  return { getAnalyzeZones, RESULTS_WORKBENCH_ENABLED };
 });

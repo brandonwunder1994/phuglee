@@ -1923,7 +1923,20 @@ R.renderVirtualCards = function renderVirtualCards() {
   if (typeof refreshAllCardThumbs === 'function') refreshAllCardThumbs();
 }
 
+R.isResultsWorkbenchEnabled = function isResultsWorkbenchEnabled() {
+  const lib = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.analyzeVisibility) || null;
+  if (lib && lib.RESULTS_WORKBENCH_ENABLED === false) return false;
+  return false; // Rankings UI retired — Review Leads + Vault only
+};
+
 R.renderResults = function renderResults(opts = {}) {
+  // Keep session/summary paths warm; skip expensive card/table paint
+  if (!isResultsWorkbenchEnabled()) {
+    updateSummaryStats();
+    updateExportButtons?.();
+    applyAnalyzeVisibility?.();
+    return;
+  }
   if (state.running && state.appView === 'dashboard' && !opts.force) {
     updateSummaryStats();
     updateResultCountLabel();
@@ -2109,6 +2122,10 @@ R.INITIAL_RENDER_CHUNK = 32;
 R.RENDER_CHUNK_SIZE = 48;
 
 R.renderResultsProgressive = async function renderResultsProgressive() {
+  if (!isResultsWorkbenchEnabled()) {
+    renderResults({ force: true });
+    return;
+  }
   if (state.running) {
     renderResultsInner();
     return;

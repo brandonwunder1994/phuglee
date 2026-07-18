@@ -44,7 +44,7 @@ describe('getAnalyzeZones', () => {
     assert.equal(z.showResultsWorkbench, false);
   });
 
-  it('has results idle with workbench open', () => {
+  it('has results idle: session KPIs on, rankings workbench retired', () => {
     const z = getAnalyzeZones({
       hasRecords: true,
       hasResults: true,
@@ -53,7 +53,8 @@ describe('getAnalyzeZones', () => {
       pastMarketsOpen: false
     });
     assert.equal(z.showSessionKpis, true);
-    assert.equal(z.showResultsWorkbench, true);
+    assert.equal(z.showResultsWorkbench, false);
+    assert.equal(z.resultsWorkbenchEnabled, false);
     assert.equal(z.showLiveScan, false);
   });
 
@@ -66,5 +67,6 @@ describe('getAnalyzeZones', () => {
       pastMarketsOpen: true
     });
     assert.equal(z.pastMarketsMode, 'expanded');
+    assert.equal(z.showResultsWorkbench, false);
   });
 });

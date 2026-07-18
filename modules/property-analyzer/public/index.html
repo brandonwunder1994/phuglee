@@ -154,7 +154,6 @@
               <button type="button" class="review-leads-item" data-review-flow="satellite_only" role="menuitem">Satellite Only</button>
             </div>
           </div>
-          <button type="button" class="btn-secondary scan-ready-work-results" id="openResultsWorkbenchBtn" hidden>Work results</button>
         </div>
         <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
           <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
@@ -291,90 +290,45 @@
     </section>
     </div><!-- /analyze-hero-zone -->
 
-    <div class="analyze-data-zone" data-phuglee-reveal>
-      <div class="analyze-zone-divider" aria-hidden="true"><span>Results</span></div>
-
-    <section class="dashboard analyze-dashboard" id="dashboard" hidden data-phuglee-reveal-child>
-      <div class="results-wrap phuglee-panel analyze-panel analyze-results-panel" id="resultsWrap">
-        <div class="results-header" id="resultsHeader">
-          <div class="results-title-row">
-            <h3 class="results-title">Distress Rankings <span class="result-count" id="resultCount"></span></h3>
-            <div class="results-header-actions">
-              <div class="results-export-actions" id="resultsExportActions">
-                <button type="button" class="btn-secondary results-export-btn" id="resultsExportCsvBtn" disabled>Export CSV</button>
-                <button type="button" class="btn-secondary results-export-btn" id="resultsExportExcelBtn" disabled>Export Excel</button>
-              </div>
-              <div class="view-toggle">
-                <button class="view-btn active" data-view="cards" type="button" title="Cards" aria-label="Cards view">
-                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-                </button>
-                <button class="view-btn" data-view="table" type="button" title="Table" aria-label="Table view">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-                </button>
-              </div>
+    <!-- Rankings workbench retired (Review Leads → Vault). Stub IDs kept so legacy JS no-ops safely. -->
+    <div class="analyze-data-zone" id="analyzeDataZone" hidden aria-hidden="true">
+      <section class="dashboard analyze-dashboard" id="dashboard" hidden>
+        <div class="results-wrap" id="resultsWrap">
+          <span class="result-count" id="resultCount"></span>
+          <div id="resultsHeader"></div>
+          <div id="resultsExportActions">
+            <button type="button" id="resultsExportCsvBtn" hidden disabled>Export CSV</button>
+            <button type="button" id="resultsExportExcelBtn" hidden disabled>Export Excel</button>
+          </div>
+          <div id="resultsSearchRow">
+            <input type="search" id="resultSearch" hidden tabindex="-1" aria-hidden="true">
+            <span id="resultSortLabel" hidden></span>
+          </div>
+          <div id="resultsFilterBar">
+            <div id="filterSegmented" hidden>
+              <button class="filter-btn active" data-filter="all" type="button" hidden>All</button>
+              <button class="filter-btn" data-filter="distressed" type="button" hidden>Distressed</button>
+              <button class="filter-btn" data-filter="review" type="button" hidden>Needs Review</button>
+              <button class="filter-btn" data-filter="well_maintained" type="button" hidden>Well Maintained</button>
+              <button class="filter-btn" data-filter="vacant" type="button" hidden>Land</button>
+              <button class="filter-btn" data-filter="blurred" type="button" hidden>Blocked</button>
+              <button class="filter-btn" data-filter="satellite_only" type="button" hidden>Satellite Only</button>
+            </div>
+            <select id="leadTypeFilter" hidden aria-hidden="true"><option value="all">All lead types</option></select>
+          </div>
+          <div class="cards-view" id="cardsView" hidden>
+            <div class="cards-grid" id="cardsGrid"></div>
+            <div class="results-load-more" id="resultsLoadMore" hidden>
+              <button type="button" id="resultsLoadMoreBtn" hidden>Load more</button>
+              <span id="resultsLoadMoreHint" hidden></span>
             </div>
           </div>
-          <div class="results-search-row" id="resultsSearchRow">
-            <input type="search" class="results-search results-search-primary" id="resultSearch"
-              placeholder="Search name, address, phone, email… (press /)" autocomplete="off"
-              aria-label="Search leads by name, address, phone, or email">
-            <span class="results-sort-label" id="resultSortLabel" title="Sort order">Newest first</span>
+          <div class="table-view" id="tableView" hidden>
+            <table><tbody id="resultsBody"></tbody></table>
           </div>
         </div>
-        <div class="results-filter-bar" id="resultsFilterBar">
-          <div class="filter-segmented filter-segmented-full" id="filterSegmented" role="group" aria-label="Filter leads by tier">
-            <button class="filter-btn filter-segment-btn active" data-filter="all" type="button">All</button>
-            <button class="filter-btn filter-segment-btn distressed-filter" data-filter="distressed" type="button">Distressed</button>
-            <button class="filter-btn filter-segment-btn review-filter" data-filter="review" type="button">Needs Review</button>
-            <button class="filter-btn filter-segment-btn well-maintained-filter" data-filter="well_maintained" type="button">Well Maintained</button>
-            <button class="filter-btn filter-segment-btn vacant-filter" data-filter="vacant" type="button">Land</button>
-            <button class="filter-btn filter-segment-btn blurred-filter" data-filter="blurred" type="button">Blocked</button>
-            <button class="filter-btn filter-segment-btn satellite-only-filter" data-filter="satellite_only" type="button">Satellite Only</button>
-          </div>
-          <select id="leadTypeFilter" class="lead-type-filter lead-type-filter-inline" title="Filter by lead source type" aria-label="Filter by lead type">
-            <option value="all">All lead types</option>
-          </select>
-        </div>
-
-        <div class="cards-view active" id="cardsView">
-          <div class="cards-grid" id="cardsGrid">
-            <div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">◌</div>Results appear here — newest uploads at the top</div>
-          </div>
-          <div class="results-load-more" id="resultsLoadMore" hidden>
-            <button type="button" class="bulk-edit-btn primary" id="resultsLoadMoreBtn">Load more leads</button>
-            <span class="results-load-more-hint" id="resultsLoadMoreHint"></span>
-          </div>
-        </div>
-        <div class="table-view" id="tableView">
-          <div class="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th class="col-bulk" aria-label="Select"></th>
-                  <th class="col-score">Level</th>
-                  <th class="col-uploaded">Uploaded</th>
-                  <th>Tier</th>
-                  <th>Category</th>
-                  <th>Lead Type</th>
-                  <th>Location</th>
-                  <th class="col-name">First</th>
-                  <th class="col-name">Last</th>
-                  <th class="col-contact">Phone</th>
-                  <th class="col-contact">Email</th>
-                  <th class="col-address">Address</th>
-                  <th>Assessment</th>
-                </tr>
-              </thead>
-              <tbody id="resultsBody">
-                <tr><td colspan="13" class="empty-state">No results</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    </div><!-- /analyze-data-zone -->
+      </section>
+    </div><!-- /analyze-data-zone stub -->
 
     </div><!-- /mainWorkspace -->
 
@@ -722,7 +676,7 @@
   <script src="/lib/import-batches.js?v=20260708b" defer></script>
   <script src="/lib/import-profile.js?v=20260714-full-profile" defer></script>
   <script src="/lib/location-index.js?v=20260708c" defer></script>
-  <script src="/lib/analyze-visibility.js?v=20260712-distill" defer></script>
+  <script src="/lib/analyze-visibility.js?v=20260717-retire-results" defer></script>
   <script src="/lib/tier-labels.js?v=20260713-satonly" defer></script>
   <script src="/lib/property-profile-dossier.js?v=20260713-tabs" defer></script>
   <script src="/lib/virtual-scroll.js?v=20260630c" defer></script>
@@ -731,16 +685,16 @@
   <script src="/lib/review-training.js?v=20260630c" defer></script>
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
   <script src="/js/config.js?v=20260715-review-fast4" defer></script>
-  <script src="/js/state.js?v=20260715-review-fast4" defer></script>
+  <script src="/js/state.js?v=20260716-force-rescan-heal" defer></script>
   <script src="/js/imagery.js?v=20260715-review-fast4" defer></script>
   <script src="/js/scan.js?v=20260714-reason-align" defer></script>
-  <script src="/js/review.js?v=20260713-satonly" defer></script>
-  <script src="/js/render.js?v=20260715-pda-token-fix" defer></script>
-  <script src="/js/session.js?v=20260715-review-fast4" defer></script>
+  <script src="/js/review.js?v=20260717-retire-results" defer></script>
+  <script src="/js/render.js?v=20260717-retire-results" defer></script>
+  <script src="/js/session.js?v=20260717-retire-results" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/scan-ready.js?v=20260715-full-list-scan" defer></script>
+  <script src="/js/scan-ready.js?v=20260717-retire-results" defer></script>
   <script src="/js/live-scan-feed.js?v=20260715-dual-buckets" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
-  <script src="/js/app.js?v=20260715-review-fast4" defer></script>
+  <script src="/js/app.js?v=20260716-force-rescan-heal" defer></script>
 </body>
 </html>
