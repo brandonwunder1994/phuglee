@@ -292,7 +292,7 @@
   function buildVaultsDropdown(current) {
     return buildNavDropdown({
       id: 'vaults',
-      label: 'Vaults',
+      label: 'Leads',
       links: VAULT_LINKS,
       sectionActive: isVaultsSectionActive(current),
       current
