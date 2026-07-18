@@ -3,7 +3,10 @@
 
   const CATALOG_URL = '/data/government-lists/catalog.json';
   const PLAYBOOKS_URL = '/api/gov-playbooks';
-  const PAGE_SIZE = 80;
+  const ROW_HEIGHT = 44;
+  const OVERSCAN = 8;
+
+  const GLN = (typeof window !== 'undefined' && window.GLNormalize) || null;
 
   const LIST_SLOT_DEFS = [
     { id: 'code_violation', label: 'Code violations' },
@@ -19,21 +22,25 @@
     catalog: null,
     listTypes: [],
     methods: [],
-    sources: [],
+    merged: [],        // deduped non-playbook rows
+    howto: [],         // isPlaybook / any-market rows (normalized)
+    byId: new Map(),
     filtered: [],
+    selected: new Set(),
     openId: null,
-    visibleCount: PAGE_SIZE,
+    activeIndex: -1,
+    sortKey: 'place',
+    sortDir: 'asc',
     tab: 'sources',
     playbooks: [],
-    activePlaybookId: null
+    activePlaybookId: null,
+    scrollScheduled: false
   };
 
-  function $(id) {
-    return document.getElementById(id);
-  }
+  function $(id) { return document.getElementById(id); }
 
   function esc(s) {
-    return String(s ?? '')
+    return String(s == null ? '' : s)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -46,9 +53,7 @@
     el.textContent = msg;
     el.hidden = false;
     clearTimeout(showToast._t);
-    showToast._t = setTimeout(() => {
-      el.hidden = true;
-    }, 2800);
+    showToast._t = setTimeout(() => { el.hidden = true; }, 2800);
   }
 
   function authHeaders() {
@@ -72,6 +77,10 @@
     return m ? m.label : id;
   }
 
+  function methodShort(id) {
+    return String(id || '').replace(/_/g, ' ');
+  }
+
   function placeLabel(src) {
     const parts = [];
     if (src.city) parts.push(src.city);
@@ -81,84 +90,54 @@
     return parts.join(', ');
   }
 
-  function placeKey(src) {
-    return [src.city || '', src.county || '', src.state || ''].join('|');
-  }
-
-  function groupByPlace(sources) {
-    const map = new Map();
-    const order = [];
-    for (const s of sources) {
-      const key = placeKey(s);
-      if (!map.has(key)) {
-        map.set(key, {
-          key,
-          label: placeLabel(s),
-          city: s.city || '',
-          county: s.county || '',
-          state: s.state || '',
-          items: []
-        });
-        order.push(key);
-      }
-      map.get(key).items.push(s);
-    }
-    const groups = order.map((k) => map.get(k));
-    const typePriority = new Map(state.listTypes.map((t) => [t.id, t.priority || 99]));
-    for (const g of groups) {
-      g.items.sort((a, b) => (typePriority.get(a.listType) || 99) - (typePriority.get(b.listType) || 99));
-    }
-    groups.sort((a, b) => a.label.localeCompare(b.label));
-    return groups;
-  }
-
   const VERIFY_BADGES = {
     verified: { cls: 'gl-badge--verified', label: 'Verified' },
     pdf_only: { cls: 'gl-badge--pdf', label: 'PDF' },
     email_only: { cls: 'gl-badge--email', label: 'Email' },
     unverified: { cls: 'gl-badge--unverified', label: 'Unverified' }
   };
+  const VERIFY_RANK = { verified: 4, pdf_only: 3, email_only: 2, unverified: 1 };
 
   function verifyBadge(status) {
     return VERIFY_BADGES[status] || VERIFY_BADGES.unverified;
   }
 
-  // A row whose workflow is "send a request" (email/PDF FOIA) but has no
-  // send-to address captured yet. These are dead-ends until we find the clerk email.
   function needsSendEmail(s) {
     if (!s || s.isPlaybook) return false;
     const emailWorkflow =
-      s.method === 'email' ||
-      s.method === 'pdf' ||
-      s.verifyStatus === 'email_only' ||
-      s.verifyStatus === 'pdf_only';
+      s.method === 'email' || s.method === 'pdf' ||
+      s.verifyStatus === 'email_only' || s.verifyStatus === 'pdf_only';
     return emailWorkflow && !(s.contactEmail && String(s.contactEmail).trim());
   }
 
-  function computeRailCounts(sources) {
+  function fmtVerified(v) {
+    if (!v) return '—';
+    const s = String(v);
+    return s.length >= 10 ? s.slice(0, 10) : s;
+  }
+
+  // ── Facets ──
+  function computeTypeCounts(rows) {
     const byType = {};
+    for (const s of rows) byType[s.listType] = (byType[s.listType] || 0) + 1;
+    return byType;
+  }
+
+  function computeStates(rows) {
     const byState = {};
-    const byVerify = {};
-    for (const s of sources) {
-      if (s.isPlaybook) continue;
-      byType[s.listType] = (byType[s.listType] || 0) + 1;
-      if (s.state) byState[s.state] = (byState[s.state] || 0) + 1;
-      byVerify[s.verifyStatus] = (byVerify[s.verifyStatus] || 0) + 1;
-    }
-    const states = Object.keys(byState)
-      .sort()
-      .map((v) => ({ value: v, label: v, count: byState[v] }));
-    return { byType, byState, byVerify, states };
+    for (const s of rows) if (s.state) byState[s.state] = (byState[s.state] || 0) + 1;
+    return Object.keys(byState).sort().map((v) => ({ value: v, label: v, count: byState[v] }));
   }
 
   function fillSelect(el, options, allLabel) {
     if (!el) return;
     const cur = el.value;
     el.innerHTML = `<option value="">${esc(allLabel)}</option>` +
-      options.map((o) => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+      options.map((o) => `<option value="${esc(o.value)}">${esc(o.label)}${o.count != null ? ` (${o.count.toLocaleString()})` : ''}</option>`).join('');
     if (cur && options.some((o) => o.value === cur)) el.value = cur;
   }
 
+  // ── Tabs ──
   function setTab(tab) {
     state.tab = tab === 'playbooks' ? 'playbooks' : 'sources';
     const sourcesPanel = $('gl-panel-sources');
@@ -183,14 +162,15 @@
     }
   }
 
+  // ── Type rail ──
   function renderTypeRail() {
-    const host = $('gl-type-rail') || $('gl-type-chips');
+    const host = $('gl-type-rail');
     if (!host) return;
-    const counts = computeRailCounts(state.sources).byType;
+    const counts = computeTypeCounts(state.merged);
     const active = ($('gl-type') && $('gl-type').value) || '';
     host.innerHTML = state.listTypes
       .slice()
-      .sort((a, b) => a.priority - b.priority)
+      .sort((a, b) => (a.priority || 99) - (b.priority || 99))
       .map((t) => {
         const pressed = active === t.id ? 'true' : 'false';
         const n = counts[t.id] || 0;
@@ -202,123 +182,351 @@
       .join('');
   }
 
-  function renderOrient() {
-    const host = $('gl-orient');
-    if (!host) return;
-    const c = computeRailCounts(state.filtered);
-    const live = state.filtered.filter((s) => !s.isPlaybook);
-    const places = new Set(live.map(placeKey)).size;
-    const noEmail = live.filter(needsSendEmail).length;
-    const cells = [
-      ['Sources', live.length],
-      ['Places', places],
-      ['Verified', c.byVerify.verified || 0],
-      ['PDF', c.byVerify.pdf_only || 0],
-      ['Email', c.byVerify.email_only || 0],
-      ['Needs email', noEmail]
-    ];
-    host.innerHTML = cells
-      .map(
-        ([l, v]) =>
-          `<span class="gl-orient-cell${l === 'Needs email' && v ? ' gl-orient-cell--warn' : ''}"><span class="gl-orient-label">${esc(l)}</span><strong>${Number(v).toLocaleString()}</strong></span>`
-      )
-      .join('');
+  // ── Read current filter controls ──
+  function readControls() {
+    return {
+      q: (($('gl-search') && $('gl-search').value) || '').trim().toLowerCase(),
+      type: ($('gl-type') && $('gl-type').value) || '',
+      st: ($('gl-state') && $('gl-state').value) || '',
+      method: ($('gl-method') && $('gl-method').value) || '',
+      verify: ($('gl-verify') && $('gl-verify').value) || '',
+      hasEmail: $('gl-has-email') ? $('gl-has-email').checked : false,
+      hideHowto: $('gl-hide-playbook') ? $('gl-hide-playbook').checked : true
+    };
   }
 
+  // ── Sort ──
+  function sortRows(rows) {
+    const key = state.sortKey;
+    const dir = state.sortDir === 'desc' ? -1 : 1;
+    const cmp = (a, b) => {
+      let av, bv;
+      if (key === 'status') {
+        av = VERIFY_RANK[a.verifyStatus] || 0;
+        bv = VERIFY_RANK[b.verifyStatus] || 0;
+        // status asc = best first
+        return (bv - av) * dir || placeLabel(a).localeCompare(placeLabel(b));
+      }
+      if (key === 'list') { av = typeLabel(a.listType); bv = typeLabel(b.listType); }
+      else if (key === 'method') { av = a.method || ''; bv = b.method || ''; }
+      else if (key === 'verified') { av = a.lastVerified || ''; bv = b.lastVerified || ''; }
+      else { av = placeLabel(a).toLowerCase(); bv = placeLabel(b).toLowerCase(); }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return placeLabel(a).localeCompare(placeLabel(b));
+    };
+    rows.sort(cmp);
+    return rows;
+  }
+
+  // ── Filter ──
   function applyFilters() {
     if (state.tab !== 'sources') return;
-    const q = (($('gl-search') && $('gl-search').value) || '').trim().toLowerCase();
-    const type = ($('gl-type') && $('gl-type').value) || '';
-    const st = ($('gl-state') && $('gl-state').value) || '';
-    const method = ($('gl-method') && $('gl-method').value) || '';
-    const verify = ($('gl-verify') && $('gl-verify').value) || '';
-    const hidePlaybook = $('gl-hide-playbook') ? $('gl-hide-playbook').checked : true;
+    const f = readControls();
+    const base = f.hideHowto ? state.merged : state.merged.concat(state.howto);
 
-    state.filtered = state.sources.filter((s) => {
-      if (hidePlaybook && s.isPlaybook) return false;
-      if (type && s.listType !== type) return false;
-      if (st && s.state !== st) return false;
-      if (method && s.method !== method) return false;
-      if (verify === 'needs_email') {
+    state.filtered = base.filter((s) => {
+      if (f.type && s.listType !== f.type) return false;
+      if (f.st && s.state !== f.st) return false;
+      if (f.method && s.method !== f.method) return false;
+      if (f.hasEmail && !(s.contactEmail && String(s.contactEmail).trim())) return false;
+      if (f.verify === 'needs_email') {
         if (!needsSendEmail(s)) return false;
-      } else if (verify && s.verifyStatus !== verify) {
+      } else if (f.verify && s.verifyStatus !== f.verify) {
         return false;
       }
-      if (!q) return true;
+      if (!f.q) return true;
       const hay = [
         s.city, s.county, s.state, s.notes, s.listType, typeLabel(s.listType),
         s.method, methodLabel(s.method), s.url, s.contactEmail, s.id
       ].join(' ').toLowerCase();
-      return hay.includes(q);
+      return hay.includes(f.q);
     });
 
-    state.visibleCount = PAGE_SIZE;
+    sortRows(state.filtered);
+    state.activeIndex = -1;
+
     if (state.openId && !state.filtered.some((s) => s.id === state.openId)) {
       state.openId = null;
       renderDetail(null);
     }
-    renderResults();
+
+    const vp = $('gl-viewport');
+    if (vp) vp.scrollTop = 0;
+    renderRows();
     renderTypeRail();
-    renderOrient();
+    renderCounts();
+    renderChips();
+    updateSelectAll();
+    updateBulkBar();
+    writeUrl(f);
   }
 
-  function renderResults() {
-    const host = $('gl-results');
-    const empty = $('gl-empty');
+  // ── Counts ──
+  function renderCounts() {
+    const places = new Set(state.filtered.map((s) => `${(s.city || s.county || '').toLowerCase()}|${s.state}`)).size;
+    const txt = state.filtered.length
+      ? `${state.filtered.length.toLocaleString()} sources · ${places.toLocaleString()} places`
+      : '0 sources';
+    const tb = $('gl-toolbar-count');
+    if (tb) tb.textContent = txt;
     const count = $('gl-count');
+    if (count && state.tab === 'sources') count.textContent = txt;
+  }
+
+  // ── Chips ──
+  function renderChips() {
+    const host = $('gl-chips');
     if (!host) return;
+    const f = readControls();
+    const chips = [];
+    if (f.q) chips.push(['search', `“${f.q}”`]);
+    if (f.type) chips.push(['type', typeLabel(f.type)]);
+    if (f.st) chips.push(['state', f.st]);
+    if (f.method) chips.push(['method', methodLabel(f.method)]);
+    if (f.verify) chips.push(['verify', f.verify === 'needs_email' ? 'Needs email' : verifyBadge(f.verify).label]);
+    if (f.hasEmail) chips.push(['hasEmail', 'Has email']);
+    host.innerHTML = chips
+      .map(([k, label]) => `<button type="button" class="gl-chip" data-chip="${esc(k)}">${esc(label)}<span class="gl-chip-x" aria-hidden="true">×</span></button>`)
+      .join('');
+    host.hidden = chips.length === 0;
+  }
 
-    const groups = groupByPlace(state.filtered);
-    if (count && state.tab === 'sources') {
-      count.textContent = state.filtered.length
-        ? `${state.filtered.length.toLocaleString()} sources · ${groups.length.toLocaleString()} places`
-        : '0 sources';
-    }
+  function clearChip(kind) {
+    if (kind === 'search' && $('gl-search')) $('gl-search').value = '';
+    if (kind === 'type' && $('gl-type')) $('gl-type').value = '';
+    if (kind === 'state' && $('gl-state')) $('gl-state').value = '';
+    if (kind === 'method' && $('gl-method')) $('gl-method').value = '';
+    if (kind === 'verify' && $('gl-verify')) $('gl-verify').value = '';
+    if (kind === 'hasEmail' && $('gl-has-email')) $('gl-has-email').checked = false;
+    applyFilters();
+  }
 
-    const slice = groups.slice(0, state.visibleCount);
-    if (!slice.length) {
-      host.innerHTML = '';
+  // ── URL state ──
+  function writeUrl(f) {
+    try {
+      const url = new URL(window.location.href);
+      const p = url.searchParams;
+      const set = (k, v) => { if (v) p.set(k, v); else p.delete(k); };
+      set('q', f.q);
+      set('type', f.type);
+      set('state', f.st);
+      set('method', f.method);
+      set('status', f.verify);
+      set('email', f.hasEmail ? '1' : '');
+      set('sort', `${state.sortKey}:${state.sortDir}`);
+      window.history.replaceState({}, '', url);
+    } catch (_) { /* ignore */ }
+  }
+
+  function readUrl() {
+    try {
+      const p = new URLSearchParams(window.location.search || '');
+      if (p.get('tab') === 'playbooks') state.tab = 'playbooks';
+      if ($('gl-search') && p.get('q')) $('gl-search').value = p.get('q');
+      const type = p.get('type') || '';
+      if (type && $('gl-type') && state.listTypes.some((t) => t.id === type)) $('gl-type').value = type;
+      if (p.get('state') && $('gl-state')) $('gl-state').value = p.get('state');
+      if (p.get('method') && $('gl-method')) $('gl-method').value = p.get('method');
+      if (p.get('status') && $('gl-verify')) $('gl-verify').value = p.get('status');
+      if (p.get('email') === '1' && $('gl-has-email')) $('gl-has-email').checked = true;
+      const sort = p.get('sort') || '';
+      if (sort.includes(':')) {
+        const [k, d] = sort.split(':');
+        state.sortKey = k;
+        state.sortDir = d === 'desc' ? 'desc' : 'asc';
+      }
+      if ($('gl-sort')) $('gl-sort').value = `${state.sortKey}:${state.sortDir}`;
+    } catch (_) { /* ignore */ }
+  }
+
+  // ── Virtualized rows ──
+  function rowHTML(s, i) {
+    const b = verifyBadge(s.verifyStatus);
+    const sel = state.selected.has(s.id) ? ' is-selected' : '';
+    const active = s.id === state.openId ? ' is-active' : '';
+    const cursor = i === state.activeIndex ? ' is-cursor' : '';
+    const checked = state.selected.has(s.id) ? 'checked' : '';
+    const label = placeLabel(s);
+    const contact = (s.contactEmail && String(s.contactEmail).trim())
+      ? esc(s.contactEmail)
+      : (needsSendEmail(s) ? '<span class="gl-need">needs email</span>' : '<span class="gl-dash">—</span>');
+    return `<div class="gl-row${sel}${active}${cursor}" role="row" data-id="${esc(s.id)}" data-i="${i}" style="top:${i * ROW_HEIGHT}px">
+      <span class="gl-td gl-td-select"><input type="checkbox" class="gl-row-check" data-id="${esc(s.id)}" ${checked} tabindex="-1" aria-label="Select ${esc(label)}"></span>
+      <span class="gl-td gl-td-place" title="${esc(label)}">${esc(label)}</span>
+      <span class="gl-td gl-td-list">${esc(typeLabel(s.listType))}</span>
+      <span class="gl-td gl-td-method" title="${esc(methodLabel(s.method))}">${esc(methodShort(s.method))}</span>
+      <span class="gl-td gl-td-status"><span class="gl-badge ${b.cls}">${esc(b.label)}</span></span>
+      <span class="gl-td gl-td-contact">${contact}</span>
+      <span class="gl-td gl-td-verified">${esc(fmtVerified(s.lastVerified))}</span>
+    </div>`;
+  }
+
+  function renderRows() {
+    const rowsEl = $('gl-rows');
+    const vp = $('gl-viewport');
+    const empty = $('gl-empty');
+    if (!rowsEl || !vp) return;
+
+    const rows = state.filtered;
+    if (!rows.length) {
+      rowsEl.style.height = '0px';
+      rowsEl.innerHTML = '';
       if (empty) empty.hidden = false;
       return;
     }
     if (empty) empty.hidden = true;
 
-    host.innerHTML = slice
-      .map((g) => {
-        const rows = g.items
-          .map((s) => {
-            const b = verifyBadge(s.verifyStatus);
-            const active = s.id === state.openId ? ' is-active' : '';
-            const needMail = needsSendEmail(s)
-              ? '<span class="gl-badge gl-badge--needsmail" title="No send-to email captured yet">No email</span>'
-              : '';
-            return `<button type="button" class="gl-list-row${active}" role="listitem" data-id="${esc(s.id)}">
-              <span class="gl-list-type">${esc(typeLabel(s.listType))}</span>
-              <span class="gl-list-method">${esc(methodLabel(s.method))}</span>
-              <span class="gl-badge ${b.cls}">${esc(b.label)}</span>
-              ${needMail}
-              <span class="gl-list-go" aria-hidden="true">&rarr;</span>
-            </button>`;
-          })
-          .join('');
-        return `<article class="gl-place">
-          <header class="gl-place-head">
-            <h3 class="gl-place-name">${esc(g.label)}</h3>
-            <span class="gl-place-count">${g.items.length} list${g.items.length === 1 ? '' : 's'}</span>
-          </header>
-          <div class="gl-place-rows">${rows}</div>
-        </article>`;
-      })
-      .join('');
+    rowsEl.style.height = (rows.length * ROW_HEIGHT) + 'px';
+    const scrollTop = vp.scrollTop;
+    const vpH = vp.clientHeight || 480;
+    let start = Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN;
+    let end = Math.ceil((scrollTop + vpH) / ROW_HEIGHT) + OVERSCAN;
+    start = Math.max(0, start);
+    end = Math.min(rows.length, end);
 
-    if (groups.length > state.visibleCount) {
-      host.insertAdjacentHTML(
-        'beforeend',
-        `<button type="button" class="phuglee-btn phuglee-btn-ghost gl-more" id="gl-more">Show more (${(groups.length - state.visibleCount).toLocaleString()} places left)</button>`
-      );
+    let html = '';
+    for (let i = start; i < end; i++) html += rowHTML(rows[i], i);
+    rowsEl.innerHTML = html;
+  }
+
+  function onViewportScroll() {
+    if (state.scrollScheduled) return;
+    state.scrollScheduled = true;
+    requestAnimationFrame(() => {
+      state.scrollScheduled = false;
+      renderRows();
+    });
+  }
+
+  function moveCursor(delta) {
+    const n = state.filtered.length;
+    if (!n) return;
+    let idx = state.activeIndex < 0 ? 0 : state.activeIndex + delta;
+    idx = Math.max(0, Math.min(n - 1, idx));
+    state.activeIndex = idx;
+    const vp = $('gl-viewport');
+    if (vp) {
+      const top = idx * ROW_HEIGHT;
+      const bottom = top + ROW_HEIGHT;
+      if (top < vp.scrollTop) vp.scrollTop = top;
+      else if (bottom > vp.scrollTop + vp.clientHeight) vp.scrollTop = bottom - vp.clientHeight;
+    }
+    renderRows();
+  }
+
+  // ── Sort headers ──
+  function setSort(key) {
+    if (state.sortKey === key) {
+      state.sortDir = state.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      state.sortKey = key;
+      state.sortDir = key === 'verified' ? 'desc' : 'asc';
+    }
+    if ($('gl-sort')) $('gl-sort').value = `${state.sortKey}:${state.sortDir}`;
+    updateSortHeaders();
+    applyFilters();
+  }
+
+  function updateSortHeaders() {
+    document.querySelectorAll('.gl-th-sort').forEach((btn) => {
+      const k = btn.getAttribute('data-sort');
+      if (k === state.sortKey) btn.setAttribute('aria-sort', state.sortDir === 'asc' ? 'ascending' : 'descending');
+      else btn.removeAttribute('aria-sort');
+    });
+  }
+
+  // ── Selection + bulk ──
+  function updateSelectAll() {
+    const cb = $('gl-select-all');
+    if (!cb) return;
+    const ids = state.filtered.map((s) => s.id);
+    const selCount = ids.filter((id) => state.selected.has(id)).length;
+    cb.checked = ids.length > 0 && selCount === ids.length;
+    cb.indeterminate = selCount > 0 && selCount < ids.length;
+  }
+
+  function updateBulkBar() {
+    const bar = $('gl-bulkbar');
+    const count = $('gl-bulk-count');
+    if (!bar) return;
+    const n = state.selected.size;
+    bar.hidden = n === 0;
+    if (count) count.textContent = `${n.toLocaleString()} selected`;
+  }
+
+  function selectedRows() {
+    const out = [];
+    state.selected.forEach((id) => {
+      const r = state.byId.get(id);
+      if (r) out.push(r);
+    });
+    return out;
+  }
+
+  function toggleRowSelection(id, on) {
+    if (on) state.selected.add(id);
+    else state.selected.delete(id);
+    updateSelectAll();
+    updateBulkBar();
+  }
+
+  async function bulkCopyEmails() {
+    const rows = selectedRows();
+    const emails = [...new Set(rows.map((r) => (r.contactEmail || '').trim()).filter(Boolean))];
+    const missing = rows.length - rows.filter((r) => (r.contactEmail || '').trim()).length;
+    if (!emails.length) { showToast('None of the selected rows have an email'); return; }
+    try {
+      await navigator.clipboard.writeText(emails.join('\n'));
+      showToast(`Copied ${emails.length} email${emails.length === 1 ? '' : 's'}${missing ? ` · ${missing} had none` : ''}`);
+    } catch (_) {
+      showToast('Could not copy — clipboard blocked');
     }
   }
 
+  function csvCell(v) {
+    const s = String(v == null ? '' : v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }
+
+  function bulkExportCsv() {
+    const rows = selectedRows();
+    if (!rows.length) return;
+    const header = ['place', 'list_type', 'method', 'status', 'url', 'email', 'verified', 'notes'];
+    const lines = [header.join(',')];
+    for (const r of rows) {
+      lines.push([
+        placeLabel(r), typeLabel(r.listType), methodLabel(r.method),
+        (verifyBadge(r.verifyStatus).label), r.url || '', r.contactEmail || '',
+        fmtVerified(r.lastVerified), r.notes || ''
+      ].map(csvCell).join(','));
+    }
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `government-lists-selection-${rows.length}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+    showToast(`Exported ${rows.length} row${rows.length === 1 ? '' : 's'}`);
+  }
+
+  function bulkStartRequests() {
+    const rows = selectedRows();
+    if (!rows.length) return;
+    const types = new Set(rows.map((r) => r.listType));
+    const allCollect = [...types].every((t) => t === 'code_violation' || t === 'water_shutoff');
+    const allPreLien = [...types].every((t) => t === 'pre_lien');
+    if (allCollect) { window.open('/collect', '_blank', 'noopener'); showToast(`Opening Collect for ${rows.length} row${rows.length === 1 ? '' : 's'}`); return; }
+    if (allPreLien) { window.open('/pre-liens', '_blank', 'noopener'); showToast(`Opening Pre-liens for ${rows.length} row${rows.length === 1 ? '' : 's'}`); return; }
+    const worklist = rows.map((r) => [placeLabel(r), typeLabel(r.listType), methodLabel(r.method), r.contactEmail || '', r.url || ''].join('\t')).join('\n');
+    navigator.clipboard.writeText(worklist).then(
+      () => showToast(`Mixed list types — worklist for ${rows.length} rows copied; open the matching desk per row`),
+      () => showToast('Mixed list types — could not copy worklist')
+    );
+  }
+
+  // ── Detail drawer (handoffs preserved) ──
   function renderDetail(src) {
     const panel = $('gl-detail');
     const title = $('gl-detail-title');
@@ -344,25 +552,23 @@
         : '—');
 
     const collectLink = (src.listType === 'code_violation' || src.listType === 'water_shutoff')
-      ? `<a class="phuglee-btn phuglee-btn-primary" href="/collect">Open Collect</a>`
-      : '';
+      ? `<a class="phuglee-btn phuglee-btn-primary" href="/collect">Open Collect</a>` : '';
     const preLienLink = src.listType === 'pre_lien'
-      ? `<a class="phuglee-btn phuglee-btn-primary" href="/pre-liens">Open Pre-liens desk</a>`
-      : '';
+      ? `<a class="phuglee-btn phuglee-btn-primary" href="/pre-liens">Open Pre-liens desk</a>` : '';
     const pbLink = src.county && src.state
-      ? `<button type="button" class="phuglee-btn phuglee-btn-ghost" id="gl-open-county-pb" data-county="${esc(src.county)}" data-state="${esc(src.state)}">County playbook</button>`
-      : '';
+      ? `<button type="button" class="phuglee-btn phuglee-btn-ghost" id="gl-open-county-pb" data-county="${esc(src.county)}" data-state="${esc(src.state)}">County playbook</button>` : '';
     const filterLink = `<a class="phuglee-btn phuglee-btn-ghost" href="/filter">Open Filter</a>`;
     const openUrl = src.url
-      ? `<a class="phuglee-btn phuglee-btn-ghost" href="${esc(src.url)}" target="_blank" rel="noopener noreferrer">Open source</a>`
-      : '';
+      ? `<a class="phuglee-btn phuglee-btn-ghost" href="${esc(src.url)}" target="_blank" rel="noopener noreferrer">Open source</a>` : '';
 
     body.innerHTML = `
+      <div class="gl-detail-badges"><span class="gl-badge ${verifyBadge(src.verifyStatus).cls}">${esc(verifyBadge(src.verifyStatus).label)}</span>${needsSendEmail(src) ? '<span class="gl-badge gl-badge--needsmail">No email</span>' : ''}</div>
       <dl class="gl-kv"><dt>List type</dt><dd>${esc(typeLabel(src.listType))}</dd></dl>
       <dl class="gl-kv"><dt>Method</dt><dd>${esc(methodLabel(src.method))}</dd></dl>
       <dl class="gl-kv"><dt>Cadence</dt><dd>${esc(src.cadence || '—')}</dd></dl>
       <dl class="gl-kv"><dt>URL</dt><dd>${urlHtml}</dd></dl>
       <dl class="gl-kv"><dt>Email</dt><dd>${emailHtml}</dd></dl>
+      <dl class="gl-kv"><dt>Last verified</dt><dd>${esc(fmtVerified(src.lastVerified))}</dd></dl>
       <dl class="gl-kv"><dt>Notes</dt><dd>${esc(src.notes || '—')}</dd></dl>
       <div class="gl-actions">${openUrl}${preLienLink}${pbLink}${collectLink}${filterLink}
         ${src.requestTemplate ? '<button type="button" class="phuglee-btn phuglee-btn-ghost" id="gl-copy-template">Copy request text</button>' : ''}
@@ -373,30 +579,26 @@
     const copyBtn = $('gl-copy-template');
     if (copyBtn && src.requestTemplate) {
       copyBtn.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(src.requestTemplate);
-          showToast('Request text copied');
-        } catch (_) {
-          showToast('Could not copy — select the text manually');
-        }
+        try { await navigator.clipboard.writeText(src.requestTemplate); showToast('Request text copied'); }
+        catch (_) { showToast('Could not copy — select the text manually'); }
       });
     }
 
-    $('gl-open-county-pb')?.addEventListener('click', (e) => {
+    const pbBtn = $('gl-open-county-pb');
+    if (pbBtn) pbBtn.addEventListener('click', (e) => {
       const btn = e.currentTarget;
-      const county = btn.getAttribute('data-county') || '';
-      const st = btn.getAttribute('data-state') || '';
-      openOrCreatePlaybook(county, st);
+      openOrCreatePlaybook(btn.getAttribute('data-county') || '', btn.getAttribute('data-state') || '');
     });
   }
 
   function openSource(id) {
-    const src = state.sources.find((s) => s.id === id) || state.filtered.find((s) => s.id === id);
+    const src = state.byId.get(id) || null;
     state.openId = src ? src.id : null;
-    renderResults();
-    renderDetail(src || null);
+    renderRows();
+    renderDetail(src);
   }
 
+  // ── County Playbooks (unchanged behavior) ──
   function renderPlaybookList() {
     const host = $('gl-pb-list');
     if (!host) return;
@@ -560,11 +762,7 @@
   }
 
   async function loadPlaybooks() {
-    const res = await fetch(PLAYBOOKS_URL, {
-      headers: authHeaders(),
-      credentials: 'same-origin',
-      cache: 'no-store'
-    });
+    const res = await fetch(PLAYBOOKS_URL, { headers: authHeaders(), credentials: 'same-origin', cache: 'no-store' });
     const json = await res.json();
     if (!res.ok || !json.ok) throw new Error(json.error || `Playbooks HTTP ${res.status}`);
     state.playbooks = json.playbooks || [];
@@ -578,10 +776,7 @@
   async function savePlaybook(e) {
     e?.preventDefault();
     const payload = readPlaybookForm();
-    if (!payload.county || !payload.state) {
-      showToast('County and state are required');
-      return;
-    }
+    if (!payload.county || !payload.state) { showToast('County and state are required'); return; }
     $('gl-pb-status').textContent = 'Saving…';
     try {
       const res = await fetch(PLAYBOOKS_URL, {
@@ -603,16 +798,11 @@
 
   async function deleteActivePlaybook() {
     const id = $('gl-pb-id').value.trim();
-    if (!id) {
-      showToast('Nothing to delete');
-      return;
-    }
+    if (!id) { showToast('Nothing to delete'); return; }
     if (!window.confirm('Delete this county playbook?')) return;
     try {
       const res = await fetch(`${PLAYBOOKS_URL}/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        headers: authHeaders(),
-        credentials: 'same-origin'
+        method: 'DELETE', headers: authHeaders(), credentials: 'same-origin'
       });
       const json = await res.json();
       if (!res.ok || !json.ok) throw new Error(json.error || 'Delete failed');
@@ -630,51 +820,49 @@
     const statsEl = $('gl-research-progress-stats');
     if (!host || !statsEl) return;
     const rp = catalog && catalog.researchProgress;
-    if (!rp || !rp.totalSlots) {
-      host.hidden = true;
-      return;
-    }
+    if (!rp || !rp.totalSlots) { host.hidden = true; return; }
     const by = rp.byStatus || {};
     const verified = by.verified || 0;
     const pdf = by.pdf_only || 0;
     const email = by.email_only || 0;
-    const pending =
-      (by.unverified || 0) + (by.seeded_from_forge || 0);
+    const pending = (by.unverified || 0) + (by.seeded_from_forge || 0);
     const blocked = (by.blocked || 0) + (by.not_found || 0);
     const publishable = rp.publishable != null ? rp.publishable : verified + pdf + email;
     statsEl.innerHTML = [
-      ['Slots', rp.totalSlots],
-      ['Verified', verified],
-      ['PDF', pdf],
-      ['Email', email],
-      ['Publishable', publishable],
-      ['Pending', pending],
-      ['Blocked/NF', blocked],
-      ['Wave A', (rp.byWave && rp.byWave.A) || '—'],
-      ['Wave B', (rp.byWave && rp.byWave.B) || '—'],
+      ['Slots', rp.totalSlots], ['Verified', verified], ['PDF', pdf], ['Email', email],
+      ['Publishable', publishable], ['Pending', pending], ['Blocked/NF', blocked],
+      ['Wave A', (rp.byWave && rp.byWave.A) || '—'], ['Wave B', (rp.byWave && rp.byWave.B) || '—'],
       ['Wave C', (rp.byWave && rp.byWave.C) || '—']
-    ]
-      .map(
-        ([label, val]) =>
-          `<span class="gl-research-stat"><span>${esc(label)}</span><strong>${esc(val)}</strong></span>`
-      )
-      .join('');
+    ].map(([label, val]) => `<span class="gl-research-stat"><span>${esc(label)}</span><strong>${esc(val)}</strong></span>`).join('');
     host.hidden = false;
   }
 
+  // ── Binding ──
   function bind() {
     document.querySelectorAll('.gl-tab').forEach((tab) => {
       tab.addEventListener('click', () => setTab(tab.getAttribute('data-tab')));
     });
 
-    ['gl-search', 'gl-type', 'gl-state', 'gl-method', 'gl-verify', 'gl-hide-playbook'].forEach((id) => {
+    const searchEl = $('gl-search');
+    if (searchEl) searchEl.addEventListener('input', applyFilters);
+    ['gl-state', 'gl-method', 'gl-verify', 'gl-has-email', 'gl-hide-playbook'].forEach((id) => {
       const el = $(id);
-      if (!el) return;
-      const evt = el.tagName === 'INPUT' && el.type === 'search' ? 'input' : 'change';
-      el.addEventListener(evt, applyFilters);
+      if (el) el.addEventListener('change', applyFilters);
     });
 
-    ($('gl-type-rail') || $('gl-type-chips'))?.addEventListener('click', (e) => {
+    const sortEl = $('gl-sort');
+    if (sortEl) sortEl.addEventListener('change', () => {
+      const [k, d] = sortEl.value.split(':');
+      state.sortKey = k; state.sortDir = d === 'desc' ? 'desc' : 'asc';
+      updateSortHeaders();
+      applyFilters();
+    });
+
+    document.querySelectorAll('.gl-th-sort').forEach((btn) => {
+      btn.addEventListener('click', () => setSort(btn.getAttribute('data-sort')));
+    });
+
+    $('gl-type-rail')?.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-type]');
       if (!btn) return;
       const type = btn.getAttribute('data-type');
@@ -684,44 +872,82 @@
       applyFilters();
     });
 
+    $('gl-chips')?.addEventListener('click', (e) => {
+      const chip = e.target.closest('[data-chip]');
+      if (chip) clearChip(chip.getAttribute('data-chip'));
+    });
+
     $('gl-clear')?.addEventListener('click', () => {
       ['gl-search', 'gl-type', 'gl-state', 'gl-method', 'gl-verify'].forEach((id) => {
-        const el = $(id);
-        if (el) el.value = '';
+        const el = $(id); if (el) el.value = '';
       });
+      if ($('gl-has-email')) $('gl-has-email').checked = false;
       applyFilters();
     });
 
-    $('gl-results')?.addEventListener('click', (e) => {
-      if (e.target.closest('#gl-more')) {
-        state.visibleCount += PAGE_SIZE;
-        renderResults();
-        return;
-      }
+    const vp = $('gl-viewport');
+    if (vp) {
+      vp.addEventListener('scroll', onViewportScroll, { passive: true });
+      vp.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') { e.preventDefault(); moveCursor(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); moveCursor(-1); }
+        else if (e.key === 'Enter') {
+          if (state.activeIndex >= 0 && state.filtered[state.activeIndex]) openSource(state.filtered[state.activeIndex].id);
+        } else if (e.key === 'Escape') {
+          if (state.openId) { state.openId = null; renderDetail(null); renderRows(); }
+        }
+      });
+    }
+
+    $('gl-rows')?.addEventListener('click', (e) => {
+      const check = e.target.closest('.gl-row-check');
+      if (check) { toggleRowSelection(check.getAttribute('data-id'), check.checked); renderRows(); return; }
       const row = e.target.closest('[data-id]');
-      if (!row) return;
-      openSource(row.getAttribute('data-id'));
+      if (row) {
+        state.activeIndex = Number(row.getAttribute('data-i'));
+        openSource(row.getAttribute('data-id'));
+      }
+    });
+
+    $('gl-select-all')?.addEventListener('change', (e) => {
+      const on = e.target.checked;
+      state.filtered.forEach((s) => { if (on) state.selected.add(s.id); else state.selected.delete(s.id); });
+      updateSelectAll(); updateBulkBar(); renderRows();
+    });
+
+    $('gl-bulk-emails')?.addEventListener('click', bulkCopyEmails);
+    $('gl-bulk-csv')?.addEventListener('click', bulkExportCsv);
+    $('gl-bulk-start')?.addEventListener('click', bulkStartRequests);
+    $('gl-bulk-clear')?.addEventListener('click', () => {
+      state.selected.clear(); updateSelectAll(); updateBulkBar(); renderRows();
     });
 
     $('gl-detail-close')?.addEventListener('click', () => {
-      state.openId = null;
-      renderDetail(null);
-      renderResults();
+      state.openId = null; renderDetail(null); renderRows();
     });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && state.tab === 'sources') {
+        const tag = (e.target && e.target.tagName) || '';
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') {
+          e.preventDefault();
+          $('gl-search')?.focus();
+        }
+      }
+    });
+
+    window.addEventListener('resize', () => { if (state.tab === 'sources') renderRows(); });
 
     $('gl-pb-list')?.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-pb-id]');
-      if (!btn) return;
-      selectPlaybook(btn.getAttribute('data-pb-id'));
+      if (btn) selectPlaybook(btn.getAttribute('data-pb-id'));
     });
 
     $('gl-pb-new')?.addEventListener('click', () => {
       state.activePlaybookId = null;
       renderPlaybookList();
       fillPlaybookForm({
-        county: '',
-        state: '',
-        assetFocus: 'houses',
+        county: '', state: '', assetFocus: 'houses',
         preLien: { cadence: 'weekly', caseTypes: 'Small claims / civil debt (pre-judgment)' },
         assessor: { notes: 'Confirm defendant ≈ owner before outreach.' },
         lists: {}
@@ -738,68 +964,50 @@
     ensureListSlots();
 
     try {
-      const params = new URLSearchParams(window.location.search || '');
-      if (params.get('tab') === 'playbooks') state.tab = 'playbooks';
-      const typeQ = params.get('type') || '';
-
       const res = await fetch(CATALOG_URL, { cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const catalog = await res.json();
       state.catalog = catalog;
       state.listTypes = catalog.listTypes || [];
       state.methods = catalog.methods || [];
-      state.sources = catalog.sources || [];
       renderResearchProgress(catalog);
 
-      fillSelect(
-        $('gl-type'),
-        state.listTypes.map((t) => ({ value: t.id, label: t.label })),
-        'All types'
-      );
-      fillSelect(
-        $('gl-method'),
-        state.methods.map((m) => ({ value: m.id, label: m.label })),
-        'All methods'
-      );
-      const states = [...new Set(state.sources.map((s) => s.state).filter(Boolean))].sort();
-      fillSelect(
-        $('gl-state'),
-        states.map((s) => ({ value: s, label: s })),
-        'All states'
-      );
-      fillSelect(
-        $('gl-verify'),
-        [
-          { value: 'verified', label: 'Verified' },
-          { value: 'pdf_only', label: 'PDF only' },
-          { value: 'email_only', label: 'Email only' },
-          { value: 'unverified', label: 'Unverified' },
-          { value: 'needs_email', label: 'Needs send-to email' }
-        ],
-        'Any status'
-      );
+      const priority = {};
+      state.listTypes.forEach((t) => { priority[t.id] = t.priority || 99; });
 
-      if (typeQ && state.listTypes.some((t) => t.id === typeQ) && $('gl-type')) {
-        $('gl-type').value = typeQ;
-      }
+      const raw = catalog.sources || [];
+      const nonPlaybook = raw.filter((s) => !s.isPlaybook);
+      state.merged = GLN ? GLN.mergeSources(nonPlaybook, priority) : nonPlaybook.slice();
+      state.howto = raw.filter((s) => s.isPlaybook).map((s) => Object.assign({}, s, { state: GLN ? GLN.normalizeState(s.state) : s.state }));
 
-      try {
-        await loadPlaybooks();
-      } catch (err) {
-        console.warn(err);
-        showToast('Playbooks failed to load — sources still available');
-      }
+      state.byId = new Map();
+      state.merged.concat(state.howto).forEach((s) => state.byId.set(s.id, s));
+
+      fillSelect($('gl-type'), state.listTypes.map((t) => ({ value: t.id, label: t.label })), 'All types');
+      fillSelect($('gl-method'), state.methods.map((m) => ({ value: m.id, label: m.label })), 'All methods');
+      fillSelect($('gl-state'), computeStates(state.merged), 'All states');
+      fillSelect($('gl-verify'), [
+        { value: 'verified', label: 'Verified' },
+        { value: 'pdf_only', label: 'PDF only' },
+        { value: 'email_only', label: 'Email only' },
+        { value: 'unverified', label: 'Unverified' },
+        { value: 'needs_email', label: 'Needs send-to email' }
+      ], 'Any status');
+
+      readUrl();
+      updateSortHeaders();
+
+      try { await loadPlaybooks(); }
+      catch (err) { console.warn(err); showToast('Playbooks failed to load — sources still available'); }
 
       setTab(state.tab);
 
+      const params = new URLSearchParams(window.location.search || '');
       const playbookQ = params.get('playbook') || '';
-      if (playbookQ && state.playbooks.some((p) => p.id === playbookQ)) {
-        selectPlaybook(playbookQ);
-      }
-
+      if (playbookQ && state.playbooks.some((p) => p.id === playbookQ)) selectPlaybook(playbookQ);
       const countyQ = params.get('county');
       const stateQ = params.get('state');
-      if (!playbookQ && countyQ && stateQ) openOrCreatePlaybook(countyQ, stateQ);
+      if (!playbookQ && countyQ && stateQ && params.get('tab') === 'playbooks') openOrCreatePlaybook(countyQ, stateQ);
     } catch (err) {
       console.error(err);
       showToast('Could not load government lists catalog');
