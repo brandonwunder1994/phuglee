@@ -321,7 +321,6 @@
     }
     $('uc-kpi-funded').textContent = String(by.funded || t.funded || t.closedCount || 0);
     $('uc-kpi-fees').textContent = money(t.closedAssignmentFees ?? t.totalAssignmentFees ?? 0);
-    if ($('uc-kpi-tc')) $('uc-kpi-tc').textContent = money(t.closedTcPay ?? t.totalTcPay ?? 0);
     if ($('uc-kpi-acq')) $('uc-kpi-acq').textContent = money(t.closedAcqPay ?? t.totalAcqPay ?? 0);
     if ($('uc-kpi-dispo')) $('uc-kpi-dispo').textContent = money(t.closedDispoPay ?? t.totalDispoPay ?? 0);
   }
@@ -1948,7 +1947,6 @@
     const rows = [
       ['Funded?', deal.fundedLabel || (deal.stage === 'funded' ? 'Yes' : 'No')],
       ['Assignment fee', money(deal.assignmentFee)],
-      ['TC cost', money(deal.tcPay)],
       ['Photo cost', money(deal.photoCostApplied ?? deal.photoCost ?? 0)],
       ['Acq payout', money(deal.acqPay)],
       ['Dispo payout', money(deal.dispoPay)]
