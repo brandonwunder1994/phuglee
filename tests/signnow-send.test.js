@@ -324,7 +324,7 @@ describe('signnow-send helpers', () => {
     assert.match(TEMPLATES.cash.name || '', /cash|purchase/i);
   });
 
-  it('wires cash PSA fields, stamps Buyer, invites sellers, skips Seller 2 when alone', () => {
+  it('wires cash PSA fields, stamps Buyer signature, invites sellers, skips Seller 2 when alone', () => {
     const src = require('fs').readFileSync(
       require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
       'utf8'
@@ -332,11 +332,25 @@ describe('signnow-send helpers', () => {
     assert.match(src, /async function sendCashForDeal/);
     assert.match(src, /street_address/);
     assert.match(src, /city_state_zip/);
-    assert.match(src, /purchase_price/);
-    assert.match(src, /emd_deposit/);
+    assert.match(src, /purchase_price: formatMoney/);
+    assert.match(src, /emd_deposit: formatMoney/);
+    assert.match(src, /: 100/);
     assert.match(src, /skipRoles: sellers\.length < 2 \? \['Seller 2'\]/);
-    assert.match(src, /stampRoles:\s*\{\s*Buyer:/);
+    assert.match(src, /applyPrefillStampingRole/);
+    assert.match(src, /stampRole: 'Buyer'/);
+    assert.match(src, /loadOwnerArtifactsFromTemplate/);
     assert.match(src, /getTemplate\('cash'\)/);
+  });
+
+  it('alerts per seller on cash PSA and only one completion text', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    assert.match(src, /signerAlerts/);
+    assert.match(src, /complete: false/);
+    assert.match(src, /pending_complete/);
+    assert.match(src, /isCashPsa/);
   });
 
   it('promotes contract_sent to under_contract when cash PSA is signed', () => {
