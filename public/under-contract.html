@@ -483,9 +483,17 @@
         <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">×</button>
       </div>
       <input type="hidden" id="uc-buyer-deal-id" value="">
-      <p class="uc-jv-lead" id="uc-aoc-property-line">Property address is filled from this deal. Assignee fills their own name/address/phone when they sign.</p>
+      <p class="uc-jv-lead" id="uc-aoc-property-line">Property address is filled from this deal. Fill buyer name/phone/email below — they fill address, then sign, date, By, and Its.</p>
       <label class="vault-field">
-        <span class="vault-field-label">Buyer email (Assignee)</span>
+        <span class="vault-field-label">Buyer name</span>
+        <input type="text" id="uc-aoc-buyer-name" class="phuglee-input" required autocomplete="name">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Buyer phone</span>
+        <input type="tel" id="uc-aoc-buyer-phone" class="phuglee-input" required autocomplete="tel">
+      </label>
+      <label class="vault-field">
+        <span class="vault-field-label">Buyer email</span>
         <input type="email" id="uc-aoc-buyer-email" class="phuglee-input" required autocomplete="email">
       </label>
       <label class="vault-field">

@@ -182,11 +182,16 @@ describe('signnow-send helpers', () => {
     assert.match(src, /'Property Address'/);
     assert.match(src, /'Legal Description'/);
     assert.match(src, /'Assignor Signature Field'/);
+    assert.match(src, /'Assignee Name'/);
+    assert.match(src, /'Assignee Phone'/);
+    assert.match(src, /'Assignee Print Name'/);
+    assert.doesNotMatch(src.slice(src.indexOf('async function sendAocForDeal'), src.indexOf('async function remindAocUnsigned')), /'Assignee Address'/);
     assert.match(src, /loadOwnerArtifactsFromTemplate/);
     assert.match(src, /applyPrefillStampingRole/);
     assert.match(src, /stampRole: 'Assignor'/);
     assert.match(src, /role: 'Assignee'/);
-    assert.doesNotMatch(src, /role: 'Assignor'/);
+    const aocFn = src.slice(src.indexOf('async function sendAocForDeal'), src.indexOf('async function remindAocUnsigned'));
+    assert.doesNotMatch(aocFn, /role: 'Assignor'/);
   });
 
   it('stamps Buyer on amendments and invites sellers only', () => {
