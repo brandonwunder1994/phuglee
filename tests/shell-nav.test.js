@@ -29,26 +29,24 @@ function loadShellNavApi(sessionUser) {
   return sandbox.window.DistressOSShellNav;
 }
 
-test('shell nav groups Collect, Government Lists, Pre-liens, Filter, and Analyze under Data', () => {
+test('shell nav groups Collect, Filter, and Analyze under Data', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/collect');
   assert.ok(nav.includes('shell-data-trigger'));
   assert.ok(nav.includes('Data'));
   assert.match(nav, /shell-nav-dropdown-label">Collect</);
-  assert.match(nav, /shell-nav-dropdown-label">Government Lists</);
-  assert.match(nav, /shell-nav-dropdown-label">Pre-liens</);
   assert.match(nav, /shell-nav-dropdown-label">Filter</);
   assert.match(nav, /shell-nav-dropdown-label">Analyze</);
+  assert.ok(!nav.includes('shell-nav-dropdown-label">Government Lists<'));
+  assert.ok(!nav.includes('shell-nav-dropdown-label">Pre-liens<'));
   assert.ok(!nav.includes('City Tracker'));
   assert.ok(!nav.includes('>Properties<'));
   assert.equal(api.activeId('/collect'), 'collect');
-  assert.equal(api.activeId('/government-lists'), 'government-lists');
-  assert.equal(api.activeId('/pre-liens'), 'pre-liens');
+  assert.equal(api.activeId('/government-lists'), 'collect');
+  assert.equal(api.activeId('/pre-liens'), 'collect');
   assert.equal(api.activeId('/bridge'), 'bridge');
   assert.equal(api.activeId('/analyzer/'), 'analyzer');
   assert.ok(api.isDataSectionActive('collect'));
-  assert.ok(api.isDataSectionActive('government-lists'));
-  assert.ok(api.isDataSectionActive('pre-liens'));
   assert.ok(!api.isDataSectionActive('command'));
 });
 
@@ -108,16 +106,18 @@ test('brad shell nav includes Buyers under Pipeline', () => {
   assert.equal(api.activeId('/buyers'), 'buyers');
 });
 
-test('brad shell nav includes Government Lists', () => {
+test('brad shell nav uses Collect instead of Government Lists', () => {
   const api = loadShellNavApi('brad');
-  const nav = api.buildNav('/government-lists');
-  assert.ok(nav.includes('href="/government-lists"'));
-  assert.ok(nav.includes('>Government Lists<'));
+  const nav = api.buildNav('/collect');
+  assert.ok(nav.includes('href="/collect"'));
+  assert.ok(nav.includes('>Collect<'));
   assert.ok(nav.includes('aria-current="page"'));
-  assert.equal(api.activeId('/government-lists'), 'government-lists');
+  assert.ok(!nav.includes('>Government Lists<'));
+  assert.ok(!nav.includes('href="/government-lists"'));
+  assert.equal(api.activeId('/government-lists'), 'collect');
   const footer = api.buildFooter('/government-lists');
-  assert.ok(footer.includes('href="/government-lists"'));
-  assert.ok(!footer.includes('href="/collect"'));
+  assert.ok(footer.includes('href="/collect"'));
+  assert.ok(!footer.includes('href="/government-lists"'));
 });
 
 test('non-desk shell nav hides Pipeline and Buyers', () => {

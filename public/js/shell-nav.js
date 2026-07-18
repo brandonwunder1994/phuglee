@@ -3,8 +3,6 @@
 
   const DATA_LINKS = [
     { id: 'collect', label: 'Collect', href: '/collect' },
-    { id: 'government-lists', label: 'Government Lists', href: '/government-lists' },
-    { id: 'pre-liens', label: 'Pre-liens', href: '/pre-liens' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
     { id: 'analyzer', label: 'Analyze', href: '/analyzer/' }
   ];
@@ -102,8 +100,8 @@
     if (p === '/under-contract') return 'under-contract';
     if (p === '/buyers' || p === '/trust-funds') return 'buyers';
     if (p === '/operating-costs') return 'operating-costs';
-    if (p === '/government-lists') return 'government-lists';
-    if (p === '/pre-liens') return 'pre-liens';
+    // Collect sub-desks — highlight Collect in Data, not top-nav entries.
+    if (p === '/government-lists' || p === '/pre-liens') return 'collect';
     if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
@@ -166,7 +164,7 @@
       <span class="shell-footer-meta">Disposition desk</span>
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
+      <a href="/collect" class="shell-footer-link">Collect</a>
       <a href="/under-contract" class="shell-footer-link">Under Contract</a>
       <a href="/pipeline" class="shell-footer-link">All Leads</a>
       <a href="/buyers" class="shell-footer-link">Buyers</a>
@@ -192,8 +190,6 @@
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Collect</a>
-      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
-      <a href="/pre-liens" class="shell-footer-link">Pre-liens</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Analyze</a>
       <a href="/vault" class="shell-footer-link">Homes</a>
@@ -307,8 +303,8 @@
     if (isVaultOnlyUser()) {
       linksHtml = vaultHtml;
     } else if (isDisposUser()) {
-      const govHtml = `<a href="/government-lists" class="${linkClass('government-lists', current)}"${current === 'government-lists' ? ' aria-current="page"' : ''}>Government Lists</a>`;
-      linksHtml = govHtml + buildPipelineDropdown(current) + vaultHtml;
+      const collectHtml = `<a href="/collect" class="${linkClass('collect', current)}"${current === 'collect' ? ' aria-current="page"' : ''}>Collect</a>`;
+      linksHtml = collectHtml + buildPipelineDropdown(current) + vaultHtml;
     } else {
       const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
       const dataHtml = buildDataDropdown(current);
