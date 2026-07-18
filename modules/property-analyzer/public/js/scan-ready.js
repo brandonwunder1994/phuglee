@@ -53,8 +53,11 @@
         summary.hidden = !z.showSessionKpis;
         summary.classList.toggle('visible', z.showSessionKpis);
       }
-      if (dash) dash.hidden = !z.showResultsWorkbench;
-      if (localKpi && !z.showResultsWorkbench) localKpi.hidden = true;
+      // Rankings workbench retired — always keep out of the page
+      if (dash) dash.hidden = true;
+      const dataZone = document.getElementById('analyzeDataZone');
+      if (dataZone) dataZone.hidden = true;
+      if (localKpi) localKpi.hidden = true;
 
       if (hub) {
         // Hard demote: never a peer panel on first paint — control or expanded only
@@ -71,11 +74,7 @@
         }
       }
 
-      // Work results entry when results exist but workbench closed (not while scanning)
-      if (workBtn) {
-        const showWork = hasResults && !state.resultsWorkbenchOpen && !state.running;
-        workBtn.hidden = !showWork;
-      }
+      if (workBtn) workBtn.hidden = true;
     };
 
     let _pendingRefreshTimer = null;
@@ -424,15 +423,6 @@
         if (!reviewLeadsWrap?.contains(e.target)) {
           closeReviewLeadsMenu();
         }
-      });
-
-      const openWorkbenchBtn = document.getElementById('openResultsWorkbenchBtn');
-      openWorkbenchBtn?.addEventListener('click', () => {
-        state.resultsWorkbenchOpen = true;
-        applyAnalyzeVisibility();
-        if (typeof renderResults === 'function') renderResults({ force: true });
-        else if (typeof renderResultsProgressive === 'function') renderResultsProgressive();
-        dashboard?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
       });
 
       overflowToggle?.addEventListener('click', (e) => {

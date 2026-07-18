@@ -698,6 +698,8 @@ R.pulseActiveFilterButton = function pulseActiveFilterButton() {
 
 R.highlightNewResultCard = function highlightNewResultCard(r) {
   if (state.running) return;
+  if (!cardsGrid || !resultsBody) return;
+  if (typeof isResultsWorkbenchEnabled === 'function' && !isResultsWorkbenchEnabled()) return;
   const key = recordKey(r);
   const sel = `[data-key="${CSS.escape(key)}"]`;
   const card = cardsGrid.querySelector(sel);
@@ -757,10 +759,15 @@ R.invalidateDistressedRankMap = function invalidateDistressedRankMap() {
 }
 
 R.updateResultCountLabel = function updateResultCountLabel() {
+  const el = $('resultCount');
+  if (!el || (typeof isResultsWorkbenchEnabled === 'function' && !isResultsWorkbenchEnabled())) {
+    updateScannedCountUi?.();
+    return;
+  }
   const sorted = getFilteredResults();
   const total = getTotalScannedCount();
   const loaded = state.results.length;
-  $('resultCount').textContent = total
+  el.textContent = total
     ? (loaded < total && state.filter === 'all' && !state.searchQuery.trim()
       ? `· ${sorted.length.toLocaleString()} loaded · ${total.toLocaleString()} scanned`
       : `· ${sorted.length.toLocaleString()}${sorted.length !== total ? ` of ${total.toLocaleString()}` : ''} properties`)
@@ -798,7 +805,15 @@ R.trimExcessLiveTableRows = function trimExcessLiveTableRows(maxRows) {
 }
 
 R.appendScanResult = function appendScanResult(r) {
+  if (typeof isResultsWorkbenchEnabled === 'function' && !isResultsWorkbenchEnabled()) {
+    updateResultCountLabel();
+    return;
+  }
   if (!resultMatchesCurrentFilter(r)) {
+    updateResultCountLabel();
+    return;
+  }
+  if (!cardsGrid || !resultsBody) {
     updateResultCountLabel();
     return;
   }

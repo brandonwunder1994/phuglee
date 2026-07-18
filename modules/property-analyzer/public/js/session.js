@@ -46,8 +46,8 @@ R.setViewMode = function setViewMode(mode, save = true) {
   state.viewMode = mode;
   if (changed) resetVirtualScrollPosition();
   document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === mode));
-  $('cardsView').classList.toggle('active', mode === 'cards');
-  $('tableView').classList.toggle('active', mode === 'table');
+  $('cardsView')?.classList.toggle('active', mode === 'cards');
+  $('tableView')?.classList.toggle('active', mode === 'table');
   if (changed && state.results.length) renderResults({ force: true });
   if (save) scheduleSaveSession();
 }
