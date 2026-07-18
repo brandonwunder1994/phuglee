@@ -21,6 +21,21 @@ modules/form-forge/.env
 data/filter-lists/
 data/filter-drafts/
 
+# County government-list playbooks (runtime edits; seed stays in seed-catalog.json)
+data/gov-playbooks/catalog.json
+# Atomic-write leftovers from the playbooks store
+data/gov-playbooks/*.tmp
+
+# Nationwide gov-list research runtime / regenerable blobs
+data/government-lists/.tmp*/
+data/government-lists/counties-geojson-cache.json
+data/government-lists/research/queue.jsonl
+data/government-lists/research/verified.jsonl
+data/government-lists/research/auto-results.jsonl
+data/government-lists/research/catalog-overlay.json
+data/government-lists/research/email-batches/
+data/government-lists/research/email-targets.json
+
 # Filter global brain (runtime)
 data/bridge-brain/
 

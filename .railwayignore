@@ -1,0 +1,28 @@
+# Keep the railway up upload lean. Runtime needs: server.js, lib/, modules/,
+# public/ (incl. public/data/government-lists/catalog.json), scripts/, package files.
+# Everything below is dev/research/tooling that prod does not serve.
+
+# Atomic-write leftovers (orphaned temp turds)
+**/*.tmp
+data/gov-playbooks/*.tmp
+
+# Research + tooling artifacts (catalog is prebuilt into public/data)
+data/government-lists/research/
+data/government-lists/.tmp*/
+data/government-lists/counties-geojson-cache.json
+
+# Agent / planning / design tooling
+.worktrees/
+.impeccable/
+.planning/
+.superpowers/
+.cursor/
+.claude/
+.codex/
+.vercel/
+.logs/
+tmp-scan-history-verify/
+
+# Docs and tests are not served at runtime
+docs/
+tests/
