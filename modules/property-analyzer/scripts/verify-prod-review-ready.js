@@ -43,7 +43,7 @@ async function main() {
   ok('html_imagery_tag', !!scriptMap.imagery, scriptMap.imagery || 'missing');
   ok('html_session_tag', !!scriptMap.session, scriptMap.session || 'missing');
   ok('html_state_tag', !!scriptMap.state, scriptMap.state || 'missing');
-  ok('html_cachebust_review_fast4', /review-fast4/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
+  ok('html_cachebust_review_fast5', /review-fast5/.test(JSON.stringify(scriptMap)), JSON.stringify(scriptMap));
 
   async function assertServed(label, src, needles) {
     if (!src) {
