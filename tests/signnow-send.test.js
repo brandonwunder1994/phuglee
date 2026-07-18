@@ -316,6 +316,46 @@ describe('signnow-send helpers', () => {
     assert.equal(kindFromTemplateKey('aoc'), 'aoc');
     assert.equal(kindFromTemplateKey('jv'), 'jv');
     assert.equal(kindFromTemplateKey('amendment'), 'amendment');
+    assert.equal(kindFromTemplateKey('cash'), 'purchase_contract');
+  });
+
+  it('has Cash Purchase Agreement template registered', () => {
+    assert.ok(TEMPLATES.cash.templateId);
+    assert.match(TEMPLATES.cash.name || '', /cash|purchase/i);
+  });
+
+  it('wires cash PSA fields, stamps Buyer, invites sellers, skips Seller 2 when alone', () => {
+    const src = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
+      'utf8'
+    );
+    assert.match(src, /async function sendCashForDeal/);
+    assert.match(src, /street_address/);
+    assert.match(src, /city_state_zip/);
+    assert.match(src, /purchase_price/);
+    assert.match(src, /emd_deposit/);
+    assert.match(src, /skipRoles: sellers\.length < 2 \? \['Seller 2'\]/);
+    assert.match(src, /stampRoles:\s*\{\s*Buyer:/);
+    assert.match(src, /getTemplate\('cash'\)/);
+  });
+
+  it('promotes contract_sent to under_contract when cash PSA is signed', () => {
+    const { markKindSignedOnDeal } = require('../lib/leads-platform/signnow-send');
+    const next = markKindSignedOnDeal(
+      {
+        dealId: 'd1',
+        stage: 'contract_sent',
+        originalAgreementDate: '',
+        cashPsaSend: { status: 'sent' }
+      },
+      'purchase_contract',
+      'doc123',
+      '2026-07-17T18:00:00.000Z'
+    );
+    assert.equal(next.stage, 'under_contract');
+    assert.equal(next.cashPsaSend.status, 'signed');
+    assert.equal(next.cashPsaSend.signNowDocumentId, 'doc123');
+    assert.ok(next.originalAgreementDate);
   });
 
   it('omits personalized subject/message from SignNow invites (plan limitation)', () => {

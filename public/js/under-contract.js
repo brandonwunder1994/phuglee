@@ -4,6 +4,7 @@
   const ADMIN = 'admin';
   const DISPOS = 'brad';
   const STAGE_LABELS = {
+    contract_sent: 'Waiting for Signatures',
     under_contract: 'Under contract',
     buyer_found: 'Buyer Submitted EMD',
     funded: 'Funded',
@@ -640,6 +641,106 @@
     );
   }
 
+  function isWaitingForSignatures(deal) {
+    return String(deal?.stage || '') === 'contract_sent';
+  }
+
+  function dispoQuickActionsHtml(d) {
+    if (isWaitingForSignatures(d)) {
+      return '<span class="uc-waiting-chip">Waiting for Signatures</span>';
+    }
+    return `${aocQuickBtnHtml(d)}
+      ${jvQuickBtnHtml(d)}
+      <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>`;
+  }
+
+  function renderWaitingSection(waiting) {
+    const section = $('uc-waiting-section');
+    const tbody = $('uc-waiting-tbody');
+    const table = $('uc-waiting-table');
+    const cards = $('uc-waiting-cards');
+    const count = $('uc-waiting-count');
+    if (!section || !tbody) return;
+
+    const deals = sortDealsByProcess(waiting || []);
+    if (!deals.length) {
+      section.hidden = true;
+      tbody.innerHTML = '';
+      if (cards) cards.innerHTML = '';
+      return;
+    }
+
+    section.hidden = false;
+    if (count) count.textContent = `${deals.length} deal${deals.length === 1 ? '' : 's'}`;
+    if (table) table.hidden = false;
+    if (cards) cards.hidden = false;
+
+    tbody.innerHTML = deals.map((d) => {
+      const { street, cityLine } = propertyLines(d);
+      const releaseBtn = isAdmin()
+        ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
+        : '';
+      return `<tr data-deal-id="${esc(d.dealId)}" class="uc-row-clickable">
+        <td class="uc-property-cell">
+          <div class="uc-property-block">
+            <div class="uc-property-main">
+              <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
+                ${thumbHtml(d, 'uc-thumb')}
+              </button>
+              <button type="button" class="uc-property-btn" data-action="open">
+                <span class="uc-property-text">
+                  <span class="uc-addr">${esc(street)}</span>
+                  <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </td>
+        <td><span class="uc-stage" data-stage="contract_sent">Waiting for Signatures</span></td>
+        <td class="uc-money">${esc(money(d.purchasePrice))}</td>
+        <td class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</td>
+        <td>${esc(d.ownerName || d.sellerNames || '—')}</td>
+        <td>
+          <div class="uc-row-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>
+            ${releaseBtn}
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+    if (cards) {
+      cards.innerHTML = deals.map((d) => {
+        const { street, cityLine } = propertyLines(d);
+        const releaseBtn = isAdmin()
+          ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
+          : '';
+        return `<article class="uc-deal-card uc-deal-card--waiting" data-deal-id="${esc(d.dealId)}">
+          <div class="uc-deal-card-head">
+            <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
+              ${thumbHtml(d, 'uc-thumb')}
+            </button>
+            <button type="button" class="uc-property-btn" data-action="open">
+              <span class="uc-property-text">
+                <span class="uc-addr">${esc(street)}</span>
+                <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+              </span>
+            </button>
+          </div>
+          <div class="uc-deal-card-meta">
+            <span class="uc-stage" data-stage="contract_sent">Waiting for Signatures</span>
+            <span class="uc-money">${esc(money(d.purchasePrice))}</span>
+          </div>
+          <p class="uc-waiting-seller">${esc(d.ownerName || d.sellerNames || '—')}</p>
+          <div class="uc-row-actions uc-deal-card-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>
+            ${releaseBtn}
+          </div>
+        </article>`;
+      }).join('');
+    }
+  }
+
   function renderTable(deals) {
     const tbody = $('uc-tbody');
     const table = $('uc-table');
@@ -648,9 +749,13 @@
     const count = $('uc-board-count');
     if (!tbody) return;
 
-    // Contract Tracker only shows dispo stages (API also filters board=contracts)
+    // Contract Tracker: dispo stages in main table; contract_sent in Waiting section
     const DISPO = new Set(['under_contract', 'buyer_found', 'funded', 'terminated']);
-    deals = sortDealsByProcess((deals || []).filter((d) => DISPO.has(d.stage)));
+    const all = Array.isArray(deals) ? deals : [];
+    const waiting = all.filter((d) => isWaitingForSignatures(d));
+    deals = sortDealsByProcess(all.filter((d) => DISPO.has(d.stage)));
+
+    renderWaitingSection(waiting);
 
     if (!deals.length) {
       if (table) table.hidden = true;
@@ -658,8 +763,8 @@
         cards.hidden = true;
         cards.innerHTML = '';
       }
-      empty.hidden = false;
-      count.textContent = '0 deals';
+      empty.hidden = waiting.length > 0;
+      if (count) count.textContent = waiting.length ? '0 under contract' : '0 deals';
       tbody.innerHTML = '';
       return;
     }
@@ -694,9 +799,7 @@
                 : ''}
             </div>
             <div class="uc-property-quick">
-              ${aocQuickBtnHtml(d)}
-              ${jvQuickBtnHtml(d)}
-              <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
+              ${dispoQuickActionsHtml(d)}
             </div>
           </div>
         </td>
@@ -773,9 +876,7 @@
             ${dealChecklistHtml(d)}
           </div>
           <div class="uc-deal-card-quick">
-            ${aocQuickBtnHtml(d)}
-            ${jvQuickBtnHtml(d)}
-            <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>
+            ${dispoQuickActionsHtml(d)}
           </div>
           <div class="uc-row-actions uc-deal-card-actions">
             <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="edit">Edit</button>
@@ -1732,6 +1833,18 @@
     showToast('Removed from Media');
   }
 
+  function syncWaitingForSignaturesUi(deal) {
+    const waiting = isWaitingForSignatures(deal);
+    const actionsMore = document.querySelector('#uc-drawer .uc-drawer-more');
+    if (actionsMore) actionsMore.hidden = waiting;
+    const docsSend = document.querySelector('#uc-drawer .uc-docs-send');
+    if (docsSend) docsSend.hidden = waiting;
+    ['uc-drawer-buyer-found', 'uc-drawer-send-jv', 'uc-drawer-amendment'].forEach((id) => {
+      const el = $(id);
+      if (el) el.hidden = waiting;
+    });
+  }
+
   function renderProfile(deal, contact) {
     state.profile = deal;
     state.contact = contact;
@@ -1743,6 +1856,7 @@
     document.body.classList.add('uc-drawer-open');
     syncDrawerJvButton(deal);
     syncDrawerAocButton(deal);
+    syncWaitingForSignaturesUi(deal);
 
     $('uc-drawer-title').textContent = deal.address || 'Contract profile';
     const url = photoUrl(deal);
@@ -3103,6 +3217,190 @@
     }
   }
 
+  let psaSearchTimer = null;
+  let psaSelectedLead = null;
+
+  function syncPsaSeller2Visibility() {
+    const count = document.querySelector('input[name="uc-psa-seller-count"]:checked')?.value || '1';
+    const box = $('uc-psa-seller2');
+    if (box) box.hidden = count !== '2';
+    const s2Name = $('uc-psa-s2-name');
+    const s2Email = $('uc-psa-s2-email');
+    if (s2Name) s2Name.required = count === '2';
+    if (s2Email) s2Email.required = count === '2';
+  }
+
+  function setPsaError(msg) {
+    const el = $('uc-psa-error');
+    if (!el) return;
+    if (!msg) {
+      el.hidden = true;
+      el.textContent = '';
+      return;
+    }
+    el.hidden = false;
+    el.textContent = msg;
+  }
+
+  function openSendNewPsa() {
+    psaSelectedLead = null;
+    setPsaError('');
+    if ($('uc-psa-lead-id')) $('uc-psa-lead-id').value = '';
+    if ($('uc-psa-search')) $('uc-psa-search').value = '';
+    if ($('uc-psa-results')) $('uc-psa-results').innerHTML = '';
+    const selected = $('uc-psa-selected');
+    if (selected) {
+      selected.hidden = true;
+      selected.textContent = '';
+    }
+    if ($('uc-psa-s1-name')) $('uc-psa-s1-name').value = '';
+    if ($('uc-psa-s1-email')) $('uc-psa-s1-email').value = '';
+    if ($('uc-psa-s2-name')) $('uc-psa-s2-name').value = '';
+    if ($('uc-psa-s2-email')) $('uc-psa-s2-email').value = '';
+    if ($('uc-psa-price')) $('uc-psa-price').value = '';
+    if ($('uc-psa-closing')) $('uc-psa-closing').value = '';
+    if ($('uc-psa-emd')) $('uc-psa-emd').value = '';
+    if ($('uc-psa-inspection')) $('uc-psa-inspection').value = '10';
+    if ($('uc-psa-closing-loc')) $('uc-psa-closing-loc').value = "Buyer's Choice";
+    if ($('uc-psa-terms')) $('uc-psa-terms').value = '';
+    const one = document.querySelector('input[name="uc-psa-seller-count"][value="1"]');
+    if (one) one.checked = true;
+    syncPsaSeller2Visibility();
+    const submitBtn = $('uc-psa-submit');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Cash PSA';
+    }
+    $('uc-psa-dialog')?.showModal();
+    $('uc-psa-search')?.focus();
+  }
+
+  function selectPsaLead(lead) {
+    psaSelectedLead = lead;
+    if ($('uc-psa-lead-id')) $('uc-psa-lead-id').value = lead.leadId || '';
+    const line = [lead.address, [lead.city, lead.state, lead.zip].filter(Boolean).join(', ')].filter(Boolean).join(' — ');
+    const selected = $('uc-psa-selected');
+    if (selected) {
+      selected.hidden = false;
+      selected.textContent = `Selected: ${line}${lead.ownerName ? ` · Vault owner: ${lead.ownerName}` : ''}`;
+    }
+    if ($('uc-psa-s1-name')) $('uc-psa-s1-name').value = lead.ownerName || '';
+    if ($('uc-psa-s1-email')) $('uc-psa-s1-email').value = lead.email || '';
+    if ($('uc-psa-results')) {
+      $('uc-psa-results').querySelectorAll('[data-lead-id]').forEach((el) => {
+        el.classList.toggle('is-selected', el.getAttribute('data-lead-id') === lead.leadId);
+      });
+    }
+    setPsaError('');
+  }
+
+  async function searchVaultForPsa(q) {
+    const box = $('uc-psa-results');
+    if (!box) return;
+    const query = String(q || '').trim();
+    if (query.length < 2) {
+      box.innerHTML = query
+        ? '<p class="uc-psa-results-empty">Type at least 2 characters…</p>'
+        : '';
+      return;
+    }
+    box.innerHTML = '<p class="uc-psa-results-empty">Searching Vault…</p>';
+    try {
+      const data = await api(`/api/leads/admin/contracts/vault-search?q=${encodeURIComponent(query)}&limit=12`);
+      const leads = data.leads || [];
+      if (!leads.length) {
+        box.innerHTML = '<p class="uc-psa-results-empty">No active Vault leads match.</p>';
+        return;
+      }
+      box.innerHTML = leads.map((l) => {
+        const cityLine = [l.city, l.state, l.zip].filter(Boolean).join(', ');
+        return `<button type="button" class="uc-psa-result" role="option" data-lead-id="${esc(l.leadId)}"
+          data-address="${esc(l.address || '')}" data-city="${esc(l.city || '')}"
+          data-state="${esc(l.state || '')}" data-zip="${esc(l.zip || '')}"
+          data-owner="${esc(l.ownerName || '')}" data-email="${esc(l.email || '')}">
+          <span class="uc-psa-result-addr">${esc(l.address || '—')}</span>
+          <span class="uc-psa-result-meta">${esc(cityLine || '—')}${l.ownerName ? ` · ${esc(l.ownerName)}` : ''}</span>
+        </button>`;
+      }).join('');
+    } catch (err) {
+      box.innerHTML = `<p class="uc-psa-results-empty">${esc(err.message || 'Search failed')}</p>`;
+    }
+  }
+
+  async function submitSendNewPsa(ev) {
+    ev.preventDefault();
+    setPsaError('');
+    const leadId = ($('uc-psa-lead-id')?.value || '').trim();
+    if (!leadId) {
+      setPsaError('Select a Vault property first.');
+      return;
+    }
+    const sellerCount = Number(document.querySelector('input[name="uc-psa-seller-count"]:checked')?.value || '1');
+    const s1Name = ($('uc-psa-s1-name')?.value || '').trim();
+    const s1Email = ($('uc-psa-s1-email')?.value || '').trim();
+    if (!s1Name || !s1Email) {
+      setPsaError('Confirm Seller 1 name and email.');
+      return;
+    }
+    const sellers = [{ name: s1Name, email: s1Email }];
+    if (sellerCount >= 2) {
+      const s2Name = ($('uc-psa-s2-name')?.value || '').trim();
+      const s2Email = ($('uc-psa-s2-email')?.value || '').trim();
+      if (!s2Name || !s2Email) {
+        setPsaError('Enter Seller 2 name and email, or switch to 1 seller.');
+        return;
+      }
+      sellers.push({ name: s2Name, email: s2Email });
+    }
+    const purchasePrice = ($('uc-psa-price')?.value || '').trim();
+    if (!purchasePrice) {
+      setPsaError('Purchase price is required.');
+      return;
+    }
+
+    const body = {
+      leadId,
+      sellerCount,
+      sellers,
+      purchasePrice,
+      closingDate: ($('uc-psa-closing')?.value || '').trim(),
+      emdDeposit: ($('uc-psa-emd')?.value || '').trim() || null,
+      inspectionDays: ($('uc-psa-inspection')?.value || '').trim() || '10',
+      closingLocation: ($('uc-psa-closing-loc')?.value || '').trim() || "Buyer's Choice",
+      additionalTerms: ($('uc-psa-terms')?.value || '').trim()
+    };
+
+    const btn = $('uc-psa-submit');
+    const prev = btn?.textContent || 'Send Cash PSA';
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+    }
+    try {
+      const data = await api('/api/leads/admin/contracts/send-new-psa', {
+        method: 'POST',
+        body: JSON.stringify(body)
+      });
+      $('uc-psa-dialog')?.close();
+      showToast(data.psa?.message || 'Cash PSA sent via SignNow', 6000);
+      await loadDeals();
+      if (data.deal?.dealId) {
+        openProfile(data.deal.dealId).catch(() => {});
+      }
+    } catch (err) {
+      setPsaError(err.message || 'Send New PSA failed');
+      if (err.deal || err.code === 'SIGNNOW_SEND_FAILED' || err.code === 'SIGNNOW_API_ERROR') {
+        await loadDeals().catch(() => {});
+      }
+      showToast(err.message || 'Send New PSA failed', 9000);
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prev;
+      }
+    }
+  }
+
   function openEdit(deal) {
     state.editingId = deal.dealId;
     $('uc-edit-id').value = deal.dealId;
@@ -3304,6 +3602,30 @@
     $('uc-jv-close')?.addEventListener('click', () => $('uc-jv-dialog')?.close());
     $('uc-amendment-cancel')?.addEventListener('click', () => $('uc-amendment-dialog')?.close());
     $('uc-amendment-close')?.addEventListener('click', () => $('uc-amendment-dialog')?.close());
+    $('uc-psa-cancel')?.addEventListener('click', () => $('uc-psa-dialog')?.close());
+    $('uc-psa-close')?.addEventListener('click', () => $('uc-psa-dialog')?.close());
+    $('uc-send-new-psa')?.addEventListener('click', () => openSendNewPsa());
+    $('uc-psa-form')?.addEventListener('submit', submitSendNewPsa);
+    $('uc-psa-search')?.addEventListener('input', () => {
+      clearTimeout(psaSearchTimer);
+      psaSearchTimer = setTimeout(() => searchVaultForPsa($('uc-psa-search')?.value || ''), 220);
+    });
+    $('uc-psa-results')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-lead-id]');
+      if (!btn) return;
+      selectPsaLead({
+        leadId: btn.getAttribute('data-lead-id'),
+        address: btn.getAttribute('data-address') || '',
+        city: btn.getAttribute('data-city') || '',
+        state: btn.getAttribute('data-state') || '',
+        zip: btn.getAttribute('data-zip') || '',
+        ownerName: btn.getAttribute('data-owner') || '',
+        email: btn.getAttribute('data-email') || ''
+      });
+    });
+    document.querySelectorAll('input[name="uc-psa-seller-count"]').forEach((radio) => {
+      radio.addEventListener('change', syncPsaSeller2Visibility);
+    });
     $('uc-release-form')?.addEventListener('submit', submitReleaseConfirm);
     $('uc-release-confirm-input')?.addEventListener('input', onReleaseConfirmInput);
     $('uc-release-cancel')?.addEventListener('click', closeReleaseConfirm);
@@ -3611,6 +3933,12 @@
         return;
       }
       if (action === 'edit') openEdit(deal);
+      if (action === 'buyer-found' || action === 'send-jv' || action === 'amendment') {
+        if (isWaitingForSignatures(deal)) {
+          showToast('Wait for the PSA to be signed before sending AOC, JV, or Amendments');
+          return;
+        }
+      }
       if (action === 'buyer-found') openAocAction(deal);
       if (action === 'send-jv') openSendJv(deal);
       if (action === 'amendment') openAmendment(deal);
@@ -3621,6 +3949,8 @@
 
     $('uc-tbody')?.addEventListener('click', handleDealBoardClick);
     $('uc-cards')?.addEventListener('click', handleDealBoardClick);
+    $('uc-waiting-tbody')?.addEventListener('click', handleDealBoardClick);
+    $('uc-waiting-cards')?.addEventListener('click', handleDealBoardClick);
   }
 
   async function allowContractDesk() {
