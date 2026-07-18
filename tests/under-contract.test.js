@@ -158,6 +158,47 @@ test('createDealFromVaultLead hides lead and lists in contracts', () => {
   assert.ok(contracts.listDeals().some((d) => d.dealId === deal.dealId));
 });
 
+test('contract_sent PSA deals appear on contracts board Waiting section, not in UC KPIs', () => {
+  const lead = store.upsertLead({
+    address: '210 Waiting Ave',
+    city: 'Tempe',
+    state: 'AZ',
+    zip: '85281',
+    leadType: 'distressed',
+    reviewStatus: 'approved',
+    signalTags: ['code'],
+    catalogStatus: 'active',
+    ownerName: 'Pat Seller',
+    email: 'pat@example.com'
+  });
+  const deal = contracts.createDealFromVaultLead(lead.leadId, {
+    stage: 'contract_sent',
+    purchasePrice: 95000,
+    ownerName: 'Pat Seller',
+    ownerEmail: 'pat@example.com',
+    sellerNames: 'Pat Seller'
+  });
+  assert.equal(deal.stage, 'contract_sent');
+  assert.equal(schema.DEAL_STAGE_LABELS.contract_sent, 'Waiting for Signatures');
+  assert.equal(store.getLead(lead.leadId).catalogStatus, 'under_contract');
+
+  const contractDeals = contracts.filterDealsForBoard(contracts.listDeals(), 'contracts');
+  assert.ok(contractDeals.some((d) => d.dealId === deal.dealId && d.stage === 'contract_sent'));
+
+  const totals = contracts.proofTotals(contracts.listDeals());
+  const dispoCount = contracts.listDeals().filter((d) => schema.isDispoStage(d.stage)).length;
+  assert.equal(totals.dealCount, dispoCount);
+  assert.equal(
+    totals.byStage.under_contract,
+    contracts.listDeals().filter((d) => d.stage === 'under_contract').length
+  );
+
+  const bradView = contracts.projectDealForViewer(deal, 'brad');
+  assert.notEqual(bradView.restricted, true);
+  assert.equal(bradView.ownerName, 'Pat Seller');
+  assert.doesNotThrow(() => contracts.assertBradCanWriteDeal(deal, 'brad'));
+});
+
 test('ensureDealContractParcel seeds APN and legal from mock REAPI', async () => {
   const lead = store.upsertLead({
     address: '300 Parcel Ln',

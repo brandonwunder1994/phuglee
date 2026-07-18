@@ -311,6 +311,126 @@
   color: var(--vault-muted);
 }
 
+.uc-board--waiting {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--vault-muted) 35%, transparent);
+}
+
+.uc-waiting-lead {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--vault-muted);
+}
+
+.uc-waiting-chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.28rem 0.55rem;
+  border-radius: 4px;
+  color: #1a2e1a;
+  background: color-mix(in srgb, #c9e4c9 80%, #fff);
+}
+
+.uc-stage[data-stage="contract_sent"] {
+  color: #1a2e1a;
+  background: color-mix(in srgb, #c9e4c9 70%, #fff);
+}
+
+.uc-waiting-seller {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--vault-muted);
+}
+
+.uc-dialog--psa {
+  max-width: min(32rem, calc(100vw - 1.5rem));
+}
+
+.uc-psa-step {
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.uc-psa-step-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--phuglee-cream);
+}
+
+.uc-psa-seller-count {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.uc-psa-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.uc-psa-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.uc-psa-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  min-height: 44px;
+  border: 1px solid color-mix(in srgb, var(--vault-muted) 40%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.uc-psa-result:hover,
+.uc-psa-result.is-selected {
+  border-color: color-mix(in srgb, var(--phuglee-cream) 55%, transparent);
+  background: color-mix(in srgb, var(--phuglee-cream) 8%, transparent);
+}
+
+.uc-psa-result-addr {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.uc-psa-result-meta,
+.uc-psa-results-empty,
+.uc-psa-selected {
+  font-size: 0.8rem;
+  color: var(--vault-muted);
+}
+
+.uc-psa-selected {
+  margin: 0.25rem 0 0;
+}
+
+.uc-psa-error {
+  color: #e8a0a0 !important;
+  margin-bottom: 0.5rem;
+}
+
 .uc-empty {
   padding: 2rem 1rem;
   text-align: center;

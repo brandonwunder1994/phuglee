@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=54">
+  <link rel="stylesheet" href="/css/under-contract.css?v=55">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=3"></script>
@@ -92,6 +92,7 @@
         <div class="uc-board-head">
           <h2 id="uc-board-title" class="uc-board-title">Deals</h2>
           <div class="uc-board-tools">
+            <button type="button" id="uc-send-new-psa" class="phuglee-btn phuglee-btn-primary">Send New PSA</button>
             <div class="uc-view-toggle" role="group" aria-label="Board view">
               <button type="button" id="uc-view-table" class="uc-view-btn is-active" data-view="table" aria-current="true">Table</button>
               <a href="/pipeline" id="uc-view-kanban" class="uc-view-btn" data-view="kanban">Kanban</a>
@@ -100,7 +101,7 @@
           </div>
         </div>
         <div id="uc-empty" class="uc-empty" hidden>
-          <p>No deals yet. Sync from GHL or move a Vault lead here.</p>
+          <p>No deals yet. Sync from GHL or send a new PSA from a Vault lead.</p>
         </div>
         <div class="uc-table-wrap" id="uc-table-wrap">
           <table class="uc-table" id="uc-table" hidden>
@@ -125,6 +126,30 @@
             <tbody id="uc-tbody"></tbody>
           </table>
           <div id="uc-cards" class="uc-cards" hidden aria-label="Deal cards"></div>
+        </div>
+      </section>
+
+      <section class="uc-board uc-board--waiting" id="uc-waiting-section" aria-labelledby="uc-waiting-title" hidden>
+        <div class="uc-board-head">
+          <h2 id="uc-waiting-title" class="uc-board-title">Waiting for Signatures</h2>
+          <p id="uc-waiting-count" class="uc-board-count"></p>
+        </div>
+        <p class="uc-waiting-lead">Cash PSAs sent via SignNow — no AOC, JV, or Amendment until the seller signs.</p>
+        <div class="uc-table-wrap" id="uc-waiting-table-wrap">
+          <table class="uc-table" id="uc-waiting-table" hidden>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Status</th>
+                <th>Purchase Price</th>
+                <th>Closing Date</th>
+                <th>Seller</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="uc-waiting-tbody"></tbody>
+          </table>
+          <div id="uc-waiting-cards" class="uc-cards" hidden aria-label="Waiting for signature deals"></div>
         </div>
       </section>
     </div>
@@ -572,6 +597,90 @@
       <div class="uc-edit-actions">
         <button type="submit" id="uc-aoc-remind-confirm" value="save" class="phuglee-btn phuglee-btn-primary">Yes, send reminder</button>
         <button type="button" id="uc-aoc-remind-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  </dialog>
+
+  <dialog id="uc-psa-dialog" class="uc-dialog uc-dialog--psa">
+    <form method="dialog" id="uc-psa-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-psa-title">Send New PSA</h3>
+        <button type="button" id="uc-psa-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <p class="uc-jv-lead">Pick a Vault lead, confirm seller(s), then send the Cash Purchase Agreement via SignNow. The deal appears under Waiting for Signatures until signed.</p>
+
+      <fieldset class="uc-psa-step" data-psa-step="1">
+        <legend class="uc-psa-step-label">1 · Vault property</legend>
+        <label class="vault-field">
+          <span class="vault-field-label">Search address or owner</span>
+          <input type="search" id="uc-psa-search" class="phuglee-input" placeholder="e.g. 910 Delaware" autocomplete="off">
+        </label>
+        <div id="uc-psa-results" class="uc-psa-results" role="listbox" aria-label="Matching Vault leads"></div>
+        <input type="hidden" id="uc-psa-lead-id" value="">
+        <p id="uc-psa-selected" class="uc-psa-selected" hidden></p>
+      </fieldset>
+
+      <fieldset class="uc-psa-step" data-psa-step="2">
+        <legend class="uc-psa-step-label">2 · Sellers</legend>
+        <p class="uc-field-hint">Confirm Seller 1 matches the person signing — Vault may be outdated.</p>
+        <div class="uc-psa-seller-count" role="radiogroup" aria-label="Number of sellers">
+          <label class="uc-psa-radio"><input type="radio" name="uc-psa-seller-count" value="1" checked> 1 seller</label>
+          <label class="uc-psa-radio"><input type="radio" name="uc-psa-seller-count" value="2"> 2 sellers</label>
+        </div>
+        <label class="vault-field">
+          <span class="vault-field-label">Seller 1 name</span>
+          <input type="text" id="uc-psa-s1-name" class="phuglee-input" required autocomplete="name">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Seller 1 email</span>
+          <input type="email" id="uc-psa-s1-email" class="phuglee-input" required autocomplete="email">
+        </label>
+        <div id="uc-psa-seller2" class="uc-psa-seller2" hidden>
+          <label class="vault-field">
+            <span class="vault-field-label">Seller 2 name</span>
+            <input type="text" id="uc-psa-s2-name" class="phuglee-input" autocomplete="name">
+          </label>
+          <label class="vault-field">
+            <span class="vault-field-label">Seller 2 email</span>
+            <input type="email" id="uc-psa-s2-email" class="phuglee-input" autocomplete="email">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset class="uc-psa-step" data-psa-step="3">
+        <legend class="uc-psa-step-label">3 · PSA terms</legend>
+        <label class="vault-field">
+          <span class="vault-field-label">Purchase price</span>
+          <input type="text" id="uc-psa-price" class="phuglee-input" inputmode="decimal" required placeholder="85000">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Closing date</span>
+          <input type="text" id="uc-psa-closing" class="phuglee-input" placeholder="MM/DD/YYYY">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">EMD deposit</span>
+          <input type="text" id="uc-psa-emd" class="phuglee-input" inputmode="decimal" placeholder="1000">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Inspection days</span>
+          <input type="text" id="uc-psa-inspection" class="phuglee-input" value="10" inputmode="numeric">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Closing location</span>
+          <input type="text" id="uc-psa-closing-loc" class="phuglee-input" value="Buyer's Choice">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Additional terms (optional)</span>
+          <textarea id="uc-psa-terms" class="phuglee-textarea" rows="3" placeholder="Optional extras for the PSA"></textarea>
+        </label>
+      </fieldset>
+
+      <p id="uc-psa-error" class="uc-field-hint uc-psa-error" hidden></p>
+      <div class="uc-edit-actions">
+        <button type="submit" id="uc-psa-submit" value="save" class="phuglee-btn phuglee-btn-primary">Send Cash PSA</button>
+        <button type="button" id="uc-psa-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
       </div>
     </form>
   </dialog>
