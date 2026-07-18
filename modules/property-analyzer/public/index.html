@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phuglee — Analyze</title>
-  <meta name="description" content="Import your bridged list. AI scans Street View, ranks visible distress, and exports dial-ready leads — you double-check every tier.">
+  <meta name="description" content="Import your bridged list. AI scans Street View and sorts leads into Distressed, Well Maintained, Land, and Blocked — you review every bucket before it hits The Vault.">
   <meta property="og:title" content="Phuglee — Analyze">
-  <meta property="og:description" content="Step 03 · Analyze — rank visible distress from Street View and export a dial-ready database.">
+  <meta property="og:description" content="Step 03 · Analyze — scan Street View, sort leads into buckets, and review before The Vault.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Phuglee — Analyze">
-  <meta name="twitter:description" content="AI ranks visible distress. Humans double-check every tier before you dial.">
+  <meta name="twitter:description" content="AI sorts distress into buckets. You review every bucket before The Vault.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="/css/app.css?v=20260714-mobile">
   <link rel="stylesheet" href="/css/heat-theme.css">
   <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/cyber-review.css?v=20260714-lite">
+  <link rel="stylesheet" href="/css/cyber-review.css?v=20260717-w4-loop">
   <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260714-mobile6">
   <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=5-dual-buckets">
   <link rel="stylesheet" href="/css/property-profile-v2.css?v=2" media="print" onload="this.media='all'">
@@ -36,7 +36,7 @@
         <div>
           <p class="analyzer-context-step"><a href="/filter">↝ Filter</a> · Step 03 · Analyze</p>
           <div class="sidebar-title" id="sidebarTitle">Analyze</div>
-          <div class="sidebar-tagline" id="sidebarTagline">Rank visible distress</div>
+          <div class="sidebar-tagline" id="sidebarTagline">Scan · sort · review</div>
         </div>
       </div>
       <nav class="sidebar-nav">
@@ -66,6 +66,7 @@
     </aside>
 
     <main class="app-shell-main" id="main">
+  <button type="button" class="analyze-mobile-nav-toggle" id="analyzeMobileNavToggle" aria-expanded="false" aria-controls="appSidebar">Menu</button>
   <span id="hudClock" hidden aria-hidden="true" style="display:none">--:--:--</span>
 
   <div class="live-tier-alert-stack" id="liveTierAlertStack" aria-live="polite" hidden></div>
@@ -114,10 +115,10 @@
 
       <nav class="analyze-pipeline" id="analyzePipeline" aria-label="Analyze workflow">
         <ol class="analyze-pipeline-list">
-          <li class="analyze-pipeline-step is-complete"><span>1</span> Upload</li>
-          <li class="analyze-pipeline-step is-active"><span>2</span> Scan</li>
-          <li class="analyze-pipeline-step"><span>3</span> Buckets</li>
-          <li class="analyze-pipeline-step"><span>4</span> Review</li>
+          <li class="analyze-pipeline-step is-complete" data-step="upload"><span>1</span> Upload</li>
+          <li class="analyze-pipeline-step is-active" data-step="scan"><span>2</span> Scan</li>
+          <li class="analyze-pipeline-step" data-step="buckets"><span>3</span> Buckets</li>
+          <li class="analyze-pipeline-step" data-step="review"><span>4</span> Review</li>
         </ol>
       </nav>
 
@@ -159,6 +160,8 @@
           <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
             aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">···</button>
           <div class="scan-desk-overflow-menu" id="scanDeskOverflow" role="menu" hidden>
+            <button type="button" class="scan-desk-overflow-item" id="deskExportExcelBtn" role="menuitem" title="Download all leads in this session as an Excel spreadsheet" disabled>Export Excel (all leads)</button>
+            <button type="button" class="scan-desk-overflow-item" id="deskExportDialReadyBtn" role="menuitem" title="Download dial-ready columns for your dialer or CRM" disabled>Export dial-ready</button>
             <button type="button" class="scan-desk-overflow-item" id="exportBackupNowBtn" role="menuitem" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
             <button type="button" class="scan-desk-overflow-item" id="apiUsageOpenBtn" role="menuitem" title="View Maps and Gemini usage estimates">API usage and credits</button>
           </div>
@@ -229,7 +232,7 @@
     <section class="summary-section analyze-bucket-board phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" hidden data-phuglee-reveal-child>
       <div class="summary-head">
         <h2 class="analyze-panel-heading">Session buckets</h2>
-        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Awaiting review vs In The Vault — open Review Leads or The Vault when ready.</p>
+        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Awaiting review vs In The Vault — tap a bucket to review, or open The Vault when ready.</p>
       </div>
       <p class="summary-row-label" id="summaryAwaitingLabel">Awaiting review</p>
       <div class="bridge-kpi-grid analyze-metric-strip" id="summaryHeroRow" aria-label="Awaiting manual review">
@@ -249,6 +252,10 @@
           <span class="bridge-kpi-value" id="sumBlurred">0</span>
           <span class="bridge-kpi-label">Blocked</span>
         </button>
+        <button type="button" class="bridge-kpi clickable" id="sumSatelliteOnlyCard" title="Review satellite-only imagery" hidden>
+          <span class="bridge-kpi-value" id="sumSatelliteOnly">0</span>
+          <span class="bridge-kpi-label">Satellite Only</span>
+        </button>
         <div class="bridge-kpi" id="sumScannedHeroCard" title="Total scanned in this Analyzer session">
           <span class="bridge-kpi-value" id="sumScannedHero">0</span>
           <span class="bridge-kpi-label">Scanned</span>
@@ -260,19 +267,19 @@
       </button>
       <p class="summary-row-label" id="summaryVaultLabel">In The Vault</p>
       <div class="bridge-kpi-grid analyze-metric-strip summary-vault-row" id="summaryVaultRow" aria-label="Approved leads in The Vault">
-        <a class="bridge-kpi bridge-kpi--accent clickable summary-vault-link" id="sumVaultDistressedCard" href="/vault" title="Open Distressed in The Vault">
+        <a class="bridge-kpi bridge-kpi--accent clickable summary-vault-link" id="sumVaultDistressedCard" href="/vault?leadType=distressed" data-vault-lead-type="distressed" title="Open Distressed in The Vault">
           <span class="bridge-kpi-value" id="sumVaultDistressed">—</span>
           <span class="bridge-kpi-label">Distressed</span>
         </a>
-        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultWellMaintainedCard" href="/vault" title="Open Well Maintained in The Vault">
+        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultWellMaintainedCard" href="/vault?leadType=well_maintained" data-vault-lead-type="well_maintained" title="Open Well Maintained in The Vault">
           <span class="bridge-kpi-value" id="sumVaultWellMaintained">—</span>
           <span class="bridge-kpi-label">Well Maintained</span>
         </a>
-        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultLandCard" href="/vault" title="Open Land in The Vault">
+        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultLandCard" href="/vault?leadType=land" data-vault-lead-type="land" title="Open Land in The Vault">
           <span class="bridge-kpi-value" id="sumVaultLand">—</span>
           <span class="bridge-kpi-label">Land</span>
         </a>
-        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultTotalCard" href="/vault" title="Open The Vault">
+        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultTotalCard" href="/vault" data-vault-lead-type="" title="Open The Vault">
           <span class="bridge-kpi-value" id="sumVaultTotal">—</span>
           <span class="bridge-kpi-label">Total</span>
         </a>
@@ -626,7 +633,10 @@
       <div class="review-complete-panel" id="reviewCompletePanel">
         <h3>Review complete</h3>
         <p id="reviewCompleteText">You reviewed every lead in this filter.</p>
-        <button type="button" class="review-action keep" id="reviewCompleteExitBtn" style="max-width:240px;flex:none;">Exit Review</button>
+        <div class="review-complete-actions">
+          <a class="review-action vault-cta" id="reviewVaultCta" href="/vault" data-vault-lead-type="" hidden>Open The Vault →</a>
+          <button type="button" class="review-action keep" id="reviewCompleteExitBtn" style="max-width:240px;flex:none;">Exit Review</button>
+        </div>
       </div>
 
       <div class="review-shortcuts-bar" id="reviewShortcutsBar" aria-label="Keyboard shortcuts">
@@ -684,17 +694,17 @@
   <script src="/lib/result-classify.js?v=20260713-accuracy" defer></script>
   <script src="/lib/review-training.js?v=20260630c" defer></script>
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
-  <script src="/js/config.js?v=20260715-review-fast4" defer></script>
-  <script src="/js/state.js?v=20260716-force-rescan-heal" defer></script>
-  <script src="/js/imagery.js?v=20260715-review-fast4" defer></script>
+  <script src="/js/config.js?v=20260717-w4-loop" defer></script>
+  <script src="/js/state.js?v=20260717-w3-prune" defer></script>
+  <script src="/js/imagery.js?v=20260717-w4-loop" defer></script>
   <script src="/js/scan.js?v=20260714-reason-align" defer></script>
   <script src="/js/review.js?v=20260717-retire-results" defer></script>
-  <script src="/js/render.js?v=20260717-retire-results" defer></script>
-  <script src="/js/session.js?v=20260717-retire-results" defer></script>
+  <script src="/js/render.js?v=20260717-w5-scale" defer></script>
+  <script src="/js/session.js?v=20260717-w4-loop" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/scan-ready.js?v=20260717-retire-results" defer></script>
+  <script src="/js/scan-ready.js?v=20260717-w2-truth" defer></script>
   <script src="/js/live-scan-feed.js?v=20260715-dual-buckets" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
-  <script src="/js/app.js?v=20260716-force-rescan-heal" defer></script>
+  <script src="/js/app.js?v=20260717-w2-truth" defer></script>
 </body>
 </html>

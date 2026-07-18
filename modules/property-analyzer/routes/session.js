@@ -110,6 +110,19 @@ function register(ctx) {
     return true;
   });
 
+  /**
+   * Awaiting-review bucket counts for the Analyze KPI strip, computed server-side
+   * in one pass so the client does not scan the full session six times.
+   */
+  router.get('/api/session-awaiting-counts', async (req, res, url) => {
+    const { buildAwaitingCounts } = require('../lib/review-queue-server');
+    const { session } = backups.loadSessionForRequest(req);
+    const finalized = finalizeSession(session);
+    const results = Array.isArray(finalized.results) ? finalized.results : [];
+    sendJson(res, 200, buildAwaitingCounts(results));
+    return true;
+  });
+
   /** On-demand full profile for one property (read-only; does not alter disk). */
   router.get('/api/session-result-profile', async (req, res, url) => {
     const { recordKeyFromResult } = require('../lib/backup-logic');

@@ -262,4 +262,62 @@
 }
 
 
+/* Post-review Vault CTA (loop back into The Vault for the bucket just worked). */
+.review-complete-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-action.vault-cta {
+  flex: 0 1 auto;
+  min-height: 52px;
+  padding: 0.7rem 1.2rem;
+  text-decoration: none;
+  background: rgba(229, 132, 53, 0.16);
+  border: 2px solid rgba(229, 132, 53, 0.5);
+  color: var(--phuglee-cream, #f4ede2);
+  font-weight: 700;
+}
+
+.review-action.vault-cta:hover { background: rgba(229, 132, 53, 0.28); }
+
+/* Mobile review action bar: Keep + Change are the primary thumb targets;
+   secondary actions wrap below at smaller, still ≥44px, touch sizes. */
+@media (max-width: 640px) {
+  .review-action-bar {
+    gap: 0.4rem;
+    padding: 0.6rem 0.55rem calc(0.6rem + env(safe-area-inset-bottom, 0px));
+  }
+  .review-action {
+    min-height: 48px;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.6rem;
+  }
+  /* Primary decisions own the top row */
+  .review-action.keep,
+  .review-action.change-tier {
+    flex: 1 1 46%;
+    min-height: 56px;
+    font-size: 0.95rem;
+    order: 0;
+  }
+  /* Secondary actions: smaller, wrap to the next row */
+  .review-action.vacant,
+  .review-action.defer-later,
+  .review-action.blurred,
+  .review-action.satellite-only,
+  .review-action.undo {
+    flex: 1 1 30%;
+    min-height: 44px;
+    font-size: 0.72rem;
+    order: 1;
+  }
+  .review-action kbd { display: none; }
+  .review-complete-actions { flex-direction: column; width: 100%; }
+  .review-action.vault-cta { width: 100%; }
+}
+
 /* Dead body.cyber-theme theme rules removed for mobile/desktop payload (analyze uses analyze-phuglee + heat-theme). */

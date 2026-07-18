@@ -30,15 +30,20 @@ R.resetSavedAppData = async function resetSavedAppData() {
   }).catch(() => {}).finally(() => location.reload());
 }
 
+R.openBucketReviewFromKpi = function openBucketReviewFromKpi(filter) {
+  if (typeof openReviewMode !== 'function') return;
+  if (state.reviewMode && state.reviewFilter === filter) {
+    if (typeof showReviewOverlay === 'function') showReviewOverlay();
+    if (typeof renderReviewLead === 'function') renderReviewLead();
+    return;
+  }
+  openReviewMode(filter);
+}
+
 R.bindDistressedSummaryClick = function bindDistressedSummaryClick(el) {
   el?.addEventListener('click', (e) => {
-    if (e.shiftKey) {
-      e.preventDefault();
-      if (state.reviewMode && state.reviewFilter === 'distressed') return;
-      openReviewMode('distressed');
-      return;
-    }
-    setFilter('distressed');
+    e.preventDefault();
+    openBucketReviewFromKpi('distressed');
   });
 }
 R.setViewMode = function setViewMode(mode, save = true) {
@@ -165,19 +170,66 @@ R.zeroPaintLiveScanKpis = function zeroPaintLiveScanKpis() {
  * Awaiting-review queue sizes (still need Keep/Change).
  * Uses the same exclusion rules as Review Leads.
  */
+R.AWAITING_REVIEW_FILTERS = ['distressed', 'well_maintained', 'vacant', 'blurred', 'review', 'satellite_only'];
+
 R.getAwaitingReviewBucketCounts = function getAwaitingReviewBucketCounts() {
-  const distressed = Number(scanReviewFilterSnapshot('distressed')?.pending) || 0;
-  const well_maintained = Number(scanReviewFilterSnapshot('well_maintained')?.pending) || 0;
-  const vacant = Number(scanReviewFilterSnapshot('vacant')?.pending) || 0;
-  const blurred = Number(scanReviewFilterSnapshot('blurred')?.pending) || 0;
-  const review = Number(scanReviewFilterSnapshot('review')?.pending) || 0;
-  const satellite_only = Number(scanReviewFilterSnapshot('satellite_only')?.pending) || 0;
   const all = Math.max(
     getTotalScannedCount(),
     (state.results || []).length,
     Number(state._tierCountsFromServer?.all) || 0
   );
-  return { all, distressed, well_maintained, vacant, blurred, review, satellite_only };
+
+  // When the full result set is not yet hydrated client-side, the local snapshot
+  // undercounts. Prefer the server's single-pass awaiting counts so the KPI strip
+  // is truthful without forcing a 16k-row hydrate.
+  const server = state._awaitingCountsFromServer;
+  const hydrated = sessionLoadState.complete && (state.results || []).length > 0;
+  if (!hydrated && server && server.awaiting) {
+    const a = server.awaiting;
+    return {
+      all: Math.max(all, Number(server.scanned) || 0),
+      distressed: Number(a.distressed) || 0,
+      well_maintained: Number(a.well_maintained) || 0,
+      vacant: Number(a.vacant) || 0,
+      blurred: Number(a.blurred) || 0,
+      review: Number(a.review) || 0,
+      satellite_only: Number(a.satellite_only) || 0,
+      _source: 'server'
+    };
+  }
+
+  const snaps = buildAllReviewSnapshots();
+  return {
+    all,
+    distressed: Number(snaps.distressed?.pending) || 0,
+    well_maintained: Number(snaps.well_maintained?.pending) || 0,
+    vacant: Number(snaps.vacant?.pending) || 0,
+    blurred: Number(snaps.blurred?.pending) || 0,
+    review: Number(snaps.review?.pending) || 0,
+    satellite_only: Number(snaps.satellite_only?.pending) || 0,
+    _source: 'client'
+  };
+};
+
+/** Fetch server-computed awaiting-review bucket counts (single pass over disk session). */
+R.fetchAwaitingCounts = async function fetchAwaitingCounts(opts = {}) {
+  if (typeof USE_PROXY !== 'undefined' && !USE_PROXY && !opts.force) return state._awaitingCountsFromServer || null;
+  try {
+    const fetcher = typeof apiFetch === 'function' ? apiFetch : fetch;
+    const res = await fetcher('/api/session-awaiting-counts', { cache: 'no-store' });
+    if (!res || !res.ok) return null;
+    const body = await res.json().catch(() => null);
+    if (!body || !body.ok || !body.awaiting) return null;
+    state._awaitingCountsFromServer = {
+      scanned: Number(body.scanned) || 0,
+      awaiting: body.awaiting,
+      totalInFilter: body.totalInFilter || {},
+      at: Date.now()
+    };
+    return state._awaitingCountsFromServer;
+  } catch (_) {
+    return null;
+  }
 };
 
 R.VAULT_META_CACHE_MS = 45_000;
@@ -466,6 +518,46 @@ R.scanReviewFilterSnapshot = function scanReviewFilterSnapshot(filter) {
   return snap;
 }
 
+/**
+ * Build snapshots for every awaiting-review bucket in a single pass over state.results
+ * (computes recordKey once per row instead of once per filter). Populates the shared
+ * reviewSnapshotCache so later per-filter calls hit the cache. Same semantics as
+ * scanReviewFilterSnapshot called per filter.
+ */
+R.buildAllReviewSnapshots = function buildAllReviewSnapshots() {
+  const key = reviewSnapshotCacheKeyFromState();
+  const filters = R.AWAITING_REVIEW_FILTERS;
+  const cacheFresh = reviewSnapshotCache && reviewSnapshotCacheKey === key;
+  if (cacheFresh && filters.every((f) => reviewSnapshotCache[f])) {
+    return reviewSnapshotCache;
+  }
+  const snaps = {};
+  for (const f of filters) {
+    snaps[f] = { total: 0, pending: 0, reviewedInFilter: 0, pendingKeys: [], allKeys: [] };
+  }
+  for (const r of state.results) {
+    const rk = recordKey(r);
+    for (const f of filters) {
+      if (!matchesReviewFilter(r, f)) continue;
+      const s = snaps[f];
+      s.total++;
+      s.allKeys.push(rk);
+      if (isExcludedFromAllReviewQueues(r, rk, f)) {
+        s.reviewedInFilter++;
+      } else {
+        s.pending++;
+        s.pendingKeys.push(rk);
+      }
+    }
+  }
+  if (!reviewSnapshotCache || reviewSnapshotCacheKey !== key) {
+    reviewSnapshotCache = {};
+    reviewSnapshotCacheKey = key;
+  }
+  for (const f of filters) reviewSnapshotCache[f] = snaps[f];
+  return reviewSnapshotCache;
+}
+
 R.invalidateTierCountsCache = function invalidateTierCountsCache(opts = {}) {
   tierCountsCache = null;
   tierCountsCacheKey = '';
@@ -636,6 +728,33 @@ R.updateSummaryPipeline = function updateSummaryPipeline(metrics, skipIfUnchange
   }).join('') || '<div class="summary-pipeline-seg review" style="flex-grow:1;opacity:0.25"></div>';
 }
 
+R.PIPELINE_STEPS = ['upload', 'scan', 'buckets', 'review'];
+
+/** Determine the active Analyze pipeline step from current state. */
+R.activePipelineStep = function activePipelineStep() {
+  if (state.reviewMode) return 'review';
+  if (state.running) return 'scan';
+  const hasResults = (state.results || []).length > 0 || getTotalScannedCount() > 0;
+  if (hasResults) return 'buckets';
+  const hasRecords = (state.records || []).length > 0;
+  if (hasRecords) return 'scan';
+  return 'upload';
+};
+
+/** Toggle is-complete / is-active on the four pipeline steps to match state. */
+R.paintAnalyzePipeline = function paintAnalyzePipeline() {
+  const nav = $('analyzePipeline');
+  if (!nav) return;
+  const active = activePipelineStep();
+  const activeIdx = PIPELINE_STEPS.indexOf(active);
+  nav.querySelectorAll('.analyze-pipeline-step').forEach((li) => {
+    const step = li.dataset.step;
+    const idx = PIPELINE_STEPS.indexOf(step);
+    li.classList.toggle('is-active', idx === activeIdx);
+    li.classList.toggle('is-complete', idx >= 0 && idx < activeIdx);
+  });
+};
+
 R.updateKpiPct = function updateKpiPct(el, count, total) {
   if (!el) return;
   const pct = total ? Math.round((Math.max(0, count) / total) * 100) : 0;
@@ -674,6 +793,8 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
     if (intro) intro.textContent = 'Upload a list and scan — awaiting-review and Vault totals show here when done.';
     $('sumReviewCard')?.classList.remove('has-items');
     if ($('sumReviewCard')) $('sumReviewCard').hidden = true;
+    animateStatNumber($('sumSatelliteOnly'), 0, { instant: true });
+    if ($('sumSatelliteOnlyCard')) $('sumSatelliteOnlyCard').hidden = true;
     updateScannedCountUi();
     updateScanReadyUi?.();
     applyAnalyzeVisibility?.();
@@ -698,6 +819,12 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
     $('sumReviewCard').hidden = reviewN <= 0;
     $('sumReviewCard').classList.toggle('has-items', reviewN > 0);
   }
+  const satelliteN = Number(awaiting.satellite_only) || 0;
+  animateStatNumber($('sumSatelliteOnly'), satelliteN, animOpts);
+  if ($('sumSatelliteOnlyCard')) {
+    $('sumSatelliteOnlyCard').hidden = satelliteN <= 0;
+    $('sumSatelliteOnlyCard').classList.toggle('has-items', satelliteN > 0);
+  }
   if (awaiting.distressed > 0 && typeof R.pulseDistressedKpi === 'function' && !instant) {
     R.pulseDistressedKpi(awaiting.distressed);
   }
@@ -711,7 +838,7 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   const intro = $('summaryIntro');
   if (intro) {
     intro.textContent = totalScanned
-      ? `${totalScanned.toLocaleString()} scanned in session · ${pendingReview.toLocaleString()} awaiting review · Vault totals below`
+      ? `${totalScanned.toLocaleString()} scanned · ${pendingReview.toLocaleString()} awaiting — tap a bucket to review · Vault totals below`
       : 'Awaiting-review buckets fill after Street View + AI finish.';
   }
 
@@ -2025,6 +2152,14 @@ uploadModalBackdrop?.addEventListener('click', () => closeToolModal(uploadModal)
 brainModalClose?.addEventListener('click', () => closeToolModal(brainModal));
 brainModalBackdrop?.addEventListener('click', () => closeToolModal(brainModal));
 $('apiUsageOpenBtn')?.addEventListener('click', () => openApiUsageModal?.());
+$('deskExportExcelBtn')?.addEventListener('click', () => {
+  if (deskExportExcelBtn?.disabled || !state.results?.length || state.running) return;
+  exportResults('xlsx', { scope: 'all', profile: 'full' });
+});
+$('deskExportDialReadyBtn')?.addEventListener('click', () => {
+  if (deskExportDialReadyBtn?.disabled || !state.results?.length || state.running) return;
+  void exportResults('xlsx', { scope: 'all', profile: 'dial_ready' });
+});
 $('apiUsageModalClose')?.addEventListener('click', () => closeToolModal($('apiUsageModal')));
 $('apiUsageModalBackdrop')?.addEventListener('click', () => closeToolModal($('apiUsageModal')));
 
@@ -2098,33 +2233,69 @@ $('importLeadTypeSelect')?.addEventListener('change', (e) => {
 bindDistressedSummaryClick($('sumDistressedKpiCard'));
 
 $('sumWellMaintainedCard')?.addEventListener('click', (e) => {
-  if (e.shiftKey) {
-    e.preventDefault();
-    if (state.reviewMode && state.reviewFilter === 'well_maintained') return;
-    openReviewMode('well_maintained');
-    return;
-  }
-  setFilter('well_maintained');
+  e.preventDefault();
+  openBucketReviewFromKpi('well_maintained');
 });
 $('sumVacantCard')?.addEventListener('click', (e) => {
-  if (e.shiftKey) {
-    e.preventDefault();
-    if (state.reviewMode && state.reviewFilter === 'vacant') return;
-    openReviewMode('vacant');
-    return;
-  }
-  setFilter('vacant');
+  e.preventDefault();
+  openBucketReviewFromKpi('vacant');
 });
 $('sumReviewCard')?.addEventListener('click', (e) => {
-  if (e.shiftKey) {
-    e.preventDefault();
-    if (state.reviewMode && state.reviewFilter === 'review') return;
-    openReviewMode('review');
-    return;
-  }
-  setFilter('review');
+  e.preventDefault();
+  openBucketReviewFromKpi('review');
 });
-$('sumBlurredCard')?.addEventListener('click', () => setFilter('blurred'));
+$('sumBlurredCard')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  openBucketReviewFromKpi('blurred');
+});
+$('sumSatelliteOnlyCard')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  openBucketReviewFromKpi('satellite_only');
+});
+
+// Vault deep links: the shell proxy rewrites href="/vault" → "/analyzer/vault" (404),
+// so navigate via JS with a string the rewriter leaves alone. leadType lands on the right tab.
+R.gotoVault = function gotoVault(leadType) {
+  const base = '/' + 'vault';
+  window.location.href = leadType ? `${base}?leadType=${encodeURIComponent(leadType)}` : base;
+};
+
+document.querySelectorAll('.summary-vault-link').forEach((a) => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    gotoVault(a.dataset.vaultLeadType || '');
+  });
+});
+
+// Map a review filter to its Vault catalog tab (null when the bucket has no Vault type).
+R.reviewFilterToVaultLeadType = function reviewFilterToVaultLeadType(filter) {
+  if (filter === 'distressed') return 'distressed';
+  if (filter === 'well_maintained') return 'well_maintained';
+  if (filter === 'vacant') return 'land';
+  return '';
+};
+
+// Post-review CTA: send the operator into The Vault for the bucket just worked.
+R.updateReviewVaultCta = function updateReviewVaultCta(filter, approvedCount) {
+  const cta = $('reviewVaultCta');
+  if (!cta) return;
+  const leadType = reviewFilterToVaultLeadType(filter);
+  cta.dataset.vaultLeadType = leadType;
+  if (leadType) {
+    const label = typeof reviewFilterLabel === 'function' ? reviewFilterLabel(filter) : 'these leads';
+    cta.textContent = approvedCount > 0
+      ? `${approvedCount.toLocaleString()} approved → Open ${label} in The Vault →`
+      : `Open ${label} in The Vault →`;
+  } else {
+    cta.textContent = 'Open The Vault →';
+  }
+  cta.hidden = false;
+};
+
+$('reviewVaultCta')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  gotoVault(e.currentTarget.dataset.vaultLeadType || '');
+});
 
 const sidebarOverflowGroup = $('sidebarOverflowGroup');
 const sidebarOverflowToggle = $('sidebarOverflowToggle');
@@ -2329,7 +2500,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 R.searchDebounceTimer = null;
-resultSearch.addEventListener('input', () => {
+resultSearch?.addEventListener('input', () => {
   state.searchQuery = resultSearch.value;
   resetDisplayLimit();
   resetVirtualScrollPosition();
@@ -2422,13 +2593,13 @@ document.addEventListener('keydown', (e) => {
   if (e.target.matches?.('input, textarea, select')) {
     if (e.key === '/' && e.target !== resultSearch) {
       e.preventDefault();
-      resultSearch.focus();
+      resultSearch?.focus();
     }
     return;
   }
   if (e.key === '/') {
     e.preventDefault();
-    resultSearch.focus();
+    resultSearch?.focus();
     return;
   }
   if (e.key === 'Escape' && !imageLightbox.classList.contains('open')) {
