@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/government-lists.css?v=7">
+  <link rel="stylesheet" href="/css/government-lists.css?v=8">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -46,13 +46,6 @@
       <div class="gl-workspace">
         <aside class="gl-rail" aria-label="Filters">
           <div class="gl-rail-block">
-            <label class="gl-field gl-field--full">
-              <span class="gl-label">Search</span>
-              <input type="search" id="gl-search" class="phuglee-input" placeholder="City, county, state, notes…" autocomplete="off">
-            </label>
-          </div>
-
-          <div class="gl-rail-block">
             <p class="gl-rail-title">List type</p>
             <div id="gl-type-rail" class="gl-type-rail" role="group" aria-label="List type"></div>
           </div>
@@ -78,11 +71,18 @@
             </label>
           </div>
 
-          <div class="gl-rail-block gl-rail-foot">
+          <div class="gl-rail-block gl-rail-toggles">
+            <label class="gl-check">
+              <input type="checkbox" id="gl-has-email">
+              <span>Has contact email</span>
+            </label>
             <label class="gl-check">
               <input type="checkbox" id="gl-hide-playbook" checked>
               <span>Hide how-to rows</span>
             </label>
+          </div>
+
+          <div class="gl-rail-block gl-rail-foot">
             <button type="button" id="gl-clear" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm">Clear filters</button>
           </div>
 
@@ -93,11 +93,58 @@
         </aside>
 
         <section class="gl-main" aria-label="Sources">
-          <div id="gl-orient" class="gl-orient" aria-label="Coverage summary"></div>
+          <div class="gl-toolbar">
+            <label class="gl-search-field">
+              <span class="gl-visually-hidden">Search sources</span>
+              <input type="search" id="gl-search" class="phuglee-input gl-search-input" placeholder="Search city, county, notes…  ( / )" autocomplete="off">
+            </label>
+            <label class="gl-sort-field">
+              <span class="gl-visually-hidden">Sort</span>
+              <select id="gl-sort" class="phuglee-input">
+                <option value="place:asc">Place A→Z</option>
+                <option value="place:desc">Place Z→A</option>
+                <option value="list:asc">List type</option>
+                <option value="method:asc">Method</option>
+                <option value="status:asc">Status (best first)</option>
+                <option value="verified:desc">Recently verified</option>
+                <option value="verified:asc">Oldest verified</option>
+              </select>
+            </label>
+            <p id="gl-toolbar-count" class="gl-toolbar-count" aria-live="polite"></p>
+          </div>
+
+          <div id="gl-chips" class="gl-chips" aria-label="Active filters"></div>
+
+          <div id="gl-bulkbar" class="gl-bulkbar" hidden role="region" aria-label="Bulk actions">
+            <span id="gl-bulk-count" class="gl-bulk-count">0 selected</span>
+            <div class="gl-bulk-actions">
+              <button type="button" id="gl-bulk-emails" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm">Copy emails</button>
+              <button type="button" id="gl-bulk-csv" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm">Export CSV</button>
+              <button type="button" id="gl-bulk-start" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm">Start requests</button>
+              <button type="button" id="gl-bulk-clear" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm">Clear</button>
+            </div>
+          </div>
 
           <div class="gl-results-layout">
             <div class="gl-results-pane">
-              <div id="gl-results" class="gl-results" role="list"></div>
+              <div class="gl-tablewrap">
+                <div class="gl-table" role="table" aria-label="Government list sources">
+                  <div class="gl-thead" role="row">
+                    <span class="gl-th gl-th-select" role="columnheader">
+                      <input type="checkbox" id="gl-select-all" aria-label="Select all matching rows">
+                    </span>
+                    <button type="button" class="gl-th gl-th-sort" role="columnheader" data-sort="place">Place</button>
+                    <button type="button" class="gl-th gl-th-sort" role="columnheader" data-sort="list">List</button>
+                    <button type="button" class="gl-th gl-th-sort" role="columnheader" data-sort="method">Method</button>
+                    <button type="button" class="gl-th gl-th-sort" role="columnheader" data-sort="status">Status</button>
+                    <span class="gl-th" role="columnheader">Contact</span>
+                    <button type="button" class="gl-th gl-th-sort" role="columnheader" data-sort="verified">Verified</button>
+                  </div>
+                  <div id="gl-viewport" class="gl-viewport" tabindex="0" role="rowgroup" aria-label="Source rows">
+                    <div id="gl-rows" class="gl-rows"></div>
+                  </div>
+                </div>
+              </div>
               <p id="gl-empty" class="gl-empty" hidden>No sources match — clear the state filter or search a county name.</p>
             </div>
 
@@ -216,6 +263,7 @@
   <script src="/js/shell-nav.js?v=21" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js?v=2" defer></script>
-  <script src="/js/government-lists-app.js?v=7" defer></script>
+  <script src="/js/gov-lists-normalize.js?v=8" defer></script>
+  <script src="/js/government-lists-app.js?v=8" defer></script>
 </body>
 </html>
