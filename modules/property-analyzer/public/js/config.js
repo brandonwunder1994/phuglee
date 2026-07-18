@@ -892,6 +892,7 @@ R.reviewMetaBadges = $('reviewMetaBadges');
 R.reviewMetaAnalysis = $('reviewMetaAnalysis');
 R.reviewCompletePanel = $('reviewCompletePanel');
 R.reviewCompleteText = $('reviewCompleteText');
+R.reviewVaultCta = $('reviewVaultCta');
 R.reviewModeInner = $('reviewModeInner');
 R.reviewModeBadge = $('reviewModeBadge');
 R.reviewShortcutsBar = $('reviewShortcutsBar');
@@ -961,12 +962,16 @@ R.sidebarLoadBackupBtn = $('sidebarLoadBackupBtn');
 R.sidebarSaveBackupBtn = $('sidebarSaveBackupBtn');
 R.sidebarSettingsSaveBackupBtn = $('sidebarSettingsSaveBackupBtn');
 R.sidebarSettingsBackupHint = $('sidebarSettingsBackupHint');
+R.deskExportExcelBtn = $('deskExportExcelBtn');
+R.deskExportDialReadyBtn = $('deskExportDialReadyBtn');
 R.EXPORT_MENU_BTNS = [
   sidebarExportExcelBtn,
   sidebarExportCsvBtn,
   sidebarExportAllBtn,
   resultsExportCsvBtn,
-  resultsExportExcelBtn
+  resultsExportExcelBtn,
+  deskExportExcelBtn,
+  deskExportDialReadyBtn
 ];
 
 R.appNav = $('appNav');

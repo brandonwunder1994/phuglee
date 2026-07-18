@@ -1121,6 +1121,7 @@ R.processOneRecord = async function processOneRecord(record, svKey, gKey, worker
       }
       noteApiScanSuccess?.();
       if (record && typeof record === 'object') delete record.forceRescan;
+      delete result.forceRescan;
       for (const r of state.records || []) {
         if (recordKey(r) === recordKey(record)) delete r.forceRescan;
       }
@@ -1846,6 +1847,8 @@ R.startScanAnalysis = async function startScanAnalysis() {
           state.processed = Number(summary.results) || state.processed;
           tierCountsCache = null;
           invalidateReviewSnapshotCache?.();
+          // Refresh server awaiting-bucket counts so the KPI strip is truthful pre-hydrate.
+          void fetchAwaitingCounts?.({ force: true }).then(() => updateSummaryStats?.({ force: true, instant: true }));
           // force:true — reviewMode / dual-strip must repaint after scan (forceVault alone was skipped).
           updateSummaryStats?.({ force: true, forceVault: true, instant: true });
           updateScanReadyUi?.();
@@ -2068,31 +2071,24 @@ R.initAppShell = function initAppShell() {
   let cmdActiveIndex = 0;
   let cmdFiltered = [];
 
+  const hasLeads = () => (state.results || []).length > 0 && !state.running;
   const cmdActions = [
     { label: 'Start scan', hint: 'Begin property analysis', run: () => (scanReadyStartBtn || startBtn)?.click(), when: () => (scanReadyStartBtn || startBtn) && !(scanReadyStartBtn || startBtn).disabled },
     { label: 'Stop scan', hint: 'Halt current batch', run: () => stopBtn?.click(), when: () => stopBtn && !stopBtn.disabled },
     { label: 'Upload spreadsheet', hint: 'Load Excel file', run: () => openUploadModal() },
-    { label: 'Export all leads (Excel)', hint: 'Full spreadsheet — all leads in database', run: () => exportResults('xlsx', { scope: 'all', profile: 'full' }), when: () => sidebarExportExcelBtn && !sidebarExportExcelBtn.disabled },
-    { label: 'Export current list (CSV)', hint: 'Uses active filter & search', run: () => exportResults('csv', { scope: 'current' }), when: () => sidebarExportCsvBtn && !sidebarExportCsvBtn.disabled },
-    { label: 'Export database (Excel)', hint: 'All leads — dial-ready columns', run: () => exportResults('xlsx', { scope: 'all', profile: 'dial_ready' }), when: () => state.results.length > 0 && !state.running },
-    { label: 'Search leads', hint: 'Focus results search', keys: '/', run: () => resultSearch?.focus() },
+    { label: 'Export Excel (all leads)', hint: 'Full spreadsheet — all leads in this session', run: () => exportResults('xlsx', { scope: 'all', profile: 'full' }), when: hasLeads },
+    { label: 'Export dial-ready', hint: 'Dial-ready columns for your dialer or CRM', run: () => exportResults('xlsx', { scope: 'all', profile: 'dial_ready' }), when: hasLeads },
     { label: 'API Keys', hint: 'Keys and workers', run: () => openSettingsModal() },
     { label: 'AI Brain', hint: 'Learned tier rules', run: () => openBrainModal() },
     { label: 'Export backup now', hint: 'Full server checkpoint + download JSON', run: () => $('exportBackupNowBtn')?.click() },
     { label: 'Load backup JSON', hint: 'Restore session from file', run: () => $('loadBackupBtn')?.click() },
-    { label: 'Download session backup', hint: 'Timestamped JSON export', run: () => sidebarSaveBackupBtn?.click(), when: () => !!sidebarSaveBackupBtn },
-    { label: 'Distressed', hint: 'Quick tier review', run: () => openReviewMode('distressed'), when: () => sidebarReviewDistressedBtn && !sidebarReviewDistressedBtn.disabled },
-    { label: 'Well Maintained', hint: 'Quick tier review', run: () => openReviewMode('well_maintained'), when: () => sidebarReviewWellMaintainedBtn && !sidebarReviewWellMaintainedBtn.disabled },
-    { label: 'Land', hint: 'Vacant lot / land queue', run: () => openReviewMode('vacant'), when: () => sidebarReviewLandBtn && !sidebarReviewLandBtn.disabled },
-    { label: 'Blocked Image', hint: 'Blurry / blocked Street View', run: () => openReviewMode('blurred'), when: () => (state.results || []).length > 0 },
-    { label: 'Manual Review', hint: 'Uncertain residual queue', run: () => openReviewMode('review'), when: () => sidebarReviewNeedsReviewBtn && !sidebarReviewNeedsReviewBtn.disabled },
-    { label: 'Filter: All leads', run: () => setFilter('all') },
-    { label: 'Filter: Distressed', run: () => setFilter('distressed') },
-    { label: 'Filter: Well Maintained', run: () => setFilter('well_maintained') },
-    { label: 'Filter: Vacant lots', run: () => setFilter('vacant') },
-    { label: 'Filter: Needs review', run: () => setFilter('review') },
+    { label: 'Review: Distressed', hint: 'Open Distressed review queue', run: () => openReviewMode('distressed'), when: hasLeads },
+    { label: 'Review: Well Maintained', hint: 'Open Well Maintained review queue', run: () => openReviewMode('well_maintained'), when: hasLeads },
+    { label: 'Review: Land', hint: 'Open Land / vacant lot review queue', run: () => openReviewMode('vacant'), when: hasLeads },
+    { label: 'Review: Blocked', hint: 'Blurry / blocked Street View', run: () => openReviewMode('blurred'), when: hasLeads },
+    { label: 'Review: Needs Review', hint: 'Uncertain residual queue', run: () => openReviewMode('review'), when: hasLeads },
+    { label: 'Review: Satellite Only', hint: 'Satellite-only imagery queue', run: () => openReviewMode('satellite_only'), when: hasLeads },
     { label: 'Go to overview', run: () => scanReadySection?.scrollIntoView({ behavior: 'smooth', block: 'start' }) },
-    { label: 'Review leads', hint: 'Open review queue', run: () => reviewLeadsBtn?.click(), when: () => reviewLeadsBtn && !reviewLeadsBtn.disabled },
   ];
 
   window.showUiToast = (msg) => {

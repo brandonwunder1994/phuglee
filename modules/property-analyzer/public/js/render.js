@@ -992,10 +992,11 @@ R.navigateProperty = function navigateProperty(delta) {
 
 R.scrollToSelectedCard = function scrollToSelectedCard() {
   if (!state.selectedKey) return;
+  if (!cardsGrid && !resultsBody) return;
   requestAnimationFrame(() => {
-    const card = cardsGrid.querySelector(`[data-key="${CSS.escape(state.selectedKey)}"]`);
+    const card = cardsGrid?.querySelector(`[data-key="${CSS.escape(state.selectedKey)}"]`);
     if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    const row = resultsBody.querySelector(`[data-key="${CSS.escape(state.selectedKey)}"]`);
+    const row = resultsBody?.querySelector(`[data-key="${CSS.escape(state.selectedKey)}"]`);
     if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
 }
@@ -1073,7 +1074,13 @@ R.updateExportButtons = function updateExportButtons() {
   if (exportBtn) exportBtn.disabled = !canExportAll;
   for (const btn of EXPORT_MENU_BTNS) {
     if (!btn) continue;
-    if (btn === sidebarExportAllBtn || btn === sidebarExportExcelBtn || btn === resultsExportExcelBtn) btn.disabled = !canExportAll;
+    if (
+      btn === sidebarExportAllBtn ||
+      btn === sidebarExportExcelBtn ||
+      btn === resultsExportExcelBtn ||
+      btn === deskExportExcelBtn ||
+      btn === deskExportDialReadyBtn
+    ) btn.disabled = !canExportAll;
     else btn.disabled = !canExportFiltered;
   }
   if (bulkSelectToggleBtn) bulkSelectToggleBtn.disabled = !hasResults;
@@ -1182,11 +1189,26 @@ R.prepareDialReadyExport = async function prepareDialReadyExport(records) {
 R.exportResults = async function exportResults(format = 'xlsx', opts = {}) {
   const useAll = opts.scope === 'all';
   const profile = opts.profile || (useAll ? 'dial_ready' : 'full');
-  const records = useAll ? state.results : getFilteredResults();
   if (!state.results.length) {
     alert('No results to export yet — run a scan first.');
     return;
   }
+  // Scale guard: a full-database export must include every row. On large sessions
+  // (17k+) the client hydrates lazily, so exporting before hydrate silently drops
+  // rows. Force a full hydrate first so "all" means all.
+  if (useAll && typeof ensureSessionResultsLoaded === 'function'
+      && sessionLoadState && !sessionLoadState.complete) {
+    const target = Math.max(
+      Number(sessionLoadState.total) || 0,
+      Number(sessionLoadState.serverCanonical) || 0,
+      Number(state.processed) || 0
+    );
+    if (target > state.results.length) {
+      showUiToast?.(`Preparing export — loading all ${target.toLocaleString()} leads…`);
+      try { await ensureSessionResultsLoaded(); } catch (_) { /* export what we have */ }
+    }
+  }
+  const records = useAll ? state.results : getFilteredResults();
   if (!records.length) {
     alert('No leads in the current list to export — try a different filter or clear search.');
     return;
@@ -1212,6 +1234,12 @@ R.exportResults = async function exportResults(format = 'xlsx', opts = {}) {
     profile,
     origin: typeof window !== 'undefined' ? window.location.origin : ''
   });
+  // Large sheets: let the toast paint before the synchronous SheetJS build so the
+  // tab shows progress instead of a hard freeze.
+  if (exportData.length > 2000) {
+    showUiToast?.(`Building spreadsheet — ${exportData.length.toLocaleString()} leads…`);
+    await new Promise((r) => setTimeout(r, 0));
+  }
   const date = exportedAt.slice(0, 10);
   const slug = profile === 'dial_ready' ? 'database' : (useAll ? 'all' : exportFilterSlug());
   const baseName = `property-distress-${slug}-${date}`;

@@ -148,10 +148,35 @@ function clearReviewQueueCache(results) {
   if (results && typeof results === 'object') queueCacheByResults.delete(results);
 }
 
+/**
+ * Awaiting-review pending counts for every bucket, computed in one server pass.
+ * Reuses the same cached per-filter pending sets as the review queue so the KPI
+ * strip does not force the client to hydrate/scan ~16k rows six times.
+ * @param {object[]} results
+ * @returns {{ ok: true, scanned: number, awaiting: Record<string, number>, totalInFilter: Record<string, number> }}
+ */
+function buildAwaitingCounts(results) {
+  const list = Array.isArray(results) ? results : [];
+  const awaiting = {};
+  const totalInFilter = {};
+  for (const f of REVIEW_FILTERS) {
+    const built = getCachedPending(list, f);
+    awaiting[f] = built.pendingKeys.length;
+    totalInFilter[f] = built.totalInFilter;
+  }
+  return {
+    ok: true,
+    scanned: list.length,
+    awaiting,
+    totalInFilter
+  };
+}
+
 module.exports = {
   REVIEW_FILTERS,
   matchesReviewFilter,
   isExcludedFromReview,
   buildSessionReviewQueue,
+  buildAwaitingCounts,
   clearReviewQueueCache
 };
