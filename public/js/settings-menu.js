@@ -210,11 +210,7 @@
     dialog.innerHTML =
       '<form method="dialog" id="shell-payouts-form" class="uc-edit-form">' +
         '<h3>Payouts</h3>' +
-        '<p class="shell-payouts-help">TC fee comes off the assignment fee first, then Acq / Dispo split the remainder.</p>' +
-        '<label class="vault-field">' +
-          '<span class="vault-field-label">TC fee ($)</span>' +
-          '<input type="number" id="shell-payout-tc" class="phuglee-input" step="1" min="0" required>' +
-        '</label>' +
+        '<p class="shell-payouts-help">Assignment fee (minus photo cost) splits between Acq and Dispo. Default is 50 / 50. TC is no longer charged.</p>' +
         '<label class="vault-field">' +
           '<span class="vault-field-label">Acq percent</span>' +
           '<input type="number" id="shell-payout-acq" class="phuglee-input" step="1" min="0" max="100" required>' +
@@ -283,9 +279,8 @@
       .then(function (out) {
         if (!out.res.ok) throw new Error((out.data && out.data.error) || 'Could not load payouts');
         var s = out.data.settings || {};
-        dialog.querySelector('#shell-payout-tc').value = s.tcFee != null ? s.tcFee : 250;
-        dialog.querySelector('#shell-payout-acq').value = s.acqPercent != null ? s.acqPercent : 70;
-        dialog.querySelector('#shell-payout-dispo').value = s.dispoPercent != null ? s.dispoPercent : 30;
+        dialog.querySelector('#shell-payout-acq').value = s.acqPercent != null ? s.acqPercent : 50;
+        dialog.querySelector('#shell-payout-dispo').value = s.dispoPercent != null ? s.dispoPercent : 50;
         if (typeof dialog.showModal === 'function') dialog.showModal();
       })
       .catch(function (err) {
@@ -295,13 +290,8 @@
   }
 
   function savePayouts(dialog) {
-    var tc = Number(dialog.querySelector('#shell-payout-tc').value);
     var acq = Number(dialog.querySelector('#shell-payout-acq').value);
     var dispo = Number(dialog.querySelector('#shell-payout-dispo').value);
-    if (!Number.isFinite(tc) || tc < 0) {
-      showPayoutsError(dialog, 'Enter a valid TC fee');
-      return;
-    }
     if (!Number.isFinite(acq) || !Number.isFinite(dispo) || acq < 0 || dispo < 0) {
       showPayoutsError(dialog, 'Enter valid Acq / Dispo percents');
       return;
@@ -315,7 +305,7 @@
       method: 'PUT',
       credentials: 'same-origin',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tcFee: tc, acqPercent: acq, dispoPercent: dispo })
+      body: JSON.stringify({ tcFee: 0, acqPercent: acq, dispoPercent: dispo })
     })
       .then(function (res) { return res.json().then(function (data) { return { res: res, data: data }; }); })
       .then(function (out) {

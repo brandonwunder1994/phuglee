@@ -432,15 +432,19 @@ test('GHL sync preserves locked SMS contact remap', async () => {
   assert.equal(after.conversationId, 'MQYCgAMYQubw69lhUHhy');
 });
 
-test('computeDealPayouts deducts TC then photo cost before split', () => {
-  const { computeDealPayouts } = require('../lib/leads-platform/payout-settings');
+test('computeDealPayouts skips TC and splits 50/50 after photo cost', () => {
+  const { computeDealPayouts, DEFAULTS } = require('../lib/leads-platform/payout-settings');
+  assert.equal(DEFAULTS.tcFee, 0);
+  assert.equal(DEFAULTS.acqPercent, 50);
+  assert.equal(DEFAULTS.dispoPercent, 50);
+  // Legacy tcFee in settings is ignored — TC is retired.
   const settings = { tcFee: 500, acqPercent: 50, dispoPercent: 50 };
   const out = computeDealPayouts(10000, 1500, settings);
-  assert.equal(out.tcPay, 500);
+  assert.equal(out.tcPay, 0);
   assert.equal(out.photoCost, 1500);
-  assert.equal(out.netAfterCosts, 8000);
-  assert.equal(out.acqPay, 4000);
-  assert.equal(out.dispoPay, 4000);
+  assert.equal(out.netAfterCosts, 8500);
+  assert.equal(out.acqPay, 4250);
+  assert.equal(out.dispoPay, 4250);
 });
 
 test('sellerSms unread + mark seen + find latest inbound', () => {
