@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/government-lists.css?v=4">
+  <link rel="stylesheet" href="/css/government-lists.css?v=6">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=2"></script>
@@ -22,9 +22,9 @@
   <div id="distress-os-nav-mount"></div>
   <div id="gl-toast" class="vault-toast" hidden role="status" aria-live="polite"></div>
 
-  <main id="main" class="vault-main vault-main--app gl-main">
+  <main id="main" class="vault-main vault-main--app gl-main-shell">
     <header class="gl-hero">
-      <div>
+      <div class="gl-hero-copy">
         <p class="vault-eyebrow">Source phonebook</p>
         <h1 class="vault-title vault-title--desk">Government Lists</h1>
         <p class="vault-hero-sub">Where to pull each list — and county SOPs so weekly pulls stay boring.</p>
@@ -32,60 +32,86 @@
       <p id="gl-count" class="gl-count" aria-live="polite"></p>
     </header>
 
+    <section id="gl-research-progress" class="gl-research-progress" aria-label="Nationwide research progress" hidden>
+      <p class="gl-research-progress-title">Nationwide research (≥100k counties)</p>
+      <div id="gl-research-progress-stats" class="gl-research-progress-stats"></div>
+    </section>
+
     <div class="gl-tabs" role="tablist" aria-label="Government Lists views">
       <button type="button" class="gl-tab" role="tab" id="gl-tab-sources" aria-selected="true" data-tab="sources">Sources</button>
       <button type="button" class="gl-tab" role="tab" id="gl-tab-playbooks" aria-selected="false" data-tab="playbooks">County playbooks</button>
     </div>
 
     <section id="gl-panel-sources" class="gl-panel" role="tabpanel" aria-labelledby="gl-tab-sources">
-      <section class="gl-types" aria-label="List types">
-        <div id="gl-type-chips" class="gl-type-chips"></div>
-      </section>
+      <div class="gl-workspace">
+        <aside class="gl-rail" aria-label="Filters">
+          <div class="gl-rail-block">
+            <label class="gl-field gl-field--full">
+              <span class="gl-label">Search</span>
+              <input type="search" id="gl-search" class="phuglee-input" placeholder="City, county, state, notes…" autocomplete="off">
+            </label>
+          </div>
 
-      <section class="gl-filters" aria-label="Filters">
-        <label class="gl-field gl-field--grow">
-          <span class="gl-label">Search</span>
-          <input type="search" id="gl-search" class="phuglee-input" placeholder="City, county, state, notes…" autocomplete="off">
-        </label>
-        <label class="gl-field">
-          <span class="gl-label">List type</span>
-          <select id="gl-type" class="phuglee-input">
+          <div class="gl-rail-block">
+            <p class="gl-rail-title">List type</p>
+            <div id="gl-type-rail" class="gl-type-rail" role="group" aria-label="List type"></div>
+          </div>
+
+          <div class="gl-rail-block gl-rail-selects">
+            <label class="gl-field gl-field--full">
+              <span class="gl-label">State</span>
+              <select id="gl-state" class="phuglee-input">
+                <option value="">All states</option>
+              </select>
+            </label>
+            <label class="gl-field gl-field--full">
+              <span class="gl-label">Method</span>
+              <select id="gl-method" class="phuglee-input">
+                <option value="">All methods</option>
+              </select>
+            </label>
+            <label class="gl-field gl-field--full">
+              <span class="gl-label">Status</span>
+              <select id="gl-verify" class="phuglee-input">
+                <option value="">Any status</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="gl-rail-block gl-rail-foot">
+            <label class="gl-check">
+              <input type="checkbox" id="gl-hide-playbook" checked>
+              <span>Hide how-to rows</span>
+            </label>
+            <button type="button" id="gl-clear" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm">Clear filters</button>
+          </div>
+
+          <!-- Hidden native control retained for filter logic; the rail above drives it -->
+          <select id="gl-type" class="gl-visually-hidden" tabindex="-1" aria-hidden="true">
             <option value="">All types</option>
           </select>
-        </label>
-        <label class="gl-field">
-          <span class="gl-label">State</span>
-          <select id="gl-state" class="phuglee-input">
-            <option value="">All states</option>
-          </select>
-        </label>
-        <label class="gl-field">
-          <span class="gl-label">Method</span>
-          <select id="gl-method" class="phuglee-input">
-            <option value="">All methods</option>
-          </select>
-        </label>
-        <label class="gl-check">
-          <input type="checkbox" id="gl-hide-playbook" checked>
-          <span>Hide how-to rows</span>
-        </label>
-      </section>
-
-      <div class="gl-layout">
-        <section class="gl-results-pane" aria-label="Sources">
-          <div id="gl-results" class="gl-results" role="list"></div>
-          <p id="gl-empty" class="gl-empty" hidden>No sources match. Try another search or clear filters.</p>
-        </section>
-
-        <aside id="gl-detail" class="gl-detail" hidden aria-live="polite">
-          <div class="gl-detail-inner">
-            <div class="gl-detail-head">
-              <h2 id="gl-detail-title" class="gl-detail-title">Source</h2>
-              <button type="button" id="gl-detail-close" class="phuglee-btn phuglee-btn-ghost" aria-label="Close detail">Close</button>
-            </div>
-            <div id="gl-detail-body" class="gl-detail-body"></div>
-          </div>
         </aside>
+
+        <section class="gl-main" aria-label="Sources">
+          <div id="gl-orient" class="gl-orient" aria-label="Coverage summary"></div>
+
+          <div class="gl-results-layout">
+            <div class="gl-results-pane">
+              <div id="gl-results" class="gl-results" role="list"></div>
+              <p id="gl-empty" class="gl-empty" hidden>No sources match — clear the state filter or search a county name.</p>
+            </div>
+
+            <aside id="gl-detail" class="gl-detail" hidden aria-live="polite">
+              <div class="gl-detail-inner">
+                <div class="gl-detail-head">
+                  <h2 id="gl-detail-title" class="gl-detail-title">Source</h2>
+                  <button type="button" id="gl-detail-close" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" aria-label="Close detail">Close</button>
+                </div>
+                <div id="gl-detail-body" class="gl-detail-body"></div>
+              </div>
+            </aside>
+          </div>
+        </section>
       </div>
     </section>
 
@@ -190,6 +216,6 @@
   <script src="/js/shell-nav.js?v=21" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/command-palette.js?v=2" defer></script>
-  <script src="/js/government-lists-app.js?v=5" defer></script>
+  <script src="/js/government-lists-app.js?v=6" defer></script>
 </body>
 </html>
