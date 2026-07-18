@@ -194,14 +194,23 @@ describe('signnow-send helpers', () => {
     assert.doesNotMatch(aocFn, /role: 'Assignor'/);
   });
 
-  it('stamps Buyer on amendments and invites sellers only', () => {
+  it('stamps Buyer on amendments with real signature and invites sellers only', () => {
     const src = require('fs').readFileSync(
       require('path').join(__dirname, '../lib/leads-platform/signnow-send.js'),
       'utf8'
     );
-    assert.match(src, /stampRoles:\s*\{\s*Buyer:/);
-    assert.match(src, /buyer_date: sendDate/);
-    assert.doesNotMatch(src, /role: 'Buyer'/);
+    const amdFn = src.slice(
+      src.indexOf('async function sendAmendmentForDeal'),
+      src.indexOf('async function sendCashForDeal')
+    );
+    assert.match(amdFn, /applyPrefillStampingRole/);
+    assert.match(amdFn, /stampRole: 'Buyer'/);
+    assert.match(amdFn, /loadOwnerArtifactsFromTemplate/);
+    assert.match(amdFn, /dropStampSignatures: true/);
+    assert.match(amdFn, /buyer_date: sendDate/);
+    assert.match(amdFn, /skipRoles: sellers\.length < 2 \? \['Seller 2'\]/);
+    assert.doesNotMatch(amdFn, /stampRoles:\s*\{\s*Buyer:/);
+    assert.doesNotMatch(amdFn, /role: 'Buyer'/);
   });
 
   it('converts stamped-role signature fields to a text name stamp', () => {

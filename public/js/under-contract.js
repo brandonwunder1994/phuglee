@@ -3045,33 +3045,63 @@
           || deal?.originalAgreementDate
           || contact?.contractSignedDate
           || '',
-        name: fromApi.counterpartyName
-          || ba.buyerEntity
-          || ba.buyerContactName
-          || deal?.cashBuyerName
-          || contact?.cashBuyerName
-          || '',
-        email: fromApi.counterpartyEmail || ba.buyerEmail || ''
+        sellers: [{
+          name: fromApi.counterpartyName
+            || ba.buyerEntity
+            || ba.buyerContactName
+            || deal?.cashBuyerName
+            || contact?.cashBuyerName
+            || '',
+          email: fromApi.counterpartyEmail || ba.buyerEmail || ''
+        }]
       };
     }
-    // Prefer GHL contact email when deal store / amendmentDefaults lack it
+    let sellers = Array.isArray(fromApi.sellers) ? fromApi.sellers.slice() : [];
+    if (!sellers.length && Array.isArray(deal?.contractSellers) && deal.contractSellers.length) {
+      sellers = deal.contractSellers.slice();
+    }
+    if (!sellers.length) {
+      const names = String(deal?.sellerNames || '')
+        .split(/\s*\/\s*/)
+        .map((n) => String(n || '').trim())
+        .filter(Boolean);
+      const s1Name = deal?.ownerName || names[0] || contact?.sellersName || contact?.name || '';
+      const s1Email = deal?.ownerEmail || deal?.email || contact?.email || '';
+      sellers = [{ name: s1Name, email: s1Email }];
+      if (names[1]) sellers.push({ name: names[1], email: '' });
+    }
     return {
       originalAgreementDate: fromApi.originalAgreementDate
         || deal?.originalAgreementDate
         || contact?.contractSignedDate
         || '',
-      name: fromApi.counterpartyName
-        || deal?.ownerName
-        || deal?.sellerNames
-        || contact?.sellersName
-        || contact?.name
-        || '',
-      email: fromApi.counterpartyEmail
-        || deal?.ownerEmail
-        || deal?.email
-        || contact?.email
-        || ''
+      sellers
     };
+  }
+
+  function syncAmendmentSellerCountUi() {
+    const party = $('uc-amendment-party')?.value || 'seller';
+    const sellerBlock = $('uc-amendment-seller-block');
+    const buyerBlock = $('uc-amendment-end-buyer-block');
+    const isBuyer = party === 'end_buyer';
+    if (sellerBlock) sellerBlock.hidden = isBuyer;
+    if (buyerBlock) buyerBlock.hidden = !isBuyer;
+    const s1Name = $('uc-amendment-s1-name');
+    const s1Email = $('uc-amendment-s1-email');
+    const buyerName = $('uc-amendment-buyer-name');
+    const buyerEmail = $('uc-amendment-buyer-email');
+    if (s1Name) s1Name.required = !isBuyer;
+    if (s1Email) s1Email.required = !isBuyer;
+    if (buyerName) buyerName.required = isBuyer;
+    if (buyerEmail) buyerEmail.required = isBuyer;
+
+    const count = document.querySelector('input[name="uc-amendment-seller-count"]:checked')?.value || '1';
+    const box = $('uc-amendment-seller2');
+    if (box) box.hidden = isBuyer || count !== '2';
+    const s2Name = $('uc-amendment-s2-name');
+    const s2Email = $('uc-amendment-s2-email');
+    if (s2Name) s2Name.required = !isBuyer && count === '2';
+    if (s2Email) s2Email.required = !isBuyer && count === '2';
   }
 
   function applyAmendmentPartyFields() {
@@ -3080,17 +3110,26 @@
     if (!deal) return;
     const party = $('uc-amendment-party')?.value || 'seller';
     const defs = amendmentPartyDefaults(deal, contact, party);
-    const isBuyer = party === 'end_buyer';
-    if ($('uc-amendment-name-label')) {
-      $('uc-amendment-name-label').textContent = isBuyer ? 'End buyer name' : 'Seller name';
-    }
-    if ($('uc-amendment-email-label')) {
-      $('uc-amendment-email-label').textContent = isBuyer ? 'End buyer email' : 'Seller email';
-    }
     $('uc-amendment-orig-date').value = defs.originalAgreementDate || '';
     if ($('uc-amendment-orig-date')) $('uc-amendment-orig-date').readOnly = true;
-    $('uc-amendment-seller-name').value = defs.name || '';
-    $('uc-amendment-seller-email').value = defs.email || '';
+
+    if (party === 'end_buyer') {
+      const s = defs.sellers?.[0] || {};
+      if ($('uc-amendment-buyer-name')) $('uc-amendment-buyer-name').value = s.name || '';
+      if ($('uc-amendment-buyer-email')) $('uc-amendment-buyer-email').value = s.email || '';
+    } else {
+      const sellers = Array.isArray(defs.sellers) ? defs.sellers : [];
+      const countRadio = document.querySelector(
+        `input[name="uc-amendment-seller-count"][value="${sellers.length >= 2 ? '2' : '1'}"]`
+      );
+      if (countRadio) countRadio.checked = true;
+      if ($('uc-amendment-s1-name')) $('uc-amendment-s1-name').value = sellers[0]?.name || '';
+      if ($('uc-amendment-s1-email')) $('uc-amendment-s1-email').value = sellers[0]?.email || '';
+      if ($('uc-amendment-s2-name')) $('uc-amendment-s2-name').value = sellers[1]?.name || '';
+      if ($('uc-amendment-s2-email')) $('uc-amendment-s2-email').value = sellers[1]?.email || '';
+    }
+
+    syncAmendmentSellerCountUi();
     const hint = $('uc-amendment-orig-hint');
     if (hint) {
       hint.textContent = defs.originalAgreementDate
@@ -3178,10 +3217,32 @@
     if (state._amendmentSending) return;
     const id = $('uc-amendment-deal-id').value;
     const partyType = $('uc-amendment-party')?.value || 'seller';
-    const name = $('uc-amendment-seller-name').value.trim();
-    const email = $('uc-amendment-seller-email').value.trim();
     const terms = $('uc-amendment-terms').value.trim();
-    if (!id || !name || !email || !terms) return;
+    if (!id || !terms) return;
+
+    let sellers = [];
+    let sellerCount = 1;
+    if (partyType === 'end_buyer') {
+      const name = ($('uc-amendment-buyer-name')?.value || '').trim();
+      const email = ($('uc-amendment-buyer-email')?.value || '').trim();
+      if (!name || !email) return;
+      sellers = [{ name, email }];
+    } else {
+      sellerCount = Number(document.querySelector('input[name="uc-amendment-seller-count"]:checked')?.value || '1');
+      const s1Name = ($('uc-amendment-s1-name')?.value || '').trim();
+      const s1Email = ($('uc-amendment-s1-email')?.value || '').trim();
+      if (!s1Name || !s1Email) return;
+      sellers = [{ name: s1Name, email: s1Email }];
+      if (sellerCount >= 2) {
+        const s2Name = ($('uc-amendment-s2-name')?.value || '').trim();
+        const s2Email = ($('uc-amendment-s2-email')?.value || '').trim();
+        if (!s2Name || !s2Email) {
+          showToast('Seller 2 name and email are required', 7000);
+          return;
+        }
+        sellers.push({ name: s2Name, email: s2Email });
+      }
+    }
 
     const btn = $('uc-amendment-submit');
     const prevLabel = btn?.textContent || 'Send Amendment';
@@ -3195,12 +3256,12 @@
     const body = {
       partyType,
       amendmentTerms: terms,
-      // Original agreement date is locked to PSA — server resolves it; do not send edits
-      sellerName: name,
-      sellerEmail: email,
-      counterpartyName: name,
-      counterpartyEmail: email,
-      sellers: [{ name, email }]
+      sellerCount,
+      sellers,
+      sellerName: sellers[0].name,
+      sellerEmail: sellers[0].email,
+      counterpartyName: sellers[0].name,
+      counterpartyEmail: sellers[0].email
     };
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/send-amendment`, {
@@ -3650,6 +3711,9 @@
     $('uc-jv-form')?.addEventListener('submit', submitSendJv);
     $('uc-amendment-form')?.addEventListener('submit', submitAmendment);
     $('uc-amendment-party')?.addEventListener('change', applyAmendmentPartyFields);
+    document.querySelectorAll('input[name="uc-amendment-seller-count"]').forEach((radio) => {
+      radio.addEventListener('change', syncAmendmentSellerCountUi);
+    });
     $('uc-buyer-cancel')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
     $('uc-buyer-close')?.addEventListener('click', () => $('uc-buyer-dialog')?.close());
     $('uc-jv-cancel')?.addEventListener('click', () => $('uc-jv-dialog')?.close());
