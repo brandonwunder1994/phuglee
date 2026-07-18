@@ -130,6 +130,39 @@
   gap: 0.4rem;
 }
 
+.review-meta-actions {
+  display: flex;
+}
+
+.review-meta-profile-btn {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.5rem 0.85rem;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 1px solid rgba(229, 132, 53, 0.4);
+  background: rgba(229, 132, 53, 0.12);
+  color: var(--phuglee-cream, #f5f2e4);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.review-meta-profile-btn:hover,
+.review-meta-profile-btn:focus-visible {
+  background: rgba(229, 132, 53, 0.22);
+  border-color: rgba(229, 132, 53, 0.65);
+  outline: none;
+}
+
+/* Full profile opens over the Review overlay (z-index 12000) — keep it above,
+   but below the image lightbox (25000). */
+body.review-mode-active .property-modal.open {
+  z-index: 13000;
+}
+
 .review-shortcuts-bar {
   display: flex;
   align-items: center;
