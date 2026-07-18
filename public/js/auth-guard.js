@@ -15,7 +15,8 @@
     '/under-contract': true,
     '/pipeline': true,
     '/buyers': true,
-    '/trust-funds': true
+    '/trust-funds': true,
+    '/government-lists': true
   };
   var DISPOS_HOME = '/under-contract';
   var VAULT_ONLY_USER = 'matt';

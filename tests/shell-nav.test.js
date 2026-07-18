@@ -107,6 +107,18 @@ test('brad shell nav includes Buyers under Pipeline', () => {
   assert.equal(api.activeId('/buyers'), 'buyers');
 });
 
+test('brad shell nav includes Government Lists', () => {
+  const api = loadShellNavApi('brad');
+  const nav = api.buildNav('/government-lists');
+  assert.ok(nav.includes('href="/government-lists"'));
+  assert.ok(nav.includes('>Government Lists<'));
+  assert.ok(nav.includes('aria-current="page"'));
+  assert.equal(api.activeId('/government-lists'), 'government-lists');
+  const footer = api.buildFooter('/government-lists');
+  assert.ok(footer.includes('href="/government-lists"'));
+  assert.ok(!footer.includes('href="/collect"'));
+});
+
 test('non-desk shell nav hides Pipeline and Buyers', () => {
   const api = loadShellNavApi(null);
   const nav = api.buildNav('/collect');
