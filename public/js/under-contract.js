@@ -2612,8 +2612,14 @@
     $('uc-buyer-title').textContent = deal.address ? `Send AOC — ${deal.address}` : 'Send AOC';
     const lead = $('uc-aoc-property-line');
     if (lead) {
-      lead.textContent = `Property address (from deal): ${propLine}. Assignee fills their own name/address/phone when they sign.`;
+      lead.textContent = `Property address (from deal): ${propLine}. Fill buyer name/phone/email below — they fill address, then sign, date, By, and Its.`;
     }
+    $('uc-aoc-buyer-name').value = aoc.buyerName
+      || deal.buyerAssignment?.buyerContactName
+      || deal.buyerAssignment?.buyerEntity
+      || deal.cashBuyerName
+      || '';
+    $('uc-aoc-buyer-phone').value = aoc.buyerPhone || deal.buyerAssignment?.buyerPhone || '';
     $('uc-aoc-buyer-email').value = aoc.buyerEmail || deal.buyerAssignment?.buyerEmail || '';
     $('uc-aoc-legal').value = aoc.legalDescription || '';
     $('uc-aoc-apn').value = aoc.apn || '';
@@ -3008,6 +3014,8 @@
     ev.preventDefault();
     const id = $('uc-buyer-deal-id').value;
     const body = {
+      buyerName: $('uc-aoc-buyer-name').value.trim(),
+      buyerPhone: $('uc-aoc-buyer-phone').value.trim(),
       buyerEmail: $('uc-aoc-buyer-email').value.trim(),
       legalDescription: $('uc-aoc-legal').value.trim(),
       apn: $('uc-aoc-apn').value.trim(),
