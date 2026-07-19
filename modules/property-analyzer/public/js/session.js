@@ -226,6 +226,8 @@ R.fetchAwaitingCounts = async function fetchAwaitingCounts(opts = {}) {
       totalInFilter: body.totalInFilter || {},
       at: Date.now()
     };
+    // Refresh Review primary CTA count once server awaiting is known.
+    try { updateScanReadyUi?.(); } catch (_) {}
     return state._awaitingCountsFromServer;
   } catch (_) {
     return null;
@@ -319,6 +321,9 @@ R.paintVaultSummaryRow = function paintVaultSummaryRow(meta, opts = {}) {
   setVal('sumVaultWellMaintained', wm);
   setVal('sumVaultLand', land);
   setVal('sumVaultTotal', total);
+  if (typeof updateVaultStripMeta === 'function') {
+    updateVaultStripMeta(available ? total : null);
+  }
 
   const row = $('summaryVaultRow');
   if (row) {
@@ -328,6 +333,8 @@ R.paintVaultSummaryRow = function paintVaultSummaryRow(meta, opts = {}) {
       ? 'Approved leads in The Vault catalog'
       : 'Vault totals unavailable — check Max plan / login';
   }
+  const collapse = $('summaryVaultCollapse');
+  if (collapse) collapse.classList.toggle('is-unavailable', !available);
 };
 
 /** Refresh Vault strip (force refetch). Safe to call fire-and-forget. */
@@ -618,6 +625,7 @@ R.updateFilterLabels = function updateFilterLabels() {
     const el = document.querySelector(`#${id} .summary-lbl`);
     if (el) el.textContent = categoryLabelWithCount(filter, count);
   };
+  // KPI tiles are the review entry point (Review Leads dropdown removed).
   lbl('sumDistressedKpiCard', 'distressed', counts.distressed);
   lbl('sumWellMaintainedCard', 'well_maintained', counts.well_maintained);
   lbl('sumVacantCard', 'vacant', counts.vacant);
@@ -755,12 +763,6 @@ R.paintAnalyzePipeline = function paintAnalyzePipeline() {
   });
 };
 
-R.updateKpiPct = function updateKpiPct(el, count, total) {
-  if (!el) return;
-  const pct = total ? Math.round((Math.max(0, count) / total) * 100) : 0;
-  el.textContent = `${pct}%`;
-}
-
 R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   if (state.reviewMode && !opts.force) return;
   const n = state.results.length;
@@ -790,9 +792,12 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
     animateStatNumber($('sumReview'), 0, { instant: true });
     paintVaultSummaryRow(null, { instant: true });
     const intro = $('summaryIntro');
-    if (intro) intro.textContent = 'Upload a list and scan — awaiting-review and Vault totals show here when done.';
+    if (intro) {
+      intro.hidden = true;
+      intro.textContent = '';
+    }
     $('sumReviewCard')?.classList.remove('has-items');
-    if ($('sumReviewCard')) $('sumReviewCard').hidden = true;
+    if ($('sumReviewCard')) $('sumReviewCard').hidden = false;
     animateStatNumber($('sumSatelliteOnly'), 0, { instant: true });
     if ($('sumSatelliteOnlyCard')) $('sumSatelliteOnlyCard').hidden = true;
     updateScannedCountUi();
@@ -816,7 +821,8 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
   const reviewN = Number(awaiting.review) || 0;
   animateStatNumber($('sumReview'), reviewN, animOpts);
   if ($('sumReviewCard')) {
-    $('sumReviewCard').hidden = reviewN <= 0;
+    // Peer card in the same KPI row as Distressed / Well Maintained (always shown).
+    $('sumReviewCard').hidden = false;
     $('sumReviewCard').classList.toggle('has-items', reviewN > 0);
   }
   const satelliteN = Number(awaiting.satellite_only) || 0;
@@ -837,9 +843,16 @@ R.updateSummaryStats = function updateSummaryStats(opts = {}) {
     + reviewN;
   const intro = $('summaryIntro');
   if (intro) {
-    intro.textContent = totalScanned
-      ? `${totalScanned.toLocaleString()} scanned · ${pendingReview.toLocaleString()} awaiting — tap a bucket to review · Vault totals below`
-      : 'Awaiting-review buckets fill after Street View + AI finish.';
+    // Header is title-only — no “X open” / status line under Review Properties.
+    intro.hidden = true;
+    intro.textContent = '';
+    intro.setAttribute('aria-hidden', 'true');
+  }
+  const awaitingLbl = $('summaryAwaitingLabel');
+  if (awaitingLbl) {
+    awaitingLbl.hidden = true;
+    awaitingLbl.textContent = '';
+    awaitingLbl.setAttribute('aria-hidden', 'true');
   }
 
   // Vault row — use cache instantly, refresh in background when stale/forced

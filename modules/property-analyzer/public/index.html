@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/cyber-review.css?v=20260717-w4-loop">
   <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260714-mobile6">
-  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=5-dual-buckets">
+  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=22-no-pct">
   <link rel="stylesheet" href="/css/property-profile-v2.css?v=2" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/css/property-profile-v2.css?v=2"></noscript>
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
@@ -107,54 +107,151 @@
     <div class="main-workspace visible" id="mainWorkspace">
 
     <div class="analyze-hero-zone" data-phuglee-reveal>
-      <header class="analyze-page-hero">
-        <p class="analyze-step-label">Step 03 · Analyze</p>
-        <h1 class="analyze-page-title">Scan desk</h1>
-        <p class="analyze-page-lead">Upload a list → Start Scan → Street View + AI sorts into Distressed, Well Maintained, Land, or Blocked → Review those groups.</p>
+      <header class="analyze-page-hero" id="analyzePageHero">
+        <p class="analyze-step-label">03 · Analyze</p>
+        <h1 class="analyze-page-title">Scan</h1>
+        <p class="analyze-page-lead" id="analyzePageLead">Import → scan → review</p>
       </header>
 
       <nav class="analyze-pipeline" id="analyzePipeline" aria-label="Analyze workflow">
         <ol class="analyze-pipeline-list">
-          <li class="analyze-pipeline-step is-complete" data-step="upload"><span>1</span> Upload</li>
+          <li class="analyze-pipeline-step is-complete" data-step="upload"><span>1</span> Import</li>
           <li class="analyze-pipeline-step is-active" data-step="scan"><span>2</span> Scan</li>
-          <li class="analyze-pipeline-step" data-step="buckets"><span>3</span> Buckets</li>
+          <li class="analyze-pipeline-step" data-step="buckets"><span>3</span> Sort</li>
           <li class="analyze-pipeline-step" data-step="review"><span>4</span> Review</li>
         </ol>
       </nav>
 
-    <section class="scan-ready-section scan-desk-v2 phuglee-panel phuglee-panel-featured analyze-panel" id="scanReadySection" data-phuglee-reveal-child>
-      <div class="scan-ready-meta">
-        <p class="analyze-panel-eyebrow">Ready to scan</p>
-        <h2 class="scan-ready-location" id="scanReadyLocation">Import leads to scan</h2>
-        <p class="scan-ready-count analyze-panel-lead" id="scanReadyCount">Upload a CSV/Excel file, then start Street View + AI scan.</p>
+    <!-- Desk grid: buckets primary when session loaded; two columns on wide screens -->
+    <div class="analyze-desk-grid" id="analyzeDeskGrid">
+
+    <section class="summary-section analyze-bucket-board phuglee-panel analyze-panel analyze-global-kpis analyze-desk-primary" id="summarySection" hidden data-phuglee-reveal-child>
+      <div class="summary-head">
+        <h2 class="analyze-panel-heading">Review Properties</h2>
+        <p class="summary-intro analyze-panel-lead" id="summaryIntro" hidden aria-hidden="true"></p>
+      </div>
+      <p class="summary-row-label" id="summaryAwaitingLabel" hidden aria-hidden="true"></p>
+      <div class="bridge-kpi-grid analyze-metric-strip analyze-metric-strip--scroll" id="summaryHeroRow" aria-label="Open review">
+        <button type="button" class="bridge-kpi bridge-kpi--p0 bridge-kpi--accent clickable" id="sumDistressedKpiCard" title="Distressed">
+          <span class="bridge-kpi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 21v-6h6v6"/><path d="M12 3v3"/></svg>
+          </span>
+          <span class="bridge-kpi-value" id="sumDistressedKpi">0</span>
+          <span class="bridge-kpi-label">Distressed</span>
+        </button>
+        <button type="button" class="bridge-kpi clickable" id="sumWellMaintainedCard" title="Well Maintained">
+          <span class="bridge-kpi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9 14.5l2 2 4-4"/></svg>
+          </span>
+          <span class="bridge-kpi-value" id="sumWellMaintained">0</span>
+          <span class="bridge-kpi-label">Well Maintained</span>
+        </button>
+        <button type="button" class="bridge-kpi clickable" id="sumVacantCard" title="Land">
+          <span class="bridge-kpi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c2-3 4-5 6-5s3 2 5 2 4-2 7-6"/><path d="M3 21h18"/></svg>
+          </span>
+          <span class="bridge-kpi-value" id="sumVacant">0</span>
+          <span class="bridge-kpi-label">Land</span>
+        </button>
+        <button type="button" class="bridge-kpi clickable" id="sumBlurredCard" title="Blocked">
+          <span class="bridge-kpi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8"/><path d="M9.9 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 9 7-0.4 1.1-1.2 2.3-2.3 3.4"/><path d="M6.1 6.1C4.3 7.5 3.2 9.2 3 12c0 2.5 4 7 9 7 1.4 0 2.7-.3 3.9-.9"/></svg>
+          </span>
+          <span class="bridge-kpi-value" id="sumBlurred">0</span>
+          <span class="bridge-kpi-label">Blocked</span>
+        </button>
+        <button type="button" class="bridge-kpi bridge-kpi--p1 clickable" id="sumReviewCard" title="Needs Review">
+          <span class="bridge-kpi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8a2 2 0 0 1 2 2v14l-3-2-3 2-3-2-3 2V6a2 2 0 0 1 2-2z"/><path d="M12 10h.01"/><path d="M12 13v3"/></svg>
+          </span>
+          <span class="bridge-kpi-value" id="sumReview">0</span>
+          <span class="bridge-kpi-label">Needs Review</span>
+        </button>
+        <button type="button" class="bridge-kpi clickable" id="sumSatelliteOnlyCard" title="Satellite Only" hidden>
+          <span class="bridge-kpi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="m4.9 4.9 2.1 2.1M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/></svg>
+          </span>
+          <span class="bridge-kpi-value" id="sumSatelliteOnly">0</span>
+          <span class="bridge-kpi-label">Sat only</span>
+        </button>
+        <div class="bridge-kpi bridge-kpi--total" id="sumScannedHeroCard" title="Scanned">
+          <span class="bridge-kpi-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 12h10"/></svg>
+          </span>
+          <span class="bridge-kpi-value" id="sumScannedHero">0</span>
+          <span class="bridge-kpi-label">Scanned</span>
+        </div>
       </div>
 
-      <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import leads for scan">
+      <div class="summary-vault-collapse" id="summaryVaultCollapse">
+        <button type="button" class="summary-vault-toggle" id="summaryVaultToggle"
+          aria-expanded="false" aria-controls="summaryVaultPanel">
+          <span class="summary-vault-toggle-label">Vault</span>
+          <span class="summary-vault-toggle-meta" id="summaryVaultToggleMeta">—</span>
+          <span class="summary-vault-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="summary-vault-panel" id="summaryVaultPanel" hidden>
+          <div class="bridge-kpi-grid analyze-metric-strip analyze-metric-strip--scroll summary-vault-row" id="summaryVaultRow" aria-label="Approved leads in The Vault">
+            <a class="bridge-kpi bridge-kpi--accent clickable summary-vault-link" id="sumVaultDistressedCard" href="/vault?leadType=distressed" data-vault-lead-type="distressed" title="Open Distressed in The Vault">
+              <span class="bridge-kpi-value" id="sumVaultDistressed">—</span>
+              <span class="bridge-kpi-label">Distressed</span>
+            </a>
+            <a class="bridge-kpi clickable summary-vault-link" id="sumVaultWellMaintainedCard" href="/vault?leadType=well_maintained" data-vault-lead-type="well_maintained" title="Open Well Maintained in The Vault">
+              <span class="bridge-kpi-value" id="sumVaultWellMaintained">—</span>
+              <span class="bridge-kpi-label">Well Maintained</span>
+            </a>
+            <a class="bridge-kpi clickable summary-vault-link" id="sumVaultLandCard" href="/vault?leadType=land" data-vault-lead-type="land" title="Open Land in The Vault">
+              <span class="bridge-kpi-value" id="sumVaultLand">—</span>
+              <span class="bridge-kpi-label">Land</span>
+            </a>
+            <a class="bridge-kpi clickable summary-vault-link" id="sumVaultTotalCard" href="/vault" data-vault-lead-type="" title="Open The Vault">
+              <span class="bridge-kpi-value" id="sumVaultTotal">—</span>
+              <span class="bridge-kpi-label">Total</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div id="summaryBreakdown" hidden aria-hidden="true">
+        <div id="summaryPipeline"><div id="summaryPipelineTrack"></div></div>
+        <div id="summarySecondaryGrid">
+          <div id="sumWellMaintainedLegacy"></div>
+          <div id="sumVacantLegacy"></div>
+          <div id="sumBlurredLegacy"></div>
+        </div>
+        <span id="sumDistressedKpiHint" hidden></span>
+      </div>
+    </section>
+
+    <div class="analyze-desk-secondary" id="analyzeDeskSecondary">
+
+    <section class="scan-ready-section scan-desk-v2 phuglee-panel phuglee-panel-featured analyze-panel analyze-list-panel" id="scanReadySection" data-phuglee-reveal-child>
+      <div class="scan-ready-meta">
+        <p class="analyze-panel-eyebrow">List</p>
+        <div class="scan-ready-file-row">
+          <span class="scan-ready-file-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>
+          </span>
+          <h2 class="scan-ready-location" id="scanReadyLocation">Import</h2>
+        </div>
+        <p class="scan-ready-count analyze-panel-lead" id="scanReadyCount">Drop a list · hit Scan</p>
+      </div>
+
+      <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import list">
         <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-label="Drop a spreadsheet or press Enter to browse">
-          <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Browse for spreadsheet to scan">
+          <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Browse for spreadsheet">
           <div class="scan-import-drop-inner" id="scanImportDropInner">
-            <button type="button" class="scan-import-browse-link" id="scanImportBrowseLabel">browse files</button>
-            <p class="scan-import-hint">Drop a Filter export or spreadsheet. First / Last / Phone / Email / Address / City / State / ZIP</p>
+            <button type="button" class="scan-import-browse-link" id="scanImportBrowseLabel">Drop or browse</button>
+            <p class="scan-import-hint">.xlsx · .csv</p>
             <p class="scan-import-status" id="scanImportStatus" hidden></p>
           </div>
         </div>
       </div>
 
-      <div class="scan-ready-actions">
+      <div class="scan-ready-actions" id="scanReadyActions">
         <div class="scan-ready-actions-primary">
-          <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Start Scan</button>
-          <button type="button" class="btn-secondary scan-ready-stop" id="scanReadyStopBtn" hidden>Stop Scan</button>
-          <div class="review-leads-wrap" id="reviewLeadsWrap">
-            <button type="button" class="btn-secondary review-leads-btn" id="reviewLeadsBtn" disabled aria-haspopup="true" aria-expanded="false" aria-controls="reviewLeadsMenu">Review Leads</button>
-            <div class="review-leads-menu" id="reviewLeadsMenu" role="menu" hidden>
-              <button type="button" class="review-leads-item" data-review-flow="distressed" role="menuitem">Distressed</button>
-              <button type="button" class="review-leads-item" data-review-flow="well_maintained" role="menuitem">Well Maintained</button>
-              <button type="button" class="review-leads-item" data-review-flow="vacant" role="menuitem">Land</button>
-              <button type="button" class="review-leads-item" data-review-flow="blurred" role="menuitem">Blocked</button>
-              <button type="button" class="review-leads-item" data-review-flow="review" role="menuitem">Needs Review</button>
-              <button type="button" class="review-leads-item" data-review-flow="satellite_only" role="menuitem">Satellite Only</button>
-            </div>
-          </div>
+          <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Scan</button>
+          <button type="button" class="btn-secondary scan-ready-stop" id="scanReadyStopBtn" hidden>Stop</button>
         </div>
         <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
           <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
@@ -164,8 +261,15 @@
             <button type="button" class="scan-desk-overflow-item" id="deskExportDialReadyBtn" role="menuitem" title="Download dial-ready columns for your dialer or CRM" disabled>Export dial-ready</button>
             <button type="button" class="scan-desk-overflow-item" id="exportBackupNowBtn" role="menuitem" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
             <button type="button" class="scan-desk-overflow-item" id="apiUsageOpenBtn" role="menuitem" title="View Maps and Gemini usage estimates">API usage and credits</button>
+            <button type="button" class="scan-desk-overflow-item" id="deskOpenSettingsBtn" role="menuitem" title="API keys and parallel workers">API keys &amp; workers</button>
+            <button type="button" class="scan-desk-overflow-item" id="deskOpenBrainBtn" role="menuitem" title="AI learned rules from Keep/Change">AI learned rules</button>
           </div>
         </div>
+      </div>
+      <!-- Legacy stubs so older JS that looks up reviewLeads* IDs does not throw -->
+      <div class="review-leads-wrap" id="reviewLeadsWrap" hidden aria-hidden="true">
+        <button type="button" class="btn-secondary review-leads-btn" id="reviewLeadsBtn" hidden disabled tabindex="-1" aria-hidden="true">Review Leads</button>
+        <div class="review-leads-menu" id="reviewLeadsMenu" role="menu" hidden></div>
       </div>
     </section>
 
@@ -179,7 +283,7 @@
       <div class="live-scan-progress-track" aria-hidden="true">
         <span class="live-scan-progress-fill" id="liveScanProgressFill"></span>
       </div>
-      <div class="live-scan-kpis analyze-metric-strip" id="liveScanKpis" aria-label="Live scan KPIs">
+      <div class="live-scan-kpis analyze-metric-strip analyze-metric-strip--scroll" id="liveScanKpis" aria-label="Live scan KPIs">
         <div class="live-scan-kpi live-scan-kpi--accent">
           <span class="live-scan-kpi-value" id="liveScanKpiDistressed">0</span>
           <span class="live-scan-kpi-label">Distressed</span>
@@ -229,72 +333,9 @@
       </div>
     </section>
 
-    <section class="summary-section analyze-bucket-board phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" hidden data-phuglee-reveal-child>
-      <div class="summary-head">
-        <h2 class="analyze-panel-heading">Session buckets</h2>
-        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Awaiting review vs In The Vault — tap a bucket to review, or open The Vault when ready.</p>
-      </div>
-      <p class="summary-row-label" id="summaryAwaitingLabel">Awaiting review</p>
-      <div class="bridge-kpi-grid analyze-metric-strip" id="summaryHeroRow" aria-label="Awaiting manual review">
-        <button type="button" class="bridge-kpi bridge-kpi--accent clickable" id="sumDistressedKpiCard" title="Review distressed leads">
-          <span class="bridge-kpi-value" id="sumDistressedKpi">0</span>
-          <span class="bridge-kpi-label">Distressed</span>
-        </button>
-        <button type="button" class="bridge-kpi clickable" id="sumWellMaintainedCard" title="Review well maintained leads">
-          <span class="bridge-kpi-value" id="sumWellMaintained">0</span>
-          <span class="bridge-kpi-label">Well Maintained</span>
-        </button>
-        <button type="button" class="bridge-kpi clickable" id="sumVacantCard" title="Review land / vacant lots">
-          <span class="bridge-kpi-value" id="sumVacant">0</span>
-          <span class="bridge-kpi-label">Land</span>
-        </button>
-        <button type="button" class="bridge-kpi clickable" id="sumBlurredCard" title="Review blocked / blurry imagery">
-          <span class="bridge-kpi-value" id="sumBlurred">0</span>
-          <span class="bridge-kpi-label">Blocked</span>
-        </button>
-        <button type="button" class="bridge-kpi clickable" id="sumSatelliteOnlyCard" title="Review satellite-only imagery" hidden>
-          <span class="bridge-kpi-value" id="sumSatelliteOnly">0</span>
-          <span class="bridge-kpi-label">Satellite Only</span>
-        </button>
-        <div class="bridge-kpi" id="sumScannedHeroCard" title="Total scanned in this Analyzer session">
-          <span class="bridge-kpi-value" id="sumScannedHero">0</span>
-          <span class="bridge-kpi-label">Scanned</span>
-        </div>
-      </div>
-      <button type="button" class="bridge-kpi bridge-kpi--residual clickable" id="sumReviewCard" title="Residual uncertain queue only" hidden>
-        <span class="bridge-kpi-value" id="sumReview">0</span>
-        <span class="bridge-kpi-label">Needs Review</span>
-      </button>
-      <p class="summary-row-label" id="summaryVaultLabel">In The Vault</p>
-      <div class="bridge-kpi-grid analyze-metric-strip summary-vault-row" id="summaryVaultRow" aria-label="Approved leads in The Vault">
-        <a class="bridge-kpi bridge-kpi--accent clickable summary-vault-link" id="sumVaultDistressedCard" href="/vault?leadType=distressed" data-vault-lead-type="distressed" title="Open Distressed in The Vault">
-          <span class="bridge-kpi-value" id="sumVaultDistressed">—</span>
-          <span class="bridge-kpi-label">Distressed</span>
-        </a>
-        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultWellMaintainedCard" href="/vault?leadType=well_maintained" data-vault-lead-type="well_maintained" title="Open Well Maintained in The Vault">
-          <span class="bridge-kpi-value" id="sumVaultWellMaintained">—</span>
-          <span class="bridge-kpi-label">Well Maintained</span>
-        </a>
-        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultLandCard" href="/vault?leadType=land" data-vault-lead-type="land" title="Open Land in The Vault">
-          <span class="bridge-kpi-value" id="sumVaultLand">—</span>
-          <span class="bridge-kpi-label">Land</span>
-        </a>
-        <a class="bridge-kpi clickable summary-vault-link" id="sumVaultTotalCard" href="/vault" data-vault-lead-type="" title="Open The Vault">
-          <span class="bridge-kpi-value" id="sumVaultTotal">—</span>
-          <span class="bridge-kpi-label">Total</span>
-        </a>
-      </div>
-      <div id="summaryBreakdown" hidden aria-hidden="true">
-        <div id="summaryPipeline"><div id="summaryPipelineTrack"></div></div>
-        <div id="summarySecondaryGrid">
-          <div id="sumWellMaintainedLegacy"><span id="sumWellMaintainedPct">0%</span></div>
-          <div id="sumVacantLegacy"><span id="sumVacantPct">0%</span></div>
-          <div id="sumBlurredLegacy"><span id="sumBlurredPct">0%</span></div>
-        </div>
-        <span id="sumDistressedKpiPct" hidden>0%</span><span id="sumReviewPct" hidden>0%</span>
-        <span id="sumDistressedKpiHint" hidden></span>
-      </div>
-    </section>
+    </div><!-- /analyze-desk-secondary -->
+    </div><!-- /analyze-desk-grid -->
+
     </div><!-- /analyze-hero-zone -->
 
     <!-- Rankings workbench retired (Review Leads → Vault). Stub IDs kept so legacy JS no-ops safely. -->
@@ -358,7 +399,7 @@
   </div>
   <div class="cmd-toast-stack" id="cmdToastStack" aria-live="polite"></div>
 
-  <div class="tool-modal" id="settingsModal" aria-modal="true" role="dialog" aria-labelledby="settingsModalTitle">
+  <div class="tool-modal" id="settingsModal" hidden aria-modal="true" role="dialog" aria-labelledby="settingsModalTitle">
     <div class="tool-modal-backdrop" id="settingsModalBackdrop"></div>
     <div class="tool-modal-dialog phuglee-dialog phuglee-dialog-wide">
       <div class="tool-modal-head">
@@ -406,7 +447,7 @@
     </div>
   </div>
 
-  <div class="tool-modal" id="uploadModal" aria-modal="true" role="dialog" aria-labelledby="uploadModalTitle">
+  <div class="tool-modal" id="uploadModal" hidden aria-modal="true" role="dialog" aria-labelledby="uploadModalTitle">
     <div class="tool-modal-backdrop" id="uploadModalBackdrop"></div>
     <div class="tool-modal-dialog phuglee-dialog">
       <div class="tool-modal-head">
@@ -438,7 +479,7 @@
     </div>
   </div>
 
-  <div class="tool-modal" id="brainModal" aria-modal="true" role="dialog" aria-labelledby="brainModalTitle">
+  <div class="tool-modal" id="brainModal" hidden aria-modal="true" role="dialog" aria-labelledby="brainModalTitle">
     <div class="tool-modal-backdrop" id="brainModalBackdrop"></div>
     <div class="tool-modal-dialog phuglee-dialog phuglee-dialog-wide">
       <div class="tool-modal-head">
@@ -695,16 +736,16 @@
   <script src="/lib/review-training.js?v=20260630c" defer></script>
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
   <script src="/js/config.js?v=20260719-shell-api-v3" defer></script>
-  <script src="/js/state.js?v=20260717-w3-prune" defer></script>
+  <script src="/js/state.js?v=20260719-modal-hide" defer></script>
   <script src="/js/imagery.js?v=20260717-w4-loop" defer></script>
   <script src="/js/scan.js?v=20260714-reason-align" defer></script>
   <script src="/js/review.js?v=20260717-retire-results" defer></script>
   <script src="/js/render.js?v=20260717-w5-scale" defer></script>
-  <script src="/js/session.js?v=20260717-w4-loop" defer></script>
+  <script src="/js/session.js?v=20260719-no-pct" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/scan-ready.js?v=20260719-session-title" defer></script>
+  <script src="/js/scan-ready.js?v=20260719-no-open-line" defer></script>
   <script src="/js/live-scan-feed.js?v=20260715-dual-buckets" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
-  <script src="/js/app.js?v=20260717-w2-truth" defer></script>
+  <script src="/js/app.js?v=20260719-desk-layout" defer></script>
 </body>
 </html>
