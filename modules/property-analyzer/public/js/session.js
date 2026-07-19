@@ -2603,6 +2603,16 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     e.stopPropagation();
     const kind = getReviewKind();
+    // Distressed / Well Maintained: 1 Keep · 2 opposite · 3 Land · 4 Blocked · 5 Satellite · 6 Undo
+    if (kind === 'tier') {
+      if (digit === '1') { reviewKeep(); return; }
+      if (digit === '2') { void reviewApplyChange(); return; }
+      if (digit === '3') { reviewLandKeep(); return; }
+      if (digit === '4') { reviewApplyBlurred(); return; }
+      if (digit === '5') { reviewApplySatelliteOnly(); return; }
+      if (digit === '6') { reviewUndo(); return; }
+      return;
+    }
     if (digit === '1') { reviewKeep(); return; }
     if (digit === '2') { void reviewApplyChange(); return; }
     if (digit === '3') {
@@ -2611,12 +2621,12 @@ document.addEventListener('keydown', (e) => {
       return;
     }
     if (digit === '4') {
-      if (kind === 'needs_review' || kind === 'tier') reviewDeferLater();
+      if (kind === 'needs_review') reviewDeferLater();
       return;
     }
     if (digit === '5') { reviewApplyBlurred(); return; }
     if (digit === '6') {
-      if (kind === 'tier' || kind === 'needs_review' || kind === 'satellite_only') reviewUndo();
+      if (kind === 'needs_review' || kind === 'satellite_only') reviewUndo();
       return;
     }
     if (digit === '7') { reviewApplySatelliteOnly(); return; }
