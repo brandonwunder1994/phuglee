@@ -2649,10 +2649,23 @@ body.analyze-phuglee .review-shortcut-chip {
 }
 
 body.analyze-phuglee .review-mode-exit {
+  position: relative;
+  z-index: 5;
+  pointer-events: auto;
+  cursor: pointer;
   border-radius: 8px;
   border: 1px solid rgba(174, 163, 143, 0.2);
   background: transparent;
   color: var(--phuglee-taupe, #aea38f);
+}
+body.analyze-phuglee .review-mode-exit:hover {
+  border-color: rgba(229, 132, 53, 0.45);
+  color: var(--phuglee-cream, #f0ebe3);
+}
+body.analyze-phuglee .review-mode-header {
+  position: relative;
+  z-index: 4;
+  pointer-events: auto;
 }
 
 /* Glass property cards (card-cyber kept as alias for legacy selectors) */

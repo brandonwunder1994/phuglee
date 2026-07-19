@@ -1665,24 +1665,24 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
 }
 
 R.closeReviewMode = async function closeReviewMode() {
-  closeReviewTierPicker(null);
+  // Always leave the overlay immediately — never wait on network before hide.
+  // A hung flushReviewProgress previously made Exit Review look dead.
+  try { closeReviewTierPicker?.(null); } catch (_) {}
   const filter = state.reviewFilter;
-  const reviewedNow = state.reviewStats.kept + state.reviewStats.changed + (state.reviewStats.deferred || 0) + (state.reviewStats.blurred || 0);
-  commitReviewedThroughIndex(filter);
+  const reviewedNow = (state.reviewStats?.kept || 0)
+    + (state.reviewStats?.changed || 0)
+    + (state.reviewStats?.deferred || 0)
+    + (state.reviewStats?.blurred || 0);
+  try { commitReviewedThroughIndex?.(filter); } catch (_) {}
   // Drop resume stash so re-open rebuilds from pending — reviewed stamps keep those leads out.
   if (state.reviewProgressByFilter && filter && filter !== 'all') {
     delete state.reviewProgressByFilter[filter];
   }
-  flushLearnedBrainSave();
-  const saveResult = await flushReviewProgress();
+  try { flushLearnedBrainSave?.(); } catch (_) {}
+
   state.reviewMode = false;
   state._reviewOpening = false;
   state._reviewPauseHydrate = false;
-  // Resume background hydrate after Exit (was paused so Street View stayed fast).
-  if (typeof ensureSessionResultsLoaded === 'function' && sessionLoadState && !sessionLoadState.complete) {
-    void ensureSessionResultsLoaded().catch(() => {});
-  }
-  flushDeferredCorrectionReviews();
   state.reviewQueue = [];
   state.reviewIndex = 0;
   state.reviewUndoStack = [];
@@ -1690,24 +1690,47 @@ R.closeReviewMode = async function closeReviewMode() {
   state.reviewStats = { kept: 0, changed: 0, deferred: 0, blurred: 0, satelliteOnly: 0 };
   reviewChromeKey = '';
   reviewQueueStatsSnap = null;
-  if (typeof resetReviewTrainingBuffer === 'function') resetReviewTrainingBuffer();
-  hideReviewOverlay();
-  updateReviewEntryButtons();
+  try {
+    if (typeof resetReviewTrainingBuffer === 'function') resetReviewTrainingBuffer();
+  } catch (_) {}
+  try { hideReviewOverlay(); } catch (_) {}
+  try { updateReviewEntryButtons?.(); } catch (_) {}
+
+  // Persist in background so the user is not blocked on Exit
+  let saveResult = { ok: true, background: true };
+  try {
+    saveResult = await flushReviewProgress();
+  } catch (e) {
+    console.warn('[Review exit] flush failed', e);
+    saveResult = { ok: false, error: e };
+  }
+
+  // Resume background hydrate after Exit (was paused so Street View stayed fast).
+  if (typeof ensureSessionResultsLoaded === 'function' && sessionLoadState && !sessionLoadState.complete) {
+    void ensureSessionResultsLoaded().catch(() => {});
+  }
+  try { flushDeferredCorrectionReviews?.(); } catch (_) {}
   delete state._tierCountsFromServer;
-  if (typeof notifyResultMutation === 'function') notifyResultMutation({ clearServerTierCounts: true });
-  else invalidateTierCountsCache({ clearServer: true });
-  updateSummaryStats({ force: true });
-  updateFilterLabels();
-  renderResults({ force: true });
+  try {
+    if (typeof notifyResultMutation === 'function') notifyResultMutation({ clearServerTierCounts: true });
+    else invalidateTierCountsCache?.({ clearServer: true });
+  } catch (_) {}
+  try { updateSummaryStats?.({ force: true }); } catch (_) {}
+  try { updateFilterLabels?.(); } catch (_) {}
+  try { renderResults?.({ force: true }); } catch (_) {}
+
   if (reviewedNow > 0 && filter && filter !== 'all') {
-    const remaining = buildReviewQueue(filter).length;
+    let remaining = 0;
+    try { remaining = buildReviewQueue(filter).length; } catch (_) {}
     const savedOk = saveResult?.ok !== false;
-    log(
-      savedOk
-        ? `${reviewedNow.toLocaleString()} ${reviewFilterLabel(filter)} lead${reviewedNow === 1 ? '' : 's'} saved as reviewed — ${remaining.toLocaleString()} left for next session`
-        : `Reviewed ${reviewedNow.toLocaleString()} locally — server save pending (will retry). ${remaining.toLocaleString()} left in this queue.`,
-      savedOk ? 'success' : 'warn'
-    );
+    try {
+      log(
+        savedOk
+          ? `${reviewedNow.toLocaleString()} ${reviewFilterLabel(filter)} lead${reviewedNow === 1 ? '' : 's'} saved as reviewed — ${remaining.toLocaleString()} left for next session`
+          : `Reviewed ${reviewedNow.toLocaleString()} locally — server save pending (will retry). ${remaining.toLocaleString()} left in this queue.`,
+        savedOk ? 'success' : 'warn'
+      );
+    } catch (_) {}
   }
 }
 

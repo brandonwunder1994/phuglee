@@ -2454,8 +2454,40 @@ R.focusReviewShortcuts = function focusReviewShortcuts() {
   }
 };
 
-reviewExitBtn?.addEventListener('click', () => closeReviewMode());
-reviewCompleteExitBtn?.addEventListener('click', () => closeReviewMode());
+// Exit must always respond — never wait on network before closing overlay.
+function wireReviewExitClick(btn) {
+  if (!btn || btn.dataset.exitWired === '1') return;
+  btn.dataset.exitWired = '1';
+  btn.type = 'button';
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const fn = (typeof closeReviewMode === 'function')
+        ? closeReviewMode
+        : (typeof R !== 'undefined' && typeof R.closeReviewMode === 'function' ? R.closeReviewMode : null);
+      if (fn) {
+        const p = fn();
+        if (p && typeof p.catch === 'function') p.catch((err) => console.warn('[Review exit]', err));
+      } else {
+        // Last-resort UI close if binder missing
+        state.reviewMode = false;
+        hideReviewOverlay?.();
+      }
+    } catch (err) {
+      console.warn('[Review exit] click failed', err);
+      try {
+        state.reviewMode = false;
+        hideReviewOverlay?.();
+      } catch (_) {}
+    }
+  });
+}
+wireReviewExitClick(reviewExitBtn);
+wireReviewExitClick(reviewCompleteExitBtn);
+// Also bind via document in case node refs were stale at boot
+document.getElementById('reviewExitBtn') && wireReviewExitClick(document.getElementById('reviewExitBtn'));
+document.getElementById('reviewCompleteExitBtn') && wireReviewExitClick(document.getElementById('reviewCompleteExitBtn'));
 reviewFullProfileBtn?.addEventListener('click', () => {
   // Open the current lead's full profile over the Review overlay. This never touches
   // reviewQueue/reviewIndex, so closing the profile (Esc / ×) returns to the same spot.
