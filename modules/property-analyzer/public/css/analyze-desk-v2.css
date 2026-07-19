@@ -108,15 +108,17 @@ body.analyze-phuglee .analyze-metric-strip .bridge-kpi,
 body.analyze-phuglee .analyze-metric-strip .live-scan-kpi {
   background: rgba(10, 10, 9, 0.98) !important;
   border-color: rgba(174, 163, 143, 0.14) !important;
+  box-shadow: none;
 }
 
+/* No permanent orange on Distressed / Needs Review — hover only (selection feedback) */
 body.analyze-phuglee .analyze-metric-strip .bridge-kpi--accent,
 body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p0,
+body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p1,
 body.analyze-phuglee .analyze-metric-strip .live-scan-kpi--accent {
-  background:
-    linear-gradient(165deg, rgba(229, 132, 53, 0.18) 0%, rgba(12, 11, 10, 0.98) 58%) !important;
-  border-color: rgba(229, 132, 53, 0.48) !important;
-  box-shadow: 0 0 20px rgba(229, 132, 53, 0.12);
+  background: rgba(10, 10, 9, 0.98) !important;
+  border-color: rgba(174, 163, 143, 0.14) !important;
+  box-shadow: none;
 }
 
 body.analyze-phuglee .summary-vault-toggle {
@@ -757,11 +759,29 @@ body.analyze-phuglee .analyze-metric-strip .live-scan-kpi {
   transition: border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
 }
 
-body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:hover {
-  border-color: rgba(229, 132, 53, 0.45);
-  background: linear-gradient(180deg, rgba(32, 26, 18, 0.98) 0%, rgba(14, 12, 10, 0.98) 100%);
+/* Orange only while hovering / focusing — “this is the one you’re selecting” */
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:hover,
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:focus-visible {
+  border-color: rgba(229, 132, 53, 0.55) !important;
+  background:
+    linear-gradient(155deg, rgba(229, 132, 53, 0.2) 0%, rgba(14, 12, 10, 0.98) 70%) !important;
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(229, 132, 53, 0.12) inset,
+    0 0 18px rgba(229, 132, 53, 0.16),
+    0 8px 20px rgba(0, 0, 0, 0.35);
+}
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:hover .bridge-kpi-value,
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:focus-visible .bridge-kpi-value {
+  color: #f0c15a !important;
+}
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:hover .bridge-kpi-icon,
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:focus-visible .bridge-kpi-icon {
+  color: #f0c15a;
+}
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:hover .bridge-kpi-label,
+body.analyze-phuglee .analyze-metric-strip button.bridge-kpi:focus-visible .bridge-kpi-label {
+  color: rgba(240, 200, 120, 0.95) !important;
 }
 
 /* Icon row */
@@ -825,65 +845,7 @@ body.analyze-phuglee #summaryHeroRow .bridge-kpi {
   justify-content: flex-start;
 }
 
-/* P0 Distressed — primary money queue */
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p0,
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--accent {
-  border-color: rgba(229, 132, 53, 0.62) !important;
-  background:
-    linear-gradient(155deg, rgba(229, 132, 53, 0.28) 0%, rgba(229, 132, 53, 0.08) 42%, rgba(14, 12, 10, 0.98) 100%) !important;
-  box-shadow:
-    0 0 0 1px rgba(229, 132, 53, 0.18) inset,
-    0 0 28px rgba(229, 132, 53, 0.22),
-    0 10px 24px rgba(0, 0, 0, 0.4);
-}
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p0 .bridge-kpi-value,
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--accent .bridge-kpi-value,
-body.analyze-phuglee .analyze-metric-strip .live-scan-kpi--accent .live-scan-kpi-value {
-  color: #f0c15a !important;
-  font-size: clamp(1.8rem, 3vw, 2.2rem) !important;
-  text-shadow: 0 0 24px rgba(229, 132, 53, 0.35);
-}
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p0 .bridge-kpi-icon,
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--accent .bridge-kpi-icon {
-  color: #f0c15a;
-}
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p0 .bridge-kpi-label,
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--accent .bridge-kpi-label {
-  color: rgba(240, 200, 120, 0.95) !important;
-  font-weight: 700 !important;
-}
-
-/* P1 Needs Review — second priority, warm gold (clearly intentional) */
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p1 {
-  border-color: rgba(229, 150, 70, 0.55) !important;
-  background:
-    linear-gradient(155deg, rgba(229, 132, 53, 0.2) 0%, rgba(229, 132, 53, 0.06) 45%, rgba(14, 12, 10, 0.98) 100%) !important;
-  box-shadow:
-    0 0 0 1px rgba(229, 132, 53, 0.12) inset,
-    0 0 20px rgba(229, 132, 53, 0.14),
-    0 8px 20px rgba(0, 0, 0, 0.35);
-}
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p1 .bridge-kpi-value {
-  color: #f5d48a !important;
-  font-size: clamp(1.75rem, 2.9vw, 2.1rem) !important;
-  font-weight: 700 !important;
-}
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p1 .bridge-kpi-icon {
-  color: #e8a84a;
-}
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p1 .bridge-kpi-label {
-  color: rgba(232, 190, 120, 0.95) !important;
-  font-weight: 700 !important;
-}
-body.analyze-phuglee .analyze-metric-strip .bridge-kpi--p1.has-items {
-  border-color: rgba(229, 150, 70, 0.65) !important;
-  box-shadow:
-    0 0 0 1px rgba(229, 132, 53, 0.16) inset,
-    0 0 26px rgba(229, 132, 53, 0.2),
-    0 10px 24px rgba(0, 0, 0, 0.4);
-}
-
-/* Scanned = quiet context total */
+/* Scanned = quiet context total (not a clickable bucket) */
 body.analyze-phuglee .analyze-metric-strip .bridge-kpi--total {
   cursor: default;
   border-color: rgba(174, 163, 143, 0.12) !important;
