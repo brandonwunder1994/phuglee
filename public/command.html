@@ -4,20 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phuglee — Dashboard</title>
-  <meta name="description" content="Your distressed lead pipeline at a glance — Collect, Filter, and Analyze in one ops desk.">
+  <meta name="description" content="Live coverage snapshot — cities and states with clerk footprint at a glance.">
   <meta property="og:title" content="Phuglee — Dashboard">
-  <meta property="og:description" content="Run the full Collect → Filter → Analyze workflow from your ops desk.">
+  <meta property="og:description" content="Live coverage snapshot — cities and states with clerk footprint at a glance.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Phuglee — Dashboard">
-  <meta name="twitter:description" content="Your distressed lead ops desk — pipeline status, coverage, and next move.">
+  <meta name="twitter:description" content="Live coverage snapshot — cities and states with clerk footprint at a glance.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/command-center.css?v=7">
+  <link rel="stylesheet" href="/css/command-center.css?v=8">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -28,107 +28,37 @@
 
   <div id="distress-os-nav-mount"></div>
 
-  <main id="main" class="command-main phuglee-pattern-bg phuglee-pattern-bg--subtle command-page-ready">
+  <main id="main" class="command-main command-page-ready">
     <div class="command-hub">
-      <header class="command-hero">
-        <h1 class="command-title">Mission Board</h1>
-        <p class="command-lead">Clerk → scrub → dial. One board. No busywork.</p>
-        <div class="command-hero-actions">
-          <a href="/heat" class="phuglee-btn phuglee-btn-secondary command-how-btn" id="btn-how-it-works-dashboard">
-            How It Works
-          </a>
-        </div>
+      <header class="command-snapshot-head">
+        <h1 class="command-snapshot-title">Coverage</h1>
+        <p class="command-snapshot-lead">Live clerk footprint</p>
       </header>
 
-      <aside class="command-checklist phuglee-panel" id="command-first-run" hidden aria-label="Getting started">
-        <div class="command-checklist-head">
-          <p class="command-checklist-kicker">First run</p>
-          <button type="button" class="command-checklist-dismiss" id="command-checklist-dismiss" aria-label="Dismiss checklist">Dismiss</button>
+      <section
+        class="command-metrics"
+        aria-label="Live coverage counts"
+        aria-live="polite"
+      >
+        <div class="command-metric">
+          <p class="command-metric-value command-metric-value--gold" id="command-city-count">—</p>
+          <p class="command-metric-label">cities live</p>
         </div>
-        <h2 class="command-checklist-title">Get your first kept list</h2>
-        <ol class="command-checklist-steps">
-          <li><a href="/filter">Pick a city</a> on Filter</li>
-          <li>Upload a sample sheet or PDF</li>
-          <li>Confirm the Type column when asked</li>
-          <li>Save the kept list</li>
-        </ol>
-        <div class="command-checklist-actions">
-          <a href="/filter" class="phuglee-btn phuglee-btn-primary">Open Filter</a>
-          <a href="/heat" class="phuglee-btn phuglee-btn-secondary">How it works</a>
-        </div>
-      </aside>
-
-      <section class="command-mission" aria-label="Mission focus">
-        <div class="command-mission-focus phuglee-panel">
-          <p class="command-mission-kicker">Recommended next</p>
-          <h2 class="command-mission-title" id="command-mission-title">Hit the Clerk</h2>
-          <p class="command-mission-desc" id="command-mission-desc">
-            Pull fresh lists at the clerk before aggregators dilute them.
-          </p>
-          <a class="phuglee-btn phuglee-btn-primary command-mission-cta" id="command-mission-cta" href="/collect">
-            Open Collect →
-          </a>
-        </div>
-
-        <div class="command-mission-status phuglee-panel" aria-label="System status">
-          <div class="command-status-row command-status-row--coverage">
-            <span class="command-status-label">Coverage</span>
-            <p class="command-status-metric">
-              <span class="command-proof-num command-proof-num--gold" id="command-city-count">—</span>
-              <span class="command-proof-unit">cities</span>
-              <span class="command-proof-join">in</span>
-              <span class="command-proof-num" id="command-state-count">—</span>
-              <span class="command-proof-unit">states</span>
-            </p>
-          </div>
-          <div class="command-status-row">
-            <span class="command-status-label">Form Forge</span>
-            <span class="command-proof-status" id="command-forge-status">
-              <span class="command-status-dot" id="command-forge-dot" aria-hidden="true"></span>
-              <span id="command-forge-label">Checking…</span>
-            </span>
-            <p class="command-status-detail">PDF filler · tracker · requests</p>
-          </div>
-          <div class="command-status-row">
-            <span class="command-status-label">Review</span>
-            <span class="command-proof-status" id="command-analyzer-status">
-              <span class="command-status-dot" id="command-analyzer-dot" aria-hidden="true"></span>
-              <span id="command-analyzer-label">Checking…</span>
-            </span>
-            <p class="command-status-detail">Street View distress ranking</p>
-          </div>
+        <div class="command-metric-divider" aria-hidden="true"></div>
+        <div class="command-metric">
+          <p class="command-metric-value" id="command-state-count">—</p>
+          <p class="command-metric-label">states</p>
         </div>
       </section>
 
-      <nav class="command-pulse" aria-label="Pipeline">
-        <a href="/collect" class="command-pulse-node">
-          <span class="command-pulse-name">Hit the Clerk</span>
-          <span class="command-pulse-sub">Collect</span>
-        </a>
-        <span class="command-pulse-join" aria-hidden="true"></span>
-        <a href="/filter" class="command-pulse-node">
-          <span class="command-pulse-name">Scrub the Mess</span>
-          <span class="command-pulse-sub">Filter</span>
-        </a>
-        <span class="command-pulse-join" aria-hidden="true"></span>
-        <a href="/analyzer/" class="command-pulse-node">
-          <span class="command-pulse-name">Rank &amp; Dial</span>
-          <span class="command-pulse-sub">Review</span>
-        </a>
+      <p class="command-coverage-status" id="command-coverage-status" hidden>Coverage unavailable</p>
+
+      <nav class="command-quiet-links" aria-label="Pipeline">
+        <a href="/collect" class="command-quiet-link">Collect</a>
+        <a href="/filter" class="command-quiet-link">Filter</a>
+        <a href="/analyzer/" class="command-quiet-link">Analyze</a>
+        <a href="/under-contract" class="command-quiet-link" data-admin-only hidden>Contracts</a>
       </nav>
-
-      <section class="command-tools" aria-label="Tools">
-        <p class="command-tools-label">Tools</p>
-        <div class="command-tools-strip">
-          <a href="/forge/portal" class="command-tool-chip">Request Tracker</a>
-          <a href="/under-contract" class="command-tool-chip" data-admin-only hidden>Contract Tracker</a>
-          <a href="/forge/map" class="command-tool-chip">Coverage Map</a>
-          <a href="/forge/" class="command-tool-chip">PDF Filler</a>
-          <a href="/heat" class="command-tool-chip" id="btn-how-it-works-quick">How It Works</a>
-        </div>
-      </section>
-
-      <p class="command-trust">Public records only · Your data stays on your machine</p>
     </div>
   </main>
 
@@ -136,12 +66,11 @@
   <script src="/js/phuglee-motion.js" defer></script>
   <script src="/js/phuglee-states.js" defer></script>
   <script src="/js/home-coverage.js?v=2" defer></script>
-  <script src="/js/settings-menu.js?v=5" defer></script>
+  <script src="/js/settings-menu.js?v=4" defer></script>
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
-  <script src="/js/home-guide.js?v=3" defer></script>
-  <script src="/js/shell-nav.js?v=25-review-label" defer></script>
+  <script src="/js/shell-nav.js?v=19" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/command-center.js?v=5" defer></script>
+  <script src="/js/command-center.js?v=6" defer></script>
 </body>
 </html>
