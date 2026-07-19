@@ -2353,8 +2353,12 @@ R.bootstrapApp = async function bootstrapApp() {
         updateScanReadyUi?.();
       }).catch(() => {});
     }
+    // Imagery index is non-critical for desk first paint — after loadSession.
     if (USE_PROXY && typeof fetchImageryIndexMap === 'function') {
-      fetchImageryIndexMap().catch(() => {});
+      // Defer until idle so it does not compete with session-summary / first-page network.
+      const kickImagery = () => { fetchImageryIndexMap().catch(() => {}); };
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(kickImagery, { timeout: 3000 });
+      else setTimeout(kickImagery, 400);
     }
     await loadSession();
     scheduleDeferredImageryHydrate();

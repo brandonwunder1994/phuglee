@@ -2414,6 +2414,12 @@ R.loadSession = async function loadSession() {
     // Cookie sync runs once in bootstrapApp — do not await it again here.
     let summary = null;
     if (USE_PROXY) {
+      // Kick KPI + vault meta immediately (do not wait for first results page).
+      void fetchAwaitingCounts?.({ force: true })
+        .then((c) => { if (c) updateSummaryStats?.({ force: true, instant: true }); })
+        .catch(() => {});
+      void refreshVaultSummaryRow?.({ force: false, instant: true }).catch?.(() => {});
+
       // Summary + incremental stats in parallel. Recover only when JSONL is ahead of LATEST.
       const statsPromise = apiFetch('/api/scan-results/stats', { cache: 'no-store' })
         .then(async (res) => (res.ok ? res.json() : null))
@@ -2441,16 +2447,16 @@ R.loadSession = async function loadSession() {
       }
     }
     if (summary?.results) {
+      // Start first results page fetch as soon as we know the session size.
       const firstPagePromise = fetchSessionResultsPage(0, getSessionFirstPageSize());
+      // Apply summary → paints KPI strip from server tierCounts (scan-first first paint).
       await applySessionSummary(summary);
-      setSessionRestoreBanner(
-        summary.results > 500
-          ? `Loaded ${summary.results.toLocaleString()} properties — showing first page…`
-          : `Loaded ${summary.results.toLocaleString()} properties — loading results…`
-      );
-      // Paint cards before IndexedDB merge / unscanned queue — biggest perceived-load win.
-      await loadSessionResultsFirstPage(summary.results, firstPagePromise);
       setSessionRestoreBanner('');
+      updateScanReadyUi?.();
+      updateStartButton?.();
+
+      // First page of cards — awaited so virtual grid has rows; unscanned queue is NOT.
+      await loadSessionResultsFirstPage(summary.results, firstPagePromise);
       updateScanReadyUi?.();
       updateStartButton?.();
 
@@ -2459,15 +2465,13 @@ R.loadSession = async function loadSession() {
 
       const pendingHint = Number(summary.pendingUnscanned) || 0;
       if (pendingHint > 0) {
-        // Keep _pendingUnscanned from applySessionSummary; Start Scan uses ensureScanRecordsLoaded.
-        // Load immediately — idle defer left Start Scan disabled behind stale full records.
-        try {
-          await loadSessionRecords({ mode: 'unscanned' });
-        } catch (e) {
-          console.warn('Unscanned records load failed', e);
-        }
-        updateScanReadyUi?.();
-        updateStartButton?.();
+        // Do not block desk ready on unscanned records hydrate — Start Scan awaits ensureScanRecordsLoaded.
+        void loadSessionRecords({ mode: 'unscanned' })
+          .then(() => {
+            updateScanReadyUi?.();
+            updateStartButton?.();
+          })
+          .catch((e) => console.warn('Unscanned records load failed', e));
       } else {
         state._pendingUnscanned = 0;
         state._expectedRecords = Number(summary.records) || 0;
