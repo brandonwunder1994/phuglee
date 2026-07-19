@@ -9,7 +9,7 @@
     { group: 'Navigate', label: 'Coverage Map', href: '/forge/map', meta: 'Map' },
     { group: 'Navigate', label: 'How It Works', href: '/heat', meta: 'Guide' },
     { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },
-    { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
+    { group: 'Navigate', label: 'Review', href: '/analyzer/', meta: 'Scan & sort leads' },
     { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
     { group: 'Pipeline', label: 'All Leads', href: '/pipeline', meta: 'GHL DTS kanban', contractDeskOnly: true },
     { group: 'Pipeline', label: 'Under Contract', href: '/under-contract', meta: 'Proof desk', contractDeskOnly: true },

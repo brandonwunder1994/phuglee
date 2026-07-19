@@ -658,7 +658,7 @@
       if (path === '/filter' || path === '/bridge') return 'Filter';
       if (path === '/collect') return 'Collect';
       if (path === '/command') return 'Dashboard';
-      if (path.indexOf('/analyzer') === 0) return 'Analyze';
+      if (path.indexOf('/analyzer') === 0) return 'Review';
       if (path.indexOf('/forge') === 0) return 'City Tracker';
       if (path === '/vault') return 'Home Vault';
       if (path === '/land-vault') return 'Land Vault';

@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee — Analyze</title>
+  <title>Phuglee — Review</title>
   <meta name="description" content="Import your bridged list. AI scans Street View and sorts leads into Distressed, Well Maintained, Land, and Blocked — you review every bucket before it hits The Vault.">
-  <meta property="og:title" content="Phuglee — Analyze">
-  <meta property="og:description" content="Step 03 · Analyze — scan Street View, sort leads into buckets, and review before The Vault.">
+  <meta property="og:title" content="Phuglee — Review">
+  <meta property="og:description" content="Step 03 · Review — scan Street View, sort leads into buckets, and review before The Vault.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Phuglee — Analyze">
+  <meta name="twitter:title" content="Phuglee — Review">
   <meta name="twitter:description" content="AI sorts distress into buckets. You review every bucket before The Vault.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/cyber-review.css?v=20260717-w4-loop">
   <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260714-mobile6">
-  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=23-hover-select">
+  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=26-no-duck-ship">
   <link rel="stylesheet" href="/css/property-profile-v2.css?v=2" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/css/property-profile-v2.css?v=2"></noscript>
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
@@ -34,8 +34,8 @@
       <div class="sidebar-brand">
         <div class="sidebar-logo" aria-hidden="true">◇</div>
         <div>
-          <p class="analyzer-context-step"><a href="/filter">↝ Filter</a> · Step 03 · Analyze</p>
-          <div class="sidebar-title" id="sidebarTitle">Analyze</div>
+          <p class="analyzer-context-step"><a href="/filter">↝ Filter</a> · Step 03 · Review</p>
+          <div class="sidebar-title" id="sidebarTitle">Review</div>
           <div class="sidebar-tagline" id="sidebarTagline">Scan · sort · review</div>
         </div>
       </div>
@@ -108,19 +108,10 @@
 
     <div class="analyze-hero-zone" data-phuglee-reveal>
       <header class="analyze-page-hero" id="analyzePageHero">
-        <p class="analyze-step-label">03 · Analyze</p>
+        <p class="analyze-step-label">03 · Review</p>
         <h1 class="analyze-page-title">Scan</h1>
         <p class="analyze-page-lead" id="analyzePageLead">Import → scan → review</p>
       </header>
-
-      <nav class="analyze-pipeline" id="analyzePipeline" aria-label="Analyze workflow">
-        <ol class="analyze-pipeline-list">
-          <li class="analyze-pipeline-step is-complete" data-step="upload"><span>1</span> Import</li>
-          <li class="analyze-pipeline-step is-active" data-step="scan"><span>2</span> Scan</li>
-          <li class="analyze-pipeline-step" data-step="buckets"><span>3</span> Sort</li>
-          <li class="analyze-pipeline-step" data-step="review"><span>4</span> Review</li>
-        </ol>
-      </nav>
 
     <!-- Desk grid: buckets primary when session loaded; two columns on wide screens -->
     <div class="analyze-desk-grid" id="analyzeDeskGrid">
@@ -226,16 +217,26 @@
     <div class="analyze-desk-secondary" id="analyzeDeskSecondary">
 
     <section class="scan-ready-section scan-desk-v2 phuglee-panel phuglee-panel-featured analyze-panel analyze-list-panel" id="scanReadySection" data-phuglee-reveal-child>
-      <div class="scan-ready-meta">
-        <p class="analyze-panel-eyebrow">List</p>
-        <div class="scan-ready-file-row">
-          <span class="scan-ready-file-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8 13h8M8 17h5"/></svg>
-          </span>
-          <h2 class="scan-ready-location" id="scanReadyLocation">Import</h2>
+      <header class="scan-ready-meta">
+        <div class="scan-ready-title-row">
+          <h2 class="analyze-panel-heading scan-ready-heading">List</h2>
+          <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
+            <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
+              aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">···</button>
+            <div class="scan-desk-overflow-menu" id="scanDeskOverflow" role="menu" hidden>
+              <button type="button" class="scan-desk-overflow-item" id="deskExportExcelBtn" role="menuitem" title="Download all leads in this session as an Excel spreadsheet" disabled>Export Excel (all leads)</button>
+              <button type="button" class="scan-desk-overflow-item" id="deskExportDialReadyBtn" role="menuitem" title="Download dial-ready columns for your dialer or CRM" disabled>Export dial-ready</button>
+              <button type="button" class="scan-desk-overflow-item" id="exportBackupNowBtn" role="menuitem" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
+              <button type="button" class="scan-desk-overflow-item" id="apiUsageOpenBtn" role="menuitem" title="View Maps and Gemini usage estimates">API usage and credits</button>
+              <button type="button" class="scan-desk-overflow-item" id="deskOpenSettingsBtn" role="menuitem" title="API keys and parallel workers">API keys &amp; workers</button>
+              <button type="button" class="scan-desk-overflow-item" id="deskOpenBrainBtn" role="menuitem" title="AI learned rules from Keep/Change">AI learned rules</button>
+            </div>
+          </div>
         </div>
-        <p class="scan-ready-count analyze-panel-lead" id="scanReadyCount">Drop a list · hit Scan</p>
-      </div>
+        <!-- Filename when a list is loaded; “Import” only before first file -->
+        <p class="scan-ready-location" id="scanReadyLocation">Import</p>
+        <p class="scan-ready-count" id="scanReadyCount">Drop a spreadsheet to start</p>
+      </header>
 
       <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import list">
         <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-label="Drop a spreadsheet or press Enter to browse">
@@ -246,24 +247,14 @@
             <p class="scan-import-status" id="scanImportStatus" hidden></p>
           </div>
         </div>
+        <!-- Shown when session already has data: replace without a tall empty zone -->
+        <button type="button" class="scan-import-replace" id="scanImportReplaceBtn" hidden>Replace file</button>
       </div>
 
       <div class="scan-ready-actions" id="scanReadyActions">
         <div class="scan-ready-actions-primary">
           <button type="button" class="btn-primary scan-ready-start" id="scanReadyStartBtn" disabled>Scan</button>
           <button type="button" class="btn-secondary scan-ready-stop" id="scanReadyStopBtn" hidden>Stop</button>
-        </div>
-        <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
-          <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
-            aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">···</button>
-          <div class="scan-desk-overflow-menu" id="scanDeskOverflow" role="menu" hidden>
-            <button type="button" class="scan-desk-overflow-item" id="deskExportExcelBtn" role="menuitem" title="Download all leads in this session as an Excel spreadsheet" disabled>Export Excel (all leads)</button>
-            <button type="button" class="scan-desk-overflow-item" id="deskExportDialReadyBtn" role="menuitem" title="Download dial-ready columns for your dialer or CRM" disabled>Export dial-ready</button>
-            <button type="button" class="scan-desk-overflow-item" id="exportBackupNowBtn" role="menuitem" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
-            <button type="button" class="scan-desk-overflow-item" id="apiUsageOpenBtn" role="menuitem" title="View Maps and Gemini usage estimates">API usage and credits</button>
-            <button type="button" class="scan-desk-overflow-item" id="deskOpenSettingsBtn" role="menuitem" title="API keys and parallel workers">API keys &amp; workers</button>
-            <button type="button" class="scan-desk-overflow-item" id="deskOpenBrainBtn" role="menuitem" title="AI learned rules from Keep/Change">AI learned rules</button>
-          </div>
         </div>
       </div>
       <!-- Legacy stubs so older JS that looks up reviewLeads* IDs does not throw -->
@@ -743,7 +734,7 @@
   <script src="/js/render.js?v=20260717-w5-scale" defer></script>
   <script src="/js/session.js?v=20260719-no-pct" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/scan-ready.js?v=20260719-no-open-line" defer></script>
+  <script src="/js/scan-ready.js?v=20260719-list-simple" defer></script>
   <script src="/js/live-scan-feed.js?v=20260715-dual-buckets" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
   <script src="/js/app.js?v=20260719-desk-layout" defer></script>

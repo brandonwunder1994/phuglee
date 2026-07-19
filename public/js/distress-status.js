@@ -53,7 +53,7 @@
     var onAnalyzer = /^\/analyzer(\/|$)/.test(window.location.pathname || '');
     var planPill = onAnalyzer
       ? ''
-      : '<span class="distress-status-pill">' + planLabel() + ' · Collect. Filter. Analyze.</span>';
+      : '<span class="distress-status-pill">' + planLabel() + ' · Collect. Filter. Review.</span>';
 
     bar.innerHTML =
       '<div class="distress-status-left">' +
@@ -62,7 +62,7 @@
           '<span class="distress-status-dot ' + (forge ? 'is-up' : 'is-down') + '"></span> Forge' +
         '</span>' +
         '<span class="distress-status-pill">' +
-          '<span class="distress-status-dot ' + (analyzer ? 'is-up' : 'is-down') + '"></span> Analyze' +
+          '<span class="distress-status-dot ' + (analyzer ? 'is-up' : 'is-down') + '"></span> Review' +
         '</span>' +
       '</div>' +
       '<div class="distress-status-right">' + planPill + '</div>';
