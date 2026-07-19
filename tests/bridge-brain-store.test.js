@@ -41,18 +41,21 @@ test('loadBrain with no file returns emptyBrain shape without throw', () => {
   assert.equal(brain.metrics.phraseRulesProposed, 0);
 });
 
-test('loadBrain with corrupt JSON returns emptyBrain without throw', () => {
+test('loadBrain with corrupt JSON fails closed (throws)', () => {
   const file = brainPath();
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, '{not-valid-json!!!', 'utf8');
-  const brain = loadBrain();
-  assert.equal(brain.version, 1);
-  assert.deepEqual(brain.typeRules, []);
-  assert.deepEqual(brain.phraseRules, []);
-  assert.deepEqual(brain.events, []);
+  assert.throws(() => loadBrain(), (err) => err && err.code === 'BRAIN_READ_CORRUPT');
+  // Clean corrupt file so later tests can write a valid brain
+  try { fs.unlinkSync(file); } catch (_) {}
 });
 
 test('saveBrain then loadBrain round-trips typeRules and phraseRules', () => {
+  // Ensure clean disk after prior tests
+  try {
+    const f = brainPath();
+    if (fs.existsSync(f)) fs.unlinkSync(f);
+  } catch (_) {}
   const doc = emptyBrain();
   doc.typeRules = [
     { id: 'tr1', violationTypeKey: 'high grass and weeds', action: 'suppress_type', status: 'active' }

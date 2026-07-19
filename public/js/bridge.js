@@ -4757,9 +4757,10 @@
     if (reqId !== draftPageRequestId) return null;
     lastResult.rows = Array.isArray(data.rows) ? data.rows : [];
     lastResult.filteredTotal = Number(data.total) || 0;
-    lastResult.rowsTotal = Number(data.rowsTotal) != null
-      ? Number(data.rowsTotal)
-      : lastResult.rowsTotal;
+    {
+      const n = Number(data.rowsTotal);
+      lastResult.rowsTotal = Number.isFinite(n) ? n : lastResult.rowsTotal;
+    }
     tableState.page = Number(data.page) || page || 1;
     paintResultsTablePage(
       lastResult.rows,
@@ -4992,6 +4993,13 @@
       }
     }
     resultsMeta.textContent = [uploadLabel, cityBit, fileLabel].filter(Boolean).join(' · ') + trainTip;
+    if (data.brainMeta && data.brainMeta.notDistressedTruncated) {
+      const totalFn = Number(data.brainMeta.notDistressedTotal) || 0;
+      const shownFn = (data.notDistressedRows || []).length
+        || Number(data.brainMeta.notDistressedShown)
+        || 5000;
+      resultsMeta.textContent += ` · Train shows first ${shownFn.toLocaleString()} of ${totalFn.toLocaleString()} not-distressed rows`;
+    }
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');

@@ -35,6 +35,50 @@ const MIME = {
 
 const { CACHE_NONE, cacheControlForExt } = require('./lib/static-cache');
 
+/** Login/register abuse protection (in-memory; resets on restart). */
+const AUTH_BODY_MAX = 64 * 1024;
+const loginAttempts = new Map(); // key -> { count, resetAt }
+
+function clientIp(req) {
+  const xf = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
+  return xf || req.socket?.remoteAddress || 'unknown';
+}
+
+function authRateLimitOk(req, username) {
+  const now = Date.now();
+  const key = `${clientIp(req)}|${String(username || '').toLowerCase()}`;
+  let row = loginAttempts.get(key);
+  if (!row || row.resetAt < now) {
+    row = { count: 0, resetAt: now + 15 * 60 * 1000 };
+    loginAttempts.set(key, row);
+  }
+  row.count += 1;
+  // 20 attempts / 15 min per IP+username
+  return row.count <= 20;
+}
+
+async function readJsonBodyCapped(req, maxBytes = AUTH_BODY_MAX) {
+  const chunks = [];
+  let total = 0;
+  for await (const chunk of req) {
+    total += chunk.length;
+    if (total > maxBytes) {
+      const err = new Error('Request body too large');
+      err.code = 'BODY_TOO_LARGE';
+      throw err;
+    }
+    chunks.push(chunk);
+  }
+  const raw = Buffer.concat(chunks).toString('utf8') || '{}';
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const err = new Error('Invalid JSON');
+    err.code = 'INVALID_JSON';
+    throw err;
+  }
+}
+
 let bridgeApiModule;
 function getBridgeApi() {
   if (!bridgeApiModule) bridgeApiModule = require('./lib/bridge-api');
@@ -82,8 +126,21 @@ function send(res, status, body, type, extraHeaders = {}) {
 
 function serveStatic(urlPath, req, res) {
   const rel = urlPath.replace(/^\//, '');
-  const file = path.normalize(path.join(config.PUBLIC, rel));
-  if (!file.startsWith(config.PUBLIC)) {
+  // Block sensitive catalogs that must never be public (buyers / fund intel).
+  // Government lists + city images stay public by product choice.
+  const lowerRel = rel.replace(/\\/g, '/').toLowerCase();
+  if (
+    lowerRel === 'data/buyers/catalog.json'
+    || lowerRel.startsWith('data/buyers/')
+    || lowerRel === 'data/fund-buyers/catalog.json'
+    || lowerRel.startsWith('data/fund-buyers/')
+  ) {
+    send(res, 404, 'Not found');
+    return;
+  }
+  const publicRoot = path.resolve(config.PUBLIC);
+  const file = path.resolve(path.normalize(path.join(config.PUBLIC, rel)));
+  if (file !== publicRoot && !file.startsWith(publicRoot + path.sep)) {
     send(res, 403, 'Forbidden');
     return;
   }
@@ -275,18 +332,21 @@ async function handleRequest(req, res) {
   if (pathname === '/api/auth/login' && req.method === 'POST') {
     const auth = require('./lib/phuglee-auth');
     const credentials = require('./lib/phuglee-credentials');
-    const chunks = [];
-    for await (const chunk of req) chunks.push(chunk);
     let body = {};
     try {
-      body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
-    } catch {
-      send(res, 400, JSON.stringify({ error: 'Invalid JSON', code: 'INVALID_JSON' }), 'application/json');
+      body = await readJsonBodyCapped(req);
+    } catch (err) {
+      const status = err.code === 'BODY_TOO_LARGE' ? 413 : 400;
+      send(res, status, JSON.stringify({ error: err.message, code: err.code || 'INVALID_JSON' }), 'application/json');
       return;
     }
     const username = String(body.username || '').trim();
     const password = String(body.password || '');
     const planHint = String(body.plan || '').trim();
+    if (!authRateLimitOk(req, username)) {
+      send(res, 429, JSON.stringify({ error: 'Too many login attempts. Try again later.', code: 'RATE_LIMIT' }), 'application/json');
+      return;
+    }
     try {
       let sessionUser = username;
       let sessionPlan = planHint;
@@ -332,13 +392,16 @@ async function handleRequest(req, res) {
   if (pathname === '/api/auth/register' && req.method === 'POST') {
     const auth = require('./lib/phuglee-auth');
     const credentials = require('./lib/phuglee-credentials');
-    const chunks = [];
-    for await (const chunk of req) chunks.push(chunk);
     let body = {};
     try {
-      body = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
-    } catch {
-      send(res, 400, JSON.stringify({ error: 'Invalid JSON', code: 'INVALID_JSON' }), 'application/json');
+      body = await readJsonBodyCapped(req);
+    } catch (err) {
+      const status = err.code === 'BODY_TOO_LARGE' ? 413 : 400;
+      send(res, status, JSON.stringify({ error: err.message, code: err.code || 'INVALID_JSON' }), 'application/json');
+      return;
+    }
+    if (!authRateLimitOk(req, body.username)) {
+      send(res, 429, JSON.stringify({ error: 'Too many register attempts. Try again later.', code: 'RATE_LIMIT' }), 'application/json');
       return;
     }
     const registered = credentials.registerUser({

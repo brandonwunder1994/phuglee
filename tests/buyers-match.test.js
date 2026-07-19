@@ -20,9 +20,10 @@ function fundById(id) {
 }
 
 test('buyers catalog seeded with metadata', () => {
-  const a = fs.readFileSync(catalogPath, 'utf8');
-  const b = fs.readFileSync(publicPath, 'utf8');
-  assert.equal(a, b);
+  // Live buyer intel must NOT be mirrored under public/ (unauthenticated /data/buyers).
+  const publicCatalog = JSON.parse(fs.readFileSync(publicPath, 'utf8'));
+  assert.ok(Array.isArray(publicCatalog.funds));
+  assert.equal(publicCatalog.funds.length, 0);
   assert.ok(catalog.funds.length >= 12);
   assert.equal(catalog.version, 3);
   const siren = fundById('siren');
