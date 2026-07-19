@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="/css/phuglee-components.css">
   <link rel="stylesheet" href="/css/cyber-review.css?v=20260717-w4-loop">
   <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=20260714-mobile6">
-  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=26-no-duck-ship">
+  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=28-no-more-tools">
   <link rel="stylesheet" href="/css/property-profile-v2.css?v=2" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/css/property-profile-v2.css?v=2"></noscript>
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
@@ -218,37 +218,34 @@
 
     <section class="scan-ready-section scan-desk-v2 phuglee-panel phuglee-panel-featured analyze-panel analyze-list-panel" id="scanReadySection" data-phuglee-reveal-child>
       <header class="scan-ready-meta">
-        <div class="scan-ready-title-row">
-          <h2 class="analyze-panel-heading scan-ready-heading">List</h2>
-          <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
-            <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
-              aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">···</button>
-            <div class="scan-desk-overflow-menu" id="scanDeskOverflow" role="menu" hidden>
-              <button type="button" class="scan-desk-overflow-item" id="deskExportExcelBtn" role="menuitem" title="Download all leads in this session as an Excel spreadsheet" disabled>Export Excel (all leads)</button>
-              <button type="button" class="scan-desk-overflow-item" id="deskExportDialReadyBtn" role="menuitem" title="Download dial-ready columns for your dialer or CRM" disabled>Export dial-ready</button>
-              <button type="button" class="scan-desk-overflow-item" id="exportBackupNowBtn" role="menuitem" title="Save a full checkpoint to server and download JSON to your computer">Export backup now</button>
-              <button type="button" class="scan-desk-overflow-item" id="apiUsageOpenBtn" role="menuitem" title="View Maps and Gemini usage estimates">API usage and credits</button>
-              <button type="button" class="scan-desk-overflow-item" id="deskOpenSettingsBtn" role="menuitem" title="API keys and parallel workers">API keys &amp; workers</button>
-              <button type="button" class="scan-desk-overflow-item" id="deskOpenBrainBtn" role="menuitem" title="AI learned rules from Keep/Change">AI learned rules</button>
-            </div>
-          </div>
-        </div>
-        <!-- Filename when a list is loaded; “Import” only before first file -->
-        <p class="scan-ready-location" id="scanReadyLocation">Import</p>
-        <p class="scan-ready-count" id="scanReadyCount">Drop a spreadsheet to start</p>
+        <h2 class="analyze-panel-heading scan-ready-heading">List</h2>
+        <!-- Filename when a list is loaded; quiet until first file -->
+        <p class="scan-ready-location" id="scanReadyLocation">No file yet</p>
+        <!-- Status only when scanning or pending work — not total scanned -->
+        <p class="scan-ready-count" id="scanReadyCount" hidden></p>
       </header>
+      <!-- Desk tool IDs kept off-screen so existing JS bindings do not throw (Admin sidebar still owns these actions) -->
+      <div id="scanDeskOverflowWrap" class="scan-desk-overflow-legacy" hidden aria-hidden="true">
+        <button type="button" id="scanDeskOverflowToggle" hidden tabindex="-1" aria-hidden="true"></button>
+        <div id="scanDeskOverflow" hidden>
+          <button type="button" id="deskExportExcelBtn" hidden disabled tabindex="-1" aria-hidden="true"></button>
+          <button type="button" id="deskExportDialReadyBtn" hidden disabled tabindex="-1" aria-hidden="true"></button>
+          <button type="button" id="exportBackupNowBtn" hidden tabindex="-1" aria-hidden="true"></button>
+          <button type="button" id="apiUsageOpenBtn" hidden tabindex="-1" aria-hidden="true"></button>
+          <button type="button" id="deskOpenSettingsBtn" hidden tabindex="-1" aria-hidden="true"></button>
+          <button type="button" id="deskOpenBrainBtn" hidden tabindex="-1" aria-hidden="true"></button>
+        </div>
+      </div>
 
       <div class="scan-import-zone" id="scanImportZone" role="region" aria-label="Import list">
-        <div class="scan-import-drop" id="scanImportDrop" tabindex="0" role="button" aria-label="Drop a spreadsheet or press Enter to browse">
+        <div class="scan-import-drop scan-import-drop--compact" id="scanImportDrop" tabindex="0" role="button" aria-label="Drop a spreadsheet or press Enter to browse">
           <input type="file" id="scanFileInput" accept=".xlsx,.xls,.xlsm,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv" hidden aria-label="Browse for spreadsheet">
           <div class="scan-import-drop-inner" id="scanImportDropInner">
-            <button type="button" class="scan-import-browse-link" id="scanImportBrowseLabel">Drop or browse</button>
+            <button type="button" class="scan-import-browse-link" id="scanImportBrowseLabel">Drop file here</button>
             <p class="scan-import-hint">.xlsx · .csv</p>
             <p class="scan-import-status" id="scanImportStatus" hidden></p>
           </div>
         </div>
-        <!-- Shown when session already has data: replace without a tall empty zone -->
-        <button type="button" class="scan-import-replace" id="scanImportReplaceBtn" hidden>Replace file</button>
       </div>
 
       <div class="scan-ready-actions" id="scanReadyActions">
@@ -734,7 +731,7 @@
   <script src="/js/render.js?v=20260717-w5-scale" defer></script>
   <script src="/js/session.js?v=20260719-no-pct" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
-  <script src="/js/scan-ready.js?v=20260719-list-simple" defer></script>
+  <script src="/js/scan-ready.js?v=20260719-list-drop" defer></script>
   <script src="/js/live-scan-feed.js?v=20260715-dual-buckets" defer></script>
   <script src="/js/location-hub.js?v=20260712-visibility" defer></script>
   <script src="/js/app.js?v=20260719-desk-layout" defer></script>

@@ -208,48 +208,44 @@
           ? `${sessionSaved.toLocaleString()} scanned`
           : 'Import');
 
-      // Filename line — only show a real name when we have one; else quiet “No file yet”
-      const hasFileIdentity = !!(sourceFile || (hasRecords && locationLabel && locationLabel !== 'Import'));
+      // Filename — never use total scanned as the title
       if (scanReadyLocation) {
-        if (hasFileIdentity || sessionSaved > 0 || pendingUnscanned > 0 || state.running) {
+        if (sourceFile) {
+          scanReadyLocation.textContent = sourceFile;
+          scanReadyLocation.title = sourceFile;
+        } else if (hasRecords && locationLabel && !/scanned$/i.test(locationLabel)) {
           scanReadyLocation.textContent = locationLabel;
-          scanReadyLocation.hidden = false;
           scanReadyLocation.title = locationLabel;
         } else {
           scanReadyLocation.textContent = 'No file yet';
-          scanReadyLocation.hidden = false;
           scanReadyLocation.title = '';
         }
+        scanReadyLocation.hidden = false;
       }
-      // After a session exists, hide the tall drop zone — use Replace file instead.
-      const sessionLoaded = sessionSaved > 0 || analyzeHasResults();
+      // Compact drop zone always stays visible (drag to add/replace list)
       const hasSession = sessionSaved > 0 || analyzeHasResults();
       const deskRoot = typeof scanReadySection !== 'undefined' && scanReadySection
         ? scanReadySection
         : document.getElementById('scanReadySection');
-      if (deskRoot) deskRoot.classList.toggle('is-session-loaded', sessionLoaded);
+      if (deskRoot) deskRoot.classList.remove('is-session-loaded'); // always show small drop
       document.body.classList.toggle('analyze-has-session', hasSession);
       const heroZone = document.querySelector('.analyze-hero-zone');
       if (heroZone) heroZone.classList.toggle('has-session', hasSession);
       const pageLead = document.getElementById('analyzePageLead');
       if (pageLead) pageLead.hidden = hasSession;
 
-      const replaceBtn = document.getElementById('scanImportReplaceBtn');
-      if (replaceBtn) {
-        replaceBtn.hidden = !sessionLoaded || !!state.running;
-      }
-
-      // One quiet status line — no duplicate “scanned” + “done” noise
+      // Status only for live work — no “X scanned” total on the List card
       if (scanReadyCount) {
         if (state.running && batchTotal > 0) {
+          scanReadyCount.hidden = false;
           scanReadyCount.textContent =
             `Scanning ${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()}`;
         } else if (pendingUnscanned > 0) {
+          scanReadyCount.hidden = false;
           scanReadyCount.textContent = `${pendingUnscanned.toLocaleString()} ready to scan`;
-        } else if (sessionSaved > 0) {
-          scanReadyCount.textContent = `${sessionSaved.toLocaleString()} scanned`;
         } else {
-          scanReadyCount.textContent = 'Drop a spreadsheet to start';
+          scanReadyCount.hidden = true;
+          scanReadyCount.textContent = '';
         }
       }
 
@@ -337,7 +333,6 @@
       const drop = $('scanImportDrop');
       const input = $('scanFileInput');
       const browseLabel = $('scanImportBrowseLabel');
-      const replaceBtn = document.getElementById('scanImportReplaceBtn');
       input?.addEventListener('change', async () => {
         const file = input.files?.[0];
         input.value = '';
@@ -350,19 +345,6 @@
         e.stopPropagation();
         input?.click();
       });
-
-      // Compact “Replace file” when session already has data (tall drop zone is hidden)
-      if (replaceBtn && replaceBtn.dataset.wired !== '1') {
-        replaceBtn.dataset.wired = '1';
-        replaceBtn.addEventListener('click', (e) => {
-          e.preventDefault();
-          if (state.running) {
-            alert('Stop the scan before uploading a new file.');
-            return;
-          }
-          input?.click();
-        });
-      }
 
       if (!drop) return;
 

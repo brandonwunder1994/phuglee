@@ -388,11 +388,7 @@ body.analyze-phuglee .analyze-pipeline-step {
   font-size: 0.74rem;
 }
 
-/* Session-loaded List rail stays compact (drop replaced by “Replace file”) */
-body.analyze-phuglee .scan-desk-v2.is-session-loaded {
-  gap: 0.65rem;
-  padding: 0.95rem 1.05rem 1rem;
-}
+
 
 /* Quiet copy: no status lines under Review Properties */
 body.analyze-phuglee .summary-intro,
@@ -493,34 +489,41 @@ body.analyze-phuglee .scan-desk-v2 .scan-import-zone {
   gap: 0.35rem;
 }
 
-body.analyze-phuglee .scan-desk-v2 .scan-import-drop {
-  min-height: 4.25rem;
-  border: 1px dashed rgba(174, 163, 143, 0.28);
+/* Always-on compact drop — drag to add or swap a list */
+body.analyze-phuglee .scan-desk-v2 .scan-import-drop,
+body.analyze-phuglee .scan-desk-v2 .scan-import-drop--compact {
+  display: block !important;
+  min-height: 3.25rem;
+  border: 1px dashed rgba(174, 163, 143, 0.32);
   border-radius: 10px;
   background: rgba(6, 6, 5, 0.45);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-drop:hover,
-body.analyze-phuglee .scan-desk-v2 .scan-import-drop:focus-visible {
-  border-color: rgba(229, 132, 53, 0.5);
-  background: rgba(229, 132, 53, 0.04);
+body.analyze-phuglee .scan-desk-v2 .scan-import-drop:focus-visible,
+body.analyze-phuglee .scan-desk-v2 .scan-import-drop.is-dragover,
+body.analyze-phuglee .scan-desk-v2 .scan-import-drop.dragover {
+  border-color: rgba(229, 132, 53, 0.55);
+  background: rgba(229, 132, 53, 0.06);
+  box-shadow: 0 0 0 1px rgba(229, 132, 53, 0.12);
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-drop-inner {
-  padding: 0.75rem 0.85rem;
+  padding: 0.55rem 0.75rem;
   text-align: center;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.2rem;
-  min-height: 4.25rem;
+  gap: 0.25rem 0.55rem;
+  min-height: 3.25rem;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-browse-link {
   font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   text-transform: none;
@@ -536,33 +539,12 @@ body.analyze-phuglee .scan-desk-v2 .scan-import-browse-link:hover {
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-hint {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: rgba(160, 152, 138, 0.8);
   margin: 0;
 }
 
-/* Session loaded: hide tall drop, show quiet replace control */
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-drop {
-  display: none !important;
-}
-body.analyze-phuglee .scan-desk-v2 .scan-import-replace {
-  align-self: flex-start;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: none;
-  font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
-  font-size: 0.78rem;
-  font-weight: 550;
-  color: rgba(196, 188, 174, 0.85);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-body.analyze-phuglee .scan-desk-v2 .scan-import-replace:hover {
-  color: var(--phuglee-orange, #e58435);
-}
-body.analyze-phuglee .scan-desk-v2 .scan-import-replace[hidden] {
+body.analyze-phuglee .scan-desk-v2 .scan-ready-count[hidden] {
   display: none !important;
 }
 
@@ -607,20 +589,10 @@ body.analyze-phuglee .scan-desk-v2 #scanReadyStartBtn:disabled {
   box-shadow: none;
 }
 
-/* Overflow sits in header title row */
-body.analyze-phuglee .scan-desk-v2 .scan-ready-title-row .scan-desk-overflow {
-  flex: 0 0 auto;
-}
-body.analyze-phuglee .scan-desk-v2 .scan-ready-title-row .scan-desk-overflow-toggle {
-  min-width: 2rem;
-  min-height: 2rem;
-  padding: 0.25rem 0.4rem;
-  font-size: 0.95rem;
-  line-height: 1;
-  opacity: 0.75;
-}
-body.analyze-phuglee .scan-desk-v2 .scan-ready-title-row .scan-desk-overflow-toggle:hover {
-  opacity: 1;
+/* More tools (···) removed from List card */
+body.analyze-phuglee .scan-desk-v2 .scan-desk-overflow-legacy,
+body.analyze-phuglee .scan-desk-v2 #scanDeskOverflowWrap {
+  display: none !important;
 }
 
 /* Vault bar — thin secondary, not a second KPI war */
