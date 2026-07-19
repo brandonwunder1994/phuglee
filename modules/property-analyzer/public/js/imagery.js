@@ -552,20 +552,19 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
     }
   }
 
+  // Distressed / Well Maintained (tier): 1 Keep · 2 opposite tier · 3 Land · 4 Blocked · 5 Satellite · 6 Undo
   if (reviewLandBtn) {
-    reviewLandBtn.hidden = !needsReview;
-    if (needsReview) {
-      reviewLandBtn.innerHTML = `${labelTier('vacant')} <kbd>3</kbd>`;
-      reviewLandBtn.title = 'Mark as vacant lot / land (3)';
+    reviewLandBtn.hidden = !(needsReview || tierMode);
+    if (needsReview || tierMode) {
+      reviewLandBtn.innerHTML = `Land <kbd>3</kbd>`;
+      reviewLandBtn.title = 'Mark as land / vacant lot (3)';
     }
   }
 
   if (reviewDeferBtn) {
-    reviewDeferBtn.hidden = !(tierMode || needsReview);
-    if (tierMode) {
-      reviewDeferBtn.innerHTML = `Later <kbd>4</kbd>`;
-      reviewDeferBtn.title = "Can't decide now — send to Needs Review queue (4)";
-    } else if (needsReview) {
+    // Later only on Needs Review — not on Distressed desk
+    reviewDeferBtn.hidden = !needsReview;
+    if (needsReview) {
       reviewDeferBtn.innerHTML = `Later <kbd>4</kbd>`;
       reviewDeferBtn.title = 'Decide later — keep in Needs Review queue (4)';
     }
@@ -573,17 +572,30 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
 
   if (reviewBlurredBtn) {
     reviewBlurredBtn.hidden = false;
-    reviewBlurredBtn.innerHTML = `${labelTier('blurred')} <kbd>5</kbd>`;
-    reviewBlurredBtn.title = 'Cannot see or assess the home — move to Blocked Image list only (5)';
+    if (tierMode) {
+      reviewBlurredBtn.innerHTML = `Blocked <kbd>4</kbd>`;
+      reviewBlurredBtn.title = 'Cannot see or assess — Blocked (4)';
+    } else if (needsReview) {
+      reviewBlurredBtn.innerHTML = `Blocked <kbd>5</kbd>`;
+      reviewBlurredBtn.title = 'Cannot see or assess — Blocked (5)';
+    } else {
+      reviewBlurredBtn.innerHTML = `Blocked <kbd>5</kbd>`;
+      reviewBlurredBtn.title = 'Cannot see or assess — Blocked (5)';
+    }
   }
 
   if (typeof reviewSatelliteOnlyBtn !== 'undefined' && reviewSatelliteOnlyBtn) {
     reviewSatelliteOnlyBtn.hidden = false;
     reviewSatelliteOnlyBtn.classList.toggle('is-current', satelliteOnly);
-    reviewSatelliteOnlyBtn.innerHTML = `${labelTier('satellite_only')} <kbd>7</kbd>`;
-    reviewSatelliteOnlyBtn.title = satelliteOnly
-      ? 'Already in Satellite Only — use Keep to confirm (7)'
-      : 'Park for satellite-only re-scan later (7)';
+    if (tierMode) {
+      reviewSatelliteOnlyBtn.innerHTML = `Satellite <kbd>5</kbd>`;
+      reviewSatelliteOnlyBtn.title = 'Park for satellite-only re-scan (5)';
+    } else {
+      reviewSatelliteOnlyBtn.innerHTML = `Satellite <kbd>7</kbd>`;
+      reviewSatelliteOnlyBtn.title = satelliteOnly
+        ? 'Already in Satellite Only — use Keep to confirm (7)'
+        : 'Park for satellite-only re-scan later (7)';
+    }
   }
 
   if (reviewUndoBtn) {
@@ -599,42 +611,55 @@ R.updateReviewModeChrome = function updateReviewModeChrome() {
     }
   }
 
+  // Distressed tier button 2 label is Well Maintained; WM tier is Distressed
+  if (reviewChangeBtn && tierMode) {
+    const changeTier = getReviewChangeTier();
+    const changeLabel = changeTier === 'well_maintained' ? 'Well Maintained' : 'Distressed';
+    reviewChangeBtn.classList.remove('home');
+    reviewChangeBtn.classList.add('change-tier');
+    reviewChangeBtn.classList.toggle('to-well-maintained', changeTier === 'well_maintained');
+    reviewChangeBtn.classList.toggle('to-distressed', changeTier === 'distressed');
+    reviewChangeBtn.innerHTML = `${changeLabel} <kbd>2</kbd>`;
+    reviewChangeBtn.title = `Mark as ${changeLabel} (2)`;
+  }
+
   if (reviewShortcutChips) {
     if (land) {
       reviewShortcutChips.innerHTML = `
         <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep ${labelTier('vacant')}</span>
         <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> Home</span>
         <span class="review-shortcut-chip"><kbd>3</kbd> Undo</span>
-        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
-        <span class="review-shortcut-chip"><kbd>7</kbd> ${labelTier('satellite_only')}</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> Blocked</span>
+        <span class="review-shortcut-chip"><kbd>7</kbd> Satellite</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     } else if (needsReview) {
       reviewShortcutChips.innerHTML = `
-        <span class="review-shortcut-chip chip-distressed"><kbd>1</kbd> ${labelTier('distressed')}</span>
-        <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> ${labelTier('well_maintained')}</span>
-        <span class="review-shortcut-chip chip-vacant"><kbd>3</kbd> ${labelTier('vacant')}</span>
+        <span class="review-shortcut-chip chip-distressed"><kbd>1</kbd> Distressed</span>
+        <span class="review-shortcut-chip chip-well-maintained"><kbd>2</kbd> Well Maintained</span>
+        <span class="review-shortcut-chip chip-vacant"><kbd>3</kbd> Land</span>
         <span class="review-shortcut-chip chip-defer"><kbd>4</kbd> Later</span>
-        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
-        <span class="review-shortcut-chip"><kbd>7</kbd> ${labelTier('satellite_only')}</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> Blocked</span>
+        <span class="review-shortcut-chip"><kbd>7</kbd> Satellite</span>
         <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     } else if (satelliteOnly) {
       reviewShortcutChips.innerHTML = `
-        <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep ${labelTier('satellite_only')}</span>
+        <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep Satellite</span>
         <span class="review-shortcut-chip"><kbd>2</kbd> Home</span>
-        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> Blocked</span>
         <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     } else {
+      // Distressed / Well Maintained queues
       const changeTier = getReviewChangeTier();
-      const changeLabel = labelTier(changeTier);
+      const changeLabel = changeTier === 'well_maintained' ? 'Well Maintained' : 'Distressed';
       const changeChipClass = changeTier === 'well_maintained' ? 'chip-well-maintained' : 'chip-distressed';
       reviewShortcutChips.innerHTML = `
         <span class="review-shortcut-chip chip-keep"><kbd>1</kbd> Keep</span>
         <span class="review-shortcut-chip ${changeChipClass}"><kbd>2</kbd> ${escapeHtml(changeLabel)}</span>
-        <span class="review-shortcut-chip chip-defer"><kbd>4</kbd> Later</span>
-        <span class="review-shortcut-chip"><kbd>5</kbd> ${labelTier('blurred')}</span>
-        <span class="review-shortcut-chip"><kbd>7</kbd> ${labelTier('satellite_only')}</span>
+        <span class="review-shortcut-chip chip-vacant"><kbd>3</kbd> Land</span>
+        <span class="review-shortcut-chip"><kbd>4</kbd> Blocked</span>
+        <span class="review-shortcut-chip"><kbd>5</kbd> Satellite</span>
         <span class="review-shortcut-chip"><kbd>6</kbd> Undo</span>
         <span class="review-shortcut-chip"><kbd>Esc</kbd> Exit</span>`;
     }

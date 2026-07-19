@@ -674,13 +674,14 @@
       </div>
 
       <footer class="review-action-bar review-glass-bar" id="reviewActionBar">
-        <button type="button" class="review-action keep" id="reviewKeepBtn" title="AI got it right — advance (1)">Keep <kbd>1</kbd></button>
-        <button type="button" class="review-action change-tier" id="reviewChangeBtn" title="Change tier (2)">Well Maintained <kbd>2</kbd></button>
-        <button type="button" class="review-action vacant" id="reviewLandBtn" title="Mark as land / vacant lot (3)" hidden>Land <kbd>3</kbd></button>
-        <button type="button" class="review-action defer-later" id="reviewDeferBtn" title="Can't decide now — send to Needs Review queue (4)">Later <kbd>4</kbd></button>
-        <button type="button" class="review-action blurred" id="reviewBlurredBtn" title="Move to Blocked Image list only — not Needs Review (5)">Blocked <kbd>5</kbd></button>
-        <button type="button" class="review-action satellite-only" id="reviewSatelliteOnlyBtn" title="Park for satellite-only re-scan later (7)">Satellite Only <kbd>7</kbd></button>
+        <button type="button" class="review-action keep" id="reviewKeepBtn" title="Keep as Distressed — advance (1)">Keep <kbd>1</kbd></button>
+        <button type="button" class="review-action change-tier to-well-maintained" id="reviewChangeBtn" title="Mark Well Maintained (2)">Well Maintained <kbd>2</kbd></button>
+        <button type="button" class="review-action vacant" id="reviewLandBtn" title="Mark as Land (3)">Land <kbd>3</kbd></button>
+        <button type="button" class="review-action blurred" id="reviewBlurredBtn" title="Move to Blocked (4)">Blocked <kbd>4</kbd></button>
+        <button type="button" class="review-action satellite-only" id="reviewSatelliteOnlyBtn" title="Park for satellite re-scan (5)">Satellite <kbd>5</kbd></button>
         <button type="button" class="review-action undo" id="reviewUndoBtn" title="Undo last change (6)" disabled>Undo <kbd>6</kbd></button>
+        <!-- Later kept for Needs Review flow only; hidden on Distressed -->
+        <button type="button" class="review-action defer-later" id="reviewDeferBtn" title="Can't decide now — Needs Review (Later)" hidden>Later</button>
       </footer>
     </div>
   </div>
@@ -725,11 +726,11 @@
   <script src="/lib/export-schema.js?v=20260701a" defer></script>
   <script src="/js/config.js?v=20260719-shell-api-v3" defer></script>
   <script src="/js/state.js?v=20260719-modal-hide" defer></script>
-  <script src="/js/imagery.js?v=20260717-w4-loop" defer></script>
+  <script src="/js/imagery.js?v=20260719-distress-btns" defer></script>
   <script src="/js/scan.js?v=20260714-reason-align" defer></script>
   <script src="/js/review.js?v=20260717-retire-results" defer></script>
   <script src="/js/render.js?v=20260717-w5-scale" defer></script>
-  <script src="/js/session.js?v=20260719-no-pct" defer></script>
+  <script src="/js/session.js?v=20260719-distress-btns" defer></script>
   <script src="/js/premium-shell.js?v=20260712-scan-accurate" defer></script>
   <script src="/js/scan-ready.js?v=20260719-list-drop" defer></script>
   <script src="/js/live-scan-feed.js?v=20260715-dual-buckets" defer></script>
