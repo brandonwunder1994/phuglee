@@ -216,8 +216,8 @@
           "yardCondition": "good"
         }
       },
-      "expectedTier": "well_maintained",
-      "baselineTier": "well_maintained"
+      "expectedTier": "distressed",
+      "baselineTier": "distressed"
     },
     {
       "id": "score6_neglect_combo",

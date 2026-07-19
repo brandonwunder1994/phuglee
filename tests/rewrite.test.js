@@ -32,6 +32,24 @@ test('rewrites apiFetch calls for Property Analyzer', () => {
   assert.ok(out.includes("apiFetch('/analyzer/api/session-backup'"));
 });
 
+test('does not rewrite shell Vault/health APIs under /analyzer', () => {
+  const js = [
+    "const res = await fetch('/api/leads/meta', { credentials: 'same-origin' });",
+    "const pub = await fetch('/api/leads/publish-from-analyzer', { method: 'POST' });",
+    "const health = await fetch('/api/health');",
+    "const auth = await fetch('/api/auth/login');",
+    "const session = await apiFetch('/api/session-backup');"
+  ].join('\n');
+  const out = analyzerRewriter.rewriteTextBody(js, 'application/javascript');
+  assert.ok(out.includes("fetch('/api/leads/meta'"), 'vault meta stays at shell root');
+  assert.ok(out.includes("fetch('/api/leads/publish-from-analyzer'"), 'vault publish stays at shell root');
+  assert.ok(out.includes("fetch('/api/health')"), 'health stays at shell root');
+  assert.ok(out.includes("fetch('/api/auth/login')"), 'auth stays at shell root');
+  assert.ok(out.includes("apiFetch('/analyzer/api/session-backup'"), 'analyzer APIs still get prefix');
+  assert.equal(out.includes('/analyzer/api/leads/'), false);
+  assert.equal(out.includes('/analyzer/api/health'), false);
+});
+
 test('does not mangle proxyFetchUrl when rewriting analyzer JS', () => {
   const js = [
     "R.proxyFetchUrl = function proxyFetchUrl(path, params, apiKey) {",

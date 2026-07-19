@@ -194,22 +194,26 @@
         }
       }
 
+      const sessionSaved = typeof getTotalScannedCount === 'function'
+        ? getTotalScannedCount()
+        : Math.max((state.results || []).length || 0, expectedTotal);
       const locationLabel = sourceFile
         || im()?.formatImportLocation?.({
           city: batches?.city || '',
           state: batches?.state || ''
         })
-        || 'Import leads to scan';
+        || (sessionSaved > 0
+          ? `Session · ${sessionSaved.toLocaleString()} scanned`
+          : 'Import leads to scan');
 
       if (scanReadyLocation) {
-        scanReadyLocation.textContent = hasRecords || pendingUnscanned || state.running
+        // Keep a real title when the session already has scans even if import
+        // records are not hydrated yet (lean boot).
+        scanReadyLocation.textContent = hasRecords || pendingUnscanned || state.running || sessionSaved > 0
           ? locationLabel
           : 'Import leads to scan';
       }
       if (scanReadyCount) {
-        const sessionSaved = typeof getTotalScannedCount === 'function'
-          ? getTotalScannedCount()
-          : Math.max((state.results || []).length || 0, expectedTotal);
         if (state.running && batchTotal > 0) {
           scanReadyCount.textContent =
             `Scanning… ${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()} on this list` +

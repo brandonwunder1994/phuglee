@@ -71,9 +71,38 @@ R.getAuthToken = function getAuthToken() {
   return typeof window.__PDA_AUTH_TOKEN__ === 'string' ? window.__PDA_AUTH_TOKEN__ : '';
 }
 
+/** Shell (Distress OS) APIs that must NOT be rewritten under MODULE_PREFIX (/analyzer). */
+R.SHELL_API_PREFIXES = [
+  '/api/leads',
+  '/api/health',
+  '/api/auth',
+  '/api/me'
+];
+
+R.isShellApiUrl = function isShellApiUrl(url) {
+  if (typeof url !== 'string') return false;
+  let path = url.startsWith('http')
+    ? (() => { try { return new URL(url).pathname; } catch (_) { return url; } })()
+    : url;
+  // Server rewrite.js may already have prefixed module JS (e.g. /analyzer/api/leads/meta).
+  const prefix = R.MODULE_PREFIX;
+  if (prefix && (path === prefix || path.startsWith(prefix + '/'))) {
+    path = path.slice(prefix.length) || '/';
+  }
+  return R.SHELL_API_PREFIXES.some((p) => path === p || path.startsWith(p + '/') || path.startsWith(p + '?'));
+};
+
 R.resolveModuleApiUrl = function resolveModuleApiUrl(url) {
   if (typeof url !== 'string' || !url.startsWith('/')) return url;
   const prefix = R.MODULE_PREFIX;
+  // Shell-owned routes stay on Distress OS root — even if the server rewriter
+  // already turned fetch('/api/leads/meta') into fetch('/analyzer/api/leads/meta').
+  if (R.isShellApiUrl(url)) {
+    if (prefix && (url === prefix || url.startsWith(prefix + '/'))) {
+      return url.slice(prefix.length) || '/';
+    }
+    return url;
+  }
   if (!prefix || url.startsWith(prefix + '/')) return url;
   if (url.startsWith('/api/') || url === '/api') return `${prefix}${url}`;
   return url;
@@ -878,7 +907,6 @@ R.reviewFilterTag = $('reviewFilterTag');
 R.reviewStatsEl = $('reviewStatsEl');
 R.reviewCheckpointEl = $('reviewCheckpointEl');
 R.reviewExitBtn = $('reviewExitBtn');
-R.reviewFullProfileBtn = $('reviewFullProfileBtn');
 R.reviewBody = $('reviewBody');
 R.reviewImages = $('reviewImages');
 R.reviewSatWrap = $('reviewSatWrap');
