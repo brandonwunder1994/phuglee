@@ -2488,14 +2488,17 @@ wireReviewExitClick(reviewCompleteExitBtn);
 // Also bind via document in case node refs were stale at boot
 document.getElementById('reviewExitBtn') && wireReviewExitClick(document.getElementById('reviewExitBtn'));
 document.getElementById('reviewCompleteExitBtn') && wireReviewExitClick(document.getElementById('reviewCompleteExitBtn'));
-reviewFullProfileBtn?.addEventListener('click', () => {
-  // Open the current lead's full profile over the Review overlay. This never touches
-  // reviewQueue/reviewIndex, so closing the profile (Esc / ×) returns to the same spot.
-  if (!state.reviewMode) return;
-  const r = typeof getReviewRecord === 'function' ? getReviewRecord() : null;
-  if (!r || typeof showInspector !== 'function') return;
-  showInspector(r, { scrollList: false, scrollFeed: false, animateGauge: false });
-});
+// Full Profile is optional chrome — never throw if the node/ref is missing (that used to
+// abort the rest of session.js and kill Keep/keyboard wiring + reviewAdvancesSinceSave init).
+(typeof reviewFullProfileBtn !== 'undefined' ? reviewFullProfileBtn : $('reviewFullProfileBtn'))
+  ?.addEventListener('click', () => {
+    // Open the current lead's full profile over the Review overlay. This never touches
+    // reviewQueue/reviewIndex, so closing the profile (Esc / ×) returns to the same spot.
+    if (!state.reviewMode) return;
+    const r = typeof getReviewRecord === 'function' ? getReviewRecord() : null;
+    if (!r || typeof showInspector !== 'function') return;
+    showInspector(r, { scrollList: false, scrollFeed: false, animateGauge: false });
+  });
 reviewKeepBtn?.addEventListener('click', () => { reviewKeep(); focusReviewShortcuts(); });
 reviewChangeBtn?.addEventListener('click', () => { void reviewApplyChange(); focusReviewShortcuts(); });
 reviewDeferBtn?.addEventListener('click', () => { reviewDeferLater(); focusReviewShortcuts(); });

@@ -15,6 +15,10 @@ R.reviewQueueStatsSnap = null;
 R.resultKeyToIdx = null;
 R.resultKeyToIdxLen = -1;
 R.resultKeyToIdxSource = null;
+// Progress timers live here (used by openReviewMode) so a late session.js failure
+// cannot leave Keep/Change throwing ReferenceError and stalling imagery advance.
+R.reviewProgressSaveTimer = null;
+R.reviewAdvancesSinceSave = 0;
 
 const iu = (typeof PDA !== 'undefined' && PDA.lib && PDA.lib.imageryUrls) ? PDA.lib.imageryUrls : null;
 
@@ -334,39 +338,44 @@ R.flushLearnedBrainSave = function flushLearnedBrainSave() {
 }
 
 R.persistReviewProgress = function persistReviewProgress(opts = {}) {
-  if (hasActiveReviewProgress()) stashReviewProgress(state.reviewFilter);
-  reviewAdvancesSinceSave++;
-  if (reviewProgressSaveTimer) {
-    clearTimeout(reviewProgressSaveTimer);
-    reviewProgressSaveTimer = null;
+  try {
+    if (typeof hasActiveReviewProgress === 'function' && hasActiveReviewProgress()) {
+      stashReviewProgress?.(state.reviewFilter);
+    }
+  } catch (_) {}
+  // Always use R.* so a missing with-scope binding never kills Keep advance / image warm.
+  R.reviewAdvancesSinceSave = (Number(R.reviewAdvancesSinceSave) || 0) + 1;
+  if (R.reviewProgressSaveTimer) {
+    clearTimeout(R.reviewProgressSaveTimer);
+    R.reviewProgressSaveTimer = null;
   }
   const reason = opts.reason || 'review-progress';
   const debounceMs = REVIEW_PROGRESS_DEBOUNCE_MS || 1500;
-  const shouldFlushNow = !opts.defer && reviewAdvancesSinceSave >= REVIEW_SAVE_EVERY_N;
+  const shouldFlushNow = !opts.defer && R.reviewAdvancesSinceSave >= (REVIEW_SAVE_EVERY_N || 40);
   if (!shouldFlushNow) {
-    reviewProgressSaveTimer = setTimeout(() => {
-      reviewProgressSaveTimer = null;
-      reviewAdvancesSinceSave = 0;
-      scheduleSaveSession(reason);
+    R.reviewProgressSaveTimer = setTimeout(() => {
+      R.reviewProgressSaveTimer = null;
+      R.reviewAdvancesSinceSave = 0;
+      scheduleSaveSession?.(reason);
       if (typeof pushReviewMetadataToServer === 'function') {
         pushReviewMetadataToServer(reason);
       }
     }, debounceMs);
     return;
   }
-  reviewAdvancesSinceSave = 0;
-  scheduleSaveSession(reason);
+  R.reviewAdvancesSinceSave = 0;
+  scheduleSaveSession?.(reason);
   if (typeof pushReviewMetadataToServer === 'function') {
     pushReviewMetadataToServer(reason);
   }
 }
 
 R.flushReviewProgress = async function flushReviewProgress() {
-  if (reviewProgressSaveTimer) {
-    clearTimeout(reviewProgressSaveTimer);
-    reviewProgressSaveTimer = null;
+  if (R.reviewProgressSaveTimer) {
+    clearTimeout(R.reviewProgressSaveTimer);
+    R.reviewProgressSaveTimer = null;
   }
-  reviewAdvancesSinceSave = 0;
+  R.reviewAdvancesSinceSave = 0;
   // Always push Keep/Change stamps + reviewedKeys immediately (works mid-hydrate).
   let metaResult = { ok: false };
   if (typeof pushReviewMetadataToServer === 'function') {
@@ -1474,6 +1483,25 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
   if (reviewMetaName) reviewMetaName.textContent = `Loading ${reviewFilterLabel(filter)}…`;
   if (reviewMetaStreet) reviewMetaStreet.textContent = '';
   reviewImages?.classList.add('loading');
+
+  // Ensure maps key + imagery index are ready before first paint — otherwise
+  // getReviewImageUrls returns empty and the operator sees a permanent blank.
+  if (USE_PROXY) {
+    try {
+      if (typeof fetchServerConfig === 'function' && !serverConfig?.hasMapsKey) {
+        await Promise.race([
+          fetchServerConfig(),
+          new Promise((r) => setTimeout(r, 2500))
+        ]);
+      }
+    } catch (_) {}
+    try {
+      if (typeof fetchImageryIndexMap === 'function' && !imageryIndexMapCache) {
+        // Non-blocking if slow — cached URLs improve once it lands.
+        void fetchImageryIndexMap().catch(() => {});
+      }
+    } catch (_) {}
+  }
 
   // Fast path: server queue — do NOT wait for full 16k hydrate (that made Review feel stuck).
   let serverQueue = null;

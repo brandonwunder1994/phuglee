@@ -25,9 +25,10 @@ R.SV_THUMB_FOV = 65;
 R.SV_THUMB_RADIUS = 50;
 R.SAT_THUMB_ZOOM = 20;
 R.REVIEW_STREET_VIEW_SIZE = '480x360';
-R.REVIEW_PREFETCH_AHEAD = 10;
-R.REVIEW_PREFETCH_URGENT = 6;
-R.REVIEW_PRELOAD_CONCURRENCY = 3;
+// Prefetch window sized for rapid Keep (1–2/sec) without starving the current lead.
+R.REVIEW_PREFETCH_AHEAD = 16;
+R.REVIEW_PREFETCH_URGENT = 8;
+R.REVIEW_PRELOAD_CONCURRENCY = 5;
 R.REVIEW_PRELOAD_CACHE_MAX = 256;
 R.REVIEW_LEAN_PAGE_SIZE = 500;
 R.REVIEW_SAVE_EVERY_N = 40;
@@ -933,6 +934,8 @@ R.reviewDeferBtn = $('reviewDeferBtn');
 R.reviewLandBtn = $('reviewLandBtn');
 R.reviewUndoBtn = $('reviewUndoBtn');
 R.reviewCompleteExitBtn = $('reviewCompleteExitBtn');
+// Optional — only present if Full Profile control is re-added to review chrome.
+R.reviewFullProfileBtn = $('reviewFullProfileBtn');
 R.sidebarReviewGroup = $('sidebarReviewGroup');
 R.sidebarReviewToggle = $('sidebarReviewToggle');
 R.sidebarReviewDistressedBtn = $('sidebarReviewDistressedBtn');
