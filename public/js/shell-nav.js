@@ -4,7 +4,7 @@
   const DATA_LINKS = [
     { id: 'collect', label: 'Collect', href: '/collect' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
-    { id: 'analyzer', label: 'Analyze', href: '/analyzer/' }
+    { id: 'analyzer', label: 'Review', href: '/analyzer/' }
   ];
 
   const PIPELINE_LINKS = [
@@ -191,7 +191,7 @@
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Collect</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
-      <a href="/analyzer/" class="shell-footer-link">Analyze</a>
+      <a href="/analyzer/" class="shell-footer-link">Review</a>
       <a href="/vault" class="shell-footer-link">Homes</a>
       <a href="/land-vault" class="shell-footer-link">Land</a>
     </nav>

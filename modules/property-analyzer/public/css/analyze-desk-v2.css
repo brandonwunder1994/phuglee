@@ -15,7 +15,8 @@ body.analyze-phuglee.has-premium-bg .premium-bg {
 body.analyzer-embedded .premium-bg-photo,
 body.analyze-phuglee.distress-os-embedded .premium-bg-photo,
 body.analyze-phuglee.has-premium-bg .premium-bg-photo {
-  background-image: url('/images/analyze-hero-desk.jpg') !important;
+  /* v2 = house only (no duck mascot) — new filename busts CDN/browser cache */
+  background-image: url('/images/analyze-hero-desk-v2.jpg') !important;
   background-position: center 40% !important;
   background-size: cover !important;
   background-repeat: no-repeat !important;
@@ -129,12 +130,10 @@ body.analyze-phuglee .scan-import-drop {
   background: rgba(6, 6, 5, 0.72) !important;
 }
 
-body.analyze-phuglee .analyze-pipeline-step {
-  background: rgba(12, 12, 11, 0.92) !important;
-}
-
-body.analyze-phuglee .analyze-pipeline-step.is-active {
-  background: rgba(229, 132, 53, 0.14) !important;
+/* 1–4 step bar removed — hide any legacy markup */
+body.analyze-phuglee .analyze-pipeline,
+body.analyze-phuglee #analyzePipeline {
+  display: none !important;
 }
 
 /*
@@ -389,48 +388,10 @@ body.analyze-phuglee .analyze-pipeline-step {
   font-size: 0.74rem;
 }
 
-/* When a session is already loaded, shrink the drop zone to a single compact row */
+/* Session-loaded List rail stays compact (drop replaced by “Replace file”) */
 body.analyze-phuglee .scan-desk-v2.is-session-loaded {
-  gap: 0.7rem;
-  padding: 0.9rem 1.15rem 0.95rem;
-}
-
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-zone {
-  flex: 0 0 auto;
-}
-
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-drop {
-  min-height: 0 !important;
-  height: auto !important;
-  padding: 0;
-}
-
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-drop-inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.25rem 0.65rem;
-  padding: 0.45rem 0.75rem !important;
-}
-
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-hint,
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-status {
-  display: none !important;
-}
-
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-browse-link {
-  font-size: 0.78rem;
-}
-
-body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-browse-link::after {
-  content: ' · add list';
-  font-family: var(--font-body, 'Outfit', sans-serif);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  color: var(--phuglee-meta-text, #b0a99c);
-  text-decoration: none;
+  gap: 0.65rem;
+  padding: 0.95rem 1.05rem 1rem;
 }
 
 /* Quiet copy: no status lines under Review Properties */
@@ -456,113 +417,112 @@ body.analyze-phuglee .analyze-panel-eyebrow {
   letter-spacing: 0.12em;
 }
 
-/* ── Scan desk / List rail — compact featured panel (no tall empty void) ── */
+/* ── List rail — simple: title · file · status · drop/replace · Scan ── */
 body.analyze-phuglee .scan-desk-v2.scan-ready-section {
   flex-direction: column;
   align-items: stretch;
-  gap: 0.9rem;
-  padding: 1.15rem 1.25rem 1.2rem;
-  border: 1px solid rgba(229, 132, 53, 0.3);
-  background:
-    linear-gradient(180deg, rgba(229, 132, 53, 0.09) 0%, transparent 36%),
-    rgba(16, 15, 13, 0.94);
+  gap: 0.75rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  background: rgba(14, 13, 11, 0.94);
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-ready-meta {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
 }
 
-body.analyze-phuglee .scan-desk-v2 .scan-ready-file-row {
+body.analyze-phuglee .scan-desk-v2 .scan-ready-title-row {
   display: flex;
-  align-items: flex-start;
-  gap: 0.55rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   min-width: 0;
 }
 
-body.analyze-phuglee .scan-desk-v2 .scan-ready-file-icon {
-  flex: 0 0 auto;
-  width: 1.35rem;
-  height: 1.35rem;
-  margin-top: 0.2rem;
-  color: rgba(229, 132, 53, 0.85);
-}
-body.analyze-phuglee .scan-desk-v2 .scan-ready-file-icon svg {
-  width: 100%;
-  height: 100%;
-  display: block;
+body.analyze-phuglee .scan-desk-v2 .scan-ready-heading {
+  margin: 0;
+  font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(196, 188, 174, 0.9);
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-ready-location {
   font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
-  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
-  font-weight: 650;
-  line-height: 1.25;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.3;
   letter-spacing: -0.01em;
-  color: #f4f0e8;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  margin: 0;
+  color: #f0ebe3;
+  margin: 0.15rem 0 0;
   text-transform: none;
+  /* One line + ellipsis — long xlsx names stay clean */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-ready-count {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   line-height: 1.35;
-  color: rgba(196, 188, 174, 0.88);
+  color: rgba(176, 169, 156, 0.9);
   margin: 0;
-}
-
-/* Status chip look when count is set (JS still writes text) */
-body.analyze-phuglee .scan-desk-v2 .scan-ready-count:not(:empty) {
-  display: inline-flex;
-  align-self: flex-start;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
-  border: 1px solid rgba(174, 163, 143, 0.18);
-  background: rgba(8, 8, 7, 0.75);
   font-variant-numeric: tabular-nums;
-  font-weight: 550;
+  font-weight: 500;
+  /* Not a chip — plain meta under the filename */
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  align-self: auto;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-zone {
   width: 100%;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-drop {
-  min-height: 5.75rem;
-  border: 1.5px dashed rgba(174, 163, 143, 0.32);
-  border-radius: 12px;
-  background: rgba(6, 6, 5, 0.55);
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  min-height: 4.25rem;
+  border: 1px dashed rgba(174, 163, 143, 0.28);
+  border-radius: 10px;
+  background: rgba(6, 6, 5, 0.45);
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-drop:hover,
 body.analyze-phuglee .scan-desk-v2 .scan-import-drop:focus-visible {
-  border-color: rgba(229, 132, 53, 0.55);
-  background: rgba(229, 132, 53, 0.05);
-  box-shadow: 0 0 0 1px rgba(229, 132, 53, 0.1);
+  border-color: rgba(229, 132, 53, 0.5);
+  background: rgba(229, 132, 53, 0.04);
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-drop-inner {
-  padding: 1rem 1rem;
+  padding: 0.75rem 0.85rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
-  min-height: 5.75rem;
+  gap: 0.2rem;
+  min-height: 4.25rem;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-browse-link {
   font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
   text-transform: none;
   color: var(--phuglee-orange, #e58435);
   background: none;
@@ -576,53 +536,91 @@ body.analyze-phuglee .scan-desk-v2 .scan-import-browse-link:hover {
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-import-hint {
-  font-size: 0.72rem;
-  color: rgba(160, 152, 138, 0.85);
+  font-size: 0.7rem;
+  color: rgba(160, 152, 138, 0.8);
   margin: 0;
+}
+
+/* Session loaded: hide tall drop, show quiet replace control */
+body.analyze-phuglee .scan-desk-v2.is-session-loaded .scan-import-drop {
+  display: none !important;
+}
+body.analyze-phuglee .scan-desk-v2 .scan-import-replace {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: rgba(196, 188, 174, 0.85);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+body.analyze-phuglee .scan-desk-v2 .scan-import-replace:hover {
+  color: var(--phuglee-orange, #e58435);
+}
+body.analyze-phuglee .scan-desk-v2 .scan-import-replace[hidden] {
+  display: none !important;
 }
 
 body.analyze-phuglee .scan-desk-v2 .scan-ready-actions {
   width: 100%;
-  padding-top: 0.35rem;
-  border-top: 1px solid rgba(174, 163, 143, 0.12);
-  margin-top: auto;
+  padding-top: 0.15rem;
+  border-top: none;
+  margin-top: 0.15rem;
+  display: flex;
+  align-items: stretch;
 }
 
-/* Primary Scan CTA — full-width gold, polished */
 body.analyze-phuglee .scan-desk-v2 .scan-ready-actions-primary {
   flex: 1 1 auto;
   min-width: 0;
+  width: 100%;
 }
 body.analyze-phuglee .scan-desk-v2 .scan-ready-start.btn-primary,
 body.analyze-phuglee .scan-desk-v2 #scanReadyStartBtn {
   width: 100%;
-  min-height: 2.75rem;
-  padding: 0.7rem 1.1rem;
+  min-height: 2.55rem;
+  padding: 0.6rem 1rem;
   font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  text-transform: none;
   border-radius: 10px;
   background: linear-gradient(180deg, #f0a04a 0%, #e58435 55%, #d4742a 100%) !important;
-  border: 1px solid rgba(255, 200, 120, 0.25) !important;
+  border: 1px solid rgba(255, 200, 120, 0.22) !important;
   color: #1a1208 !important;
-  box-shadow:
-    0 1px 0 rgba(255, 220, 160, 0.25) inset,
-    0 8px 22px rgba(229, 132, 53, 0.28);
+  box-shadow: 0 6px 16px rgba(229, 132, 53, 0.22);
 }
 body.analyze-phuglee .scan-desk-v2 .scan-ready-start.btn-primary:hover:not(:disabled),
 body.analyze-phuglee .scan-desk-v2 #scanReadyStartBtn:hover:not(:disabled) {
-  filter: brightness(1.06);
-  box-shadow:
-    0 1px 0 rgba(255, 220, 160, 0.3) inset,
-    0 10px 28px rgba(229, 132, 53, 0.38);
+  filter: brightness(1.05);
 }
 body.analyze-phuglee .scan-desk-v2 .scan-ready-start.btn-primary:disabled,
 body.analyze-phuglee .scan-desk-v2 #scanReadyStartBtn:disabled {
-  opacity: 0.45;
-  filter: grayscale(0.15);
+  opacity: 0.42;
+  filter: grayscale(0.12);
   box-shadow: none;
+}
+
+/* Overflow sits in header title row */
+body.analyze-phuglee .scan-desk-v2 .scan-ready-title-row .scan-desk-overflow {
+  flex: 0 0 auto;
+}
+body.analyze-phuglee .scan-desk-v2 .scan-ready-title-row .scan-desk-overflow-toggle {
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1;
+  opacity: 0.75;
+}
+body.analyze-phuglee .scan-desk-v2 .scan-ready-title-row .scan-desk-overflow-toggle:hover {
+  opacity: 1;
 }
 
 /* Vault bar — thin secondary, not a second KPI war */

@@ -45,9 +45,8 @@
       const localKpi = localKpiSection || document.getElementById('localKpiSection');
       const workBtn = document.getElementById('openResultsWorkbenchBtn');
 
-      // Pipeline stays visible but demoted once a session exists (layout CSS).
-      if (pipeline) pipeline.hidden = !z.showPipeline;
-      if (typeof paintAnalyzePipeline === 'function') paintAnalyzePipeline();
+      // Step bar retired — keep node hidden if any legacy markup remains.
+      if (pipeline) pipeline.hidden = true;
       if (desk) desk.hidden = !z.showScanDesk;
 
       // Live scan theater only while scanning (never idle dead space).
@@ -209,15 +208,21 @@
           ? `${sessionSaved.toLocaleString()} scanned`
           : 'Import');
 
+      // Filename line — only show a real name when we have one; else quiet “No file yet”
+      const hasFileIdentity = !!(sourceFile || (hasRecords && locationLabel && locationLabel !== 'Import'));
       if (scanReadyLocation) {
-        // Keep a real title when the session already has scans even if import
-        // records are not hydrated yet (lean boot).
-        scanReadyLocation.textContent = hasRecords || pendingUnscanned || state.running || sessionSaved > 0
-          ? locationLabel
-          : 'Import';
+        if (hasFileIdentity || sessionSaved > 0 || pendingUnscanned > 0 || state.running) {
+          scanReadyLocation.textContent = locationLabel;
+          scanReadyLocation.hidden = false;
+          scanReadyLocation.title = locationLabel;
+        } else {
+          scanReadyLocation.textContent = 'No file yet';
+          scanReadyLocation.hidden = false;
+          scanReadyLocation.title = '';
+        }
       }
-      // Compact the large drop zone once a session is loaded (still allows another import).
-      const sessionLoaded = sessionSaved > 0 && !state.running && pendingUnscanned === 0;
+      // After a session exists, hide the tall drop zone — use Replace file instead.
+      const sessionLoaded = sessionSaved > 0 || analyzeHasResults();
       const hasSession = sessionSaved > 0 || analyzeHasResults();
       const deskRoot = typeof scanReadySection !== 'undefined' && scanReadySection
         ? scanReadySection
@@ -229,19 +234,22 @@
       const pageLead = document.getElementById('analyzePageLead');
       if (pageLead) pageLead.hidden = hasSession;
 
+      const replaceBtn = document.getElementById('scanImportReplaceBtn');
+      if (replaceBtn) {
+        replaceBtn.hidden = !sessionLoaded || !!state.running;
+      }
+
+      // One quiet status line — no duplicate “scanned” + “done” noise
       if (scanReadyCount) {
         if (state.running && batchTotal > 0) {
           scanReadyCount.textContent =
-            `${batchDone.toLocaleString()} / ${batchTotal.toLocaleString()}` +
-            (sessionSaved ? ` · ${sessionSaved.toLocaleString()} total` : '');
+            `Scanning ${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()}`;
         } else if (pendingUnscanned > 0) {
-          scanReadyCount.textContent =
-            `${pendingUnscanned.toLocaleString()} ready` +
-            (sessionSaved ? ` · ${sessionSaved.toLocaleString()} done` : '');
+          scanReadyCount.textContent = `${pendingUnscanned.toLocaleString()} ready to scan`;
         } else if (sessionSaved > 0) {
-          scanReadyCount.textContent = `${sessionSaved.toLocaleString()} done`;
+          scanReadyCount.textContent = `${sessionSaved.toLocaleString()} scanned`;
         } else {
-          scanReadyCount.textContent = 'Drop a list · hit Scan';
+          scanReadyCount.textContent = 'Drop a spreadsheet to start';
         }
       }
 
@@ -329,6 +337,7 @@
       const drop = $('scanImportDrop');
       const input = $('scanFileInput');
       const browseLabel = $('scanImportBrowseLabel');
+      const replaceBtn = document.getElementById('scanImportReplaceBtn');
       input?.addEventListener('change', async () => {
         const file = input.files?.[0];
         input.value = '';
@@ -341,6 +350,19 @@
         e.stopPropagation();
         input?.click();
       });
+
+      // Compact “Replace file” when session already has data (tall drop zone is hidden)
+      if (replaceBtn && replaceBtn.dataset.wired !== '1') {
+        replaceBtn.dataset.wired = '1';
+        replaceBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (state.running) {
+            alert('Stop the scan before uploading a new file.');
+            return;
+          }
+          input?.click();
+        });
+      }
 
       if (!drop) return;
 

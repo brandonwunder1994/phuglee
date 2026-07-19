@@ -29,14 +29,14 @@ function loadShellNavApi(sessionUser) {
   return sandbox.window.DistressOSShellNav;
 }
 
-test('shell nav groups Collect, Filter, and Analyze under Data', () => {
+test('shell nav groups Collect, Filter, and Review under Data', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/collect');
   assert.ok(nav.includes('shell-data-trigger'));
   assert.ok(nav.includes('Data'));
   assert.match(nav, /shell-nav-dropdown-label">Collect</);
   assert.match(nav, /shell-nav-dropdown-label">Filter</);
-  assert.match(nav, /shell-nav-dropdown-label">Analyze</);
+  assert.match(nav, /shell-nav-dropdown-label">Review</);
   assert.ok(!nav.includes('shell-nav-dropdown-label">Government Lists<'));
   assert.ok(!nav.includes('shell-nav-dropdown-label">Pre-liens<'));
   assert.ok(!nav.includes('City Tracker'));
