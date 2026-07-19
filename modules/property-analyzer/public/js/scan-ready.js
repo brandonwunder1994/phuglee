@@ -45,15 +45,18 @@
       const localKpi = localKpiSection || document.getElementById('localKpiSection');
       const workBtn = document.getElementById('openResultsWorkbenchBtn');
 
+      // Pipeline stays visible but demoted once a session exists (layout CSS).
       if (pipeline) pipeline.hidden = !z.showPipeline;
       if (typeof paintAnalyzePipeline === 'function') paintAnalyzePipeline();
       if (desk) desk.hidden = !z.showScanDesk;
 
+      // Live scan theater only while scanning (never idle dead space).
       if (live) live.hidden = !z.showLiveScan;
       if (summary) {
         summary.hidden = !z.showSessionKpis;
         summary.classList.toggle('visible', z.showSessionKpis);
       }
+
       // Rankings workbench retired — always keep out of the page
       if (dash) dash.hidden = true;
       const dataZone = document.getElementById('analyzeDataZone');
@@ -203,35 +206,42 @@
           state: batches?.state || ''
         })
         || (sessionSaved > 0
-          ? `Session · ${sessionSaved.toLocaleString()} scanned`
-          : 'Import leads to scan');
+          ? `${sessionSaved.toLocaleString()} scanned`
+          : 'Import');
 
       if (scanReadyLocation) {
         // Keep a real title when the session already has scans even if import
         // records are not hydrated yet (lean boot).
         scanReadyLocation.textContent = hasRecords || pendingUnscanned || state.running || sessionSaved > 0
           ? locationLabel
-          : 'Import leads to scan';
+          : 'Import';
       }
+      // Compact the large drop zone once a session is loaded (still allows another import).
+      const sessionLoaded = sessionSaved > 0 && !state.running && pendingUnscanned === 0;
+      const hasSession = sessionSaved > 0 || analyzeHasResults();
+      const deskRoot = typeof scanReadySection !== 'undefined' && scanReadySection
+        ? scanReadySection
+        : document.getElementById('scanReadySection');
+      if (deskRoot) deskRoot.classList.toggle('is-session-loaded', sessionLoaded);
+      document.body.classList.toggle('analyze-has-session', hasSession);
+      const heroZone = document.querySelector('.analyze-hero-zone');
+      if (heroZone) heroZone.classList.toggle('has-session', hasSession);
+      const pageLead = document.getElementById('analyzePageLead');
+      if (pageLead) pageLead.hidden = hasSession;
+
       if (scanReadyCount) {
         if (state.running && batchTotal > 0) {
           scanReadyCount.textContent =
-            `Scanning… ${batchDone.toLocaleString()} of ${batchTotal.toLocaleString()} on this list` +
-            ` · ${sessionSaved.toLocaleString()} total in session` +
-            ` — Stop keeps finished ones.`;
+            `${batchDone.toLocaleString()} / ${batchTotal.toLocaleString()}` +
+            (sessionSaved ? ` · ${sessionSaved.toLocaleString()} total` : '');
         } else if (pendingUnscanned > 0) {
           scanReadyCount.textContent =
-            `${pendingUnscanned.toLocaleString()} to scan` +
-            (sessionSaved
-              ? ` · ${sessionSaved.toLocaleString()} already in session`
-              : '') +
-            ` — hit Start Scan`;
+            `${pendingUnscanned.toLocaleString()} ready` +
+            (sessionSaved ? ` · ${sessionSaved.toLocaleString()} done` : '');
         } else if (sessionSaved > 0) {
-          scanReadyCount.textContent =
-            `All leads on this list are scanned · ${sessionSaved.toLocaleString()} total in session. Open Review Leads for Distressed / Well Maintained / Vacant.`;
+          scanReadyCount.textContent = `${sessionSaved.toLocaleString()} done`;
         } else {
-          scanReadyCount.textContent =
-            'Drop a file below, then start Street View + AI scan.';
+          scanReadyCount.textContent = 'Drop a list · hit Scan';
         }
       }
 
@@ -243,18 +253,19 @@
       if (scanReadyStartBtn) {
         scanReadyStartBtn.disabled = !canStart;
         scanReadyStartBtn.hidden = !!state.running;
+        // Primary CTA is Scan; review is via Queue KPI tiles.
+        scanReadyStartBtn.classList.add('btn-primary');
+        scanReadyStartBtn.classList.remove('btn-secondary');
         if (canStart) {
-          scanReadyStartBtn.title = hasRecords
-            ? 'Start Street View + satellite AI scan'
-            : 'Load queue, then start Street View + satellite AI scan';
+          scanReadyStartBtn.title = 'Run Street View + AI';
         } else if (state.running) {
-          scanReadyStartBtn.title = 'Scan already running';
+          scanReadyStartBtn.title = 'Scanning…';
         } else if (!serverConfig?.hasMapsKey || !serverConfig?.hasGeminiKey) {
-          scanReadyStartBtn.title = 'Maps or Gemini API key missing on server';
+          scanReadyStartBtn.title = 'API keys missing on server';
         } else if (!hasRecords && pendingUnscanned <= 0) {
-          scanReadyStartBtn.title = 'Import a spreadsheet first';
+          scanReadyStartBtn.title = 'Import a list first';
         } else {
-          scanReadyStartBtn.title = startBtn?.title || 'Cannot start yet';
+          scanReadyStartBtn.title = startBtn?.title || 'Not ready';
         }
       }
       const readyStop = $('scanReadyStopBtn');
@@ -262,9 +273,38 @@
         readyStop.hidden = !state.running;
         readyStop.disabled = !state.running || !!state.aborted;
       }
-      if (reviewLeadsBtn) reviewLeadsBtn.disabled = !(state.results || []).length;
 
       applyAnalyzeVisibility();
+    };
+
+    /** Vault strip collapse (default collapsed). Persists open state for the session. */
+    R.wireVaultStripToggle = function wireVaultStripToggle() {
+      const btn = document.getElementById('summaryVaultToggle');
+      const panel = document.getElementById('summaryVaultPanel');
+      if (!btn || !panel || btn.dataset.wired === '1') return;
+      btn.dataset.wired = '1';
+      let open = false;
+      try { open = sessionStorage.getItem('analyze_vault_strip_open') === '1'; } catch (_) {}
+      const apply = () => {
+        panel.hidden = !open;
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      };
+      apply();
+      btn.addEventListener('click', () => {
+        open = !open;
+        try { sessionStorage.setItem('analyze_vault_strip_open', open ? '1' : '0'); } catch (_) {}
+        apply();
+      });
+    };
+
+    R.updateVaultStripMeta = function updateVaultStripMeta(total) {
+      const meta = document.getElementById('summaryVaultToggleMeta');
+      if (!meta) return;
+      if (total == null || !Number.isFinite(Number(total))) {
+        meta.textContent = '—';
+        return;
+      }
+      meta.textContent = Number(total).toLocaleString();
     };
 
     function setScanDropActive(active) {
@@ -387,11 +427,6 @@
         overflowToggle?.setAttribute('aria-expanded', 'false');
       }
 
-      function closeReviewLeadsMenu() {
-        if (reviewLeadsMenu) reviewLeadsMenu.hidden = true;
-        reviewLeadsBtn?.setAttribute('aria-expanded', 'false');
-      }
-
       // Call startScanAnalysis directly — do not rely on hidden startBtn.click()
       // (disabled buttons suppress programmatic clicks; missing DOM nodes used to abort silently).
       scanReadyStartBtn?.addEventListener('click', (e) => {
@@ -406,34 +441,11 @@
         if (startBtn && !startBtn.disabled) startBtn.click();
       });
 
-      reviewLeadsBtn?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (!reviewLeadsMenu) return;
-        closeScanDeskOverflow();
-        const willOpen = reviewLeadsMenu.hidden;
-        reviewLeadsMenu.hidden = !willOpen;
-        reviewLeadsBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-        if (willOpen) positionScanDeskDropdown(reviewLeadsMenu, reviewLeadsBtn);
-      });
-
-      reviewLeadsMenu?.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-review-flow]');
-        if (!btn) return;
-        reviewLeadsMenu.hidden = true;
-        reviewLeadsBtn?.setAttribute('aria-expanded', 'false');
-        openReviewMode(btn.dataset.reviewFlow);
-      });
-
-      document.addEventListener('click', (e) => {
-        if (!reviewLeadsWrap?.contains(e.target)) {
-          closeReviewLeadsMenu();
-        }
-      });
+      // Review entry is Session Buckets KPIs (openBucketReviewFromKpi) — no Review Leads dropdown.
 
       overflowToggle?.addEventListener('click', (e) => {
         e.stopPropagation();
         if (!overflowMenu) return;
-        closeReviewLeadsMenu();
         const willOpen = overflowMenu.hidden;
         overflowMenu.hidden = !willOpen;
         overflowToggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
@@ -447,16 +459,24 @@
       });
 
       window.addEventListener('resize', () => {
-        if (reviewLeadsMenu && !reviewLeadsMenu.hidden) {
-          positionScanDeskDropdown(reviewLeadsMenu, reviewLeadsBtn);
-        }
         if (overflowMenu && !overflowMenu.hidden) {
           positionScanDeskDropdown(overflowMenu, overflowToggle);
         }
       });
 
+      // Admin tools stay in overflow only (API keys / AI brain) — never inline on the desk.
+      document.getElementById('deskOpenSettingsBtn')?.addEventListener('click', () => {
+        closeScanDeskOverflow();
+        openSettingsModal?.();
+      });
+      document.getElementById('deskOpenBrainBtn')?.addEventListener('click', () => {
+        closeScanDeskOverflow();
+        openBrainModal?.();
+      });
+
       applyTierUiLabelsToChrome?.();
       wireScanImportZone();
+      wireVaultStripToggle?.();
       updateScanReadyUi();
     }
 

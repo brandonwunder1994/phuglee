@@ -2701,7 +2701,10 @@ R.openToolModal = function openToolModal(modalEl) {
     refreshServerStatusUi?.();
   }
   for (const m of getToolModals()) {
-    if (m && m !== modalEl) m.classList.remove('open');
+    if (m && m !== modalEl) {
+      m.classList.remove('open');
+      m.hidden = true;
+    }
   }
   modalEl.classList.add('open');
   modalEl.hidden = false;
@@ -2712,7 +2715,8 @@ R.openToolModal = function openToolModal(modalEl) {
 R.closeToolModal = function closeToolModal(modalEl) {
   if (!modalEl) return;
   modalEl.classList.remove('open');
-  if (modalEl.id === 'apiUsageModal') modalEl.hidden = true;
+  // Always remove from document flow — closed tool modals must not extend page scroll.
+  modalEl.hidden = true;
   if (openToolModalId === modalEl.id) openToolModalId = null;
   syncToolModalOverflow();
 }
@@ -2721,7 +2725,7 @@ R.closeAllToolModals = function closeAllToolModals() {
   for (const m of getToolModals()) {
     if (m) {
       m.classList.remove('open');
-      if (m.id === 'apiUsageModal') m.hidden = true;
+      m.hidden = true;
     }
   }
   openToolModalId = null;
