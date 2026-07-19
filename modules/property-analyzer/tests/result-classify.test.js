@@ -12,13 +12,15 @@ describe('resultLeadTier parity records', () => {
 });
 
 describe('resultLeadTier score8 cosmetic', () => {
-  it('returns well_maintained not distressed', () => {
+  // Score 6+ with soft flags stays Distressed (see tier-engine score8_cosmetic_only).
+  // Manicured exemption is for score 1–5 or empty-indicator manicured sat only.
+  it('returns distressed when model score is 6+ with soft flags', () => {
     const tier = resultLeadTier({
       score: 8,
       category: 'property',
       indicators: ['overgrown_landscaping'],
       satelliteClassification: { roofCondition: 'good', yardCondition: 'good' }
     });
-    assert.equal(tier, 'well_maintained');
+    assert.equal(tier, 'distressed');
   });
 });

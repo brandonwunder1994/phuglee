@@ -1,15 +1,14 @@
 {
   "parityRecords": [
     {
-      "id": "score8_cosmetic_not_distressed",
+      "id": "score8_cosmetic_with_model_score_is_distressed",
       "record": {
         "score": 8,
         "category": "property",
         "indicators": ["overgrown_landscaping"],
         "satelliteClassification": { "roofCondition": "good", "yardCondition": "good" }
       },
-      "oldServerTier": "distressed",
-      "expectedTier": "well_maintained"
+      "expectedTier": "distressed"
     },
     {
       "id": "boarded_low_score_distressed",
@@ -57,8 +56,8 @@
     ],
     "expected": {
       "all": 5,
-      "distressed": 1,
-      "well_maintained": 1,
+      "distressed": 2,
+      "well_maintained": 0,
       "vacant": 1,
       "blurred": 1,
       "review": 1
