@@ -16,8 +16,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/shell-bundle.css?v=12">
-  <link rel="stylesheet" href="/css/bridge.css?v=101-shell-desk">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=11">
+  <link rel="stylesheet" href="/css/bridge.css?v=102-center">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -29,6 +29,12 @@
   <div id="distress-os-nav-mount"></div>
 
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
+    <header class="bridge-hero" data-phuglee-reveal-child>
+      <p class="bridge-step-label">Step 02 - Filter</p>
+      <h1 class="bridge-title">Scrub the Mess</h1>
+      <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
+    </header>
+
     <!-- Phase 73: war-room victory (shown after Stage list) -->
     <div id="bridge-victory-strip" class="bridge-victory-strip bridge-elev--featured" hidden role="status" aria-live="polite">
       <div class="bridge-victory-main">
@@ -51,10 +57,19 @@
 
     <div class="bridge-desk">
       <div class="bridge-desk-primary">
-    <!-- Primary Filter stage (city + type + dropzone as one job surface) -->
+    <nav class="bridge-pipeline bridge-pipeline--slim" aria-label="Intake steps" data-phuglee-reveal-child>
+      <ol class="bridge-pipeline-list" id="bridge-pipeline">
+        <li class="bridge-pipeline-step is-active is-clickable" data-step="location" role="button" tabindex="0" aria-current="step"><span>1</span> City</li>
+        <li class="bridge-pipeline-step" data-step="type" role="button" tabindex="-1" aria-disabled="true"><span>2</span> Type</li>
+        <li class="bridge-pipeline-step" data-step="upload" role="button" tabindex="-1" aria-disabled="true"><span>3</span> Upload</li>
+        <li class="bridge-pipeline-step" data-step="results" role="button" tabindex="-1" aria-disabled="true"><span>4</span> Results</li>
+      </ol>
+    </nav>
+
+    <!-- Phase 69: one scrub desk stage (city + type + dropzone as one job surface) -->
     <div class="bridge-scrub-stage bridge-elev--primary" id="bridge-scrub-stage">
     <section class="bridge-panel phuglee-panel bridge-panel--desk bridge-elev--primary" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
-      <h2 id="bridge-step-location">City</h2>
+      <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Scrub desk</h2>
       <div class="bridge-city-search-block">
         <label class="bridge-city-search-label" for="bridge-city-search">
           <span class="bridge-city-search-label-text">Quick city search</span>
@@ -264,7 +279,33 @@
       </div>
 
       <div class="bridge-import-paths">
-        <!-- Drop / browse clerk file (paste path removed � drop Excel/CSV/PDF only) -->
+        <!-- Path A: paste tabular text -->
+        <div class="bridge-import-path bridge-import-path--paste" id="bridge-paste-panel">
+          <h3 class="bridge-import-path-title" id="bridge-paste-heading">Paste text to Excel</h3>
+          <label class="bridge-paste-label" for="bridge-paste-text">
+            <span class="visually-hidden">Paste tabular text</span>
+            <textarea
+              id="bridge-paste-text"
+              class="bridge-paste-textarea phuglee-textarea"
+              rows="10"
+              spellcheck="false"
+              placeholder="Paste tab- or comma-separated rows here...&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
+            ></textarea>
+          </label>
+          <div class="bridge-paste-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Scrub it</button>
+            <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
+            <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
+          </div>
+        </div>
+
+        <div class="bridge-import-or" role="separator" aria-label="or">
+          <span class="bridge-import-or-line" aria-hidden="true"></span>
+          <span class="bridge-import-or-text">OR</span>
+          <span class="bridge-import-or-line" aria-hidden="true"></span>
+        </div>
+
+        <!-- Path B: drop / browse clerk file -->
         <div class="bridge-import-path bridge-import-path--file">
           <h3 class="bridge-import-path-title">Drop the clerk file</h3>
           <div class="bridge-format-badges" aria-hidden="true">
@@ -282,7 +323,13 @@
             <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Scrub it</button>
             <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
           </div>
-          <p class="bridge-vault-skip-hint">Addresses already in The Vault are always skipped.</p>
+          <label class="bridge-opt-skip-imported" for="bridge-skip-already-imported">
+            <input type="checkbox" id="bridge-skip-already-imported" />
+            <span class="bridge-opt-skip-imported-copy">
+              <strong>Skip addresses already in Analyze</strong>
+              <span class="bridge-opt-skip-imported-desc">Optional - off by default. When checked, drops rows that match addresses already in your Analyze session before scrubbing.</span>
+            </span>
+          </label>
           <p class="bridge-ocr-cap-hint">Scanned PDFs: OCR reads up to 12 pages. Split longer packets or upload Excel/CSV.</p>
         </div>
       </div>
@@ -309,31 +356,6 @@
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
       <div id="bridge-ocr-truncation-banner" class="bridge-ocr-truncation-banner" hidden role="alert"></div>
       <div id="bridge-redaction-banner" class="bridge-review-limit-banner" hidden role="status"></div>
-      <!-- Rescue FIRST: accept left-out categories before KPI noise -->
-      <section
-        id="bridge-left-out-panel"
-        class="bridge-left-out-panel"
-        hidden
-        aria-labelledby="bridge-left-out-heading"
-      >
-        <div class="bridge-left-out-head">
-          <p class="bridge-left-out-kicker">Action needed</p>
-          <h3 id="bridge-left-out-heading">Accept categories that were not auto-kept</h3>
-          <p class="bridge-left-out-lead" id="bridge-left-out-lead">
-            These types had real addresses but Filter did not auto-mark them as distress.
-            Click <strong>Accept as distress</strong> on any type you want on your list � or
-            <strong>Accept all left out</strong> so you do not miss leads.
-          </p>
-        </div>
-        <div class="bridge-left-out-toolbar">
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-left-out-keep-all" hidden>
-            Accept all left out
-          </button>
-          <span class="bridge-left-out-summary" id="bridge-left-out-summary" hidden></span>
-        </div>
-        <div id="bridge-left-out-list" class="bridge-left-out-list" role="list"></div>
-        <p id="bridge-left-out-status" class="bridge-left-out-status" hidden role="status"></p>
-      </section>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
       <div id="bridge-zero-kept-recovery" class="bridge-zero-kept-recovery" hidden>
         <p class="bridge-zero-kept-recovery-lead">No rows kept. Common fixes:</p>
@@ -584,7 +606,7 @@
             Wrong Type column = wrong filter. Review sample values and keep estimates, then pick the column that holds violation or issue codes.
           </p>
           <p class="bridge-type-confirm-recovery" id="bridge-type-column-recovery-hint">
-            Confirmed the wrong column earlier? An admin can use <strong>Clear Type-column memory</strong> on Filter, then re-upload so this dialog appears again.
+            Confirmed the wrong column earlier? An admin can use <strong>Clear Type-column memory</strong> on the scrub desk, then re-upload so this dialog appears again.
           </p>
           <p class="bridge-type-confirm-suggested" id="bridge-type-column-suggested" hidden></p>
         </div>
@@ -609,6 +631,6 @@
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=100" defer></script>
+  <script src="/js/bridge.js?v=95" defer></script>
 </body>
 </html>
