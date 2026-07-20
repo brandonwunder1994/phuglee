@@ -53,7 +53,8 @@ describe('awaiting bucket counts', () => {
   it('excludes reviewedKeysByFilter even when result row is not stamped yet', () => {
     const unstamped = {
       email: 'z@t.com', phone: '9', address: '9 Main',
-      category: 'property', leadTier: 'distressed', score: 9
+      category: 'property', leadTier: 'distressed', score: 9,
+      confidence: 0.95, imageryQuality: 'clear'
     };
     const key = 'z@t.com|9|9 Main';
     const c = buildAwaitingCounts([unstamped], {
@@ -65,6 +66,29 @@ describe('awaiting bucket counts', () => {
       reviewedKeysByFilter: { distressed: [key] }
     });
     assert.equal(q.pending, 0);
+  });
+
+  it('puts borderline/low-confidence distress in Needs Review, not Distressed KPI', () => {
+    // Mirrors prod gap: client isClassifiedResultFast=false → open Distressed skips row,
+    // while old server still counted leadTier=distressed as Distressed pending.
+    const borderline = {
+      email: 'b@t.com', phone: '10', address: '10 Main',
+      category: 'property', leadTier: 'distressed', score: 6,
+      confidence: 40, imageryQuality: 'ok', reason: 'junk yard',
+      indicators: ['junk_or_hoarding_yard']
+    };
+    const solid = {
+      email: 's@t.com', phone: '11', address: '11 Main',
+      category: 'property', leadTier: 'distressed', score: 9,
+      confidence: 90, imageryQuality: 'clear', reason: 'boarded windows',
+      indicators: ['boarded_windows']
+    };
+    const c = buildAwaitingCounts([borderline, solid]);
+    const qd = buildSessionReviewQueue([borderline, solid], 'distressed', { limit: 10 });
+    const qr = buildSessionReviewQueue([borderline, solid], 'review', { limit: 10 });
+    assert.equal(c.awaiting.distressed, qd.pending, 'awaiting distressed == queue');
+    assert.equal(c.awaiting.distressed, 1, 'only solid classified distressed is pending');
+    assert.ok(c.awaiting.review >= 1 && qr.pending >= 1, 'borderline lands in Needs Review');
   });
 
   it('stays fast + correct at 17k-row scale (single-pass budget)', () => {
