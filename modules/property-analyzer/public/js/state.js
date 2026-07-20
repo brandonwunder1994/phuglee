@@ -503,6 +503,16 @@ R.interpretServerBackupResponse = function interpretServerBackupResponse(res, bo
   if (body && body.rejected) {
     const kept = body.kept ?? '?';
     const incoming = body.incoming ?? '?';
+    // Exit Review / partial stamps must never be treated as success when the server
+    // refused the write — otherwise Keep/Change looks saved but reappears on reopen.
+    if (opts.requireWrite || body.reason === 'downgrade_blocked') {
+      return {
+        ok: false,
+        rejected: true,
+        error: `Server refused review save (${body.reason || 'rejected'}; kept ${kept}, refused ${incoming})`,
+        body
+      };
+    }
     if (isServerAheadRejection(body, opts.incomingCount)) {
       return { ok: true, reconciled: true, body };
     }
@@ -748,7 +758,11 @@ R.flushReviewMetadataToServer = async function flushReviewMetadataToServer(reaso
       });
       const body = await res.json().catch(() => ({}));
       const interpreted = interpretServerBackupResponse(res, body, {
-        incomingCount: state.results.length
+        // Payload row count is the partial patch size — not full session hydrate length.
+        incomingCount: Array.isArray(payload.results) ? payload.results.length : state.results.length,
+        requireWrite: reason === 'review-exit' || reason === 'review-metadata' || reason === 'review-progress'
+          || opts.requireWrite === true
+          || payload.partialReviewSync === true
       });
       lastResult = interpreted;
       if (interpreted.ok) {
