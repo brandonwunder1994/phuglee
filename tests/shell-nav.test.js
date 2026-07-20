@@ -29,12 +29,12 @@ function loadShellNavApi(sessionUser) {
   return sandbox.window.DistressOSShellNav;
 }
 
-test('shell nav groups Collect, Filter, and Review under Data', () => {
+test('shell nav groups Request, Filter, and Review under Data', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/collect');
   assert.ok(nav.includes('shell-data-trigger'));
   assert.ok(nav.includes('Data'));
-  assert.match(nav, /shell-nav-dropdown-label">Collect</);
+  assert.match(nav, /shell-nav-dropdown-label">Request</);
   assert.match(nav, /shell-nav-dropdown-label">Filter</);
   assert.match(nav, /shell-nav-dropdown-label">Review</);
   assert.ok(!nav.includes('shell-nav-dropdown-label">Government Lists<'));
@@ -106,11 +106,11 @@ test('brad shell nav includes Buyers under Pipeline', () => {
   assert.equal(api.activeId('/buyers'), 'buyers');
 });
 
-test('brad shell nav uses Collect instead of Government Lists', () => {
+test('brad shell nav uses Request instead of Government Lists', () => {
   const api = loadShellNavApi('brad');
   const nav = api.buildNav('/collect');
   assert.ok(nav.includes('href="/collect"'));
-  assert.ok(nav.includes('>Collect<'));
+  assert.ok(nav.includes('>Request<'));
   assert.ok(nav.includes('aria-current="page"'));
   assert.ok(!nav.includes('>Government Lists<'));
   assert.ok(!nav.includes('href="/government-lists"'));
