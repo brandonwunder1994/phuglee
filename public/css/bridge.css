@@ -4909,8 +4909,10 @@ button.bridge-inventory-filter-chip.is-active {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /*
- * Filter page atmosphere — match Analyze desk v2 treatment:
- * dedicated night plate photo on .phuglee-shell-bg, readable vignette, solid panels.
+ * Filter page atmosphere — match Analyze desk v2 *perceived* fade.
+ * Analyze plate uses opacity 0.68 + dark house photo. Filter’s desk lamp plate
+ * is much brighter, so we fade opacity + grade + vignette until it sits as quiet
+ * atmosphere behind solid panels (same product feel as Analyze).
  */
 body.bridge-page.has-premium-bg,
 body.bridge-page.phuglee-app {
@@ -4921,45 +4923,47 @@ body.bridge-page.phuglee-app {
   --bridge-hairline-hot: rgba(229, 132, 53, 0.32);
   --bridge-surface: rgba(14, 13, 11, 0.92);
   --bridge-inset: rgba(10, 10, 9, 0.96);
-  --shell-photo-opacity: 0.62;
+  /* Brighter plate → lower opacity than Analyze’s 0.68 house plate */
+  --shell-photo-opacity: 0.36;
 }
 
-/* Filter-only plate (Imagine) — clerk papers / clean list desk, not home-hero default */
+/* Filter-only plate (Imagine) — faded to Analyze atmosphere weight */
 body.bridge-page .phuglee-shell-bg::before {
-  opacity: var(--shell-photo-opacity, 0.62) !important;
+  opacity: var(--shell-photo-opacity, 0.36) !important;
   background: url('/images/filter-hero-desk.jpg') center 38% / cover no-repeat !important;
-  filter: grayscale(6%) contrast(1.16) brightness(0.72) saturate(1.08) !important;
+  /* Slightly greyer + darker than Analyze (0.7 brightness) so lamp glow does not dominate */
+  filter: grayscale(14%) contrast(1.12) brightness(0.52) saturate(0.82) !important;
 }
 
 body.bridge-page .phuglee-shell-bg--strong {
-  --shell-photo-opacity: 0.68;
+  --shell-photo-opacity: 0.36;
 }
 
-/* Soft warm halo + edge vignette (Analyze-style) */
+/* Same vignette stack as Analyze desk v2 (+ a touch more edge dark for bright plate) */
 body.bridge-page .phuglee-shell-bg::after {
   background:
     radial-gradient(
       ellipse 80% 60% at 50% 40%,
-      rgba(229, 132, 53, 0.08) 0%,
+      rgba(229, 132, 53, 0.05) 0%,
       transparent 55%
     ),
     radial-gradient(
       ellipse 90% 70% at 50% 45%,
       transparent 0%,
-      transparent 48%,
-      rgba(0, 0, 0, 0.22) 78%,
-      rgba(0, 0, 0, 0.48) 100%
+      transparent 42%,
+      rgba(0, 0, 0, 0.28) 78%,
+      rgba(0, 0, 0, 0.55) 100%
     ),
-    linear-gradient(180deg, rgba(13, 13, 13, 0.72) 0%, rgba(13, 13, 13, 0.28) 12%, transparent 32%),
-    linear-gradient(0deg, rgba(13, 13, 13, 0.8) 0%, rgba(13, 13, 13, 0.3) 14%, transparent 34%) !important;
+    linear-gradient(180deg, rgba(13, 13, 13, 0.78) 0%, rgba(13, 13, 13, 0.32) 12%, transparent 30%),
+    linear-gradient(0deg, rgba(13, 13, 13, 0.85) 0%, rgba(13, 13, 13, 0.35) 14%, transparent 32%) !important;
 }
 
 body.bridge-page.has-premium-bg .heat-glow {
-  opacity: 0.3;
+  opacity: 0.28;
 }
 
 body.bridge-page.has-premium-bg .heat-grid {
-  opacity: 0.1;
+  opacity: 0.08;
 }
 
 /* Solid near-opaque desk panels — Analyze desk v2 depth (not thin glass mush) */
