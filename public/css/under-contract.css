@@ -2363,6 +2363,12 @@ body.uc-drawer-open {
   flex-shrink: 0;
 }
 
+.uc-sms-mark-read.is-unread {
+  color: var(--phuglee-cream, #f5f2e4);
+  border-color: rgba(229, 132, 53, 0.45);
+  background: rgba(229, 132, 53, 0.12);
+}
+
 .uc-sms-pulse {
   display: inline-block;
   margin-left: 0.35rem;
