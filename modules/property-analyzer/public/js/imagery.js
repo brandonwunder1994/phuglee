@@ -1796,7 +1796,17 @@ R.closeReviewMode = async function closeReviewMode() {
     if (typeof notifyResultMutation === 'function') notifyResultMutation({ clearServerTierCounts: true });
     else invalidateTierCountsCache?.({ clearServer: true });
   } catch (_) {}
-  try { updateSummaryStats?.({ force: true }); } catch (_) {}
+  // Refresh Session Buckets KPIs from server so Distressed hits 0 when the queue is empty.
+  try { invalidateReviewSnapshotCache?.(); } catch (_) {}
+  try { state._awaitingCountsFromServer = null; } catch (_) {}
+  try {
+    if (typeof fetchAwaitingCounts === 'function') {
+      await fetchAwaitingCounts({ force: true });
+    }
+  } catch (e) {
+    console.warn('[Review exit] awaiting counts refresh failed', e);
+  }
+  try { updateSummaryStats?.({ force: true, instant: true }); } catch (_) {}
   try { updateFilterLabels?.(); } catch (_) {}
   try { renderResults?.({ force: true }); } catch (_) {}
 
