@@ -2360,10 +2360,10 @@ body.uc-drawer-open {
   gap: 0.28rem;
   margin-left: 0.35rem;
   padding: 0.14rem 0.42rem 0.14rem 0.32rem;
-  border: 1px solid rgba(238, 183, 70, 0.28);
+  border: 1px solid rgba(80, 180, 120, 0.35);
   border-radius: 3px;
-  background: rgba(238, 183, 70, 0.12);
-  color: var(--phuglee-gold, #eeb746);
+  background: rgba(80, 180, 120, 0.14);
+  color: #7fd99a;
   flex-shrink: 0;
   vertical-align: middle;
   line-height: 1;
@@ -2386,15 +2386,15 @@ body.uc-drawer-open {
 }
 
 .uc-deal-type-badge[data-deal-type="cash"] {
-  border-color: rgba(238, 183, 70, 0.28);
-  background: rgba(238, 183, 70, 0.12);
-  color: var(--phuglee-gold, #eeb746);
+  border-color: rgba(80, 180, 120, 0.35);
+  background: rgba(80, 180, 120, 0.14);
+  color: #7fd99a;
 }
 
 .uc-deal-type-badge[data-deal-type="subject_to"] {
-  border-color: rgba(94, 186, 170, 0.32);
-  background: rgba(94, 186, 170, 0.12);
-  color: #7ecfc0;
+  border-color: rgba(156, 120, 210, 0.4);
+  background: rgba(156, 120, 210, 0.16);
+  color: #c4a8ef;
 }
 
 .uc-profile-hero-badges {
