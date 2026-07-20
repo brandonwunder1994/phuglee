@@ -2570,21 +2570,37 @@
     viewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  async function uploadDocumentFromPanel() {
+  const MAX_DOC_UPLOAD_BYTES = 18 * 1024 * 1024;
+
+  async function uploadDocumentFromPanel(fileOverride) {
     const dealId = state.activeDealId;
     if (!dealId) {
       showToast('Open a property first');
       return;
     }
     const input = $('uc-doc-upload-file');
-    const file = input?.files?.[0];
+    const file = fileOverride || input?.files?.[0];
     if (!file) {
+      // One-click path: open the picker (matches media desk UX)
+      if (input && !fileOverride) {
+        input.click();
+        return;
+      }
       showToast('Choose a file to upload');
+      return;
+    }
+    if (file.size > MAX_DOC_UPLOAD_BYTES) {
+      showToast('Document too large (max 18MB)');
+      if (input) input.value = '';
       return;
     }
     const kind = $('uc-doc-upload-kind')?.value || 'purchase_contract';
     const btn = $('uc-doc-upload');
-    if (btn) btn.disabled = true;
+    if (btn) {
+      btn.disabled = true;
+      btn.dataset.busy = '1';
+      btn.textContent = 'Uploading…';
+    }
     try {
       const contentBase64 = await new Promise((resolve, reject) => {
         const r = new FileReader();
@@ -2595,6 +2611,7 @@
         r.onerror = () => reject(new Error('Could not read file'));
         r.readAsDataURL(file);
       });
+      if (!contentBase64) throw new Error('Could not read file');
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/documents`, {
         method: 'POST',
         body: JSON.stringify({
@@ -2609,13 +2626,25 @@
         state.profile = data.deal;
         renderDocuments(data.deal.documents || []);
         renderDocsPending(data.deal);
+      } else if (data.document) {
+        const docs = Array.isArray(state.profile?.documents) ? state.profile.documents.slice() : [];
+        docs.unshift(data.document);
+        if (state.profile) state.profile.documents = docs;
+        renderDocuments(docs);
       }
       if (input) input.value = '';
       showToast(`Uploaded ${file.name}`);
     } catch (err) {
-      showToast(err.message || 'Upload failed');
+      const msg = err.code === 'PAYLOAD_TOO_LARGE'
+        ? 'Document too large (max 18MB)'
+        : (err.message || 'Upload failed');
+      showToast(msg);
     } finally {
-      if (btn) btn.disabled = false;
+      if (btn) {
+        btn.disabled = false;
+        delete btn.dataset.busy;
+        btn.textContent = 'Upload';
+      }
     }
   }
 
@@ -3953,7 +3982,18 @@
       }
     });
     $('uc-doc-send')?.addEventListener('click', () => { sendDocumentFromPanel(); });
-    $('uc-doc-upload')?.addEventListener('click', () => { uploadDocumentFromPanel(); });
+    $('uc-doc-upload')?.addEventListener('click', () => {
+      if ($('uc-doc-upload')?.dataset.busy === '1') return;
+      uploadDocumentFromPanel();
+    });
+    // Auto-upload when a file is chosen (picker path or native input)
+    $('uc-doc-upload-file')?.addEventListener('change', () => {
+      if ($('uc-doc-upload')?.dataset.busy === '1') return;
+      const input = $('uc-doc-upload-file');
+      const file = input?.files?.[0];
+      if (!file) return;
+      uploadDocumentFromPanel(file).catch((err) => showToast(err.message || 'Upload failed'));
+    });
     $('uc-docs-refresh-sn')?.addEventListener('click', () => { refreshSignedDocuments(); });
     $('uc-doc-close-viewer')?.addEventListener('click', closeDocViewer);
     $('uc-docs-list')?.addEventListener('click', (ev) => {
