@@ -2,7 +2,13 @@
   'use strict';
 
   var COVERAGE_URL = '/forge/api/coverage';
-  var STATES_GEO_URL = '/forge/static/geo/us-states.geojson';
+  // Prefer public bootstrap (deployed with the site). Forge live API is auth-gated
+  // and can lag on volume data — never let a stale/auth response pin the UI at old counts.
+  var COVERAGE_BOOTSTRAP_URL = '/data/coverage-map-bootstrap.json?v=17';
+  var STATES_GEO_URLS = [
+    '/data/geo/us-states.geojson',
+    '/forge/static/geo/us-states.geojson'
+  ];
 
   var LEADS_UNAVAILABLE = new Set([
     'Alabama',
@@ -97,29 +103,81 @@
     return 'no-coverage';
   }
 
-  async function fetchCoverage() {
-    if (coverageCache) return coverageCache;
-    var res = await fetch(COVERAGE_URL, { cache: 'no-store' });
-    if (!res.ok) {
-      res = await fetch('/data/coverage-map-bootstrap.json', { cache: 'default' });
-      if (!res.ok) throw new Error('coverage unavailable');
-    }
-    coverageCache = await res.json();
-    if (coverageCache.unavailable_states) {
+  function applyUnavailableStates(coverage) {
+    if (coverage && coverage.unavailable_states) {
       LEADS_UNAVAILABLE.clear();
-      coverageCache.unavailable_states.forEach(function (s) {
+      coverage.unavailable_states.forEach(function (s) {
         LEADS_UNAVAILABLE.add(s);
       });
     }
+  }
+
+  function coverageStateCount(coverage) {
+    if (!coverage) return 0;
+    if (typeof coverage.total_states === 'number' && coverage.total_states > 0) {
+      return coverage.total_states;
+    }
+    if (Array.isArray(coverage.states)) return coverage.states.length;
+    return 0;
+  }
+
+  async function fetchCoverageBootstrap() {
+    var res = await fetch(COVERAGE_BOOTSTRAP_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('coverage bootstrap unavailable');
+    return res.json();
+  }
+
+  async function fetchCoverage() {
+    if (coverageCache) return coverageCache;
+
+    var bootstrap = null;
+    try {
+      bootstrap = await fetchCoverageBootstrap();
+    } catch (_) {
+      bootstrap = null;
+    }
+
+    var live = null;
+    try {
+      var res = await fetch(COVERAGE_URL, { cache: 'no-store', credentials: 'same-origin' });
+      if (res.ok) {
+        live = await res.json();
+      }
+    } catch (_) {
+      live = null;
+    }
+
+    // Prefer the richer footprint so a stale forge volume cannot pin "10 states"
+    // after the public bootstrap has been updated on deploy.
+    if (live && bootstrap) {
+      coverageCache =
+        coverageStateCount(bootstrap) > coverageStateCount(live) ? bootstrap : live;
+    } else {
+      coverageCache = live || bootstrap;
+    }
+
+    if (!coverageCache) throw new Error('coverage unavailable');
+    applyUnavailableStates(coverageCache);
     return coverageCache;
   }
 
   async function fetchStatesGeo() {
     if (statesGeoCache) return statesGeoCache;
-    var res = await fetch(STATES_GEO_URL, { cache: 'default' });
-    if (!res.ok) throw new Error('states geo unavailable');
-    statesGeoCache = await res.json();
-    return statesGeoCache;
+    var lastErr = null;
+    for (var i = 0; i < STATES_GEO_URLS.length; i += 1) {
+      try {
+        var res = await fetch(STATES_GEO_URLS[i], { cache: 'default' });
+        if (!res.ok) {
+          lastErr = new Error('states geo ' + res.status);
+          continue;
+        }
+        statesGeoCache = await res.json();
+        return statesGeoCache;
+      } catch (err) {
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error('states geo unavailable');
   }
 
   function project(lng, lat, width, height) {

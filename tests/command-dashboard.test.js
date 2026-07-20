@@ -62,6 +62,19 @@ test('home-coverage.js renders command map host', () => {
   assert.ok(js.includes('command-coverage-map'));
   assert.ok(js.includes('renderCommandMap'));
   assert.ok(js.includes("return '—'") || js.includes('return "—"'));
+  // Public bootstrap + public geo so map works without forge login
+  assert.ok(js.includes('coverage-map-bootstrap.json'));
+  assert.ok(js.includes('/data/geo/us-states.geojson'));
+  assert.ok(js.includes('coverageStateCount') || js.includes('total_states'));
+});
+
+test('command/home/heat cache-bust home-coverage after coverage fix', () => {
+  for (const rel of ['command.html', 'index.html', 'heat.html']) {
+    const html = read(rel);
+    assert.match(html, /home-coverage\.js\?v=\d+/);
+    const m = html.match(/home-coverage\.js\?v=(\d+)/);
+    assert.ok(m && Number(m[1]) >= 17, `${rel} needs home-coverage.js?v>=17`);
+  }
 });
 
 test('coverage bootstrap has full live state footprint', () => {
@@ -71,4 +84,13 @@ test('coverage bootstrap has full live state footprint', () => {
   assert.ok(boot.total_states >= 15, `expected >=15 states, got ${boot.total_states}`);
   assert.ok(Array.isArray(boot.states) && boot.states.length === boot.total_states);
   assert.ok(boot.total_cities > 500);
+});
+
+test('public us-states geojson exists for unauthenticated map paint', () => {
+  const geoPath = path.join(PUBLIC, 'data', 'geo', 'us-states.geojson');
+  assert.ok(fs.existsSync(geoPath), 'public/data/geo/us-states.geojson missing');
+  const geo = JSON.parse(fs.readFileSync(geoPath, 'utf8'));
+  assert.equal(geo.type, 'FeatureCollection');
+  // Contiguous US + DC (Alaska/Hawaii excluded from map bounds)
+  assert.ok(Array.isArray(geo.features) && geo.features.length >= 48);
 });
