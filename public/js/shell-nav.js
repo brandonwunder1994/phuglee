@@ -3,6 +3,8 @@
 
   const DATA_LINKS = [
     { id: 'collect', label: 'Request', href: '/collect' },
+    { id: 'government-lists', label: 'Government Lists', href: '/government-lists' },
+    { id: 'pre-liens', label: 'Pre-liens', href: '/pre-liens' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
     { id: 'analyzer', label: 'Review', href: '/analyzer/' }
   ];
@@ -11,11 +13,6 @@
     { id: 'under-contract', label: 'Under Contract', href: '/under-contract' },
     { id: 'pipeline', label: 'All Leads', href: '/pipeline' },
     { id: 'buyers', label: 'Buyers', href: '/buyers' }
-  ];
-
-  const VAULT_LINKS = [
-    { id: 'vault', label: 'Homes', href: '/vault' },
-    { id: 'land-vault', label: 'Land', href: '/land-vault' }
   ];
 
   function isAdminUser() {
@@ -100,8 +97,8 @@
     if (p === '/under-contract') return 'under-contract';
     if (p === '/buyers' || p === '/trust-funds') return 'buyers';
     if (p === '/operating-costs') return 'operating-costs';
-    // Collect sub-desks — highlight Collect in Data, not top-nav entries.
-    if (p === '/government-lists' || p === '/pre-liens') return 'collect';
+    if (p === '/government-lists') return 'government-lists';
+    if (p === '/pre-liens') return 'pre-liens';
     if (p === '/filter' || p === '/bridge') return 'bridge';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
@@ -121,10 +118,6 @@
     return PIPELINE_LINKS.some((l) => l.id === current);
   }
 
-  function isVaultsSectionActive(current) {
-    return VAULT_LINKS.some((l) => l.id === current);
-  }
-
   // Back-compat alias for older tests / callers.
   function isPropertiesSectionActive(current) {
     return isDataSectionActive(current);
@@ -138,6 +131,15 @@
     return matchLink(normalizePath(pathname), '/analyzer/');
   }
 
+  /** Ops desks: top nav only — no marketing/link footer (matches Analyze / Collect). */
+  function isOpsDeskNoFooterPath(pathname) {
+    const p = normalizePath(pathname || window.location.pathname);
+    if (isAnalyzerPath(p)) return true;
+    if (matchLink(p, '/filter') || matchLink(p, '/bridge')) return true;
+    if (matchLink(p, '/collect')) return true;
+    return false;
+  }
+
   function buildFooter(pathname) {
     const onAnalyzer = isAnalyzerPath(pathname || window.location.pathname);
     if (isVaultOnlyUser()) {
@@ -146,30 +148,11 @@
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">Homes · Land</span>
+      <span class="shell-footer-meta">Home Vault · Land Vault</span>
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/vault" class="shell-footer-link">Homes</a>
-      <a href="/land-vault" class="shell-footer-link">Land</a>
-    </nav>
-  </div>
-</footer>`;
-    }
-    if (isDisposUser()) {
-      return `
-<footer class="shell-footer" id="distress-os-footer">
-  <div class="shell-footer-inner">
-    <div class="shell-footer-brand-block">
-      <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">Disposition desk</span>
-    </div>
-    <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/collect" class="shell-footer-link">Request</a>
-      <a href="/under-contract" class="shell-footer-link">Under Contract</a>
-      <a href="/pipeline" class="shell-footer-link">All Leads</a>
-      <a href="/buyers" class="shell-footer-link">Buyers</a>
-      <a href="/vault" class="shell-footer-link">Homes</a>
-      <a href="/land-vault" class="shell-footer-link">Land</a>
+      <a href="/vault" class="shell-footer-link">Home Vault</a>
+      <a href="/land-vault" class="shell-footer-link">Land Vault</a>
     </nav>
   </div>
 </footer>`;
@@ -190,10 +173,11 @@
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Request</a>
+      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
+      <a href="/pre-liens" class="shell-footer-link">Pre-liens</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Review</a>
-      <a href="/vault" class="shell-footer-link">Homes</a>
-      <a href="/land-vault" class="shell-footer-link">Land</a>
+      <a href="/vault" class="shell-footer-link">The Vault</a>
     </nav>
   </div>
   ${trustLine}
@@ -202,11 +186,10 @@
 
   function mountFooter() {
     const path = window.location.pathname;
-    const onAnalyzer = isAnalyzerPath(path);
     const existing = document.getElementById('distress-os-footer');
     const mount = document.getElementById('distress-os-footer-mount');
 
-    if (onAnalyzer) {
+    if (isOpsDeskNoFooterPath(path)) {
       existing?.remove();
       if (mount) mount.innerHTML = '';
       return;
@@ -285,26 +268,16 @@
     });
   }
 
-  function buildVaultsDropdown(current) {
-    return buildNavDropdown({
-      id: 'vaults',
-      label: 'Leads',
-      links: VAULT_LINKS,
-      sectionActive: isVaultsSectionActive(current),
-      current
-    });
-  }
-
   function buildNav(pathname) {
     const current = activeId(pathname);
-    const vaultHtml = buildVaultsDropdown(current);
+    const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>Home Vault</a>`
+      + `<a href="/land-vault" class="${linkClass('land-vault', current)}"${current === 'land-vault' ? ' aria-current="page"' : ''}>Land Vault</a>`;
 
     let linksHtml;
     if (isVaultOnlyUser()) {
       linksHtml = vaultHtml;
     } else if (isDisposUser()) {
-      const collectHtml = `<a href="/collect" class="${linkClass('collect', current)}"${current === 'collect' ? ' aria-current="page"' : ''}>Request</a>`;
-      linksHtml = collectHtml + buildPipelineDropdown(current) + vaultHtml;
+      linksHtml = buildPipelineDropdown(current) + vaultHtml;
     } else {
       const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
       const dataHtml = buildDataDropdown(current);
@@ -569,11 +542,9 @@
     activeId,
     DATA_LINKS,
     PIPELINE_LINKS,
-    VAULT_LINKS,
     PROPERTIES_LINKS: DATA_LINKS,
     isDataSectionActive,
     isPipelineSectionActive,
-    isVaultsSectionActive,
     isPropertiesSectionActive,
     isAdminUser,
     isDisposUser,
