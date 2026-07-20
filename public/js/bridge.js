@@ -1674,7 +1674,7 @@
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (data.code === 'OCR_UNAVAILABLE' || res.status === 503) {
+      if (data.code === 'OCR_UNAVAILABLE' || data.code === 'OCR_FAILED' || res.status === 503) {
         const maxPages = data.maxOcrPages || 12;
         throw new Error(
           data.error ||
