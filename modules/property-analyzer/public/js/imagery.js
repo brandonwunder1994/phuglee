@@ -370,17 +370,24 @@ R.persistReviewProgress = function persistReviewProgress(opts = {}) {
   }
 }
 
-R.flushReviewProgress = async function flushReviewProgress() {
+R.flushReviewProgress = async function flushReviewProgress(opts = {}) {
   if (R.reviewProgressSaveTimer) {
     clearTimeout(R.reviewProgressSaveTimer);
     R.reviewProgressSaveTimer = null;
   }
   R.reviewAdvancesSinceSave = 0;
   // Always push Keep/Change stamps + reviewedKeys immediately (works mid-hydrate).
+  // Exit path: wait for any in-flight POST + retry so reviewed leads hit disk before reopen.
   let metaResult = { ok: false };
   if (typeof pushReviewMetadataToServer === 'function') {
     try {
-      metaResult = await pushReviewMetadataToServer('review-exit', { immediate: true });
+      metaResult = await pushReviewMetadataToServer(opts.reason || 'review-exit', {
+        immediate: true,
+        waitForInFlight: true,
+        retries: opts.retries != null ? opts.retries : 2,
+        payload: opts.payload || null,
+        waitMs: opts.waitMs || 20000
+      });
     } catch (e) {
       console.warn('[Review exit] metadata save failed', e);
       metaResult = { ok: false, error: e };
@@ -388,7 +395,7 @@ R.flushReviewProgress = async function flushReviewProgress() {
   }
   // Full session save when hydrated; otherwise metadata patch already covered stamps.
   if (typeof isSessionReadyForServerSave === 'function' && isSessionReadyForServerSave()) {
-    saveSession('review-exit');
+    try { saveSession('review-exit'); } catch (_) {}
   } else {
     pendingServerSave = true;
     sessionDirty = true;
@@ -1693,14 +1700,35 @@ R.openReviewMode = async function openReviewMode(filter, opts = {}) {
 }
 
 R.closeReviewMode = async function closeReviewMode() {
-  // Always leave the overlay immediately — never wait on network before hide.
-  // A hung flushReviewProgress previously made Exit Review look dead.
+  // Hide the overlay immediately for UX, but SNAPSHOT reviewed stamps first and
+  // await a guaranteed server flush so Exit never drops Keep/Change work.
   try { closeReviewTierPicker?.(null); } catch (_) {}
   const filter = state.reviewFilter;
   const reviewedNow = (state.reviewStats?.kept || 0)
     + (state.reviewStats?.changed || 0)
     + (state.reviewStats?.deferred || 0)
-    + (state.reviewStats?.blurred || 0);
+    + (state.reviewStats?.blurred || 0)
+    + (state.reviewStats?.satelliteOnly || 0);
+  const exitQueue = Array.isArray(state.reviewQueue) ? state.reviewQueue.slice() : [];
+  const exitIndex = Number(state.reviewIndex) || 0;
+  const exitStats = { ...(state.reviewStats || {}) };
+  // Freeze stamps while they still exist — clear UI only after this snapshot.
+  let exitPayload = null;
+  try {
+    if (typeof buildReviewMetadataPayload === 'function') {
+      exitPayload = buildReviewMetadataPayload({
+        reviewFilter: filter,
+        reviewQueue: exitQueue,
+        reviewIndex: exitIndex,
+        reviewStats: exitStats,
+        reviewedKeysByFilter: state.reviewedKeysByFilter,
+        reviewProgressByFilter: state.reviewProgressByFilter
+      });
+    }
+  } catch (e) {
+    console.warn('[Review exit] snapshot failed', e);
+  }
+
   try { commitReviewedThroughIndex?.(filter); } catch (_) {}
   // Drop resume stash so re-open rebuilds from pending — reviewed stamps keep those leads out.
   if (state.reviewProgressByFilter && filter && filter !== 'all') {
@@ -1724,13 +1752,38 @@ R.closeReviewMode = async function closeReviewMode() {
   try { hideReviewOverlay(); } catch (_) {}
   try { updateReviewEntryButtons?.(); } catch (_) {}
 
-  // Persist in background so the user is not blocked on Exit
-  let saveResult = { ok: true, background: true };
+  // Persist reviewed leads — wait for in-flight + retry. Never fire-and-forget.
+  let saveResult = { ok: false };
   try {
-    saveResult = await flushReviewProgress();
+    if (typeof setSessionRestoreBanner === 'function' && reviewedNow > 0) {
+      setSessionRestoreBanner(`Saving ${reviewedNow.toLocaleString()} reviewed lead${reviewedNow === 1 ? '' : 's'}…`);
+    }
+    saveResult = await flushReviewProgress({
+      reason: 'review-exit',
+      payload: exitPayload,
+      retries: 2,
+      waitMs: 20000
+    });
   } catch (e) {
     console.warn('[Review exit] flush failed', e);
     saveResult = { ok: false, error: e };
+  } finally {
+    try { setSessionRestoreBanner?.(''); } catch (_) {}
+  }
+
+  // If the awaited flush still failed, one more immediate attempt with a fresh live payload.
+  if (saveResult?.ok === false && typeof pushReviewMetadataToServer === 'function') {
+    try {
+      const retry = await pushReviewMetadataToServer('review-exit', {
+        immediate: true,
+        waitForInFlight: true,
+        retries: 1,
+        payload: exitPayload || undefined
+      });
+      if (retry?.ok) saveResult = retry;
+    } catch (e) {
+      console.warn('[Review exit] retry failed', e);
+    }
   }
 
   // Resume background hydrate after Exit (was paused so Street View stayed fast).
@@ -1750,16 +1803,17 @@ R.closeReviewMode = async function closeReviewMode() {
   if (reviewedNow > 0 && filter && filter !== 'all') {
     let remaining = 0;
     try { remaining = buildReviewQueue(filter).length; } catch (_) {}
-    const savedOk = saveResult?.ok !== false;
+    const savedOk = saveResult?.ok === true;
     try {
       log(
         savedOk
           ? `${reviewedNow.toLocaleString()} ${reviewFilterLabel(filter)} lead${reviewedNow === 1 ? '' : 's'} saved as reviewed — ${remaining.toLocaleString()} left for next session`
-          : `Reviewed ${reviewedNow.toLocaleString()} locally — server save pending (will retry). ${remaining.toLocaleString()} left in this queue.`,
+          : `Reviewed ${reviewedNow.toLocaleString()} locally — server save failed, will retry. ${remaining.toLocaleString()} left in this queue.`,
         savedOk ? 'success' : 'warn'
       );
     } catch (_) {}
   }
+  return saveResult;
 }
 
 R.applyCategoryFields = function applyCategoryFields(updated, category) {

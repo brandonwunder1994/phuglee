@@ -607,11 +607,22 @@ R.countReviewedKeysInPayload = function countReviewedKeysInPayload(buckets) {
   return n;
 }
 
-R.buildReviewMetadataPayload = function buildReviewMetadataPayload() {
+R.cloneReviewedKeysByFilter = function cloneReviewedKeysByFilter(buckets) {
+  const out = {};
+  if (!buckets || typeof buckets !== 'object') return out;
+  for (const k of Object.keys(buckets)) {
+    out[k] = Array.isArray(buckets[k]) ? buckets[k].slice() : [];
+  }
+  return out;
+};
+
+R.buildReviewMetadataPayload = function buildReviewMetadataPayload(overrides = {}) {
   // Prefer incremental session patches (fast) — avoid scanning all ~16k results mid-review.
   const pending = state._pendingReviewPatches;
   let patches;
-  if (pending && pending.size) {
+  if (Array.isArray(overrides.results)) {
+    patches = overrides.results.slice();
+  } else if (pending && pending.size) {
     patches = Array.from(pending.values());
   } else {
     patches = [];
@@ -645,18 +656,25 @@ R.buildReviewMetadataPayload = function buildReviewMetadataPayload() {
       });
     }
   }
+  const buckets = overrides.reviewedKeysByFilter != null
+    ? cloneReviewedKeysByFilter(overrides.reviewedKeysByFilter)
+    : cloneReviewedKeysByFilter(state.reviewedKeysByFilter);
   return {
     partialReviewSync: true,
     results: patches,
     records: [],
     fileName: state.fileName || '',
     processed: state.processed || 0,
-    reviewedKeysByFilter: state.reviewedKeysByFilter,
-    reviewProgressByFilter: state.reviewProgressByFilter,
-    reviewFilter: state.reviewFilter,
-    reviewQueue: state.reviewQueue,
-    reviewIndex: state.reviewIndex,
-    reviewStats: state.reviewStats,
+    reviewedKeysByFilter: buckets,
+    reviewProgressByFilter: overrides.reviewProgressByFilter != null
+      ? overrides.reviewProgressByFilter
+      : state.reviewProgressByFilter,
+    reviewFilter: overrides.reviewFilter != null ? overrides.reviewFilter : state.reviewFilter,
+    reviewQueue: Array.isArray(overrides.reviewQueue)
+      ? overrides.reviewQueue.slice()
+      : (Array.isArray(state.reviewQueue) ? state.reviewQueue.slice() : []),
+    reviewIndex: overrides.reviewIndex != null ? overrides.reviewIndex : state.reviewIndex,
+    reviewStats: overrides.reviewStats != null ? { ...overrides.reviewStats } : { ...(state.reviewStats || {}) },
     savedAt: Date.now()
   };
 }
@@ -673,64 +691,99 @@ R.pushReviewMetadataToServer = function pushReviewMetadataToServer(reason = 'rev
       clearTimeout(reviewMetadataSaveTimer);
       reviewMetadataSaveTimer = null;
     }
-    return flushReviewMetadataToServer(reason);
+    return flushReviewMetadataToServer(reason, opts);
   }
   if (reviewMetadataSaveTimer) clearTimeout(reviewMetadataSaveTimer);
   const debounceMs = REVIEW_PROGRESS_DEBOUNCE_MS || 600;
   reviewMetadataSaveTimer = setTimeout(() => {
     reviewMetadataSaveTimer = null;
-    flushReviewMetadataToServer(reason);
+    flushReviewMetadataToServer(reason, opts);
   }, debounceMs);
   return Promise.resolve({ ok: true, queued: true });
 }
 
-R.flushReviewMetadataToServer = async function flushReviewMetadataToServer(reason = 'review-metadata') {
+R.flushReviewMetadataToServer = async function flushReviewMetadataToServer(reason = 'review-metadata', opts = {}) {
   if (!USE_PROXY) return { ok: false, skipped: true };
-  if (reviewMetadataSaveInFlight) {
+
+  // Exit Review / critical: never return early with queued:true — wait for the in-flight
+  // POST so the caller can await a real success/failure.
+  if (opts.waitForInFlight || reason === 'review-exit') {
+    const deadline = Date.now() + (Number(opts.waitMs) || 20000);
+    while (reviewMetadataSaveInFlight && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, 40));
+    }
+  } else if (reviewMetadataSaveInFlight) {
     reviewMetadataSaveQueued = true;
     return { ok: false, queued: true };
   }
-  reviewMetadataSaveInFlight = true;
-  try {
-    const flushedKeys = state._pendingReviewPatches?.size
-      ? Array.from(state._pendingReviewPatches.keys())
-      : [];
-    const payload = buildReviewMetadataPayload();
-    const json = JSON.stringify(payload);
-    const reasonParam = encodeURIComponent(reason || 'review-metadata');
-    const res = await apiFetch(`/api/session-backup?reason=${reasonParam}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: json,
-      keepalive: json.length <= FETCH_KEEPALIVE_MAX_BYTES
-    });
-    const body = await res.json().catch(() => ({}));
-    const interpreted = interpretServerBackupResponse(res, body, {
-      incomingCount: state.results.length
-    });
-    if (interpreted.ok) {
-      pendingServerSave = false;
-      lastSessionSaveRejected = false;
-      lastSessionSaveAt = payload.savedAt;
-      // Only drop keys that were in this payload — Keeps during the request stay queued.
-      if (flushedKeys.length && state._pendingReviewPatches) {
-        for (const k of flushedKeys) state._pendingReviewPatches.delete(k);
+
+  // Still blocked (stuck in-flight) — mark queued and fail visibly.
+  if (reviewMetadataSaveInFlight) {
+    reviewMetadataSaveQueued = true;
+    return { ok: false, queued: true, timedOut: true };
+  }
+
+  const maxAttempts = Math.max(1, Number(opts.retries) || 1);
+  let lastResult = { ok: false };
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    reviewMetadataSaveInFlight = true;
+    try {
+      const payload = opts.payload || buildReviewMetadataPayload(opts.payloadOpts || {});
+      const flushedKeys = state._pendingReviewPatches?.size
+        ? Array.from(state._pendingReviewPatches.keys())
+        : (Array.isArray(payload.results)
+          ? payload.results.map((r) => (
+            typeof recordKey === 'function'
+              ? recordKey(r)
+              : `${r.email || ''}|${r.phone || ''}|${r.address || ''}`
+          )).filter(Boolean)
+          : []);
+      const json = JSON.stringify(payload);
+      const reasonParam = encodeURIComponent(reason || 'review-metadata');
+      const res = await apiFetch(`/api/session-backup?reason=${reasonParam}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: json,
+        keepalive: json.length <= FETCH_KEEPALIVE_MAX_BYTES
+      });
+      const body = await res.json().catch(() => ({}));
+      const interpreted = interpretServerBackupResponse(res, body, {
+        incomingCount: state.results.length
+      });
+      lastResult = interpreted;
+      if (interpreted.ok) {
+        pendingServerSave = false;
+        lastSessionSaveRejected = false;
+        lastSessionSaveAt = payload.savedAt;
+        // Only drop keys that were in this payload — Keeps during the request stay queued.
+        if (flushedKeys.length && state._pendingReviewPatches) {
+          for (const k of flushedKeys) state._pendingReviewPatches.delete(k);
+        }
+        updateSessionSaveStatus();
+        break;
       }
-      updateSessionSaveStatus();
-    } else if (!interpreted.rejected) {
-      console.warn('[Review metadata save]', interpreted.error || 'failed');
-    }
-    return interpreted;
-  } catch (e) {
-    console.warn('[Review metadata save]', e);
-    return { ok: false, error: e };
-  } finally {
-    reviewMetadataSaveInFlight = false;
-    if (reviewMetadataSaveQueued) {
-      reviewMetadataSaveQueued = false;
-      flushReviewMetadataToServer(reason);
+      if (!interpreted.rejected) {
+        console.warn('[Review metadata save]', interpreted.error || 'failed', `attempt ${attempt}/${maxAttempts}`);
+      }
+      // Don't hammer on hard reject (downgrade_blocked).
+      if (interpreted.rejected) break;
+      if (attempt < maxAttempts) await new Promise((r) => setTimeout(r, 350 * attempt));
+    } catch (e) {
+      console.warn('[Review metadata save]', e);
+      lastResult = { ok: false, error: e };
+      if (attempt < maxAttempts) await new Promise((r) => setTimeout(r, 350 * attempt));
+    } finally {
+      reviewMetadataSaveInFlight = false;
+      if (reviewMetadataSaveQueued) {
+        reviewMetadataSaveQueued = false;
+        // Fire-and-follow for non-exit debounce coalescing only.
+        if (!(opts.waitForInFlight || reason === 'review-exit')) {
+          void flushReviewMetadataToServer(reason);
+        }
+      }
     }
   }
+  return lastResult;
 }
 
 R.localReviewBucketsAheadOfServer = function localReviewBucketsAheadOfServer(localBuckets = {}, serverBuckets = {}) {

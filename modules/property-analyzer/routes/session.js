@@ -100,7 +100,9 @@ function register(ctx) {
       offset,
       limit,
       resultsOnly,
-      includeKeys
+      includeKeys,
+      // Exit Review persists reviewedKeysByFilter even when a lean result stamp lags.
+      reviewedKeysByFilter: finalized.reviewedKeysByFilter || session?.reviewedKeysByFilter || {}
     });
     if (!body.ok) {
       sendJson(res, 400, body);
