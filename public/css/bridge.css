@@ -1357,6 +1357,24 @@ body {
   opacity: 0.72;
 }
 
+/* Wave 1 Task 1.2 — non-dismissible OCR page-cap honesty banner */
+.bridge-ocr-truncation-banner {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid color-mix(in srgb, var(--status-warning-fg, #c9a227) 55%, transparent);
+  background: color-mix(in srgb, var(--status-warning-fg, #c9a227) 16%, transparent);
+  color: var(--phuglee-cream, #f5f0e8);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.bridge-ocr-truncation-banner[hidden] {
+  display: none !important;
+}
+
+
 .bridge-registry-banner {
   margin-top: 0.75rem;
   padding: 0.55rem 0.75rem;

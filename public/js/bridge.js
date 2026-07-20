@@ -1492,6 +1492,48 @@
   }
   // --- end BridgeTrain pure helpers ---
 
+  /**
+   * Operator-facing OCR page-cap warning (Wave 1 Task 1.2).
+   * Pure: returns empty string when not truncated; never invents page numbers.
+   * @param {object|null|undefined} meta processingMeta from process response
+   * @returns {string}
+   */
+  function buildOcrTruncationWarning(meta) {
+    if (!meta || !meta.ocrTruncated) return '';
+    const n = Number(meta.ocrPagesProcessed);
+    const m = Number(meta.ocrPagesTotal);
+    const c = Number(meta.ocrPageCap);
+    const nOk = Number.isFinite(n) && n > 0;
+    const mOk = Number.isFinite(m) && m > 0;
+    const cOk = Number.isFinite(c) && c > 0;
+    let core;
+    if (nOk && mOk) {
+      core = 'This PDF was only read through page ' + n + ' of ' + m + ' (OCR limit).';
+    } else if (nOk && cOk) {
+      core = 'This PDF was only read through the first ' + n + ' pages (OCR limit of ' + c + ').';
+    } else if (nOk) {
+      core = 'This PDF was only read through the first ' + n + ' pages (OCR limit).';
+    } else if (cOk) {
+      core = 'This PDF was only partially read (OCR page limit of ' + c + ').';
+    } else {
+      core = 'This PDF was only partially read (OCR page limit).';
+    }
+    return core + ' Re-export as Excel from the city portal, or split the PDF and scrub again.';
+  }
+
+  function setOcrTruncationBanner(meta) {
+    const el = document.getElementById('bridge-ocr-truncation-banner');
+    if (!el) return;
+    const msg = buildOcrTruncationWarning(meta);
+    if (!msg) {
+      el.textContent = '';
+      setHidden(el, true);
+      return;
+    }
+    el.textContent = msg;
+    setHidden(el, false);
+  }
+
   function showError(msg) {
     const hasError = Boolean(msg);
     setHidden(errorWrap, !hasError);
@@ -1657,7 +1699,9 @@
           if (stats.deduplicated) parts.push(`${stats.deduplicated} duplicates`);
         }
         const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
-        throw new Error((data.error || 'No usable addresses found in this file.') + detail);
+        const ocrWarn = buildOcrTruncationWarning(data.processingMeta || null);
+        const ocrSuffix = ocrWarn ? ' ' + ocrWarn : '';
+        throw new Error((data.error || 'No usable addresses found in this file.') + detail + ocrSuffix);
       }
       if (data.code === 'FORMAT_MISMATCH') {
         // Legacy: server used to hard-fail mixed headers. Prefer multi-format confirm path.
@@ -4139,6 +4183,7 @@
     if (listNameInput) listNameInput.value = '';
     if (resultsMeta) resultsMeta.textContent = '';
     if (kpiGrid) kpiGrid.innerHTML = '';
+    setOcrTruncationBanner(null);
     if (resultsBody) resultsBody.innerHTML = '';
     if (resultsCards) {
       resultsCards.innerHTML = '';
@@ -4992,6 +5037,7 @@
       }
     }
     resultsMeta.textContent = [uploadLabel, cityBit, fileLabel].filter(Boolean).join(' · ') + trainTip;
+    setOcrTruncationBanner(data.processingMeta || {});
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');
