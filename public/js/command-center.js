@@ -40,28 +40,107 @@
     }
   }
 
-  /**
-   * If coverage never fills after load, surface a quiet unavailable line.
-   * home-coverage.js owns success writes to #command-city-count.
-   */
-  function watchCoverageUnavailable() {
-    var status = document.getElementById('command-coverage-status');
-    var citiesEl = document.getElementById('command-city-count');
-    if (!status || !citiesEl) return;
+  function formatMoney(n) {
+    var v = Number(n);
+    if (!Number.isFinite(v)) return '—';
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 0
+      }).format(v);
+    } catch (_) {
+      return '$' + Math.round(v).toLocaleString('en-US');
+    }
+  }
 
-    window.setTimeout(function () {
-      var text = (citiesEl.textContent || '').trim();
-      if (!text || text === '—') {
-        status.hidden = false;
-      }
-    }, 12000);
+  function formatCount(n) {
+    var v = Number(n);
+    if (!Number.isFinite(v)) return '—';
+    return Math.round(v).toLocaleString('en-US');
+  }
+
+  function setText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  function setKpiStatus(message) {
+    var status = document.getElementById('command-kpi-status');
+    if (!status) return;
+    if (!message) {
+      status.hidden = true;
+      status.textContent = '';
+      return;
+    }
+    status.hidden = false;
+    status.textContent = message;
+  }
+
+  /**
+   * Motivating pipeline strip from contracts totals (same source as Under Contract desk).
+   * - under contract: open deals (under_contract + buyer_found)
+   * - projected fundings: open assignment fees
+   * - total funded: closed assignment fees from funded closings
+   */
+  function applyDealTotals(totals) {
+    var t = totals || {};
+    var by = t.byStage || {};
+    var uc =
+      t.openCount != null
+        ? Number(t.openCount)
+        : (Number(by.under_contract || t.underContract || 0) +
+            Number(by.buyer_found || t.buyerFound || 0));
+    var projected = t.openAssignmentFees;
+    var funded = t.closedAssignmentFees != null ? t.closedAssignmentFees : t.totalAssignmentFees;
+
+    setText('command-uc-count', formatCount(uc));
+    setText('command-projected-funding', formatMoney(projected));
+    setText('command-total-funded', formatMoney(funded));
+    setKpiStatus('');
+  }
+
+  function loadDealKpis() {
+    var ucEl = document.getElementById('command-uc-count');
+    if (!ucEl) return Promise.resolve();
+
+    return fetch('/api/leads/admin/contracts', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { Accept: 'application/json' }
+    })
+      .then(function (res) {
+        if (res.status === 401 || res.status === 403) {
+          setText('command-uc-count', '—');
+          setText('command-projected-funding', '—');
+          setText('command-total-funded', '—');
+          setKpiStatus('Sign in on the Contracts desk to see live pipeline numbers.');
+          return null;
+        }
+        if (!res.ok) throw new Error('Contracts request failed (' + res.status + ')');
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data) return;
+        if (!data.ok && !data.totals) throw new Error(data.error || 'No totals');
+        applyDealTotals(data.totals || {});
+      })
+      .catch(function () {
+        setText('command-uc-count', '—');
+        setText('command-projected-funding', '—');
+        setText('command-total-funded', '—');
+        setKpiStatus('Could not load contract stats — open Contracts and retry.');
+      });
   }
 
   function init() {
     hideShellLoading();
     revealAdminTools();
-    watchCoverageUnavailable();
-    window.addEventListener('pageshow', hideShellLoading);
+    loadDealKpis();
+    window.addEventListener('pageshow', function () {
+      hideShellLoading();
+      loadDealKpis();
+    });
   }
 
   if (document.readyState === 'loading') {

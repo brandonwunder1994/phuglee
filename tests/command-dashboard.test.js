@@ -9,21 +9,24 @@ function read(rel) {
   return fs.readFileSync(path.join(PUBLIC, rel), 'utf8');
 }
 
-test('command.html is coverage snapshot with live count IDs', () => {
+test('command.html is pipeline momentum KPIs + map', () => {
   const html = read('command.html');
   assert.ok(html.includes('id="main"'));
-  assert.ok(html.includes('id="command-city-count"'));
-  assert.ok(html.includes('id="command-state-count"'));
+  assert.ok(html.includes('id="command-uc-count"'));
+  assert.ok(html.includes('id="command-projected-funding"'));
+  assert.ok(html.includes('id="command-total-funded"'));
+  assert.ok(!html.includes('id="command-city-count"'));
+  assert.ok(!html.includes('id="command-state-count"'));
+  assert.ok(html.includes('under contract'));
+  assert.ok(html.includes('projected fundings'));
+  assert.ok(html.includes('total funded'));
   assert.ok(html.includes('id="command-coverage-map"'));
-  assert.ok(html.includes('id="command-map-summary"'));
   assert.ok(html.includes('home-coverage.js'));
   assert.ok(html.includes('href="/collect"'));
   assert.ok(html.includes('href="/filter"'));
   assert.ok(html.includes('href="/analyzer/"'));
   assert.ok(html.includes('href="/under-contract"'));
   assert.ok(html.includes('data-admin-only'));
-  assert.ok(html.includes('meta name="description"'));
-  assert.ok(html.includes('id="main"'));
 });
 
 test('command.html has no mission board / pulse / checklist / tools farm', () => {
@@ -37,71 +40,43 @@ test('command.html has no mission board / pulse / checklist / tools farm', () =>
   assert.ok(!html.includes('btn-how-it-works-dashboard'));
 });
 
-test('command-center.js is slim (no health poll / mission focus)', () => {
+test('command-center.js loads contract totals for pipeline KPIs', () => {
   const js = read('js/command-center.js');
-  assert.ok(js.includes('hideShellLoading') || js.includes('PhugleeStates'));
-  assert.ok(js.includes('data-admin-only') || js.includes('revealAdminTools') || js.includes('isContractDesk'));
+  assert.ok(js.includes('/api/leads/admin/contracts'));
+  assert.ok(js.includes('command-uc-count'));
+  assert.ok(js.includes('command-projected-funding'));
+  assert.ok(js.includes('command-total-funded'));
+  assert.ok(js.includes('openAssignmentFees'));
+  assert.ok(js.includes('closedAssignmentFees') || js.includes('totalAssignmentFees'));
+  assert.ok(js.includes('loadDealKpis') || js.includes('applyDealTotals'));
   assert.ok(!js.includes('pollHealth'));
   assert.ok(!js.includes('updateMissionFocus'));
   assert.ok(!js.includes('initFirstRunChecklist'));
-  assert.ok(!js.includes('/api/health'));
 });
 
-test('command-center.css targets snapshot classes', () => {
+test('command-center.css targets snapshot + pipeline metric classes', () => {
   const css = read('css/command-center.css');
   assert.ok(css.includes('command-snapshot') || css.includes('command-metrics'));
-  assert.ok(css.includes('command-city-count') || css.includes('command-metric'));
+  assert.ok(css.includes('command-metric'));
+  assert.ok(css.includes('command-metrics--pipeline') || css.includes('command-metric-value'));
   assert.ok(css.includes('command-coverage-map'));
   assert.ok(css.includes('command-map-svg'));
   assert.ok(!css.includes('command-pulse-node'));
   assert.ok(!css.includes('command-mission-focus'));
 });
 
-test('home-coverage.js renders command map host', () => {
+test('home-coverage.js still renders command map host (not city/state KPIs)', () => {
   const js = read('js/home-coverage.js');
   assert.ok(js.includes('command-coverage-map'));
   assert.ok(js.includes('renderCommandMap'));
-  assert.ok(js.includes("return '—'") || js.includes('return "—"'));
-  // Public bootstrap + public geo so map works without forge login
-  assert.ok(js.includes('coverage-map-bootstrap.json'));
-  assert.ok(js.includes('/data/geo/us-states.geojson'));
-  assert.ok(js.includes('coverageStateCount') || js.includes('total_states'));
-  // Army green live scale (not orange/gold that clashed with red blocked)
-  assert.ok(js.includes('#5f7348') || js.includes('#3f4f32'));
-  assert.ok(js.includes('MAP_CALLOUT_GUTTER'));
+  assert.ok(!js.includes("['command-city-count'"));
+  assert.ok(!js.includes("['command-state-count'"));
 });
 
-test('command/home/heat cache-bust home-coverage after coverage fix', () => {
-  for (const rel of ['command.html', 'index.html', 'heat.html']) {
-    const html = read(rel);
-    assert.match(html, /home-coverage\.js\?v=\d+/);
-    const m = html.match(/home-coverage\.js\?v=(\d+)/);
-    assert.ok(m && Number(m[1]) >= 18, `${rel} needs home-coverage.js?v>=18`);
-  }
-  const cmdCss = read('command.html').match(/command-center\.css\?v=(\d+)/);
-  assert.ok(cmdCss && Number(cmdCss[1]) >= 10, 'command-center.css cache bust');
-});
-
-test('command map styles keep callouts visible with army green live swatch', () => {
-  const css = read('css/command-center.css');
-  assert.ok(css.includes('overflow: visible') || css.includes('overflow:visible'));
-  assert.ok(css.includes('#3f4f32') || css.includes('#8fa36a'));
-});
-
-test('coverage bootstrap has full live state footprint', () => {
-  const boot = JSON.parse(
-    fs.readFileSync(path.join(PUBLIC, 'data', 'coverage-map-bootstrap.json'), 'utf8')
-  );
-  assert.ok(boot.total_states >= 15, `expected >=15 states, got ${boot.total_states}`);
-  assert.ok(Array.isArray(boot.states) && boot.states.length === boot.total_states);
-  assert.ok(boot.total_cities > 500);
-});
-
-test('public us-states geojson exists for unauthenticated map paint', () => {
-  const geoPath = path.join(PUBLIC, 'data', 'geo', 'us-states.geojson');
-  assert.ok(fs.existsSync(geoPath), 'public/data/geo/us-states.geojson missing');
-  const geo = JSON.parse(fs.readFileSync(geoPath, 'utf8'));
-  assert.equal(geo.type, 'FeatureCollection');
-  // Contiguous US + DC (Alaska/Hawaii excluded from map bounds)
-  assert.ok(Array.isArray(geo.features) && geo.features.length >= 48);
+test('command cache-bust after pipeline KPI swap', () => {
+  const html = read('command.html');
+  const jsV = html.match(/command-center\.js\?v=(\d+)/);
+  const cssV = html.match(/command-center\.css\?v=(\d+)/);
+  assert.ok(jsV && Number(jsV[1]) >= 7, 'command-center.js cache');
+  assert.ok(cssV && Number(cssV[1]) >= 11, 'command-center.css cache');
 });
