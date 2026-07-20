@@ -49,17 +49,22 @@
   color: var(--phuglee-meta-text, #b0a99c);
 }
 
-/* Twin metrics */
+/* Pipeline momentum KPIs (under contract · projected · funded) */
 .command-metrics {
   display: flex;
   flex-wrap: wrap;
   align-items: stretch;
   justify-content: flex-start;
-  gap: 1.5rem 2rem;
+  gap: 1.25rem 1.75rem;
   padding: 1.75rem 1.5rem;
   border: 1px solid rgba(174, 163, 143, 0.22);
   border-radius: 12px;
   background: var(--phuglee-black-mid, #121212);
+}
+
+.command-metrics--pipeline .command-metric {
+  flex: 1 1 9rem;
+  min-width: 8rem;
 }
 
 .command-metric {
@@ -70,9 +75,9 @@
 .command-metric-value {
   margin: 0;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);
-  font-size: clamp(2.5rem, 8vw, 3.75rem);
+  font-size: clamp(1.85rem, 5.5vw, 2.85rem);
   font-weight: 500;
-  line-height: 1.05;
+  line-height: 1.08;
   letter-spacing: -0.02em;
   color: var(--phuglee-cream, #f5f2e4);
   font-variant-numeric: tabular-nums;

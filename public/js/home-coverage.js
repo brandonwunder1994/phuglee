@@ -275,9 +275,8 @@
       ['hub-city-count', cityLabel],
       ['collect-city-count', cityLabel],
       ['collect-city-count-label', cityLabel],
-      ['collect-state-count', stateLabel],
-      ['command-city-count', cityLabel],
-      ['command-state-count', stateLabel]
+      ['collect-state-count', stateLabel]
+      // Dashboard KPIs are contract pipeline (command-center.js) — not coverage counts
     ].forEach(function (pair) {
       var el = document.getElementById(pair[0]);
       if (el) el.textContent = pair[1];
@@ -690,7 +689,6 @@
       document.getElementById('home-city-count') ||
       document.getElementById('hub-city-count') ||
       document.getElementById('collect-city-count') ||
-      document.getElementById('command-city-count') ||
       document.querySelector('[data-coverage-city-count]');
 
     if (needsStats) {
