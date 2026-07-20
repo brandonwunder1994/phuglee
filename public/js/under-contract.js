@@ -1082,7 +1082,15 @@
       || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId))
       || null;
     const unread = unreadExplicit != null ? !!unreadExplicit : !!(deal?.sellerSmsUnread);
-    btn.hidden = !unread;
+    // Always show while a deal is open so the control is discoverable.
+    btn.hidden = !state.activeDealId;
+    btn.disabled = false;
+    btn.classList.toggle('is-unread', unread);
+    btn.setAttribute('aria-pressed', unread ? 'false' : 'true');
+    btn.title = unread
+      ? 'Mark seller texts as read (clear unread badge)'
+      : 'Seller texts already marked read — click to confirm';
+    btn.textContent = unread ? 'Mark as read' : 'Marked read';
   }
 
   function applySellerSmsDealPatch(deal, unreadList) {
@@ -1127,7 +1135,55 @@
     const body = panel.querySelector(':scope > .uc-panel-body');
     if (btn) btn.setAttribute('aria-expanded', next ? 'true' : 'false');
     if (body) body.hidden = !next;
+    if (next) {
+      // Threads rendered while collapsed sit at scrollTop 0 — jump to latest when opened.
+      requestAnimationFrame(() => scrollOpenCommunicationThreads(panel));
+    }
     return panel;
+  }
+
+  /** Scroll message lists to the newest message (chat-style bottom). */
+  function scrollThreadToLatest(box) {
+    if (!box) return;
+    const go = () => {
+      try {
+        box.scrollTop = box.scrollHeight;
+      } catch (_) { /* ignore */ }
+    };
+    go();
+    requestAnimationFrame(() => {
+      go();
+      requestAnimationFrame(go);
+    });
+    box.querySelectorAll('img, video').forEach((el) => {
+      if (el.tagName === 'IMG' && !el.complete) {
+        el.addEventListener('load', go, { once: true });
+        el.addEventListener('error', go, { once: true });
+      }
+      if (el.tagName === 'VIDEO') {
+        el.addEventListener('loadedmetadata', go, { once: true });
+      }
+    });
+    setTimeout(go, 50);
+    setTimeout(go, 200);
+  }
+
+  function scrollOpenCommunicationThreads(panel) {
+    if (!panel) return;
+    const id = panel.id || '';
+    if (id === 'uc-convo-section' || id === 'uc-communication-section') {
+      scrollThreadToLatest($('uc-convo-thread'));
+    }
+    if (id === 'uc-team-section' || id === 'uc-communication-section') {
+      scrollThreadToLatest($('uc-team-thread'));
+    }
+    if (id === 'uc-photo-convo-section' || id === 'uc-communication-section') {
+      scrollThreadToLatest($('uc-photo-thread'));
+    }
+    // Nested panel without id: still try known threads if visible
+    if (!id && panel.classList.contains('uc-convo')) {
+      scrollThreadToLatest(panel.querySelector('.uc-convo-thread'));
+    }
   }
 
   function expandPanel(el) {
@@ -1186,8 +1242,10 @@
 
   function scrollToSellerSms() {
     requestAnimationFrame(() => {
+      expandPanel($('uc-communication-section'));
       const section = expandPanel($('uc-convo-section'));
-      section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      section?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      scrollThreadToLatest($('uc-convo-thread'));
       $('uc-sms-input')?.focus?.();
     });
   }
@@ -1221,6 +1279,9 @@
 
   function isThreadNearBottom(el, thresholdPx = 96) {
     if (!el) return true;
+    // Hidden / zero-height threads (collapsed panels) must treat as "at bottom"
+    // so the next paint pins to latest when the panel opens.
+    if (el.clientHeight < 8 || el.scrollHeight <= el.clientHeight + 4) return true;
     return (el.scrollHeight - el.scrollTop - el.clientHeight) <= thresholdPx;
   }
 
@@ -1628,7 +1689,7 @@
         <div class="uc-bubble-meta">${outbound ? 'You' : 'Photographer'}${when ? ' · ' + esc(when) : ''}</div>
       </div>`;
     }).join('');
-    box.scrollTop = box.scrollHeight;
+    scrollThreadToLatest(box);
   }
 
   async function loadPhotographerMessages(dealId) {
@@ -1684,7 +1745,6 @@
       syncSaveAllMediaButton();
       return;
     }
-    const saved = savedMediaUrlKeys();
     const dealId = state.activeDealId;
     box.innerHTML = state.messages.map((m) => {
       const outbound = m.direction === 'outbound' || m.direction === 'out';
@@ -1705,16 +1765,12 @@
           </figure>`;
         }).join('')}</div>`
         : '';
-      const label = body
-        || (att.length
-          ? `📷 ${att.length} ${att.length === 1 ? 'attachment' : 'attachments'}`
-          : '');
       return `<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
         <div class="uc-bubble-body">${body ? esc(body) : (attHtml ? '' : esc('(no text)'))}${attHtml}</div>
         <div class="uc-bubble-meta">${outbound ? 'You' : 'Them'}${when ? ' · ' + esc(when) + ' AZ' : ''}</div>
       </div>`;
     }).join('');
-    if (stickToBottom) box.scrollTop = box.scrollHeight;
+    if (stickToBottom) scrollThreadToLatest(box);
     else box.scrollTop = prevScroll;
     syncSaveAllMediaButton();
   }
@@ -1740,13 +1796,21 @@
   async function markSellerSmsRead(dealId) {
     const id = dealId || state.activeDealId;
     if (!id) return;
-    const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/messages/seen`, {
-      method: 'POST',
-      body: '{}'
-    });
-    const boardChanged = applySellerSmsDealPatch(data.deal, data.unreadSellerSms);
-    if (boardChanged) renderTable(state.deals);
-    showToast('Marked as read');
+    const btn = $('uc-sms-mark-read');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(id)}/messages/seen`, {
+        method: 'POST',
+        body: '{}'
+      });
+      const boardChanged = applySellerSmsDealPatch(data.deal, data.unreadSellerSms);
+      if (boardChanged) renderTable(state.deals);
+      syncMarkReadButton(false);
+      showToast('Seller texts marked as read');
+    } finally {
+      if (btn) btn.disabled = false;
+      syncMarkReadButton();
+    }
   }
 
   async function saveSellerMediaItems(items, { toastLabel } = {}) {
@@ -1977,7 +2041,7 @@
       </div>`;
     }).join('');
     if (keepScroll) box.scrollTop = prevScroll;
-    else box.scrollTop = box.scrollHeight;
+    else scrollThreadToLatest(box);
   }
 
   async function toggleTeamReaction(messageId, emojiKey) {
@@ -2718,18 +2782,23 @@
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`);
       renderProfile(data.deal, data.contact);
       await loadMessages(dealId, { silent: true, forceScroll: true });
+      // Delayed pin — images + nested panel layout settle after first paint
+      setTimeout(() => scrollThreadToLatest($('uc-convo-thread')), 100);
       startPoll();
       if (opts.markTeamRead) await markTeamMessagesRead(dealId);
       if (opts.scrollToTeam) {
         requestAnimationFrame(() => {
+          expandPanel($('uc-communication-section'));
           const team = expandPanel($('uc-team-section'));
-          team?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          team?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          scrollThreadToLatest($('uc-team-thread'));
         });
       }
       if (opts.scrollToSms) {
         pulseSellerSmsSection();
         scrollToSellerSms();
       }
+      syncMarkReadButton();
     } catch (err) {
       showToast(err.message || 'Could not open profile');
     }
