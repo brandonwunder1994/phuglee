@@ -880,10 +880,10 @@
   padding: 0.55rem 1rem;
 }
 
-/* Shell nav page-transition loading strip (content column under top bar) */
+/* Shell nav page-transition loading strip (content column; no top title bar) */
 .shell-loading-strip {
   position: fixed;
-  top: var(--shell-topbar-height, var(--distress-nav-offset, 52px));
+  top: 0;
   left: var(--shell-rail-width, 0px);
   right: 0;
   z-index: 999;

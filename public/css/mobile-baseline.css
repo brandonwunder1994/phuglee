@@ -169,8 +169,4 @@ svg:not([width]):not([height]) {
   }
 }
 
-@media (max-width: 360px) {
-  .shell-topbar-title {
-    font-size: 0.88rem;
-  }
-}
+/* topbar title removed */

@@ -35,7 +35,8 @@ test('shell rail groups Request, Filter, and Review under Data', () => {
   assert.ok(nav.includes('shell-data-trigger'));
   assert.ok(nav.includes('Data'));
   assert.ok(nav.includes('shell-rail'));
-  assert.ok(nav.includes('shell-topbar'));
+  assert.ok(!nav.includes('shell-topbar'));
+  assert.ok(!nav.includes('shell-cmd-palette-btn'));
   assert.match(nav, /shell-link-label">Request</);
   assert.match(nav, /shell-link-label">Filter</);
   assert.match(nav, /shell-link-label">Review</);
@@ -58,8 +59,10 @@ test('shell rail keeps Dashboard top-level and Vault as a section', () => {
   assert.ok(nav.includes('shell-link-label">Land Vault<'));
   // Data items live under section, not as bare shell-link-only top strip
   assert.ok(nav.includes('href="/collect"'));
-  assert.ok(nav.includes('shell-topbar-title'));
-  assert.match(nav, /shell-topbar-title"[^>]*>Dashboard</);
+  // No repeating page-title top bar / Jump button
+  assert.ok(!nav.includes('shell-topbar'));
+  assert.ok(!nav.includes('shell-cmd-palette-btn'));
+  assert.ok(!nav.includes('Jump'));
 });
 
 test('admin shell rail groups pipeline tools under Pipeline', () => {

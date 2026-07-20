@@ -1,9 +1,9 @@
-/* Distress OS — product shell: left rail + thin top bar */
+/* Distress OS — product shell: left rail only (no title top bar) */
 
 :root {
   --shell-rail-width: 240px;
-  --shell-topbar-height: 52px;
-  --distress-nav-offset: var(--shell-topbar-height);
+  --shell-topbar-height: 0px;
+  --distress-nav-offset: 0px;
 }
 
 body.has-shell-chrome {
@@ -11,7 +11,7 @@ body.has-shell-chrome {
   flex-direction: column;
   min-height: 100vh;
   min-height: 100dvh;
-  padding-top: var(--shell-topbar-height);
+  padding-top: 0;
   padding-left: var(--shell-rail-width);
   box-sizing: border-box;
 }
@@ -94,6 +94,21 @@ body.has-shell-chrome .shell-footer {
   gap: 0.85rem;
   flex: 1 1 auto;
   min-height: 0;
+}
+
+.shell-rail-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 0.65rem 0.35rem 0.15rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.1);
+}
+
+.shell-rail-footer .shell-nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
 }
 
 .shell-rail-primary {
@@ -211,114 +226,42 @@ body.has-shell-chrome .shell-footer {
   background: rgba(248, 113, 113, 0.08);
 }
 
-/* ── Thin top bar ── */
-.shell-topbar {
-  position: fixed;
-  top: 0;
-  left: var(--shell-rail-width);
-  right: 0;
-  z-index: 1001;
-  height: var(--shell-topbar-height);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0 1rem 0 0.85rem;
-  border-bottom: 1px solid rgba(174, 163, 143, 0.1);
-  background: rgba(13, 13, 13, 0.92);
-  backdrop-filter: blur(12px) saturate(1.1);
-  -webkit-backdrop-filter: blur(12px) saturate(1.1);
-}
+/* Jump / page-title top bar removed — settings live in .shell-rail-footer */
 
-.shell-topbar-start {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.shell-topbar-title {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--phuglee-cream);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.shell-topbar-end,
-.shell-nav-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.shell-nav-palette-btn,
 .shell-nav-menu-btn {
   appearance: none;
   -webkit-appearance: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  margin: 0;
-  padding: 0.4rem 0.65rem;
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  color: var(--phuglee-stone);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm, 4px);
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-}
-
-.shell-nav-palette-btn:hover,
-.shell-nav-menu-btn:hover {
-  color: var(--phuglee-cream);
-  border-color: rgba(174, 163, 143, 0.22);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.shell-nav-palette-btn:focus-visible,
-.shell-nav-menu-btn:focus-visible {
-  outline: 2px solid var(--phuglee-orange);
-  outline-offset: 2px;
-}
-
-.shell-nav-palette-kbd {
   display: none;
-  margin-left: 0.15rem;
-  padding: 0.1rem 0.35rem;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--phuglee-stone);
-  border: 1px solid rgba(174, 163, 143, 0.2);
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.28);
-}
-
-.shell-nav-palette-label {
-  display: none;
-}
-
-.shell-nav-menu-btn {
-  display: none;
+  position: fixed;
+  top: max(0.65rem, env(safe-area-inset-top, 0px));
+  left: max(0.65rem, env(safe-area-inset-left, 0px));
+  z-index: 1003;
   width: 2.75rem;
   height: 2.75rem;
   min-width: 44px;
   min-height: 44px;
+  margin: 0;
   padding: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--phuglee-cream);
+  background: rgba(13, 13, 13, 0.88);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.shell-nav-menu-btn:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(22, 18, 14, 0.95);
+}
+
+.shell-nav-menu-btn:focus-visible {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
 }
 
 .shell-nav-menu-bars,
@@ -369,10 +312,10 @@ body.has-shell-chrome .shell-footer {
   display: none;
 }
 
-/* Loading strip — sits under topbar, content column only */
+/* Loading strip — content column only */
 .shell-loading-strip {
   position: fixed;
-  top: var(--shell-topbar-height);
+  top: 0;
   left: var(--shell-rail-width);
   right: 0;
   z-index: 999;
@@ -518,17 +461,6 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
   height: calc(100vh - var(--distress-nav-offset, 52px));
 }
 
-/* ── Desktop polish ── */
-@media (min-width: 901px) {
-  .shell-nav-palette-label {
-    display: inline;
-  }
-
-  .shell-nav-palette-kbd {
-    display: inline;
-  }
-}
-
 /* ── Tablet / mobile: rail becomes drawer ── */
 @media (max-width: 900px) {
   body.has-shell-chrome {
@@ -544,10 +476,6 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
   .shell-chrome.is-nav-open .shell-rail {
     transform: translateX(0);
     box-shadow: 12px 0 40px rgba(0, 0, 0, 0.45);
-  }
-
-  .shell-topbar {
-    left: 0;
   }
 
   .shell-loading-strip {
@@ -590,21 +518,6 @@ body.distress-os-embedded.analyzer-embedded .app-sidebar {
 }
 
 @media (max-width: 768px) {
-  .shell-nav-palette-btn {
-    min-width: 44px;
-    min-height: 44px;
-  }
-
-  .shell-nav-palette-label,
-  .shell-nav-palette-kbd {
-    display: none;
-  }
-
-  .shell-topbar {
-    padding-left: max(0.65rem, env(safe-area-inset-left, 0px));
-    padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
-  }
-
   .shell-rail {
     padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
     padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
