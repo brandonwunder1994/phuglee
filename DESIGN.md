@@ -43,7 +43,7 @@ Rules: no display font in dense data tables. Hero clamp max ≤ 6rem. Body line 
 
 ## Layout
 
-- App shell: top nav (`shell-nav.js`) + footer status
+- App shell: left rail + thin top bar (`shell-nav.js`) + footer status
 - Work surfaces: asymmetric desk (dominant work area + secondary drawer), per Filter v2.1 bible
 - Spacing: use existing phuglee spacing tokens; one scale per page after distill pass
 

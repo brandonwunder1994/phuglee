@@ -15,6 +15,15 @@ body {
   padding: 2rem 1.5rem 3rem;
 }
 
+/* Shell-rail era: desk uses content column (not brochure centered card) */
+body.bridge-page.has-shell-chrome .bridge-main {
+  max-width: min(1400px, 100%);
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1.1rem 1.35rem;
+  box-sizing: border-box;
+}
+
 .bridge-main > * {
   position: relative;
   z-index: var(--z-main);
@@ -5182,10 +5191,80 @@ body.bridge-page.has-status-bar {
   }
 }
 
-/* Layout */
+/* Layout — narrow brochure column only when shell chrome is absent */
 body.bridge-page .bridge-main {
   max-width: 1040px;
   padding: calc(var(--bridge-grid) * 3) calc(var(--bridge-grid) * 3) calc(var(--bridge-grid) * 5);
+}
+
+body.bridge-page.has-shell-chrome .bridge-main {
+  max-width: min(1400px, 100%);
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem 1.1rem 1.35rem;
+  box-sizing: border-box;
+}
+
+/* Shell density: less empty air between rail, topbar, and desk */
+body.bridge-page.has-shell-chrome .bridge-desk {
+  margin-bottom: 0.85rem;
+}
+
+body.bridge-page.has-shell-chrome .bridge-city-search-block {
+  margin-bottom: 0.65rem;
+}
+
+body.bridge-page.has-shell-chrome .bridge-panel h2,
+body.bridge-page.has-shell-chrome .bridge-meta-heading {
+  margin-bottom: 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--phuglee-stone);
+}
+
+body.bridge-page.has-shell-chrome #bridge-scrub-stage.bridge-scrub-stage,
+body.bridge-page.has-shell-chrome .bridge-elev--primary.bridge-scrub-stage {
+  border-radius: 10px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    0 10px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.bridge-page.has-shell-chrome .bridge-scrub-stage .bridge-panel.phuglee-panel,
+body.bridge-page.has-shell-chrome .bridge-panel.phuglee-panel {
+  padding: 0.8rem 0.95rem 0.9rem;
+}
+
+body.bridge-page.has-shell-chrome #bridge-results-panel.bridge-panel.phuglee-panel,
+body.bridge-page.has-shell-chrome #bridge-loading-panel.bridge-panel.phuglee-panel {
+  margin-top: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 10px;
+}
+
+/* Full-width work strips (lists / inventory) under shell */
+body.bridge-page.has-shell-chrome .bridge-lists-header,
+body.bridge-page.has-shell-chrome .bridge-mission-surface {
+  max-width: none;
+}
+
+/* State + city row: use width without looking sparse */
+body.bridge-page.has-shell-chrome .bridge-row {
+  gap: 0.75rem 1rem;
+}
+
+body.bridge-page.has-shell-chrome .bridge-row label {
+  min-width: 0;
+}
+
+@media (min-width: 901px) {
+  body.bridge-page.has-shell-chrome .bridge-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
 }
 
 body.bridge-page .bridge-main::before {
