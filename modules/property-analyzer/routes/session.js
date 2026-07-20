@@ -447,6 +447,8 @@ function register(ctx) {
       } catch (_) {}
     }
     const incomingCount = Array.isArray(session.results) ? session.results.length : 0;
+    // Captured before merge — finalizeMergedSession deletes partialReviewSync.
+    const rawPartialReviewSync = session.partialReviewSync === true;
     if (existingSession && incomingCount > 0 && !forceReplace) {
       const before = incomingCount;
       session = backupLogic.mergeSessionSave(existingSession, session);
@@ -466,11 +468,19 @@ function register(ctx) {
     if (fs.existsSync(latestPath)) {
       try { existingBytes = backups.sessionPayloadBytes(JSON.parse(fs.readFileSync(latestPath, 'utf8'))); } catch (_) {}
     }
+    // Exit Review / mid-review metadata is a deliberate partial patch: same result count after
+    // merge, but progress score can drop when empty reviewQueue replaces a long stash.
+    // Never block those saves — dropping Keep/Change stamps is worse than a score dip.
+    const isPartialReviewSave = rawPartialReviewSync
+      || /^review(-|_)/i.test(String(saveReason || ''))
+      || String(saveReason || '') === 'review-exit'
+      || String(saveReason || '') === 'review-metadata'
+      || String(saveReason || '') === 'review-progress';
     const incomingWorse = backupLogic.isIncomingSessionWorse(
       { existingResults, existingProcessed, existingProgress, existingBytes, existingSavedAt },
       { results, processed, incomingProgress, incomingBytes, incomingSavedAt }
     );
-    if (!allowDowngrade && existingResults > 0 && incomingWorse) {
+    if (!allowDowngrade && existingResults > 0 && incomingWorse && !isPartialReviewSave) {
       const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 16);
       backups.ensureArchiveDirs();
       const quarantine = path.join(ARCHIVE_REJECTED_DIR, `distressAnalyzerSession_REJECTED_${scope.storageKey}_${results}_${stamp}.json`);
