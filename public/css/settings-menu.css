@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-left: 0.15rem;
+  margin-left: 0.5rem;
 }
 
 .shell-cmd-hint {
@@ -39,6 +39,8 @@
 
 .shell-settings {
   position: relative;
+  /* Dropdown uses position:fixed so rail overflow cannot clip it */
+  z-index: 1;
 }
 
 .shell-settings-trigger {
@@ -85,31 +87,20 @@
   filter: drop-shadow(0 0 5px rgba(229, 132, 53, 0.35));
 }
 
-/* Open upward when settings sits in the rail footer */
-.shell-rail-footer .shell-settings-dropdown {
-  top: auto;
-  bottom: calc(100% + 0.5rem);
+.shell-settings-dropdown {
+  /* Fixed + JS viewport clamp — escapes .shell-rail overflow clip when gear is in footer */
+  position: fixed;
+  top: 0;
   left: 0;
   right: auto;
-  animation-name: settings-drop-up;
-}
-
-@keyframes settings-drop-up {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.shell-settings-dropdown {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
+  bottom: auto;
   min-width: 280px;
+  max-width: min(320px, calc(100vw - 1rem));
+  max-height: min(420px, calc(100dvh - 1rem));
+  max-height: min(420px, calc(100vh - 1rem));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 0.5rem;
   border-radius: var(--radius-lg);
   background: var(--glass-bg-elevated);
@@ -117,12 +108,12 @@
   backdrop-filter: blur(24px) saturate(150%);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   box-shadow: var(--glass-shadow-float);
-  z-index: 1100;
+  z-index: 1200;
   animation: settings-drop-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .shell-settings-dropdown[hidden] {
-  display: none;
+  display: none !important;
 }
 
 @keyframes settings-drop-in {
@@ -251,12 +242,15 @@
   }
 
   .shell-settings-dropdown {
-    position: fixed;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    /* Bottom sheet on small screens — full width, never clipped */
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
     min-width: 0;
+    max-height: min(70dvh, 520px) !important;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
   }
