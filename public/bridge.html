@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/bridge.css?v=92">
+  <link rel="stylesheet" href="/css/bridge.css?v=93">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -342,6 +342,29 @@
       <div id="bridge-ocr-truncation-banner" class="bridge-ocr-truncation-banner" hidden role="alert"></div>
       <div id="bridge-redaction-banner" class="bridge-review-limit-banner" hidden role="status"></div>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
+      <!-- Rescue: left-out types — keep without re-scrubbing the whole file -->
+      <section
+        id="bridge-left-out-panel"
+        class="bridge-left-out-panel"
+        hidden
+        aria-labelledby="bridge-left-out-heading"
+      >
+        <div class="bridge-left-out-head">
+          <h3 id="bridge-left-out-heading">Left out of kept list</h3>
+          <p class="bridge-left-out-lead" id="bridge-left-out-lead">
+            These had usable addresses but did not match auto distress keywords. Click
+            <strong>Keep these</strong> to add a whole type to your list so you do not miss leads.
+          </p>
+        </div>
+        <div class="bridge-left-out-toolbar">
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-left-out-keep-all" hidden>
+            Keep all left out
+          </button>
+          <span class="bridge-left-out-summary" id="bridge-left-out-summary" hidden></span>
+        </div>
+        <div id="bridge-left-out-list" class="bridge-left-out-list" role="list"></div>
+        <p id="bridge-left-out-status" class="bridge-left-out-status" hidden role="status"></p>
+      </section>
       <div id="bridge-zero-kept-recovery" class="bridge-zero-kept-recovery" hidden>
         <p class="bridge-zero-kept-recovery-lead">No rows kept. Common fixes:</p>
         <div class="bridge-zero-kept-recovery-actions">
@@ -616,6 +639,6 @@
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=96" defer></script>
+  <script src="/js/bridge.js?v=97" defer></script>
 </body>
 </html>

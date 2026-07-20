@@ -5010,6 +5010,131 @@ body.bridge-page.has-status-bar {
   padding-bottom: 0 !important;
 }
 
+/* ── Left-out rescue (FN types → Keep these) ── */
+.bridge-left-out-panel {
+  margin: 1rem 0 1.15rem;
+  padding: 1rem 1.1rem 1.05rem;
+  border-radius: 12px;
+  border: 1px solid rgba(238, 183, 70, 0.35);
+  background:
+    linear-gradient(180deg, rgba(238, 183, 70, 0.08) 0%, transparent 40%),
+    rgba(18, 16, 12, 0.96);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.bridge-left-out-head {
+  margin-bottom: 0.75rem;
+}
+
+.bridge-left-out-panel h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-body, Outfit, system-ui, sans-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--phuglee-cream, #f5f2e4);
+}
+
+.bridge-left-out-lead {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(176, 169, 156, 0.95);
+  max-width: 42rem;
+}
+
+.bridge-left-out-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.bridge-left-out-summary {
+  font-size: 0.82rem;
+  color: rgba(176, 169, 156, 0.9);
+}
+
+.bridge-left-out-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: min(22rem, 50vh);
+  overflow: auto;
+}
+
+.bridge-left-out-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 0.85rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  background: rgba(10, 10, 9, 0.72);
+}
+
+.bridge-left-out-row-main {
+  min-width: 0;
+}
+
+.bridge-left-out-type {
+  display: block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--phuglee-cream, #f5f2e4);
+  word-break: break-word;
+}
+
+.bridge-left-out-meta {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: rgba(176, 169, 156, 0.88);
+}
+
+.bridge-left-out-samples {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.74rem;
+  color: rgba(176, 169, 156, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bridge-left-out-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
+}
+
+.bridge-left-out-status {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(176, 169, 156, 0.95);
+}
+
+.bridge-left-out-status.is-success {
+  color: var(--phuglee-success, #3dd68c);
+}
+
+.bridge-left-out-status.is-error {
+  color: var(--phuglee-danger, #f87171);
+}
+
+@media (max-width: 640px) {
+  .bridge-left-out-row {
+    grid-template-columns: 1fr;
+  }
+  .bridge-left-out-actions {
+    justify-content: stretch;
+  }
+  .bridge-left-out-actions .phuglee-btn {
+    flex: 1;
+  }
+}
+
 /* Layout */
 body.bridge-page .bridge-main {
   max-width: 1040px;
