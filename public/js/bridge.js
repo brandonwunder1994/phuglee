@@ -738,12 +738,15 @@
     } else if (!distressedAll.length && !notAll.length && trainDecidedKeys.size > 0) {
       setTrainStatus('All groups reviewed for this batch. Process another file or Undo to revise.', 'success');
     } else {
-      // Keep error/success messages; clear only empty-state hints
+      // Keep error/success messages; prefer FN truncation honesty over empty status
       const el = document.getElementById('bridge-train-status');
       if (el && !el.classList.contains('is-error') && !el.classList.contains('is-success')) {
-        setTrainStatus('', '');
+        const fnWarn = buildFnTruncationWarning((data && data.brainMeta) || (lastResult && lastResult.brainMeta) || null);
+        setTrainStatus(fnWarn || '', '');
       }
     }
+    // Dedicated FN note stays in the Not-marked section (independent of status line)
+    setFnTruncationNote((data && data.brainMeta) || (lastResult && lastResult.brainMeta) || null);
   }
 
   function setResultsMode(mode) {
@@ -1519,6 +1522,79 @@
       core = 'This PDF was only partially read (OCR page limit).';
     }
     return core + ' Re-export as Excel from the city portal, or split the PDF and scrub again.';
+  }
+
+  /**
+   * FN (not-distressed) Train review cap warning (Wave 1 Task 1.5).
+   * Pure: empty when not truncated; uses totals from brainMeta only.
+   * @param {object|null|undefined} brainMeta
+   * @returns {string}
+   */
+  function buildFnTruncationWarning(brainMeta) {
+    if (!brainMeta || !brainMeta.notDistressedTruncated) return '';
+    const total = Number(brainMeta.notDistressedTotal);
+    const returned = Number(brainMeta.notDistressedReturned);
+    const totalOk = Number.isFinite(total) && total > 0;
+    const returnedOk = Number.isFinite(returned) && returned > 0;
+    if (totalOk && returnedOk) {
+      return (
+        'Train shows the first ' +
+        returned.toLocaleString() +
+        ' of ' +
+        total.toLocaleString() +
+        ' not-distressed rows for review (5,000-row cap). Remaining FN rows are not listed here.'
+      );
+    }
+    if (totalOk) {
+      return (
+        'Train shows only the first 5,000 of ' +
+        total.toLocaleString() +
+        ' not-distressed rows for review (cap). Remaining FN rows are not listed here.'
+      );
+    }
+    return 'Train shows only the first 5,000 not-distressed rows for review (cap). Remaining FN rows are not listed here.';
+  }
+
+  /**
+   * Redacted-row skip note (Wave 1 Task 1.5).
+   * Pure: empty when redactedSkipped is missing or <= 0.
+   * @param {object|null|undefined} meta processingMeta
+   * @returns {string}
+   */
+  function buildRedactionSkippedNote(meta) {
+    if (!meta) return '';
+    const n = Number(meta.redactedSkipped);
+    if (!Number.isFinite(n) || n <= 0) return '';
+    if (n === 1) {
+      return '1 fully redacted row was skipped (no usable location).';
+    }
+    return n.toLocaleString() + ' fully redacted rows were skipped (no usable location).';
+  }
+
+  function setRedactionBanner(meta) {
+    const el = document.getElementById('bridge-redaction-banner');
+    if (!el) return;
+    const msg = buildRedactionSkippedNote(meta);
+    if (!msg) {
+      el.textContent = '';
+      setHidden(el, true);
+      return;
+    }
+    el.textContent = msg;
+    setHidden(el, false);
+  }
+
+  function setFnTruncationNote(brainMeta) {
+    const el = document.getElementById('bridge-fn-truncation-note');
+    if (!el) return;
+    const msg = buildFnTruncationWarning(brainMeta);
+    if (!msg) {
+      el.textContent = '';
+      setHidden(el, true);
+      return;
+    }
+    el.textContent = msg;
+    setHidden(el, false);
   }
 
   function setOcrTruncationBanner(meta) {
@@ -4189,6 +4265,8 @@
     if (resultsMeta) resultsMeta.textContent = '';
     if (kpiGrid) kpiGrid.innerHTML = '';
     setOcrTruncationBanner(null);
+    setRedactionBanner(null);
+    setFnTruncationNote(null);
     if (resultsBody) resultsBody.innerHTML = '';
     if (resultsCards) {
       resultsCards.innerHTML = '';
@@ -5041,8 +5119,22 @@
         trainTip = ` · ${openTrain} Train group(s) ready`;
       }
     }
-    resultsMeta.textContent = [uploadLabel, cityBit, fileLabel].filter(Boolean).join(' · ') + trainTip;
+    let reviewTip = '';
+    const bm = data.brainMeta || {};
+    if (bm.notDistressedTruncated) {
+      const t = Number(bm.notDistressedTotal);
+      reviewTip = Number.isFinite(t) && t > 0
+        ? ' · FN review capped (5,000 of ' + t.toLocaleString() + ')'
+        : ' · FN review capped (5,000)';
+    }
+    const rs = Number((data.processingMeta || {}).redactedSkipped);
+    if (Number.isFinite(rs) && rs > 0) {
+      reviewTip += ' · ' + rs.toLocaleString() + ' redacted skipped';
+    }
+    resultsMeta.textContent = [uploadLabel, cityBit, fileLabel].filter(Boolean).join(' · ') + trainTip + reviewTip;
     setOcrTruncationBanner(data.processingMeta || {});
+    setRedactionBanner(data.processingMeta || {});
+    setFnTruncationNote(data.brainMeta || {});
     renderKpis(stats);
 
     const stubNote = document.getElementById('bridge-stub-note');

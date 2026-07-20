@@ -1374,6 +1374,40 @@ body {
   display: none !important;
 }
 
+/* Wave 1 Task 1.5 — redaction / FN review-limit honesty */
+.bridge-review-limit-banner {
+  margin: 0.5rem 0 0;
+  padding: 0.55rem 0.85rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid color-mix(in srgb, var(--status-info-fg, #6ea8fe) 45%, transparent);
+  background: color-mix(in srgb, var(--status-info-fg, #6ea8fe) 12%, transparent);
+  color: var(--phuglee-cream, #f5f0e8);
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.bridge-review-limit-banner[hidden] {
+  display: none !important;
+}
+
+.bridge-fn-truncation-note {
+  margin: 0.35rem 0 0.65rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm, 8px);
+  border: 1px solid color-mix(in srgb, var(--status-warning-fg, #c9a227) 45%, transparent);
+  background: color-mix(in srgb, var(--status-warning-fg, #c9a227) 12%, transparent);
+  color: var(--phuglee-cream, #f5f0e8);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.bridge-fn-truncation-note[hidden] {
+  display: none !important;
+}
+
+
 
 .bridge-registry-banner {
   margin-top: 0.75rem;

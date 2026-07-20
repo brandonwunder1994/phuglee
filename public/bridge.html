@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/bridge.css?v=84">
+  <link rel="stylesheet" href="/css/bridge.css?v=85">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -345,6 +345,7 @@
       <div class="bridge-mission-surface" id="bridge-mission-surface">
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
       <div id="bridge-ocr-truncation-banner" class="bridge-ocr-truncation-banner" hidden role="alert"></div>
+      <div id="bridge-redaction-banner" class="bridge-review-limit-banner" hidden role="status"></div>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
       <p class="bridge-note" id="bridge-stub-note" hidden></p>
 
@@ -398,6 +399,7 @@
           <section class="bridge-train-section" aria-labelledby="train-fn-h">
             <h3 id="train-fn-h">Not marked distressed</h3>
             <p class="bridge-panel-lead">Not Distressed = leave off the list. Distressed = move to distressed and promote this type next time.</p>
+            <div id="bridge-fn-truncation-note" class="bridge-fn-truncation-note" hidden role="status"></div>
             <div id="bridge-train-not-distressed" class="bridge-train-groups"></div>
             <div id="bridge-train-not-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
@@ -597,6 +599,6 @@
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=89" defer></script>
+  <script src="/js/bridge.js?v=90" defer></script>
 </body>
 </html>
