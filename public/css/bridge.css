@@ -4993,6 +4993,19 @@ body.bridge-page .bridge-main {
   z-index: 2;
 }
 
+/* Ops desk: no shell marketing footer / status bar — main nav is enough (Analyze parity) */
+body.bridge-page #distress-os-footer-mount,
+body.bridge-page .shell-footer,
+body.bridge-page #distress-os-footer,
+body.bridge-page #distress-status-bar,
+body.bridge-page .distress-status-bar {
+  display: none !important;
+}
+
+body.bridge-page.has-status-bar {
+  padding-bottom: 0 !important;
+}
+
 /* Layout */
 body.bridge-page .bridge-main {
   max-width: 1040px;
