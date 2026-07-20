@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -16,7 +16,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/shell-bundle.css?v=10">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=12">
   <link rel="stylesheet" href="/css/bridge.css?v=101-shell-desk">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
@@ -34,10 +34,10 @@
       <div class="bridge-victory-main">
         <p class="bridge-victory-title" id="bridge-victory-title">List staged</p>
         <p class="bridge-victory-meta" id="bridge-victory-meta"></p>
-        <p class="bridge-victory-boundary">Kept leads are ready â€” Download for Analyze, then import manually.</p>
+        <p class="bridge-victory-boundary">Kept leads are ready — Download for Analyze, then import manually.</p>
         <ol id="bridge-victory-checklist" class="bridge-victory-checklist" aria-label="Next steps for Analyze">
-          <li><strong>Download for Analyze</strong> â€” address CSV this button exports</li>
-          <li><a class="bridge-victory-analyze-link" href="/analyzer/" target="_blank" rel="noopener noreferrer">Open Analyze</a> â€” data is not transferred</li>
+          <li><strong>Download for Analyze</strong> — address CSV this button exports</li>
+          <li><a class="bridge-victory-analyze-link" href="/analyzer/" target="_blank" rel="noopener noreferrer">Open Analyze</a> — data is not transferred</li>
           <li>Import the downloaded file in Analyze</li>
           <li>Start review scan</li>
         </ol>
@@ -264,7 +264,7 @@
       </div>
 
       <div class="bridge-import-paths">
-        <!-- Drop / browse clerk file (paste path removed — drop Excel/CSV/PDF only) -->
+        <!-- Drop / browse clerk file (paste path removed � drop Excel/CSV/PDF only) -->
         <div class="bridge-import-path bridge-import-path--file">
           <h3 class="bridge-import-path-title">Drop the clerk file</h3>
           <div class="bridge-format-badges" aria-hidden="true">
@@ -292,8 +292,8 @@
     <section class="bridge-panel phuglee-panel" id="bridge-loading-panel" hidden aria-live="polite" aria-busy="true">
       <div class="bridge-loading phuglee-loading-state">
         <div class="phuglee-loading-bar" aria-hidden="true"></div>
-        <p class="phuglee-loading-copy" id="bridge-loading-copy">Processing uploadâ€¦</p>
-        <p class="bridge-loading-eta" id="bridge-loading-eta">Processing the whole file â€” results open when ready (no live address feed).</p>
+        <p class="phuglee-loading-copy" id="bridge-loading-copy">Processing upload…</p>
+        <p class="bridge-loading-eta" id="bridge-loading-eta">Processing the whole file — results open when ready (no live address feed).</p>
         <div class="bridge-loading-actions">
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-cancel-process">Cancel</button>
         </div>
@@ -321,7 +321,7 @@
           <h3 id="bridge-left-out-heading">Accept categories that were not auto-kept</h3>
           <p class="bridge-left-out-lead" id="bridge-left-out-lead">
             These types had real addresses but Filter did not auto-mark them as distress.
-            Click <strong>Accept as distress</strong> on any type you want on your list — or
+            Click <strong>Accept as distress</strong> on any type you want on your list � or
             <strong>Accept all left out</strong> so you do not miss leads.
           </p>
         </div>
@@ -359,7 +359,7 @@
       </section>
       </div><!-- /bridge-mission-surface -->
 
-      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process â†’ (Train) â†’ Save list â†’ Download for Analyze â†’ manual Analyze import</p>
+      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download for Analyze → manual Analyze import</p>
 
       <div id="bridge-train-wrap" hidden>
         <div id="bridge-train-mission" class="bridge-train-mission" hidden>
@@ -509,7 +509,7 @@
             <summary class="bridge-export-advanced-summary">Advanced export</summary>
             <div class="bridge-export-advanced-body">
               <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
-              <button type="button" class="phuglee-btn phuglee-btn-danger" id="bridge-download-full-xlsx" title="Full raw columns: tags, types, notes, confidence â€” not the 4-column enrichment sheet">Download FULL EXCEL</button>
+              <button type="button" class="phuglee-btn phuglee-btn-danger" id="bridge-download-full-xlsx" title="Full raw columns: tags, types, notes, confidence — not the 4-column enrichment sheet">Download FULL EXCEL</button>
               <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-xlsx" title="One workbook: sheets of 5,000 leads each">Export batches (5k XLSX)</button>
               <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-csv" title="ZIP of CSV files, 5,000 leads each">Export batches (5k CSV zip)</button>
             </div>
@@ -605,7 +605,7 @@
   <script src="/js/settings-menu.js?v=4" defer></script>
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
-  <script src="/js/shell-nav.js?v=32-leads-dispo" defer></script>
+  <script src="/js/shell-nav.js?v=33-saas-rail" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
