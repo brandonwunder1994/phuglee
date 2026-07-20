@@ -940,7 +940,7 @@ body:not(.home-page) .phuglee-logo-svg--hero {
   50% { transform: translateY(-8px); }
 }
 
-/* ── Motion reveal (phuglee-motion.js) ── */
+/* ── Motion reveal (phuglee-motion.js) — marketing only ── */
 [data-phuglee-reveal]:not(.phuglee-reveal-active) > [data-phuglee-reveal-child],
 [data-phuglee-reveal]:not(.phuglee-reveal-active) > *:not(script):not(style) {
   opacity: 0;
@@ -957,6 +957,18 @@ body:not(.home-page) .phuglee-logo-svg--hero {
 [data-phuglee-reveal].phuglee-reveal-active .phuglee-reveal-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Product desks: instant paint — no stagger theater (Linear/Stripe style) */
+body.phuglee-app [data-phuglee-reveal] > *,
+body.bridge-page [data-phuglee-reveal] > *,
+body.command-page [data-phuglee-reveal] > *,
+body.collect-page [data-phuglee-reveal] > *,
+body.vault-page [data-phuglee-reveal] > *,
+body.has-shell-chrome [data-phuglee-reveal] > * {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

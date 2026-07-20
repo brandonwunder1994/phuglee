@@ -48,10 +48,24 @@
     });
   }
 
+  function isProductSurface() {
+    const b = document.body;
+    if (!b) return false;
+    return (
+      b.classList.contains('has-shell-chrome') ||
+      b.classList.contains('phuglee-app') ||
+      b.classList.contains('bridge-page') ||
+      b.classList.contains('command-page') ||
+      b.classList.contains('collect-page') ||
+      b.classList.contains('vault-page')
+    );
+  }
+
   function init() {
     const targets = document.querySelectorAll('[data-phuglee-reveal]');
 
-    if (prefersReducedMotion()) {
+    // Product desks: instant paint (SaaS). Marketing keeps scroll reveal.
+    if (isProductSurface() || prefersReducedMotion()) {
       targets.forEach(function (el) {
         activate(/** @type {HTMLElement} */ (el));
       });
