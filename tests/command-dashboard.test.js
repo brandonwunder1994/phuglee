@@ -22,11 +22,12 @@ test('command.html is pipeline momentum KPIs + map', () => {
   assert.ok(html.includes('total funded'));
   assert.ok(html.includes('id="command-coverage-map"'));
   assert.ok(html.includes('home-coverage.js'));
-  assert.ok(html.includes('href="/collect"'));
-  assert.ok(html.includes('href="/filter"'));
-  assert.ok(html.includes('href="/analyzer/"'));
-  assert.ok(html.includes('href="/under-contract"'));
-  assert.ok(html.includes('data-admin-only'));
+  assert.ok(!html.includes('command-quiet-links'));
+  assert.ok(!html.includes('command-quiet-link'));
+  assert.ok(!html.includes('>Request</'));
+  assert.ok(!html.includes('>Filter</a>'));
+  assert.ok(!html.includes('>Analyze</a>'));
+  assert.ok(!html.includes('>Contracts</'));
 });
 
 test('command.html has no Pipeline header / snapshot lead copy', () => {
@@ -75,7 +76,9 @@ test('command-center.css is centered no-scroll snapshot layout', () => {
   assert.ok(css.includes('align-items: center'));
   assert.ok(css.includes('justify-content: center'));
   assert.ok(css.includes('100dvh') || css.includes('min-height'));
+  assert.ok(css.includes('overflow: hidden'));
   assert.ok(css.includes('#distress-os-footer-mount'));
+  assert.ok(!css.includes('command-quiet-links'));
   assert.ok(!css.includes('command-pulse-node'));
   assert.ok(!css.includes('command-mission-focus'));
 });
@@ -110,5 +113,5 @@ test('command cache-bust after snapshot layout', () => {
   const jsV = html.match(/command-center\.js\?v=(\d+)/);
   const cssV = html.match(/command-center\.css\?v=(\d+)/);
   assert.ok(jsV && Number(jsV[1]) >= 7, 'command-center.js cache');
-  assert.ok(cssV && Number(cssV[1]) >= 13, 'command-center.css cache');
+  assert.ok(cssV && Number(cssV[1]) >= 14, 'command-center.css cache');
 });
