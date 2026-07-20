@@ -59,10 +59,20 @@ test('command-center.css targets snapshot + pipeline metric classes', () => {
   assert.ok(css.includes('command-snapshot') || css.includes('command-metrics'));
   assert.ok(css.includes('command-metric'));
   assert.ok(css.includes('command-metrics--pipeline') || css.includes('command-metric-value'));
+  assert.ok(css.includes('command-metric-value--money'));
+  assert.ok(css.includes('--phuglee-success') || css.includes('#3dd68c'));
   assert.ok(css.includes('command-coverage-map'));
   assert.ok(css.includes('command-map-svg'));
   assert.ok(!css.includes('command-pulse-node'));
   assert.ok(!css.includes('command-mission-focus'));
+});
+
+test('total funded uses money green, not gold', () => {
+  const html = read('command.html');
+  const fundedLine = html.split('\n').find((l) => l.includes('id="command-total-funded"'));
+  assert.ok(fundedLine, 'total funded element present');
+  assert.ok(fundedLine.includes('command-metric-value--money'), 'money green class on total funded');
+  assert.ok(!fundedLine.includes('command-metric-value--gold'), 'total funded not gold');
 });
 
 test('home-coverage.js still renders command map host (not city/state KPIs)', () => {
@@ -78,5 +88,5 @@ test('command cache-bust after pipeline KPI swap', () => {
   const jsV = html.match(/command-center\.js\?v=(\d+)/);
   const cssV = html.match(/command-center\.css\?v=(\d+)/);
   assert.ok(jsV && Number(jsV[1]) >= 7, 'command-center.js cache');
-  assert.ok(cssV && Number(cssV[1]) >= 11, 'command-center.css cache');
+  assert.ok(cssV && Number(cssV[1]) >= 12, 'command-center.css cache');
 });

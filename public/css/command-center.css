@@ -87,6 +87,11 @@
   color: var(--phuglee-gold, #eeb746);
 }
 
+/* Closed money — green so total funded reads as cash in, not pipeline heat */
+.command-metric-value--money {
+  color: var(--phuglee-success, #3dd68c);
+}
+
 .command-metric-label {
   margin: 0.5rem 0 0;
   font-size: 0.8125rem;
