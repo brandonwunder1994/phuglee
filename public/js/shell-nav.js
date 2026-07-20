@@ -360,8 +360,8 @@
         src="/images/phuglee-text-logo.svg"
         alt="Phuglee"
         class="shell-brand-logo"
-        width="120"
-        height="26"
+        width="200"
+        height="44"
         decoding="async"
       >
     </a>

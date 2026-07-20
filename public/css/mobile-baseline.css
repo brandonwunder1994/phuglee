@@ -149,9 +149,9 @@ svg:not([width]):not([height]) {
 }
 
 @media (max-width: 480px) {
-  .shell-brand-logo {
-    height: 24px;
-    max-width: min(7.5rem, 42vw);
+  .shell-rail .shell-brand-logo {
+    height: 34px;
+    max-width: min(10rem, 72%);
   }
 
   .shell-footer-links {
