@@ -916,10 +916,12 @@
     if (type !== 'cash' && type !== 'subject_to') return '';
     const label = deal.dealTypeLabel
       || (type === 'cash' ? 'Cash deal' : 'Subject-to deal');
-    const src = type === 'cash'
-      ? '/images/deal-types/cash.png'
-      : '/images/deal-types/subto.png';
-    return `<span class="uc-deal-type-badge" data-deal-type="${esc(type)}" title="${esc(label)}" aria-label="${esc(label)}"><img src="${esc(src)}" alt="" width="28" height="28" loading="lazy" decoding="async"></span>`;
+    const short = type === 'cash' ? 'Cash' : 'SubTo';
+    // Monoline marks — same gold/ink language as UC stage chips (no cartoon PNGs).
+    const icon = type === 'cash'
+      ? `<svg class="uc-deal-type-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="2.5" y="4.5" width="11" height="7" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.25"/><path d="M5.5 8h5M8 6.2v3.6" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>`
+      : `<svg class="uc-deal-type-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M3.2 10.8V5.6L8 3.2l4.8 2.4v5.2L8 13.2 3.2 10.8z" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M5.6 9.2h2.6a1.4 1.4 0 0 0 0-2.8H7" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><path d="M9.4 8.2h2.2M10.8 6.8v2.8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>`;
+    return `<span class="uc-deal-type-badge" data-deal-type="${esc(type)}" title="${esc(label)}" aria-label="${esc(label)}">${icon}<span class="uc-deal-type-text">${esc(short)}</span></span>`;
   }
 
   function trustFundBadgeHtml(deal) {
