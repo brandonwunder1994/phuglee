@@ -217,19 +217,55 @@ R.ensureReviewLeanAround = function ensureReviewLeanAround(index) {
 
 R._reviewPreloadInFlight = 0;
 R._reviewPreloadWait = [];
-R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
+
+R.touchReviewPreloadOrder = function touchReviewPreloadOrder(url) {
+  if (!url || !reviewImagePreloadOrder) return;
+  const i = reviewImagePreloadOrder.indexOf(url);
+  if (i >= 0) reviewImagePreloadOrder.splice(i, 1);
+  reviewImagePreloadOrder.push(url);
+};
+
+R.preloadReviewImageUrl = function preloadReviewImageUrl(url, opts = {}) {
   url = resolveImageryPublicUrl(url);
-  if (!url || reviewImagePreloadCache.has(url)) return;
-  const max = REVIEW_PRELOAD_CACHE_MAX || 128;
-  if (reviewImagePreloadCache.size >= max && reviewImagePreloadOrder.length) {
+  if (!url) return;
+  const existing = reviewImagePreloadCache.get(url);
+  // Already ready or currently downloading as a real Image — nothing to do.
+  if (existing && existing.tagName === 'IMG') {
+    touchReviewPreloadOrder(url);
+    return;
+  }
+  // Pending in the wait queue: optional priority bump to front.
+  if (existing?.pending) {
+    touchReviewPreloadOrder(url);
+    if (opts.priority && Array.isArray(R._reviewPreloadWait) && R._reviewPreloadWait.length > 1) {
+      // Can't reliably re-order anonymous start fns; leave FIFO.
+    }
+    return;
+  }
+
+  const max = REVIEW_PRELOAD_CACHE_MAX || 512;
+  while (reviewImagePreloadCache.size >= max && reviewImagePreloadOrder.length) {
     const oldest = reviewImagePreloadOrder.shift();
+    if (!oldest || oldest === url) continue;
+    const ent = reviewImagePreloadCache.get(oldest);
+    // Never evict an in-flight real Image still loading for a near-term lead.
+    if (ent?.tagName === 'IMG' && !ent.complete) continue;
     reviewImagePreloadCache.delete(oldest);
   }
-  const cap = Math.max(1, Number(REVIEW_PRELOAD_CONCURRENCY) || 3);
+
+  const cap = Math.max(1, Number(REVIEW_PRELOAD_CONCURRENCY) || 12);
   const start = () => {
+    // Another path may have finished while we waited.
+    const cur = reviewImagePreloadCache.get(url);
+    if (cur && cur.tagName === 'IMG') {
+      const next = R._reviewPreloadWait.shift();
+      if (next) next();
+      return;
+    }
     R._reviewPreloadInFlight = (R._reviewPreloadInFlight || 0) + 1;
     const img = new Image();
     img.decoding = 'async';
+    try { img.fetchPriority = opts.priority ? 'high' : 'auto'; } catch (_) {}
     const done = () => {
       R._reviewPreloadInFlight = Math.max(0, (R._reviewPreloadInFlight || 1) - 1);
       const next = R._reviewPreloadWait.shift();
@@ -237,15 +273,16 @@ R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
     };
     img.onload = done;
     img.onerror = done;
-    img.src = url;
     reviewImagePreloadCache.set(url, img);
-    reviewImagePreloadOrder.push(url);
+    touchReviewPreloadOrder(url);
+    img.src = url;
   };
+
   if ((R._reviewPreloadInFlight || 0) >= cap) {
-    // Reserve cache slot so later lookups still hit once the download starts.
     reviewImagePreloadCache.set(url, { complete: false, naturalWidth: 0, pending: true });
-    reviewImagePreloadOrder.push(url);
-    R._reviewPreloadWait.push(start);
+    touchReviewPreloadOrder(url);
+    if (opts.priority) R._reviewPreloadWait.unshift(start);
+    else R._reviewPreloadWait.push(start);
     return;
   }
   start();
@@ -253,33 +290,95 @@ R.preloadReviewImageUrl = function preloadReviewImageUrl(url) {
 
 R.isReviewImageReady = function isReviewImageReady(url) {
   if (!url) return false;
+  url = resolveImageryPublicUrl(url);
   const cached = reviewImagePreloadCache.get(url);
-  return !!(cached?.complete && cached.naturalWidth);
+  return !!(cached && cached.tagName === 'IMG' && cached.complete && cached.naturalWidth > 0);
 }
 
-R.setReviewImgSrc = function setReviewImgSrc(img, url) {
+/**
+ * Race-safe image set for rapid Keep/Undo.
+ * Keeps the previous frame visible until the next URL is decoded — no blank flash.
+ */
+R.setReviewImgSrc = function setReviewImgSrc(img, url, opts = {}) {
   if (!img) return;
   url = resolveImageryPublicUrl(url);
   if (!url) {
     img.style.display = 'none';
     img.removeAttribute('src');
+    img.removeAttribute('data-review-src');
     return;
   }
   img.style.display = 'block';
-  if (img.getAttribute('src') === url && img.complete && img.naturalWidth) return;
-  if (isCachedImageryUrl(url) || isReviewImageReady(url)) {
+  const token = (Number(img.dataset.reviewToken) || 0) + 1;
+  img.dataset.reviewToken = String(token);
+  img.dataset.reviewSrc = url;
+
+  const applyNow = () => {
+    if (String(img.dataset.reviewToken) !== String(token)) return false;
     img.classList.remove('img-fade');
-    img.src = url;
+    img.style.display = 'block';
+    if (img.getAttribute('src') !== url) img.src = url;
+    if (opts.clearLoading) reviewImages?.classList.remove('loading');
+    return true;
+  };
+
+  // Already showing this URL and decoded.
+  if (img.getAttribute('src') === url && img.complete && img.naturalWidth > 0) {
+    applyNow();
     return;
   }
-  setImgSrc(img, url);
+
+  // Preload hit — swap immediately (no fade, no blank).
+  if (isReviewImageReady(url) || isCachedImageryUrl(url)) {
+    preloadReviewImageUrl(url, { priority: true });
+    applyNow();
+    // decode() when available so the next paint is clean under rapid Keep.
+    if (typeof img.decode === 'function') {
+      img.decode().catch(() => {});
+    }
+    return;
+  }
+
+  // Kick / prioritize download, then apply only when ready — leave prior frame up.
+  preloadReviewImageUrl(url, { priority: true });
+  const cached = reviewImagePreloadCache.get(url);
+  const pre = (cached && cached.tagName === 'IMG') ? cached : new Image();
+  if (pre !== cached) {
+    pre.decoding = 'async';
+    pre.fetchPriority = 'high';
+    reviewImagePreloadCache.set(url, pre);
+    touchReviewPreloadOrder(url);
+  }
+
+  const onReady = () => {
+    if (String(img.dataset.reviewToken) !== String(token)) return;
+    applyNow();
+  };
+  if (pre.complete && pre.naturalWidth > 0) {
+    onReady();
+    return;
+  }
+  const prevLoad = pre.onload;
+  const prevErr = pre.onerror;
+  pre.onload = (e) => {
+    try { prevLoad?.call(pre, e); } catch (_) {}
+    onReady();
+  };
+  pre.onerror = (e) => {
+    try { prevErr?.call(pre, e); } catch (_) {}
+    if (String(img.dataset.reviewToken) !== String(token)) return;
+    if (opts.clearLoading) reviewImages?.classList.remove('loading');
+  };
+  if (pre.getAttribute?.('src') !== url && pre.src !== url) {
+    try { pre.src = url; } catch (_) { pre.src = url; }
+  }
 }
 
-R.prefetchReviewImageUrlsForRecord = function prefetchReviewImageUrlsForRecord(r) {
+R.prefetchReviewImageUrlsForRecord = function prefetchReviewImageUrlsForRecord(r, opts = {}) {
   if (!r) return;
   const urls = getReviewImageUrls(r.address, r);
-  if (urls.streetView) preloadReviewImageUrl(urls.streetView);
-  else if (urls.satellite) preloadReviewImageUrl(urls.satellite);
+  if (urls.streetView) preloadReviewImageUrl(urls.streetView, opts);
+  else if (urls.satellite) preloadReviewImageUrl(urls.satellite, opts);
 }
 
 R.prefetchReviewQueueImages = function prefetchReviewQueueImages(fromIndex = state.reviewIndex, count = REVIEW_PREFETCH_AHEAD) {
@@ -290,9 +389,11 @@ R.prefetchReviewQueueImages = function prefetchReviewQueueImages(fromIndex = sta
     const key = state.reviewQueue[idx];
     if (!key) break;
     const r = findResultByKey(key);
-    if (r) prefetchReviewImageUrlsForRecord(r);
-    else if (++missing === 1 && typeof ensureReviewLeanAround === 'function') {
-      // Kick one lean page fetch for the first hole — don't stampede the API.
+    if (r) {
+      // Next few leads get download priority so 5/sec Keep always hits warm cache.
+      prefetchReviewImageUrlsForRecord(r, { priority: i < 8 });
+    } else if (++missing <= 3 && typeof ensureReviewLeanAround === 'function') {
+      // Hydrate several lean holes so rapid advance never stalls on "Loading next lead…".
       void ensureReviewLeanAround(idx);
     }
   }
@@ -302,23 +403,19 @@ R.prefetchUpcomingReviewImages = function prefetchUpcomingReviewImages(fromIndex
   prefetchReviewQueueImages(fromIndex, REVIEW_PREFETCH_AHEAD);
 }
 
-/** Immediate urgent prefetch + idle fill — idle-only stalls when hammering Keep. */
+/** Immediate urgent prefetch + rest fill — never idle-only (stalls under rapid Keep). */
 R.prefetchReviewAheadNow = function prefetchReviewAheadNow(fromIndex = state.reviewIndex + 1) {
-  const urgent = Math.max(1, Number(REVIEW_PREFETCH_URGENT) || 4);
-  const total = Math.max(urgent, Number(REVIEW_PREFETCH_AHEAD) || 14);
+  const urgent = Math.max(1, Number(REVIEW_PREFETCH_URGENT) || 24);
+  const total = Math.max(urgent, Number(REVIEW_PREFETCH_AHEAD) || 48);
   try {
     prefetchReviewQueueImages(fromIndex, urgent);
   } catch (_) {}
   const rest = Math.max(0, total - urgent);
   if (!rest) return;
-  const fill = () => {
+  // setTimeout(0) — requestIdleCallback drops the fill when the operator hammers 1/2/6.
+  setTimeout(() => {
     try { prefetchReviewQueueImages(fromIndex + urgent, rest); } catch (_) {}
-  };
-  if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(fill, { timeout: 350 });
-  } else {
-    setTimeout(fill, 0);
-  }
+  }, 0);
 }
 
 R.scheduleLearnedBrainSave = function scheduleLearnedBrainSave() {
@@ -423,43 +520,33 @@ R.setReviewImages = function setReviewImages({ streetView = null, satellite = nu
     || (typeof isReviewImageReady === 'function' && isReviewImageReady(primaryUrl))
   ));
   const remoteLoad = !!(primaryUrl && !alreadyReady);
+  // Soft loading ring — previous frame stays visible until next decode (no blank).
   reviewImages.classList.toggle('loading', remoteLoad);
 
-  const clearReviewLoading = () => reviewImages?.classList.remove('loading');
-  const wireReviewLoad = (img) => {
-    if (!img || !remoteLoad) return;
-    const prevOnload = img.onload;
-    const prevOnerror = img.onerror;
-    img.onload = (e) => { prevOnload?.call(img, e); clearReviewLoading(); };
-    img.onerror = (e) => { prevOnerror?.call(img, e); clearReviewLoading(); };
-  };
-
   if (dual) {
-    setReviewImgSrc(reviewSatImg, satellite);
-    setReviewImgSrc(reviewSvImg, streetView);
-    wireReviewLoad(reviewSvImg);
+    setReviewImgSrc(reviewSatImg, satellite, { clearLoading: false });
+    setReviewImgSrc(reviewSvImg, streetView, { clearLoading: true });
     if (reviewPlaceholder) reviewPlaceholder.style.display = 'none';
     if (reviewSvWrap) reviewSvWrap.classList.remove('satellite-target');
     if (reviewPaneLabel) reviewPaneLabel.textContent = 'Street View';
   } else if (streetView) {
-    setReviewImgSrc(reviewSvImg, streetView);
-    wireReviewLoad(reviewSvImg);
+    setReviewImgSrc(reviewSvImg, streetView, { clearLoading: true });
     if (reviewSatImg) reviewSatImg.style.display = 'none';
     if (reviewPlaceholder) reviewPlaceholder.style.display = 'none';
     if (reviewSvWrap) reviewSvWrap.classList.remove('satellite-target');
     if (reviewPaneLabel) reviewPaneLabel.textContent = 'Street View';
   } else if (satellite) {
-    setReviewImgSrc(reviewSvImg, satellite);
-    wireReviewLoad(reviewSvImg);
+    setReviewImgSrc(reviewSvImg, satellite, { clearLoading: true });
     if (reviewSatImg) reviewSatImg.style.display = 'none';
     if (reviewPlaceholder) reviewPlaceholder.style.display = 'none';
     if (reviewSvWrap) reviewSvWrap.classList.add('satellite-target');
     if (reviewPaneLabel) reviewPaneLabel.textContent = 'Satellite';
   } else {
-    clearReviewLoading();
+    reviewImages.classList.remove('loading');
     if (reviewSvImg) {
       reviewSvImg.style.display = 'none';
       reviewSvImg.removeAttribute('src');
+      reviewSvImg.removeAttribute('data-review-src');
     }
     if (reviewSatImg) {
       reviewSatImg.style.display = 'none';
@@ -926,8 +1013,8 @@ R.warmReviewImagery = function warmReviewImagery(opts = {}) {
       if (USE_PROXY && typeof fetchImageryIndexMap === 'function' && !imageryIndexMapCache) {
         fetchImageryIndexMap().catch(() => {});
       }
-      // Current lead first, then urgent ahead — never wait on idle for the first window.
-      prefetchReviewQueueImages(state.reviewIndex, REVIEW_PREFETCH_URGENT || 6);
+      // Current lead first, then a deep runway for rapid Keep (~5/sec).
+      prefetchReviewQueueImages(state.reviewIndex, REVIEW_PREFETCH_URGENT || 24);
       prefetchReviewAheadNow(state.reviewIndex + 1);
     } catch (e) {
       console.warn('[Review imagery warm]', e);
