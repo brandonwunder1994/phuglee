@@ -6220,9 +6220,6 @@ body.bridge-page.has-shell-chrome .bridge-main {
   flex: 0 1 auto;
   width: min(920px, calc(100% - 2.5rem));
   max-width: 920px;
-  /* Horizontal + vertical center in the shell content column.
-     When content is taller than the viewport, auto margins collapse and
-     the desk scrolls from the top (no clipped form). */
   margin-left: auto;
   margin-right: auto;
   margin-top: auto;
@@ -6232,7 +6229,6 @@ body.bridge-page.has-shell-chrome .bridge-main {
   box-sizing: border-box;
 }
 
-/* Full viewport height so vertical auto-margins can center short desks */
 body.bridge-page.has-shell-chrome {
   min-height: 100vh;
   min-height: 100dvh;
@@ -6241,4 +6237,32 @@ body.bridge-page.has-shell-chrome {
 body.bridge-page .bridge-main {
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Large page title above the desk cards */
+body.bridge-page .bridge-page-heading {
+  text-align: center;
+  margin: 0 0 1.15rem;
+  width: 100%;
+}
+
+body.bridge-page .bridge-page-heading .bridge-title {
+  margin: 0;
+  font-family: var(--font-display, "Anton", sans-serif);
+  font-size: clamp(2.75rem, 9vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--phuglee-cream, #f5f2e4);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-wrap: balance;
+}
+
+body.bridge-page.has-shell-chrome .bridge-page-heading {
+  margin: 0 0 1.35rem;
+}
+
+body.bridge-page.has-shell-chrome .bridge-page-heading .bridge-title {
+  font-size: clamp(3rem, 8vw, 4.75rem);
 }
