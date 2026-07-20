@@ -9,15 +9,16 @@
     { id: 'analyzer', label: 'Review', href: '/analyzer/' }
   ];
 
+  /** Dispo desk (was Pipeline) — Under Contract + Buyers only; /pipeline page stays reachable via URL/settings if needed. */
   const PIPELINE_LINKS = [
     { id: 'under-contract', label: 'Under Contract', href: '/under-contract' },
-    { id: 'pipeline', label: 'All Leads', href: '/pipeline' },
     { id: 'buyers', label: 'Buyers', href: '/buyers' }
   ];
 
+  /** Leads desk (was Vault) */
   const VAULT_LINKS = [
-    { id: 'vault', label: 'Home Vault', href: '/vault' },
-    { id: 'land-vault', label: 'Land Vault', href: '/land-vault' }
+    { id: 'vault', label: 'Houses', href: '/vault' },
+    { id: 'land-vault', label: 'Land', href: '/land-vault' }
   ];
 
   const FORGE_LINKS = [
@@ -201,11 +202,11 @@
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">Home Vault · Land Vault</span>
+      <span class="shell-footer-meta">Houses · Land</span>
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/vault" class="shell-footer-link">Home Vault</a>
-      <a href="/land-vault" class="shell-footer-link">Land Vault</a>
+      <a href="/vault" class="shell-footer-link">Houses</a>
+      <a href="/land-vault" class="shell-footer-link">Land</a>
     </nav>
   </div>
 </footer>`;
@@ -287,32 +288,40 @@
     if (isVaultOnlyUser()) {
       railBody = buildRailSection({
         id: 'vault',
-        label: 'Vault',
+        label: 'Leads',
         links: VAULT_LINKS,
         current,
         sectionActive: isVaultSectionActive(current)
       });
     } else if (isDisposUser()) {
+      // Dashboard-adjacent order: Leads, then Dispo
       railBody =
         buildRailSection({
-          id: 'pipeline',
-          label: 'Pipeline',
-          links: PIPELINE_LINKS,
-          current,
-          sectionActive: isPipelineSectionActive(current)
-        }) +
-        buildRailSection({
           id: 'vault',
-          label: 'Vault',
+          label: 'Leads',
           links: VAULT_LINKS,
           current,
           sectionActive: isVaultSectionActive(current)
+        }) +
+        buildRailSection({
+          id: 'pipeline',
+          label: 'Dispo',
+          links: PIPELINE_LINKS,
+          current,
+          sectionActive: isPipelineSectionActive(current)
         });
     } else {
       const dashboardHtml =
         `<div class="shell-rail-primary">` +
         buildRailLink(DASHBOARD_LINK, current) +
         `</div>`;
+      const leadsHtml = buildRailSection({
+        id: 'vault',
+        label: 'Leads',
+        links: VAULT_LINKS,
+        current,
+        sectionActive: isVaultSectionActive(current)
+      });
       const dataHtml = buildRailSection({
         id: 'data',
         label: 'Data',
@@ -320,23 +329,17 @@
         current,
         sectionActive: isDataSectionActive(current)
       });
-      const vaultHtml = buildRailSection({
-        id: 'vault',
-        label: 'Vault',
-        links: VAULT_LINKS,
-        current,
-        sectionActive: isVaultSectionActive(current)
-      });
-      const pipelineHtml = isAdminUser()
+      const dispoHtml = isAdminUser()
         ? buildRailSection({
             id: 'pipeline',
-            label: 'Pipeline',
+            label: 'Dispo',
             links: PIPELINE_LINKS,
             current,
             sectionActive: isPipelineSectionActive(current)
           })
         : '';
-      railBody = dashboardHtml + dataHtml + pipelineHtml + vaultHtml;
+      // Dashboard → Leads → Data → Dispo
+      railBody = dashboardHtml + leadsHtml + dataHtml + dispoHtml;
     }
 
     const railFooterHtml = isAuthenticated()

@@ -3,17 +3,17 @@
 
   var COMMANDS = [
     { group: 'Navigate', label: 'Dashboard', href: '/command', meta: 'Pipeline dashboard' },
-    { group: 'Navigate', label: 'Request', href: '/collect', meta: 'Hit up the city' },
+    { group: 'Navigate', label: 'Collect', href: '/collect', meta: 'Hit up the city' },
     { group: 'Navigate', label: 'Government Lists', href: '/government-lists', meta: 'Source phonebook' },
-    { group: 'Navigate', label: 'Pre-liens', href: '/pre-liens', meta: 'Complaint extract → skip' },
+    { group: 'Navigate', label: 'Pre-liens', href: '/pre-liens', meta: 'Complaint extract desk' },
     { group: 'Navigate', label: 'Coverage Map', href: '/forge/map', meta: 'Map' },
     { group: 'Navigate', label: 'How It Works', href: '/heat', meta: 'Guide' },
     { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },
-    { group: 'Navigate', label: 'Review', href: '/analyzer/', meta: 'Scan & sort leads' },
-    { group: 'Navigate', label: 'The Vault', href: '/vault', meta: 'Pre-scrubbed leads · Max plan' },
-    { group: 'Pipeline', label: 'All Leads', href: '/pipeline', meta: 'GHL DTS kanban', contractDeskOnly: true },
-    { group: 'Pipeline', label: 'Under Contract', href: '/under-contract', meta: 'Proof desk', contractDeskOnly: true },
-    { group: 'Pipeline', label: 'Buyers', href: '/buyers', meta: 'Buy-box matcher', contractDeskOnly: true },
+    { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
+    { group: 'Leads', label: 'Houses', href: '/vault', meta: 'Curated house leads · Max plan' },
+    { group: 'Leads', label: 'Land', href: '/land-vault', meta: 'Vacant lots · Land Desk · Max plan' },
+    { group: 'Dispo', label: 'Under Contract', href: '/under-contract', meta: 'Proof desk', contractDeskOnly: true },
+    { group: 'Dispo', label: 'Buyers', href: '/buyers', meta: 'Buy-box matcher', contractDeskOnly: true },
     { group: 'Settings', label: 'Operating Costs', href: '/operating-costs', meta: 'Railway · GHL · APIs', adminOnly: true },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
     { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
@@ -135,7 +135,7 @@
       if (cmd.adminOnly && !isAdminUser()) return false;
       if (cmd.contractDeskOnly && !isContractDeskUser()) return false;
       if (isVaultOnlyUser()) {
-        return cmd.href === '/vault';
+        return cmd.href === '/vault' || cmd.href === '/land-vault';
       }
       if (isDisposUser()) {
         return cmd.href === '/vault'
@@ -143,8 +143,7 @@
           || cmd.href === '/under-contract'
           || cmd.href === '/pipeline'
           || cmd.href === '/buyers'
-          || cmd.href === '/trust-funds'
-          || cmd.href === '/government-lists';
+          || cmd.href === '/trust-funds';
       }
       return true;
     });
