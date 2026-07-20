@@ -6312,7 +6312,8 @@
 
   /**
    * Convert pasted tabular text → .xlsx, stage it in the file area, clear the
-   * paste box, ensure Code violation + response date, then run processUpload.
+   * paste box, preserve selected list type (default Code violation only if unset),
+   * then run processUpload when city + received date are ready.
    */
   async function convertPasteToExcel() {
     const text = pasteTextarea ? pasteTextarea.value : '';
@@ -6349,8 +6350,10 @@
       selectedFiles = [];
       addSelectedFiles([file]);
 
-      // Ensure Code violation; received date must be operator-picked (no auto-Today)
-      applyDefaultUploadType();
+      // Only default Code violation when operator has not already picked a list type
+      if (!selectedUploadType) {
+        applyDefaultUploadType();
+      }
 
       // Still offer a download of the clean workbook
       try {
