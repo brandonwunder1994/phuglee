@@ -2,7 +2,7 @@
   const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
 
   const DATA_LINKS = [
-    { id: 'collect', label: 'Collect', href: '/collect' },
+    { id: 'collect', label: 'Request', href: '/collect' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
     { id: 'analyzer', label: 'Review', href: '/analyzer/' }
   ];
@@ -164,7 +164,7 @@
       <span class="shell-footer-meta">Disposition desk</span>
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/collect" class="shell-footer-link">Collect</a>
+      <a href="/collect" class="shell-footer-link">Request</a>
       <a href="/under-contract" class="shell-footer-link">Under Contract</a>
       <a href="/pipeline" class="shell-footer-link">All Leads</a>
       <a href="/buyers" class="shell-footer-link">Buyers</a>
@@ -189,7 +189,7 @@
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
-      <a href="/collect" class="shell-footer-link">Collect</a>
+      <a href="/collect" class="shell-footer-link">Request</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Review</a>
       <a href="/vault" class="shell-footer-link">Homes</a>
@@ -303,7 +303,7 @@
     if (isVaultOnlyUser()) {
       linksHtml = vaultHtml;
     } else if (isDisposUser()) {
-      const collectHtml = `<a href="/collect" class="${linkClass('collect', current)}"${current === 'collect' ? ' aria-current="page"' : ''}>Collect</a>`;
+      const collectHtml = `<a href="/collect" class="${linkClass('collect', current)}"${current === 'collect' ? ' aria-current="page"' : ''}>Request</a>`;
       linksHtml = collectHtml + buildPipelineDropdown(current) + vaultHtml;
     } else {
       const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;

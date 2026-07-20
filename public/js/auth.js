@@ -656,7 +656,7 @@
     try {
       var path = (String(url || '').split('?')[0].split('#')[0] || '').replace(/\/+$/, '') || '/';
       if (path === '/filter' || path === '/bridge') return 'Filter';
-      if (path === '/collect') return 'Collect';
+      if (path === '/collect') return 'Request';
       if (path === '/command') return 'Dashboard';
       if (path.indexOf('/analyzer') === 0) return 'Review';
       if (path.indexOf('/forge') === 0) return 'City Tracker';
