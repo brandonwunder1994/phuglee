@@ -30,20 +30,32 @@ body.analyzer-embedded .analyze-sidebar {
 }
 
 body.analyzer-embedded .app-shell-main {
-  margin-left: 0 !important;
-  width: 100% !important;
-  max-width: none !important;
-  padding-top: calc(var(--distress-nav-offset, 56px) + 1.25rem);
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: min(960px, calc(100% - 2rem)) !important;
+  max-width: 960px !important;
+  /* Top title bar removed — only small desk pad (nav offset usually 0 under rail shell) */
+  padding-top: calc(var(--distress-nav-offset, 0px) + 1.15rem);
   min-height: 0;
+  align-self: center;
+  box-sizing: border-box;
 }
 
 body.analyzer-embedded .app-shell {
   min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 body.analyzer-embedded .app-shell .app {
-  max-width: none;
-  padding: 0 1.5rem 2rem;
+  width: 100%;
+  max-width: 960px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1.15rem 2rem;
+  box-sizing: border-box;
 }
 
 /* Hero title redundant with shell — keep pipeline + panels */
@@ -52,13 +64,29 @@ body.analyzer-embedded .analyze-page-hero {
 }
 
 body.analyzer-embedded .analyze-hero-zone {
-  max-width: 920px;
+  max-width: 100%;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 2.25rem;
 }
 
 body.analyzer-embedded .analyze-data-zone {
-  max-width: 1320px;
+  max-width: 100%;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
   padding-bottom: 0;
+}
+
+/* Shell rail content column — keep Review centered like Filter */
+body.analyzer-embedded.has-shell-chrome .app-shell-main,
+body.has-shell-chrome.analyzer-embedded .app-shell-main {
+  width: min(960px, calc(100% - 2rem)) !important;
+  max-width: 960px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  align-self: center;
 }
 
 body.analyzer-embedded.analyze-phuglee .main-workspace {

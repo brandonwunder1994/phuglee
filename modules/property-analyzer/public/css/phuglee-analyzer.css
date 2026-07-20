@@ -570,17 +570,24 @@ body.analyzer-embedded .analyzer-context-step {
   display: block;
 }
 
-/* Distress OS embedded — keep analyzer sidebar + offset main for shell nav */
+/* Distress OS embedded — centered desk under left rail (Filter parity) */
 body.analyzer-embedded .app-shell-main {
-  margin-left: var(--sidebar-w, 220px);
-  width: auto;
-  max-width: none;
-  padding-top: calc(var(--distress-nav-offset, 108px) + 1.75rem);
+  margin-left: auto;
+  margin-right: auto;
+  width: min(960px, calc(100% - 2rem));
+  max-width: 960px;
+  padding-top: calc(var(--distress-nav-offset, 0px) + 1.15rem);
   min-height: 0;
+  align-self: center;
+  box-sizing: border-box;
 }
 
 body.analyzer-embedded .app-shell .app {
-  max-width: none;
+  max-width: 960px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
 /* Distress OS — tone down cyber chrome, terminal density */
@@ -836,8 +843,12 @@ body.analyze-phuglee.cyber-theme::before {
 }
 
 body.analyze-phuglee .app-shell .app {
-  max-width: none;
-  padding: 1.5rem 1.25rem 2rem;
+  max-width: 960px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.25rem 1.15rem 2rem;
+  box-sizing: border-box;
 }
 
 body.analyze-phuglee .app-shell {
@@ -2649,23 +2660,10 @@ body.analyze-phuglee .review-shortcut-chip {
 }
 
 body.analyze-phuglee .review-mode-exit {
-  position: relative;
-  z-index: 5;
-  pointer-events: auto;
-  cursor: pointer;
   border-radius: 8px;
   border: 1px solid rgba(174, 163, 143, 0.2);
   background: transparent;
   color: var(--phuglee-taupe, #aea38f);
-}
-body.analyze-phuglee .review-mode-exit:hover {
-  border-color: rgba(229, 132, 53, 0.45);
-  color: var(--phuglee-cream, #f0ebe3);
-}
-body.analyze-phuglee .review-mode-header {
-  position: relative;
-  z-index: 4;
-  pointer-events: auto;
 }
 
 /* Glass property cards (card-cyber kept as alias for legacy selectors) */
