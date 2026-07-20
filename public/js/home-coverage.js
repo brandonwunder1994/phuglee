@@ -128,9 +128,59 @@
   }
 
   async function fetchCoverageBootstrap() {
-    var res = await fetch(COVERAGE_BOOTSTRAP_URL, { cache: 'no-store' });
+    // Allow browser HTTP cache (server sets short TTL on /data/*.json).
+    var res = await fetch(COVERAGE_BOOTSTRAP_URL, { cache: 'default' });
     if (!res.ok) throw new Error('coverage bootstrap unavailable');
     return res.json();
+  }
+
+  var coverageLiveUpgradeInflight = null;
+
+  function upgradeCoverageFromLive() {
+    if (coverageLiveUpgradeInflight) return coverageLiveUpgradeInflight;
+    coverageLiveUpgradeInflight = fetch(COVERAGE_URL, {
+      cache: 'no-store',
+      credentials: 'same-origin'
+    })
+      .then(function (res) {
+        return res.ok ? res.json() : null;
+      })
+      .then(function (live) {
+        coverageLiveUpgradeInflight = null;
+        if (!live) return null;
+
+        // Prefer the richer footprint so a stale forge volume cannot pin "10 states"
+        // after the public bootstrap has been updated on deploy.
+        var next = live;
+        if (
+          coverageCache &&
+          coverageStateCount(coverageCache) > coverageStateCount(live)
+        ) {
+          next = coverageCache;
+        }
+
+        if (next === coverageCache) return coverageCache;
+
+        coverageCache = next;
+        applyUnavailableStates(coverageCache);
+        updateCoverageStats(coverageCache);
+
+        // Refresh maps that already painted with bootstrap-only data.
+        if (mapRenderedHosts.has('command-coverage-map')) {
+          mapRenderedHosts.delete('command-coverage-map');
+          renderCommandMap();
+        }
+        if (mapRenderedHosts.has('hub-coverage-map')) {
+          mapRenderedHosts.delete('hub-coverage-map');
+          renderHubMap();
+        }
+        return coverageCache;
+      })
+      .catch(function () {
+        coverageLiveUpgradeInflight = null;
+        return null;
+      });
+    return coverageLiveUpgradeInflight;
   }
 
   async function fetchCoverage() {
@@ -143,9 +193,20 @@
       bootstrap = null;
     }
 
+    // KPI-first path: return bootstrap immediately, upgrade from forge in background.
+    if (bootstrap) {
+      coverageCache = bootstrap;
+      applyUnavailableStates(coverageCache);
+      upgradeCoverageFromLive();
+      return coverageCache;
+    }
+
     var live = null;
     try {
-      var res = await fetch(COVERAGE_URL, { cache: 'no-store', credentials: 'same-origin' });
+      var res = await fetch(COVERAGE_URL, {
+        cache: 'no-store',
+        credentials: 'same-origin'
+      });
       if (res.ok) {
         live = await res.json();
       }
@@ -153,15 +214,7 @@
       live = null;
     }
 
-    // Prefer the richer footprint so a stale forge volume cannot pin "10 states"
-    // after the public bootstrap has been updated on deploy.
-    if (live && bootstrap) {
-      coverageCache =
-        coverageStateCount(bootstrap) > coverageStateCount(live) ? bootstrap : live;
-    } else {
-      coverageCache = live || bootstrap;
-    }
-
+    coverageCache = live;
     if (!coverageCache) throw new Error('coverage unavailable');
     applyUnavailableStates(coverageCache);
     return coverageCache;
@@ -684,6 +737,17 @@
     homeMapObserver.observe(section);
   }
 
+  function scheduleIdle(fn, timeoutMs) {
+    var t = typeof timeoutMs === 'number' ? timeoutMs : 1800;
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(function () {
+        fn();
+      }, { timeout: t });
+      return;
+    }
+    window.setTimeout(fn, Math.min(200, t));
+  }
+
   function initCoverage() {
     var needsStats =
       document.getElementById('home-city-count') ||
@@ -703,8 +767,11 @@
       renderHubMap();
     }
 
+    // Defer Command map (geojson ~394KB + SVG work) so KPI strip paints first.
     if (document.getElementById('command-coverage-map')) {
-      renderCommandMap();
+      scheduleIdle(function () {
+        renderCommandMap();
+      }, 1800);
     }
 
     if (document.getElementById('home-map-summary') && document.body.hasAttribute('data-home-map-preview')) {
