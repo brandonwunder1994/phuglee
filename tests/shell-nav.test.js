@@ -104,16 +104,17 @@ test('admin shell rail: Dispo has Under Contract + Buyers, not All Leads', () =>
   assert.equal(api.activeId('/trust-funds'), 'buyers');
 });
 
-test('brad shell rail includes Leads then Dispo', () => {
+test('brad shell rail matches full product nav except settings stay admin-only', () => {
   const api = loadShellNavApi('brad');
   const nav = api.buildNav('/under-contract');
   assert.ok(nav.includes('shell-pipeline-trigger'));
   assert.ok(nav.includes('>Dispo<'));
   assert.ok(nav.includes('>Leads<'));
+  assert.ok(nav.includes('shell-data-trigger'));
+  assert.ok(nav.includes('>Data<'));
   assert.match(nav, /shell-link-label">Buyers</);
   assert.ok(nav.includes('href="/buyers"'));
-  assert.ok(!nav.includes('shell-data-trigger'));
-  assert.ok(!nav.includes('All Leads'));
+  assert.ok(nav.includes('shell-link-label">Dashboard<'));
   assert.equal(api.activeId('/under-contract'), 'under-contract');
 });
 
