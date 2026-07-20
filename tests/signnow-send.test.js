@@ -315,6 +315,39 @@ describe('signnow-send helpers', () => {
     assert.doesNotMatch(fn, /pushSignNowPending/);
   });
 
+  it('JV send never texts awaiting-signatures alerts', async () => {
+    const apiSrc = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/api.js'),
+      'utf8'
+    );
+    const jvHandler = apiSrc.slice(
+      apiSrc.indexOf('const jvSendMatch'),
+      apiSrc.indexOf('const amendmentSendMatch') > 0
+        ? apiSrc.indexOf('const amendmentSendMatch')
+        : apiSrc.indexOf('const sendDocMatch')
+    );
+    assert.doesNotMatch(jvHandler, /alertJvSent/);
+    assert.match(jvHandler, /never text\/email "awaiting signatures"/);
+
+    const teamNotify = require('../lib/leads-platform/team-notify');
+    const out = await teamNotify.alertJvSent({
+      deal: { dealId: 'x', address: '1 Test' },
+      awaiting: ['Brandon', 'Brad']
+    });
+    assert.equal(out.skipped, true);
+    assert.deepEqual(out.sent, []);
+
+    const contractsSrc = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/contracts.js'),
+      'utf8'
+    );
+    const rehydrate = contractsSrc.slice(
+      contractsSrc.indexOf('function rehydrateSignNowPendingFromSendStates'),
+      contractsSrc.indexOf('function pushSignNowPendingMany')
+    );
+    assert.doesNotMatch(rehydrate, /consider\(deal\.jvAgreement/);
+  });
+
   it('auto-imports signed SignNow docs via syncPendingSignNowAcrossDeals export', () => {
     const contracts = require('../lib/leads-platform/contracts');
     assert.equal(typeof contracts.syncPendingSignNowAcrossDeals, 'function');
