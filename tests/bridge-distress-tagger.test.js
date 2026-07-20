@@ -29,6 +29,36 @@ test('tags trash accumulation as strong distressed signal', () => {
   assert.ok(result.matchedIndicators.some((m) => /trash/i.test(m)));
 });
 
+test('city labels Junked Lot / Weedy Junked Lot keep as strong distress', () => {
+  // Durham NC and similar clerks often use "Junked Lot" (not bare "junk")
+  const labels = [
+    'Junked Lot',
+    'JUNKED LOT',
+    'Junked-Lot',
+    'Weedy Junked Lot',
+    'weedy junked lot',
+    'Weedy Lot',
+    'Junk Lot'
+  ];
+  for (const violationIssueType of labels) {
+    const result = tagRow(row({ violationIssueType }), 'code_violation');
+    assert.equal(
+      result.distressedSignalTag,
+      STRONG_DISTRESSED_TAG,
+      `expected KEEP for label: ${violationIssueType}`
+    );
+  }
+  const filtered = filterDistressOnly(
+    labels.map((violationIssueType) => ({
+      ...row({ violationIssueType }),
+      ...tagRow(row({ violationIssueType }), 'code_violation')
+    })),
+    'code_violation'
+  );
+  assert.equal(filtered.rows.length, labels.length);
+  assert.equal(filtered.removedCount, 0);
+});
+
 test('trash cans left out is NOT strong distress', () => {
   const cases = [
     'Trash cans left out',
