@@ -25,12 +25,24 @@
   --shadow-glow-orange: 0 0 48px rgba(229, 132, 53, 0.25);
 }
 
-body.analyze-phuglee::before,
-body.heat-theme::before {
+/* Solid plate only when NOT embedded in Distress OS shell (shell owns the photo). */
+body.analyze-phuglee:not(.analyzer-embedded)::before,
+body.heat-theme:not(.analyzer-embedded)::before {
   background:
     radial-gradient(ellipse 90% 60% at 50% -10%, rgba(229, 132, 53, 0.12) 0%, transparent 55%),
     radial-gradient(ellipse 50% 40% at 90% 80%, rgba(172, 107, 50, 0.08) 0%, transparent 50%),
     var(--background);
+}
+
+body.analyze-phuglee.analyzer-embedded::before,
+body.heat-theme.analyzer-embedded::before {
+  display: none !important;
+  background: none !important;
+}
+
+body.analyze-phuglee.analyzer-embedded,
+body.heat-theme.analyzer-embedded {
+  background: transparent !important;
 }
 
 body.analyze-phuglee .cyber-grid {
