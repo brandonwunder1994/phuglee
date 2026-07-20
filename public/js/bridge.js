@@ -3381,8 +3381,8 @@
           `Only <strong>${keptN.toLocaleString()}</strong> row${keptN === 1 ? '' : 's'} kept of ` +
           `<strong>${raw.toLocaleString()}</strong> parsed. ` +
           `Biggest kill bucket: <strong>${esc(top.label)}</strong> (${top.count.toLocaleString()}). ` +
-          `Code lists only keep Strong Distressed Signal types (weeds, trash, blight, junk vehicles, etc.) — ` +
-          `generic “code complaint” rows land in Train / no distress.` +
+          `Use <strong>Accept as distress</strong> on the yellow panel above to keep whole types that should be on your list. ` +
+          `Code lists auto-keep Strong Distressed Signal only (weeds, trash, blight, junk vehicles, etc.).` +
           `</p>`;
       }
     }
@@ -5231,6 +5231,17 @@
     );
   }
 
+  function focusLeftOutPanel(panel) {
+    if (!panel) return;
+    try {
+      panel.classList.remove('is-attention');
+      // reflow so animation can re-fire
+      void panel.offsetWidth;
+      panel.classList.add('is-attention');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (_) { /* ignore */ }
+  }
+
   function renderLeftOutRescue(data) {
     const panel = document.getElementById('bridge-left-out-panel');
     const listEl = document.getElementById('bridge-left-out-list');
@@ -5238,20 +5249,73 @@
     const summaryEl = document.getElementById('bridge-left-out-summary');
     if (!panel || !listEl) return;
 
-    const uploadType = (data && data.uploadType) || selectedUploadType || '';
-    // Only code-violation (and other phrase-filter types) produce FN left-outs
-    if (uploadType && uploadType !== 'code_violation') {
-      setHidden(panel, true);
-      listEl.innerHTML = '';
-      return;
+    let left = getLeftOutGroups(data);
+    // Fallback: rebuild groups from notDistressedRows if slim groups missing
+    if (
+      !left.length &&
+      data &&
+      Array.isArray(data.notDistressedRows) &&
+      data.notDistressedRows.length
+    ) {
+      try {
+        // Client-side: group by type label when reviewGroups empty
+        const byType = new Map();
+        for (const row of data.notDistressedRows) {
+          const label = String(row.violationIssueType || row.descriptionNotes || '(no type)').trim() || '(no type)';
+          const key = label.toLowerCase();
+          let g = byType.get(key);
+          if (!g) {
+            g = {
+              groupId: `client_${key.slice(0, 40)}_${byType.size}`,
+              section: 'not_distressed',
+              violationTypeLabel: label,
+              violationTypeKey: key,
+              count: 0,
+              rowIds: [],
+              sampleAddresses: []
+            };
+            byType.set(key, g);
+          }
+          g.count += 1;
+          if (row.rowId) g.rowIds.push(row.rowId);
+          const addr = String(row.streetAddress || '').trim();
+          if (addr && g.sampleAddresses.length < 3) g.sampleAddresses.push(addr);
+        }
+        left = sortGroupsByCountDesc([...byType.values()]);
+        // Attach for keep path findTrainGroupById
+        if (!data.reviewGroups) data.reviewGroups = { distressed: [], notDistressed: [] };
+        if (!Array.isArray(data.reviewGroups.notDistressed) || !data.reviewGroups.notDistressed.length) {
+          data.reviewGroups.notDistressed = left;
+        }
+        if (lastResult) lastResult.reviewGroups = data.reviewGroups;
+      } catch (_) { /* keep empty */ }
     }
 
-    const left = getLeftOutGroups(data);
-    if (!left.length) {
+    // Stats say left-outs exist but groups empty — still show the panel with guidance
+    const noDistressCount = Number(
+      (data && data.stats && (data.stats.noDistress || data.stats.notDistressed)) || 0
+    );
+
+    if (!left.length && noDistressCount <= 0) {
       setHidden(panel, true);
+      panel.classList.remove('is-attention');
       listEl.innerHTML = '';
       if (keepAllBtn) setHidden(keepAllBtn, true);
       if (summaryEl) setHidden(summaryEl, true);
+      return;
+    }
+
+    if (!left.length && noDistressCount > 0) {
+      setHidden(panel, false);
+      if (keepAllBtn) setHidden(keepAllBtn, true);
+      if (summaryEl) {
+        setHidden(summaryEl, false);
+        summaryEl.textContent =
+          `${noDistressCount.toLocaleString()} properties were not auto-kept. Open Train brain → Not marked distressed to accept types, or re-scrub.`;
+      }
+      listEl.innerHTML =
+        '<p class="bridge-left-out-lead">Type groups were not returned for this scrub. Use the <strong>Train brain</strong> tab → <strong>Not marked distressed</strong> → <strong>Distressed</strong> on any type you want kept.</p>';
+      focusLeftOutPanel(panel);
       return;
     }
 
@@ -5260,12 +5324,12 @@
     if (keepAllBtn) {
       setHidden(keepAllBtn, false);
       keepAllBtn.disabled = false;
-      keepAllBtn.textContent = `Keep all left out (${totalRows.toLocaleString()})`;
+      keepAllBtn.textContent = `Accept all left out (${totalRows.toLocaleString()})`;
     }
     if (summaryEl) {
       setHidden(summaryEl, false);
       summaryEl.textContent =
-        `${left.length.toLocaleString()} type(s) · ${totalRows.toLocaleString()} properties not auto-kept`;
+        `${left.length.toLocaleString()} type(s) · ${totalRows.toLocaleString()} properties not auto-kept — click Accept as distress to add them`;
     }
 
     listEl.innerHTML = left.map((g) => {
@@ -5284,12 +5348,15 @@
         `</div>` +
         `<div class="bridge-left-out-actions">` +
         `<button type="button" class="phuglee-btn phuglee-btn-primary" data-left-out-keep="${esc(g.groupId || '')}">` +
-        `Keep these` +
+        `Accept as distress` +
         `</button>` +
         `</div>` +
         `</div>`
       );
     }).join('');
+
+    // Make sure operator sees the accept panel (Train theater used to steal focus)
+    focusLeftOutPanel(panel);
   }
 
   /**
@@ -5529,10 +5596,12 @@
       renderTrainGroups(getReviewGroups(data), data);
       const openCount = countOpenTrainGroups(data, trainDecidedKeys);
       updateTrainMissionHeader(openCount, (data.rows || []).length);
-      // THTR-01: process success forces Train theater when open groups remain
+      // Prefer left-out accept panel over auto-opening Train theater
       if (forceTrainTheater) {
         forceTrainTheater = false;
-        setResultsMode(openCount > 0 ? 'train' : 'kept');
+        const leftN = getLeftOutGroups(data).length;
+        // Land on kept mode so Accept categories panel (above KPIs) is front-and-center
+        setResultsMode(leftN > 0 ? 'kept' : (openCount > 0 ? 'train' : 'kept'));
       } else {
         setResultsMode(resultsMode || 'kept');
       }
