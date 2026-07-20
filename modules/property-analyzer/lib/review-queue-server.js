@@ -44,6 +44,13 @@ function isExcludedFromReview(r, filter) {
   return false;
 }
 
+/**
+ * Must stay aligned with public/js/session.js matchesReviewFilter.
+ * Distressed / Well Maintained only include fully classified homes — borderline /
+ * low-confidence rows belong in Needs Review (computeNeedsReview), not Distressed.
+ * Bug: server previously counted those as Distressed pending → KPI 104 while the
+ * client open-queue skipped every row as noMatch (0 left to review).
+ */
 function matchesReviewFilter(r, filter) {
   if (!r || !filter || filter === 'all') return !!r;
   if (r.satelliteOnly) return filter === 'satellite_only';
@@ -55,6 +62,21 @@ function matchesReviewFilter(r, filter) {
     return resultCategory(r) === 'vacant_lot';
   }
   if (filter === 'blurred') return isBlurredImagery(r);
+
+  // Same gate as client isClassifiedResultFast / isClassifiedResult:
+  // needs-review rows are NOT distressed/WM bucket members.
+  if (isBlurredImagery(r)) {
+    // Blurred is its own bucket — never count as property tier here.
+    return false;
+  }
+  if (r.reviewResolved) {
+    // resolved stays out via isExcludedFromReview; still allow filter match for totals
+  } else if (r.manuallyReviewed && !r.needsReviewLater) {
+    // hard-reviewed classified
+  } else if (r.needsReviewLater || computeNeedsReview(r)) {
+    return false;
+  }
+
   const cat = String(r.category || '').toLowerCase() === 'property'
     ? 'property'
     : resultCategory(r);
