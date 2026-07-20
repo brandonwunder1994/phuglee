@@ -993,3 +993,39 @@ test('listDeals ranks funded peers by fundedAt newest first', () => {
   const ordered = contracts.listDeals().filter((d) => ids.has(d.dealId));
   assert.deepEqual(ordered.map((d) => d.dealId), [newer.dealId, older.dealId]);
 });
+
+test('POST contract documents accepts large base64 body and stores file', async () => {
+  const deal = contracts.upsertDeal({
+    address: '77 Upload Docs Rd',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'under_contract'
+  });
+  // ~3MB raw → ~4MB base64 JSON — previously rejected by 2MB readBody default
+  const raw = Buffer.alloc(3 * 1024 * 1024, 0x25);
+  const contentBase64 = raw.toString('base64');
+  const res = mockRes();
+  await api.handle(
+    adminReq(`/api/leads/admin/contracts/${deal.dealId}/documents`, 'POST', {
+      kind: 'purchase_contract',
+      name: 'big-psa.pdf',
+      mimeType: 'application/pdf',
+      contentBase64,
+      source: 'local'
+    }),
+    res,
+    `/api/leads/admin/contracts/${deal.dealId}/documents`,
+    new URL(`http://127.0.0.1/api/leads/admin/contracts/${deal.dealId}/documents`)
+  );
+  assert.equal(res.statusCode, 200, res.body);
+  const body = JSON.parse(res.body);
+  assert.equal(body.ok, true);
+  assert.ok(body.document?.id);
+  assert.ok(Array.isArray(body.deal?.documents));
+  assert.ok(body.deal.documents.some((d) => d.name === 'big-psa.pdf'));
+  const got = contracts.getDealDocument(deal.dealId, body.document.id);
+  assert.ok(got?.document?.localFile);
+  const full = contracts.resolveLocalDocumentPath(deal.dealId, got.document);
+  assert.ok(full && fs.existsSync(full));
+  assert.equal(fs.statSync(full).size, raw.length);
+});
