@@ -1019,6 +1019,74 @@ test('listDeals ranks funded peers by fundedAt newest first', () => {
   assert.deepEqual(ordered.map((d) => d.dealId), [newer.dealId, older.dealId]);
 });
 
+test('resolveDealTypeForAlert prefers dealType then SignNow / cash PSA hints', () => {
+  const notify = require('../lib/leads-platform/team-notify');
+  assert.equal(notify.resolveDealTypeForAlert({ dealType: 'subject_to' }).label, 'Subject-to contract');
+  assert.equal(notify.resolveDealTypeForAlert({ dealType: 'cash' }).label, 'Cash contract');
+  assert.equal(
+    notify.resolveDealTypeForAlert({
+      signNowPending: [{ templateKey: 'cash', documentName: 'Cash Purchase Agreement' }]
+    }).key,
+    'cash'
+  );
+  assert.equal(
+    notify.resolveDealTypeForAlert({
+      cashPsaSend: { status: 'sent', signNowDocumentId: 'abc123' }
+    }).key,
+    'cash'
+  );
+  assert.equal(
+    notify.resolveDealTypeForAlert({
+      notes: 'Subto lead — Joseph Jewell Alabama'
+    }).key,
+    'subject_to'
+  );
+});
+
+test('under-contract entry fires one-shot team alert flag', async () => {
+  const sales = contracts.upsertDeal({
+    address: '12 New Deal Alert Ln',
+    city: 'Dallas',
+    state: 'TX',
+    stage: 'contract_sent',
+    purchasePrice: 185000
+  });
+  assert.equal(sales.alertFlags?.underContract, false);
+
+  const after = contracts.upsertDeal({
+    ...sales,
+    stage: 'under_contract'
+  });
+  const result = await contracts.fireDealTransitionAlerts(sales, after);
+  assert.ok(result.fired.includes('underContract'));
+  const saved = contracts.getDeal(sales.dealId);
+  assert.equal(saved.alertFlags.underContract, true);
+
+  const again = await contracts.fireDealTransitionAlerts(saved, saved);
+  assert.equal(again.fired.includes('underContract'), false);
+});
+
+test('dealType cash vs subject_to normalizes and patches', () => {
+  const cash = contracts.upsertDeal({
+    address: '10 Cash Deal St',
+    city: 'Tulsa',
+    state: 'OK',
+    stage: 'under_contract',
+    dealType: 'cash'
+  });
+  assert.equal(cash.dealType, 'cash');
+  assert.equal(contracts.enrichDealForDisplay(cash).dealTypeLabel, 'Cash deal');
+
+  const sub = contracts.patchDeal(cash.dealId, { dealType: 'subto' });
+  assert.equal(sub.dealType, 'subject_to');
+  assert.equal(contracts.enrichDealForDisplay(sub).dealTypeLabel, 'Subject-to deal');
+
+  const cleared = contracts.patchDeal(cash.dealId, { dealType: '' });
+  assert.equal(cleared.dealType, '');
+  assert.equal(contracts.normalizeDealType('Subject To'), 'subject_to');
+  assert.equal(contracts.normalizeDealType('Cash Deal'), 'cash');
+});
+
 test('POST contract documents accepts large base64 body and stores file', async () => {
   const deal = contracts.upsertDeal({
     address: '77 Upload Docs Rd',
