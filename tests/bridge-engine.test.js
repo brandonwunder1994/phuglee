@@ -34,14 +34,15 @@ after(() => {
   } catch (_) {}
 });
 
-const indexModule = require('../lib/analyzer-import-index');
-const emptyImportIndex = async () => ({
+const vaultIndexModule = require('../lib/vault-address-index');
+const emptyVaultIndex = () => ({
   loadedAt: Date.now(),
   addresses: new Set(),
   count: 0,
-  sources: null
+  sources: { vault: 0 }
 });
-indexModule.loadImportAddressIndex = emptyImportIndex;
+const originalLoadVault = vaultIndexModule.loadVaultAddressIndex;
+vaultIndexModule.loadVaultAddressIndex = emptyVaultIndex;
 const { processUpload, processUploadBatch, mergeProcessResults, MAX_BATCH_FILES } = require('../lib/bridge-engine');
 const { parseSpreadsheet } = require('../lib/bridge-engine/parsers/spreadsheet');
 const { parseTextFile } = require('../lib/bridge-engine/parsers/text');
@@ -546,18 +547,18 @@ test('processUpload deduplicates near-duplicate rows in upload', async () => {
   assert.equal(result.stats.deduplicated, 1);
 });
 
-test('IND-04: processUpload does not hard-drop already_imported by default', async () => {
+test('IND-04: processUpload vault-skips addresses already in Vault', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
-  const { normalizeAddressKey } = indexModule;
+  const { normalizeAddressKey } = require('../lib/analyzer-import-index');
   let loadCalled = false;
 
-  indexModule.loadImportAddressIndex = async () => {
+  vaultIndexModule.loadVaultAddressIndex = () => {
     loadCalled = true;
     return {
       loadedAt: Date.now(),
       addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona, 85704')]),
       count: 1,
-      sources: { records: 1, results: 0 }
+      sources: { vault: 1 }
     };
   };
   delete require.cache[enginePath];
@@ -573,26 +574,19 @@ test('IND-04: processUpload does not hard-drop already_imported by default', asy
       username: 'admin',
       confirmedTypeHeader: 'Violation Type'
     });
-    assert.equal(result.stats.alreadyImported, 0);
-    assert.ok(result.rows.some((row) => row.streetAddress === '123 Main St'));
-    assert.equal(result.processingMeta.importIndexCount, 0);
-    assert.equal(loadCalled, false, 'loadImportAddressIndex must not run when filter is off');
+    assert.equal(loadCalled, true);
+    assert.equal(result.stats.alreadyImported, 1);
+    assert.ok(!result.rows.some((row) => row.streetAddress === '123 Main St'));
+    assert.equal(result.processingMeta.importIndexCount, 1);
   } finally {
-    indexModule.loadImportAddressIndex = emptyImportIndex;
+    vaultIndexModule.loadVaultAddressIndex = emptyVaultIndex;
     delete require.cache[enginePath];
   }
 });
 
-test('IND-04: processUpload hard-drops only when applyAlreadyImportedFilter === true', async () => {
+test('IND-04: processUpload keeps rows when vault index empty', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
-  const { normalizeAddressKey } = indexModule;
-
-  indexModule.loadImportAddressIndex = async () => ({
-    loadedAt: Date.now(),
-    addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona, 85704')]),
-    count: 1,
-    sources: { records: 1, results: 0 }
-  });
+  vaultIndexModule.loadVaultAddressIndex = emptyVaultIndex;
   delete require.cache[enginePath];
   const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
 
@@ -604,14 +598,12 @@ test('IND-04: processUpload hard-drops only when applyAlreadyImportedFilter === 
       city: CITY,
       uploadType: 'code_violation',
       username: 'admin',
-      confirmedTypeHeader: 'Violation Type',
-      applyAlreadyImportedFilter: true
+      confirmedTypeHeader: 'Violation Type'
     });
-    assert.equal(result.stats.alreadyImported, 1);
-    assert.ok(!result.rows.some((row) => row.streetAddress === '123 Main St'));
-    assert.equal(result.processingMeta.importIndexCount, 1);
+    assert.equal(result.stats.alreadyImported, 0);
+    assert.ok(result.rows.some((row) => row.streetAddress === '123 Main St'));
   } finally {
-    indexModule.loadImportAddressIndex = emptyImportIndex;
+    vaultIndexModule.loadVaultAddressIndex = emptyVaultIndex;
     delete require.cache[enginePath];
   }
 });

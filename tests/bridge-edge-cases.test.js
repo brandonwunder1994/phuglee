@@ -36,13 +36,22 @@ test('isAcceptedFile rejects legacy .doc but accepts .docx', () => {
   assert.equal(isAcceptedFile('list.docx'), true);
 });
 
+test('isAcceptedFile accepts expanded clerk image formats', () => {
+  for (const name of [
+    'packet.webp', 'scan.gif', 'page.tif', 'page.tiff', 'photo.bmp',
+    'iphone.heic', 'iphone.heif', 'list.jpg', 'list.jpeg', 'list.png'
+  ]) {
+    assert.equal(isAcceptedFile(name), true, name);
+  }
+});
+
 test('noUsableRowsMessage for all-already-imported scenario', () => {
   const msg = noUsableRowsMessage({
     normalizedDiscarded: 0,
     deduplicated: 0,
     alreadyImported: 5
   });
-  assert.match(msg, /already in your Analyze session/i);
+  assert.match(msg, /already in The Vault/i);
 });
 
 test('noUsableRowsMessage for generic empty parse', () => {
@@ -196,53 +205,18 @@ test('discards City Hall non-property rows', () => {
   assert.match(normalized.discarded[0].reason, /non-property/i);
 });
 
-test('IND-04: processUpload keeps all-imported rows by default (no onlyImported NO_USABLE_ROWS)', async () => {
+test('IND-04: processUpload vault-skips when address is in Vault (always on)', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
-  const indexModule = require('../lib/analyzer-import-index');
-  const { normalizeAddressKey } = indexModule;
-  const originalLoad = indexModule.loadImportAddressIndex;
+  const vaultModule = require('../lib/vault-address-index');
+  const { normalizeAddressKey } = require('../lib/analyzer-import-index');
+  const originalLoad = vaultModule.loadVaultAddressIndex;
 
   const csv = 'Property Address,Violation Type\n123 Main St,Overgrown weeds\n';
-  indexModule.loadImportAddressIndex = async () => ({
+  vaultModule.loadVaultAddressIndex = () => ({
     loadedAt: Date.now(),
     addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona')]),
     count: 1,
-    sources: { records: 1, results: 0 }
-  });
-  delete require.cache[enginePath];
-  const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
-
-  try {
-    const result = await processUploadFresh({
-      buffer: Buffer.from(csv),
-      filename: 'only-imported.csv',
-      city: CITY,
-      uploadType: 'code_violation',
-      username: 'admin',
-      confirmedTypeHeader: 'Violation Type'
-    });
-    assert.equal(result.stats.alreadyImported, 0);
-    assert.equal(result.processingMeta.importIndexCount, 0);
-    assert.ok(result.stats.kept >= 1 || (result.stats.noDistress >= 1),
-      'default path must not throw onlyImported NO_USABLE_ROWS from index match alone');
-  } finally {
-    indexModule.loadImportAddressIndex = originalLoad;
-    delete require.cache[enginePath];
-  }
-});
-
-test('IND-04: processUpload returns 422 details when all rows already imported (opt-in)', async () => {
-  const enginePath = require.resolve('../lib/bridge-engine');
-  const indexModule = require('../lib/analyzer-import-index');
-  const { normalizeAddressKey } = indexModule;
-  const originalLoad = indexModule.loadImportAddressIndex;
-
-  const csv = 'Property Address,Violation Type\n123 Main St,Overgrown weeds\n';
-  indexModule.loadImportAddressIndex = async () => ({
-    loadedAt: Date.now(),
-    addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona')]),
-    count: 1,
-    sources: { records: 1, results: 0 }
+    sources: { vault: 1 }
   });
   delete require.cache[enginePath];
   const { processUpload: processUploadFresh } = require('../lib/bridge-engine');
@@ -255,18 +229,17 @@ test('IND-04: processUpload returns 422 details when all rows already imported (
         city: CITY,
         uploadType: 'code_violation',
         username: 'admin',
-        confirmedTypeHeader: 'Violation Type',
-        applyAlreadyImportedFilter: true
+        confirmedTypeHeader: 'Violation Type'
       }),
       (err) => {
         assert.equal(err.code, 'NO_USABLE_ROWS');
-        assert.match(err.message, /already in your Analyze session/i);
+        assert.match(err.message, /Vault|already/i);
         assert.equal(err.details.stats.alreadyImported, 1);
         return true;
       }
     );
   } finally {
-    indexModule.loadImportAddressIndex = originalLoad;
+    vaultModule.loadVaultAddressIndex = originalLoad;
     delete require.cache[enginePath];
   }
 });

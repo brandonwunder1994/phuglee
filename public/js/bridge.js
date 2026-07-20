@@ -23,17 +23,13 @@
     'Applying filters & tags…',
     'Building kept list…'
   ];
-  /** Only when skip-already-imported is checked (import-index filter active). */
-  const LOADING_STEP_ANALYZE_CROSSCHECK = 'Cross-checking Analyze…';
+  /** Always skip Vault addresses during process — surface in loading slogans. */
+  const LOADING_STEP_VAULT_SKIP = 'Skipping addresses already in Vault…';
   function getLoadingSteps() {
     const steps = LOADING_STEPS_BASE.slice();
-    const skipOn = Boolean(skipAlreadyImportedEl && skipAlreadyImportedEl.checked);
-    if (skipOn) {
-      // Insert before final "Building filtered list…"
-      const buildIdx = steps.indexOf('Building kept list…');
-      if (buildIdx >= 0) steps.splice(buildIdx, 0, LOADING_STEP_ANALYZE_CROSSCHECK);
-      else steps.push(LOADING_STEP_ANALYZE_CROSSCHECK);
-    }
+    const buildIdx = steps.indexOf('Building kept list…');
+    if (buildIdx >= 0) steps.splice(buildIdx, 0, LOADING_STEP_VAULT_SKIP);
+    else steps.push(LOADING_STEP_VAULT_SKIP);
     return steps;
   }
   const EXPORT_COLUMNS = [
@@ -65,7 +61,6 @@
   const registryBanner = document.getElementById('bridge-registry-banner');
   const clearCityFormatBtn = document.getElementById('bridge-clear-city-format');
   const adminFormatHelp = document.getElementById('bridge-admin-format-help');
-  const skipAlreadyImportedEl = document.getElementById('bridge-skip-already-imported');
   const cityDossier = document.getElementById('bridge-city-dossier');
   const dossierEmptyEl = document.getElementById('bridge-dossier-empty');
   const dossierLastScrubBody = document.getElementById('bridge-dossier-last-scrub-body');
@@ -3257,8 +3252,9 @@
     'Clearly non-property record': 'Non-property',
     duplicate: 'Deduped',
     'Near-duplicate within upload': 'Deduped',
-    already_imported: 'Already in Analyze',
-    'Already imported in Analyze': 'Already in Analyze',
+    already_imported: 'Already in Vault',
+    'Already imported in Analyze': 'Already in Vault',
+    'Already in Vault': 'Already in Vault',
     no_distress_signal: 'No distress signal',
     'No distressed signal (generic code violation)': 'No distress signal',
     parse_error: 'Parse error',
@@ -3272,7 +3268,7 @@
     if (/blank or empty/i.test(s)) return 'Blank row';
     if (/non-property/i.test(s)) return 'Non-property';
     if (/near-duplicate|dedup/i.test(s)) return 'Deduped';
-    if (/already imported/i.test(s)) return 'Already in Analyze';
+    if (/already imported|already in vault/i.test(s)) return 'Already in Vault';
     if (/no distressed signal|no_distress/i.test(s)) return 'No distress signal';
     if (/could not parse|parse error/i.test(s)) return 'Parse error';
     return s || 'Other';
@@ -3317,7 +3313,7 @@
     const accountedLabels = new Set([
       'No distress signal',
       'Deduped',
-      'Already in Analyze',
+      'Already in Vault',
       'No address',
       'Blank row',
       'Non-property',
@@ -3335,7 +3331,7 @@
       { key: 'kept', label: 'Kept (distress signal)', count: kept, tone: 'kept' },
       { key: 'no_distress', label: 'No distress signal', count: noDistress, tone: 'kill' },
       { key: 'deduped', label: 'Duplicates in this list', count: deduped, tone: 'kill' },
-      { key: 'already', label: 'Already in Analyze', count: already, tone: 'kill' },
+      { key: 'already', label: 'Already in Vault', count: already, tone: 'kill' },
       { key: 'no_address', label: 'No usable address', count: noAddress, tone: 'kill' },
       { key: 'blank', label: 'Blank / empty row', count: blank, tone: 'kill' },
       { key: 'non_property', label: 'Non-property', count: nonProperty, tone: 'kill' },
@@ -5571,10 +5567,7 @@
     for (const file of selectedFiles) {
       form.append('file', file, file.name);
     }
-    // Opt-in only — never default-checked (IND-04)
-    if (skipAlreadyImportedEl && skipAlreadyImportedEl.checked) {
-      form.append('applyAlreadyImportedFilter', 'true');
-    }
+    // Vault skip is always applied server-side — no client flag.
     if (confirmOpts && Object.prototype.hasOwnProperty.call(confirmOpts, 'confirmedTypeHeader')) {
       const raw = confirmOpts.confirmedTypeHeader;
       form.append(

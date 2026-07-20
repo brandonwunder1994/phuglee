@@ -2,7 +2,7 @@
  * Phase 55 Independence Lock (IND-01, IND-02, IND-03)
  * Phase 60 permanent regression bar — TEST-01 (v2.0):
  *   no Analyze push on Filter write paths + process/save negatives
- *   already_imported hard-drop off by default (opt-in only)
+ *   vault address hard-skip always on (empty vault = no drops)
  *
  * Negative contracts: Filter process / save / Train write paths must never
  * re-wire Analyze push, require the deleted adapter, or invent Analyzer
@@ -191,13 +191,13 @@ before(async () => {
     'utf8'
   );
 
-  indexModule = require('../lib/analyzer-import-index');
-  originalLoadIndex = indexModule.loadImportAddressIndex;
-  indexModule.loadImportAddressIndex = async () => ({
+  indexModule = require('../lib/vault-address-index');
+  originalLoadIndex = indexModule.loadVaultAddressIndex;
+  indexModule.loadVaultAddressIndex = () => ({
     loadedAt: Date.now(),
     addresses: new Set(),
     count: 0,
-    sources: null
+    sources: { vault: 0 }
   });
 
   mockForge = http.createServer((req, res) => {
@@ -262,7 +262,7 @@ after(async () => {
   delete process.env.FORM_FORGE_PORT;
 
   if (indexModule && originalLoadIndex) {
-    indexModule.loadImportAddressIndex = originalLoadIndex;
+    indexModule.loadVaultAddressIndex = originalLoadIndex;
   }
   if (config) {
     if (listRootOriginal !== undefined) config.FILTER_LISTS_ROOT = listRootOriginal;
@@ -415,32 +415,28 @@ test('IND-01/03 / TEST-01 (v2.0): POST /api/bridge/lists save writes only under 
   assert.equal(json.importBatchId, undefined);
 });
 
-// ── TEST-01 (v2.0) already_imported hard-drop default-off (mirrors engine IND-04) ──
+// ── TEST-01 (v2.0) Vault hard-skip always on (empty vault = no drops) ──
 
 const CITY_MARANA = { id: 'arizona-marana', city: 'Marana', state: 'Arizona' };
 
-function emptyIndependenceImportIndex() {
+const vaultIndexModule = require('../lib/vault-address-index');
+const originalLoadVault = vaultIndexModule.loadVaultAddressIndex;
+
+function emptyVaultIndex() {
   return {
     loadedAt: Date.now(),
     addresses: new Set(),
     count: 0,
-    sources: null
+    sources: { vault: 0 }
   };
 }
 
-test('TEST-01 (v2.0): already_imported hard-drop off by default', async () => {
+test('TEST-01 (v2.0): vault hard-skip does nothing when vault index empty', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
-  const { normalizeAddressKey } = indexModule;
   let loadCalled = false;
-
-  indexModule.loadImportAddressIndex = async () => {
+  vaultIndexModule.loadVaultAddressIndex = () => {
     loadCalled = true;
-    return {
-      loadedAt: Date.now(),
-      addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona, 85704')]),
-      count: 1,
-      sources: { records: 1, results: 0 }
-    };
+    return emptyVaultIndex();
   };
   delete require.cache[enginePath];
   const { processUpload } = require('../lib/bridge-engine');
@@ -454,27 +450,25 @@ test('TEST-01 (v2.0): already_imported hard-drop off by default', async () => {
       uploadType: 'code_violation',
       username: 'admin',
       confirmedTypeHeader: 'Violation Type'
-      // applyAlreadyImportedFilter intentionally omitted — default must be off
     });
     assert.equal(result.stats.alreadyImported, 0);
     assert.ok(result.rows.some((row) => row.streetAddress === '123 Main St'));
-    assert.equal(result.processingMeta.importIndexCount, 0);
-    assert.equal(loadCalled, false, 'loadImportAddressIndex must not run when filter is off');
+    assert.equal(loadCalled, true, 'loadVaultAddressIndex always runs');
   } finally {
-    indexModule.loadImportAddressIndex = async () => emptyIndependenceImportIndex();
+    vaultIndexModule.loadVaultAddressIndex = originalLoadVault;
     delete require.cache[enginePath];
   }
 });
 
-test('TEST-01 (v2.0): already_imported hard-drop only when applyAlreadyImportedFilter === true', async () => {
+test('TEST-01 (v2.0): vault hard-skip drops addresses already in Vault', async () => {
   const enginePath = require.resolve('../lib/bridge-engine');
-  const { normalizeAddressKey } = indexModule;
+  const { normalizeAddressKey } = require('../lib/analyzer-import-index');
 
-  indexModule.loadImportAddressIndex = async () => ({
+  vaultIndexModule.loadVaultAddressIndex = () => ({
     loadedAt: Date.now(),
     addresses: new Set([normalizeAddressKey('123 Main St, Marana, Arizona, 85704')]),
     count: 1,
-    sources: { records: 1, results: 0 }
+    sources: { vault: 1 }
   });
   delete require.cache[enginePath];
   const { processUpload } = require('../lib/bridge-engine');
@@ -487,14 +481,13 @@ test('TEST-01 (v2.0): already_imported hard-drop only when applyAlreadyImportedF
       city: CITY_MARANA,
       uploadType: 'code_violation',
       username: 'admin',
-      confirmedTypeHeader: 'Violation Type',
-      applyAlreadyImportedFilter: true
+      confirmedTypeHeader: 'Violation Type'
     });
     assert.equal(result.stats.alreadyImported, 1);
     assert.ok(!result.rows.some((row) => row.streetAddress === '123 Main St'));
     assert.equal(result.processingMeta.importIndexCount, 1);
   } finally {
-    indexModule.loadImportAddressIndex = async () => emptyIndependenceImportIndex();
+    vaultIndexModule.loadVaultAddressIndex = originalLoadVault;
     delete require.cache[enginePath];
   }
 });
