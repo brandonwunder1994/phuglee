@@ -5210,6 +5210,227 @@
     }).join('');
   }
 
+  function setLeftOutStatus(message, kind) {
+    const el = document.getElementById('bridge-left-out-status');
+    if (!el) return;
+    if (!message) {
+      setHidden(el, true);
+      el.textContent = '';
+      el.classList.remove('is-success', 'is-error');
+      return;
+    }
+    setHidden(el, false);
+    el.textContent = message;
+    el.classList.toggle('is-success', kind === 'success');
+    el.classList.toggle('is-error', kind === 'error');
+  }
+
+  /**
+   * Undecided not-distressed groups, largest first — for the kill-report rescue list.
+   */
+  function getLeftOutGroups(data) {
+    const groups = getReviewGroups(data || lastResult);
+    return sortGroupsByCountDesc(
+      filterUndecidedTrainGroups(groups.notDistressed || [], trainDecidedKeys)
+    );
+  }
+
+  function renderLeftOutRescue(data) {
+    const panel = document.getElementById('bridge-left-out-panel');
+    const listEl = document.getElementById('bridge-left-out-list');
+    const keepAllBtn = document.getElementById('bridge-left-out-keep-all');
+    const summaryEl = document.getElementById('bridge-left-out-summary');
+    if (!panel || !listEl) return;
+
+    const uploadType = (data && data.uploadType) || selectedUploadType || '';
+    // Only code-violation (and other phrase-filter types) produce FN left-outs
+    if (uploadType && uploadType !== 'code_violation') {
+      setHidden(panel, true);
+      listEl.innerHTML = '';
+      return;
+    }
+
+    const left = getLeftOutGroups(data);
+    if (!left.length) {
+      setHidden(panel, true);
+      listEl.innerHTML = '';
+      if (keepAllBtn) setHidden(keepAllBtn, true);
+      if (summaryEl) setHidden(summaryEl, true);
+      return;
+    }
+
+    const totalRows = left.reduce((sum, g) => sum + groupRowCount(g), 0);
+    setHidden(panel, false);
+    if (keepAllBtn) {
+      setHidden(keepAllBtn, false);
+      keepAllBtn.disabled = false;
+      keepAllBtn.textContent = `Keep all left out (${totalRows.toLocaleString()})`;
+    }
+    if (summaryEl) {
+      setHidden(summaryEl, false);
+      summaryEl.textContent =
+        `${left.length.toLocaleString()} type(s) · ${totalRows.toLocaleString()} properties not auto-kept`;
+    }
+
+    listEl.innerHTML = left.map((g) => {
+      const n = groupRowCount(g);
+      const label = g.violationTypeLabel || g.shortLabel || '(no type)';
+      const samples = Array.isArray(g.sampleAddresses) ? g.sampleAddresses.slice(0, 3) : [];
+      const sampleLine = samples.length
+        ? `e.g. ${samples.join(' · ')}`
+        : 'No address samples';
+      return (
+        `<div class="bridge-left-out-row" role="listitem" data-left-out-group="${esc(g.groupId || '')}">` +
+        `<div class="bridge-left-out-row-main">` +
+        `<span class="bridge-left-out-type" title="${esc(label)}">${esc(label)}</span>` +
+        `<span class="bridge-left-out-meta">${n.toLocaleString()} propert${n === 1 ? 'y' : 'ies'}</span>` +
+        `<span class="bridge-left-out-samples">${esc(sampleLine)}</span>` +
+        `</div>` +
+        `<div class="bridge-left-out-actions">` +
+        `<button type="button" class="phuglee-btn phuglee-btn-primary" data-left-out-keep="${esc(g.groupId || '')}">` +
+        `Keep these` +
+        `</button>` +
+        `</div>` +
+        `</div>`
+      );
+    }).join('');
+  }
+
+  /**
+   * Promote one left-out (not_distressed) group onto the kept list for this scrub.
+   * Works for the current list without requiring Train brain admin theater.
+   * If admin, also persists promote to the Filter brain when possible.
+   */
+  async function keepLeftOutGroupById(groupId) {
+    if (!lastResult || !groupId) {
+      throw new Error('Process a file first.');
+    }
+    const group = findTrainGroupById(groupId, 'not_distressed');
+    if (!group) {
+      throw new Error('That type is no longer on the left-out list.');
+    }
+    const n = groupRowCount(group);
+    if (n <= 0) {
+      throw new Error('No properties in that group.');
+    }
+
+    const decidedKey = trainDecisionKey(group);
+    if (decidedKey && trainDecidedKeys.has(decidedKey)) {
+      setLeftOutStatus('That type was already kept.', '');
+      return { moved: 0 };
+    }
+
+    const draftMode = Boolean(lastResult.draftId) || Boolean(lastResult.paged);
+    const hasLocalRowIds = Array.isArray(group.rowIds) && group.rowIds.length > 0;
+
+    // Prefer full train path when admin (brain learn + draft server move)
+    if (isBridgeAdmin()) {
+      const meta = commitTrainDecisionLocally({
+        action: 'deny',
+        section: 'not_distressed',
+        group
+      });
+      if (meta) {
+        try {
+          await persistTrainBrainDecision(meta);
+        } catch (err) {
+          // Local list already updated; brain learn is best-effort
+          console.warn('left-out keep: brain persist failed', err);
+        }
+      }
+    } else if (draftMode && !hasLocalRowIds) {
+      throw new Error(
+        'Sign in as admin to keep left-out types on large lists, or re-scrub a smaller file.'
+      );
+    } else {
+      // Local promote only — this list session (no brain rules)
+      const statsBefore = lastResult.stats
+        ? {
+            kept: lastResult.stats.kept,
+            notDistressed: lastResult.stats.notDistressed,
+            noDistress: lastResult.stats.noDistress
+          }
+        : null;
+      const local = applyTrainDecisionLocally('deny', 'not_distressed', group);
+      if (decidedKey) trainDecidedKeys.add(decidedKey);
+      pushTrainUndoSnapshot({
+        kind: 'patch',
+        decidedKey,
+        action: 'deny',
+        section: 'not_distressed',
+        rowIds: hasLocalRowIds ? group.rowIds.slice() : [],
+        movedRows: local.movedRows,
+        stats: statsBefore,
+        draftMode: false,
+        draftId: null,
+        groupId: group.groupId || '',
+        movedCount: local.movedCount || 0
+      });
+      // Drop group from client review list so the rescue panel updates
+      if (lastResult.reviewGroups && Array.isArray(lastResult.reviewGroups.notDistressed)) {
+        lastResult.reviewGroups.notDistressed = lastResult.reviewGroups.notDistressed.filter(
+          (g) => String(g.groupId) !== String(groupId)
+        );
+      }
+    }
+
+    // Refresh KPIs, table, rescue panel, save panel
+    if (lastResult.stats) {
+      lastResult.stats.kept = Array.isArray(lastResult.rows)
+        ? lastResult.rows.length
+        : (Number(lastResult.stats.kept) || 0);
+      lastResult.rowsTotal = lastResult.stats.kept;
+    }
+    invalidateFilterCache();
+    if (typeof renderKpis === 'function' && lastResult.stats) {
+      renderKpis(lastResult.stats);
+    }
+    populateTagFilter(lastResult.rows || []);
+    populateCategoryFilter(lastResult.rows || []);
+    renderResultsTable();
+    if (listNameInput && !listNameInput.value) {
+      listNameInput.value = defaultNameFromResult(lastResult);
+    }
+    setHidden(document.getElementById('bridge-save-panel'), keptRowCount() <= 0);
+    renderLeftOutRescue(lastResult);
+    if (isBridgeAdmin()) {
+      renderTrainGroups(getReviewGroups(lastResult), lastResult);
+      updateTrainMissionHeader(
+        countOpenTrainGroups(lastResult, trainDecidedKeys),
+        keptRowCount()
+      );
+    }
+    return { moved: n, label: group.violationTypeLabel || 'type' };
+  }
+
+  async function keepAllLeftOut() {
+    const left = getLeftOutGroups(lastResult);
+    if (!left.length) {
+      setLeftOutStatus('Nothing left out to keep.', '');
+      return;
+    }
+    let total = 0;
+    const errors = [];
+    for (const g of left) {
+      try {
+        const r = await keepLeftOutGroupById(g.groupId);
+        total += (r && r.moved) || 0;
+      } catch (err) {
+        errors.push((err && err.message) || 'keep failed');
+      }
+    }
+    if (errors.length && !total) {
+      throw new Error(errors[0]);
+    }
+    setLeftOutStatus(
+      total
+        ? `Kept ${total.toLocaleString()} propert${total === 1 ? 'y' : 'ies'} from left-out types.` +
+          (errors.length ? ` (${errors.length} type(s) failed)` : '')
+        : 'No properties moved.',
+      total ? 'success' : 'error'
+    );
+  }
+
   function renderResults(data) {
     lastResult = data;
     if (data && data.draftId) {
@@ -5220,6 +5441,7 @@
     tableState.page = Number(data && data.page) || 1;
     invalidateFilterCache();
     hideVictoryStrip();
+    setLeftOutStatus('', '');
     const stats = data.stats || {};
     const rows = data.rows || [];
     const displayCount = Number(data.rowsTotal) || rows.length;
@@ -5328,6 +5550,9 @@
       if (n) n.innerHTML = '';
       setTrainStatus('', '');
     }
+
+    // Always show left-out rescue when FN types exist (admin + non-admin)
+    renderLeftOutRescue(data);
 
     setHidden(resultsPanel, false);
     setPipelineStep('results');
@@ -6414,6 +6639,42 @@
     onBrainRuleAction(btn).catch((e) => {
       setBrainStatus((e && e.message) || 'Could not update rule status', 'error');
     });
+  });
+
+  // Left-out rescue: Keep these / Keep all left out
+  document.getElementById('bridge-left-out-list')?.addEventListener('click', (event) => {
+    const btn = event.target.closest('[data-left-out-keep]');
+    if (!btn || btn.disabled) return;
+    const groupId = btn.getAttribute('data-left-out-keep');
+    if (!groupId) return;
+    btn.disabled = true;
+    keepLeftOutGroupById(groupId)
+      .then((r) => {
+        const n = (r && r.moved) || 0;
+        const label = (r && r.label) || 'type';
+        setLeftOutStatus(
+          n
+            ? `Kept ${n.toLocaleString()} from “${label}”. Save list when ready.`
+            : `“${label}” was already handled.`,
+          n ? 'success' : ''
+        );
+      })
+      .catch((e) => {
+        btn.disabled = false;
+        setLeftOutStatus((e && e.message) || 'Could not keep that type.', 'error');
+      });
+  });
+  document.getElementById('bridge-left-out-keep-all')?.addEventListener('click', (event) => {
+    const btn = event.currentTarget;
+    if (!btn || btn.disabled) return;
+    btn.disabled = true;
+    keepAllLeftOut()
+      .catch((e) => {
+        setLeftOutStatus((e && e.message) || 'Could not keep all left-out types.', 'error');
+      })
+      .finally(() => {
+        btn.disabled = false;
+      });
   });
 
   // Test seam for pure helpers (mirrors bridge-train.js when present)
