@@ -5011,15 +5011,62 @@ body.bridge-page.has-status-bar {
 }
 
 /* ── Left-out rescue (FN types → Keep these) ── */
-.bridge-left-out-panel {
-  margin: 1rem 0 1.15rem;
-  padding: 1rem 1.1rem 1.05rem;
-  border-radius: 12px;
-  border: 1px solid rgba(238, 183, 70, 0.35);
+.bridge-left-out-panel[hidden] {
+  display: none !important;
+}
+
+.bridge-left-out-panel:not([hidden]) {
+  display: block;
+  margin: 0 0 1.15rem;
+  padding: 1.1rem 1.15rem 1.1rem;
+  border-radius: 14px;
+  border: 2px solid rgba(238, 183, 70, 0.55);
   background:
-    linear-gradient(180deg, rgba(238, 183, 70, 0.08) 0%, transparent 40%),
-    rgba(18, 16, 12, 0.96);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    linear-gradient(135deg, rgba(238, 183, 70, 0.14) 0%, transparent 45%),
+    rgba(22, 18, 10, 0.97);
+  box-shadow:
+    0 0 0 1px rgba(238, 183, 70, 0.12) inset,
+    0 14px 36px rgba(0, 0, 0, 0.45);
+}
+
+.bridge-left-out-panel.is-attention:not([hidden]) {
+  animation: bridge-left-out-pulse 1.6s ease-out 1;
+}
+
+@keyframes bridge-left-out-pulse {
+  0% {
+    box-shadow:
+      0 0 0 1px rgba(238, 183, 70, 0.12) inset,
+      0 0 0 0 rgba(238, 183, 70, 0.55),
+      0 14px 36px rgba(0, 0, 0, 0.45);
+  }
+  40% {
+    box-shadow:
+      0 0 0 1px rgba(238, 183, 70, 0.2) inset,
+      0 0 0 6px rgba(238, 183, 70, 0.28),
+      0 14px 36px rgba(0, 0, 0, 0.45);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(238, 183, 70, 0.12) inset,
+      0 0 0 0 rgba(238, 183, 70, 0),
+      0 14px 36px rgba(0, 0, 0, 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bridge-left-out-panel.is-attention:not([hidden]) {
+    animation: none;
+  }
+}
+
+.bridge-left-out-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-gold, #eeb746);
 }
 
 .bridge-left-out-head {
@@ -5027,9 +5074,9 @@ body.bridge-page.has-status-bar {
 }
 
 .bridge-left-out-panel h3 {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.4rem;
   font-family: var(--font-body, Outfit, system-ui, sans-serif);
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--phuglee-cream, #f5f2e4);
 }
