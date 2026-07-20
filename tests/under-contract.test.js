@@ -253,6 +253,31 @@ test('ensureDealContractParcel seeds APN and legal from mock REAPI', async () =>
   assert.match(savedDeal.aocSend.legalDescription, /LOT 9/);
 });
 
+test('normalizeAccessType accepts Seller Will Open', () => {
+  assert.equal(contracts.normalizeAccessType('seller_will_open'), 'seller_will_open');
+  assert.equal(contracts.normalizeAccessType('Seller Will Open'), 'seller_will_open');
+  assert.equal(contracts.normalizeAccessType('seller opens'), 'seller_will_open');
+  assert.equal(contracts.accessLabel('seller_will_open'), 'Seller Will Open');
+  assert.equal(
+    contracts.formatAccessDisplay('seller_will_open', 'call first'),
+    'Seller Will Open'
+  );
+
+  const deal = contracts.upsertDeal({
+    address: '88 Seller Open Way',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'under_contract',
+    accessType: 'seller_will_open',
+    accessDetail: 'text day-of'
+  });
+  assert.equal(deal.accessType, 'seller_will_open');
+  const profile = contracts.getDealProfile(deal.dealId);
+  assert.equal(profile.accessType, 'seller_will_open');
+  assert.equal(profile.accessLabel, 'Seller Will Open');
+  assert.equal(profile.accessDisplay, 'Seller Will Open');
+});
+
 test('ensureDealContractParcel skips REAPI when complete', async () => {
   const lead = store.upsertLead({
     address: '301 Parcel Ln',
