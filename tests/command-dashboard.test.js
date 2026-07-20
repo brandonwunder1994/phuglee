@@ -29,6 +29,15 @@ test('command.html is pipeline momentum KPIs + map', () => {
   assert.ok(html.includes('data-admin-only'));
 });
 
+test('command.html has no Pipeline header / snapshot lead copy', () => {
+  const html = read('command.html');
+  assert.ok(!html.includes('command-snapshot-head'));
+  assert.ok(!html.includes('command-snapshot-title'));
+  assert.ok(!html.includes('command-snapshot-lead'));
+  assert.ok(!html.includes('>Pipeline</'));
+  assert.ok(!html.includes('Under contract · projected · funded'));
+});
+
 test('command.html has no mission board / pulse / checklist / tools farm', () => {
   const html = read('command.html');
   assert.ok(!html.includes('command-mission-title'));
@@ -54,15 +63,19 @@ test('command-center.js loads contract totals for pipeline KPIs', () => {
   assert.ok(!js.includes('initFirstRunChecklist'));
 });
 
-test('command-center.css targets snapshot + pipeline metric classes', () => {
+test('command-center.css is centered no-scroll snapshot layout', () => {
   const css = read('css/command-center.css');
-  assert.ok(css.includes('command-snapshot') || css.includes('command-metrics'));
+  assert.ok(css.includes('command-metrics'));
   assert.ok(css.includes('command-metric'));
   assert.ok(css.includes('command-metrics--pipeline') || css.includes('command-metric-value'));
   assert.ok(css.includes('command-metric-value--money'));
   assert.ok(css.includes('--phuglee-success') || css.includes('#3dd68c'));
   assert.ok(css.includes('command-coverage-map'));
   assert.ok(css.includes('command-map-svg'));
+  assert.ok(css.includes('align-items: center'));
+  assert.ok(css.includes('justify-content: center'));
+  assert.ok(css.includes('100dvh') || css.includes('min-height'));
+  assert.ok(css.includes('#distress-os-footer-mount'));
   assert.ok(!css.includes('command-pulse-node'));
   assert.ok(!css.includes('command-mission-focus'));
 });
@@ -83,10 +96,10 @@ test('home-coverage.js still renders command map host (not city/state KPIs)', ()
   assert.ok(!js.includes("['command-state-count'"));
 });
 
-test('command cache-bust after pipeline KPI swap', () => {
+test('command cache-bust after snapshot layout', () => {
   const html = read('command.html');
   const jsV = html.match(/command-center\.js\?v=(\d+)/);
   const cssV = html.match(/command-center\.css\?v=(\d+)/);
   assert.ok(jsV && Number(jsV[1]) >= 7, 'command-center.js cache');
-  assert.ok(cssV && Number(cssV[1]) >= 12, 'command-center.css cache');
+  assert.ok(cssV && Number(cssV[1]) >= 13, 'command-center.css cache');
 });
