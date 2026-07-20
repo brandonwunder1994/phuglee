@@ -868,6 +868,27 @@ body.analyze-phuglee .main-workspace.visible {
   display: flex;
 }
 
+/* Large page title — Filter parity */
+.analyze-page-heading {
+  text-align: center;
+  width: 100%;
+  margin: 0 auto 1.25rem;
+  max-width: 960px;
+}
+
+.analyze-page-heading-title {
+  margin: 0;
+  font-family: var(--font-display, "Anton", sans-serif);
+  font-size: clamp(2.75rem, 9vw, 4.5rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--phuglee-cream, #f5f2e4);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-wrap: balance;
+}
+
 /* ── Hero zone — centered editorial (Filter parity) ── */
 .analyze-hero-zone {
   max-width: 920px;

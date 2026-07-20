@@ -58,9 +58,32 @@ body.analyzer-embedded .app-shell .app {
   box-sizing: border-box;
 }
 
-/* Hero title redundant with shell — keep pipeline + panels */
+/* Hero step chrome redundant with shell — keep pipeline + panels */
 body.analyzer-embedded .analyze-page-hero {
   display: none;
+}
+
+/* Large REVIEW title (Filter parity) */
+body.analyzer-embedded .analyze-page-heading,
+body.has-shell-chrome.analyzer-embedded .analyze-page-heading {
+  display: block;
+  text-align: center;
+  width: 100%;
+  margin: 0 0 1.25rem;
+}
+
+body.analyzer-embedded .analyze-page-heading-title,
+body.has-shell-chrome.analyzer-embedded .analyze-page-heading-title {
+  margin: 0;
+  font-family: var(--font-display, "Anton", sans-serif);
+  font-size: clamp(3rem, 8vw, 4.75rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: var(--phuglee-cream, #f5f2e4);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-wrap: balance;
 }
 
 body.analyzer-embedded .analyze-hero-zone {
