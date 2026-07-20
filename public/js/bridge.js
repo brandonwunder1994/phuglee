@@ -1685,10 +1685,17 @@
         const stats = data.stats || {};
         const parts = [];
         const reasons = stats.discardReasons || {};
-        // Prefer server message when it already includes a breakdown.
+        // Prefer server message when it already includes a breakdown —
+        // but ALWAYS still append OCR truncation when meta says so.
         const serverMsg = String(data.error || '');
+        const ocrMeta =
+          data.processingMeta ||
+          (data.details && data.details.processingMeta) ||
+          null;
+        const ocrWarn = buildOcrTruncationWarning(ocrMeta);
+        const ocrSuffix = ocrWarn ? ' ' + ocrWarn : '';
         if (/Breakdown:/i.test(serverMsg)) {
-          throw new Error(serverMsg);
+          throw new Error(serverMsg + ocrSuffix);
         }
         for (const [reason, count] of Object.entries(reasons)) {
           if (Number(count) > 0) parts.push(`${count} ${reason}`);
@@ -1699,8 +1706,6 @@
           if (stats.deduplicated) parts.push(`${stats.deduplicated} duplicates`);
         }
         const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
-        const ocrWarn = buildOcrTruncationWarning(data.processingMeta || null);
-        const ocrSuffix = ocrWarn ? ' ' + ocrWarn : '';
         throw new Error((data.error || 'No usable addresses found in this file.') + detail + ocrSuffix);
       }
       if (data.code === 'FORMAT_MISMATCH') {

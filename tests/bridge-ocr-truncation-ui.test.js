@@ -143,3 +143,38 @@ test('OCR-UI-09: bridge.js cache bust version present in bridge.html', () => {
   const html = fs.readFileSync(BRIDGE_HTML, 'utf8');
   assert.match(html, /bridge\.js\?v=\d+/);
 });
+
+test('OCR-UI-10: Breakdown early path still appends OCR suffix (no skip)', () => {
+  const js = fs.readFileSync(BRIDGE_JS, 'utf8');
+  const idx = js.indexOf("data.code === 'NO_USABLE_ROWS'");
+  assert.ok(idx >= 0);
+  const slice = js.slice(idx, idx + 1600);
+  // ocrSuffix must be computed BEFORE Breakdown short-circuit
+  const ocrIdx = slice.indexOf('buildOcrTruncationWarning');
+  const breakdownIdx = slice.indexOf('/Breakdown:/');
+  assert.ok(ocrIdx >= 0, 'must call buildOcrTruncationWarning');
+  assert.ok(breakdownIdx >= 0, 'Breakdown short-circuit still present');
+  assert.ok(ocrIdx < breakdownIdx, 'OCR meta must be read before Breakdown early throw');
+  assert.match(slice, /throw new Error\(serverMsg \+ ocrSuffix\)/,
+    'Breakdown path must append ocrSuffix, not throw bare serverMsg');
+});
+
+test('OCR-UI-11: NO_USABLE reads processingMeta from top-level or details', () => {
+  const js = fs.readFileSync(BRIDGE_JS, 'utf8');
+  const idx = js.indexOf("data.code === 'NO_USABLE_ROWS'");
+  const slice = js.slice(idx, idx + 1200);
+  assert.match(slice, /data\.processingMeta/, 'top-level processingMeta from 422 body');
+  assert.match(slice, /details.*processingMeta|processingMeta.*details/,
+    'also accept nested details.processingMeta');
+});
+
+test('OCR-UI-12: API 422 NO_USABLE_ROWS includes processingMeta field', () => {
+  const api = fs.readFileSync(path.join(ROOT, 'lib', 'bridge-api.js'), 'utf8');
+  const idx = api.indexOf("err.code === 'NO_USABLE_ROWS'");
+  assert.ok(idx >= 0, 'NO_USABLE handler in bridge-api');
+  const slice = api.slice(idx, idx + 900);
+  assert.match(slice, /sendJson\(res, 422/, 'must 422');
+  assert.match(slice, /processingMeta/, '422 body must include processingMeta');
+  assert.match(slice, /err\.details\?\.processingMeta/,
+    'must read engine-attached details.processingMeta');
+});

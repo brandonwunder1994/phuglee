@@ -341,3 +341,39 @@ test('OCR-META-07: processUpload text-path-win parse + truncated flags → meta.
     assert.deepEqual(meta.rotatedBy, [90]);
   });
 });
+
+test('OCR-META-08: processUpload NO_USABLE_ROWS attaches OCR honesty processingMeta', async () => {
+  // Truncated OCR parse with rows that all fail address validation → zero usable
+  await withMockedParsePdf(
+    truncatedParseResult({
+      headers: ['Notes', 'Status'],
+      rows: [
+        { Notes: 'no address here', Status: 'open' },
+        { Notes: 'still nothing', Status: 'closed' }
+      ]
+    }),
+    async ({ processUpload }) => {
+      let caught = null;
+      try {
+        await processUpload({
+          buffer: Buffer.from('%PDF-1.4 zero-usable-truncated'),
+          filename: 'empty-cap.pdf',
+          city: CITY,
+          uploadType: 'code_violation',
+          username: 'admin',
+          confirmedTypeHeader: null
+        });
+      } catch (err) {
+        caught = err;
+      }
+      assert.ok(caught, 'must throw');
+      assert.equal(caught.code, 'NO_USABLE_ROWS');
+      const pmeta = caught.details && caught.details.processingMeta;
+      assert.ok(pmeta, 'details.processingMeta required on NO_USABLE after parse');
+      assert.equal(pmeta.ocrTruncated, true, 'OCR truncation must surface on zero-kept');
+      assert.equal(pmeta.ocrPagesProcessed, 12);
+      assert.equal(pmeta.ocrPagesTotal, 40);
+      assert.equal(pmeta.ocrPageCap, 12);
+    }
+  );
+});
