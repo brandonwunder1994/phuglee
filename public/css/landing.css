@@ -355,8 +355,9 @@ body.logo-page {
   z-index: 0;
   background:
     url('/images/home-hero-distressed.jpg') center 42% / cover no-repeat;
-  opacity: 0.48;
-  filter: grayscale(28%) contrast(1.14) brightness(0.48) saturate(0.68) sepia(0.12);
+  /* Quieter premium: less photo shout under the mark */
+  opacity: 0.36;
+  filter: grayscale(28%) contrast(1.12) brightness(0.46) saturate(0.65) sepia(0.1);
 }
 
 .logo-page-pattern {
@@ -369,7 +370,7 @@ body.logo-page {
 /* Film grain — above vignette so it stays visible on the dark photo */
 .logo-page-photo-grain {
   z-index: 5;
-  opacity: 0.2;
+  opacity: 0.12;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -10'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 180px 180px;
@@ -378,7 +379,7 @@ body.logo-page {
 /* Scratches, dust specks, scuff marks — photo layer only */
 .logo-page-photo-wear {
   z-index: 6;
-  opacity: 0.28;
+  opacity: 0.16;
   background-image: url('/images/photo-wear.png');
   background-size: cover;
   background-position: center;

@@ -2377,3 +2377,160 @@ body.p3d-modal-open {
     transition: none;
   }
 }
+/* ── Distill pass (premium quiet craft) ── */
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Quiet pipeline: text steps only — no triple autoplay theater */
+.home-chapter--pipeline-quiet {
+  max-width: 52rem;
+  margin-inline: auto;
+  padding-block: clamp(2rem, 5vw, 3.25rem);
+}
+
+.home-chapter--pipeline-quiet .home-pipeline-head {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.home-pipeline-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem 1.25rem;
+  counter-reset: pipe-step;
+}
+
+.home-pipeline-step {
+  position: relative;
+  margin: 0;
+  padding: 1rem 1.05rem 1.1rem;
+  border: 1px solid rgba(174, 163, 143, 0.14);
+  border-radius: var(--radius-md, 8px);
+  background: rgba(18, 16, 13, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.home-pipeline-step-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+.home-pipeline-step-copy {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--phuglee-taupe-mid);
+}
+
+/* Thesis: single column, short measure — no fake Live feed */
+.home-chapter--thesis-quiet {
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-block: clamp(1.75rem, 4vw, 2.75rem);
+}
+
+.home-thesis-copy--solo {
+  max-width: 40rem;
+}
+
+.home-thesis-copy--solo .home-chapter-title {
+  margin-bottom: 0.85rem;
+}
+
+.home-thesis-copy--solo .home-chapter-lead {
+  margin: 0;
+  max-width: 62ch;
+  font-size: clamp(0.95rem, 1.6vw, 1.08rem);
+  line-height: 1.65;
+  color: #c8c0b4;
+}
+
+/* Territory: chips + summary + CTA only */
+.home-chapter--territory-distilled {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+  padding-right: 0;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-block: clamp(1.75rem, 4vw, 2.75rem);
+  text-align: center;
+}
+
+.home-territory-head--distilled {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  margin-bottom: 1.5rem;
+}
+
+.home-territory-head--distilled .home-territory-head-copy {
+  text-align: center;
+}
+
+.home-territory-head--distilled .home-territory-summary {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--phuglee-taupe-mid);
+  max-width: 32rem;
+}
+
+.home-territory-head--distilled .home-territory-hud {
+  justify-content: center;
+}
+
+.home-chapter--territory-distilled .home-territory-close {
+  margin-top: 0.25rem;
+}
+
+/* Static carousel placeholder before JS hydrate */
+.p3d-card--static {
+  width: min(320px, 100%);
+  flex: 0 0 auto;
+  opacity: 1;
+}
+
+.p3d-carousel--eager .p3d-track:has(.p3d-card--static) {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  transform: none !important;
+}
+
+@media (max-width: 768px) {
+  .home-pipeline-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .home-chapter--pipeline-quiet,
+  .home-chapter--thesis-quiet,
+  .home-chapter--territory-distilled {
+    padding-inline: 0.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .p3d-carousel--eager .p3d-track {
+    animation: none !important;
+  }
+}

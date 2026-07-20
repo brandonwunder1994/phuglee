@@ -198,6 +198,13 @@
     root.setAttribute('data-p3d-ready', '1');
     root.classList.add('p3d-carousel--flat');
 
+    // Clear static SSR placeholder so we don't double-render the first card
+    var staticCards = track.querySelectorAll('[data-p3d-static], .p3d-card--static');
+    staticCards.forEach(function (el) {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    });
+    track.innerHTML = '';
+
     var count = PROPERTIES.length;
     // Original set + one clone set for seamless infinite loop
     var cards = [];
@@ -342,6 +349,17 @@
       initCarousel(root);
     }
 
+    // Eager roots (homepage edge proof) hydrate immediately so the panel is never empty black
+    var lazy = [];
+    roots.forEach(function (root) {
+      if (root.hasAttribute('data-p3d-eager') || root.classList.contains('p3d-carousel--eager')) {
+        start(root);
+      } else {
+        lazy.push(root);
+      }
+    });
+    if (!lazy.length) return;
+
     // Lazy: only build carousel DOM/animation when near viewport
     if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (entries, obs) {
@@ -351,11 +369,11 @@
           obs.unobserve(entry.target);
         });
       }, { rootMargin: '200px 0px', threshold: 0.01 });
-      roots.forEach(function (root) { io.observe(root); });
+      lazy.forEach(function (root) { io.observe(root); });
       return;
     }
 
-    roots.forEach(start);
+    lazy.forEach(start);
   }
 
   if (document.readyState === 'loading') {

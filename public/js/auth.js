@@ -1081,7 +1081,7 @@
   }
 
   function updateHomePrimaryCta(loggedIn) {
-    var labels = loggedIn ? 'Open Dashboard' : 'Enter the Platform';
+    var labels = loggedIn ? 'Open Dashboard' : 'Open the Desk';
     ['btn-heat', 'btn-heat-footer'].forEach(function (id) {
       var btn = document.getElementById(id);
       if (btn) btn.textContent = labels;
