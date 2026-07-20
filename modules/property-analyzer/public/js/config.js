@@ -60,6 +60,16 @@ R.LOCAL_APP_HOST = 'distressos.local';
 R.LOCAL_APP_URL = 'http://distressos.local:3456';
 R.MODULE_PREFIX = (typeof window.__DISTRESS_OS_MODULE_PREFIX__ === 'string' && window.__DISTRESS_OS_MODULE_PREFIX__) || '';
 R.IS_EMBEDDED = !!R.MODULE_PREFIX;
+// Shell-owned APIs must stay at site root when Analyze is embedded under /analyzer.
+// Prefixing them to /analyzer/api/leads/* 404s Vault publish and meta — Keep never ships.
+R.SHELL_API_PREFIXES = ['/api/leads', '/api/health', '/api/auth', '/api/me'];
+R.isShellApiUrl = function isShellApiUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  const pathOnly = (url.startsWith('/') ? url : `/${url}`).split('?')[0];
+  return R.SHELL_API_PREFIXES.some(
+    (p) => pathOnly === p || pathOnly.startsWith(`${p}/`)
+  );
+};
 R.USE_PROXY = location.hostname === 'localhost'
   || location.hostname === '127.0.0.1'
   || location.hostname === R.LOCAL_APP_HOST
@@ -73,6 +83,8 @@ R.getAuthToken = function getAuthToken() {
 
 R.resolveModuleApiUrl = function resolveModuleApiUrl(url) {
   if (typeof url !== 'string' || !url.startsWith('/')) return url;
+  // Never rewrite shell Vault/auth/health under the analyzer module prefix.
+  if (typeof R.isShellApiUrl === 'function' && R.isShellApiUrl(url)) return url;
   const prefix = R.MODULE_PREFIX;
   if (!prefix || url.startsWith(prefix + '/')) return url;
   if (url.startsWith('/api/') || url === '/api') return `${prefix}${url}`;

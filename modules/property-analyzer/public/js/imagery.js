@@ -1650,6 +1650,11 @@ R.closeReviewMode = async function closeReviewMode() {
   }
   flushLearnedBrainSave();
   const saveResult = await flushReviewProgress();
+  // Flush any pending Vault publishes now that Review UI is exiting (no Street View contention).
+  try {
+    if (typeof resumeVaultPublishQueue === 'function') resumeVaultPublishQueue();
+    else if (typeof drainVaultPublishQueue === 'function') drainVaultPublishQueue();
+  } catch (_) {}
   state.reviewMode = false;
   state._reviewOpening = false;
   state._reviewPauseHydrate = false;

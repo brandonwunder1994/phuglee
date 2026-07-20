@@ -1752,8 +1752,28 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review', opts =
   const softExisting = existing?.manuallyReviewedVia === 'review_session'
     || existing?.manuallyReviewedVia === 'review_skip'
     || existing?.manuallyReviewedVia === 'review_missing';
-  if (!existing?.manuallyReviewed || softExisting) {
+  // Always re-stamp on real Keep/Change (and other operator decisions) so a prior
+  // soft/defer stamp cannot block manuallyReviewedVia / needsReviewLater cleanup.
+  const realDecision = via === 'review_keep'
+    || via === 'review_change'
+    || via === 'review_land'
+    || via === 'category_change'
+    || via === 'tier_edit'
+    || via === 'review_satellite_only';
+  if (!existing?.manuallyReviewed || softExisting || realDecision) {
     touchManuallyReviewedByKey(key, via);
+    if (idx != null && idx >= 0 && realDecision) {
+      const cur = state.results[idx];
+      if (cur && (cur.needsReviewLater || via === 'review_keep' || via === 'review_change')) {
+        state.results[idx] = {
+          ...cur,
+          needsReviewLater: via === 'review_defer' ? true : false,
+          reviewResolved: via === 'review_keep' || via === 'review_change' || via === 'review_land' || via === 'category_change'
+            ? true
+            : !!cur.reviewResolved
+        };
+      }
+    }
   }
   sessionDirty = true;
 
@@ -1829,59 +1849,23 @@ R.markReviewedKey = function markReviewedKey(filter, key, via = 'review', opts =
 /** Push a Keep/Change decision into The Vault catalog (admin). */
 R._vaultPublishQueue = [];
 R._vaultPublishBusy = false;
+R._vaultPublishInFlight = 0;
+R._VAULT_PUBLISH_CONCURRENCY = 2;
+R._VAULT_PUBLISH_STORAGE_KEY = 'phuglee_vault_publish_pending_v1';
+R._VAULT_PUBLISH_SOFT_VIAS = new Set(['review_session', 'review_skip', 'review_missing', 'review_defer', 'review_blurred']);
 
-R.enqueueVaultPublish = function enqueueVaultPublish(result, via = 'review_keep') {
-  if (!result) return;
-  R._vaultPublishQueue.push({ result, via });
-  // Cap queue so rapid Keep doesn't pile hundreds of network jobs ahead of imagery.
-  if (R._vaultPublishQueue.length > 40) {
-    R._vaultPublishQueue.splice(0, R._vaultPublishQueue.length - 40);
-  }
-  drainVaultPublishQueue();
-};
-
-R.drainVaultPublishQueue = function drainVaultPublishQueue() {
-  if (R._vaultPublishBusy) return;
-  // Hard-pause Vault POSTs while Review Street View is loading or opening.
-  if (state.reviewMode || state._reviewOpening) {
-    const imgBusy = !!(R.reviewImages?.classList?.contains('loading'));
-    const preloadBusy = (R._reviewPreloadInFlight || 0) > 0 || (R._reviewPreloadWait?.length || 0) > 0;
-    if (imgBusy || preloadBusy || state._reviewOpening) {
-      setTimeout(() => drainVaultPublishQueue(), 280);
-      return;
-    }
-  }
-  const next = R._vaultPublishQueue.shift();
-  if (!next) return;
-  R._vaultPublishBusy = true;
-  const done = () => {
-    R._vaultPublishBusy = false;
-    // Yield to Street View while Review imagery is still loading or operator is mid-burst.
-    let delay = 0;
-    if (state.reviewMode) {
-      const imgBusy = !!(R.reviewImages?.classList?.contains('loading'));
-      delay = imgBusy ? 280 : 140;
-    }
-    setTimeout(() => drainVaultPublishQueue(), delay);
-  };
-  try {
-    const p = publishReviewedLeadToVault(next.result, next.via);
-    if (p && typeof p.then === 'function') p.finally(done);
-    else done();
-  } catch (err) {
-    console.warn('[Vault] enqueue publish failed', err);
-    done();
-  }
-};
-
-R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via = 'review_keep') {
-  if (!result) return Promise.resolve({ ok: false, skipped: true });
-  const tier = String(result.leadTier || '').toLowerCase().replace(/-/g, '_');
+R._vaultPublishLeanFromResult = function vaultPublishLeanFromResult(result, via = 'review_keep') {
+  if (!result) return null;
+  const soft = R._VAULT_PUBLISH_SOFT_VIAS.has(String(via || ''));
+  if (soft) return null;
+  let tier = String(result.leadTier || '').toLowerCase().replace(/-/g, '_');
+  const cat = String(result.category || '').toLowerCase().replace(/-/g, '_');
   if (!['distressed', 'well_maintained', 'vacant'].includes(tier)) {
-    return Promise.resolve({ ok: false, skipped: true });
+    if (cat === 'vacant_lot' || cat === 'vacant' || cat === 'land') tier = 'vacant';
+    else if (cat === 'blurred' || cat === 'unavailable') return null;
+    else return null;
   }
-  // Lean payload — never stringify nested profile / imagery blobs on the Keep hot path.
-  const lean = {
+  return {
     email: result.email,
     phone: result.phone,
     address: result.address,
@@ -1890,7 +1874,7 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
     state: result.state,
     postal: result.postal,
     zip: result.zip,
-    leadTier: result.leadTier,
+    leadTier: tier === 'vacant' ? (result.leadTier || 'vacant') : (result.leadTier || tier),
     category: result.category,
     score: result.score,
     firstName: result.firstName,
@@ -1898,19 +1882,220 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
     ownerName: result.ownerName,
     owner: result.owner,
     manuallyReviewed: true,
-    manuallyReviewedVia: via,
+    manuallyReviewedVia: via || 'review_keep',
     manuallyReviewedAt: result.manuallyReviewedAt || Date.now(),
     reviewResolved: true,
     needsReviewLater: false,
     reason: result.reason,
     indicators: Array.isArray(result.indicators) ? result.indicators.slice(0, 24) : []
   };
+};
+
+R._vaultPublishKey = function vaultPublishKey(lean) {
+  if (!lean) return '';
+  const street = String(lean.street || lean.address || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  const city = String(lean.city || '').toLowerCase().trim();
+  const st = String(lean.state || '').toUpperCase().slice(0, 2);
+  return `${street}|${city}|${st}`;
+};
+
+R._persistVaultPublishQueue = function persistVaultPublishQueue() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const payload = (R._vaultPublishQueue || []).map((item) => ({
+      lean: item.lean || item.result,
+      via: item.via || 'review_keep',
+      enqueuedAt: item.enqueuedAt || Date.now()
+    })).filter((x) => x.lean);
+    // Cap durable store only (never drop in-memory mid-burst).
+    localStorage.setItem(R._VAULT_PUBLISH_STORAGE_KEY, JSON.stringify(payload.slice(-2500)));
+  } catch (err) {
+    console.warn('[Vault] persist queue failed', err?.message || err);
+  }
+};
+
+R._restoreVaultPublishQueue = function restoreVaultPublishQueue() {
+  if (typeof localStorage === 'undefined') return 0;
+  let raw;
+  try {
+    raw = localStorage.getItem(R._VAULT_PUBLISH_STORAGE_KEY);
+  } catch (_) {
+    return 0;
+  }
+  if (!raw) return 0;
+  let list;
+  try {
+    list = JSON.parse(raw);
+  } catch (_) {
+    return 0;
+  }
+  if (!Array.isArray(list) || !list.length) return 0;
+  const seen = new Set((R._vaultPublishQueue || []).map((x) => R._vaultPublishKey(x.lean || x.result)));
+  let added = 0;
+  for (const item of list) {
+    const lean = item?.lean || item?.result;
+    if (!lean) continue;
+    const k = R._vaultPublishKey(lean);
+    if (!k || seen.has(k)) continue;
+    seen.add(k);
+    R._vaultPublishQueue.push({
+      lean,
+      via: item.via || lean.manuallyReviewedVia || 'review_keep',
+      enqueuedAt: item.enqueuedAt || Date.now()
+    });
+    added += 1;
+  }
+  return added;
+};
+
+R.enqueueVaultPublish = function enqueueVaultPublish(result, via = 'review_keep') {
+  if (!result) return;
+  const soft = R._VAULT_PUBLISH_SOFT_VIAS.has(String(via || ''));
+  if (soft) return;
+  const lean = R._vaultPublishLeanFromResult(result, via);
+  if (!lean) return;
+  const key = R._vaultPublishKey(lean);
+  // Dedupe same address already waiting — keep newest decision.
+  if (key && Array.isArray(R._vaultPublishQueue)) {
+    R._vaultPublishQueue = R._vaultPublishQueue.filter((x) => R._vaultPublishKey(x.lean || x.result) !== key);
+  }
+  R._vaultPublishQueue.push({ lean, via, enqueuedAt: Date.now() });
+  // NEVER drop Keep/Change publishes. Rapid review used to splice to 40 and silently
+  // discard vault ship jobs — reviews stamped in session but never reached The Vault.
+  R._persistVaultPublishQueue();
+  drainVaultPublishQueue();
+};
+
+R.drainVaultPublishQueue = function drainVaultPublishQueue() {
+  const max = R._VAULT_PUBLISH_CONCURRENCY || 2;
+  if ((R._vaultPublishInFlight || 0) >= max) return;
+  // Soft-yield to Street View while Review imagery is loading (do not hard-pause forever).
+  if (state.reviewMode || state._reviewOpening) {
+    const imgBusy = !!(R.reviewImages?.classList?.contains('loading'));
+    const preloadBusy = (R._reviewPreloadInFlight || 0) > 0 || (R._reviewPreloadWait?.length || 0) > 0;
+    if ((imgBusy || preloadBusy || state._reviewOpening) && (R._vaultPublishInFlight || 0) > 0) {
+      setTimeout(() => drainVaultPublishQueue(), 320);
+      return;
+    }
+  }
+  while ((R._vaultPublishInFlight || 0) < max && R._vaultPublishQueue.length) {
+    const next = R._vaultPublishQueue.shift();
+    if (!next) break;
+    R._vaultPublishInFlight = (R._vaultPublishInFlight || 0) + 1;
+    R._vaultPublishBusy = true;
+    const done = (ok) => {
+      R._vaultPublishInFlight = Math.max(0, (R._vaultPublishInFlight || 1) - 1);
+      R._vaultPublishBusy = (R._vaultPublishInFlight || 0) > 0;
+      if (!ok && next) {
+        // Re-queue failed publishes at the end (durable retry).
+        next.retries = (next.retries || 0) + 1;
+        if (next.retries <= 8) R._vaultPublishQueue.push(next);
+      }
+      R._persistVaultPublishQueue();
+      let delay = 40;
+      if (state.reviewMode) {
+        const imgBusy = !!(R.reviewImages?.classList?.contains('loading'));
+        delay = imgBusy ? 220 : 80;
+      }
+      setTimeout(() => drainVaultPublishQueue(), delay);
+    };
+    try {
+      const p = publishReviewedLeadToVault(next.lean || next.result, next.via);
+      if (p && typeof p.then === 'function') {
+        p.then((out) => done(!!(out && out.ok !== false && !out.skipped && !out.error)))
+          .catch(() => done(false));
+      } else {
+        done(true);
+      }
+    } catch (err) {
+      console.warn('[Vault] enqueue publish failed', err);
+      done(false);
+    }
+  }
+};
+
+R.resumeVaultPublishQueue = function resumeVaultPublishQueue() {
+  const restored = R._restoreVaultPublishQueue() || 0;
+  if (restored) console.info(`[Vault] restored ${restored} pending publish(es)`);
+  drainVaultPublishQueue();
+  return restored;
+};
+
+/** Re-enqueue human Keep/Change results that never reached Vault (session recovery). */
+R.backfillVaultPublishFromReviewedResults = function backfillVaultPublishFromReviewedResults(opts = {}) {
+  const soft = R._VAULT_PUBLISH_SOFT_VIAS;
+  const limit = Number(opts.limit) > 0 ? Number(opts.limit) : 5000;
+  let enqueued = 0;
+  for (const r of state.results || []) {
+    if (enqueued >= limit) break;
+    if (!r?.manuallyReviewed && !r?.reviewResolved) continue;
+    const via = String(r.manuallyReviewedVia || 'review_keep');
+    if (soft.has(via)) continue;
+    if (r.needsReviewLater) continue;
+    const lean = R._vaultPublishLeanFromResult(r, via);
+    if (!lean) continue;
+    R.enqueueVaultPublish(r, via);
+    enqueued += 1;
+  }
+  return enqueued;
+};
+
+R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via = 'review_keep') {
+  if (!result) return Promise.resolve({ ok: false, skipped: true });
+  // Accept a full Analyze result or a prebuilt lean payload from the durable queue.
+  let lean = R._vaultPublishLeanFromResult(result, via || result.manuallyReviewedVia || 'review_keep');
+  if (!lean && (result.street || result.address) && result.leadTier) {
+    lean = {
+      email: result.email,
+      phone: result.phone,
+      address: result.address,
+      street: result.street,
+      city: result.city,
+      state: result.state,
+      postal: result.postal,
+      zip: result.zip,
+      leadTier: result.leadTier,
+      category: result.category,
+      score: result.score,
+      firstName: result.firstName,
+      lastName: result.lastName,
+      ownerName: result.ownerName,
+      owner: result.owner,
+      manuallyReviewed: true,
+      manuallyReviewedVia: via || result.manuallyReviewedVia || 'review_keep',
+      manuallyReviewedAt: result.manuallyReviewedAt || Date.now(),
+      reviewResolved: true,
+      needsReviewLater: false,
+      reason: result.reason,
+      indicators: Array.isArray(result.indicators) ? result.indicators.slice(0, 24) : []
+    };
+  }
+  if (!lean) return Promise.resolve({ ok: false, skipped: true });
+  const tier = String(lean.leadTier || '').toLowerCase().replace(/-/g, '_');
+  const cat = String(lean.category || '').toLowerCase().replace(/-/g, '_');
+  if (cat === 'blurred' || cat === 'unavailable') {
+    return Promise.resolve({ ok: false, skipped: true });
+  }
+  const okTier = ['distressed', 'well_maintained', 'vacant'].includes(tier)
+    || cat === 'vacant_lot' || cat === 'vacant' || cat === 'land';
+  if (!okTier) return Promise.resolve({ ok: false, skipped: true });
+  if (!['distressed', 'well_maintained', 'vacant'].includes(tier)
+    && (cat === 'vacant_lot' || cat === 'vacant' || cat === 'land')) {
+    lean.leadTier = 'vacant';
+  }
+  lean.manuallyReviewed = true;
+  lean.manuallyReviewedVia = via || lean.manuallyReviewedVia || 'review_keep';
+  lean.manuallyReviewedAt = lean.manuallyReviewedAt || Date.now();
+  lean.reviewResolved = true;
+  lean.needsReviewLater = false;
+
   const payload = JSON.stringify({
     result: lean,
     storageKey: (typeof getSessionUser === 'function' && getSessionUser()) || 'admin'
   });
+  // Shell route — must stay at /api/leads/* (not /analyzer/api/leads/*).
+  const url = '/api/leads/publish-from-analyzer';
   const headers = { 'Content-Type': 'application/json' };
-  const urls = ['/api/leads/publish-from-analyzer'];
   const token = typeof window !== 'undefined' && window.__PDA_AUTH_TOKEN__;
   if (token) headers['X-PDA-Token'] = token;
   try {
@@ -1922,23 +2107,25 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
     headers['X-Phuglee-User'] = 'admin';
     headers['X-Phuglee-Plan'] = 'max';
   }
-  const send = (url) =>
-    fetch(url, { method: 'POST', headers, body: payload, credentials: 'same-origin' })
-      .then(async (res) => {
-        if (!res.ok) {
-          const text = await res.text().catch(() => '');
-          throw new Error(text || `HTTP ${res.status}`);
-        }
-        return res.json().catch(() => ({ ok: true }));
-      });
-  return send(urls[0])
-    .then(() => {
+  // Prefer apiFetch so shell headers apply; resolveModuleApiUrl keeps /api/leads unprefixed.
+  const doFetch = (typeof apiFetch === 'function')
+    ? (u, opts) => apiFetch(u, opts)
+    : (u, opts) => fetch(u, { credentials: 'same-origin', ...opts });
+  return doFetch(url, { method: 'POST', headers, body: payload })
+    .then(async (res) => {
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      return res.json().catch(() => ({ ok: true }));
+    })
+    .then((body) => {
       invalidateVaultMetaCache?.();
       if (!state.reviewMode) {
         void refreshVaultSummaryRow?.({ force: true, instant: true });
         updateSummaryStats?.({ force: true, forceVault: true });
       }
-      return { ok: true };
+      return { ok: true, body };
     })
     .catch((err) => {
       console.warn('[Vault] publish-from-analyzer failed', err?.message || err);
@@ -1946,7 +2133,7 @@ R.publishReviewedLeadToVault = function publishReviewedLeadToVault(result, via =
       if (!R._vaultPublishFailToastAt || now - R._vaultPublishFailToastAt > 15000) {
         R._vaultPublishFailToastAt = now;
         try {
-          DistressPersistence?.showToast?.('Vault publish failed — lead saved locally', 'error', 5000);
+          DistressPersistence?.showToast?.('Vault publish failed — will retry. Lead saved in Analyze.', 'error', 5000);
         } catch (_) {}
       }
       return { ok: false, error: err };
