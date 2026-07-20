@@ -880,13 +880,13 @@
   padding: 0.55rem 1rem;
 }
 
-/* Shell nav page-transition loading strip (content column; no top title bar) */
+/* Shell nav page-transition loading strip */
 .shell-loading-strip {
   position: fixed;
-  top: 0;
-  left: var(--shell-rail-width, 0px);
+  top: var(--distress-nav-offset, 0px);
+  left: 0;
   right: 0;
-  z-index: 999;
+  z-index: 1001;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -897,12 +897,6 @@
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   pointer-events: none;
-}
-
-@media (max-width: 900px) {
-  .shell-loading-strip {
-    left: 0;
-  }
 }
 
 .shell-loading-strip[hidden] {
