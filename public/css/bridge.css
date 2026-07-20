@@ -6220,11 +6220,22 @@ body.bridge-page.has-shell-chrome .bridge-main {
   flex: 0 1 auto;
   width: min(920px, calc(100% - 2.5rem));
   max-width: 920px;
+  /* Horizontal + vertical center in the shell content column.
+     When content is taller than the viewport, auto margins collapse and
+     the desk scrolls from the top (no clipped form). */
   margin-left: auto;
   margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
   align-self: center;
   padding: 1.35rem 1.25rem 2.25rem;
   box-sizing: border-box;
+}
+
+/* Full viewport height so vertical auto-margins can center short desks */
+body.bridge-page.has-shell-chrome {
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 body.bridge-page .bridge-main {
