@@ -50,6 +50,23 @@ describe('awaiting bucket counts', () => {
     assert.equal(c.awaiting.distressed, 0);
   });
 
+  it('excludes reviewedKeysByFilter even when result row is not stamped yet', () => {
+    const unstamped = {
+      email: 'z@t.com', phone: '9', address: '9 Main',
+      category: 'property', leadTier: 'distressed', score: 9
+    };
+    const key = 'z@t.com|9|9 Main';
+    const c = buildAwaitingCounts([unstamped], {
+      reviewedKeysByFilter: { distressed: [key] }
+    });
+    assert.equal(c.awaiting.distressed, 0, 'KPI must hit 0 when key is in reviewedKeysByFilter');
+    const q = buildSessionReviewQueue([unstamped], 'distressed', {
+      limit: 10,
+      reviewedKeysByFilter: { distressed: [key] }
+    });
+    assert.equal(q.pending, 0);
+  });
+
   it('stays fast + correct at 17k-row scale (single-pass budget)', () => {
     const N = 17000;
     const big = new Array(N);

@@ -172,19 +172,24 @@ R.zeroPaintLiveScanKpis = function zeroPaintLiveScanKpis() {
  */
 R.AWAITING_REVIEW_FILTERS = ['distressed', 'well_maintained', 'vacant', 'blurred', 'review', 'satellite_only'];
 
-R.getAwaitingReviewBucketCounts = function getAwaitingReviewBucketCounts() {
+R.getAwaitingReviewBucketCounts = function getAwaitingReviewBucketCounts(opts = {}) {
   const all = Math.max(
     getTotalScannedCount(),
     (state.results || []).length,
     Number(state._tierCountsFromServer?.all) || 0
   );
 
-  // When the full result set is not yet hydrated client-side, the local snapshot
-  // undercounts. Prefer the server's single-pass awaiting counts so the KPI strip
-  // is truthful without forcing a 16k-row hydrate.
+  // Prefer server single-pass awaiting counts when:
+  // - full hydrate is not ready yet, OR
+  // - we just refreshed them (fresh < 45s) after Exit Review / Keep batch
+  // so the KPI strip can show 0 without waiting on 16k client scans.
   const server = state._awaitingCountsFromServer;
-  const hydrated = sessionLoadState.complete && (state.results || []).length > 0;
-  if (!hydrated && server && server.awaiting) {
+  const serverAge = server?.at ? (Date.now() - Number(server.at)) : Infinity;
+  const hydrated = !!(sessionLoadState?.complete && (state.results || []).length > 0);
+  const preferServer = !!opts.preferServer
+    || !hydrated
+    || (server?.awaiting && serverAge < 45_000);
+  if (preferServer && server && server.awaiting) {
     const a = server.awaiting;
     return {
       all: Math.max(all, Number(server.scanned) || 0),
@@ -1612,7 +1617,8 @@ R.getAllReviewedKeySet = function getAllReviewedKeySet() {
 R.isExcludedFromAllReviewQueues = function isExcludedFromAllReviewQueues(r, key = r ? recordKey(r) : '', filter = null) {
   if (!r) return true;
   if (r.satelliteOnly && filter === 'satellite_only') {
-    return getReviewedKeySet('satellite_only').has(key);
+    return getReviewedKeySet('satellite_only').has(key)
+      || (key ? getAllReviewedKeySet().has(key) : false);
   }
   if (r.satelliteOnly) return true;
   if (r.needsReviewLater && filter === 'review') return false;
@@ -1622,6 +1628,14 @@ R.isExcludedFromAllReviewQueues = function isExcludedFromAllReviewQueues(r, key 
     // Soft vias are queue progress — never hide a lead from Distressed / WM / Vacant.
     if (via === 'review_session' || via === 'review_skip' || via === 'review_missing') return false;
     return true;
+  }
+  // Exit Review may land reviewedKeysByFilter before every result row is stamped.
+  // Session Buckets KPIs must treat those keys as done so the strip can hit 0.
+  if (key) {
+    try {
+      if (typeof getAllReviewedKeySet === 'function' && getAllReviewedKeySet().has(key)) return true;
+      if (filter && typeof getReviewedKeySet === 'function' && getReviewedKeySet(filter).has(key)) return true;
+    } catch (_) {}
   }
   return false;
 }

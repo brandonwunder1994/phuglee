@@ -121,7 +121,11 @@ function register(ctx) {
     const { session } = backups.loadSessionForRequest(req);
     const finalized = finalizeSession(session);
     const results = Array.isArray(finalized.results) ? finalized.results : [];
-    sendJson(res, 200, buildAwaitingCounts(results));
+    // Must pass reviewedKeysByFilter — same as review-queue — so KPIs hit 0 when
+    // Exit Review saved stamps even if a lean row still lags manuallyReviewed.
+    sendJson(res, 200, buildAwaitingCounts(results, {
+      reviewedKeysByFilter: finalized.reviewedKeysByFilter || session?.reviewedKeysByFilter || {}
+    }));
     return true;
   });
 
