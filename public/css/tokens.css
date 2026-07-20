@@ -97,9 +97,9 @@
   --radius-pill: 999px;
   --nav-h: auto;
 
-  /* App shell — left rail + thin top bar (SaaS product chrome) */
+  /* App shell — left rail only (no title top bar) */
   --shell-rail-width: 240px;
-  --shell-topbar-height: 52px;
+  --shell-topbar-height: 0px;
   /* Back-compat: sticky desks / embeds still read this as top chrome height */
   --distress-nav-offset: var(--shell-topbar-height);
 

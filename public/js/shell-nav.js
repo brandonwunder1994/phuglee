@@ -282,7 +282,6 @@
 
   function buildNav(pathname) {
     const current = activeId(pathname);
-    const title = pageTitleFor(pathname);
 
     let railBody = '';
     if (isVaultOnlyUser()) {
@@ -340,14 +339,17 @@
       railBody = dashboardHtml + dataHtml + pipelineHtml + vaultHtml;
     }
 
-    const actionsHtml = isAuthenticated()
-      ? `<div class="shell-nav-actions">
-          <div id="shell-settings-slot"></div>
+    const railFooterHtml = isAuthenticated()
+      ? `<div class="shell-rail-footer">
+          <div class="shell-nav-actions">
+            <div id="shell-settings-slot"></div>
+          </div>
         </div>`
       : '';
 
     const brandHref = isVaultOnlyUser() ? '/vault' : isDisposUser() ? '/under-contract' : '/';
 
+    // No page-title top bar, no Jump button — rail only (hamburger on mobile).
     return `
 <div class="shell-chrome" id="distress-os-nav">
   <div class="shell-loading-strip" id="shell-loading-strip" hidden aria-live="polite">
@@ -368,40 +370,19 @@
     <nav class="shell-rail-nav shell-links" id="shell-links">
       ${railBody}
     </nav>
+    ${railFooterHtml}
   </aside>
   <div class="shell-rail-backdrop" id="shell-rail-backdrop" hidden></div>
-  <header class="shell-topbar" id="shell-topbar">
-    <div class="shell-topbar-start">
-      <button
-        type="button"
-        class="shell-nav-menu-btn"
-        id="shell-nav-menu-btn"
-        aria-expanded="false"
-        aria-controls="shell-rail"
-        aria-label="Open menu"
-      >
-        <span class="shell-nav-menu-bars" aria-hidden="true"></span>
-      </button>
-      <h1 class="shell-topbar-title" id="shell-topbar-title">${title}</h1>
-    </div>
-    <div class="shell-topbar-end shell-nav-toolbar">
-      <button
-        type="button"
-        class="shell-nav-palette-btn"
-        id="shell-cmd-palette-btn"
-        aria-label="Open command palette"
-        title="Jump anywhere (Ctrl+K)"
-      >
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
-          <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M10.5 10.5 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="shell-nav-palette-label">Jump</span>
-        <kbd class="shell-nav-palette-kbd" aria-hidden="true">⌘K</kbd>
-      </button>
-      ${actionsHtml}
-    </div>
-  </header>
+  <button
+    type="button"
+    class="shell-nav-menu-btn"
+    id="shell-nav-menu-btn"
+    aria-expanded="false"
+    aria-controls="shell-rail"
+    aria-label="Open menu"
+  >
+    <span class="shell-nav-menu-bars" aria-hidden="true"></span>
+  </button>
 </div>`;
   }
 
@@ -435,9 +416,9 @@
   function applyShellInsets() {
     const root = document.documentElement;
     root.style.setProperty('--shell-rail-width', '240px');
-    root.style.setProperty('--shell-topbar-height', '52px');
-    root.style.setProperty('--distress-nav-offset', '52px');
-    // Prefer CSS body insets; clear legacy JS padding so it cannot fight the rail.
+    // No top title bar — sticky desks use 0 offset on desktop.
+    root.style.setProperty('--shell-topbar-height', '0px');
+    root.style.setProperty('--distress-nav-offset', '0px');
     if (document.body) {
       document.body.style.paddingTop = '';
     }
@@ -488,14 +469,6 @@
 
     const backdrop = root.querySelector('#shell-rail-backdrop');
     backdrop?.addEventListener('click', () => closeMobileNav());
-
-    const paletteBtn = root.querySelector('#shell-cmd-palette-btn');
-    paletteBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (window.PhugleeCommandPalette && typeof window.PhugleeCommandPalette.open === 'function') {
-        window.PhugleeCommandPalette.open();
-      }
-    });
 
     root.querySelectorAll('.shell-links a[href]').forEach((link) => {
       link.addEventListener('click', () => closeMobileNav());

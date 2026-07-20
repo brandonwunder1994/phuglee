@@ -85,6 +85,26 @@
   filter: drop-shadow(0 0 5px rgba(229, 132, 53, 0.35));
 }
 
+/* Open upward when settings sits in the rail footer */
+.shell-rail-footer .shell-settings-dropdown {
+  top: auto;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  right: auto;
+  animation-name: settings-drop-up;
+}
+
+@keyframes settings-drop-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .shell-settings-dropdown {
   position: absolute;
   top: calc(100% + 0.5rem);
