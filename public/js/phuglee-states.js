@@ -65,7 +65,11 @@
 
   function showShellLoading() {
     const strip = document.getElementById('shell-loading-strip');
-    if (strip) strip.hidden = false;
+    if (strip) {
+      strip.hidden = false;
+      const copy = strip.querySelector('.phuglee-loading-copy');
+      if (copy) copy.hidden = true;
+    }
     document.body.classList.add('shell-nav-loading');
   }
 
@@ -80,21 +84,35 @@
     if (!nav) return;
     nav.querySelectorAll('a.shell-link, a.shell-sublink, a.shell-brand').forEach((link) => {
       link.addEventListener('click', (e) => {
+        if (e.defaultPrevented) return;
+        if (e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         const href = link.getAttribute('href');
         if (!href || href.startsWith('mailto:') || href.startsWith('#')) return;
         if (link.target === '_blank') return;
         try {
           const url = new URL(href, window.location.origin);
           if (url.origin !== window.location.origin) return;
-          if (url.pathname === window.location.pathname) return;
+          if (url.pathname === window.location.pathname && url.search === window.location.search) {
+            return;
+          }
         } catch (_) {
           return;
+        }
+        nav.querySelectorAll('a.shell-link.active').forEach((a) => {
+          a.classList.remove('active');
+          a.removeAttribute('aria-current');
+        });
+        if (link.classList.contains('shell-link')) {
+          link.classList.add('active');
+          link.setAttribute('aria-current', 'page');
         }
         showShellLoading();
       });
     });
     window.addEventListener('pageshow', hideShellLoading);
     window.addEventListener('load', hideShellLoading);
+    window.addEventListener('pagehide', hideShellLoading);
   }
 
   function observeDynamicStates() {

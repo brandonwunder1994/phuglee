@@ -2,11 +2,11 @@
   const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
 
   const DATA_LINKS = [
-    { id: 'collect', label: 'Collect', href: '/collect' },
+    { id: 'collect', label: 'Request', href: '/collect' },
     { id: 'government-lists', label: 'Government Lists', href: '/government-lists' },
     { id: 'pre-liens', label: 'Pre-liens', href: '/pre-liens' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
-    { id: 'analyzer', label: 'Analyze', href: '/analyzer/' }
+    { id: 'analyzer', label: 'Review', href: '/analyzer/' }
   ];
 
   const PIPELINE_LINKS = [
@@ -14,6 +14,49 @@
     { id: 'pipeline', label: 'All Leads', href: '/pipeline' },
     { id: 'buyers', label: 'Buyers', href: '/buyers' }
   ];
+
+  const VAULT_LINKS = [
+    { id: 'vault', label: 'Home Vault', href: '/vault' },
+    { id: 'land-vault', label: 'Land Vault', href: '/land-vault' }
+  ];
+
+  const FORGE_LINKS = [
+    { id: 'forge-desk', label: 'PDF Filler', href: '/forge/' },
+    { id: 'forge-portal', label: 'Track Progress', href: '/forge/portal' },
+    { id: 'forge-map', label: 'Map', href: '/forge/map' },
+    { id: 'forge-pdfs', label: 'Request PDFs', href: '/forge/portal/request-pdfs' },
+    { id: 'forge-submit', label: 'Submit Portals', href: '/forge/portal/submit-portals' },
+    { id: 'forge-email', label: 'Email-only', href: '/forge/portal/email-only' },
+    { id: 'forge-errors', label: 'Portal Errors', href: '/forge/portal/portal-errors' }
+  ];
+
+  /** Minimal monochrome icons for rail rows (16×16 viewBox). */
+  const ICONS = {
+    command:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5.5" height="5.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+    collect:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3 3.5h10v9H3z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 6.5h5M5.5 9h3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    'government-lists':
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 13.5h11M3.5 13.5V5.5L8 2.5l4.5 3v8" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13.5v-4h3v4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+    'pre-liens':
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M4 2.5h6.5L13 5v8.5H4z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M10 2.5V5h2.8M6 8h4M6 10.5h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    bridge:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 11.5 6 4.5l2.2 4.2L10.5 6l3 5.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    analyzer:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="7" cy="7" r="4.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10.2 10.2 13.5 13.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    'under-contract':
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M3.5 3.5h9v9h-9z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 8.2 7.1 9.8 10.5 6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    pipeline:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 4.5h4v7h-4zM9.5 4.5h4v7h-4z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 8h3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    buyers:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="6" cy="5.5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 13c0-2.2 1.6-3.5 3.5-3.5s3.5 1.3 3.5 3.5M11 7.5v4M9 9.5h4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    vault:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 6.5 8 3l5.5 3.5v6.5H2.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13V9h3v4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
+    'land-vault':
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2 11.5 5.5 6l2.5 3.2L10.5 5.5 14 11.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13h12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    default:
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>'
+  };
 
   function isAdminUser() {
     if (window.PhugleeSettings && typeof window.PhugleeSettings.isAdmin === 'function') {
@@ -55,16 +98,6 @@
     return isAdminUser() || isDisposUser();
   }
 
-  const FORGE_LINKS = [
-    { id: 'forge-desk', label: 'PDF Filler', href: '/forge/' },
-    { id: 'forge-portal', label: 'Track Progress', href: '/forge/portal' },
-    { id: 'forge-map', label: 'Map', href: '/forge/map' },
-    { id: 'forge-pdfs', label: 'Request PDFs', href: '/forge/portal/request-pdfs' },
-    { id: 'forge-submit', label: 'Submit Portals', href: '/forge/portal/submit-portals' },
-    { id: 'forge-email', label: 'Email-only', href: '/forge/portal/email-only' },
-    { id: 'forge-errors', label: 'Portal Errors', href: '/forge/portal/portal-errors' }
-  ];
-
   function normalizePath(pathname) {
     if (!pathname) return '/';
     let p = pathname.replace(/\/+$/, '') || '/';
@@ -100,6 +133,7 @@
     if (p === '/government-lists') return 'government-lists';
     if (p === '/pre-liens') return 'pre-liens';
     if (p === '/filter' || p === '/bridge') return 'bridge';
+    if (p === '/heat') return 'heat';
     const forgeLinks = [...FORGE_LINKS].sort((a, b) => b.href.length - a.href.length);
     for (const link of forgeLinks) {
       if (matchLink(p, link.href)) return link.id;
@@ -118,6 +152,10 @@
     return PIPELINE_LINKS.some((l) => l.id === current);
   }
 
+  function isVaultSectionActive(current) {
+    return VAULT_LINKS.some((l) => l.id === current);
+  }
+
   // Back-compat alias for older tests / callers.
   function isPropertiesSectionActive(current) {
     return isDataSectionActive(current);
@@ -129,6 +167,30 @@
 
   function isAnalyzerPath(pathname) {
     return matchLink(normalizePath(pathname), '/analyzer/');
+  }
+
+  /** Ops desks: chrome only — no marketing/link footer (matches Analyze / Collect). */
+  function isOpsDeskNoFooterPath(pathname) {
+    const p = normalizePath(pathname || window.location.pathname);
+    if (isAnalyzerPath(p)) return true;
+    if (matchLink(p, '/filter') || matchLink(p, '/bridge')) return true;
+    if (matchLink(p, '/collect')) return true;
+    return false;
+  }
+
+  function iconFor(id) {
+    return ICONS[id] || ICONS.default;
+  }
+
+  function pageTitleFor(pathname) {
+    const id = activeId(pathname);
+    const all = [DASHBOARD_LINK, ...DATA_LINKS, ...PIPELINE_LINKS, ...VAULT_LINKS, ...FORGE_LINKS];
+    const hit = all.find((l) => l.id === id);
+    if (hit) return hit.label;
+    const p = normalizePath(pathname);
+    if (p === '/heat') return 'How It Works';
+    if (p === '/operating-costs') return 'Operating Costs';
+    return 'Phuglee';
   }
 
   function buildFooter(pathname) {
@@ -163,11 +225,11 @@
     </div>
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
-      <a href="/collect" class="shell-footer-link">Collect</a>
+      <a href="/collect" class="shell-footer-link">Request</a>
       <a href="/government-lists" class="shell-footer-link">Government Lists</a>
       <a href="/pre-liens" class="shell-footer-link">Pre-liens</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
-      <a href="/analyzer/" class="shell-footer-link">Analyze</a>
+      <a href="/analyzer/" class="shell-footer-link">Review</a>
       <a href="/vault" class="shell-footer-link">The Vault</a>
     </nav>
   </div>
@@ -177,11 +239,10 @@
 
   function mountFooter() {
     const path = window.location.pathname;
-    const onAnalyzer = isAnalyzerPath(path);
     const existing = document.getElementById('distress-os-footer');
     const mount = document.getElementById('distress-os-footer-mount');
 
-    if (onAnalyzer) {
+    if (isOpsDeskNoFooterPath(path)) {
       existing?.remove();
       if (mount) mount.innerHTML = '';
       return;
@@ -197,142 +258,131 @@
     }
   }
 
-  function buildNavDropdown(opts) {
-    const {
-      id,
-      label,
-      links,
-      sectionActive
-    } = opts;
-    const triggerClass = sectionActive
-      ? 'shell-link shell-nav-dropdown-trigger active'
-      : 'shell-link shell-nav-dropdown-trigger';
-    const itemsHtml = links.map((l) => {
-      const itemActive = opts.current === l.id;
-      const icon = l.emoji
-        ? `<span class="shell-nav-dropdown-icon" aria-hidden="true">${l.emoji}</span>`
-        : '';
-      return `<a href="${l.href}" class="shell-nav-dropdown-item${itemActive ? ' active' : ''}" role="menuitem"${itemActive ? ' aria-current="page"' : ''}>${icon}<span class="shell-nav-dropdown-label">${l.label}</span></a>`;
-    }).join('');
+  function buildRailLink(link, current) {
+    const active = link.id === current;
+    return (
+      `<a href="${link.href}" class="${linkClass(link.id, current)}"${active ? ' aria-current="page"' : ''} data-shell-id="${link.id}">` +
+      `<span class="shell-link-icon" aria-hidden="true">${iconFor(link.id)}</span>` +
+      `<span class="shell-link-label">${link.label}</span>` +
+      `</a>`
+    );
+  }
 
-    const wrapId = `shell-${id}-dropdown-wrap`;
-    const triggerId = `shell-${id}-trigger`;
-    const menuId = `shell-${id}-menu`;
-
+  function buildRailSection(opts) {
+    const { id, label, links, current, sectionActive } = opts;
+    const items = links.map((l) => buildRailLink(l, current)).join('');
     return `
-      <div class="shell-nav-dropdown" id="${wrapId}" data-shell-dropdown="${id}">
-        <button
-          type="button"
-          class="${triggerClass}"
-          id="${triggerId}"
-          aria-expanded="false"
-          aria-haspopup="true"
-          aria-controls="${menuId}"
-        >
-          ${label}
-          <svg class="shell-nav-dropdown-chevron" viewBox="0 0 12 12" aria-hidden="true" focusable="false">
-            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <div class="shell-nav-dropdown-menu" id="${menuId}" role="menu" hidden>
-          ${itemsHtml}
+      <div class="shell-rail-section${sectionActive ? ' is-active-section' : ''}" data-shell-section="${id}">
+        <div class="shell-rail-section-label" id="shell-${id}-trigger">${label}</div>
+        <div class="shell-rail-section-links" role="group" aria-labelledby="shell-${id}-trigger">
+          ${items}
         </div>
       </div>`;
   }
 
-  function buildDataDropdown(current) {
-    return buildNavDropdown({
-      id: 'data',
-      label: 'Data',
-      links: DATA_LINKS,
-      sectionActive: isDataSectionActive(current),
-      current
-    });
-  }
-
-  function buildPipelineDropdown(current) {
-    return buildNavDropdown({
-      id: 'pipeline',
-      label: 'Pipeline',
-      links: PIPELINE_LINKS,
-      sectionActive: isPipelineSectionActive(current),
-      current
-    });
-  }
-
   function buildNav(pathname) {
     const current = activeId(pathname);
-    const vaultHtml = `<a href="/vault" class="${linkClass('vault', current)}"${current === 'vault' ? ' aria-current="page"' : ''}>Home Vault</a>`
-      + `<a href="/land-vault" class="${linkClass('land-vault', current)}"${current === 'land-vault' ? ' aria-current="page"' : ''}>Land Vault</a>`;
 
-    let linksHtml;
+    let railBody = '';
     if (isVaultOnlyUser()) {
-      linksHtml = vaultHtml;
+      railBody = buildRailSection({
+        id: 'vault',
+        label: 'Vault',
+        links: VAULT_LINKS,
+        current,
+        sectionActive: isVaultSectionActive(current)
+      });
     } else if (isDisposUser()) {
-      linksHtml = buildPipelineDropdown(current) + vaultHtml;
+      railBody =
+        buildRailSection({
+          id: 'pipeline',
+          label: 'Pipeline',
+          links: PIPELINE_LINKS,
+          current,
+          sectionActive: isPipelineSectionActive(current)
+        }) +
+        buildRailSection({
+          id: 'vault',
+          label: 'Vault',
+          links: VAULT_LINKS,
+          current,
+          sectionActive: isVaultSectionActive(current)
+        });
     } else {
-      const dashboardHtml = `<a href="${DASHBOARD_LINK.href}" class="${linkClass(DASHBOARD_LINK.id, current)}"${current === DASHBOARD_LINK.id ? ' aria-current="page"' : ''}>${DASHBOARD_LINK.label}</a>`;
-      const dataHtml = buildDataDropdown(current);
-      const pipelineHtml = isAdminUser() ? buildPipelineDropdown(current) : '';
-      linksHtml = dashboardHtml + vaultHtml + dataHtml + pipelineHtml;
+      const dashboardHtml =
+        `<div class="shell-rail-primary">` +
+        buildRailLink(DASHBOARD_LINK, current) +
+        `</div>`;
+      const dataHtml = buildRailSection({
+        id: 'data',
+        label: 'Data',
+        links: DATA_LINKS,
+        current,
+        sectionActive: isDataSectionActive(current)
+      });
+      const vaultHtml = buildRailSection({
+        id: 'vault',
+        label: 'Vault',
+        links: VAULT_LINKS,
+        current,
+        sectionActive: isVaultSectionActive(current)
+      });
+      const pipelineHtml = isAdminUser()
+        ? buildRailSection({
+            id: 'pipeline',
+            label: 'Pipeline',
+            links: PIPELINE_LINKS,
+            current,
+            sectionActive: isPipelineSectionActive(current)
+          })
+        : '';
+      railBody = dashboardHtml + dataHtml + pipelineHtml + vaultHtml;
     }
 
-    const actionsHtml = isAuthenticated()
-      ? `<div class="shell-nav-actions">
-          <div id="shell-settings-slot"></div>
+    const railFooterHtml = isAuthenticated()
+      ? `<div class="shell-rail-footer">
+          <div class="shell-nav-actions">
+            <div id="shell-settings-slot"></div>
+          </div>
         </div>`
       : '';
 
-    const brandHref = isVaultOnlyUser() ? '/vault' : (isDisposUser() ? '/under-contract' : '/');
+    const brandHref = isVaultOnlyUser() ? '/vault' : isDisposUser() ? '/under-contract' : '/';
 
+    // No page-title top bar, no Jump button — rail only (hamburger on mobile).
     return `
-<div class="shell-loading-strip" id="shell-loading-strip" hidden aria-live="polite">
-  <div class="phuglee-loading-bar" aria-hidden="true"></div>
-  <span class="phuglee-loading-copy">Heating up leads…</span>
-</div>
-<header class="shell-nav-wrap distress-glass--chrome" id="distress-os-nav">
-  <nav class="shell-nav" aria-label="Main navigation">
+<div class="shell-chrome" id="distress-os-nav">
+  <div class="shell-loading-strip" id="shell-loading-strip" hidden aria-hidden="true">
+    <div class="phuglee-loading-bar" aria-hidden="true"></div>
+  </div>
+  <aside class="shell-rail" id="shell-rail" aria-label="Product navigation">
     <a href="${brandHref}" class="shell-brand" aria-label="Phuglee home">
       <img
         src="/images/phuglee-text-logo.svg"
         alt="Phuglee"
         class="shell-brand-logo"
-        width="120"
-        height="26"
+        width="200"
+        height="44"
         decoding="async"
       >
     </a>
-    <div class="shell-nav-toolbar">
-      <button
-        type="button"
-        class="shell-nav-palette-btn"
-        id="shell-cmd-palette-btn"
-        aria-label="Open command palette"
-        title="Jump anywhere (Ctrl+K)"
-      >
-        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false">
-          <circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M10.5 10.5 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        <span class="shell-nav-palette-label">Jump</span>
-      </button>
-      <button
-        type="button"
-        class="shell-nav-menu-btn"
-        id="shell-nav-menu-btn"
-        aria-expanded="false"
-        aria-controls="shell-links"
-        aria-label="Open menu"
-      >
-        <span class="shell-nav-menu-bars" aria-hidden="true"></span>
-      </button>
-    </div>
-    <div class="shell-links" id="shell-links">
-      ${linksHtml}
-      ${actionsHtml}
-    </div>
-  </nav>
-</header>`;
+    <nav class="shell-rail-nav shell-links" id="shell-links">
+      ${railBody}
+    </nav>
+    ${railFooterHtml}
+  </aside>
+  <div class="shell-rail-backdrop" id="shell-rail-backdrop" hidden></div>
+  <button
+    type="button"
+    class="shell-nav-menu-btn"
+    id="shell-nav-menu-btn"
+    aria-expanded="false"
+    aria-controls="shell-rail"
+    aria-label="Open menu"
+  >
+    <span class="shell-nav-menu-bars" aria-hidden="true"></span>
+  </button>
+</div>`;
   }
 
   function isAuthenticated() {
@@ -362,79 +412,48 @@
     });
   }
 
-  function closeDropdown(wrap) {
-    if (!wrap) return;
-    const menu = wrap.querySelector('.shell-nav-dropdown-menu');
-    const trigger = wrap.querySelector('.shell-nav-dropdown-trigger');
-    if (menu) menu.hidden = true;
-    if (trigger) trigger.setAttribute('aria-expanded', 'false');
-    wrap.classList.remove('is-open');
-  }
-
-  function openDropdown(wrap) {
-    if (!wrap) return;
-    const menu = wrap.querySelector('.shell-nav-dropdown-menu');
-    const trigger = wrap.querySelector('.shell-nav-dropdown-trigger');
-    if (menu) menu.hidden = false;
-    if (trigger) trigger.setAttribute('aria-expanded', 'true');
-    wrap.classList.add('is-open');
-  }
-
-  function closeAllDropdowns(root) {
-    (root || document).querySelectorAll('[data-shell-dropdown]').forEach((wrap) => {
-      closeDropdown(wrap);
-    });
-  }
-
-  function bindNavDropdowns(root) {
-    if (!root || root.dataset.dropdownsBound === '1') return;
-    const wraps = root.querySelectorAll('[data-shell-dropdown]');
-    if (!wraps.length) return;
-    root.dataset.dropdownsBound = '1';
-
-    wraps.forEach((wrap) => {
-      const trigger = wrap.querySelector('.shell-nav-dropdown-trigger');
-      if (!trigger) return;
-
-      trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const wasOpen = wrap.classList.contains('is-open');
-        closeAllDropdowns(root);
-        if (!wasOpen) openDropdown(wrap);
-      });
-
-      wrap.querySelectorAll('.shell-nav-dropdown-item').forEach((link) => {
-        link.addEventListener('click', () => closeAllDropdowns(root));
-      });
-    });
-
-    document.addEventListener('click', (e) => {
-      if (![...wraps].some((w) => w.contains(e.target))) closeAllDropdowns(root);
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAllDropdowns(root);
-    });
+  function applyShellInsets() {
+    const root = document.documentElement;
+    root.style.setProperty('--shell-rail-width', '240px');
+    // No top title bar — sticky desks use 0 offset on desktop.
+    root.style.setProperty('--shell-topbar-height', '0px');
+    root.style.setProperty('--distress-nav-offset', '0px');
+    if (document.body) {
+      document.body.style.paddingTop = '';
+    }
   }
 
   function closeMobileNav() {
-    const wrap = document.getElementById('distress-os-nav');
+    const chrome = document.getElementById('distress-os-nav');
     const btn = document.getElementById('shell-nav-menu-btn');
-    wrap?.classList.remove('is-nav-open');
+    const backdrop = document.getElementById('shell-rail-backdrop');
+    chrome?.classList.remove('is-nav-open');
     if (btn) {
       btn.setAttribute('aria-expanded', 'false');
       btn.setAttribute('aria-label', 'Open menu');
     }
+    if (backdrop) backdrop.hidden = true;
+    document.body.classList.remove('shell-rail-open');
+  }
+
+  function openMobileNav() {
+    const chrome = document.getElementById('distress-os-nav');
+    const btn = document.getElementById('shell-nav-menu-btn');
+    const backdrop = document.getElementById('shell-rail-backdrop');
+    chrome?.classList.add('is-nav-open');
+    if (btn) {
+      btn.setAttribute('aria-expanded', 'true');
+      btn.setAttribute('aria-label', 'Close menu');
+    }
+    if (backdrop) backdrop.hidden = false;
+    document.body.classList.add('shell-rail-open');
   }
 
   function toggleMobileNav() {
-    const wrap = document.getElementById('distress-os-nav');
-    const btn = document.getElementById('shell-nav-menu-btn');
-    if (!wrap || !btn) return;
-    const open = !wrap.classList.contains('is-nav-open');
-    wrap.classList.toggle('is-nav-open', open);
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+    const chrome = document.getElementById('distress-os-nav');
+    if (!chrome) return;
+    if (chrome.classList.contains('is-nav-open')) closeMobileNav();
+    else openMobileNav();
   }
 
   function bindMobileChrome(root) {
@@ -447,13 +466,8 @@
       toggleMobileNav();
     });
 
-    const paletteBtn = root.querySelector('#shell-cmd-palette-btn');
-    paletteBtn?.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (window.PhugleeCommandPalette && typeof window.PhugleeCommandPalette.open === 'function') {
-        window.PhugleeCommandPalette.open();
-      }
-    });
+    const backdrop = root.querySelector('#shell-rail-backdrop');
+    backdrop?.addEventListener('click', () => closeMobileNav());
 
     root.querySelectorAll('.shell-links a[href]').forEach((link) => {
       link.addEventListener('click', () => closeMobileNav());
@@ -482,25 +496,17 @@
     }
 
     const wrap = document.getElementById('distress-os-nav');
-    const isEmbedded = path.startsWith('/forge') || path.startsWith('/analyzer');
-    if (wrap) {
-      const h = wrap.offsetHeight;
-      document.documentElement.style.setProperty('--distress-nav-offset', h + 'px');
-      if (isEmbedded) {
-        document.body.style.paddingTop = '';
-      } else {
-        document.body.style.paddingTop = h + 'px';
-      }
-      guardNavLinks(wrap);
-      bindNavDropdowns(wrap);
-      bindMobileChrome(wrap);
-    }
-
     if (path.startsWith('/forge')) {
       document.body.classList.add('distress-os-embedded');
     }
     if (path.startsWith('/analyzer')) {
       document.body.classList.add('distress-os-embedded', 'analyzer-embedded');
+    }
+
+    if (wrap) {
+      applyShellInsets();
+      guardNavLinks(wrap);
+      bindMobileChrome(wrap);
     }
 
     mountFooter();
@@ -534,10 +540,12 @@
     activeId,
     DATA_LINKS,
     PIPELINE_LINKS,
+    VAULT_LINKS,
     PROPERTIES_LINKS: DATA_LINKS,
     isDataSectionActive,
     isPipelineSectionActive,
     isPropertiesSectionActive,
+    isVaultSectionActive,
     isAdminUser,
     isDisposUser,
     isVaultOnlyUser,

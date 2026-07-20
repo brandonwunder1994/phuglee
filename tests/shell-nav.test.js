@@ -29,14 +29,17 @@ function loadShellNavApi(sessionUser) {
   return sandbox.window.DistressOSShellNav;
 }
 
-test('shell nav groups Collect, Filter, and Analyze under Data', () => {
+test('shell rail groups Request, Filter, and Review under Data', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/collect');
   assert.ok(nav.includes('shell-data-trigger'));
   assert.ok(nav.includes('Data'));
-  assert.match(nav, /shell-nav-dropdown-label">Collect</);
-  assert.match(nav, /shell-nav-dropdown-label">Filter</);
-  assert.match(nav, /shell-nav-dropdown-label">Analyze</);
+  assert.ok(nav.includes('shell-rail'));
+  assert.ok(!nav.includes('shell-topbar'));
+  assert.ok(!nav.includes('shell-cmd-palette-btn'));
+  assert.match(nav, /shell-link-label">Request</);
+  assert.match(nav, /shell-link-label">Filter</);
+  assert.match(nav, /shell-link-label">Review</);
   assert.ok(!nav.includes('City Tracker'));
   assert.ok(!nav.includes('>Properties<'));
   assert.equal(api.activeId('/collect'), 'collect');
@@ -46,43 +49,62 @@ test('shell nav groups Collect, Filter, and Analyze under Data', () => {
   assert.ok(!api.isDataSectionActive('command'));
 });
 
-test('shell nav keeps Dashboard and The Vault as top-level links', () => {
+test('shell rail keeps Dashboard top-level and Vault as a section', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/command');
   assert.ok(nav.includes('>Dashboard<'));
-  assert.ok(nav.includes('>The Vault<'));
-  assert.ok(!nav.includes('href="/collect" class="shell-link'));
+  assert.ok(nav.includes('shell-link-label">Dashboard<'));
+  assert.ok(nav.includes('shell-vault-trigger'));
+  assert.ok(nav.includes('shell-link-label">Home Vault<'));
+  assert.ok(nav.includes('shell-link-label">Land Vault<'));
+  // Data items live under section, not as bare shell-link-only top strip
+  assert.ok(nav.includes('href="/collect"'));
+  // No repeating page-title top bar / Jump button
+  assert.ok(!nav.includes('shell-topbar'));
+  assert.ok(!nav.includes('shell-cmd-palette-btn'));
+  assert.ok(!nav.includes('Jump'));
 });
 
-test('admin shell nav groups Under Contract, All Leads, and Trust Funds under Pipeline', () => {
+test('admin shell rail groups pipeline tools under Pipeline', () => {
   const api = loadShellNavApi('admin');
   const nav = api.buildNav('/pipeline');
   assert.ok(nav.includes('shell-pipeline-trigger'));
   assert.ok(nav.includes('Pipeline'));
-  assert.match(nav, /shell-nav-dropdown-label">Under Contract</);
-  assert.match(nav, /shell-nav-dropdown-label">All Leads</);
-  assert.match(nav, /shell-nav-dropdown-label">Trust Funds</);
+  assert.match(nav, /shell-link-label">Under Contract</);
+  assert.match(nav, /shell-link-label">All Leads</);
+  assert.match(nav, /shell-link-label">Buyers</);
   assert.ok(!nav.includes('Contract Tracker'));
   assert.ok(!nav.includes('Sales Pipeline'));
   assert.ok(!nav.includes('Operating Costs'));
   assert.ok(api.isPipelineSectionActive('pipeline'));
   assert.ok(api.isPipelineSectionActive('under-contract'));
-  assert.ok(api.isPipelineSectionActive('trust-funds'));
-  assert.equal(api.activeId('/trust-funds'), 'trust-funds');
+  assert.ok(api.isPipelineSectionActive('buyers'));
+  assert.equal(api.activeId('/buyers'), 'buyers');
+  assert.equal(api.activeId('/trust-funds'), 'buyers');
 });
 
-test('brad shell nav includes Trust Funds under Pipeline', () => {
+test('brad shell rail includes Pipeline section', () => {
   const api = loadShellNavApi('brad');
-  const nav = api.buildNav('/trust-funds');
+  const nav = api.buildNav('/under-contract');
   assert.ok(nav.includes('shell-pipeline-trigger'));
-  assert.match(nav, /shell-nav-dropdown-label">Trust Funds</);
-  assert.ok(nav.includes('href="/trust-funds"'));
-  assert.equal(api.activeId('/trust-funds'), 'trust-funds');
+  assert.match(nav, /shell-link-label">Buyers</);
+  assert.ok(nav.includes('href="/buyers"'));
+  assert.ok(!nav.includes('shell-data-trigger'));
+  assert.equal(api.activeId('/under-contract'), 'under-contract');
 });
 
-test('non-desk shell nav hides Pipeline and Trust Funds', () => {
+test('non-desk shell rail hides Pipeline', () => {
   const api = loadShellNavApi(null);
   const nav = api.buildNav('/collect');
   assert.ok(!nav.includes('shell-pipeline-trigger'));
-  assert.ok(!nav.includes('Trust Funds'));
+  assert.ok(!nav.includes('shell-link-label">Buyers<'));
+});
+
+test('vault-only shell rail is Vault section only', () => {
+  const api = loadShellNavApi('matt');
+  const nav = api.buildNav('/vault');
+  assert.ok(nav.includes('shell-vault-trigger'));
+  assert.ok(nav.includes('shell-link-label">Home Vault<'));
+  assert.ok(!nav.includes('shell-data-trigger'));
+  assert.ok(!nav.includes('shell-link-label">Dashboard<'));
 });
