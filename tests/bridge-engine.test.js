@@ -198,6 +198,43 @@ test('mergeProcessResults single payload is pass-through with fileCount 1', () =
   assert.equal(merged.rows.length, 1);
 });
 
+test('processUpload composes Address Number + Street Name (split columns)', async () => {
+  // City sheets often split house # and street name — without compose, every row
+  // dies as "No usable street address" because street name alone has no digits.
+  const csv = [
+    'Address Number,Street Name,Violation Type,Description',
+    '412,Oak Ave,Weeds,High grass and weeds',
+    '88,Pine Street,Trash,Junk in yard',
+    '1501,W MAIN ST,Blight,Abandoned vehicle'
+  ].join('\n');
+  const result = await processUpload({
+    buffer: Buffer.from(csv),
+    filename: 'split-address.csv',
+    city: CITY,
+    uploadType: 'code_violation',
+    username: 'admin',
+    confirmedTypeHeader: 'Violation Type'
+  });
+  assert.equal(
+    result.stats.discardReasons?.['No usable street address'] || 0,
+    0,
+    'must not discard split-address rows as no usable address'
+  );
+  assert.ok(
+    (result.stats.kept || 0) + (result.stats.noDistress || 0) >= 3,
+    'all three split-address rows must survive as kept or left-out (not no-address)'
+  );
+  const streets = [
+    ...(result.rows || []),
+    ...(result.notDistressedRows || [])
+  ].map((r) => r.streetAddress);
+  assert.ok(streets.some((s) => /^412\s+Oak Ave$/i.test(s)), `expected 412 Oak Ave, got ${JSON.stringify(streets)}`);
+  assert.ok(streets.some((s) => /^88\s+Pine Street$/i.test(s)), `expected 88 Pine Street in ${JSON.stringify(streets)}`);
+  assert.ok(streets.some((s) => /^1501\s+W MAIN ST$/i.test(s)), `expected 1501 W MAIN ST in ${JSON.stringify(streets)}`);
+  assert.equal(result.processingMeta.columnMap.streetNumber, 'Address Number');
+  assert.equal(result.processingMeta.columnMap.streetAddress, 'Street Name');
+});
+
 test('processUpload keeps open and closed violations with usable addresses', async () => {
   const buffer = fs.readFileSync(path.join(FIXTURES, 'code-violations-varied.csv'));
   const result = await processUpload({

@@ -40,6 +40,59 @@ test('usable address heuristic keeps property rows', () => {
   assert.equal(hasUsableStreetAddress('Main Street'), false);
 });
 
+test('split Address Number + Street Name compose into usable street', () => {
+  const {
+    composeStreetAddress,
+    resolveStreetAddressFromRaw
+  } = require('../lib/bridge-intake-schema');
+
+  assert.equal(composeStreetAddress('412', 'Oak Ave'), '412 Oak Ave');
+  assert.equal(composeStreetAddress('412', '412 Oak Ave'), '412 Oak Ave');
+  assert.equal(composeStreetAddress('', '412 Oak Ave'), '412 Oak Ave');
+  assert.equal(hasUsableStreetAddress(composeStreetAddress('412', 'Oak Ave')), true);
+  // Street name alone is not usable — the bug operators hit
+  assert.equal(hasUsableStreetAddress('Oak Ave'), false);
+
+  const headers = ['Address Number', 'Street Name', 'Violation Type'];
+  const map = detectIntakeColumnMap(headers);
+  assert.equal(map.streetNumber, 'Address Number');
+  assert.equal(map.streetAddress, 'Street Name');
+
+  const mapped = mapRawRow(
+    { 'Address Number': '812', 'Street Name': 'Maple Dr', 'Violation Type': 'Weeds' },
+    map
+  );
+  assert.equal(mapped.streetAddress, '812 Maple Dr');
+  assert.equal(classifyDiscardReason({}, mapped), null);
+
+  const resolved = resolveStreetAddressFromRaw(
+    { 'Street Number': '99', 'Street Name': 'Pine St' },
+    detectIntakeColumnMap(['Street Number', 'Street Name'])
+  );
+  assert.equal(resolved, '99 Pine St');
+});
+
+test('Issue Street Number + Issue Street Name (E-Gov style) compose', () => {
+  const map = detectIntakeColumnMap([
+    'Issue Street Number',
+    'Issue Street Name',
+    'Action Form Name',
+    'Date Submitted'
+  ]);
+  assert.equal(map.streetNumber, 'Issue Street Number');
+  assert.equal(map.streetAddress, 'Issue Street Name');
+  const mapped = mapRawRow(
+    {
+      'Issue Street Number': '1501',
+      'Issue Street Name': 'W MAIN ST',
+      'Action Form Name': 'Grass Complaint'
+    },
+    map
+  );
+  assert.equal(mapped.streetAddress, '1501 W MAIN ST');
+  assert.equal(hasUsableStreetAddress(mapped.streetAddress), true);
+});
+
 test('classifies discard reasons', () => {
   assert.equal(classifyDiscardReason({}, { streetAddress: '' }), 'Blank or empty row');
   assert.equal(
