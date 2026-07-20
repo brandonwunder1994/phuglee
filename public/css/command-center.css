@@ -132,27 +132,41 @@
 .command-coverage-map {
   position: relative;
   width: 100%;
-  min-height: 200px;
+  min-height: 220px;
   border-radius: 12px;
-  overflow: hidden;
+  /* visible so NE callout chips / selection strokes are not clipped */
+  overflow: visible;
   background: #0a0f14;
   border: 1px solid rgba(174, 163, 143, 0.2);
+  padding: 0.35rem 0.15rem 0.45rem 0.15rem;
 }
 
 .command-map-svg {
   display: block;
   width: 100%;
   height: auto;
+  overflow: visible;
 }
 
 .command-map-state {
   stroke: rgba(13, 13, 13, 0.85);
   stroke-width: 0.6;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, stroke 0.15s ease;
 }
 
 .command-map-state--covered:hover {
-  opacity: 0.9;
+  opacity: 0.92;
+}
+
+.command-map-state-group--selected .command-map-state,
+.command-map-state--selected {
+  stroke: #c5d4a0;
+  stroke-width: 1.75;
+  filter: brightness(1.12);
+}
+
+.command-map-callout {
+  pointer-events: auto;
 }
 
 .command-map-loading,
@@ -220,7 +234,8 @@
 }
 
 .command-map-swatch--covered {
-  background: linear-gradient(135deg, #8a4a18, #eeb746);
+  /* Army green — matches live coverage fill scale */
+  background: linear-gradient(135deg, #3f4f32, #8fa36a);
 }
 
 .command-map-swatch--pending {

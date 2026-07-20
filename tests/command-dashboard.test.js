@@ -66,6 +66,9 @@ test('home-coverage.js renders command map host', () => {
   assert.ok(js.includes('coverage-map-bootstrap.json'));
   assert.ok(js.includes('/data/geo/us-states.geojson'));
   assert.ok(js.includes('coverageStateCount') || js.includes('total_states'));
+  // Army green live scale (not orange/gold that clashed with red blocked)
+  assert.ok(js.includes('#5f7348') || js.includes('#3f4f32'));
+  assert.ok(js.includes('MAP_CALLOUT_GUTTER'));
 });
 
 test('command/home/heat cache-bust home-coverage after coverage fix', () => {
@@ -73,8 +76,16 @@ test('command/home/heat cache-bust home-coverage after coverage fix', () => {
     const html = read(rel);
     assert.match(html, /home-coverage\.js\?v=\d+/);
     const m = html.match(/home-coverage\.js\?v=(\d+)/);
-    assert.ok(m && Number(m[1]) >= 17, `${rel} needs home-coverage.js?v>=17`);
+    assert.ok(m && Number(m[1]) >= 18, `${rel} needs home-coverage.js?v>=18`);
   }
+  const cmdCss = read('command.html').match(/command-center\.css\?v=(\d+)/);
+  assert.ok(cmdCss && Number(cmdCss[1]) >= 10, 'command-center.css cache bust');
+});
+
+test('command map styles keep callouts visible with army green live swatch', () => {
+  const css = read('css/command-center.css');
+  assert.ok(css.includes('overflow: visible') || css.includes('overflow:visible'));
+  assert.ok(css.includes('#3f4f32') || css.includes('#8fa36a'));
 });
 
 test('coverage bootstrap has full live state footprint', () => {
