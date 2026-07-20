@@ -137,14 +137,7 @@
       if (isVaultOnlyUser()) {
         return cmd.href === '/vault' || cmd.href === '/land-vault';
       }
-      if (isDisposUser()) {
-        return cmd.href === '/vault'
-          || cmd.href === '/land-vault'
-          || cmd.href === '/under-contract'
-          || cmd.href === '/pipeline'
-          || cmd.href === '/buyers'
-          || cmd.href === '/trust-funds';
-      }
+      // Brad sees every Jump command except adminOnly (Operating Costs / Settings).
       return true;
     });
   }

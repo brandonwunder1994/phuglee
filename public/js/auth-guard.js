@@ -9,15 +9,8 @@
 
   var path = normalizePath(window.location.pathname);
   var DISPOS_USER = 'brad';
-  var DISPOS_PATHS = {
-    '/vault': true,
-    '/land-vault': true,
-    '/under-contract': true,
-    '/pipeline': true,
-    '/buyers': true,
-    '/trust-funds': true,
-    '/government-lists': true
-  };
+  /** Settings only — Brad can open every other product page. */
+  var DISPOS_DENIED_PATHS = { '/operating-costs': true };
   var DISPOS_HOME = '/under-contract';
   var VAULT_ONLY_USER = 'matt';
   var VAULT_ONLY_PATHS = { '/vault': true, '/land-vault': true };
@@ -69,19 +62,21 @@
       return;
     }
     if (!isDisposUser(user)) return;
-    if (p === '/command' || p === '/' || p === '/heat' || !DISPOS_PATHS[p]) {
+    if (DISPOS_DENIED_PATHS[p]) {
       window.location.replace(DISPOS_HOME);
     }
   }
 
-  // Public landers stay public, but restricted users never park on the mission home.
+  // Public landers stay public. Vault-only still gets bounced off them.
   if (path === '/' || path === '/heat') {
     if (isLoggedIn()) {
       var landUser = getSessionUser();
-      if (landUser) enforceRestrictedPath(landUser);
+      if (landUser && isVaultOnlyUser(landUser)) enforceRestrictedPath(landUser);
       else if (sessionApi() && typeof sessionApi().syncSessionFromServerCookie === 'function') {
         sessionApi().syncSessionFromServerCookie().then(function (data) {
-          if (data && data.username) enforceRestrictedPath(data.username);
+          if (data && data.username && isVaultOnlyUser(data.username)) {
+            enforceRestrictedPath(data.username);
+          }
         });
       }
     }

@@ -875,7 +875,7 @@ test('Brad projection strips PII on pre-UC; full on UC+; write blocked', async (
   assert.equal(salesCard.phone, undefined);
 });
 
-test('dispos role allows /pipeline path', () => {
+test('dispos role allows all pages except settings', () => {
   const roles = require('../lib/phuglee-roles');
   assert.equal(roles.isPathAllowedForUsername('brad', '/pipeline'), true);
   assert.equal(roles.isPathAllowedForUsername('brad', '/under-contract'), true);
@@ -883,7 +883,13 @@ test('dispos role allows /pipeline path', () => {
   assert.equal(roles.isPathAllowedForUsername('brad', '/buyers'), true);
   assert.equal(roles.isPathAllowedForUsername('brad', '/trust-funds'), true);
   assert.equal(roles.isPathAllowedForUsername('brad', '/government-lists'), true);
-  assert.equal(roles.isPathAllowedForUsername('brad', '/filter'), false);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/filter'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/command'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/collect'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/analyzer'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/pre-liens'), true);
+  assert.equal(roles.isPathAllowedForUsername('brad', '/operating-costs'), false);
+  assert.ok(roles.DISPOS_DENIED_PATHS.has('/operating-costs'));
 });
 
 test('vault-only role (matt) allows /vault and /land-vault', () => {

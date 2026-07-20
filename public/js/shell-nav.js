@@ -294,23 +294,6 @@
         current,
         sectionActive: isVaultSectionActive(current)
       });
-    } else if (isDisposUser()) {
-      // Dashboard-adjacent order: Leads, then Dispo
-      railBody =
-        buildRailSection({
-          id: 'vault',
-          label: 'Leads',
-          links: VAULT_LINKS,
-          current,
-          sectionActive: isVaultSectionActive(current)
-        }) +
-        buildRailSection({
-          id: 'pipeline',
-          label: 'Dispo',
-          links: PIPELINE_LINKS,
-          current,
-          sectionActive: isPipelineSectionActive(current)
-        });
     } else {
       const dashboardHtml =
         `<div class="shell-rail-primary">` +
@@ -323,7 +306,8 @@
         current,
         sectionActive: isVaultSectionActive(current)
       });
-      const dispoHtml = isAdminUser()
+      // Admin + Brad (dispos) see the full Dispo desk; Settings stays admin-only elsewhere.
+      const dispoHtml = isContractDeskUser()
         ? buildRailSection({
             id: 'pipeline',
             label: 'Dispo',
