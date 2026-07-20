@@ -36,6 +36,19 @@
 .gl-hero-copy { min-width: 0; }
 .gl-hero .vault-hero-sub { max-width: 52ch; }
 
+.gl-hero-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.55rem;
+  flex-shrink: 0;
+}
+
+.gl-pre-liens-btn {
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .gl-count {
   margin: 0;
   font-family: var(--font-mono, 'JetBrains Mono', monospace);

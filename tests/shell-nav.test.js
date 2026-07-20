@@ -29,7 +29,18 @@ function loadShellNavApi(sessionUser) {
   return sandbox.window.DistressOSShellNav;
 }
 
-test('shell rail groups Request, Filter, and Review under Data', () => {
+function labelOrder(nav, labels) {
+  const idxs = labels.map((lab) => {
+    const re = new RegExp(`shell-link-label">${lab}<`);
+    return nav.search(re);
+  });
+  for (let i = 0; i < idxs.length; i++) {
+    assert.ok(idxs[i] >= 0, `missing label ${labels[i]}`);
+    if (i > 0) assert.ok(idxs[i] > idxs[i - 1], `${labels[i - 1]} should precede ${labels[i]}`);
+  }
+}
+
+test('shell rail Data order: Request, Filter, Review, Government Lists (no Pre-liens)', () => {
   const api = loadShellNavApi();
   const nav = api.buildNav('/collect');
   assert.ok(nav.includes('shell-data-trigger'));
@@ -37,33 +48,39 @@ test('shell rail groups Request, Filter, and Review under Data', () => {
   assert.ok(nav.includes('shell-rail'));
   assert.ok(!nav.includes('shell-topbar'));
   assert.ok(!nav.includes('shell-cmd-palette-btn'));
-  assert.match(nav, /shell-link-label">Request</);
-  assert.match(nav, /shell-link-label">Filter</);
-  assert.match(nav, /shell-link-label">Review</);
+  labelOrder(nav, ['Request', 'Filter', 'Review', 'Government Lists']);
+  assert.ok(!nav.includes('shell-link-label">Pre-liens<'));
+  assert.ok(!nav.includes('href="/pre-liens"'));
   assert.ok(!nav.includes('City Tracker'));
   assert.ok(!nav.includes('>Properties<'));
   assert.equal(api.activeId('/collect'), 'collect');
   assert.equal(api.activeId('/bridge'), 'bridge');
   assert.equal(api.activeId('/analyzer/'), 'analyzer');
+  assert.equal(api.activeId('/government-lists'), 'government-lists');
+  assert.equal(api.activeId('/pre-liens'), 'pre-liens');
   assert.ok(api.isDataSectionActive('collect'));
+  assert.ok(api.isDataSectionActive('pre-liens'));
   assert.ok(!api.isDataSectionActive('command'));
 });
 
-test('shell rail: Dashboard then Leads (Houses/Land), then Data', () => {
-  const api = loadShellNavApi();
+test('shell rail: Dashboard → Leads → Dispo → Data (admin)', () => {
+  const api = loadShellNavApi('admin');
   const nav = api.buildNav('/command');
   assert.ok(nav.includes('shell-link-label">Dashboard<'));
   assert.ok(nav.includes('shell-vault-trigger'));
   assert.ok(nav.includes('>Leads<'));
+  assert.ok(nav.includes('>Dispo<'));
+  assert.ok(nav.includes('shell-data-trigger'));
   assert.match(nav, /shell-link-label">Houses</);
   assert.match(nav, /shell-link-label">Land</);
   assert.ok(!nav.includes('Home Vault'));
   assert.ok(!nav.includes('Land Vault'));
-  // Leads section appears before Data section
   const leadsIdx = nav.indexOf('shell-vault-trigger');
+  const dispoIdx = nav.indexOf('shell-pipeline-trigger');
   const dataIdx = nav.indexOf('shell-data-trigger');
-  assert.ok(leadsIdx > -1 && dataIdx > -1 && leadsIdx < dataIdx);
-  assert.ok(nav.includes('href="/collect"'));
+  assert.ok(leadsIdx > -1 && dispoIdx > -1 && dataIdx > -1);
+  assert.ok(leadsIdx < dispoIdx, 'Leads before Dispo');
+  assert.ok(dispoIdx < dataIdx, 'Dispo before Data');
   assert.ok(!nav.includes('shell-topbar'));
   assert.ok(!nav.includes('Jump'));
 });
@@ -115,4 +132,13 @@ test('vault-only shell rail is Leads section only', () => {
   assert.match(nav, /shell-link-label">Houses</);
   assert.ok(!nav.includes('shell-data-trigger'));
   assert.ok(!nav.includes('shell-link-label">Dashboard<'));
+});
+
+test('government-lists page has Pre-liens open button', () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, '..', 'public', 'government-lists.html'),
+    'utf8'
+  );
+  assert.ok(html.includes('href="/pre-liens"'));
+  assert.ok(html.includes('gl-pre-liens-btn') || html.includes('Pre-liens'));
 });
