@@ -296,7 +296,7 @@ async function handleRequest(req, res) {
     // Shallow: always 200 for Railway basic healthcheck (modules reported in body).
     send(res, 200, JSON.stringify({
       ok: true,
-      service: 'distress-os',
+      service: 'phuglee',
       version: '1.1.0',
       modules: {
         formForge: forge.ok ? 'up' : 'down',
@@ -318,7 +318,7 @@ async function handleRequest(req, res) {
     const status = modulesOk ? 200 : 503;
     send(res, status, JSON.stringify({
       ok: modulesOk,
-      service: 'distress-os',
+      service: 'phuglee',
       version: '1.1.0',
       deep: true,
       modules: {
@@ -508,7 +508,7 @@ async function handleRequest(req, res) {
     return;
   }
 
-  if (config.DISTRESS_ROUTES[pathname]) {
+  if (config.PHUGLEE_ROUTES[pathname]) {
     const auth = require('./lib/phuglee-auth');
     if (auth.isAuthRequired()) {
       const session = auth.readSessionFromReq(req);
@@ -530,7 +530,7 @@ async function handleRequest(req, res) {
         }
       }
     }
-    const file = path.join(config.PUBLIC, config.DISTRESS_ROUTES[pathname]);
+    const file = path.join(config.PUBLIC, config.PHUGLEE_ROUTES[pathname]);
     if (fs.existsSync(file)) {
       const html = fs.readFileSync(file, 'utf8');
       if (req.method === 'HEAD') {
@@ -596,16 +596,16 @@ for (const stream of [process.stdout, process.stderr]) {
 
 const server = http.createServer((req, res) => {
   handleRequest(req, res).catch((err) => {
-    console.error('[Distress OS] Request error:', err);
+    console.error('[Phuglee] Request error:', err);
     if (!res.headersSent) send(res, 500, 'Internal server error');
   });
 });
 
 server.on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
-    console.error(`[Distress OS] Port ${config.PORT} is already in use. Stop the other process or set DISTRESS_OS_PORT.`);
+    console.error(`[Phuglee] Port ${config.PORT} is already in use. Stop the other process or set PHUGLEE_PORT.`);
   } else {
-    console.error('[Distress OS] Server error:', err);
+    console.error('[Phuglee] Server error:', err);
   }
   if (!runtime.isVercel()) process.exit(1);
 });
@@ -716,7 +716,7 @@ function startStandaloneServer() {
 
   const publicHost = config.loopbackHost(config.HOST);
   const onListening = () => {
-    console.log(`Distress OS running at http://${publicHost}:${config.PORT}`);
+    console.log(`Phuglee running at http://${publicHost}:${config.PORT}`);
     console.log(`Railway PORT env: ${process.env.PORT || '(unset)'} | bound: ${config.PORT} host: ${config.HOST || '(dual-stack default)'}`);
     console.log(`Form Forge proxy: http://${publicHost}:${config.PORT}${config.FORGE_PREFIX}/`);
     console.log(`Property Analyzer proxy: http://${publicHost}:${config.PORT}${config.ANALYZER_PREFIX}/`);
@@ -735,7 +735,7 @@ function startStandaloneServer() {
       console.warn('[signnow] background sync start failed:', err.message);
     }
     bootModules().catch((err) => {
-      console.error('[Distress OS] Module boot error:', err);
+      console.error('[Phuglee] Module boot error:', err);
     });
   };
 
@@ -748,11 +748,11 @@ function startStandaloneServer() {
 }
 
 process.on('unhandledRejection', (err) => {
-  console.error('[Distress OS] Unhandled rejection:', err);
+  console.error('[Phuglee] Unhandled rejection:', err);
 });
 
 process.on('uncaughtException', (err) => {
-  console.error('[Distress OS] Uncaught exception:', err);
+  console.error('[Phuglee] Uncaught exception:', err);
 });
 
 if (runtime.isVercel()) {

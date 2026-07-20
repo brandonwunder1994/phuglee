@@ -26,7 +26,7 @@ function loadShellNavApi(sessionUser) {
   };
   sandbox.window = sandbox;
   vm.runInNewContext(shellNavSrc, sandbox);
-  return sandbox.window.DistressOSShellNav;
+  return sandbox.window.PhugleeShellNav || sandbox.window.DistressOSShellNav;
 }
 
 function labelOrder(nav, labels) {
@@ -63,7 +63,7 @@ test('shell rail Data order: Request, Filter, Review, Government Lists (no Pre-l
   assert.ok(!api.isDataSectionActive('command'));
 });
 
-test('shell rail: Dashboard → Leads → Dispo → Data (admin)', () => {
+test('shell rail: Dashboard â†’ Leads â†’ Dispo â†’ Data (admin)', () => {
   const api = loadShellNavApi('admin');
   const nav = api.buildNav('/command');
   assert.ok(nav.includes('shell-link-label">Dashboard<'));

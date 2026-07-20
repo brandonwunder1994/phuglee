@@ -1,6 +1,6 @@
-# Distress OS
+# Phuglee
 
-Unified shell for **Form Forge** (public-records form filling & tracking) and **Property Distress Analyzer** (AI lead screening). Both tools run on their original engines — Phuglee adds a Logo Page, command hub, reverse proxy, and an optional data bridge.
+Unified shell for **Form Forge** (public-records form filling & tracking) and **Property Distress Analyzer** (AI lead screening). Both tools run on their original engines under one Phuglee site — Logo Page, command hub, reverse proxy, and an optional data bridge.
 
 ## Requirements
 
@@ -13,7 +13,8 @@ Unified shell for **Form Forge** (public-records form filling & tracking) and **
 ## Quick start (local)
 
 ```powershell
-cd C:\Users\brand\Projects\distress-os
+cd C:\Users\brand\Projects\phuglee-rename
+# or your local clone of brandonwunder1994/phuglee
 ```
 
 **Option A — double-click**
@@ -30,7 +31,7 @@ npm start
 
 Opens the **Command Hub** at http://127.0.0.1:3000/heat
 
-Distress OS auto-starts Form Forge (`:8787`) and Property Analyzer (`:3456`) if they are not already running.
+Phuglee auto-starts Form Forge (`:8787`) and Property Analyzer (`:3456`) if they are not already running.
 
 ## URLs
 
@@ -62,9 +63,9 @@ See `modules/README.md` for path overrides (`FORM_FORGE_PATH`, `PROPERTY_ANALYZE
 
 ## User guide
 
-### 1. Start Distress OS
+### 1. Start Phuglee
 
-Run `launch-distressos.bat`. The hub opens with live status pills for Forge and Analyzer (green = running).
+Run `launch-distressos.bat` (or `npm start` / `scripts\restart.ps1`). The hub opens with live status pills for Forge and Analyzer (green = running).
 
 ### 2. Collect property data — Form Forge
 
@@ -107,7 +108,7 @@ Form Forge (FOIA requests)
 
 ## Verification
 
-**Distress OS unit tests:**
+**Phuglee unit tests:**
 
 ```powershell
 npm test
@@ -135,8 +136,8 @@ npm test
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `DISTRESS_OS_PORT` | `3000` | Shell server port |
-| `DISTRESS_OS_HOST` | `127.0.0.1` | Bind address |
+| `PHUGLEE_PORT` | `3000` | Shell server port (legacy: `DISTRESS_OS_PORT`) |
+| `PHUGLEE_HOST` | _(empty / Railway 0.0.0.0)_ | Bind address (legacy: `DISTRESS_OS_HOST`) |
 | `FORM_FORGE_PORT` | `8787` | Form Forge upstream |
 | `PROPERTY_ANALYZER_PORT` | `3456` | Analyzer upstream |
 | `FORM_FORGE_PATH` | `modules/form-forge` | Form Forge root |
@@ -181,7 +182,7 @@ Use **Railway** (or Render) instead — one deploy, one URL, full app:
 
 ## Deployment (local production)
 
-Distress OS is designed as a **local desktop operator stack**, with optional single-container cloud deploy via Docker.
+Phuglee is designed as a **local desktop operator stack**, with optional single-container cloud deploy via Docker.
 
 ### Daily use
 
@@ -209,7 +210,7 @@ This adds `distressos.local` → `127.0.0.1` to the Windows hosts file.
 ### Selling / packaging later
 
 - Module boundaries are clean: `modules/form-forge` and `modules/property-analyzer` are self-contained subtrees in one repo
-- Distress OS shell is MIT-ready standalone code under `lib/`, `public/`, `server.js`
+- Phuglee shell is MIT-ready standalone code under `lib/`, `public/`, `server.js`
 - No modifications were made to tool business logic — safe to version and license separately
 - Cloud deployment would require auth, HTTPS reverse proxy, and removing localhost-only assumptions (out of current scope)
 
@@ -228,8 +229,8 @@ Proxied paths rewrite HTML/JS/CSS root URLs so `/api/*` and `/static/*` resolve 
 
 ## Known pre-existing issues (logged, not fixed)
 
-- Form Forge: `tests/test_email_only_audit_sync.py` — 1 failing test (`texas-cedar-park` pending queue). Unrelated to Distress OS.
+- Form Forge: `tests/test_email_only_audit_sync.py` — 1 failing test (`texas-cedar-park` pending queue). Unrelated to Phuglee shell.
 
 ## Version
 
-Distress OS **1.0.0** — Phases 1–6 complete.
+Phuglee **1.0.0** — Phases 1–6 complete.

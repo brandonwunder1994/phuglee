@@ -59,7 +59,9 @@ R.scanSaveHeartbeatMs = function scanSaveHeartbeatMs() {
 R.SAT_VACANT_SKIP_CONFIDENCE = 70;
 R.LOCAL_APP_HOST = 'distressos.local';
 R.LOCAL_APP_URL = 'http://distressos.local:3456';
-R.MODULE_PREFIX = (typeof window.__DISTRESS_OS_MODULE_PREFIX__ === 'string' && window.__DISTRESS_OS_MODULE_PREFIX__) || '';
+R.MODULE_PREFIX = (typeof window.__PHUGLEE_MODULE_PREFIX__ === 'string' && window.__PHUGLEE_MODULE_PREFIX__)
+  || (typeof window.__DISTRESS_OS_MODULE_PREFIX__ === 'string' && window.__DISTRESS_OS_MODULE_PREFIX__)
+  || '';
 R.IS_EMBEDDED = !!R.MODULE_PREFIX;
 R.USE_PROXY = location.hostname === 'localhost'
   || location.hostname === '127.0.0.1'
@@ -72,7 +74,7 @@ R.getAuthToken = function getAuthToken() {
   return typeof window.__PDA_AUTH_TOKEN__ === 'string' ? window.__PDA_AUTH_TOKEN__ : '';
 }
 
-/** Shell (Distress OS) APIs that must NOT be rewritten under MODULE_PREFIX (/analyzer). */
+/** Shell (Phuglee) APIs that must NOT be rewritten under MODULE_PREFIX (/analyzer). */
 R.SHELL_API_PREFIXES = [
   '/api/leads',
   '/api/health',
@@ -96,7 +98,7 @@ R.isShellApiUrl = function isShellApiUrl(url) {
 R.resolveModuleApiUrl = function resolveModuleApiUrl(url) {
   if (typeof url !== 'string' || !url.startsWith('/')) return url;
   const prefix = R.MODULE_PREFIX;
-  // Shell-owned routes stay on Distress OS root — even if the server rewriter
+  // Shell-owned routes stay on Phuglee root — even if the server rewriter
   // already turned fetch('/api/leads/meta') into fetch('/analyzer/api/leads/meta').
   if (R.isShellApiUrl(url)) {
     if (prefix && (url === prefix || url.startsWith(prefix + '/'))) {
@@ -109,7 +111,7 @@ R.resolveModuleApiUrl = function resolveModuleApiUrl(url) {
   return url;
 }
 
-/** Prefix /api/* paths for embedded Distress OS (/analyzer) — img.src does not use fetch patch. */
+/** Prefix /api/* paths for embedded Phuglee (/analyzer) — img.src does not use fetch patch. */
 R.resolveImageryPublicUrl = function resolveImageryPublicUrl(url) {
   if (typeof url !== 'string' || !url) return url;
   if (url.startsWith('/api/')) return R.resolveModuleApiUrl(url);

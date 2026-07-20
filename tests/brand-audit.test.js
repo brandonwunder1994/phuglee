@@ -6,7 +6,7 @@ const path = require('path');
 const EMBER_HEX = /#e85d04/i;
 
 const REPO_ROOTS = [
-  { name: 'distress-os', dir: path.join(__dirname, '..', 'public') },
+  { name: 'phuglee', dir: path.join(__dirname, '..', 'public') },
   {
     name: 'city-list-requests',
     dir: path.join(__dirname, '..', 'modules', 'form-forge', 'review_portal', 'static')
@@ -18,7 +18,7 @@ const REPO_ROOTS = [
 ];
 
 const BRAND_PAGES = {
-  'distress-os': ['index.html', 'heat.html', 'collect.html', 'bridge.html', 'command.html', 'vault.html'],
+  'phuglee': ['index.html', 'heat.html', 'collect.html', 'bridge.html', 'command.html', 'vault.html'],
   'city-list-requests': [
     'index.html',
     'portal.html',
@@ -62,8 +62,9 @@ function pageHasBrandSheet(repo, page) {
   const root = REPO_ROOTS.find((r) => r.name === repo);
   if (!root || !fs.existsSync(root.dir)) return false;
   const html = fs.readFileSync(path.join(root.dir, page), 'utf8');
-  if (repo === 'distress-os') {
-    return html.includes('phuglee-components.css');
+  if (repo === 'phuglee') {
+    // Desk pages use the shell bundle; landing still links components directly.
+    return html.includes('phuglee-components.css') || html.includes('shell-bundle.css');
   }
   if (repo === 'city-list-requests') {
     return html.includes('phuglee-forge.css') && html.includes('phuglee-states.js');

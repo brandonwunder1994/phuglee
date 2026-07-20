@@ -1,7 +1,7 @@
 /**
  * Phuglee — Horizontal property carousel (display only)
  * Non-overlapping cards, even spacing, smooth auto-advance.
- * Vanilla JS — fits Distress OS marketing stack.
+ * Vanilla JS — fits Phuglee marketing stack.
  */
 (function () {
   'use strict';

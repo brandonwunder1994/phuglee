@@ -1,4 +1,4 @@
-# Ensure Distress OS is listening. Start headless if not.
+# Ensure Phuglee is listening. Start headless if not.
 # Safe to run repeatedly (scheduled task / logon / manual).
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\ensure-server.ps1
 #
@@ -8,10 +8,10 @@
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $hostAddr = "127.0.0.1"
-$port = if ($env:DISTRESS_OS_PORT) { [int]$env:DISTRESS_OS_PORT } else { 3000 }
+$port = if ($env:PHUGLEE_PORT) { [int]$env:PHUGLEE_PORT } elseif ($env:DISTRESS_OS_PORT) { [int]$env:DISTRESS_OS_PORT } else { 3000 }
 $healthUrl = "http://${hostAddr}:${port}/api/health"
 $vbs = Join-Path $root "scripts\run-hidden.vbs"
-$pidFile = Join-Path $root ".logs\distress-os.pid"
+$pidFile = Join-Path $root ".logs\phuglee.pid"
 $logDir = Join-Path $root ".logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
 
@@ -54,7 +54,7 @@ if (Test-ServerUp) {
     exit 0
 }
 
-Write-Host "Distress OS not responding - starting headless..."
+Write-Host "Phuglee not responding - starting headless..."
 [void](Start-HiddenServer)
 
 $ready = $false
@@ -70,9 +70,9 @@ $listenPid = Get-ListenerPid -ListenPort $port
 if ($listenPid) { Set-Content -Path $pidFile -Value $listenPid -Encoding ascii }
 
 if ($ready) {
-    Write-Host "Distress OS is up: http://${hostAddr}:${port}/"
+    Write-Host "Phuglee is up: http://${hostAddr}:${port}/"
     exit 0
 }
 
-Write-Host "Failed to start. See .logs\distress-os.log"
+Write-Host "Failed to start. See .logs\phuglee.log"
 exit 1

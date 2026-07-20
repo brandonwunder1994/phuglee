@@ -1,10 +1,11 @@
-# Distress OS - stop background server + module ports
+# Phuglee - stop background server + module ports
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\stop.ps1
 
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $ports = @(3000, 8787, 3456)
-$pidFile = Join-Path $root ".logs\distress-os.pid"
+$pidFile = Join-Path $root ".logs\phuglee.pid"
+$legacyPidFile = Join-Path $root ".logs\distress-os.pid"
 
 function Stop-PortListener {
     param([int]$Port)
@@ -26,26 +27,29 @@ function Stop-PortListener {
     }
 }
 
-Write-Host "Stopping Distress OS..." -ForegroundColor Yellow
+Write-Host "Stopping Phuglee..." -ForegroundColor Yellow
 
-# Disable keep-alive so it does not immediately restart
-$taskName = "PhugleeDistressOS"
-schtasks /Change /TN $taskName /DISABLE 2>$null | Out-Null
-schtasks /Delete /TN $taskName /F 2>$null | Out-Null
+# Disable keep-alive so it does not immediately restart (new + legacy task names)
+foreach ($taskName in @('Phuglee', 'PhugleeDistressOS')) {
+    schtasks /Change /TN $taskName /DISABLE 2>$null | Out-Null
+    schtasks /Delete /TN $taskName /F 2>$null | Out-Null
+}
 
-if (Test-Path $pidFile) {
-    $saved = Get-Content $pidFile -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($saved -match '^\d+$') {
-        Stop-Process -Id ([int]$saved) -Force -ErrorAction SilentlyContinue
-        Write-Host "  Stopped saved PID $saved"
+foreach ($pf in @($pidFile, $legacyPidFile)) {
+    if (Test-Path $pf) {
+        $saved = Get-Content $pf -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($saved -match '^\d+$') {
+            Stop-Process -Id ([int]$saved) -Force -ErrorAction SilentlyContinue
+            Write-Host "  Stopped saved PID $saved"
+        }
+        Remove-Item $pf -Force -ErrorAction SilentlyContinue
     }
-    Remove-Item $pidFile -Force -ErrorAction SilentlyContinue
 }
 
 foreach ($port in $ports) { Stop-PortListener -Port $port }
 
 Get-Process cmd -ErrorAction SilentlyContinue | Where-Object {
-    $_.MainWindowTitle -match 'Distress OS'
+    $_.MainWindowTitle -match 'Distress OS|Phuglee'
 } | ForEach-Object {
     Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
     Write-Host "  Closed leftover console PID $($_.Id)"

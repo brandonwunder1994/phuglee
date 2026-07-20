@@ -1,4 +1,4 @@
-# Verify Distress OS is reachable. Exit 0 only if health + home return 200.
+# Verify Phuglee is reachable. Exit 0 only if health + home return 200.
 # If down, start headless and re-check. Fail hard if still down.
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\verify-live.ps1
 # Optional deep check (modules must be up): -Deep  OR  $env:VERIFY_DEEP=1
@@ -12,7 +12,7 @@ param(
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $hostAddr = "127.0.0.1"
-$port = if ($env:DISTRESS_OS_PORT) { [int]$env:DISTRESS_OS_PORT } else { 3000 }
+$port = if ($env:PHUGLEE_PORT) { [int]$env:PHUGLEE_PORT } elseif ($env:DISTRESS_OS_PORT) { [int]$env:DISTRESS_OS_PORT } else { 3000 }
 $healthUrl = "http://${hostAddr}:${port}/api/health"
 $deepUrl = "http://${hostAddr}:${port}/api/health/deep"
 $homeUrl = "http://${hostAddr}:${port}/"
@@ -100,6 +100,6 @@ if (Test-Path $restart) {
     }
 }
 
-Write-Host "FAILED: Distress OS not reachable at $homeUrl" -ForegroundColor Red
+Write-Host "FAILED: Phuglee not reachable at $homeUrl" -ForegroundColor Red
 Write-Host "Check .logs\distress-os.log"
 exit 1

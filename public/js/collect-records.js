@@ -239,7 +239,7 @@
       allCities = [];
       if (cityListEl) {
         cityListEl.innerHTML =
-          '<p class="collect-city-empty">Could not load cities. Make sure Distress OS is running.</p>';
+          '<p class="collect-city-empty">Could not load cities. Make sure Phuglee is running.</p>';
       }
       setCityStatus(err.message || 'Failed to load cities', 'err');
       updateSelectionLabel();

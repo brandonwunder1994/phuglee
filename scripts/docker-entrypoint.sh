@@ -97,6 +97,8 @@ echo "[entrypoint] Property Analyzer pid=${ANALYZER_PID}"
 sleep 2
 
 export PORT="${PUBLIC_PORT}"
+export PHUGLEE_PORT="${PUBLIC_PORT}"
+# Legacy alias — config still accepts DISTRESS_OS_PORT during rename transition.
 export DISTRESS_OS_PORT="${PUBLIC_PORT}"
-echo "[entrypoint] Starting Distress OS on ${DISTRESS_OS_HOST:-0.0.0.0}:${PUBLIC_PORT}"
+echo "[entrypoint] Starting Phuglee on ${PHUGLEE_HOST:-${DISTRESS_OS_HOST:-0.0.0.0}}:${PUBLIC_PORT}"
 exec node server.js

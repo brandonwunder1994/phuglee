@@ -5001,8 +5001,10 @@ body.bridge-page .bridge-main {
 }
 
 /* Ops desk: no shell marketing footer / status bar — main nav is enough (Analyze parity) */
+body.bridge-page #phuglee-footer-mount,
 body.bridge-page #distress-os-footer-mount,
 body.bridge-page .shell-footer,
+body.bridge-page #phuglee-footer,
 body.bridge-page #distress-os-footer,
 body.bridge-page #distress-status-bar,
 body.bridge-page .distress-status-bar {

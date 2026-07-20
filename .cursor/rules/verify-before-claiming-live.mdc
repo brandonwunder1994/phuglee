@@ -3,9 +3,9 @@ description: ZERO TOLERANCE — never claim working/live/fixed in Phuglee withou
 alwaysApply: true
 ---
 
-# Phuglee / distress-os — verify before you claim ANYTHING works
+# Phuglee — verify before you claim ANYTHING works
 
-This rule applies to **every** chat and agent in this workspace (`distress-os` / Phuglee): Analyze, Filter, Vault, Collect, Train, City Tracker, shell, Railway, local.
+This rule applies to **every** chat and agent in this workspace (Phuglee): Analyze, Filter, Vault, Collect, Train, City Tracker, shell, Railway, local.
 
 ## Absolute ban
 

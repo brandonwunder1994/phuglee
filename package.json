@@ -1,8 +1,8 @@
 {
-  "name": "distress-os",
+  "name": "phuglee",
   "version": "1.1.0",
   "private": true,
-  "description": "Distress OS — unified shell for Form Forge and Property Distress Analyzer",
+  "description": "Phuglee — unified shell for Form Forge and Property Distress Analyzer",
   "scripts": {
     "start": "node server.js",
     "restart": "powershell -ExecutionPolicy Bypass -File scripts/restart.ps1",

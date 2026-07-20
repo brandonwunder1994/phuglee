@@ -16,7 +16,7 @@ Secondary (future): paying customers with their own logins and scoped data. Not 
 
 ## Product Purpose
 
-Phuglee Distress OS helps wholesalers source leads at the clerk, scrub city violation data, rank visible distress from Street View, and export dial-ready lists before aggregators recycle the same names.
+Phuglee helps wholesalers source leads at the clerk, scrub city violation data, rank visible distress from Street View, and export dial-ready lists before aggregators recycle the same names.
 
 Success looks like: one product that feels like a single war room, not six stitched apps; operators trust the UI; the pipeline runs without freezes; the site looks intentional, not AI-generated.
 

@@ -1,4 +1,4 @@
-# Distress OS — full regression verification (GSD monorepo sweep)
+# Phuglee — full regression verification (GSD monorepo sweep)
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\verify.ps1
 #        npm run verify
 
@@ -21,7 +21,7 @@ function Test-Step {
     }
 }
 
-Write-Host "Distress OS GSD Verification (monorepo)" -ForegroundColor Yellow
+Write-Host "Phuglee GSD Verification (monorepo)" -ForegroundColor Yellow
 Write-Host "Root: $root"
 
 Test-Step "Monorepo structure" {
@@ -33,7 +33,7 @@ Test-Step "Monorepo structure" {
     }
 }
 
-Test-Step "Distress OS unit tests" {
+Test-Step "Phuglee unit tests" {
     Set-Location $root
     npm test
     if ($LASTEXITCODE -ne 0) { throw "npm test exit $LASTEXITCODE" }
@@ -69,7 +69,7 @@ Test-Step "Form Forge GSD tests" {
     }
 }
 
-Test-Step "Distress OS HTTP endpoints (server must be running)" {
+Test-Step "Phuglee HTTP endpoints (server must be running)" {
     $base = "http://127.0.0.1:3000"
     $health = Invoke-RestMethod -Uri "$base/api/health" -TimeoutSec 5
     if ($health.service -ne "distress-os") { throw "Unexpected health response" }

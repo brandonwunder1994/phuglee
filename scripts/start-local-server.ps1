@@ -1,4 +1,4 @@
-﻿# start-local-server.ps1 — guarantee Distress OS on 127.0.0.1:3000
+﻿# start-local-server.ps1 — guarantee Phuglee on 127.0.0.1:3000
 $ErrorActionPreference = "Continue"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 # scripts/ -> repo root

@@ -23,8 +23,8 @@ function mockRes() {
   return res;
 }
 
-for (const [route, file] of Object.entries(config.DISTRESS_ROUTES)) {
-  test(`DISTRESS_ROUTES ${route} maps to existing public/${file}`, () => {
+for (const [route, file] of Object.entries(config.PHUGLEE_ROUTES)) {
+  test(`PHUGLEE_ROUTES ${route} maps to existing public/${file}`, () => {
     const full = path.join(config.PUBLIC, file);
     assert.ok(fs.existsSync(full), `missing ${full}`);
   });

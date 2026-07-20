@@ -1,4 +1,4 @@
-# Distress OS / Phuglee — Agent Rules
+# Phuglee — Agent Rules
 
 ## ZERO TOLERANCE: Never claim working / live / fixed without proof
 
@@ -76,7 +76,7 @@ Before you claim work is done, that the site is “live”, or that the user sho
 - Agent shells often kill child process trees when the command finishes (Job Objects).
 - Never start the server with a blocking `node server.js` inside the agent shell.
 - Always start via `scripts\restart.ps1` or `scripts\ensure-server.ps1` / `scripts\run-hidden.vbs` (headless + detached).
-- Keep-alive scheduled task: `PhugleeDistressOS` (every 2 min). `scripts\stop.ps1` removes it.
+- Keep-alive scheduled task: `Phuglee` (every 2 min; legacy name `PhugleeDistressOS` is removed on restart/stop). `scripts\stop.ps1` removes it.
 
 ### Commands
 

@@ -60,8 +60,8 @@ test('does not mangle proxyFetchUrl when rewriting analyzer JS', () => {
   ].join('\n');
   const out = analyzerRewriter.rewriteTextBody(js, 'application/javascript');
   assert.ok(out.includes('proxyFetchUrl'), 'keeps camelCase proxyFetchUrl');
-  assert.equal(out.includes('proxyFetchurl'), false, 'must not lowercase Url → url');
-  // fetch(proxyFetchUrl(...)) is not fetch('/api/...') — path is inside the helper
+  assert.equal(out.includes('proxyFetchurl'), false, 'must not lowercase Url â†’ url');
+  // fetch(proxyFetchUrl(...)) is not fetch('/api/...') â€” path is inside the helper
   assert.ok(out.includes("proxyFetchUrl('/api/sv-base64'"));
   assert.ok(out.includes("proxyFetchUrl('/api/satellite-base64'"));
 });
@@ -100,10 +100,10 @@ test('rewrites template literal postJson calls', () => {
   assert.ok(out.includes('postJson(`/forge/api/portal/city/${id}/submit`'));
 });
 
-test('injects Distress OS shell nav into proxied HTML', () => {
+test('injects Phuglee shell nav into proxied HTML', () => {
   const html = '<!DOCTYPE html><html><head><title>FF</title></head><body class="stamp-theme"><main>x</main></body></html>';
   const out = forgeRewriter.rewriteTextBody(html, 'text/html');
-  assert.ok(out.includes('distress-os-nav-mount'));
+  assert.ok(out.includes('phuglee-nav-mount'));
   assert.ok(out.includes('/css/shell-nav.css'));
   assert.ok(out.includes('/css/premium-atmosphere.css'));
   assert.ok(out.includes('/css/phuglee-components.css'));
@@ -111,9 +111,9 @@ test('injects Distress OS shell nav into proxied HTML', () => {
   assert.ok(out.includes('phuglee-motion.js'));
   assert.ok(out.includes('phuglee-states.js'));
   assert.ok(out.includes('phuglee-a11y.css'));
-  assert.ok(out.includes('distress-os-footer-mount'));
+  assert.ok(out.includes('phuglee-footer-mount'));
   assert.ok(out.includes('shell-nav.js'));
-  assert.ok(out.includes('distress-os-embedded'));
+  assert.ok(out.includes('phuglee-embedded distress-os-embedded'));
   assert.ok(out.includes('has-premium-bg'));
   assert.ok(out.includes('stamp-theme'));
 });

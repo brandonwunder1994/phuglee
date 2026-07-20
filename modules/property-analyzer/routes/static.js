@@ -124,7 +124,7 @@ function register(ctx) {
     if (!file.startsWith(path.join(config.PUBLIC_DIR, 'js'))) return false;
     if (!fs.existsSync(file)) return false;
     const ext = path.extname(file);
-    // no-store: Distress OS rewrites JS on the fly (module prefix). A 24h cache
+    // no-store: Phuglee rewrites JS on the fly (module prefix). A 24h cache
     // once served mangled proxyFetchUrl → proxyFetchurl and froze scans for a day.
     res.writeHead(200, {
       'Content-Type': MIME[ext] || 'application/octet-stream',

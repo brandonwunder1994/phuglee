@@ -57,7 +57,7 @@
 
     bar.innerHTML =
       '<div class="distress-status-left">' +
-        '<span class="distress-status-brand">Distress OS</span>' +
+        '<span class="distress-status-brand">Phuglee</span>' +
         '<span class="distress-status-pill">' +
           '<span class="distress-status-dot ' + (forge ? 'is-up' : 'is-down') + '"></span> Forge' +
         '</span>' +

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Browser UI E2E through Distress OS shell (/analyzer) — mirrors Railway.
+ * Browser UI E2E through Phuglee shell (/analyzer) — mirrors Railway.
  * Logs in as admin, imports CSV, Start Scan, asserts live KPIs move.
  */
 'use strict';
@@ -66,7 +66,7 @@ async function main() {
   await page.waitForTimeout(3500);
 
   const boot = await page.evaluate(() => ({
-    prefix: window.__DISTRESS_OS_MODULE_PREFIX__ || '',
+    prefix: window.__PHUGLEE_MODULE_PREFIX__ || window.__DISTRESS_OS_MODULE_PREFIX__ || '',
     hasPda: !!(window.__PDA_AUTH_TOKEN__),
     hasMaps: !!(window.PDA?.env?.serverConfig?.hasMapsKey),
     hasGemini: !!(window.PDA?.env?.serverConfig?.hasGeminiKey),

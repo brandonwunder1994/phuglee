@@ -25,6 +25,7 @@ html:has(body.command-page) {
 }
 
 /* Hide footer on dashboard so KPIs + map fit one viewport */
+body.command-page #phuglee-footer-mount,
 body.command-page #distress-os-footer-mount {
   display: none;
 }

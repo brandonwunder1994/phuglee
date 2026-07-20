@@ -1,4 +1,4 @@
-# Design System — Phuglee Distress OS (Ops War Room)
+# Design System — Phuglee (Ops War Room)
 
 Captured from existing tokens (`public/css/tokens.css`) and Filter desk patterns. Phase 3 unifies all surfaces to this contract.
 

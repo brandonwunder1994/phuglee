@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   try {
     await handleRequest(req, res);
   } catch (err) {
-    console.error('[Distress OS] Vercel handler error:', err);
+    console.error('[Phuglee] Vercel handler error:', err);
     if (!res.headersSent) {
       res.statusCode = 500;
       res.setHeader('Content-Type', 'text/plain; charset=utf-8');

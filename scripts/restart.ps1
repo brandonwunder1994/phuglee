@@ -1,4 +1,4 @@
-# Distress OS - stop stale servers and start headless (no console window).
+# Phuglee - stop stale servers and start headless (no console window).
 # Also registers a keep-alive scheduled task so the server stays up.
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\restart.ps1
 
@@ -6,8 +6,9 @@ $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $ports = @(3000, 8787, 3456)
 $hostAddr = "127.0.0.1"
-$distressPort = if ($env:DISTRESS_OS_PORT) { [int]$env:DISTRESS_OS_PORT } else { 3000 }
-$taskName = "PhugleeDistressOS"
+$distressPort = if ($env:PHUGLEE_PORT) { [int]$env:PHUGLEE_PORT } elseif ($env:DISTRESS_OS_PORT) { [int]$env:DISTRESS_OS_PORT } else { 3000 }
+$taskName = "Phuglee"
+$legacyTaskName = "PhugleeDistressOS"
 $vbs = Join-Path $root "scripts\run-hidden.vbs"
 $ensurePs1 = Join-Path $root "scripts\ensure-server.ps1"
 
@@ -51,7 +52,8 @@ function Register-KeepAliveTask {
     }
     $tr = "wscript.exe //B //Nologo `"$ensureVbs`""
     try {
-        # Replace any old PowerShell-based task
+        # Replace any old PowerShell-based / legacy-named task
+        schtasks /Delete /TN $legacyTaskName /F 2>$null | Out-Null
         schtasks /Delete /TN $taskName /F 2>$null | Out-Null
         schtasks /Create /TN $taskName /TR $tr /SC MINUTE /MO 2 /F /RL LIMITED 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
@@ -64,7 +66,7 @@ function Register-KeepAliveTask {
 }
 
 Write-Host ""
-Write-Host "Distress OS - restarting (headless, no window)" -ForegroundColor Yellow
+Write-Host "Phuglee - restarting (headless, no window)" -ForegroundColor Yellow
 Write-Host "Root: $root"
 Write-Host ""
 
@@ -72,7 +74,7 @@ Write-Host "Stopping listeners on ports $($ports -join ', ')..." -ForegroundColo
 foreach ($port in $ports) { Stop-PortListener -Port $port }
 
 Get-Process cmd -ErrorAction SilentlyContinue | Where-Object {
-    $_.MainWindowTitle -match 'Distress OS'
+    $_.MainWindowTitle -match 'Distress OS|Phuglee'
 } | ForEach-Object {
     Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
     Write-Host "  Closed leftover console PID $($_.Id)"
@@ -82,8 +84,8 @@ Start-Sleep -Seconds 1
 
 $logDir = Join-Path $root ".logs"
 if (-not (Test-Path $logDir)) { New-Item -ItemType Directory -Path $logDir | Out-Null }
-$logFile = Join-Path $logDir "distress-os.log"
-$pidFile = Join-Path $logDir "distress-os.pid"
+$logFile = Join-Path $logDir "phuglee.log"
+$pidFile = Join-Path $logDir "phuglee.pid"
 
 try {
     Add-Content -Path $logFile -Value "=== restart $(Get-Date -Format o) ===" -Encoding utf8 -ErrorAction SilentlyContinue
@@ -136,7 +138,7 @@ if ($listenPid) {
 
 Write-Host ""
 if ($ready) {
-    Write-Host "Distress OS is up (background, no terminal):" -ForegroundColor Green
+    Write-Host "Phuglee is up (background, no terminal):" -ForegroundColor Green
     Write-Host "  http://127.0.0.1:${distressPort}/"
     Write-Host "  http://localhost:${distressPort}/"
     Write-Host "  Health: $healthUrl" -ForegroundColor DarkGray
@@ -145,7 +147,7 @@ if ($ready) {
     exit 0
 }
 
-Write-Host "Distress OS did not respond within 45s. Check $logFile" -ForegroundColor Red
+Write-Host "Phuglee did not respond within 45s. Check $logFile" -ForegroundColor Red
 if (Test-Path $logFile) {
     Write-Host ""
     Write-Host "Last log lines:" -ForegroundColor DarkGray

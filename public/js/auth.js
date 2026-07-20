@@ -33,7 +33,7 @@
       vault: false,
       features: [
         'Unlimited access to <strong data-coverage-city-count>500+</strong> cities nationwide',
-        'Every tool in the Distress OS stack',
+        'Every tool in the Phuglee stack',
         'Run the full collect → scrub → analyze workflow anywhere',
         'Best value when you\'re serious about volume'
       ]

@@ -42,7 +42,7 @@
     el.setAttribute('aria-live', 'polite');
     el.innerHTML = '<button type="button" class="shell-team-banner-btn" id="shell-team-banner-btn"><span id="shell-team-banner-text">New team message</span></button>';
 
-    const afterNav = document.getElementById('distress-os-nav');
+    const afterNav = document.getElementById('phuglee-nav') || document.getElementById('distress-os-nav');
     const homeBar = document.querySelector('.home-topbar');
     if (afterNav && afterNav.parentNode) {
       afterNav.insertAdjacentElement('afterend', el);

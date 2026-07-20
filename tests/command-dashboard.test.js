@@ -36,7 +36,7 @@ test('command.html has no Pipeline header / snapshot lead copy', () => {
   assert.ok(!html.includes('command-snapshot-title'));
   assert.ok(!html.includes('command-snapshot-lead'));
   assert.ok(!html.includes('>Pipeline</'));
-  assert.ok(!html.includes('Under contract · projected · funded'));
+  assert.ok(!html.includes('Under contract Â· projected Â· funded'));
 });
 
 test('command.html has no mission board / pulse / checklist / tools farm', () => {
@@ -77,7 +77,7 @@ test('command-center.css is centered no-scroll snapshot layout', () => {
   assert.ok(css.includes('justify-content: center'));
   assert.ok(css.includes('100dvh') || css.includes('min-height'));
   assert.ok(css.includes('overflow: hidden'));
-  assert.ok(css.includes('#distress-os-footer-mount'));
+  assert.ok(css.includes('#phuglee-footer-mount'));
   assert.ok(!css.includes('command-quiet-links'));
   assert.ok(!css.includes('command-pulse-node'));
   assert.ok(!css.includes('command-mission-focus'));

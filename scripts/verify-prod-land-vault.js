@@ -92,7 +92,7 @@ function assert(cond, msg) {
 
   // Config route exists: land-vault page asset
   const landPage = await req('GET', '/land-vault.html');
-  // May 404 if only routed via DISTRESS_ROUTES — try /land-vault again for body markers
+  // May 404 if only routed via PHUGLEE_ROUTES — try /land-vault again for body markers
   const pageProbe = html.status === 200 ? htmlBody : (await req('GET', `/js/land-vault-app.js?v=${jsVer}`)).body;
   assert(pageProbe.includes('land-vault') || pageProbe.includes('Land Desk') || pageProbe.includes('builder-packet'), 'land desk markers missing');
 

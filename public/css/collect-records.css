@@ -17,6 +17,7 @@ body.collect-page.has-shell-chrome {
   max-height: 100dvh;
 }
 
+body.collect-page #phuglee-footer-mount,
 body.collect-page #distress-os-footer-mount,
 body.collect-page .shell-footer {
   display: none;

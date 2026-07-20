@@ -80,7 +80,7 @@
   }
 
   function bindShellNavLoading() {
-    const nav = document.getElementById('distress-os-nav');
+    const nav = document.getElementById('phuglee-nav') || document.getElementById('distress-os-nav');
     if (!nav) return;
     nav.querySelectorAll('a.shell-link, a.shell-sublink, a.shell-brand').forEach((link) => {
       link.addEventListener('click', (e) => {

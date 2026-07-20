@@ -200,7 +200,7 @@
     const onAnalyzer = isAnalyzerPath(pathname || window.location.pathname);
     if (isVaultOnlyUser()) {
       return `
-<footer class="shell-footer" id="distress-os-footer">
+<footer class="shell-footer" id="phuglee-footer">
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
@@ -215,12 +215,12 @@
     }
     const metaLine = onAnalyzer
       ? ''
-      : '<span class="shell-footer-meta">Distress OS · Collect. Filter. Analyze.</span>';
+      : '<span class="shell-footer-meta">Phuglee · Collect. Filter. Analyze.</span>';
     const trustLine = onAnalyzer
       ? ''
       : '<p class="shell-footer-trust">Public records only · Your data stays on your machine</p>';
     return `
-<footer class="shell-footer" id="distress-os-footer">
+<footer class="shell-footer" id="phuglee-footer">
   <div class="shell-footer-inner">
     <div class="shell-footer-brand-block">
       <span class="shell-footer-brand">PHUGLEE</span>
@@ -239,10 +239,19 @@
 </footer>`;
   }
 
+  function elById(...ids) {
+    for (let i = 0; i < ids.length; i++) {
+      const el = document.getElementById(ids[i]);
+      if (el) return el;
+    }
+    return null;
+  }
+
   function mountFooter() {
     const path = window.location.pathname;
-    const existing = document.getElementById('distress-os-footer');
-    const mount = document.getElementById('distress-os-footer-mount');
+    // Prefer phuglee-*; accept legacy distress-os-* during rename transition.
+    const existing = elById('phuglee-footer', 'distress-os-footer');
+    const mount = elById('phuglee-footer-mount', 'distress-os-footer-mount');
 
     if (isOpsDeskNoFooterPath(path)) {
       existing?.remove();
@@ -355,7 +364,7 @@
 
     // No page-title top bar, no Jump button — rail only (hamburger on mobile).
     return `
-<div class="shell-chrome" id="distress-os-nav">
+<div class="shell-chrome" id="phuglee-nav">
   <div class="shell-loading-strip" id="shell-loading-strip" hidden aria-hidden="true">
     <div class="phuglee-loading-bar" aria-hidden="true"></div>
   </div>
@@ -428,7 +437,7 @@
   }
 
   function closeMobileNav() {
-    const chrome = document.getElementById('distress-os-nav');
+    const chrome = elById('phuglee-nav', 'distress-os-nav');
     const btn = document.getElementById('shell-nav-menu-btn');
     const backdrop = document.getElementById('shell-rail-backdrop');
     chrome?.classList.remove('is-nav-open');
@@ -441,7 +450,7 @@
   }
 
   function openMobileNav() {
-    const chrome = document.getElementById('distress-os-nav');
+    const chrome = elById('phuglee-nav', 'distress-os-nav');
     const btn = document.getElementById('shell-nav-menu-btn');
     const backdrop = document.getElementById('shell-rail-backdrop');
     chrome?.classList.add('is-nav-open');
@@ -454,7 +463,7 @@
   }
 
   function toggleMobileNav() {
-    const chrome = document.getElementById('distress-os-nav');
+    const chrome = elById('phuglee-nav', 'distress-os-nav');
     if (!chrome) return;
     if (chrome.classList.contains('is-nav-open')) closeMobileNav();
     else openMobileNav();
@@ -485,13 +494,13 @@
   function mount() {
     const path = window.location.pathname;
     if (normalizePath(path) === '/') return;
-    const existing = document.getElementById('distress-os-nav');
+    const existing = elById('phuglee-nav', 'distress-os-nav');
     const html = buildNav(path);
 
     if (existing) {
       existing.outerHTML = html;
     } else {
-      const mountEl = document.getElementById('distress-os-nav-mount');
+      const mountEl = elById('phuglee-nav-mount', 'distress-os-nav-mount');
       if (mountEl) {
         mountEl.innerHTML = html;
       } else {
@@ -499,12 +508,12 @@
       }
     }
 
-    const wrap = document.getElementById('distress-os-nav');
+    const wrap = elById('phuglee-nav', 'distress-os-nav');
     if (path.startsWith('/forge')) {
-      document.body.classList.add('distress-os-embedded');
+      document.body.classList.add('phuglee-embedded', 'distress-os-embedded');
     }
     if (path.startsWith('/analyzer')) {
-      document.body.classList.add('distress-os-embedded', 'analyzer-embedded');
+      document.body.classList.add('phuglee-embedded', 'distress-os-embedded', 'analyzer-embedded');
     }
 
     if (wrap) {
@@ -537,7 +546,7 @@
     });
   }
 
-  window.DistressOSShellNav = {
+  const shellNavApi = {
     mount,
     buildNav,
     buildFooter,
@@ -555,5 +564,8 @@
     isVaultOnlyUser,
     isContractDeskUser
   };
+  window.PhugleeShellNav = shellNavApi;
+  /** @deprecated Use PhugleeShellNav — kept during rename transition. */
+  window.DistressOSShellNav = shellNavApi;
   mount();
 })();
