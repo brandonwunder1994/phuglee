@@ -253,3 +253,91 @@ test('OCR-META-04: prefers explicit ocrPagesProcessed / ocrPagesTotal / ocrPageC
     }
   );
 });
+
+
+test('OCR-META-05: attachOcrHonestyFields preserves truncation when text-path shape wins', () => {
+  const {
+    attachOcrHonestyFields,
+    captureOcrHonesty
+  } = require('../lib/bridge-engine/parsers/pdf');
+
+  const honesty = captureOcrHonesty({
+    text: 'ocr body',
+    ocrTruncated: true,
+    ocrMaxPages: 12,
+    ocrTotalPages: 40,
+    ocrPageCapNote: 'OCR stopped at page cap (12).',
+    rotatedBy: [270, 0]
+  });
+  assert.equal(honesty.ocrTruncated, true);
+  assert.equal(honesty.ocrMaxPages, 12);
+  assert.equal(honesty.ocrTotalPages, 40);
+
+  // Simulate embedded-text path winning the street contest after OCR ran
+  const textWin = {
+    parser: 'pdf-xlsx',
+    parseMode: 'text-table-to-xlsx',
+    headers: ['Street Address', 'Violation Type'],
+    rows: [
+      { 'Street Address': '1 Text Wins St', 'Violation Type': 'Overgrown weeds' }
+    ],
+    pageCount: 12
+  };
+  const out = attachOcrHonestyFields(textWin, honesty);
+  assert.equal(out.ocrTruncated, true, 'truncation must attach even when text path wins');
+  assert.equal(out.ocrMaxPages, 12);
+  assert.equal(out.ocrTotalPages, 40);
+  assert.equal(out.ocrPageCapNote, 'OCR stopped at page cap (12).');
+  assert.deepEqual(out.rotatedBy, [270, 0]);
+  assert.equal(out.parseMode, 'text-table-to-xlsx', 'text path shape preserved');
+});
+
+test('OCR-META-06: attach no-ops when OCR never ran (honesty null)', () => {
+  const { attachOcrHonestyFields } = require('../lib/bridge-engine/parsers/pdf');
+  const plain = { parser: 'pdf-xlsx', parseMode: 'text-table-to-xlsx', rows: [] };
+  const out = attachOcrHonestyFields(plain, null);
+  assert.equal(out.ocrTruncated, undefined);
+  assert.equal(attachOcrHonestyFields(null, { ocrTruncated: true }), null);
+});
+
+test('OCR-META-07: processUpload text-path-win parse + truncated flags → meta.ocrTruncated', async () => {
+  const { attachOcrHonestyFields, captureOcrHonesty } = require('../lib/bridge-engine/parsers/pdf');
+  const honesty = captureOcrHonesty({
+    ocrTruncated: true,
+    ocrMaxPages: 12,
+    ocrTotalPages: 40,
+    ocrPageCapNote: 'OCR stopped at page cap (12).',
+    rotatedBy: [90]
+  });
+  const textPathWin = attachOcrHonestyFields(
+    {
+      parser: 'pdf-xlsx',
+      parseMode: 'text-table-to-xlsx',
+      headers: ['Street Address', 'Violation Type'],
+      rows: [
+        { 'Street Address': '50 Text Path Ave', 'Violation Type': 'Accumulation of trash' },
+        { 'Street Address': '51 Text Path Ave', 'Violation Type': 'Overgrown weeds' }
+      ],
+      pageCount: 12,
+      ocrConfidence: 68
+    },
+    honesty
+  );
+
+  await withMockedParsePdf(textPathWin, async ({ processUpload }) => {
+    const result = await processUpload({
+      buffer: Buffer.from('%PDF-1.4 text-wins-truncated-ocr'),
+      filename: 'text-wins-cap.pdf',
+      city: CITY,
+      uploadType: 'code_violation',
+      username: 'admin',
+      confirmedTypeHeader: 'Violation Type'
+    });
+    const meta = result.processingMeta;
+    assert.equal(meta.ocrTruncated, true, 'silent page loss forbidden when text path won');
+    assert.equal(meta.ocrPagesProcessed, 12);
+    assert.equal(meta.ocrPagesTotal, 40);
+    assert.equal(meta.ocrPageCap, 12);
+    assert.deepEqual(meta.rotatedBy, [90]);
+  });
+});
