@@ -1,6 +1,9 @@
 (function () {
   'use strict';
 
+  var KPI_CACHE_KEY = 'phuglee_command_deal_kpis_v1';
+  var KPI_CACHE_TTL_MS = 60 * 1000;
+
   function hideShellLoading() {
     if (window.PhugleeStates && typeof window.PhugleeStates.hideShellLoading === 'function') {
       window.PhugleeStates.hideShellLoading();
@@ -77,6 +80,34 @@
     status.textContent = message;
   }
 
+  function readKpiCache() {
+    try {
+      var raw = sessionStorage.getItem(KPI_CACHE_KEY);
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || !parsed.totals || typeof parsed.ts !== 'number') return null;
+      if (Date.now() - parsed.ts > KPI_CACHE_TTL_MS) return null;
+      return parsed.totals;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeKpiCache(totals) {
+    try {
+      sessionStorage.setItem(
+        KPI_CACHE_KEY,
+        JSON.stringify({ ts: Date.now(), totals: totals || {} })
+      );
+    } catch (_) {}
+  }
+
+  function clearKpiCache() {
+    try {
+      sessionStorage.removeItem(KPI_CACHE_KEY);
+    } catch (_) {}
+  }
+
   /**
    * Motivating pipeline strip from contracts totals (same source as Under Contract desk).
    * - under contract: open deals (under_contract + buyer_found)
@@ -104,6 +135,14 @@
     var ucEl = document.getElementById('command-uc-count');
     if (!ucEl) return Promise.resolve();
 
+    // Paint last-known KPIs immediately so the strip feels instant on revisit.
+    var cached = readKpiCache();
+    var paintedFromCache = false;
+    if (cached) {
+      applyDealTotals(cached);
+      paintedFromCache = true;
+    }
+
     return fetch('/api/leads/admin/contracts', {
       credentials: 'same-origin',
       cache: 'no-store',
@@ -111,6 +150,7 @@
     })
       .then(function (res) {
         if (res.status === 401 || res.status === 403) {
+          clearKpiCache();
           setText('command-uc-count', '—');
           setText('command-projected-funding', '—');
           setText('command-total-funded', '—');
@@ -123,9 +163,13 @@
       .then(function (data) {
         if (!data) return;
         if (!data.ok && !data.totals) throw new Error(data.error || 'No totals');
-        applyDealTotals(data.totals || {});
+        var totals = data.totals || {};
+        applyDealTotals(totals);
+        writeKpiCache(totals);
       })
       .catch(function () {
+        // Keep cached numbers if we already painted them; only show error cold.
+        if (paintedFromCache) return;
         setText('command-uc-count', '—');
         setText('command-projected-funding', '—');
         setText('command-total-funded', '—');
