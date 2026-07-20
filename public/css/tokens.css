@@ -97,6 +97,12 @@
   --radius-pill: 999px;
   --nav-h: auto;
 
+  /* App shell — left rail + thin top bar (SaaS product chrome) */
+  --shell-rail-width: 240px;
+  --shell-topbar-height: 52px;
+  /* Back-compat: sticky desks / embeds still read this as top chrome height */
+  --distress-nav-offset: var(--shell-topbar-height);
+
   /* Shadows (phuglee) — layered for raised premium depth */
   --shadow-panel:
     0 2px 4px rgba(0, 0, 0, 0.22),

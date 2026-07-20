@@ -55,11 +55,6 @@ svg:not([width]):not([height]) {
 }
 
 @media (max-width: 768px) {
-  .shell-nav {
-    padding: 0.55rem max(0.85rem, env(safe-area-inset-right, 0px))
-      0.55rem max(0.85rem, env(safe-area-inset-left, 0px));
-  }
-
   .shell-nav-menu-btn,
   .shell-nav-palette-btn {
     min-width: var(--phuglee-touch-min);
@@ -69,15 +64,10 @@ svg:not([width]):not([height]) {
     box-sizing: border-box;
   }
 
-  .shell-links .shell-link,
-  .shell-links .shell-nav-dropdown-trigger {
+  .shell-links .shell-link {
     min-height: var(--phuglee-touch-min);
     display: inline-flex;
     align-items: center;
-  }
-
-  .shell-nav-dropdown-item {
-    min-height: var(--phuglee-touch-min);
   }
 
   .shell-footer-inner {
@@ -180,7 +170,7 @@ svg:not([width]):not([height]) {
 }
 
 @media (max-width: 360px) {
-  .shell-nav {
-    gap: 0.35rem;
+  .shell-topbar-title {
+    font-size: 0.88rem;
   }
 }
