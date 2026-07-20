@@ -1110,7 +1110,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  max-width: 18rem;
+  max-width: 22rem;
+  flex-wrap: wrap;
+}
+
+.uc-property-main .uc-deal-type-badge,
+.uc-property-main .uc-tf-alert,
+.uc-property-main .uc-sms-alert {
+  flex-shrink: 0;
 }
 
 .uc-thumb-btn {
