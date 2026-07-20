@@ -1,12 +1,12 @@
 (function () {
   const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
 
+  /** Data desk order: Request → Filter → Review → Government Lists (Pre-liens lives on GL page). */
   const DATA_LINKS = [
     { id: 'collect', label: 'Request', href: '/collect' },
-    { id: 'government-lists', label: 'Government Lists', href: '/government-lists' },
-    { id: 'pre-liens', label: 'Pre-liens', href: '/pre-liens' },
     { id: 'bridge', label: 'Filter', href: '/filter' },
-    { id: 'analyzer', label: 'Review', href: '/analyzer/' }
+    { id: 'analyzer', label: 'Review', href: '/analyzer/' },
+    { id: 'government-lists', label: 'Government Lists', href: '/government-lists' }
   ];
 
   /** Dispo desk (was Pipeline) — Under Contract + Buyers only; /pipeline page stays reachable via URL/settings if needed. */
@@ -146,6 +146,8 @@
   }
 
   function isDataSectionActive(current) {
+    // Pre-liens is reached from Government Lists, not a rail row — still light Data.
+    if (current === 'pre-liens') return true;
     return DATA_LINKS.some((l) => l.id === current);
   }
 
@@ -227,10 +229,9 @@
     <nav class="shell-footer-links" aria-label="Footer">
       <a href="/heat" class="shell-footer-link">How It Works</a>
       <a href="/collect" class="shell-footer-link">Request</a>
-      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
-      <a href="/pre-liens" class="shell-footer-link">Pre-liens</a>
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Review</a>
+      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
       <a href="/vault" class="shell-footer-link">The Vault</a>
     </nav>
   </div>
@@ -322,13 +323,6 @@
         current,
         sectionActive: isVaultSectionActive(current)
       });
-      const dataHtml = buildRailSection({
-        id: 'data',
-        label: 'Data',
-        links: DATA_LINKS,
-        current,
-        sectionActive: isDataSectionActive(current)
-      });
       const dispoHtml = isAdminUser()
         ? buildRailSection({
             id: 'pipeline',
@@ -338,8 +332,15 @@
             sectionActive: isPipelineSectionActive(current)
           })
         : '';
-      // Dashboard → Leads → Data → Dispo
-      railBody = dashboardHtml + leadsHtml + dataHtml + dispoHtml;
+      const dataHtml = buildRailSection({
+        id: 'data',
+        label: 'Data',
+        links: DATA_LINKS,
+        current,
+        sectionActive: isDataSectionActive(current)
+      });
+      // Dashboard → Leads → Dispo → Data
+      railBody = dashboardHtml + leadsHtml + dispoHtml + dataHtml;
     }
 
     const railFooterHtml = isAuthenticated()
