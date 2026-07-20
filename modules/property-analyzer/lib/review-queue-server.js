@@ -67,7 +67,7 @@ function matchesReviewFilter(r, filter) {
   return false;
 }
 
-function buildPendingForFilter(list, f) {
+function buildPendingForFilter(list, f, reviewedKeySet = null) {
   let totalInFilter = 0;
   let reviewedInFilter = 0;
   const pendingRows = [];
@@ -77,7 +77,9 @@ function buildPendingForFilter(list, f) {
     if (!matchesReviewFilter(r, f)) continue;
     totalInFilter += 1;
     const key = recordKeyFromResult(r);
-    if (isExcludedFromReview(r, f)) {
+    // Exclude hard-reviewed stamps on the row OR keys saved in reviewedKeysByFilter
+    // (Exit Review partial sync may land the bucket before every result field merges).
+    if (isExcludedFromReview(r, f) || (key && reviewedKeySet && reviewedKeySet.has(key))) {
       reviewedInFilter += 1;
       continue;
     }
@@ -88,19 +90,39 @@ function buildPendingForFilter(list, f) {
   return { pendingKeys, pendingRows, totalInFilter, reviewedInFilter };
 }
 
-function getCachedPending(list, f) {
-  if (!list || typeof list !== 'object') {
-    return buildPendingForFilter(Array.isArray(list) ? list : [], f);
+function reviewedKeySetForFilter(reviewedKeysByFilter, f) {
+  const buckets = reviewedKeysByFilter && typeof reviewedKeysByFilter === 'object'
+    ? reviewedKeysByFilter
+    : null;
+  if (!buckets) return null;
+  const set = new Set();
+  const primary = Array.isArray(buckets[f]) ? buckets[f] : [];
+  for (const k of primary) if (k) set.add(k);
+  // Soft cross-bucket: if a lead was reviewed under any filter, keep it out of all queues.
+  for (const name of Object.keys(buckets)) {
+    const arr = Array.isArray(buckets[name]) ? buckets[name] : [];
+    for (const k of arr) if (k) set.add(k);
   }
+  return set.size ? set : null;
+}
+
+function getCachedPending(list, f, reviewedKeySet = null) {
+  if (!list || typeof list !== 'object') {
+    return buildPendingForFilter(Array.isArray(list) ? list : [], f, reviewedKeySet);
+  }
+  // Cache key includes whether we have reviewed-key exclusions (session progress changes often).
+  const cacheToken = reviewedKeySet && reviewedKeySet.size
+    ? `${f}::rk${reviewedKeySet.size}`
+    : f;
   let byFilter = queueCacheByResults.get(list);
   if (!byFilter) {
     byFilter = new Map();
     queueCacheByResults.set(list, byFilter);
   }
-  let built = byFilter.get(f);
+  let built = byFilter.get(cacheToken);
   if (!built) {
-    built = buildPendingForFilter(list, f);
-    byFilter.set(f, built);
+    built = buildPendingForFilter(list, f, reviewedKeySet);
+    byFilter.set(cacheToken, built);
   }
   return built;
 }
@@ -108,7 +130,7 @@ function getCachedPending(list, f) {
 /**
  * @param {object[]} results
  * @param {string} filter
- * @param {{ offset?: number, limit?: number, includeKeys?: boolean, resultsOnly?: boolean }} [opts]
+ * @param {{ offset?: number, limit?: number, includeKeys?: boolean, resultsOnly?: boolean, reviewedKeysByFilter?: object }} [opts]
  */
 function buildSessionReviewQueue(results, filter, opts = {}) {
   const f = String(filter || '').toLowerCase().replace(/-/g, '_');
@@ -126,7 +148,8 @@ function buildSessionReviewQueue(results, filter, opts = {}) {
       ? false
       : offset === 0);
 
-  const built = getCachedPending(list, f);
+  const reviewedKeySet = reviewedKeySetForFilter(opts.reviewedKeysByFilter, f);
+  const built = getCachedPending(list, f, reviewedKeySet);
   const slice = built.pendingRows.slice(offset, offset + limit);
 
   return {
