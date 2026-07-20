@@ -15,6 +15,9 @@ body {
   padding: 2rem 1.5rem 3rem;
 }
 
+/* Shell-rail era: desk uses content column (not brochure centered card) */
+
+
 .bridge-main > * {
   position: relative;
   z-index: var(--z-main);
@@ -4908,67 +4911,348 @@ button.bridge-inventory-filter-chip.is-active {
    No stacked frames, no always-on mission glow. Behavior unchanged.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Atmosphere: calm void, soft heat — not neon fog */
-body.bridge-page.has-premium-bg {
-  background: #0c0b0a;
+/*
+ * Filter page atmosphere — match Analyze desk v2 *perceived* fade.
+ * Analyze plate uses opacity 0.68 + dark house photo. Filter’s desk lamp plate
+ * is much brighter, so we fade opacity + grade + vignette until it sits as quiet
+ * atmosphere behind solid panels (same product feel as Analyze).
+ */
+body.bridge-page.has-premium-bg,
+body.bridge-page.phuglee-app {
+  background: #0d0d0d;
   --bridge-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --bridge-grid: 8px;
   --bridge-hairline: rgba(174, 163, 143, 0.16);
   --bridge-hairline-hot: rgba(229, 132, 53, 0.32);
-  --bridge-surface: rgba(14, 12, 11, 0.72);
-  --bridge-inset: rgba(8, 7, 6, 0.55);
+  --bridge-surface: rgba(14, 13, 11, 0.92);
+  --bridge-inset: rgba(10, 10, 9, 0.96);
+  /* Brighter plate → lower opacity than Analyze’s 0.68 house plate */
+  --shell-photo-opacity: 0.36;
 }
 
-body.bridge-page.has-premium-bg .premium-bg--strong {
-  --premium-photo-opacity: 0.42;
-  --premium-grain-opacity: 0.16;
-  --premium-wear-opacity: 0.2;
+/* Filter-only plate (Imagine) — faded to Analyze atmosphere weight */
+body.bridge-page .phuglee-shell-bg::before {
+  opacity: var(--shell-photo-opacity, 0.36) !important;
+  background: url('/images/filter-hero-desk.jpg') center 38% / cover no-repeat !important;
+  /* Slightly greyer + darker than Analyze (0.7 brightness) so lamp glow does not dominate */
+  filter: grayscale(14%) contrast(1.12) brightness(0.52) saturate(0.82) !important;
 }
 
-body.bridge-page.has-premium-bg .premium-bg::after {
+body.bridge-page .phuglee-shell-bg--strong {
+  --shell-photo-opacity: 0.36;
+}
+
+/* Same vignette stack as Analyze desk v2 (+ a touch more edge dark for bright plate) */
+body.bridge-page .phuglee-shell-bg::after {
   background:
-    radial-gradient(ellipse 90% 55% at 50% 0%, rgba(229, 132, 53, 0.1) 0%, transparent 55%),
-    linear-gradient(180deg, rgba(12, 11, 10, 0.88) 0%, rgba(12, 11, 10, 0.5) 18%, transparent 42%),
-    linear-gradient(0deg, rgba(12, 11, 10, 0.94) 0%, rgba(12, 11, 10, 0.55) 14%, transparent 36%),
-    radial-gradient(ellipse 130% 110% at 50% 40%, transparent 0%, transparent 35%, rgba(12, 11, 10, 0.55) 75%, rgba(12, 11, 10, 0.9) 100%);
+    radial-gradient(
+      ellipse 80% 60% at 50% 40%,
+      rgba(229, 132, 53, 0.05) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 90% 70% at 50% 45%,
+      transparent 0%,
+      transparent 42%,
+      rgba(0, 0, 0, 0.28) 78%,
+      rgba(0, 0, 0, 0.55) 100%
+    ),
+    linear-gradient(180deg, rgba(13, 13, 13, 0.78) 0%, rgba(13, 13, 13, 0.32) 12%, transparent 30%),
+    linear-gradient(0deg, rgba(13, 13, 13, 0.85) 0%, rgba(13, 13, 13, 0.35) 14%, transparent 32%) !important;
 }
 
 body.bridge-page.has-premium-bg .heat-glow {
-  opacity: 0.55;
+  opacity: 0.28;
 }
 
 body.bridge-page.has-premium-bg .heat-grid {
-  opacity: 0.04;
+  opacity: 0.08;
 }
 
-/* Layout — centered desk column (especially under left rail shell) */
+/* Solid near-opaque desk panels — Analyze desk v2 depth (not thin glass mush) */
+body.bridge-page .bridge-panel.phuglee-panel,
+body.bridge-page .bridge-scrub-stage,
+body.bridge-page .phuglee-panel.bridge-panel--desk {
+  background: rgba(14, 13, 11, 0.92) !important;
+  backdrop-filter: blur(10px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(115%) !important;
+  border: 1px solid rgba(174, 163, 143, 0.16) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35) inset,
+    0 14px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+body.bridge-page .bridge-scrub-stage.bridge-elev--primary,
+body.bridge-page .bridge-panel--desk.bridge-elev--primary {
+  background:
+    linear-gradient(180deg, rgba(229, 132, 53, 0.07) 0%, transparent 28%),
+    rgba(16, 15, 13, 0.96) !important;
+  border-color: rgba(229, 132, 53, 0.22) !important;
+  box-shadow:
+    0 0 0 1px rgba(229, 132, 53, 0.06) inset,
+    0 14px 40px rgba(0, 0, 0, 0.5),
+    0 0 28px rgba(229, 132, 53, 0.06) !important;
+}
+
+body.bridge-page .bridge-main {
+  position: relative;
+  z-index: 2;
+}
+
+/* Ops desk: no shell marketing footer / status bar — main nav is enough (Analyze parity) */
+body.bridge-page #distress-os-footer-mount,
+body.bridge-page .shell-footer,
+body.bridge-page #distress-os-footer,
+body.bridge-page #distress-status-bar,
+body.bridge-page .distress-status-bar {
+  display: none !important;
+}
+
+body.bridge-page.has-status-bar {
+  padding-bottom: 0 !important;
+}
+
+/* ── Left-out rescue (FN types → Keep these) ── */
+.bridge-left-out-panel[hidden] {
+  display: none !important;
+}
+
+.bridge-left-out-panel:not([hidden]) {
+  display: block;
+  margin: 0 0 1.15rem;
+  padding: 1.1rem 1.15rem 1.1rem;
+  border-radius: 14px;
+  border: 2px solid rgba(238, 183, 70, 0.55);
+  background:
+    linear-gradient(135deg, rgba(238, 183, 70, 0.14) 0%, transparent 45%),
+    rgba(22, 18, 10, 0.97);
+  box-shadow:
+    0 0 0 1px rgba(238, 183, 70, 0.12) inset,
+    0 14px 36px rgba(0, 0, 0, 0.45);
+}
+
+.bridge-left-out-panel.is-attention:not([hidden]) {
+  animation: bridge-left-out-pulse 1.6s ease-out 1;
+}
+
+@keyframes bridge-left-out-pulse {
+  0% {
+    box-shadow:
+      0 0 0 1px rgba(238, 183, 70, 0.12) inset,
+      0 0 0 0 rgba(238, 183, 70, 0.55),
+      0 14px 36px rgba(0, 0, 0, 0.45);
+  }
+  40% {
+    box-shadow:
+      0 0 0 1px rgba(238, 183, 70, 0.2) inset,
+      0 0 0 6px rgba(238, 183, 70, 0.28),
+      0 14px 36px rgba(0, 0, 0, 0.45);
+  }
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(238, 183, 70, 0.12) inset,
+      0 0 0 0 rgba(238, 183, 70, 0),
+      0 14px 36px rgba(0, 0, 0, 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bridge-left-out-panel.is-attention:not([hidden]) {
+    animation: none;
+  }
+}
+
+.bridge-left-out-kicker {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-gold, #eeb746);
+}
+
+.bridge-left-out-head {
+  margin-bottom: 0.75rem;
+}
+
+.bridge-left-out-panel h3 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-body, Outfit, system-ui, sans-serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--phuglee-cream, #f5f2e4);
+}
+
+.bridge-left-out-lead {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: rgba(176, 169, 156, 0.95);
+  max-width: 42rem;
+}
+
+.bridge-left-out-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 0.85rem;
+  margin-bottom: 0.75rem;
+}
+
+.bridge-left-out-summary {
+  font-size: 0.82rem;
+  color: rgba(176, 169, 156, 0.9);
+}
+
+.bridge-left-out-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: min(22rem, 50vh);
+  overflow: auto;
+}
+
+.bridge-left-out-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem 0.85rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid rgba(174, 163, 143, 0.16);
+  background: rgba(10, 10, 9, 0.72);
+}
+
+.bridge-left-out-row-main {
+  min-width: 0;
+}
+
+.bridge-left-out-type {
+  display: block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--phuglee-cream, #f5f2e4);
+  word-break: break-word;
+}
+
+.bridge-left-out-meta {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.78rem;
+  color: rgba(176, 169, 156, 0.88);
+}
+
+.bridge-left-out-samples {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.74rem;
+  color: rgba(176, 169, 156, 0.72);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bridge-left-out-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.4rem;
+}
+
+.bridge-left-out-status {
+  margin: 0.65rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(176, 169, 156, 0.95);
+}
+
+.bridge-left-out-status.is-success {
+  color: var(--phuglee-success, #3dd68c);
+}
+
+.bridge-left-out-status.is-error {
+  color: var(--phuglee-danger, #f87171);
+}
+
+@media (max-width: 640px) {
+  .bridge-left-out-row {
+    grid-template-columns: 1fr;
+  }
+  .bridge-left-out-actions {
+    justify-content: stretch;
+  }
+  .bridge-left-out-actions .phuglee-btn {
+    flex: 1;
+  }
+}
+
+/* Layout — narrow brochure column only when shell chrome is absent */
 body.bridge-page .bridge-main {
   max-width: 1040px;
-  width: min(1040px, 100%);
-  margin-left: auto;
-  margin-right: auto;
   padding: calc(var(--bridge-grid) * 3) calc(var(--bridge-grid) * 3) calc(var(--bridge-grid) * 5);
-  box-sizing: border-box;
 }
 
-/* Shell flex body stretches children full width — re-center the Filter desk */
-body.bridge-page.has-shell-chrome .bridge-main {
-  width: min(960px, calc(100% - 2rem));
-  max-width: 960px;
-  margin-left: auto;
-  margin-right: auto;
-  align-self: center;
-  padding: 1.25rem 1.15rem 2rem;
-  box-sizing: border-box;
+
+
+/* Shell density: less empty air between rail, topbar, and desk */
+body.bridge-page.has-shell-chrome .bridge-desk {
+  margin-bottom: 0.85rem;
 }
 
-body.bridge-page.has-shell-chrome .bridge-desk,
-body.bridge-page.has-shell-chrome .bridge-scrub-stage,
-body.bridge-page.has-shell-chrome #bridge-scrub-stage {
-  width: 100%;
-  max-width: 100%;
-  margin-left: 0;
-  margin-right: 0;
+body.bridge-page.has-shell-chrome .bridge-city-search-block {
+  margin-bottom: 0.65rem;
+}
+
+body.bridge-page.has-shell-chrome .bridge-panel h2,
+body.bridge-page.has-shell-chrome .bridge-meta-heading {
+  margin-bottom: 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--phuglee-stone);
+}
+
+body.bridge-page.has-shell-chrome #bridge-scrub-stage.bridge-scrub-stage,
+body.bridge-page.has-shell-chrome .bridge-elev--primary.bridge-scrub-stage {
+  border-radius: 10px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.18),
+    0 10px 28px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.bridge-page.has-shell-chrome .bridge-scrub-stage .bridge-panel.phuglee-panel,
+body.bridge-page.has-shell-chrome .bridge-panel.phuglee-panel {
+  padding: 0.8rem 0.95rem 0.9rem;
+}
+
+body.bridge-page.has-shell-chrome #bridge-results-panel.bridge-panel.phuglee-panel,
+body.bridge-page.has-shell-chrome #bridge-loading-panel.bridge-panel.phuglee-panel {
+  margin-top: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 10px;
+}
+
+/* Full-width work strips (lists / inventory) under shell */
+body.bridge-page.has-shell-chrome .bridge-lists-header,
+body.bridge-page.has-shell-chrome .bridge-mission-surface {
+  max-width: none;
+}
+
+/* State + city row: use width without looking sparse */
+body.bridge-page.has-shell-chrome .bridge-row {
+  gap: 0.75rem 1rem;
+}
+
+body.bridge-page.has-shell-chrome .bridge-row label {
+  min-width: 0;
+}
+
+@media (min-width: 901px) {
+  body.bridge-page.has-shell-chrome .bridge-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
 }
 
 body.bridge-page .bridge-main::before {
@@ -5929,4 +6213,21 @@ body.bridge-page details.bridge-lists-details {
 .bridge-error-wrap .bridge-zero-kept-recovery {
   margin: 0;
   width: 100%;
+}
+
+/* ── Filter desk: centered column under left rail (2026-07) ── */
+body.bridge-page.has-shell-chrome .bridge-main {
+  flex: 0 1 auto;
+  width: min(920px, calc(100% - 2.5rem));
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+  align-self: center;
+  padding: 1.35rem 1.25rem 2.25rem;
+  box-sizing: border-box;
+}
+
+body.bridge-page .bridge-main {
+  margin-left: auto;
+  margin-right: auto;
 }
