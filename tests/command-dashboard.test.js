@@ -96,6 +96,15 @@ test('home-coverage.js still renders command map host (not city/state KPIs)', ()
   assert.ok(!js.includes("['command-state-count'"));
 });
 
+test('coverage pending wording is Coming Soon not states not yet', () => {
+  const html = read('command.html');
+  const js = read('js/home-coverage.js');
+  assert.ok(html.includes('Coming Soon'));
+  assert.ok(!html.includes('Not yet'));
+  assert.ok(js.includes("Coming Soon"));
+  assert.ok(!js.includes('states not yet'));
+});
+
 test('command cache-bust after snapshot layout', () => {
   const html = read('command.html');
   const jsV = html.match(/command-center\.js\?v=(\d+)/);

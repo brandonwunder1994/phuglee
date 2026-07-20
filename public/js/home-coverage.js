@@ -293,7 +293,7 @@
     el.innerHTML =
       '<strong>' + formatCount(stats.cities) + ' cities</strong> across ' +
       '<strong>' + formatCount(stats.states) + ' states</strong> · ' +
-      stats.notYetStates + ' states not yet · ' +
+      stats.notYetStates + ' Coming Soon · ' +
       stats.unavailableStates + ' states we can\'t pull data from';
   }
 
