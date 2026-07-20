@@ -1087,6 +1087,30 @@ test('dealType cash vs subject_to normalizes and patches', () => {
   assert.equal(contracts.normalizeDealType('Cash Deal'), 'cash');
 });
 
+test('dealType badges infer cash vs subject_to when unset', () => {
+  const unsetCash = contracts.upsertDeal({
+    address: '11 Infer Cash Ave',
+    city: 'Tulsa',
+    state: 'OK',
+    stage: 'under_contract'
+  });
+  assert.equal(unsetCash.dealType, '');
+  assert.equal(contracts.resolveDealType(unsetCash), 'cash');
+  assert.equal(contracts.enrichDealForDisplay(unsetCash).dealType, 'cash');
+
+  const withSubtoDoc = {
+    ...unsetCash,
+    dealType: '',
+    documents: [{
+      kind: 'purchase_contract',
+      label: 'subto',
+      name: 'Subject-To Purchase Agreement.pdf'
+    }]
+  };
+  assert.equal(contracts.resolveDealType(withSubtoDoc), 'subject_to');
+  assert.equal(contracts.enrichDealForDisplay(withSubtoDoc).dealTypeLabel, 'Subject-to deal');
+});
+
 test('POST contract documents accepts large base64 body and stores file', async () => {
   const deal = contracts.upsertDeal({
     address: '77 Upload Docs Rd',
