@@ -925,6 +925,8 @@
   }
 
   function trustFundBadgeHtml(deal) {
+    // Already have a buyer — no flashing Buyer Fit / Maybe alert.
+    if (processBuyerFound(deal)) return '';
     const flag = deal && (deal.buyerMatch || deal.trustFundMatch);
     if (!flag || !flag.hit) return '';
     const cls = flag.tier === 'partial' ? 'uc-tf-alert uc-tf-alert--partial' : 'uc-tf-alert';
@@ -994,11 +996,14 @@
         if (open && state.profile && state.profile.dealId === open.dealId) {
           // refresh badge in open drawer hero if still viewing this deal
           const heroCopy = document.querySelector('#uc-drawer-hero .uc-profile-hero-copy');
-          if (heroCopy && open.trustFundMatch && open.trustFundMatch.hit) {
+          if (heroCopy && !processBuyerFound(open) && open.trustFundMatch && open.trustFundMatch.hit) {
             let badge = heroCopy.querySelector('.uc-tf-alert');
             if (!badge) {
-              heroCopy.insertAdjacentHTML('beforeend', trustFundBadgeHtml(open));
+              const html = trustFundBadgeHtml(open);
+              if (html) heroCopy.insertAdjacentHTML('beforeend', html);
             }
+          } else if (heroCopy && processBuyerFound(open)) {
+            heroCopy.querySelectorAll('.uc-tf-alert').forEach((el) => el.remove());
           }
         }
       }
