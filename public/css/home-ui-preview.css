@@ -169,10 +169,35 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
   border: 0;
   background: #0a0908;
+}
+
+/* Prefer product stills over empty/logo frames when video missing */
+.home-ui-preview--video.home-video-missing .home-ui-preview-body,
+.home-collect-scene--video.home-video-missing,
+.home-filter-scene--video.home-video-missing,
+.home-analyze-scene--video.home-video-missing {
+  background-color: #0a0908;
+  background-size: cover;
+  background-position: center;
+}
+
+.home-ui-preview--collect.home-video-missing .home-ui-preview-body,
+.home-collect-scene--video.home-video-missing {
+  background-image: url('/images/filter-hero-desk.jpg');
+}
+
+.home-ui-preview--filter.home-video-missing .home-ui-preview-body,
+.home-filter-scene--video.home-video-missing {
+  background-image: url('/images/filter-hero-desk.jpg');
+}
+
+.home-ui-preview--analyze.home-video-missing .home-ui-preview-body,
+.home-analyze-scene--video.home-video-missing {
+  background-image: url('/images/analyze-hero-desk-v2.jpg');
 }
 
 .home-ui-preview-table {
