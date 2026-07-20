@@ -167,11 +167,82 @@
     );
   }
 
+  function isMobileSettingsSheet() {
+    return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  function clearDropdownPosition(dropdown) {
+    if (!dropdown) return;
+    dropdown.style.top = '';
+    dropdown.style.left = '';
+    dropdown.style.right = '';
+    dropdown.style.bottom = '';
+    dropdown.style.width = '';
+    dropdown.style.maxHeight = '';
+  }
+
+  /**
+   * Place the panel in the viewport next to the gear.
+   * Rail footer sits at the bottom of a clipped rail — absolute menus get cut off;
+   * fixed + clamp keeps Billings / Appearance / Sign Out fully usable.
+   */
+  function positionDropdown() {
+    var dropdown = document.getElementById('shell-settings-dropdown');
+    var trigger = document.getElementById('shell-settings-trigger');
+    if (!dropdown || !trigger || dropdown.hidden) return;
+
+    if (isMobileSettingsSheet()) {
+      clearDropdownPosition(dropdown);
+      return;
+    }
+
+    var gap = 8;
+    var pad = 10;
+    var vw = window.innerWidth || document.documentElement.clientWidth || 1024;
+    var vh = window.innerHeight || document.documentElement.clientHeight || 768;
+    var rect = trigger.getBoundingClientRect();
+
+    var menuW = Math.min(300, Math.max(260, vw - pad * 2));
+    dropdown.style.width = menuW + 'px';
+    dropdown.style.maxHeight = Math.min(420, vh - pad * 2) + 'px';
+
+    // Force layout so offsetHeight reflects max-height + content
+    var menuH = dropdown.offsetHeight || 280;
+
+    // Prefer open to the right of the rail trigger (into the main stage)
+    var left = rect.right + gap;
+    if (left + menuW > vw - pad) {
+      left = rect.left - gap - menuW;
+    }
+    if (left < pad) left = pad;
+    if (left + menuW > vw - pad) left = Math.max(pad, vw - pad - menuW);
+
+    // Prefer open upward when the gear is in the lower half (rail footer)
+    var top;
+    var spaceBelow = vh - rect.bottom - gap - pad;
+    var spaceAbove = rect.top - gap - pad;
+    if (spaceBelow < menuH && spaceAbove > spaceBelow) {
+      top = rect.top - gap - menuH;
+    } else {
+      top = rect.bottom + gap;
+    }
+    if (top < pad) top = pad;
+    if (top + menuH > vh - pad) {
+      top = Math.max(pad, vh - pad - menuH);
+    }
+
+    dropdown.style.top = Math.round(top) + 'px';
+    dropdown.style.left = Math.round(left) + 'px';
+    dropdown.style.right = 'auto';
+    dropdown.style.bottom = 'auto';
+  }
+
   function closeDropdown() {
     var dropdown = document.getElementById('shell-settings-dropdown');
     var trigger = document.getElementById('shell-settings-trigger');
     if (!dropdown) return;
     dropdown.hidden = true;
+    clearDropdownPosition(dropdown);
     if (trigger) trigger.setAttribute('aria-expanded', 'false');
   }
 
@@ -182,6 +253,11 @@
     dropdown.hidden = false;
     if (trigger) trigger.setAttribute('aria-expanded', 'true');
     refreshThemeButtons();
+    // Double rAF: first paint un-hides, second measures full height for clamp
+    requestAnimationFrame(function () {
+      positionDropdown();
+      requestAnimationFrame(positionDropdown);
+    });
   }
 
   function toggleDropdown() {
@@ -399,6 +475,13 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') closeDropdown();
     });
+
+    window.addEventListener('resize', function () {
+      positionDropdown();
+    });
+    window.addEventListener('scroll', function () {
+      positionDropdown();
+    }, true);
 
     window.addEventListener('phuglee-theme-change', refreshThemeButtons);
   }
