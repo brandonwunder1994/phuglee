@@ -40,7 +40,7 @@ Complete inventory of every `id="bridge-…"` in `public/bridge.html`.
 
 | id | Region | JS consumer |
 |----|--------|-------------|
-| `bridge-pipeline` | pipeline | boot |
+| `bridge-pipeline` | pipeline | **removed from UI** (operator preference); JS `setPipelineStep` is no-op if missing |
 | `bridge-scrub-stage` | scrub | presentational (structure lock) |
 | `bridge-step-location` | scrub | presentational (`aria-labelledby`) |
 | `bridge-city-search` | scrub | lazy |
@@ -257,24 +257,34 @@ Complete inventory of every `id="bridge-…"` in `public/bridge.html`.
 | `csv` | Victory `#bridge-victory-download`; list row download buttons |
 | `xlsx` | List row download buttons |
 
-### `data-step` (pipeline stepper)
+### `data-step` (pipeline stepper — retired from HTML)
 
-| Value | Host |
+The slim City / Type / Upload / Results banner was removed. Values below remain valid if JS still references them; they are not required in HTML.
+
+| Value | Former host |
 |-------|------|
-| `location` | `#bridge-pipeline` step li |
-| `type` | `#bridge-pipeline` step li |
-| `upload` | `#bridge-pipeline` step li |
-| `results` | `#bridge-pipeline` step li |
+| `location` | `#bridge-pipeline` step li (removed) |
+| `type` | `#bridge-pipeline` step li (removed) |
+| `upload` | `#bridge-pipeline` step li (removed) |
+| `results` | `#bridge-pipeline` step li (removed) |
 
 ### Radio contract (list type chips)
 
+All seven Filter list types (must match `UPLOAD_TYPES` / `public/bridge.html`):
+
 ```
 name="bridge-upload-type" value="code_violation"
+name="bridge-upload-type" value="pre_lien"
+name="bridge-upload-type" value="tax_delinquent"
+name="bridge-upload-type" value="lis_pendens"
+name="bridge-upload-type" value="probate"
+name="bridge-upload-type" value="fire"
 name="bridge-upload-type" value="water_shut_off"
 ```
 
 Host classes: `bridge-type-chips` / `bridge-type-chip`.  
-**Banned:** `bridge-type-card`, `bridge-type-desc` (essay cards).
+**Banned:** `bridge-type-card`, `bridge-type-desc` (essay cards).  
+**Do not** drop a radio without updating `UPLOAD_TYPES`, API docs, and DESK-05 freeze tests.
 
 ---
 
@@ -301,7 +311,7 @@ These are cinema/theater structural contracts. Visual phases must not reorder or
 
 4. **Type chips radio contract**  
    - Chips, not essay cards; banned `bridge-type-card`  
-   - Radios: `bridge-upload-type` × `code_violation` | `water_shut_off`
+   - Radios: `bridge-upload-type` x all seven: `code_violation` | `pre_lien` | `tax_delinquent` | `lis_pendens` | `probate` | `fire` | `water_shut_off`
 
 5. **Native dialogs**  
    - `#bridge-type-column-confirm-dialog` and `#bridge-history-dialog` remain `<dialog>`  

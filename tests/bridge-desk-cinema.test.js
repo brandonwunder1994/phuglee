@@ -24,7 +24,8 @@ const BANNED_CTAS = [
 
 test('DESK-69: scrub stage shell present', () => {
   assert.match(html, /id="bridge-scrub-stage"/);
-  assert.match(html, /class="bridge-pipeline bridge-pipeline--slim"/);
+  // Slim 1–4 pipeline banner removed (operator preference) — desk is the job surface
+  assert.doesNotMatch(html, /id="bridge-pipeline"/);
 });
 
 test('DESK-69: city pick reveals type + upload together', () => {
@@ -75,6 +76,11 @@ test('TYPE-71: chips not essay cards', () => {
 
 test('TYPE-71: same radio contract', () => {
   assert.match(html, /name="bridge-upload-type" value="code_violation"/);
+  assert.match(html, /name="bridge-upload-type" value="pre_lien"/);
+  assert.match(html, /name="bridge-upload-type" value="tax_delinquent"/);
+  assert.match(html, /name="bridge-upload-type" value="lis_pendens"/);
+  assert.match(html, /name="bridge-upload-type" value="probate"/);
+  assert.match(html, /name="bridge-upload-type" value="fire"/);
   assert.match(html, /name="bridge-upload-type" value="water_shut_off"/);
 });
 
@@ -103,7 +109,7 @@ test('VICTORY-73: strip mount + actions', () => {
   assert.match(html, /id="bridge-victory-next"/);
   assert.match(html, /List staged/);
   assert.match(html, /Kept leads are ready/);
-  assert.match(html, /Filter Data/);
+  assert.match(html, /Download for Analyze/);
   assert.match(html, /Scrub next city/);
   assert.equal(html.includes('Shift advanced'), false);
 });

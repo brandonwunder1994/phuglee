@@ -9,22 +9,33 @@
  *   and orchestration that wires the modules above
  */
 (function () {
-  const ACCEPTED_EXT = /\.(xlsx|xls|xlsm|csv|tsv|txt|pdf|docx|jpg|jpeg|png)$/i;
+  const ACCEPTED_EXT = /\.(xlsx|xls|xlsm|csv|tsv|txt|pdf|docx|jpg|jpeg|png|webp|gif|tif|tiff|bmp|heic|heif)$/i;
   const PAGE_SIZE = 50;
   /** Inventory (saved lists) table page size */
   const LISTS_PAGE_SIZE = 25;
   /** Match server MAX_ROWS — pre-check before shipping a giant Save */
   const MAX_SAVE_ROWS = 100000;
   const FILTER_SEARCH_DEBOUNCE_MS = 180;
-  const LOADING_STEPS = [
-    'Detecting format…',
+  const LOADING_STEPS_BASE = [
+    'Reading upload…',
+    'Detecting sheet format…',
     'Parsing records…',
-    'Normalizing addresses…',
-    'Tagging categories & distressed signals…',
-    'Deduplicating upload…',
-    'Cross-checking Analyze…',
-    'Building filtered list…'
+    'Applying filters & tags…',
+    'Building kept list…'
   ];
+  /** Only when skip-already-imported is checked (import-index filter active). */
+  const LOADING_STEP_ANALYZE_CROSSCHECK = 'Cross-checking Analyze…';
+  function getLoadingSteps() {
+    const steps = LOADING_STEPS_BASE.slice();
+    const skipOn = Boolean(skipAlreadyImportedEl && skipAlreadyImportedEl.checked);
+    if (skipOn) {
+      // Insert before final "Building filtered list…"
+      const buildIdx = steps.indexOf('Building kept list…');
+      if (buildIdx >= 0) steps.splice(buildIdx, 0, LOADING_STEP_ANALYZE_CROSSCHECK);
+      else steps.push(LOADING_STEP_ANALYZE_CROSSCHECK);
+    }
+    return steps;
+  }
   const EXPORT_COLUMNS = [
     ['streetAddress', 'Street Address'],
     ['city', 'City'],
@@ -738,12 +749,15 @@
     } else if (!distressedAll.length && !notAll.length && trainDecidedKeys.size > 0) {
       setTrainStatus('All groups reviewed for this batch. Process another file or Undo to revise.', 'success');
     } else {
-      // Keep error/success messages; clear only empty-state hints
+      // Keep error/success messages; prefer FN truncation honesty over empty status
       const el = document.getElementById('bridge-train-status');
       if (el && !el.classList.contains('is-error') && !el.classList.contains('is-success')) {
-        setTrainStatus('', '');
+        const fnWarn = buildFnTruncationWarning((data && data.brainMeta) || (lastResult && lastResult.brainMeta) || null);
+        setTrainStatus(fnWarn || '', '');
       }
     }
+    // Dedicated FN note stays in the Not-marked section (independent of status line)
+    setFnTruncationNote((data && data.brainMeta) || (lastResult && lastResult.brainMeta) || null);
   }
 
   function setResultsMode(mode) {
@@ -1227,6 +1241,23 @@
         if (countOpenTrainGroups(lastResult, trainDecidedKeys) !== 0) {
           return;
         }
+        // Safer desk reset: soft confirm before auto-save wipes working set.
+        // Cancel keeps results so operator can Download for Analyze first.
+        const kept = keptRowCount();
+        const ok = window.confirm(
+          `All Train groups decided · ${kept.toLocaleString()} kept row(s).\n\n` +
+          `Stage this list and clear the desk for the next city?\n\n` +
+          `After save, Download for Analyze stays on the victory strip. ` +
+          `Cancel keeps results on screen so you can export first.`
+        );
+        if (!ok) {
+          setSaveStatus('Auto-save cancelled — click Save list when ready.', '');
+          setTrainStatus(
+            'Auto-save cancelled — desk kept open for export or Save list.',
+            ''
+          );
+          return;
+        }
         await saveCurrentList({ auto: true });
       } catch (err) {
         const msg = (err && err.message) || 'Auto-save failed — click Save list.';
@@ -1492,7 +1523,122 @@
   }
   // --- end BridgeTrain pure helpers ---
 
-  function showError(msg) {
+  /**
+   * Operator-facing OCR page-cap warning (Wave 1 Task 1.2).
+   * Pure: returns empty string when not truncated; never invents page numbers.
+   * @param {object|null|undefined} meta processingMeta from process response
+   * @returns {string}
+   */
+  function buildOcrTruncationWarning(meta) {
+    if (!meta || !meta.ocrTruncated) return '';
+    const n = Number(meta.ocrPagesProcessed);
+    const m = Number(meta.ocrPagesTotal);
+    const c = Number(meta.ocrPageCap);
+    const nOk = Number.isFinite(n) && n > 0;
+    const mOk = Number.isFinite(m) && m > 0;
+    const cOk = Number.isFinite(c) && c > 0;
+    let core;
+    if (nOk && mOk) {
+      core = 'This PDF was only read through page ' + n + ' of ' + m + ' (OCR limit).';
+    } else if (nOk && cOk) {
+      core = 'This PDF was only read through the first ' + n + ' pages (OCR limit of ' + c + ').';
+    } else if (nOk) {
+      core = 'This PDF was only read through the first ' + n + ' pages (OCR limit).';
+    } else if (cOk) {
+      core = 'This PDF was only partially read (OCR page limit of ' + c + ').';
+    } else {
+      core = 'This PDF was only partially read (OCR page limit).';
+    }
+    return core + ' Re-export as Excel from the city portal, or split the PDF and scrub again.';
+  }
+
+  /**
+   * FN (not-distressed) Train review cap warning (Wave 1 Task 1.5).
+   * Pure: empty when not truncated; uses totals from brainMeta only.
+   * @param {object|null|undefined} brainMeta
+   * @returns {string}
+   */
+  function buildFnTruncationWarning(brainMeta) {
+    if (!brainMeta || !brainMeta.notDistressedTruncated) return '';
+    const total = Number(brainMeta.notDistressedTotal);
+    const returned = Number(brainMeta.notDistressedReturned);
+    const totalOk = Number.isFinite(total) && total > 0;
+    const returnedOk = Number.isFinite(returned) && returned > 0;
+    if (totalOk && returnedOk) {
+      return (
+        'Train shows the first ' +
+        returned.toLocaleString() +
+        ' of ' +
+        total.toLocaleString() +
+        ' not-distressed rows for review (5,000-row cap). Remaining FN rows are not listed here.'
+      );
+    }
+    if (totalOk) {
+      return (
+        'Train shows only the first 5,000 of ' +
+        total.toLocaleString() +
+        ' not-distressed rows for review (cap). Remaining FN rows are not listed here.'
+      );
+    }
+    return 'Train shows only the first 5,000 not-distressed rows for review (cap). Remaining FN rows are not listed here.';
+  }
+
+  /**
+   * Redacted-row skip note (Wave 1 Task 1.5).
+   * Pure: empty when redactedSkipped is missing or <= 0.
+   * @param {object|null|undefined} meta processingMeta
+   * @returns {string}
+   */
+  function buildRedactionSkippedNote(meta) {
+    if (!meta) return '';
+    const n = Number(meta.redactedSkipped);
+    if (!Number.isFinite(n) || n <= 0) return '';
+    if (n === 1) {
+      return '1 fully redacted row was skipped (no usable location).';
+    }
+    return n.toLocaleString() + ' fully redacted rows were skipped (no usable location).';
+  }
+
+  function setRedactionBanner(meta) {
+    const el = document.getElementById('bridge-redaction-banner');
+    if (!el) return;
+    const msg = buildRedactionSkippedNote(meta);
+    if (!msg) {
+      el.textContent = '';
+      setHidden(el, true);
+      return;
+    }
+    el.textContent = msg;
+    setHidden(el, false);
+  }
+
+  function setFnTruncationNote(brainMeta) {
+    const el = document.getElementById('bridge-fn-truncation-note');
+    if (!el) return;
+    const msg = buildFnTruncationWarning(brainMeta);
+    if (!msg) {
+      el.textContent = '';
+      setHidden(el, true);
+      return;
+    }
+    el.textContent = msg;
+    setHidden(el, false);
+  }
+
+  function setOcrTruncationBanner(meta) {
+    const el = document.getElementById('bridge-ocr-truncation-banner');
+    if (!el) return;
+    const msg = buildOcrTruncationWarning(meta);
+    if (!msg) {
+      el.textContent = '';
+      setHidden(el, true);
+      return;
+    }
+    el.textContent = msg;
+    setHidden(el, false);
+  }
+
+  function showError(msg, opts) {
     const hasError = Boolean(msg);
     setHidden(errorWrap, !hasError);
     if (errorEl) errorEl.textContent = msg || '';
@@ -1505,6 +1651,91 @@
       try {
         console.error('[Filter] process/UI error:', msg);
       } catch (_) { /* ignore */ }
+    }
+    // Zero-kept recovery under the error strip (NO_USABLE_ROWS / explicit)
+    if (!hasError) {
+      setZeroKeptRecovery(false, { source: 'error' });
+    } else if (opts && opts.zeroKept) {
+      setZeroKeptRecovery(true, { source: 'error' });
+    } else if (!(opts && opts.keepRecovery)) {
+      setZeroKeptRecovery(false, { source: 'error' });
+    }
+  }
+
+  /** Show recovery CTAs when scrub keeps zero rows (results or error path). */
+  function setZeroKeptRecovery(show, opts) {
+    const source = (opts && opts.source) || 'both';
+    const resultsEl = document.getElementById('bridge-zero-kept-recovery');
+    const errorElRec = document.getElementById('bridge-zero-kept-recovery-error');
+    const admin = isBridgeAdmin();
+    if (source === 'results' || source === 'both') {
+      if (resultsEl) setHidden(resultsEl, !show);
+    }
+    if (source === 'error' || source === 'both') {
+      if (errorElRec) setHidden(errorElRec, !show);
+    }
+    // Admin-only clear memory buttons
+    ['bridge-recovery-clear-type', 'bridge-recovery-clear-type-err'].forEach((id) => {
+      const btn = document.getElementById(id);
+      if (btn) setHidden(btn, !(show && admin));
+    });
+    if (!show) {
+      ['bridge-zero-kept-recovery-hint', 'bridge-zero-kept-recovery-hint-err'].forEach((id) => {
+        const hint = document.getElementById(id);
+        if (hint) {
+          hint.textContent = '';
+          setHidden(hint, true);
+        }
+      });
+    }
+  }
+
+  function setRecoveryHint(text) {
+    ['bridge-zero-kept-recovery-hint', 'bridge-zero-kept-recovery-hint-err'].forEach((id) => {
+      const hint = document.getElementById(id);
+      if (!hint) return;
+      hint.textContent = text || '';
+      setHidden(hint, !text);
+    });
+  }
+
+  async function onZeroKeptRecovery(action) {
+    if (action === 'excel') {
+      setRecoveryHint(
+        'When the city portal offers Excel/CSV, download that instead of a scanned PDF — Type columns and addresses survive better, and OCR page caps do not apply.'
+      );
+      try {
+        document.getElementById('bridge-upload-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (_) { /* ignore */ }
+      return;
+    }
+    if (action === 'type-column') {
+      if (!isBridgeAdmin()) {
+        setRecoveryHint(
+          'Wrong Type column kills almost everything. Ask an admin to use Clear Type memory, then re-scrub so the confirm dialog appears again.'
+        );
+        return;
+      }
+      setRecoveryHint(
+        'Clear Type-column memory for this city, then click Scrub it again and pick the real Violation/Issue Type column in the confirm dialog.'
+      );
+      try {
+        await clearCityFormatMemory();
+      } catch (err) {
+        setRecoveryHint((err && err.message) || 'Could not clear Type-column memory.');
+      }
+      return;
+    }
+    if (action === 'clear-type') {
+      if (!isBridgeAdmin()) {
+        setRecoveryHint('Admin required to clear Type-column memory.');
+        return;
+      }
+      try {
+        await clearCityFormatMemory();
+      } catch (err) {
+        setRecoveryHint((err && err.message) || 'Could not clear Type-column memory.');
+      }
     }
   }
 
@@ -1632,7 +1863,7 @@
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      if (data.code === 'OCR_UNAVAILABLE' || res.status === 503) {
+      if (data.code === 'OCR_UNAVAILABLE' || data.code === 'OCR_FAILED' || res.status === 503) {
         const maxPages = data.maxOcrPages || 12;
         throw new Error(
           data.error ||
@@ -1643,10 +1874,20 @@
         const stats = data.stats || {};
         const parts = [];
         const reasons = stats.discardReasons || {};
-        // Prefer server message when it already includes a breakdown.
+        // Prefer server message when it already includes a breakdown —
+        // but ALWAYS still append OCR truncation when meta says so.
         const serverMsg = String(data.error || '');
+        const ocrMeta =
+          data.processingMeta ||
+          (data.details && data.details.processingMeta) ||
+          null;
+        const ocrWarn = buildOcrTruncationWarning(ocrMeta);
+        const ocrSuffix = ocrWarn ? ' ' + ocrWarn : '';
         if (/Breakdown:/i.test(serverMsg)) {
-          throw new Error(serverMsg);
+          const zeroErrEarly = new Error(serverMsg + ocrSuffix);
+          zeroErrEarly.code = 'NO_USABLE_ROWS';
+          zeroErrEarly.stats = stats;
+          throw zeroErrEarly;
         }
         for (const [reason, count] of Object.entries(reasons)) {
           if (Number(count) > 0) parts.push(`${count} ${reason}`);
@@ -1657,7 +1898,10 @@
           if (stats.deduplicated) parts.push(`${stats.deduplicated} duplicates`);
         }
         const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
-        throw new Error((data.error || 'No usable addresses found in this file.') + detail);
+        const zeroErr = new Error((data.error || 'No usable addresses found in this file.') + detail + ocrSuffix);
+        zeroErr.code = 'NO_USABLE_ROWS';
+        zeroErr.stats = stats;
+        throw zeroErr;
       }
       if (data.code === 'FORMAT_MISMATCH') {
         // Legacy: server used to hard-fail mixed headers. Prefer multi-format confirm path.
@@ -1806,7 +2050,7 @@
     if (rejected.length && !selectedFiles.length) {
       showError(
         rejected.some((r) => /unsupported/i.test(r))
-          ? 'Unsupported file type. Use Excel, CSV, PDF, Word, TXT, or JPG/PNG list images.'
+          ? 'Unsupported file type. Use Excel, CSV, PDF, Word, TXT, or list images (JPG, PNG, WebP, GIF, TIF, BMP). HEIC: convert to JPG/PNG if upload fails.'
           : `Could not add files: ${rejected.join('; ')}`
       );
     } else if (rejected.length) {
@@ -2805,25 +3049,28 @@
     let index = 0;
     loadingStartedAt = Date.now();
     // HTTP wait: slogans + real elapsed seconds (so long Process does not feel stuck)
+    // Analyze cross-check slogan only when skip-already-imported is on
+    const loadingSteps = getLoadingSteps();
     clearScrubFeedUi();
     if (loadingEta) {
       const hasPdf = (selectedFiles || []).some((f) =>
         /\.pdf$/i.test((f && f.name) || '')
       );
+      // Results-first: no live address feed during process (scrub theater skipped)
       loadingEta.textContent = hasPdf
-        ? 'This can take 30-90s for PDFs; Excel/CSV is usually faster.'
-        : 'Usually under 30s for Excel/CSV. PDFs and scans can take 30-90s.';
+        ? 'Processing the whole file — results open when ready (no live address feed). PDFs can take 30-90s.'
+        : 'Processing the whole file — results open when ready (no live address feed). Excel/CSV is usually under 30s.';
       loadingEta.hidden = false;
     }
     if (cancelProcessBtn) cancelProcessBtn.disabled = false;
     const paintStep = () => {
       const elapsedSec = Math.max(0, Math.floor((Date.now() - loadingStartedAt) / 1000));
-      const slogan = LOADING_STEPS[index % LOADING_STEPS.length];
+      const slogan = loadingSteps[index % loadingSteps.length];
       loadingCopy.textContent = `${slogan} (${elapsedSec}s)`;
     };
     paintStep();
     loadingTimer = window.setInterval(() => {
-      index = (index + 1) % LOADING_STEPS.length;
+      index = (index + 1) % loadingSteps.length;
       paintStep();
     }, 900);
   }
@@ -3382,7 +3629,7 @@
    * Phase 73: show war-room victory after Stage list.
    * Working set still resets so next city is clean; victory stays until next scrub.
    */
-  function showVictoryStrip({ label, listId, keptCount, cityName, state }) {
+  function showVictoryStrip({ label, listId, keptCount, cityName, state, auto }) {
     const strip = document.getElementById('bridge-victory-strip');
     const titleEl = document.getElementById('bridge-victory-title');
     const metaEl = document.getElementById('bridge-victory-meta');
@@ -3392,7 +3639,7 @@
     const place = [cityName, state].filter(Boolean).join(', ');
     const { listCount, recordTotal, cityCount } = computeIdleProof(savedLists);
     if (titleEl) {
-      titleEl.textContent = 'List staged';
+      titleEl.textContent = auto ? 'List auto-saved' : 'List staged';
     }
     if (metaEl) {
       metaEl.textContent =
@@ -3678,8 +3925,8 @@
     const n = visible.length;
     if (downloadAllCsvBtn) {
       downloadAllCsvBtn.textContent = filtered
-        ? 'Export filtered (CSV)'
-        : 'Export all (CSV)';
+        ? 'Download for Analyze (filtered)'
+        : 'Download for Analyze';
       downloadAllCsvBtn.disabled = n === 0;
     }
     if (downloadAllXlsxBtn) {
@@ -3861,7 +4108,7 @@
             : 'No code violation lists in inventory. Click CV again or All to clear the filter.';
       } else {
         listsEmpty.textContent =
-          'No scans staged yet. Scrub a city list, then Save list to add it here. Download for enrichment when ready.';
+          'No scans staged yet. Scrub a city list, then Save list to add it here. Use Download for Analyze when ready.';
       }
     }
     setHidden(listsEmpty, visible.length > 0);
@@ -3898,7 +4145,7 @@
         `<td><span class="bridge-list-status bridge-list-status--${esc(list.status || 'ready')}">${esc(statusLabel(list.status))}</span></td>` +
         `<td>${esc(cityLabel)}</td>` +
         `<td class="bridge-list-actions">` +
-        `<button type="button" class="bridge-list-action" data-action="download" data-format="csv">CSV</button>` +
+        `<button type="button" class="bridge-list-action" data-action="download" data-format="csv" title="Address CSV for Analyze">Analyze CSV</button>` +
         `<button type="button" class="bridge-list-action" data-action="download" data-format="xlsx">XLSX</button>` +
         `<button type="button" class="bridge-list-action bridge-list-action--danger" data-action="delete">Delete</button>` +
         `</td>` +
@@ -3931,7 +4178,7 @@
           `<input type="text" class="bridge-list-name-input bridge-list-card-name" data-action="rename" value="${esc(list.name)}" maxlength="120" aria-label="List name" />` +
           `<p class="bridge-list-card-meta">${esc(cityLabel)} · ${esc(formatListWhen(list.createdAt))} · ${rec} rec</p>` +
           `<div class="bridge-list-card-actions bridge-list-actions">` +
-          `<button type="button" class="bridge-list-action" data-action="download" data-format="csv">CSV</button>` +
+          `<button type="button" class="bridge-list-action" data-action="download" data-format="csv" title="Address CSV for Analyze">Analyze CSV</button>` +
           `<button type="button" class="bridge-list-action" data-action="download" data-format="xlsx">XLSX</button>` +
           `<button type="button" class="bridge-list-action bridge-list-action--danger" data-action="delete">Delete</button>` +
           `</div>` +
@@ -4060,7 +4307,7 @@
       const status = err && err.status;
       console.warn('[Filter] Could not load saved lists:', err && err.message);
       if (code === 'AUTH_REQUIRED' || status === 401) {
-        showError('Sign in as admin to load SCAN HISTORY. Your lists are not deleted.');
+        showError('Sign in to load SCAN HISTORY. Your lists are not deleted.');
         if (window.PhugleeSession && typeof window.PhugleeSession.syncSessionFromServerCookie === 'function') {
           window.PhugleeSession.syncSessionFromServerCookie().then((data) => {
             if (data && data.username) {
@@ -4139,6 +4386,9 @@
     if (listNameInput) listNameInput.value = '';
     if (resultsMeta) resultsMeta.textContent = '';
     if (kpiGrid) kpiGrid.innerHTML = '';
+    setOcrTruncationBanner(null);
+    setRedactionBanner(null);
+    setFnTruncationNote(null);
     if (resultsBody) resultsBody.innerHTML = '';
     if (resultsCards) {
       resultsCards.innerHTML = '';
@@ -4190,7 +4440,8 @@
       listId: savedListId,
       keptCount,
       cityName,
-      state
+      state,
+      auto: !!(victoryMeta && victoryMeta.auto)
     });
 
     try {
@@ -4299,7 +4550,8 @@
       resetImportAreaAfterSave(savedName, savedId, {
         cityName: city,
         state,
-        keptCount: recordCount
+        keptCount: recordCount,
+        auto
       });
       if (auto) {
         setTrainStatus(
@@ -4757,10 +5009,9 @@
     if (reqId !== draftPageRequestId) return null;
     lastResult.rows = Array.isArray(data.rows) ? data.rows : [];
     lastResult.filteredTotal = Number(data.total) || 0;
-    {
-      const n = Number(data.rowsTotal);
-      lastResult.rowsTotal = Number.isFinite(n) ? n : lastResult.rowsTotal;
-    }
+    lastResult.rowsTotal = Number(data.rowsTotal) != null
+      ? Number(data.rowsTotal)
+      : lastResult.rowsTotal;
     tableState.page = Number(data.page) || page || 1;
     paintResultsTablePage(
       lastResult.rows,
@@ -4992,15 +5243,27 @@
         trainTip = ` · ${openTrain} Train group(s) ready`;
       }
     }
-    resultsMeta.textContent = [uploadLabel, cityBit, fileLabel].filter(Boolean).join(' · ') + trainTip;
-    if (data.brainMeta && data.brainMeta.notDistressedTruncated) {
-      const totalFn = Number(data.brainMeta.notDistressedTotal) || 0;
-      const shownFn = (data.notDistressedRows || []).length
-        || Number(data.brainMeta.notDistressedShown)
-        || 5000;
-      resultsMeta.textContent += ` · Train shows first ${shownFn.toLocaleString()} of ${totalFn.toLocaleString()} not-distressed rows`;
+    let reviewTip = '';
+    const bm = data.brainMeta || {};
+    if (bm.notDistressedTruncated) {
+      const t = Number(bm.notDistressedTotal);
+      reviewTip = Number.isFinite(t) && t > 0
+        ? ' · FN review capped (5,000 of ' + t.toLocaleString() + ')'
+        : ' · FN review capped (5,000)';
     }
+    const rs = Number((data.processingMeta || {}).redactedSkipped);
+    if (Number.isFinite(rs) && rs > 0) {
+      reviewTip += ' · ' + rs.toLocaleString() + ' redacted skipped';
+    }
+    resultsMeta.textContent = [uploadLabel, cityBit, fileLabel].filter(Boolean).join(' · ') + trainTip + reviewTip;
+    setOcrTruncationBanner(data.processingMeta || {});
+    setRedactionBanner(data.processingMeta || {});
+    setFnTruncationNote(data.brainMeta || {});
     renderKpis(stats);
+    // Zero-kept recovery on success path (e.g. all-FN reviewable batch with 0 kept)
+    const keptForRecovery = Number(stats.kept);
+    const keptNRec = Number.isFinite(keptForRecovery) ? keptForRecovery : displayCount;
+    setZeroKeptRecovery(keptNRec === 0 && !data.stub, { source: 'results' });
 
     const stubNote = document.getElementById('bridge-stub-note');
     const showTable = !data.stub && displayCount > 0;
@@ -5620,7 +5883,10 @@
 
           if (!isBridgeAdmin()) {
             showError(
-              'An admin must confirm the Type column for this city format once. Ask an admin to process this upload.'
+              'First-time Type column confirm is admin-only for this city format. ' +
+              'Ask an admin to process this upload once and pick the Violation/Issue Type column. ' +
+              'That choice is remembered as Type-column memory so future uploads of the same format skip this wall. ' +
+              'If the wrong column was saved earlier, ask an admin to use Clear Type-column memory on Filter, then re-process.'
             );
             return;
           }
@@ -5709,7 +5975,11 @@
         showError('Scrub cancelled — nothing was saved. Click Process to try again.');
       } else {
         const msg = (err && err.message) || 'Could not process upload.';
-        showError(msg);
+        const zeroKept =
+          (err && err.code === 'NO_USABLE_ROWS') ||
+          /no usable addresses/i.test(msg) ||
+          /no rows kept/i.test(msg);
+        showError(msg, { zeroKept });
         try {
           console.error('[Filter] processUpload failed', err);
         } catch (_) { /* ignore */ }
@@ -6045,6 +6315,15 @@
     input.addEventListener('change', onUploadTypeChange);
   });
   processBtn?.addEventListener('click', () => { processUpload().catch((e) => showError(e.message)); });
+
+  // Zero-kept recovery CTAs (results + error strip)
+  document.querySelectorAll('[data-recovery]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      onZeroKeptRecovery(btn.getAttribute('data-recovery') || '').catch((e) => {
+        setRecoveryHint((e && e.message) || 'Recovery action failed.');
+      });
+    });
+  });
   cancelProcessBtn?.addEventListener('click', () => {
     abortProcessUpload();
     if (cancelProcessBtn) cancelProcessBtn.disabled = true;
@@ -6177,7 +6456,8 @@
 
   /**
    * Convert pasted tabular text → .xlsx, stage it in the file area, clear the
-   * paste box, ensure Code violation + response date, then run processUpload.
+   * paste box, preserve selected list type (default Code violation only if unset),
+   * then run processUpload when city + received date are ready.
    */
   async function convertPasteToExcel() {
     const text = pasteTextarea ? pasteTextarea.value : '';
@@ -6214,8 +6494,10 @@
       selectedFiles = [];
       addSelectedFiles([file]);
 
-      // Ensure Code violation; received date must be operator-picked (no auto-Today)
-      applyDefaultUploadType();
+      // Only default Code violation when operator has not already picked a list type
+      if (!selectedUploadType) {
+        applyDefaultUploadType();
+      }
 
       // Still offer a download of the clean workbook
       try {

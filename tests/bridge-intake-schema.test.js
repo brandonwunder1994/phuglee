@@ -112,11 +112,20 @@ test('exports rows with human-readable column labels', () => {
 });
 
 test('accepts all supported upload extensions', () => {
-  for (const ext of ['.xlsx', '.csv', '.pdf', '.docx', '.jpg', '.png', '.txt']) {
+  for (const ext of [
+    '.xlsx', '.xls', '.xlsm', '.csv', '.tsv', '.txt',
+    '.pdf', '.docx',
+    '.jpg', '.jpeg', '.png',
+    '.webp', '.gif', '.tif', '.tiff', '.bmp',
+    '.heic', '.heif'
+  ]) {
     assert.equal(isAcceptedFile(`violations${ext}`), true, ext);
   }
   assert.equal(isAcceptedFile('archive.zip'), false);
   assert.equal(isAcceptedFile('legacy.doc'), false);
+  assert.equal(isAcceptedFile('photo.heic'), true);
+  assert.equal(isAcceptedFile('scan.tiff'), true);
+  assert.equal(isAcceptedFile('clip.webp'), true);
 });
 
 test('tracks discard reason stats', () => {

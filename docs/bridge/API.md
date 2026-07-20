@@ -1,10 +1,31 @@
 # Data Bridge v2 — API Contract
 
-> Distress OS endpoints under `/api/bridge/*`. City persistence proxied to Form Forge.
+> Distress OS endpoints under `/api/bridge/*`. City persistence proxied to Form Forge.  
+> Filter Full Readiness Wave 5: seven upload types, OCR meta, already_imported opt-in.
 
 ## Authentication
 
 Same session as Distress OS shell (auth guard on `/bridge` page). API routes inherit shell access.
+
+---
+
+## Upload types (canonical)
+
+Process, attach validation, and Filter radios use `UPLOAD_TYPES` / `validateUploadType` from `lib/bridge-intake-schema.js`:
+
+| `uploadType` | Label |
+|--------------|-------|
+| `code_violation` | Code Violation |
+| `pre_lien` | Pre-lien |
+| `tax_delinquent` | Tax Delinquent |
+| `lis_pendens` | Pre-foreclosure (LP / NOD) |
+| `probate` | Probate / Estate |
+| `fire` | Fire-damaged |
+| `water_shut_off` | Water Shut Off |
+
+Unknown values → **400** `INVALID_UPLOAD_TYPE`.
+
+**Retention note:** only `code_violation` applies Strong-only keep (`no_distress_signal` discards). See [`DATA-STANDARDS.md`](./DATA-STANDARDS.md).
 
 ---
 
@@ -51,15 +72,19 @@ Returns cities with profiles for the given state. No free-text city creation.
 
 ## `POST /api/bridge/process`
 
-Upload and process a city response file. Does **not** persist to city profile.
+Upload and process a city response file. Does **not** persist to city profile and does **not** push to Analyze.
 
 **Content-Type:** `multipart/form-data`
 
 | Field | Required | Description |
 |-------|----------|-------------|
 | `cityId` | Yes | Existing city profile ID |
-| `uploadType` | Yes | `code_violation` or `water_shut_off` |
-| `file` | Yes | Source file(s) — repeat the `file` field up to **5** times for the same city (xlsx, csv, pdf, docx, txt, jpg, png). Results are merged with cross-file address dedupe. |
+| `uploadType` | Yes | One of the seven IDs above |
+| `file` | Yes | Source file(s) — repeat the `file` field up to **5** times for the same city (xlsx, csv, pdf, docx, txt, jpg, png, webp, gif, tif/tiff, bmp, heic/heif). Results are merged with cross-file address dedupe. |
+| `applyAlreadyImportedFilter` | No | `true` / `1` to hard-drop addresses already in Analyze import index. **Off by default** (IND-04). Filter UI checkbox `#bridge-skip-already-imported`. |
+| `confirmedTypeHeader` | No | Resume Type-column confirm |
+| `formatFingerprint` | No | City-format fingerprint |
+| `confirmedFormats` | No | JSON array for multi-format batch confirms |
 
 > `responseReceivedAt` is collected at **attach** time (step 4), not during process. See `POST /api/bridge/attach`.
 
@@ -77,24 +102,34 @@ Upload and process a city response file. Does **not** persist to city profile.
     "kept": 142,
     "discarded": 8,
     "deduplicated": 3,
-    "alreadyImported": 12,
+    "alreadyImported": 0,
+    "noDistress": 40,
     "lowConfidence": 2,
-    "discardReasons": { "no_address": 5, "blank_row": 3 },
+    "discardReasons": {
+      "no_address": 5,
+      "blank_row": 3,
+      "no_distress_signal": 40
+    },
     "tagBreakdown": {
-      "Strong Distressed Signal": 28,
-      "Standard Code Violation": 114
+      "Strong Distressed Signal": 102,
+      "Standard Code Violation": 0
     },
     "confidenceBreakdown": { "high": 130, "medium": 10, "low": 2 }
   },
-  "rows": [ { "streetAddress": "123 Main St", "distressedSignalTag": "..." } ],
+  "rows": [ { "streetAddress": "123 Main St", "distressedSignalTag": "Strong Distressed Signal" } ],
+  "notDistressedRows": [],
   "discarded": [
     { "reason": "no_address", "rawPreview": "..." }
   ],
   "processingMeta": {
     "parser": "spreadsheet",
     "columnMap": { "streetAddress": "Property Address" },
-    "importIndexCount": 10482,
-    "importIndexSources": { "records": 10200, "results": 282 },
+    "importIndexCount": 0,
+    "importIndexSources": null,
+    "ocrTruncated": false,
+    "ocrPagesProcessed": null,
+    "ocrPagesTotal": null,
+    "ocrPageCap": 12,
     "durationMs": 420
   }
 }
@@ -102,11 +137,27 @@ Upload and process a city response file. Does **not** persist to city profile.
 
 Processing **does not** push to Analyze. Save filtered lists via `POST /api/bridge/lists`, then download for third-party enrichment. Analyze only receives data when you manually import an enriched list there.
 
-Analyze-index hard-drop (`already_imported`) is **off by default** (v2.0 / IND-04). `stats.alreadyImported` is `0` unless process is called with engine flag `applyAlreadyImportedFilter === true`.
+### already_imported (opt-in)
+
+Analyze-index hard-drop is **off by default** (v2.0 / IND-04). `stats.alreadyImported` is `0` and the import index is not loaded unless `applyAlreadyImportedFilter` is true. When on, matching rows are discarded with reason `already_imported`.
+
+### OCR page cap
+
+Scanned PDFs are OCR’d up to **`MAX_OCR_PAGES` (12)**. When truncated:
+
+- `processingMeta.ocrTruncated === true`
+- `ocrPagesProcessed` / `ocrPagesTotal` / `ocrPageCap` filled when known
+- Filter UI shows truncation banner; API error paths for OCR failure also include cap messaging and `maxOcrPages`
+
+### code_violation Strong-only
+
+For `uploadType=code_violation`, rows without **Strong Distressed Signal** are not in `rows`; they contribute to `stats.noDistress` / `discardReasons.no_distress_signal` and (when present) `notDistressedRows` for Train FN review.
 
 **Response 400:** Invalid upload type, unsupported file, empty file, city not found.
 
-**Response 422:** File parsed but zero usable rows.
+**Response 422:** File parsed but zero usable rows (`NO_USABLE_ROWS`).
+
+**Response 503:** OCR unavailable in environment (`OCR_UNAVAILABLE` where applicable).
 
 ---
 
@@ -122,6 +173,8 @@ User-scoped Filter staging store. Independent of Analyze.
 | `PATCH` | `/api/bridge/lists/:id` | Rename (`{ "name": "..." }`) |
 | `DELETE` | `/api/bridge/lists/:id` | Delete list |
 | `GET` | `/api/bridge/lists/:id/download?format=csv\|xlsx` | Download export |
+| `GET` | `/api/bridge/lists/download-all?format=csv\|xlsx` | Download all lists |
+| `DELETE` | `/api/bridge/lists` (bulk) | Delete selected / clear — see handlers |
 
 **POST body:** `{ name?, rows, stats?, cityId?, cityName?, state?, uploadType?, sourceFile?, processingMeta? }`
 
@@ -129,7 +182,7 @@ User-scoped Filter staging store. Independent of Analyze.
 
 ## `POST /api/bridge/attach`
 
-Attach the processed dataset to a city profile (versioned, append-only).
+Attach the processed dataset to a city profile (versioned, append-only). Secondary to **Save list → Download for Analyze**.
 
 **Content-Type:** `application/json`
 
@@ -139,11 +192,13 @@ Attach the processed dataset to a city profile (versioned, append-only).
   "uploadType": "code_violation",
   "responseReceivedAt": "2026-07-04T09:42:00.000-07:00",
   "originalFilename": "violations-march.xlsx",
-  "stats": { "kept": 142, "discarded": 8, "deduplicated": 3, "alreadyImported": 12 },
+  "stats": { "kept": 142, "discarded": 8, "deduplicated": 3, "alreadyImported": 0 },
   "rows": [ { "streetAddress": "123 Main St", "...": "..." } ],
   "metadata": { "processingMeta": { "parser": "spreadsheet" } }
 }
 ```
+
+`uploadType` must pass Filter `validateUploadType` (seven ids). **Form Forge** `save_bridge_dataset` historically accepts only `code_violation` \| `water_shut_off` for on-disk attach files — non-legacy types should use saved lists as the primary export path.
 
 **Attach side effects (Form Forge):**
 
@@ -220,4 +275,4 @@ Attach calls Form Forge:
 }
 ```
 
-Common codes: `INVALID_UPLOAD_TYPE`, `UNSUPPORTED_FILE`, `CITY_NOT_FOUND`, `EMPTY_FILE`, `PARSE_FAILED`, `NO_USABLE_ROWS`.
+Common codes: `INVALID_UPLOAD_TYPE`, `UNSUPPORTED_FILE`, `CITY_NOT_FOUND`, `EMPTY_FILE`, `PARSE_FAILED`, `NO_USABLE_ROWS`, `OCR_UNAVAILABLE`, `MISSING_CITY`, `MISSING_FILE`, `INVALID_CONTENT_TYPE`.

@@ -1,6 +1,7 @@
 # Data Bridge v2 — Comprehensive Test Plan
 
-> Every test case the tool should pass. Mapped to automated tests where implemented.
+> Every test case the tool should pass. Mapped to automated tests where implemented.  
+> Filter Full Readiness Wave 5: seven upload types; retired Analyzer push failure path; OCR / already_imported / Strong-only cases aligned with product.
 
 ---
 
@@ -27,25 +28,32 @@
 | C-01 | Non-multipart content type | 400 INVALID_CONTENT_TYPE | ✓ handlers |
 | C-02 | Missing cityId | 400 MISSING_CITY | ✓ handlers |
 | C-03 | Invalid uploadType | 400 INVALID_UPLOAD_TYPE | ✓ handlers |
+| C-03b | All seven valid upload types accepted | validateUploadType green for each | ✓ intake-schema / gov-list-types |
 | C-04 | Missing file | 400 MISSING_FILE | ✓ handlers |
 | C-05 | Unsupported extension (.zip) | 400 UNSUPPORTED_FILE | ✓ handlers |
 | C-06 | Legacy .doc file | 400 UNSUPPORTED_FILE | ✓ handlers |
 | C-07 | Empty file (0 bytes) | 400 EMPTY_FILE | ✓ handlers |
 | C-08 | Unknown cityId | 404 CITY_NOT_FOUND | ✓ handlers |
 | C-09 | Valid CSV code_violation | 200, rows + stats (no analyzerPush) | ✓ engine |
-| C-10 | Valid TXT water_shut_off | 200, water tags | ✓ engine |
+| C-10 | Valid TXT water_shut_off | 200, water tags; no Strong-only drop | ✓ engine |
+| C-10b | Non-code types (pre_lien, tax, LP, probate, fire) | default tag; pass filterDistressOnly | ✓ gov-list-types |
 | C-11 | Valid XLSX | 200, spreadsheet parser | ✓ engine |
 | C-12 | Valid PDF (text extract) | 200, pdf parser | ✓ engine |
 | C-13 | Valid DOCX | parser path | manual/fixture |
 | C-14 | Valid JPG (OCR) | 200 or 503 OCR_UNAVAILABLE | ✓ engine (mock) |
 | C-15 | All rows missing addresses | 422 NO_USABLE_ROWS | ✓ engine |
-| C-16 | All rows already in Analyzer | 422, specific message | ✓ edge |
+| C-16 | All rows already in Analyzer **with opt-in** | hard-drop / 422 possible when kept empty | ✓ IND-04 / import-filter |
+| C-16b | Analyze-index match **default (opt-in off)** | rows kept; alreadyImported 0 | ✓ independence |
 | C-17 | Empty spreadsheet | 400 PARSE_FAILED | ✓ edge |
 | C-18 | Near-duplicate rows | deduplicated stat | ✓ engine |
 | C-19 | OCR low confidence | needsReview flag | ✓ engine |
-| C-20 | Process does not push to Analyze | analyzerPush absent | ✓ handlers |
+| C-20 | Process does not push to Analyze | analyzerPush absent; no session write | ✓ handlers + independence |
 | C-21 | Save / rename / download / delete lists | CRUD + CSV download | ✓ list-store + handlers |
-| C-21 | Analyzer push fails | disk fallback, ok:false possible | manual |
+| C-22 | OCR truncation honesty | `processingMeta.ocrTruncated` + page fields when cap hit | ✓ `bridge-ocr-meta.test.js` |
+| C-23 | OCR truncation UI banner | operator warning when meta truncated | ✓ `bridge-ocr-truncation-ui.test.js` |
+| C-24 | `applyAlreadyImportedFilter` multipart | only when `true`/`1` | ✓ API + engine IND-04 |
+
+> **Removed (obsolete):** former “C-21 Analyzer push fails / disk fallback” — Filter no longer auto-pushes to Analyze. Legacy `bridge-analyzer-push.js` is deleted. Independence is locked by section N / `tests/bridge-independence.test.js`. Manual Analyze import is out of band of process.
 
 ## D. API — `POST /api/bridge/attach`
 
@@ -86,7 +94,7 @@
 | F-09 | Blank row discarded | blank_row reason | ✓ |
 | F-10 | City Hall / non-property | non_property reason | ✓ edge |
 | F-11 | Address without street number | no_address unless lot/unit | ✓ schema |
-| F-12 | Open AND closed violations kept | both in output | ✓ engine |
+| F-12 | Open AND closed violations kept | both eligible before Strong-only | ✓ engine |
 
 ## G. Deduplication
 
@@ -97,16 +105,17 @@
 | G-03 | Different addresses | both kept | ✓ dedup |
 | G-04 | Levenshtein threshold 0.92 | boundary behavior | ✓ dedup |
 
-## H. Property Analyzer cross-reference
+## H. Property Analyzer cross-reference (opt-in)
 
 | ID | Case | Expected | Auto |
 |----|------|----------|------|
-| H-01 | Empty index | all rows kept | ✓ import-filter |
-| H-02 | Exact full-address match | already_imported | ✓ import-filter |
-| H-03 | Abbreviation variant match | already_imported | ✓ import-filter |
-| H-04 | Street-only index entry | already_imported | ✓ import-filter |
+| H-01 | Empty index (opt-in on) | all rows kept | ✓ import-filter |
+| H-02 | Exact full-address match **with opt-in** | already_imported | ✓ import-filter |
+| H-03 | Abbreviation variant match **with opt-in** | already_imported | ✓ import-filter |
+| H-04 | Street-only index entry **with opt-in** | already_imported | ✓ import-filter |
 | H-05 | Unrelated address | kept | ✓ import-filter |
 | H-06 | Index cache TTL (5 min) | reload on force | manual |
+| H-07 | Default process (opt-in off) | no loadImportAddressIndex; alreadyImported 0 | ✓ IND-04 / independence |
 
 ## I. Distressed signal tagging
 
@@ -117,9 +126,11 @@
 | I-03 | Abandoned vehicle | Strong Distressed Signal | ✓ |
 | I-04 | Dilapidated structure | Strong Distressed Signal | ✓ |
 | I-05 | Fence deteriorated | Strong Distressed Signal | ✓ |
-| I-06 | Fence permit (admin) | Standard Code Violation | ✓ |
-| I-07 | Water shut off any text | Water Shut Off tag | ✓ |
+| I-06 | Fence permit (admin) | Standard Code Violation → **no_distress_signal** (not kept) | ✓ tagger + gold deny |
+| I-07 | Water shut off any text | Water Shut Off tag; no phrase kill | ✓ |
 | I-08 | Multiple categories in one row | multiple indicators | ✓ |
+| I-09 | code_violation Strong-only keep | filterDistressOnly drops non-Strong | ✓ `bridge-distress-tagger` |
+| I-10 | Non-code types pass filterDistressOnly | all usable rows kept | ✓ gov-list-types |
 | ACC-01 | Gold keep/deny/water processUpload e2e | Strong kept / FN deny / water no type-suppress | ✓ `bridge-accuracy-gold.test.js` |
 | ACC-02 | No-Type + banned silent-drop reasons | Inventory kept/FN; no no_type* | ✓ gold |
 | ACC-03 | Type winner + COL/GATE/LBL/GROUP keep-green | Single Type; engine patterns | ✓ gold + engine |
@@ -127,15 +138,18 @@
 | LRN-02 | Anti-game: coverage / no silent-drop win | pure unit + no groupsHidden | ✓ learning-metrics |
 | LRN-03 | Type live; phrases proposed-only | apply + phrase miner | ✓ existing + phase 58 |
 
-## J. Analyzer push
+## J. Analyze handoff (no Filter auto-push)
+
+> **Retired:** Filter auto-push to Analyze (`bridge-analyzer-push.js`, process-time push, “push fails → disk fallback”).  
+> Product boundary: **Save list → Download for Analyze → manual Analyze import**.
 
 | ID | Case | Expected | Auto |
 |----|------|----------|------|
-| J-01 | Row → analyzer record shape | leadType, bridgeTag, address | ✓ |
-| J-02 | Water shut off lead type | water_shut_off | ✓ |
-| J-03 | Duplicate key skipped | skipped count | ✓ analyzer |
-| J-04 | New records appended | added count | ✓ analyzer |
-| J-05 | Record key format email\|phone\|address | matches session | ✓ |
+| J-01 | Process response has no analyzerPush / session write | independence static + runtime | ✓ independence |
+| J-02 | Save list does not write Analyze session | independence | ✓ independence |
+| J-03 | Download for Analyze CTA present; no “Push to Analyze” | UI contract | ✓ desk-cinema / contract-freeze |
+| J-04 | Manual import shape (legacy analyzer helpers if still unit-tested) | record key / leadType when exercised outside Filter | optional / legacy |
+| J-05 | Water list type maps to water_shut_off | Filter id stable | ✓ outcome-water-id |
 
 ## K. Export & persistence (Form Forge)
 
@@ -158,12 +172,15 @@
 | L-03 | Unsupported file in dropzone | client error | manual |
 | L-04 | 422 shows user message | error wrap | manual |
 | L-05 | Attach requires response datetime | validation message | manual |
-| L-06 | KPI grid has no Pushed to Analyze | Already in Analyze only | manual |
-| L-09 | Saved lists panel multi-upload | lists persist across process | manual |
+| L-06 | KPI grid has no Pushed to Analyze | Already in Analyze only when skip-imported on | manual |
 | L-07 | History panel loads on city select | fetch history | manual |
 | L-08 | CSV export download | client-side blob | manual |
-| L-09 | Pagination 50 rows | page controls | manual |
+| L-09 | Saved lists panel multi-upload | lists persist across process | manual |
+| L-09b | Pagination 50 rows | page controls | manual |
 | L-10 | Filter by tag/confidence/review | table filters | manual |
+| L-11 | Seven list-type radios | all `bridge-upload-type` values present | ✓ contract-freeze |
+| L-12 | Skip already-imported checkbox default off | `#bridge-skip-already-imported` unchecked | manual / static |
+| L-13 | OCR cap hint + truncation banner | static hint; banner when truncated | ✓ ocr-truncation-ui |
 | EFF-01/02 | Day-2 efficiency path (reuse UI, post-save download, Train keyboard guards, anti silent-drop/push/auto-save) | static + engine contracts | ✓ `bridge-efficiency-path.test.js` |
 
 ## M. Multipart parser
@@ -234,6 +251,7 @@ Human layout/motion gate: `.planning/phases/68-regression-qa-lock/68-QA-CHECKLIS
 | DESK-05 | Critical scrub-path IDs + train fail-closed + data-mode/format/step + radios | Static greps green on `bridge.html` / `bridge.js` / `bridge-train.js` | ✓ `tests/bridge-contract-freeze.test.js` |
 | DESK-05 | Written freeze checklist (full ID inventory + restyle bans) | Human bible present | ✓ `docs/bridge/CONTRACT-FREEZE.md` |
 | DESK-05 | Cinema/theater structure remains complementary | Mission surface, victory slogans, no Analyze push CTAs | ✓ desk-cinema + train-theater (not reimplemented here) |
+| DESK-05 | Seven upload-type radios | All values locked in freeze doc + HTML | ✓ contract-freeze + freeze.md |
 
 ```bash
 node --test tests/bridge-contract-freeze.test.js
@@ -269,6 +287,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-live.ps1
 Human layout gate: `.planning/phases/81-visual-qa-lock-catalog/81-QA-CHECKLIST.md`  
 Catalog: `docs/phuglee/COMPONENT-CATALOG.md`  
 Parity: `docs/phuglee/FILTER-PARITY-MATRIX.md`
+
+---
+
+## R. Filter Full Readiness — Wave 1–2 fixtures already landed
+
+> Wave 5 docs only; do not re-add these fixtures. Prove-it remains Wave 6.
+
+| Area | Artifact | Wave |
+|------|----------|------|
+| OCR meta honesty | `tests/bridge-ocr-meta.test.js` | 1.1 |
+| OCR truncation UI | `tests/bridge-ocr-truncation-ui.test.js` | 1.2 |
+| Gold ACC | `tests/fixtures/bridge/gold/*` | prior + permanent bar |
+| Intake / water id / recovery / scrub CTA | Wave 2 suites under `tests/bridge-*.test.js` | 2.x |
+| PDF family text fixtures | `tests/fixtures/bridge/*enforcement*`, `*code-cases*` | parsers |
 
 ---
 
