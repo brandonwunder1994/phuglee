@@ -165,7 +165,10 @@
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      const err = new Error(data.error || res.statusText || 'Request failed');
+      const detail = data.error || data.message || res.statusText || '';
+      const err = new Error(detail
+        ? detail
+        : `Request failed (${res.status})`);
       err.code = data.code;
       err.status = res.status;
       throw err;
@@ -3383,24 +3386,44 @@
 
   async function submitAmendment(ev) {
     ev.preventDefault();
+    ev.stopPropagation();
     if (state._amendmentSending) return;
     const id = $('uc-amendment-deal-id').value;
     const partyType = $('uc-amendment-party')?.value || 'seller';
     const terms = $('uc-amendment-terms').value.trim();
-    if (!id || !terms) return;
+    const origDate = ($('uc-amendment-orig-date')?.value || '').trim();
+    if (!id) {
+      showToast('Deal missing — close and open Amendment again', 7000);
+      return;
+    }
+    if (!terms) {
+      showToast('Enter amendment terms first', 7000);
+      $('uc-amendment-terms')?.focus();
+      return;
+    }
+    if (!origDate) {
+      showToast('Original PSA signed date is missing — Sync from GHL or set it on the deal first', 9000);
+      return;
+    }
 
     let sellers = [];
     let sellerCount = 1;
     if (partyType === 'end_buyer') {
       const name = ($('uc-amendment-buyer-name')?.value || '').trim();
       const email = ($('uc-amendment-buyer-email')?.value || '').trim();
-      if (!name || !email) return;
+      if (!name || !email) {
+        showToast('End buyer name and email are required', 7000);
+        return;
+      }
       sellers = [{ name, email }];
     } else {
       sellerCount = Number(document.querySelector('input[name="uc-amendment-seller-count"]:checked')?.value || '1');
       const s1Name = ($('uc-amendment-s1-name')?.value || '').trim();
       const s1Email = ($('uc-amendment-s1-email')?.value || '').trim();
-      if (!s1Name || !s1Email) return;
+      if (!s1Name || !s1Email) {
+        showToast('Seller 1 name and email are required', 7000);
+        return;
+      }
       sellers = [{ name: s1Name, email: s1Email }];
       if (sellerCount >= 2) {
         const s2Name = ($('uc-amendment-s2-name')?.value || '').trim();

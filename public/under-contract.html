@@ -690,7 +690,8 @@
   </dialog>
 
   <dialog id="uc-amendment-dialog" class="uc-dialog">
-    <form method="dialog" id="uc-amendment-form" class="uc-edit-form">
+    <!-- method=post (not dialog): dialog method closes the modal before async send finishes -->
+    <form method="post" action="#" id="uc-amendment-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-amendment-title">Send Amendment</h3>
         <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">×</button>
@@ -706,11 +707,11 @@
       </label>
       <label class="vault-field">
         <span class="vault-field-label">Amendment terms</span>
-        <textarea id="uc-amendment-terms" class="phuglee-textarea" rows="4" required placeholder="e.g. Extend closing 7 days?"></textarea>
+        <textarea id="uc-amendment-terms" class="phuglee-textarea" rows="4" placeholder="e.g. Extend closing 7 days?"></textarea>
       </label>
       <label class="vault-field">
         <span class="vault-field-label">Original agreement date (from PSA)</span>
-        <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="Awaiting PSA signed date?" readonly required tabindex="-1">
+        <input type="text" id="uc-amendment-orig-date" class="phuglee-input" placeholder="Awaiting PSA signed date?" readonly tabindex="-1">
         <span id="uc-amendment-orig-hint" class="uc-field-hint"></span>
       </label>
       <div id="uc-amendment-seller-block">
@@ -720,11 +721,11 @@
         </div>
         <label class="vault-field">
           <span class="vault-field-label" id="uc-amendment-s1-name-label">Seller 1 name</span>
-          <input type="text" id="uc-amendment-s1-name" class="phuglee-input" required autocomplete="name">
+          <input type="text" id="uc-amendment-s1-name" class="phuglee-input" autocomplete="name">
         </label>
         <label class="vault-field">
           <span class="vault-field-label" id="uc-amendment-s1-email-label">Seller 1 email</span>
-          <input type="email" id="uc-amendment-s1-email" class="phuglee-input" required autocomplete="email">
+          <input type="email" id="uc-amendment-s1-email" class="phuglee-input" autocomplete="email">
         </label>
         <div id="uc-amendment-seller2" class="uc-psa-seller2" hidden>
           <label class="vault-field">
@@ -821,6 +822,6 @@
   <script src="/js/command-palette.js?v=4" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=72" defer></script>
+  <script src="/js/under-contract.js?v=73" defer></script>
 </body>
 </html>
