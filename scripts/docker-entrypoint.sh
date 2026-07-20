@@ -11,9 +11,10 @@ if [ "${NODE_ENV}" = "production" ] && [ "${PHUGLEE_AUTH_OPEN:-0}" != "1" ] && [
 else
   export PHUGLEE_AUTH_DISABLED="${PHUGLEE_AUTH_DISABLED:-0}"
 fi
-export FORM_FORGE_HOST="${FORM_FORGE_HOST:-0.0.0.0}"
+# Bind children to loopback only — shell proxy is the public surface.
+export FORM_FORGE_HOST="${FORM_FORGE_HOST:-127.0.0.1}"
 export FORM_FORGE_PORT="${FORM_FORGE_PORT:-8787}"
-export PROPERTY_ANALYZER_HOST="${PROPERTY_ANALYZER_HOST:-0.0.0.0}"
+export PROPERTY_ANALYZER_HOST="${PROPERTY_ANALYZER_HOST:-127.0.0.1}"
 export PROPERTY_ANALYZER_PORT="${PROPERTY_ANALYZER_PORT:-3456}"
 export FORGE_BOOT_LOG="${FORGE_BOOT_LOG:-/tmp/forge-boot.log}"
 export FORGE_EXTERNAL_BOOT=1
