@@ -21,20 +21,24 @@
 
   var EXCLUDED_FROM_MAP = new Set(['Alaska', 'Hawaii']);
 
-  var COLOR_COVERED_LOW = '#8a4a18';
-  var COLOR_COVERED_MID = '#e58435';
-  var COLOR_COVERED_HIGH = '#eeb746';
+  // Army green scale (not orange) so live states don't clash with red "can't pull"
+  var COLOR_COVERED_LOW = '#3f4f32';
+  var COLOR_COVERED_MID = '#5f7348';
+  var COLOR_COVERED_HIGH = '#8fa36a';
   var COLOR_NO_DATA = '#3a4658';
   var COLOR_UNAVAILABLE = '#8f2a2a';
 
-  /** Tiny NE states — only covered/blocked get callouts; spaced vertical ladder */
+  /**
+   * Tiny NE states — callouts sit in a right gutter (not beyond viewBox).
+   * Short labels keep dashboard map readable; full name stays in aria-label.
+   */
   var SMALL_STATE_CALLOUTS = [
-    { name: 'Rhode Island', label: 'Rhode Island', center: [-71.48, 41.68], callout: [-67.55, 43.55] },
-    { name: 'Connecticut', label: 'Connecticut', center: [-72.72, 41.58], callout: [-67.55, 41.15] },
-    { name: 'New Jersey', label: 'New Jersey', center: [-74.55, 40.15], callout: [-67.55, 39.55] },
-    { name: 'Delaware', label: 'Delaware', center: [-75.52, 39.0], callout: [-67.55, 37.85] },
-    { name: 'Maryland', label: 'Maryland', center: [-76.7, 39.05], callout: [-67.55, 36.15] },
-    { name: 'District of Columbia', label: 'D.C.', center: [-77.02, 38.9], callout: [-67.55, 34.55] }
+    { name: 'Rhode Island', label: 'RI', fullLabel: 'Rhode Island', center: [-71.48, 41.68] },
+    { name: 'Connecticut', label: 'CT', fullLabel: 'Connecticut', center: [-72.72, 41.58] },
+    { name: 'New Jersey', label: 'NJ', fullLabel: 'New Jersey', center: [-74.55, 40.15] },
+    { name: 'Delaware', label: 'DE', fullLabel: 'Delaware', center: [-75.52, 39.0] },
+    { name: 'Maryland', label: 'MD', fullLabel: 'Maryland', center: [-76.7, 39.05] },
+    { name: 'District of Columbia', label: 'DC', fullLabel: 'District of Columbia', center: [-77.02, 38.9] }
   ];
 
   var MAP_BOUNDS = {
@@ -43,6 +47,8 @@
     minLat: 24.0,
     maxLat: 49.6
   };
+  /** Extra SVG width east of the plot so callout chips are never clipped */
+  var MAP_CALLOUT_GUTTER = 108;
 
   var coverageCache = null;
   var statesGeoCache = null;
@@ -379,67 +385,99 @@
     renderStateCityPanel(stateName, coverage, counts);
   }
 
-  function appendSvgSmallStateCallouts(svg, prefix, width, height, counts, options) {
+  function appendSvgSmallStateCallouts(svg, prefix, plotWidth, height, counts, options) {
     var svgNS = 'http://www.w3.org/2000/svg';
     var layer = document.createElementNS(svgNS, 'g');
     layer.setAttribute('class', prefix + '-map-callouts');
 
-    SMALL_STATE_CALLOUTS.forEach(function (item) {
+    // Only callouts that matter; ladder in the right gutter (inside viewBox)
+    var active = SMALL_STATE_CALLOUTS.filter(function (item) {
       var status = getStateStatus(item.name, counts);
-      if (status !== 'covered' && status !== 'unavailable') return;
+      return status === 'covered' || status === 'unavailable';
+    });
+    if (!active.length) return;
 
+    var gutterX = plotWidth + 22;
+    var topY = 36;
+    var step = Math.min(36, Math.max(22, (height - topY - 28) / Math.max(active.length, 1)));
+
+    active.forEach(function (item, index) {
+      var status = getStateStatus(item.name, counts);
       var fill =
         status === 'covered'
           ? COLOR_COVERED_HIGH
           : COLOR_UNAVAILABLE;
-      var c0 = project(item.center[0], item.center[1], width, height);
-      var c1 = project(item.callout[0], item.callout[1], width, height);
+      var c0 = project(item.center[0], item.center[1], plotWidth, height);
+      var c1 = [gutterX, topY + index * step];
 
       var line = document.createElementNS(svgNS, 'line');
       line.setAttribute('x1', c0[0].toFixed(1));
       line.setAttribute('y1', c0[1].toFixed(1));
-      line.setAttribute('x2', c1[0].toFixed(1));
+      line.setAttribute('x2', (c1[0] - 8).toFixed(1));
       line.setAttribute('y2', c1[1].toFixed(1));
       line.setAttribute('stroke', fill);
-      line.setAttribute('stroke-width', '1.2');
-      line.setAttribute('stroke-opacity', '0.85');
+      line.setAttribute('stroke-width', '1.15');
+      line.setAttribute('stroke-opacity', '0.8');
       line.setAttribute('pointer-events', 'none');
       layer.appendChild(line);
 
       var g = document.createElementNS(svgNS, 'g');
-      g.setAttribute('class', prefix + '-map-callout');
+      g.setAttribute('class', prefix + '-map-callout ' + prefix + '-map-callout--' + status);
       g.setAttribute('data-state', item.name);
       g.setAttribute('transform', 'translate(' + c1[0].toFixed(1) + ' ' + c1[1].toFixed(1) + ')');
 
+      var fullName = item.fullLabel || item.name;
       if (options && options.interactive) {
         g.setAttribute('role', 'button');
         g.setAttribute('tabindex', '0');
-        g.setAttribute('aria-label', item.name + ' — view coverage');
+        g.setAttribute('aria-label', fullName + ' — view coverage');
         g.style.cursor = 'pointer';
+      } else {
+        g.setAttribute('aria-label', fullName);
       }
 
+      // Chip background so the label stays readable and fully inside the SVG
+      var chip = document.createElementNS(svgNS, 'rect');
+      chip.setAttribute('x', '-6');
+      chip.setAttribute('y', '-11');
+      chip.setAttribute('width', '52');
+      chip.setAttribute('height', '22');
+      chip.setAttribute('rx', '11');
+      chip.setAttribute('fill', 'rgba(8, 12, 10, 0.92)');
+      chip.setAttribute('stroke', fill);
+      chip.setAttribute('stroke-width', '1.25');
+      g.appendChild(chip);
+
       var hit = document.createElementNS(svgNS, 'circle');
-      hit.setAttribute('r', '14');
+      hit.setAttribute('r', '16');
+      hit.setAttribute('cx', '12');
       hit.setAttribute('fill', '#000');
       hit.setAttribute('fill-opacity', '0.01');
       g.appendChild(hit);
 
       var dot = document.createElementNS(svgNS, 'circle');
-      dot.setAttribute('r', '5.5');
+      dot.setAttribute('cx', '4');
+      dot.setAttribute('r', '4.5');
       dot.setAttribute('fill', fill);
-      dot.setAttribute('stroke', status === 'unavailable' ? '#c84848' : '#f5f2e4');
-      dot.setAttribute('stroke-width', '1.4');
+      dot.setAttribute('stroke', status === 'unavailable' ? '#c84848' : '#dce8c8');
+      dot.setAttribute('stroke-width', '1.2');
       g.appendChild(dot);
 
       var label = document.createElementNS(svgNS, 'text');
-      label.setAttribute('x', '10');
+      label.setAttribute('x', '14');
       label.setAttribute('y', '4');
       label.setAttribute('fill', '#f5f2e4');
       label.setAttribute('font-size', '11');
       label.setAttribute('font-weight', '700');
       label.setAttribute('font-family', 'system-ui, sans-serif');
+      label.setAttribute('letter-spacing', '0.04em');
       label.textContent = item.label;
       g.appendChild(label);
+
+      // Title for hover (full state name)
+      var title = document.createElementNS(svgNS, 'title');
+      title.textContent = fullName;
+      g.appendChild(title);
 
       layer.appendChild(g);
     });
@@ -505,14 +543,18 @@
       var stats = computeMapStats(coverage, statesGeo);
       if (summaryId) updateMapSummary(summaryId, stats);
 
-      var width = 560;
+      // Plot map in left region; reserve right gutter so NE callouts never clip
+      var plotWidth = 560;
       var height = 340;
+      var width = plotWidth + MAP_CALLOUT_GUTTER;
       var svgNS = 'http://www.w3.org/2000/svg';
       var svg = document.createElementNS(svgNS, 'svg');
-      svg.setAttribute('viewBox', '0 0 ' + width + ' ' + height);
+      // Small pad so selection strokes / callout chips aren't cut by overflow:hidden
+      svg.setAttribute('viewBox', '-4 -4 ' + (width + 8) + ' ' + (height + 8));
       svg.setAttribute('class', prefix + '-map-svg');
       svg.setAttribute('role', 'img');
       svg.setAttribute('aria-label', 'United States coverage map');
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
       var defs = document.createElementNS(svgNS, 'defs');
       var pattern = document.createElementNS(svgNS, 'pattern');
@@ -545,7 +587,7 @@
         stateGroup.setAttribute('data-state', name);
 
         var path = document.createElementNS(svgNS, 'path');
-        path.setAttribute('d', featureToPath(feature, width, height));
+        path.setAttribute('d', featureToPath(feature, plotWidth, height));
         path.setAttribute('class', prefix + '-map-state ' + prefix + '-map-state--' + status);
 
         if (status === 'covered') {
@@ -572,7 +614,7 @@
       });
 
       svg.appendChild(group);
-      appendSvgSmallStateCallouts(svg, prefix, width, height, counts, options);
+      appendSvgSmallStateCallouts(svg, prefix, plotWidth, height, counts, options);
       host.innerHTML = '';
       host.appendChild(svg);
       mapRenderedHosts.add(hostId);
