@@ -19,7 +19,7 @@
 }
 
 .command-hub {
-  max-width: 42rem;
+  max-width: 48rem;
   margin: 0 auto;
   padding: 3rem 1.5rem 4rem;
   display: flex;
@@ -108,6 +108,139 @@
   margin: -1rem 0 0;
   font-size: 0.875rem;
   color: var(--phuglee-danger, #f87171);
+}
+
+/* Coverage map */
+.command-coverage-map-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.command-map-summary {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--phuglee-meta-text, #b0a99c);
+}
+
+.command-map-summary strong {
+  color: var(--phuglee-cream, #f5f2e4);
+  font-weight: 600;
+}
+
+.command-coverage-map {
+  position: relative;
+  width: 100%;
+  min-height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0a0f14;
+  border: 1px solid rgba(174, 163, 143, 0.2);
+}
+
+.command-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.command-map-state {
+  stroke: rgba(13, 13, 13, 0.85);
+  stroke-width: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.command-map-state--covered:hover {
+  opacity: 0.9;
+}
+
+.command-map-loading,
+.command-map-error {
+  margin: 0;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--phuglee-meta-text, #b0a99c);
+}
+
+.command-map-error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+}
+
+.command-map-retry {
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--phuglee-cream, #f5f2e4);
+  background: rgba(245, 242, 228, 0.08);
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  cursor: pointer;
+}
+
+.command-map-retry:hover {
+  background: rgba(245, 242, 228, 0.12);
+}
+
+.command-map-retry:focus-visible {
+  outline: 2px solid var(--phuglee-orange, #e58435);
+  outline-offset: 2px;
+}
+
+.command-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-meta-text, #b0a99c);
+}
+
+.command-map-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.command-map-swatch {
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.command-map-swatch--covered {
+  background: linear-gradient(135deg, #8a4a18, #eeb746);
+}
+
+.command-map-swatch--pending {
+  background: #3a4658;
+}
+
+.command-map-swatch--blocked {
+  background: repeating-linear-gradient(
+    45deg,
+    #8f2a2a,
+    #8f2a2a 2px,
+    #c84848 2px,
+    #c84848 4px
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-map-state {
+    transition: none;
+  }
 }
 
 /* Quiet links */
