@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/bridge.css?v=83">
+  <link rel="stylesheet" href="/css/bridge.css?v=90">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -29,40 +29,32 @@
   <div id="distress-os-nav-mount"></div>
 
   <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
-    <header class="bridge-hero" data-phuglee-reveal-child>
-      <p class="bridge-step-label">Step 02 - Filter</p>
-      <h1 class="bridge-title">Scrub the Mess</h1>
-      <p class="bridge-lead">Drop the clerk file. Kill the junk. Stage clean distressed leads. Analyze stays separate.</p>
-    </header>
-
     <!-- Phase 73: war-room victory (shown after Stage list) -->
     <div id="bridge-victory-strip" class="bridge-victory-strip bridge-elev--featured" hidden role="status" aria-live="polite">
       <div class="bridge-victory-main">
         <p class="bridge-victory-title" id="bridge-victory-title">List staged</p>
         <p class="bridge-victory-meta" id="bridge-victory-meta"></p>
-        <p class="bridge-victory-boundary">Kept leads are ready - export or scrub the next city.</p>
+        <p class="bridge-victory-boundary">Kept leads are ready â€” Download for Analyze, then import manually.</p>
+        <ol id="bridge-victory-checklist" class="bridge-victory-checklist" aria-label="Next steps for Analyze">
+          <li><strong>Download for Analyze</strong> â€” address CSV this button exports</li>
+          <li><a class="bridge-victory-analyze-link" href="/analyzer/" target="_blank" rel="noopener noreferrer">Open Analyze</a> â€” data is not transferred</li>
+          <li>Import the downloaded file in Analyze</li>
+          <li>Start review scan</li>
+        </ol>
+        <p class="bridge-victory-independence">Nothing was sent to Analyze automatically. Manual import only.</p>
       </div>
       <div class="bridge-victory-actions">
-        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-victory-download" hidden data-action="flash-download" data-format="csv">Filter Data</button>
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-victory-download" hidden data-action="flash-download" data-format="csv" title="Address CSV for Analyze import">Download for Analyze</button>
         <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-victory-next">Scrub next city</button>
       </div>
     </div>
 
     <div class="bridge-desk">
       <div class="bridge-desk-primary">
-    <nav class="bridge-pipeline bridge-pipeline--slim" aria-label="Intake steps" data-phuglee-reveal-child>
-      <ol class="bridge-pipeline-list" id="bridge-pipeline">
-        <li class="bridge-pipeline-step is-active is-clickable" data-step="location" role="button" tabindex="0" aria-current="step"><span>1</span> City</li>
-        <li class="bridge-pipeline-step" data-step="type" role="button" tabindex="-1" aria-disabled="true"><span>2</span> Type</li>
-        <li class="bridge-pipeline-step" data-step="upload" role="button" tabindex="-1" aria-disabled="true"><span>3</span> Upload</li>
-        <li class="bridge-pipeline-step" data-step="results" role="button" tabindex="-1" aria-disabled="true"><span>4</span> Results</li>
-      </ol>
-    </nav>
-
-    <!-- Phase 69: one scrub desk stage (city + type + dropzone as one job surface) -->
+    <!-- Primary Filter stage (city + type + dropzone as one job surface) -->
     <div class="bridge-scrub-stage bridge-elev--primary" id="bridge-scrub-stage">
     <section class="bridge-panel phuglee-panel bridge-panel--desk bridge-elev--primary" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
-      <h2 id="bridge-step-location"><span class="bridge-step-badge" aria-hidden="true">1</span> Scrub desk</h2>
+      <h2 id="bridge-step-location">Filter</h2>
       <div class="bridge-city-search-block">
         <label class="bridge-city-search-label" for="bridge-city-search">
           <span class="bridge-city-search-label-text">Quick city search</span>
@@ -113,6 +105,9 @@
       <div class="bridge-city-dossier" id="bridge-city-dossier" hidden>
         <div class="bridge-city-dossier-chrome">
           <span class="bridge-city-dossier-stamp" id="bridge-last-scan-heading">When Did We Scan Last?</span>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-history-open-btn" id="bridge-history-open" title="Prior Filter datasets attached to this city">
+            Prior attaches
+          </button>
         </div>
         <p class="bridge-dossier-empty" id="bridge-dossier-empty" hidden>
           No scans yet for this city.
@@ -200,7 +195,7 @@
                 <option value="lis_pendens">Pre-foreclosure</option>
                 <option value="probate">Probate</option>
                 <option value="fire">Fire</option>
-                <option value="water_shutoff">Water shutoff</option>
+                <option value="water_shut_off">Water shut-off</option>
               </select>
             </label>
             <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-outcome-save" disabled>Log city reply</button>
@@ -283,7 +278,7 @@
             ></textarea>
           </label>
           <div class="bridge-paste-actions">
-            <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>SCRUB IT</button>
+            <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Scrub it</button>
             <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
             <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
           </div>
@@ -299,10 +294,10 @@
         <div class="bridge-import-path bridge-import-path--file">
           <h3 class="bridge-import-path-title">Drop the clerk file</h3>
           <div class="bridge-format-badges" aria-hidden="true">
-            <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span>
+            <span>.xlsx</span><span>.csv</span><span>.pdf</span><span>.docx</span><span>.txt</span><span>.jpg</span><span>.png</span><span>.webp</span><span>.gif</span><span>.tif</span><span>.bmp</span>
           </div>
           <div class="bridge-dropzone" id="bridge-dropzone" tabindex="0" role="button" aria-describedby="bridge-drop-hint">
-            <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.doc,.docx,.jpg,.jpeg,.png" multiple hidden />
+            <input type="file" id="bridge-file-input" class="bridge-file-input" accept=".xlsx,.xls,.csv,.tsv,.txt,.pdf,.docx,.jpg,.jpeg,.png,.webp,.gif,.tif,.tiff,.bmp,.heic,.heif" multiple hidden />
             <div class="bridge-dropzone-inner" id="bridge-dropzone-inner">
               <p class="bridge-drop-title">Drop files here</p>
               <p class="bridge-drop-hint" id="bridge-drop-hint">or <button type="button" class="bridge-browse-link" id="bridge-browse">browse files</button> - up to 5</p>
@@ -329,8 +324,8 @@
     <section class="bridge-panel phuglee-panel" id="bridge-loading-panel" hidden aria-live="polite" aria-busy="true">
       <div class="bridge-loading phuglee-loading-state">
         <div class="phuglee-loading-bar" aria-hidden="true"></div>
-        <p class="phuglee-loading-copy" id="bridge-loading-copy">Detecting format...</p>
-        <p class="bridge-loading-eta" id="bridge-loading-eta">This can take 30-90s for PDFs; Excel/CSV is usually faster.</p>
+        <p class="phuglee-loading-copy" id="bridge-loading-copy">Processing uploadâ€¦</p>
+        <p class="bridge-loading-eta" id="bridge-loading-eta">Processing the whole file â€” results open when ready (no live address feed).</p>
         <div class="bridge-loading-actions">
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-cancel-process">Cancel</button>
         </div>
@@ -344,12 +339,23 @@
       <!-- Phase 72: mission surface ? kill report + stage CTA first -->
       <div class="bridge-mission-surface" id="bridge-mission-surface">
       <p class="bridge-preview-meta" id="bridge-results-meta"></p>
+      <div id="bridge-ocr-truncation-banner" class="bridge-ocr-truncation-banner" hidden role="alert"></div>
+      <div id="bridge-redaction-banner" class="bridge-review-limit-banner" hidden role="status"></div>
       <div class="bridge-kpi-grid" id="bridge-kpi-grid"></div>
+      <div id="bridge-zero-kept-recovery" class="bridge-zero-kept-recovery" hidden>
+        <p class="bridge-zero-kept-recovery-lead">No rows kept. Common fixes:</p>
+        <div class="bridge-zero-kept-recovery-actions">
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-recovery-type-column" data-recovery="type-column">Wrong Type column?</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-recovery-excel" data-recovery="excel">Try Excel from portal</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-recovery-clear-type" data-recovery="clear-type" hidden>Clear Type memory (admin)</button>
+        </div>
+        <p class="bridge-zero-kept-recovery-hint" id="bridge-zero-kept-recovery-hint" hidden role="status"></p>
+      </div>
       <p class="bridge-note" id="bridge-stub-note" hidden></p>
 
       <section class="bridge-save-panel bridge-save-panel--climax" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
         <h3 id="bridge-save-heading">Stage this scrub</h3>
-        <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, download from Saved lists for external enrichment. Nothing is sent to Analyze.</p>
+        <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, use Download for Analyze (address CSV) and import it in Analyze yourself. Nothing is sent to Analyze.</p>
         <div class="bridge-save-row">
           <label class="bridge-save-name" for="bridge-list-name">List name
             <input type="text" id="bridge-list-name" class="phuglee-input" maxlength="120" placeholder="e.g. Marana - Code Violation - Jul 9" autocomplete="off" />
@@ -360,7 +366,7 @@
       </section>
       </div><!-- /bridge-mission-surface -->
 
-      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process -> (Train) -> Save list -> Download -> enrich outside -> manual Analyze import</p>
+      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process â†’ (Train) â†’ Save list â†’ Download for Analyze â†’ manual Analyze import</p>
 
       <div id="bridge-train-wrap" hidden>
         <div id="bridge-train-mission" class="bridge-train-mission" hidden>
@@ -397,6 +403,7 @@
           <section class="bridge-train-section" aria-labelledby="train-fn-h">
             <h3 id="train-fn-h">Not marked distressed</h3>
             <p class="bridge-panel-lead">Not Distressed = leave off the list. Distressed = move to distressed and promote this type next time.</p>
+            <div id="bridge-fn-truncation-note" class="bridge-fn-truncation-note" hidden role="status"></div>
             <div id="bridge-train-not-distressed" class="bridge-train-groups"></div>
             <div id="bridge-train-not-distressed-pager" class="bridge-train-pager" hidden></div>
           </section>
@@ -503,19 +510,23 @@
         </summary>
         <div class="bridge-lists-details-body">
       <div class="bridge-lists-header">
-        <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv" title="One CSV: Street Address, City, State, Postal Code">Export all (CSV)</button>
-          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
-          <button type="button" class="phuglee-btn phuglee-btn-danger" id="bridge-download-full-xlsx" title="Full raw columns: tags, types, notes, confidence ? not the 4-column enrichment sheet">Download FULL EXCEL</button>
-          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-xlsx" title="One workbook: sheets of 5,000 leads each">Export batches (5k XLSX)</button>
-          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-csv" title="ZIP of CSV files, 5,000 leads each">Export batches (5k CSV zip)</button>
+                <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv" title="Address CSV for Analyze import: Street Address, City, State, Postal Code">Download for Analyze</button>
+          <details class="bridge-export-advanced" id="bridge-export-advanced">
+            <summary class="bridge-export-advanced-summary">Advanced export</summary>
+            <div class="bridge-export-advanced-body">
+              <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-all-xlsx">Download all (XLSX)</button>
+              <button type="button" class="phuglee-btn phuglee-btn-danger" id="bridge-download-full-xlsx" title="Full raw columns: tags, types, notes, confidence â€” not the 4-column enrichment sheet">Download FULL EXCEL</button>
+              <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-xlsx" title="One workbook: sheets of 5,000 leads each">Export batches (5k XLSX)</button>
+              <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-download-batched-csv" title="ZIP of CSV files, 5,000 leads each">Export batches (5k CSV zip)</button>
+            </div>
+          </details>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-delete-selected-lists" hidden>Delete selected</button>
           <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-list-action--danger" id="bridge-clear-all-lists">Clear all lists</button>
         </div>
-      </div>
       <div id="bridge-inventory-hud" class="bridge-inventory-hud" hidden
            role="region" aria-label="Scan history summary"></div>
-      <div id="bridge-lists-empty" class="bridge-lists-empty">No scans staged yet. Scrub a city list, then Save list to add it here. Download for enrichment when ready.</div>
+      <div id="bridge-lists-empty" class="bridge-lists-empty">No scans staged yet. Scrub a city list, then Save list to add it here. Use Download for Analyze when ready.</div>
       <div id="bridge-lists-wrap" class="bridge-lists-wrap" hidden>
         <table class="bridge-lists-table" id="bridge-lists-table">
           <thead>
@@ -545,6 +556,15 @@
 
     <div class="bridge-error-wrap phuglee-error-wrap" id="bridge-error-wrap" hidden role="alert">
       <p class="bridge-error phuglee-error" id="bridge-error"></p>
+      <div id="bridge-zero-kept-recovery-error" class="bridge-zero-kept-recovery" hidden>
+        <p class="bridge-zero-kept-recovery-lead">No rows kept. Common fixes:</p>
+        <div class="bridge-zero-kept-recovery-actions">
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-recovery-type-column-err" data-recovery="type-column">Wrong Type column?</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-recovery-excel-err" data-recovery="excel">Try Excel from portal</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-recovery-clear-type-err" data-recovery="clear-type" hidden>Clear Type memory (admin)</button>
+        </div>
+        <p class="bridge-zero-kept-recovery-hint" id="bridge-zero-kept-recovery-hint-err" hidden role="status"></p>
+      </div>
       <button type="button" class="phuglee-btn phuglee-btn-secondary bridge-retry" id="bridge-retry">Try again</button>
     </div>
   </main>
@@ -571,7 +591,7 @@
             Wrong Type column = wrong filter. Review sample values and keep estimates, then pick the column that holds violation or issue codes.
           </p>
           <p class="bridge-type-confirm-recovery" id="bridge-type-column-recovery-hint">
-            Confirmed the wrong column earlier? An admin can use <strong>Clear Type-column memory</strong> on the scrub desk, then re-upload so this dialog appears again.
+            Confirmed the wrong column earlier? An admin can use <strong>Clear Type-column memory</strong> on Filter, then re-upload so this dialog appears again.
           </p>
           <p class="bridge-type-confirm-suggested" id="bridge-type-column-suggested" hidden></p>
         </div>
@@ -589,13 +609,13 @@
   <div id="distress-os-footer-mount"></div>
   <script src="/js/phuglee-motion.js" defer></script>
   <script src="/js/phuglee-states.js" defer></script>
-  <script src="/js/settings-menu.js?v=5" defer></script>
+  <script src="/js/settings-menu.js?v=4" defer></script>
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
-  <script src="/js/shell-nav.js?v=26-request-label" defer></script>
+  <script src="/js/shell-nav.js?v=19" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=86" defer></script>
+  <script src="/js/bridge.js?v=96" defer></script>
 </body>
 </html>

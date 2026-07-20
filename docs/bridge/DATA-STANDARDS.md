@@ -1,13 +1,25 @@
 # Data Bridge v2 — Data Standards
 
-> Phase 1 foundation document. Defines normalized columns, retention rules, and confidence scoring.
+> Phase 1 foundation document. Defines normalized columns, retention rules, and confidence scoring.  
+> Filter Full Readiness Wave 5: aligned with engine retention (`filterDistressOnly`), IND-04 opt-in import filter, OCR page-cap honesty, and all seven list types.
 
 ## Upload Types
 
-| ID | Label | Default Tag | Notes |
-|----|-------|-------------|-------|
-| `code_violation` | Code Violation | Standard Code Violation | Retain open **and** closed records when address is usable |
-| `water_shut_off` | Water Shut Off | Water Shut Off – High Value Distress Signal | All usable-address records are high-value distress signals |
+Registry: `UPLOAD_TYPES` in `lib/bridge-intake-schema.js` (also Filter radios `name="bridge-upload-type"`).
+
+| ID | Label | Default Tag | Distress phrase filter | Notes |
+|----|-------|-------------|------------------------|-------|
+| `code_violation` | Code Violation | Standard Code Violation | **Yes** | Strong-only keep (see Retention). Open **and** closed records when address is usable |
+| `pre_lien` | Pre-lien | Pre-lien – Civil / Small Claims Complaint | No | List type is the signal; all usable addresses kept |
+| `tax_delinquent` | Tax Delinquent | Tax Delinquent – High Value Distress Signal | No | List type is the signal |
+| `lis_pendens` | Pre-foreclosure (LP / NOD) | Pre-foreclosure – LP / NOD / NOS | No | List type is the signal |
+| `probate` | Probate / Estate | Probate – Estate Filing | No | List type is the signal |
+| `fire` | Fire-damaged | Fire Damage – High Value Distress Signal | No | List type is the signal |
+| `water_shut_off` | Water Shut Off | Water Shut Off – High Value Distress Signal | No | All usable-address records are high-value distress signals |
+
+Only `code_violation` runs Superpower Brain phrase/type keep-kill **and** Strong Distressed Signal filtering. All other types tag with their default tag and pass through `filterDistressOnly` unchanged.
+
+**Canonical id:** `water_shut_off` (underscore). Form Forge request logs may still store legacy `water_shutoff` — Filter maps at the API boundary.
 
 ## Normalized Columns
 
@@ -26,18 +38,26 @@ Every kept record is mapped to these fields (see `lib/bridge-intake-schema.js`):
 | Matched Indicators | No | Semicolon-separated list when strong signals match |
 | Confidence Level | Yes | `high`, `medium`, or `low` |
 | Source File | Yes | Original upload filename |
-| Upload Type | Yes | `code_violation` or `water_shut_off` |
+| Upload Type | Yes | One of the seven IDs above |
 | Processed At | Yes | ISO-8601 UTC timestamp |
 
 ## Retention Rules
 
-**Keep** a row when:
+Pipeline order after parse/normalize (simplified):
+
+1. Drop unusable addresses / blank / non-property (`no_address`, `blank_row`, `non_property`, `parse_error`)
+2. Within-upload near-duplicate drop (`duplicate`)
+3. **Optional** Analyze-index hard-drop (`already_imported`) — see below
+4. Superpower Brain apply (active type/phrase rules; primarily `code_violation`)
+5. **Strong-only keep** for `code_violation` via `filterDistressOnly` — see below
+
+### Keep a row when
 
 - It has a usable street address after parsing/normalization
-- For Code Violation uploads: status (open/closed) is **not** a filter — both are retained
-- For Water Shut Off uploads: any record with a usable address is retained
+- For **Code Violation** uploads: status (open/closed) is **not** a filter — both are eligible; **and** the row must carry tag **`Strong Distressed Signal`** after tagging + brain apply
+- For **all other upload types** (water, pre-lien, tax, lis pendens, probate, fire): any record with a usable address is retained (list type is the distress signal)
 
-**Discard** a row when:
+### Discard a row when
 
 | Reason | Description |
 |--------|-------------|
@@ -45,8 +65,19 @@ Every kept record is mapped to these fields (see `lib/bridge-intake-schema.js`):
 | `blank_row` | Entirely empty or whitespace-only |
 | `non_property` | Clearly non-property / non-house (e.g. City Hall, parking lot, apartment complex, commercial building, highway ROW). Vacant lots still keep. |
 | `duplicate` | Near-duplicate of another kept row in the same upload |
-| `already_imported` | Address already exists in the user's Property Analyzer session |
+| `already_imported` | Address already exists in the user's Property Analyzer import index — **only when opt-in is on** |
+| `no_distress_signal` | **Code Violation only.** Row is not tagged `Strong Distressed Signal` after phrase/brain tagging (generic / admin / permit / weak code lines). Counted in `stats.noDistress` / `stats.discardReasons.no_distress_signal`. Full rows for Train FN review live in `notDistressedRows` (not the thin discard sample). |
 | `parse_error` | Row could not be parsed from source |
+
+### Code Violation — Strong-only keep (`no_distress_signal`)
+
+Product rule: Filter's job on code lists is to **kill non-deals** (weak violation types, admin permits, fence-permit noise) and keep clerk-true distress (weeds, trash, blight, junk vehicles, dilapidated structure, etc.).
+
+- Implemented by `filterDistressOnly` in `lib/bridge-distress-tagger.js`, called from `processUpload` in `lib/bridge-engine/index.js`
+- **Keep:** `distressedSignalTag === "Strong Distressed Signal"`
+- **Remove (FN / not-distressed path):** everything else on `code_violation`, reason `no_distress_signal`
+- Gold ACC fixtures under `tests/fixtures/bridge/gold/` lock keep vs deny
+- Other upload types **do not** apply this filter
 
 ## Usable Address Heuristic
 
@@ -66,6 +97,37 @@ An address is usable when:
 | `low` | OCR confidence < 60%; address inferred from weak text; flagged `needs_review` |
 
 Low-confidence rows are **kept** when the address is usable, but flagged for user review in the results table.
+
+## OCR Page Cap + Operator Warning
+
+Scanned / image PDFs use Tesseract OCR (`lib/bridge-engine/parsers/pdf-ocr.js`).
+
+| Constant / field | Value / meaning |
+|------------------|-----------------|
+| `MAX_OCR_PAGES` | **12** pages per PDF |
+| Operator static hint | Filter upload panel: “Scanned PDFs: OCR reads up to 12 pages…” |
+| Cap message helper | `ocrPageCapMessage()` — used in OCR error strings |
+
+When a PDF is longer than the cap:
+
+1. OCR processes only the first `MAX_OCR_PAGES` pages
+2. Parse attaches honesty flags (`ocrTruncated`, page totals, cap note)
+3. `processUpload` surfaces them on **`processingMeta`**:
+
+| `processingMeta` field | Type | Meaning |
+|------------------------|------|---------|
+| `ocrTruncated` | boolean | `true` when page cap truncated OCR |
+| `ocrPagesProcessed` | number \| null | Pages actually OCR’d |
+| `ocrPagesTotal` | number \| null | Document page count when known |
+| `ocrPageCap` | number | Cap used (default 12) |
+| `redactedSkipped` | number \| null | Rows skipped for redaction (family extractors) |
+| `rotatedBy` | number \| number[] \| null | Auto-rotation applied |
+
+4. Filter UI shows `#bridge-ocr-truncation-banner` when `processingMeta.ocrTruncated` is true (copy via `buildOcrTruncationWarning` in `public/js/bridge.js`). Operator is told to re-export Excel from the portal or split the PDF.
+
+Multi-file batch merge: any file truncated → `ocrTruncated: true`; page counts / redactedSkipped **sum**; `ocrPageCap` is **max** of per-file caps.
+
+Fixtures / tests: `tests/bridge-ocr-meta.test.js`, `tests/bridge-ocr-truncation-ui.test.js` (Wave 1).
 
 ## Lopsided / Scanned / Redacted Sheets (PDF → Excel)
 
@@ -121,18 +183,24 @@ Within a single upload:
 - When issue types are present, require issue similarity ≥ 0.85 or exact match
 - First occurrence is kept; later near-duplicates are discarded with reason `duplicate`
 
-## Property Analyzer Cross-Reference
+## Property Analyzer Cross-Reference (opt-in)
 
-**Off by default (v2.0 / IND-04).** After deduplication, Filter does **not** hard-drop rows that appear in the operator's Analyze session unless the engine is called with `applyAlreadyImportedFilter === true` (strict boolean; no Filter UI toggle in phase 55).
+**Off by default (v2.0 / IND-04).** After deduplication, Filter does **not** hard-drop rows that appear in the operator's Analyze session unless:
 
-When opt-in is enabled, each kept row is checked against the Property Analyzer import index (~10k+ imported leads). Rows that match an existing import are removed with reason `already_imported`.
+| Layer | How opt-in is enabled |
+|-------|------------------------|
+| Engine | `applyAlreadyImportedFilter === true` (strict boolean) |
+| HTTP process | Multipart field `applyAlreadyImportedFilter` = `true` / `1` |
+| Filter UI | Checkbox `#bridge-skip-already-imported` (“Skip addresses already in Analyze”) — **unchecked by default** |
+
+When opt-in is enabled, each kept row is checked against the Property Analyzer import index. Rows that match an existing import are removed with reason `already_imported`.
 
 **Index source (when opt-in loads the index):**
 
 1. `distressAnalyzerSession_LATEST.json` on disk (`PROPERTY_ANALYZER_PATH`) — preferred, no auth required
 2. `GET /api/import-address-index` on the Property Analyzer service (fallback)
 
-The index is cached for 5 minutes. Matching uses the same address similarity threshold as deduplication (≥ 0.92), comparing the composite key `streetAddress, city, state, zip`. Pure helper: `lib/bridge-engine/import-filter.js` (`filterAlreadyImported`).
+The index is cached for 5 minutes (force refresh on process when opt-in runs). Matching uses the same address similarity threshold as deduplication (≥ 0.92), comparing the composite key `streetAddress, city, state, zip`. Pure helper: `lib/bridge-engine/import-filter.js` (`filterAlreadyImported`).
 
 **Stats (default process):** `alreadyImported` is `0` and `processingMeta.importIndexCount` is `0` because the index is not loaded. When opt-in runs: `alreadyImported` counts hard-drops; `importIndexCount` is the size of the loaded index.
 
@@ -145,7 +213,7 @@ After processing, kept rows stay on the Filter page until the user explicitly sa
 - Rename / delete: `PATCH` / `DELETE` on `/api/bridge/lists/:id`
 - **Multi-city staging:** lists **persist until the operator deletes them**. Process, restart, and deploy do **not** wipe the list store (volume-safe `FILTER_LISTS_ROOT`).
 - **No automatic push to Analyze.** Process, save, Train, and list APIs never write Analyze sessions. Legacy Filter adapter `bridge-analyzer-push.js` is **deleted**; independence locked by `tests/bridge-independence.test.js`.
-- **Workflow:** Process → (Train, admin optional) → **Save list** → **Download** one or all → external enrich / skip-trace → **manual** Analyze import.
+- **Workflow:** Process → (Train, admin optional) → **Save list** → **Download for Analyze** (address CSV) → **manual** Analyze import → review scan. Advanced export (Full Excel / batch 5k) is secondary. Never auto-push.
 - **Day-2 / known format:** when the upload fingerprint matches a prior city format, Type reuses automatically (`auto_reuse`, no Type-column modal). First upload or a changed layout still requires confirm (GATE-02). Operator path stays Process → (Train, A/D keys for admin) → Save → Download; never auto-save or Analyze push.
 
 The Analyzer `POST /api/bridge-import-records` endpoint may still exist for **manual** import compatibility but is not called from Filter process/save/Train.
@@ -163,15 +231,18 @@ When attaching a processed list, the user must record **when the city actually s
 **On attach, Data Bridge will:**
 
 1. Persist `response_received_at` on the `bridge_datasets[]` version record
-2. Call Form Forge `log_response()` for the mapped request type (`code_violation` or `water_shutoff`) with `response_status: "yes"` and the user-supplied datetime
+2. Call Form Forge `log_response()` for the mapped request type with `response_status: "yes"` and the user-supplied datetime
 3. Recompute `turnaround_days` on the city profile so `average_turnaround_days` in City Tracker reflects the entry
 
-**Upload type → Form Forge request type:**
+**Upload type → Form Forge request type (attach / city outcome):**
 
-| Data Bridge `uploadType` | Form Forge `request_type` |
-|--------------------------|---------------------------|
+| Data Bridge `uploadType` | Form Forge `request_type` (typical) |
+|--------------------------|-------------------------------------|
 | `code_violation` | `code_violation` |
-| `water_shut_off` | `water_shutoff` |
+| `water_shut_off` | `water_shutoff` (legacy Forge id) |
+| `pre_lien` / `tax_delinquent` / `lis_pendens` / `probate` / `fire` | Same id when Forge profile supports it; primary Filter path is **save list + download**, not attach |
+
+**Note:** Form Forge `save_bridge_dataset` historically validates attach files as `code_violation` \| `water_shut_off` only. Process + saved lists accept all seven types regardless.
 
 **Form Forge (Phase 6):** `log_response()` preserves full ISO datetime in `response_at` when the user supplies date+time. Date-only values remain supported for legacy entries. Turnaround still uses calendar-day diff via `compute_turnaround_days`.
 
@@ -202,6 +273,7 @@ Files are stored under `data/bridge-datasets/{state}/{city_id}/`.
 
 ## Extension Points
 
-- `UPLOAD_TYPES` registry in `bridge-intake-schema.js` — add new upload types without schema changes
-- Property Analyzer cross-reference hard-drop is **off by default**; only when `applyAlreadyImportedFilter === true` (engine opt-in)
+- `UPLOAD_TYPES` registry in `bridge-intake-schema.js` — add new upload types without schema changes (must also add Filter radio + CONTRACT-FREEZE lock)
+- Property Analyzer cross-reference hard-drop is **off by default**; only when `applyAlreadyImportedFilter === true` (engine / multipart / UI checkbox)
+- Strong-only keep is **code_violation only** via `filterDistressOnly` / `no_distress_signal`
 - `bridge_datasets[]` is append-only; new uploads create new versions without overwriting prior attachments

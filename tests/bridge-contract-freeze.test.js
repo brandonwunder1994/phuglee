@@ -80,7 +80,7 @@ test('DESK-05: victory flash-download + slogans; data-format csv', () => {
   assert.match(html, /id="bridge-victory-download"[^>]*data-action="flash-download"/);
   assert.match(html, /id="bridge-victory-download"[^>]*data-format="csv"/);
   assert.match(html, /List staged/);
-  assert.match(html, /Filter Data/);
+  assert.match(html, /Download for Analyze/);
   assert.match(html, /Scrub next city/);
   assert.match(html, /id="bridge-victory-next"/);
 });
@@ -131,13 +131,11 @@ test('DESK-05: no banned Analyze push CTAs in HTML/JS', () => {
   }
 });
 
-// ── Pipeline data-step ─────────────────────────────────────────────────────
+// ── Pipeline banner removed (operator preference) ──────────────────────────
 
-test('DESK-05: pipeline data-step location|type|upload|results', () => {
-  assert.match(html, /data-step="location"/);
-  assert.match(html, /data-step="type"/);
-  assert.match(html, /data-step="upload"/);
-  assert.match(html, /data-step="results"/);
+test('DESK-05: slim 1–4 pipeline banner not rendered', () => {
+  assert.doesNotMatch(html, /id="bridge-pipeline"/);
+  assert.doesNotMatch(html, /data-step="location"/);
 });
 
 // ── Native dialogs ─────────────────────────────────────────────────────────
