@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=5">
-  <link rel="stylesheet" href="/css/bridge.css?v=93">
+  <link rel="stylesheet" href="/css/bridge.css?v=94">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -264,33 +264,7 @@
       </div>
 
       <div class="bridge-import-paths">
-        <!-- Path A: paste tabular text -->
-        <div class="bridge-import-path bridge-import-path--paste" id="bridge-paste-panel">
-          <h3 class="bridge-import-path-title" id="bridge-paste-heading">Paste text to Excel</h3>
-          <label class="bridge-paste-label" for="bridge-paste-text">
-            <span class="visually-hidden">Paste tabular text</span>
-            <textarea
-              id="bridge-paste-text"
-              class="bridge-paste-textarea phuglee-textarea"
-              rows="10"
-              spellcheck="false"
-              placeholder="Paste tab- or comma-separated rows here...&#10;&#10;File#&#9;Address&#9;Status&#10;CE-100&#9;123 Main St&#9;Open&#10;CE-101&#9;456 Oak Ave&#9;Closed"
-            ></textarea>
-          </label>
-          <div class="bridge-paste-actions">
-            <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-paste-convert" disabled>Scrub it</button>
-            <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-paste-clear" hidden>Clear</button>
-            <p class="bridge-paste-status" id="bridge-paste-status" role="status" hidden></p>
-          </div>
-        </div>
-
-        <div class="bridge-import-or" role="separator" aria-label="or">
-          <span class="bridge-import-or-line" aria-hidden="true"></span>
-          <span class="bridge-import-or-text">OR</span>
-          <span class="bridge-import-or-line" aria-hidden="true"></span>
-        </div>
-
-        <!-- Path B: drop / browse clerk file -->
+        <!-- Drop / browse clerk file (paste path removed — drop Excel/CSV/PDF only) -->
         <div class="bridge-import-path bridge-import-path--file">
           <h3 class="bridge-import-path-title">Drop the clerk file</h3>
           <div class="bridge-format-badges" aria-hidden="true">
@@ -308,13 +282,7 @@
             <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Scrub it</button>
             <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
           </div>
-          <label class="bridge-opt-skip-imported" for="bridge-skip-already-imported">
-            <input type="checkbox" id="bridge-skip-already-imported" />
-            <span class="bridge-opt-skip-imported-copy">
-              <strong>Skip addresses already in Analyze</strong>
-              <span class="bridge-opt-skip-imported-desc">Optional - off by default. When checked, drops rows that match addresses already in your Analyze session before scrubbing.</span>
-            </span>
-          </label>
+          <p class="bridge-vault-skip-hint">Addresses already in The Vault are always skipped.</p>
           <p class="bridge-ocr-cap-hint">Scanned PDFs: OCR reads up to 12 pages. Split longer packets or upload Excel/CSV.</p>
         </div>
       </div>
@@ -639,6 +607,6 @@
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=97" defer></script>
+  <script src="/js/bridge.js?v=98" defer></script>
 </body>
 </html>
