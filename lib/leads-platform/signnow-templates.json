@@ -16,5 +16,10 @@
   "cash": {
     "templateId": "18c85530e2df484cb28f80666c78bd4f7af10bd5",
     "name": "Cash Purchase Agreement"
+  },
+  "subto": {
+    "templateId": "",
+    "name": "Subject-To Purchase Agreement (no seller carry)",
+    "note": "Convert blank SubTo to a SignNow Template, then set templateId here."
   }
 }

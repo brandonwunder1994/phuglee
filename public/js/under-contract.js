@@ -800,6 +800,7 @@
                   <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
                 </span>
               </button>
+              ${dealTypeBadgeHtml(d)}
               ${trustFundBadgeHtml(d)}
               ${d.sellerSmsUnread
                 ? `<button type="button" class="uc-sms-alert" data-action="open-seller-sms" title="${esc(sellerSmsHoverTitle(d))}" aria-label="${esc(sellerSmsHoverTitle(d))}">💬</button>`
@@ -869,6 +870,7 @@
                 <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
               </span>
             </button>
+            ${dealTypeBadgeHtml(d)}
             ${trustFundBadgeHtml(d)}
             ${d.sellerSmsUnread
               ? `<button type="button" class="uc-sms-alert" data-action="open-seller-sms" title="${esc(sellerSmsHoverTitle(d))}" aria-label="${esc(sellerSmsHoverTitle(d))}">💬</button>`
@@ -907,6 +909,17 @@
       if (cut > 0) street = street.slice(0, cut).replace(/[,\s]+$/, '');
     }
     return { street: street || '—', cityLine };
+  }
+
+  function dealTypeBadgeHtml(deal) {
+    const type = String(deal?.dealType || '').trim();
+    if (type !== 'cash' && type !== 'subject_to') return '';
+    const label = deal.dealTypeLabel
+      || (type === 'cash' ? 'Cash deal' : 'Subject-to deal');
+    const src = type === 'cash'
+      ? '/images/deal-types/cash.png'
+      : '/images/deal-types/subto.png';
+    return `<span class="uc-deal-type-badge" data-deal-type="${esc(type)}" title="${esc(label)}" aria-label="${esc(label)}"><img src="${esc(src)}" alt="" width="28" height="28" loading="lazy" decoding="async"></span>`;
   }
 
   function trustFundBadgeHtml(deal) {
@@ -1939,10 +1952,14 @@
         <p class="uc-stage" data-stage="${esc(deal.stage)}">${esc(STAGE_LABELS[deal.stage] || deal.stage)}</p>
         <h2>${esc(deal.address || '—')}</h2>
         <p>${esc([deal.city, deal.state, deal.zip].filter(Boolean).join(', '))}</p>
-        ${trustFundBadgeHtml(deal.trustFundMatch ? deal : (state.deals.find((x) => x.dealId === deal.dealId) || deal))}
+        <div class="uc-profile-hero-badges">
+          ${dealTypeBadgeHtml(deal)}
+          ${trustFundBadgeHtml(deal.buyerMatch || deal.trustFundMatch ? deal : (state.deals.find((x) => x.dealId === deal.dealId) || deal))}
+        </div>
       </div>`;
 
     const rows = [
+      ['Deal type', deal.dealTypeLabel || (deal.dealType === 'cash' ? 'Cash deal' : deal.dealType === 'subject_to' ? 'Subject-to deal' : '— unset —')],
       ['Owner / seller', deal.ownerName || contact?.sellersName || contact?.name || '—'],
       ['Phone', deal.phone || contact?.phone || '—'],
       ['Email', deal.email || contact?.email || '—'],
@@ -2728,6 +2745,49 @@
       if (state.profile) openSendJv(state.profile);
       return;
     }
+    if (kind === 'psa' || kind === 'purchase_contract') {
+      await sendPsaFromPanel(state.profile || { dealId });
+    }
+  }
+
+  async function sendPsaFromPanel(deal) {
+    if (!deal?.dealId) return;
+    const dealType = String(deal.dealType || '').trim();
+    if (dealType !== 'cash' && dealType !== 'subject_to') {
+      showToast('Set Deal type to Cash or Subject-to in Edit before sending a purchase contract');
+      return;
+    }
+    if (dealType === 'cash') {
+      openSendNewPsa();
+      return;
+    }
+    showToast('Sending Subject-to PSA…');
+    const btn = $('uc-doc-send');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/send-document`, {
+        method: 'POST',
+        body: JSON.stringify({
+          kind: 'subto',
+          sellerName: deal.ownerName || deal.sellerNames || '',
+          sellerEmail: deal.ownerEmail || deal.email || '',
+          purchasePrice: deal.purchasePrice,
+          emdDeposit: deal.emdDeposit,
+          legalDescription: deal.aocSend?.legalDescription || '',
+          apn: deal.aocSend?.apn || ''
+        })
+      });
+      showToast(data.result?.message || data.psa?.message || 'Subject-to PSA sent via SignNow');
+      await loadDeals();
+      if (data.deal && state.activeDealId === deal.dealId) {
+        state.profile = data.deal;
+        renderProfile(data.deal, state.contact);
+      }
+    } catch (err) {
+      showToast(err.message || 'Send purchase contract failed');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   async function refreshSignedDocuments() {
@@ -3230,9 +3290,13 @@
     syncAmendmentSellerCountUi();
     const hint = $('uc-amendment-orig-hint');
     if (hint) {
-      hint.textContent = defs.originalAgreementDate
-        ? 'Locked to the PSA / GHL contract signed date — not editable'
-        : 'No PSA signed date on file yet — open the deal or Sync from GHL first';
+      if (defs.originalAgreementDate) {
+        hint.textContent = 'Locked to the PSA / GHL contract signed date — not editable';
+      } else if (deal?.dealType === 'subject_to') {
+        hint.textContent = 'No PSA signed date yet — attach the signed SubTo or set the signed date before sending an amendment';
+      } else {
+        hint.textContent = 'No PSA signed date on file yet — open the deal or Sync from GHL first';
+      }
     }
   }
 
@@ -3618,6 +3682,7 @@
     state.editingId = deal.dealId;
     $('uc-edit-id').value = deal.dealId;
     $('uc-edit-stage').value = deal.stage || 'under_contract';
+    if ($('uc-edit-deal-type')) $('uc-edit-deal-type').value = deal.dealType || '';
     $('uc-edit-purchase').value = deal.purchasePrice ?? '';
     $('uc-edit-fee').value = deal.assignmentFee ?? '';
     $('uc-edit-buyer').value = deal.cashBuyerName || '';
@@ -3651,6 +3716,7 @@
     }
     const body = {
       stage: $('uc-edit-stage').value,
+      dealType: $('uc-edit-deal-type')?.value || '',
       purchasePrice: $('uc-edit-purchase').value === '' ? null : Number($('uc-edit-purchase').value),
       assignmentFee: $('uc-edit-fee').value === '' ? null : Number($('uc-edit-fee').value),
       cashBuyerName: $('uc-edit-buyer').value.trim(),
