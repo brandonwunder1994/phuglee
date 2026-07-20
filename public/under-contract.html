@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=13">
   <link rel="stylesheet" href="/css/vault.css?v=16">
-  <link rel="stylesheet" href="/css/under-contract.css?v=60">
+  <link rel="stylesheet" href="/css/under-contract.css?v=61">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=3"></script>
@@ -168,6 +168,14 @@
         </select>
       </label>
       <label class="vault-field">
+        <span class="vault-field-label">Deal type</span>
+        <select id="uc-edit-deal-type" class="phuglee-select">
+          <option value="">— unset —</option>
+          <option value="cash">Cash deal</option>
+          <option value="subject_to">Subject-to deal</option>
+        </select>
+      </label>
+      <label class="vault-field">
         <span class="vault-field-label">Purchase price</span>
         <input type="number" id="uc-edit-purchase" class="phuglee-input" step="1" min="0">
       </label>
@@ -317,6 +325,7 @@
             <label class="vault-field uc-docs-kind">
               <span class="vault-field-label">Send via SignNow</span>
               <select id="uc-doc-kind" class="phuglee-select">
+                <option value="psa">Purchase contract (Cash or SubTo)</option>
                 <option value="aoc">AOC (assignment)</option>
                 <option value="jv">JV agreement</option>
                 <option value="amendment">Amendment</option>
@@ -812,6 +821,6 @@
   <script src="/js/command-palette.js?v=3" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=68" defer></script>
+  <script src="/js/under-contract.js?v=69" defer></script>
 </body>
 </html>

@@ -486,3 +486,23 @@ describe('SignNow alert copy helpers', () => {
     assert.equal(docKindLabel('jv'), 'JV');
   });
 });
+
+describe('subject-to PSA wiring', () => {
+  it('routes SubTo template guard and amendment copy by dealType', () => {
+    const {
+      requirePsaTemplate,
+      amendmentInviteCopy,
+      isSubjectToDeal,
+      kindFromTemplateKey
+    } = require('../lib/leads-platform/signnow-send');
+    assert.equal(isSubjectToDeal({ dealType: 'subject_to' }), true);
+    assert.equal(kindFromTemplateKey('subto'), 'purchase_contract');
+    assert.throws(
+      () => requirePsaTemplate('subto'),
+      (err) => err && err.code === 'SIGNNOW_TEMPLATE_MISSING'
+    );
+    const copy = amendmentInviteCopy({ dealType: 'subject_to' }, '1431 Hilltop Ter');
+    assert.match(copy.subject, /Purchase Contract/);
+    assert.match(copy.message, /subject-to/i);
+  });
+});

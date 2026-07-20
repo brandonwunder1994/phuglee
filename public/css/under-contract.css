@@ -2347,6 +2347,51 @@ body.uc-drawer-open {
   gap: 0.75rem;
 }
 
+.uc-deal-type-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  margin-left: 0.35rem;
+  padding: 0;
+  border: 1px solid rgba(238, 183, 70, 0.35);
+  border-radius: 0.45rem;
+  background: rgba(8, 14, 18, 0.45);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+  flex-shrink: 0;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.uc-deal-type-badge img {
+  display: block;
+  width: 1.55rem;
+  height: 1.55rem;
+  object-fit: contain;
+}
+
+.uc-deal-type-badge[data-deal-type="subject_to"] {
+  border-color: rgba(94, 186, 170, 0.45);
+}
+
+.uc-deal-type-badge[data-deal-type="cash"] {
+  border-color: rgba(238, 183, 70, 0.5);
+}
+
+.uc-profile-hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.uc-profile-hero-badges .uc-deal-type-badge,
+.uc-profile-hero-badges .uc-tf-alert {
+  margin-left: 0;
+}
+
 .uc-sms-alert {
   display: inline-flex;
   align-items: center;
