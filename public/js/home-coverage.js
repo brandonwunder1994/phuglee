@@ -196,7 +196,7 @@
     if (typeof states === 'number' && states > 0) {
       return formatCount(states);
     }
-    return '10';
+    return '—';
   }
 
   function updateCoverageStats(coverage) {
@@ -551,6 +551,10 @@
     return renderCoverageMap('hub-coverage-map', 'hub-map-summary', 'hub');
   }
 
+  function renderCommandMap() {
+    return renderCoverageMap('command-coverage-map', 'command-map-summary', 'command');
+  }
+
   function renderHomeMap() {
     return renderCoverageMap('home-coverage-map', 'home-map-summary', 'home', { interactive: true });
   }
@@ -601,6 +605,10 @@
       renderHubMap();
     }
 
+    if (document.getElementById('command-coverage-map')) {
+      renderCommandMap();
+    }
+
     if (document.getElementById('home-map-summary') && document.body.hasAttribute('data-home-map-preview')) {
       Promise.all([fetchCoverage(), fetchStatesGeo()])
         .then(function (pair) {
@@ -647,6 +655,7 @@
     updateCoverageStats: updateCoverageStats,
     renderGuideMap: renderGuideMap,
     renderHubMap: renderHubMap,
+    renderCommandMap: renderCommandMap,
     renderHomeMap: renderHomeMap,
     refreshGuideMap: function () {
       mapRenderedHosts.delete('guide-coverage-map');
@@ -655,6 +664,10 @@
     refreshHubMap: function () {
       mapRenderedHosts.delete('hub-coverage-map');
       return renderHubMap();
+    },
+    refreshCommandMap: function () {
+      mapRenderedHosts.delete('command-coverage-map');
+      return renderCommandMap();
     },
     refreshHomeMap: function () {
       mapRenderedHosts.delete('home-coverage-map');

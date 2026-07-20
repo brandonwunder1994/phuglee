@@ -14,6 +14,8 @@ test('command.html is coverage snapshot with live count IDs', () => {
   assert.ok(html.includes('id="main"'));
   assert.ok(html.includes('id="command-city-count"'));
   assert.ok(html.includes('id="command-state-count"'));
+  assert.ok(html.includes('id="command-coverage-map"'));
+  assert.ok(html.includes('id="command-map-summary"'));
   assert.ok(html.includes('home-coverage.js'));
   assert.ok(html.includes('href="/collect"'));
   assert.ok(html.includes('href="/filter"'));
@@ -49,6 +51,24 @@ test('command-center.css targets snapshot classes', () => {
   const css = read('css/command-center.css');
   assert.ok(css.includes('command-snapshot') || css.includes('command-metrics'));
   assert.ok(css.includes('command-city-count') || css.includes('command-metric'));
+  assert.ok(css.includes('command-coverage-map'));
+  assert.ok(css.includes('command-map-svg'));
   assert.ok(!css.includes('command-pulse-node'));
   assert.ok(!css.includes('command-mission-focus'));
+});
+
+test('home-coverage.js renders command map host', () => {
+  const js = read('js/home-coverage.js');
+  assert.ok(js.includes('command-coverage-map'));
+  assert.ok(js.includes('renderCommandMap'));
+  assert.ok(js.includes("return '—'") || js.includes('return "—"'));
+});
+
+test('coverage bootstrap has full live state footprint', () => {
+  const boot = JSON.parse(
+    fs.readFileSync(path.join(PUBLIC, 'data', 'coverage-map-bootstrap.json'), 'utf8')
+  );
+  assert.ok(boot.total_states >= 15, `expected >=15 states, got ${boot.total_states}`);
+  assert.ok(Array.isArray(boot.states) && boot.states.length === boot.total_states);
+  assert.ok(boot.total_cities > 500);
 });
