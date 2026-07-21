@@ -650,6 +650,15 @@
     return String(deal?.stage || '') === 'contract_sent';
   }
 
+  function isBrad() {
+    return sessionUser() === DISPOS;
+  }
+
+  /** Brad may glance Waiting for Signatures on the tracker; only admin opens them. */
+  function canOpenWaitingDeal() {
+    return isAdmin();
+  }
+
   function dispoQuickActionsHtml(d) {
     if (isWaitingForSignatures(d)) {
       return '<span class="uc-waiting-chip">Waiting for Signatures</span>';
@@ -665,6 +674,7 @@
     const table = $('uc-waiting-table');
     const cards = $('uc-waiting-cards');
     const count = $('uc-waiting-count');
+    const lead = document.querySelector('#uc-waiting-section .uc-waiting-lead');
     if (!section || !tbody) return;
 
     const deals = sortDealsByProcess(waiting || []);
@@ -676,38 +686,51 @@
     }
 
     section.hidden = false;
+    section.classList.toggle('uc-board--waiting-glance', isBrad() && !isAdmin());
+    if (lead) {
+      lead.textContent = canOpenWaitingDeal()
+        ? 'Cash PSAs sent via SignNow — no AOC, JV, or Amendment until the seller signs.'
+        : 'Address and photo only while the PSA is out for signature. Admin opens these deals.';
+    }
     if (count) count.textContent = `${deals.length} deal${deals.length === 1 ? '' : 's'}`;
     if (table) table.hidden = false;
     if (cards) cards.hidden = false;
 
+    const adminOpen = canOpenWaitingDeal();
     tbody.innerHTML = deals.map((d) => {
       const { street, cityLine } = propertyLines(d);
       const releaseBtn = isAdmin()
         ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
         : '';
-      return `<tr data-deal-id="${esc(d.dealId)}" class="uc-row-clickable">
+      const openBtn = adminOpen
+        ? '<button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>'
+        : '<span class="uc-waiting-locked" title="Admin only">On tracker</span>';
+      const addrInner = `<span class="uc-property-text">
+                  <span class="uc-addr">${esc(street)}</span>
+                  <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+                </span>`;
+      const addrCell = adminOpen
+        ? `<button type="button" class="uc-property-btn" data-action="open">${addrInner}</button>`
+        : `<div class="uc-property-btn uc-property-btn--static">${addrInner}</div>`;
+      const rowClass = adminOpen ? 'uc-row-clickable' : 'uc-row-glance';
+      return `<tr data-deal-id="${esc(d.dealId)}" class="${rowClass}" data-waiting="1"${adminOpen ? '' : ' data-restricted="1"'}>
         <td class="uc-property-cell">
           <div class="uc-property-block">
             <div class="uc-property-main">
               <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
                 ${thumbHtml(d, 'uc-thumb')}
               </button>
-              <button type="button" class="uc-property-btn" data-action="open">
-                <span class="uc-property-text">
-                  <span class="uc-addr">${esc(street)}</span>
-                  <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
-                </span>
-              </button>
+              ${addrCell}
             </div>
           </div>
         </td>
         <td><span class="uc-stage" data-stage="contract_sent">Waiting for Signatures</span></td>
-        <td class="uc-money">${esc(money(d.purchasePrice))}</td>
-        <td class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</td>
-        <td>${esc(d.ownerName || d.sellerNames || '—')}</td>
+        <td class="uc-money">${adminOpen ? esc(money(d.purchasePrice)) : '—'}</td>
+        <td class="uc-closing-cell">${adminOpen ? esc(d.closingDisplay || d.closingDate || '—') : '—'}</td>
+        <td>${adminOpen ? esc(d.ownerName || d.sellerNames || '—') : '—'}</td>
         <td>
           <div class="uc-row-actions">
-            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>
+            ${openBtn}
             ${releaseBtn}
           </div>
         </td>
@@ -720,25 +743,30 @@
         const releaseBtn = isAdmin()
           ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
           : '';
-        return `<article class="uc-deal-card uc-deal-card--waiting" data-deal-id="${esc(d.dealId)}">
+        const openBtn = adminOpen
+          ? '<button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>'
+          : '<span class="uc-waiting-locked" title="Admin only">On tracker</span>';
+        const addrInner = `<span class="uc-property-text">
+                <span class="uc-addr">${esc(street)}</span>
+                <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+              </span>`;
+        const addrCell = adminOpen
+          ? `<button type="button" class="uc-property-btn" data-action="open">${addrInner}</button>`
+          : `<div class="uc-property-btn uc-property-btn--static">${addrInner}</div>`;
+        return `<article class="uc-deal-card uc-deal-card--waiting${adminOpen ? '' : ' uc-deal-card--glance'}" data-deal-id="${esc(d.dealId)}" data-waiting="1"${adminOpen ? '' : ' data-restricted="1"'}>
           <div class="uc-deal-card-head">
             <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
               ${thumbHtml(d, 'uc-thumb')}
             </button>
-            <button type="button" class="uc-property-btn" data-action="open">
-              <span class="uc-property-text">
-                <span class="uc-addr">${esc(street)}</span>
-                <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
-              </span>
-            </button>
+            ${addrCell}
           </div>
           <div class="uc-deal-card-meta">
             <span class="uc-stage" data-stage="contract_sent">Waiting for Signatures</span>
-            <span class="uc-money">${esc(money(d.purchasePrice))}</span>
+            ${adminOpen ? `<span class="uc-money">${esc(money(d.purchasePrice))}</span>` : ''}
           </div>
-          <p class="uc-waiting-seller">${esc(d.ownerName || d.sellerNames || '—')}</p>
+          ${adminOpen ? `<p class="uc-waiting-seller">${esc(d.ownerName || d.sellerNames || '—')}</p>` : ''}
           <div class="uc-row-actions uc-deal-card-actions">
-            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>
+            ${openBtn}
             ${releaseBtn}
           </div>
         </article>`;
@@ -2845,6 +2873,14 @@
   }
 
   async function openProfile(dealId, opts = {}) {
+    const listed = state.deals.find((d) => d.dealId === dealId);
+    if (
+      !canOpenWaitingDeal()
+      && (isWaitingForSignatures(listed) || listed?.restricted === true)
+    ) {
+      showToast('Waiting for Signatures is admin-only — shown on your tracker only');
+      return;
+    }
     state.activeDealId = dealId;
     const buyersLink = $('uc-buyers-link') || $('uc-trust-funds-link');
     if (buyersLink) buyersLink.href = `/buyers?deal=${encodeURIComponent(dealId)}`;
@@ -4255,6 +4291,16 @@
         const url = photoUrl(deal);
         if (url) openPhotoLightbox(url, deal.address || 'Property');
         else showToast('No photo available for this deal');
+        return;
+      }
+      if (
+        (action === 'open' || !btn)
+        && isWaitingForSignatures(deal)
+        && !canOpenWaitingDeal()
+      ) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        showToast('Waiting for Signatures is admin-only — shown on your tracker only');
         return;
       }
       if (action === 'open') openProfile(dealId);
