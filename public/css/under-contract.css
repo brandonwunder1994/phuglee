@@ -371,14 +371,30 @@
   padding: 0.35rem 0.5rem;
 }
 
+/*
+ * Critical: never set display:flex on closed <dialog>.
+ * Author display rules beat UA dialog:not([open]){display:none} and leave the
+ * PSA form painted over the deal board (overlap / “see-through” mess).
+ */
 .uc-dialog--psa {
   max-width: min(32rem, calc(100vw - 1.5rem));
-  /* Cap to the visible viewport — zoomed browsers still need an inner scrollport. */
-  max-height: min(92dvh, 100svh);
+  max-height: min(85dvh, 40rem);
   overflow: hidden;
+  box-sizing: border-box;
+  /* Solid plate — never translucent over the board */
+  background: #121212;
+  color: var(--phuglee-cream, #f5f2e4);
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 24px 64px rgba(0, 0, 0, 0.65);
+}
+
+.uc-dialog--psa[open],
+.uc-dialog--psa:modal {
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
 .uc-dialog--psa .uc-edit-form {
@@ -391,6 +407,7 @@
   -webkit-overflow-scrolling: touch;
   /* Bound the single grid column so nowrap rows can't widen the modal (no L/R scroll). */
   grid-template-columns: minmax(0, 1fr);
+  background: #121212;
 }
 
 .uc-dialog--psa .uc-edit-form > * {
@@ -1048,27 +1065,43 @@
 }
 
 .uc-dialog {
-  border: 1px solid var(--vault-border-strong);
+  border: 1px solid var(--vault-border-strong, rgba(174, 163, 143, 0.28));
   border-radius: var(--radius-md, 10px);
-  background: var(--vault-surface-raised, #1a1a1a);
+  /* Opaque — translucent tokens let the board bleed through open modals */
+  background: #121212;
   color: var(--phuglee-cream);
   padding: 0;
   max-width: 26rem;
   width: calc(100% - 2rem);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 20px 56px rgba(0, 0, 0, 0.6);
 }
 
+/* Only flex when open (same closed-dialog trap as --psa) */
 .uc-dialog--aoc {
   max-width: 32rem;
-  max-height: min(92dvh, 100%);
+  max-height: min(85dvh, 40rem);
+  overflow: hidden;
+}
+
+.uc-dialog--aoc[open],
+.uc-dialog--aoc:modal {
+  display: flex;
+  flex-direction: column;
 }
 
 .uc-dialog--aoc .uc-edit-form {
-  max-height: min(92dvh, 100%);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
   overflow-y: auto;
+  background: #121212;
 }
 
 .uc-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(2px);
 }
 
 .uc-dialog-head {
