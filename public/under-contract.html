@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=15-polish">
   <link rel="stylesheet" href="/css/vault.css?v=28-typeset">
-  <link rel="stylesheet" href="/css/under-contract.css?v=56-distill">
+  <link rel="stylesheet" href="/css/under-contract.css?v=57-layout-fix">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=4"></script>
@@ -45,7 +45,7 @@
         </div>
         <div class="uc-hero-actions">
           <button type="button" id="uc-sync-ghl" class="phuglee-btn phuglee-btn-primary" data-admin-only>Sync from GHL</button>
-          <a href="/vault" class="phuglee-btn phuglee-btn-ghost" data-admin-only>Open Vault</a>
+          <a href="/vault" class="phuglee-btn phuglee-btn-ghost" data-admin-only>Open Houses</a>
           <a href="/buyers" class="phuglee-btn phuglee-btn-ghost" id="uc-buyers-link">Buyers</a>
         </div>
       </header>
@@ -74,19 +74,15 @@
         </div>
 
         <div class="uc-kpi-strip" aria-label="Pipeline and closings">
-          <div class="uc-kpi-row uc-kpi-row--primary">
+          <div class="uc-kpi-row">
+            <article class="uc-kpi"><span class="uc-kpi-label">Pending Signatures</span><strong id="uc-kpi-pending-sign" class="uc-kpi-value">0</strong></article>
             <article class="uc-kpi"><span class="uc-kpi-label">Under Contract</span><strong id="uc-kpi-uc" class="uc-kpi-value">0</strong></article>
-            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Pending $</span><strong id="uc-kpi-open-fees" class="uc-kpi-value">$0</strong></article>
-            <article class="uc-kpi"><span class="uc-kpi-label">Closed</span><strong id="uc-kpi-funded" class="uc-kpi-value">0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Pending Assignments</span><strong id="uc-kpi-open-fees" class="uc-kpi-value">$0</strong></article>
+            <span class="uc-kpi-sep" aria-hidden="true"></span>
+            <article class="uc-kpi"><span class="uc-kpi-label">Deals Closed</span><strong id="uc-kpi-funded" class="uc-kpi-value">0</strong></article>
             <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Total Funded</span><strong id="uc-kpi-fees" class="uc-kpi-value">$0</strong></article>
+            <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Average Assignment Funded</span><strong id="uc-kpi-avg-funded" class="uc-kpi-value">$0</strong></article>
           </div>
-          <details class="uc-kpi-more">
-            <summary class="uc-kpi-more-summary">More stats</summary>
-            <div class="uc-kpi-row uc-kpi-row--secondary">
-              <article class="uc-kpi"><span class="uc-kpi-label">Pending Signatures</span><strong id="uc-kpi-pending-sign" class="uc-kpi-value">0</strong></article>
-              <article class="uc-kpi uc-kpi--money"><span class="uc-kpi-label">Avg Assignment Funded</span><strong id="uc-kpi-avg-funded" class="uc-kpi-value">$0</strong></article>
-            </div>
-          </details>
         </div>
       </section>
 
@@ -95,7 +91,6 @@
           <h2 id="uc-board-title" class="uc-board-title">Deals</h2>
           <div class="uc-board-tools">
             <button type="button" id="uc-send-new-psa" class="phuglee-btn phuglee-btn-primary">Send New PSA</button>
-            <button type="button" id="uc-ops-toggle" class="uc-ops-toggle" aria-pressed="false" title="Show title, EMD, access, and other ops columns">Ops details</button>
             <div class="uc-view-toggle" role="group" aria-label="Board view">
               <button type="button" id="uc-view-table" class="uc-view-btn is-active" data-view="table" aria-current="true">Table</button>
               <a href="/pipeline" id="uc-view-kanban" class="uc-view-btn" data-view="kanban">Kanban</a>
@@ -104,7 +99,7 @@
           </div>
         </div>
         <div id="uc-empty" class="uc-empty" hidden>
-          <p>No deals yet. Sync from GHL or send a new PSA from a Vault lead.</p>
+          <p>No deals yet. Sync from GHL or send a new PSA from a Houses lead.</p>
         </div>
         <div class="uc-table-wrap" id="uc-table-wrap">
           <table class="uc-table" id="uc-table" hidden>
@@ -114,14 +109,14 @@
                 <th>Stage</th>
                 <th>Purchase Price</th>
                 <th>Closing Date</th>
-                <th class="uc-col-ops">Title</th>
-                <th class="uc-col-ops">EMD</th>
-                <th class="uc-col-ops">Access</th>
-                <th class="uc-col-ops">Vacancy</th>
-                <th class="uc-col-ops">Photos</th>
-                <th class="uc-col-ops">Rehab</th>
-                <th class="uc-col-ops">Buyer</th>
-                <th class="uc-col-ops">Buyer EMD</th>
+                <th>Title Opened?</th>
+                <th>EMD Submitted?</th>
+                <th>Access</th>
+                <th>Vacancy</th>
+                <th>Photos?</th>
+                <th>Rehab Info?</th>
+                <th>Buyer?</th>
+                <th>Buyer EMD?</th>
                 <th>Funded</th>
                 <th></th>
               </tr>
@@ -841,6 +836,6 @@
   <script src="/js/command-palette.js?v=4" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=56-distill" defer></script>
+  <script src="/js/under-contract.js?v=57-layout-fix" defer></script>
 </body>
 </html>
