@@ -2763,12 +2763,28 @@
   async function sendPsaFromPanel(deal) {
     if (!deal?.dealId) return;
     const dealType = String(deal.dealType || '').trim();
-    if (dealType !== 'cash' && dealType !== 'subject_to') {
-      showToast('Set Deal type to Cash or Subject-to in Edit before sending a purchase contract');
-      return;
-    }
-    if (dealType === 'cash') {
-      openSendNewPsa();
+    // Prefer Send New PSA modal so Cash vs Subject-to is an explicit choice.
+    // Existing deals without a vault leadId still use the direct SubTo/Cash send path.
+    if (deal.leadId || dealType === 'cash' || !dealType) {
+      openSendNewPsa({ dealType: dealType === 'subject_to' ? 'subject_to' : 'cash' });
+      if (deal.leadId && deal.address) {
+        selectPsaLead({
+          leadId: deal.leadId,
+          address: deal.address,
+          city: deal.city,
+          state: deal.state,
+          zip: deal.zip,
+          ownerName: deal.ownerName || deal.sellerNames || '',
+          email: deal.ownerEmail || deal.email || '',
+          phones: deal.phone ? [deal.phone] : []
+        });
+        if ($('uc-psa-price') && deal.purchasePrice != null && deal.purchasePrice !== '') {
+          $('uc-psa-price').value = formatPsaMoneyInput(deal.purchasePrice);
+        }
+        if ($('uc-psa-emd') && deal.emdDeposit != null && deal.emdDeposit !== '') {
+          $('uc-psa-emd').value = formatPsaMoneyInput(deal.emdDeposit);
+        }
+      }
       return;
     }
     showToast('Sending Subject-to PSA…');
@@ -3531,7 +3547,20 @@
     if (!keepSearch && $('uc-psa-search')) $('uc-psa-search').value = '';
   }
 
-  function openSendNewPsa() {
+  function selectedPsaDealType() {
+    const raw = document.querySelector('input[name="uc-psa-deal-type"]:checked')?.value || 'cash';
+    return raw === 'subject_to' ? 'subject_to' : 'cash';
+  }
+
+  function syncPsaSubmitLabel() {
+    const submitBtn = $('uc-psa-submit');
+    if (!submitBtn || submitBtn.disabled) return;
+    submitBtn.textContent = selectedPsaDealType() === 'subject_to'
+      ? 'Send Subject-to PSA'
+      : 'Send Cash PSA';
+  }
+
+  function openSendNewPsa(opts = {}) {
     clearPsaLeadSelection();
     setPsaError('');
     setPsaResultsHtml('');
@@ -3547,11 +3576,13 @@
     const one = document.querySelector('input[name="uc-psa-seller-count"][value="1"]');
     if (one) one.checked = true;
     syncPsaSeller2Visibility();
+    const prefer = opts.dealType === 'subject_to' ? 'subject_to' : 'cash';
+    const typeRadio = document.querySelector(`input[name="uc-psa-deal-type"][value="${prefer}"]`)
+      || document.querySelector('input[name="uc-psa-deal-type"][value="cash"]');
+    if (typeRadio) typeRadio.checked = true;
     const submitBtn = $('uc-psa-submit');
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Send Cash PSA';
-    }
+    if (submitBtn) submitBtn.disabled = false;
+    syncPsaSubmitLabel();
     $('uc-psa-dialog')?.showModal();
     $('uc-psa-search')?.focus();
   }
@@ -3666,8 +3697,10 @@
       return;
     }
 
+    const dealType = selectedPsaDealType();
     const body = {
       leadId,
+      dealType,
       sellerCount,
       sellers,
       purchasePrice: formatPsaMoneyInput(purchasePrice) || purchasePrice,
@@ -3678,7 +3711,7 @@
     };
 
     const btn = $('uc-psa-submit');
-    const prev = btn?.textContent || 'Send Cash PSA';
+    const prev = btn?.textContent || (dealType === 'subject_to' ? 'Send Subject-to PSA' : 'Send Cash PSA');
     if (btn) {
       btn.disabled = true;
       btn.textContent = 'Sending…';
@@ -3689,7 +3722,10 @@
         body: JSON.stringify(body)
       });
       $('uc-psa-dialog')?.close();
-      showToast(data.psa?.message || 'Cash PSA sent via SignNow', 6000);
+      const fallbackMsg = dealType === 'subject_to'
+        ? 'Subject-to PSA sent via SignNow'
+        : 'Cash PSA sent via SignNow';
+      showToast(data.psa?.message || fallbackMsg, 6000);
       await loadDeals();
       if (data.deal?.dealId) {
         openProfile(data.deal.dealId).catch(() => {});
@@ -3704,6 +3740,7 @@
       if (btn) {
         btn.disabled = false;
         btn.textContent = prev;
+        syncPsaSubmitLabel();
       }
     }
   }
@@ -3918,6 +3955,9 @@
     $('uc-psa-close')?.addEventListener('click', () => $('uc-psa-dialog')?.close());
     $('uc-send-new-psa')?.addEventListener('click', () => openSendNewPsa());
     $('uc-psa-form')?.addEventListener('submit', submitSendNewPsa);
+    document.querySelectorAll('input[name="uc-psa-deal-type"]').forEach((radio) => {
+      radio.addEventListener('change', syncPsaSubmitLabel);
+    });
     $('uc-psa-search')?.addEventListener('input', () => {
       // Editing/clearing the filled address unlocks search again.
       if (psaSelectedLead) {

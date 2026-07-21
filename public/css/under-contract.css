@@ -400,10 +400,17 @@
   background: var(--glass-bg-solid, var(--vault-surface-raised, #1a1a1a));
 }
 
-.uc-psa-seller-count {
+.uc-psa-seller-count,
+.uc-psa-deal-type {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
   margin-bottom: 0.75rem;
+}
+
+.uc-psa-deal-type {
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .uc-psa-radio {

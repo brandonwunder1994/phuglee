@@ -1169,5 +1169,8 @@ test('Send New PSA dialog CSS keeps an inner vertical scrollport when zoomed', (
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*min-height:\s*0/s);
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*overflow-y:\s*auto/s);
   assert.match(css, /\.uc-psa-results\s*\{[^}]*max-height:\s*min\(12\.5rem,\s*40dvh\)/s);
-  assert.match(html, /under-contract\.css\?v=65/);
+  assert.match(html, /under-contract\.css\?v=66/);
+  assert.match(html, /name="uc-psa-deal-type"[^>]*value="cash"/);
+  assert.match(html, /name="uc-psa-deal-type"[^>]*value="subject_to"/);
+  assert.match(html, /under-contract\.js\?v=74/);
 });
