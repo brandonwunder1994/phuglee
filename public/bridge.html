@@ -15,9 +15,9 @@
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=14-typeset">
-  <link rel="stylesheet" href="/css/bridge.css?v=108-typeset">
+  <link rel="stylesheet" href="/css/bridge.css?v=109-quieter">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -25,10 +25,10 @@
 </head>
 <body class="phuglee-app has-premium-bg bridge-page">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
-  <div class="phuglee-shell-bg phuglee-shell-bg--strong" aria-hidden="true"></div>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
   <div id="distress-os-nav-mount"></div>
 
-  <main id="main" class="bridge-main phuglee-pattern-bg phuglee-pattern-bg--subtle" data-phuglee-reveal>
+  <main id="main" class="bridge-main" data-phuglee-reveal>
     <!-- Phase 73: war-room victory (shown after Stage list) -->
     <div id="bridge-victory-strip" class="bridge-victory-strip bridge-elev--featured" hidden role="status" aria-live="polite">
       <div class="bridge-victory-main">
@@ -51,6 +51,7 @@
 
     <header class="bridge-page-heading">
       <h1 class="bridge-title" id="bridge-page-title">Filter</h1>
+      <p class="bridge-page-lead">Pick a city, choose the list type, drop the file.</p>
     </header>
 
     <div class="bridge-desk">
@@ -58,7 +59,7 @@
     <!-- Primary Filter stage (city + type + dropzone as one job surface) -->
     <div class="bridge-scrub-stage bridge-elev--primary" id="bridge-scrub-stage">
     <section class="bridge-panel phuglee-panel bridge-panel--desk bridge-elev--primary" aria-labelledby="bridge-step-location" data-phuglee-reveal-child>
-      <h2 id="bridge-step-location">City</h2>
+      <h2 id="bridge-step-location" class="bridge-step-heading">City</h2>
       <div class="bridge-city-search-block">
         <label class="bridge-city-search-label" for="bridge-city-search">
           <span class="bridge-city-search-label-text">Quick city search</span>

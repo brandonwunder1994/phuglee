@@ -12,7 +12,8 @@ body {
   z-index: var(--z-main);
   max-width: 1040px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 3rem;
+  /* Work-first: less top chrome so City is near first paint */
+  padding: 1rem 1.25rem 2.5rem;
 }
 
 /* Shell-rail era: desk uses content column (not brochure centered card) */
@@ -4926,20 +4927,24 @@ body.bridge-page.phuglee-app {
   --bridge-hairline-hot: rgba(229, 132, 53, 0.32);
   --bridge-surface: rgba(14, 13, 11, 0.92);
   --bridge-inset: rgba(10, 10, 9, 0.96);
-  /* Brighter plate → lower opacity than Analyze’s 0.68 house plate */
-  --shell-photo-opacity: 0.36;
+  /* Quieter first paint — plate supports desk, does not compete with City job */
+  --shell-photo-opacity: 0.14;
 }
 
-/* Filter-only plate (Imagine) — faded to Analyze atmosphere weight */
+/* Filter-only plate — subdued under the desk */
 body.bridge-page .phuglee-shell-bg::before {
-  opacity: var(--shell-photo-opacity, 0.36) !important;
+  opacity: var(--shell-photo-opacity, 0.14) !important;
   background: url('/images/filter-hero-desk.jpg') center 38% / cover no-repeat !important;
-  /* Slightly greyer + darker than Analyze (0.7 brightness) so lamp glow does not dominate */
-  filter: grayscale(14%) contrast(1.12) brightness(0.52) saturate(0.82) !important;
+  filter: grayscale(22%) contrast(1.08) brightness(0.42) saturate(0.7) !important;
 }
 
 body.bridge-page .phuglee-shell-bg--strong {
-  --shell-photo-opacity: 0.36;
+  --shell-photo-opacity: 0.18;
+}
+
+body.bridge-page .phuglee-shell-bg--subtle,
+body.bridge-page .phuglee-shell-bg--medium {
+  --shell-photo-opacity: 0.14;
 }
 
 /* Same vignette stack as Analyze desk v2 (+ a touch more edge dark for bright plate) */
@@ -6242,31 +6247,74 @@ body.bridge-page .bridge-main {
   margin-right: auto;
 }
 
-/* Large page title above the desk cards */
+/* Quiet page label — rail already says Filter; desk job is next */
 body.bridge-page .bridge-page-heading {
-  text-align: center;
-  margin: 0 0 1.15rem;
+  text-align: left;
+  margin: 0 0 0.65rem;
   width: 100%;
 }
 
 body.bridge-page .bridge-page-heading .bridge-title {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
   text-transform: none;
   color: var(--phuglee-cream, #f5f2e4);
   text-shadow: none;
   text-wrap: balance;
 }
 
+body.bridge-page .bridge-page-lead {
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--phuglee-taupe-mid, #a59a88);
+  max-width: 36rem;
+}
+
 body.bridge-page.has-shell-chrome .bridge-page-heading {
-  margin: 0 0 1rem;
+  margin: 0 0 0.55rem;
 }
 
 body.bridge-page.has-shell-chrome .bridge-page-heading .bridge-title {
-  font-size: 1.5rem;
+  font-size: 1.125rem;
   font-weight: 600;
+}
+
+/* First-paint desk: solid panels, less glass lift theater */
+body.bridge-page .bridge-scrub-stage {
+  margin-top: 0;
+}
+
+body.bridge-page .bridge-step-heading,
+body.bridge-page .bridge-panel--desk > h2:first-child {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  margin: 0 0 0.65rem;
+  color: var(--phuglee-cream);
+}
+
+/* Admin type-column help stays off until JS unhides for admins with city selected */
+body.bridge-page #bridge-city-actions:not([hidden]) {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.12);
+}
+
+body.bridge-page #bridge-admin-format-help {
+  font-size: 0.78rem;
+  color: var(--phuglee-taupe-mid, #a59a88);
+}
+
+/* Idle mission board: quieter than kill theater (results still get full heat) */
+body.bridge-page .bridge-idle-proof.bridge-mission-board {
+  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(174, 163, 143, 0.16);
+  box-shadow: none;
 }
