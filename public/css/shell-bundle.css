@@ -1,6 +1,6 @@
 /* Shared shell CSS — one round trip for app chrome (tokens → a11y). */
 @import url('/css/tokens.css?v=shell3-no-topbar');
-@import url('/css/distress-glass.css?v=shell1');
+@import url('/css/distress-glass.css?v=typeset1');
 @import url('/css/phuglee-components.css?v=typeset1');
 @import url('/css/phuglee-shell.css?v=1');
 @import url('/css/shell.css');
