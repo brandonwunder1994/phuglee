@@ -345,6 +345,32 @@
   color: var(--vault-muted);
 }
 
+.uc-property-btn--static {
+  display: block;
+  text-align: left;
+  cursor: default;
+  pointer-events: none;
+}
+
+.uc-row-glance {
+  cursor: default;
+}
+
+.uc-deal-card--glance {
+  cursor: default;
+  opacity: 0.96;
+}
+
+.uc-waiting-locked {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--vault-muted);
+  padding: 0.35rem 0.5rem;
+}
+
 .uc-dialog--psa {
   max-width: min(32rem, calc(100vw - 1.5rem));
   /* Cap to the visible viewport — zoomed browsers still need an inner scrollport. */

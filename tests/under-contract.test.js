@@ -193,10 +193,18 @@ test('contract_sent PSA deals appear on contracts board Waiting section, not in 
     contracts.listDeals().filter((d) => d.stage === 'under_contract').length
   );
 
+  // Brad: tracker glance only (address/photo) — admin opens Waiting for Signatures.
   const bradView = contracts.projectDealForViewer(deal, 'brad');
-  assert.notEqual(bradView.restricted, true);
-  assert.equal(bradView.ownerName, 'Pat Seller');
-  assert.doesNotThrow(() => contracts.assertBradCanWriteDeal(deal, 'brad'));
+  assert.equal(bradView.restricted, true);
+  assert.equal(bradView.address, deal.address);
+  assert.equal(bradView.ownerName, undefined);
+  assert.throws(
+    () => contracts.assertBradCanWriteDeal(deal, 'brad'),
+    (err) => err.code === 'FORBIDDEN_SALES_STAGE'
+  );
+  const adminView = contracts.projectDealForViewer(deal, 'admin');
+  assert.notEqual(adminView.restricted, true);
+  assert.equal(adminView.ownerName, 'Pat Seller');
 });
 
 test('proofTotals reports pending signatures and average funded assignment fee', () => {
@@ -838,6 +846,31 @@ test('Brad projection strips PII on pre-UC; full on UC+; write blocked', async (
     (err) => err.code === 'FORBIDDEN_SALES_STAGE'
   );
 
+  const waiting = contracts.upsertDeal({
+    address: '44 Waiting Sig Ave',
+    city: 'Mesa',
+    state: 'AZ',
+    stage: 'contract_sent',
+    phone: '4805550111',
+    ownerName: 'Pending Seller',
+    purchasePrice: 220000,
+    streetViewUrl: 'https://example.com/wait.jpg'
+  });
+  const waitingProj = contracts.projectDealForViewer(waiting, 'brad');
+  assert.equal(waitingProj.restricted, true);
+  assert.equal(waitingProj.address, '44 Waiting Sig Ave');
+  assert.ok(waitingProj.thumbUrl || waitingProj.streetViewUrl);
+  assert.equal(waitingProj.phone, undefined);
+  assert.equal(waitingProj.ownerName, undefined);
+  assert.equal(waitingProj.purchasePrice, undefined);
+  assert.throws(
+    () => contracts.assertBradCanWriteDeal(waiting, 'brad'),
+    (err) => err.code === 'FORBIDDEN_SALES_STAGE'
+  );
+  const adminWaiting = contracts.projectDealForViewer(waiting, 'admin');
+  assert.notEqual(adminWaiting.restricted, true);
+  assert.equal(adminWaiting.ownerName, 'Pending Seller');
+
   const uc = contracts.upsertDeal({
     address: '99 Open Ln',
     city: 'Tempe',
@@ -860,16 +893,51 @@ test('Brad projection strips PII on pre-UC; full on UC+; write blocked', async (
   );
   assert.equal(patchRes.statusCode, 403);
 
+  const waitGet = mockRes();
+  await api.handle(
+    bradReq(`/api/leads/admin/contracts/${waiting.dealId}`),
+    waitGet,
+    `/api/leads/admin/contracts/${waiting.dealId}`,
+    new URL(`http://127.0.0.1/api/leads/admin/contracts/${waiting.dealId}`)
+  );
+  assert.equal(waitGet.statusCode, 403);
+  assert.match(JSON.parse(waitGet.body).error || '', /Waiting for Signatures/i);
+
+  const adminGet = mockRes();
+  await api.handle(
+    adminReq(`/api/leads/admin/contracts/${waiting.dealId}`),
+    adminGet,
+    `/api/leads/admin/contracts/${waiting.dealId}`,
+    new URL(`http://127.0.0.1/api/leads/admin/contracts/${waiting.dealId}`)
+  );
+  assert.equal(adminGet.statusCode, 200);
+  assert.equal(JSON.parse(adminGet.body).deal.ownerName, 'Pending Seller');
+
   const listRes = mockRes();
   await api.handle(
-    bradReq('/api/leads/admin/contracts?board=pipeline'),
+    bradReq('/api/leads/admin/contracts?board=contracts'),
     listRes,
     '/api/leads/admin/contracts',
-    new URL('http://127.0.0.1/api/leads/admin/contracts?board=pipeline')
+    new URL('http://127.0.0.1/api/leads/admin/contracts?board=contracts')
   );
   assert.equal(listRes.statusCode, 200);
   const listBody = JSON.parse(listRes.body);
-  const salesCard = listBody.deals.find((d) => d.dealId === sales.dealId);
+  const waitingCard = listBody.deals.find((d) => d.dealId === waiting.dealId);
+  assert.ok(waitingCard);
+  assert.equal(waitingCard.restricted, true);
+  assert.equal(waitingCard.ownerName, undefined);
+  assert.equal(waitingCard.phone, undefined);
+
+  const pipeRes = mockRes();
+  await api.handle(
+    bradReq('/api/leads/admin/contracts?board=pipeline'),
+    pipeRes,
+    '/api/leads/admin/contracts',
+    new URL('http://127.0.0.1/api/leads/admin/contracts?board=pipeline')
+  );
+  assert.equal(pipeRes.statusCode, 200);
+  const pipeBody = JSON.parse(pipeRes.body);
+  const salesCard = pipeBody.deals.find((d) => d.dealId === sales.dealId);
   assert.ok(salesCard);
   assert.equal(salesCard.restricted, true);
   assert.equal(salesCard.phone, undefined);
@@ -1169,8 +1237,8 @@ test('Send New PSA dialog CSS keeps an inner vertical scrollport when zoomed', (
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*min-height:\s*0/s);
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*overflow-y:\s*auto/s);
   assert.match(css, /\.uc-psa-results\s*\{[^}]*max-height:\s*min\(12\.5rem,\s*40dvh\)/s);
-  assert.match(html, /under-contract\.css\?v=66/);
+  assert.match(html, /under-contract\.css\?v=67/);
   assert.match(html, /name="uc-psa-deal-type"[^>]*value="cash"/);
   assert.match(html, /name="uc-psa-deal-type"[^>]*value="subject_to"/);
-  assert.match(html, /under-contract\.js\?v=74/);
+  assert.match(html, /under-contract\.js\?v=75/);
 });
