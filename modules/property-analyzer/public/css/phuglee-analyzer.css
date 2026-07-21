@@ -195,7 +195,7 @@ body.analyze-phuglee .summary-kpi-card:hover {
 body.analyze-phuglee .summary-kpi-card .summary-val,
 body.analyze-phuglee .summary-hero-kpi .summary-val,
 body.analyze-phuglee .command-kpi-num {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 400;
   letter-spacing: 0.02em;
 }
@@ -492,7 +492,7 @@ body.analyze-phuglee .scan-progress-slim .progress-bar-wrap {
 }
 
 body.analyze-phuglee .scan-progress-header h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--phuglee-cream);
@@ -528,7 +528,7 @@ body.analyze-phuglee .scan-issue-alert {
 }
 
 .phuglee-loading-copy {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -655,7 +655,7 @@ body.location-gate-active #dashboard {
 }
 
 .location-hub-title {
-  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-family: var(--font-body);
   font-size: 1.35rem;
   font-weight: 600;
   color: var(--phuglee-cream);
@@ -890,7 +890,7 @@ body.analyze-phuglee .main-workspace.visible {
 
 .analyze-page-heading-title {
   margin: 0;
-  font-family: var(--font-display, "Anton", sans-serif);
+  font-family: var(--font-body);
   font-size: clamp(2.75rem, 9vw, 4.5rem);
   font-weight: 400;
   letter-spacing: 0.04em;
@@ -924,7 +924,7 @@ body.analyze-phuglee .main-workspace.visible {
 
 .analyze-page-title {
   margin: 0 0 0.65rem;
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: clamp(1.75rem, 4.5vw, 2.5rem);
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -1031,7 +1031,7 @@ body.analyze-phuglee .analyze-results-panel.phuglee-panel {
 
 .analyze-panel-heading {
   margin: 0;
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: 1.15rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1123,7 +1123,7 @@ button.bridge-kpi:hover {
 
 .bridge-kpi-value {
   display: block;
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: 1.55rem;
   line-height: 1.1;
   color: var(--phuglee-cream);
@@ -1153,7 +1153,7 @@ button.bridge-kpi:hover {
 
 .scan-ready-location {
   margin: 0;
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: clamp(1.25rem, 3vw, 1.65rem);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1628,7 +1628,7 @@ body.analyze-phuglee.analyzer-embedded .cyber-footer {
 }
 
 body.analyze-phuglee .results-title {
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }

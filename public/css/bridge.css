@@ -51,13 +51,13 @@ body {
 
 .bridge-hero h1,
 .bridge-title {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 8vw, 3.75rem);
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  line-height: 1.05;
-  margin-bottom: 0.75rem;
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 0.5rem;
   color: var(--phuglee-cream);
   /* Solid cream — no gradient-clip regression */
   background: none;
@@ -138,7 +138,7 @@ body {
 }
 
 .bridge-mission-facet-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.35rem;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -290,7 +290,7 @@ body {
 
 .bridge-victory-title {
   margin: 0 0 0.35rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(1.45rem, 3.2vw, 2rem);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -404,7 +404,7 @@ body {
 }
 
 .bridge-save-panel--climax #bridge-save-heading {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--phuglee-cream);
@@ -638,7 +638,7 @@ body {
   justify-content: center;
   width: 1.2rem;
   height: 1.2rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.68rem;
   color: var(--phuglee-taupe);
   background: color-mix(in srgb, var(--glass-bg-solid) 40%, transparent);
@@ -737,7 +737,7 @@ body {
 
 .bridge-city-dossier-stamp {
   display: inline-block;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 400;
   letter-spacing: 0.1em;
@@ -1263,7 +1263,7 @@ body {
 
 .bridge-drop-title {
   margin: 0 0 0.35rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.15rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1705,7 +1705,7 @@ body {
 }
 
 .bridge-kill-stat-value {
-  font-family: var(--font-display);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -1757,7 +1757,7 @@ body {
 }
 
 .bridge-kill-arrow {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(1.1rem, 2.2vw, 1.45rem);
   color: color-mix(in srgb, var(--phuglee-gold) 42%, transparent);
   line-height: 1;
@@ -1970,7 +1970,7 @@ body {
 
 .bridge-kpi-value {
   display: block;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.45rem;
   line-height: 1.1;
   color: var(--phuglee-cream);
@@ -2139,7 +2139,7 @@ body {
   justify-content: center;
   width: 1.65rem;
   height: 1.65rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 400;
   letter-spacing: 0;
@@ -2954,7 +2954,7 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-scanned-toast-word {
   display: block;
-  font-family: var(--font-display, "Anton", system-ui, sans-serif);
+  font-family: var(--font-body);
   font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 400;
   letter-spacing: 0.12em;
@@ -3792,7 +3792,7 @@ button.bridge-inventory-filter-chip.is-active {
 }
 
 .bridge-history-dialog-head h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.3rem;
   font-weight: 400;
   letter-spacing: 0.06em;
@@ -4051,7 +4051,7 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-train-mission-kicker {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -4822,7 +4822,7 @@ button.bridge-inventory-filter-chip.is-active {
 
 .bridge-import-or-text {
   flex: 0 0 auto;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 400;
   letter-spacing: 0.16em;
@@ -5301,12 +5301,14 @@ body.bridge-page .bridge-step-label {
 
 body.bridge-page .bridge-hero h1,
 body.bridge-page .bridge-title {
-  font-size: clamp(2.4rem, 7vw, 3.5rem);
-  letter-spacing: 0.03em;
-  line-height: 1;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-transform: none;
   color: var(--phuglee-cream);
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.45);
-  margin-bottom: 0.65rem;
+  text-shadow: none;
+  margin-bottom: 0.5rem;
 }
 
 body.bridge-page .bridge-lead {
@@ -5818,12 +5820,13 @@ body.bridge-page #bridge-paste-convert,
 body.bridge-page #bridge-victory-download {
   position: relative;
   isolation: isolate;
-  min-height: 2.85rem;
-  padding: 0.7rem 1.35rem;
-  font-family: var(--font-display);
-  font-size: 0.88rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  min-height: 2.5rem;
+  padding: 0.65rem 1.2rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--phuglee-black);
@@ -6248,21 +6251,22 @@ body.bridge-page .bridge-page-heading {
 
 body.bridge-page .bridge-page-heading .bridge-title {
   margin: 0;
-  font-family: var(--font-display, "Anton", sans-serif);
-  font-size: clamp(2.75rem, 9vw, 4.5rem);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  line-height: 0.95;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-transform: none;
   color: var(--phuglee-cream, #f5f2e4);
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-shadow: none;
   text-wrap: balance;
 }
 
 body.bridge-page.has-shell-chrome .bridge-page-heading {
-  margin: 0 0 1.35rem;
+  margin: 0 0 1rem;
 }
 
 body.bridge-page.has-shell-chrome .bridge-page-heading .bridge-title {
-  font-size: clamp(3rem, 8vw, 4.75rem);
+  font-size: 1.5rem;
+  font-weight: 600;
 }

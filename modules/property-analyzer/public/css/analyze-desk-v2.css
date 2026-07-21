@@ -630,7 +630,7 @@ body.analyze-phuglee .live-scan-v2 .live-scan-head {
 
 body.analyze-phuglee .live-scan-v2 .analyze-panel-heading {
   margin: 0;
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: 1.15rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -992,7 +992,7 @@ body.analyze-phuglee .prop-card.card-ops .card-thumb-overlay::before {
 }
 
 body.analyze-phuglee .prop-card.card-ops .card-address {
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: 0.84rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -1084,7 +1084,7 @@ body.analyze-phuglee .property-profile-cinematic .property-modal-header {
 }
 
 body.analyze-phuglee .property-profile-cinematic .property-modal-title {
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: 1.15rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1119,7 +1119,7 @@ body.analyze-phuglee .property-profile-cinematic .inspector-body {
 
 body.analyze-phuglee .profile-dossier-section-title,
 body.analyze-phuglee .property-profile-cinematic .profile-section-title {
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: 0.88rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1130,7 +1130,7 @@ body.analyze-phuglee .property-profile-cinematic .profile-section-title {
 }
 
 body.analyze-phuglee .property-profile-body .score-display-val {
-  font-family: var(--font-display, 'Anton', sans-serif);
+  font-family: var(--font-body);
   font-size: 2.25rem;
   color: var(--phuglee-gold);
 }

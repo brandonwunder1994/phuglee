@@ -189,13 +189,13 @@ body.cyber-theme .scan-progress-slim.panel-chrome {
 }
 
 body.cyber-theme .scan-progress-header h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.85rem;
   letter-spacing: 0.16em;
 }
 
 body.cyber-theme .scan-progress-slim .progress-pct {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -225,7 +225,7 @@ body.cyber-theme .summary-section.panel-chrome {
 }
 
 body.cyber-theme .summary-head h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.8rem;
   letter-spacing: 0.18em;
   margin-bottom: 0.25rem;
@@ -269,7 +269,7 @@ body.cyber-theme .summary-kpi-card.distressed-kpi {
 
 body.cyber-theme .summary-kpi-card .summary-val,
 body.cyber-theme .summary-kpi-card .command-kpi-num {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 2.25rem !important;
   font-weight: 700;
   line-height: 1;
@@ -325,7 +325,7 @@ body.cyber-theme .summary-pipeline {
 }
 
 body.cyber-theme .summary-pipeline-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.7rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -362,7 +362,7 @@ body.cyber-theme .results-header {
 }
 
 body.cyber-theme .results-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.95rem;
   letter-spacing: 0.14em;
 }
@@ -577,7 +577,7 @@ body.cyber-theme .prop-card.card-cyber .card-score-pill {
   top: 10px;
   right: 10px;
   z-index: 5;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.7rem;
   font-weight: 700;
   padding: 0.32rem 0.58rem;
@@ -605,7 +605,7 @@ body.cyber-theme .prop-card.card-cyber .card-badge-overlay {
   left: 12px;
   padding: 5px 12px;
   border-radius: 6px;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.62rem;
   letter-spacing: 0.1em;
 }
@@ -628,7 +628,7 @@ body.cyber-theme .prop-card.card-cyber.selected {
 
 body.cyber-theme .prop-card.card-cyber .card-action-btn {
   padding: 8px 16px;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.62rem;
   letter-spacing: 0.1em;
   border-radius: 8px;
@@ -652,7 +652,7 @@ body.cyber-theme .empty-workspace {
 }
 
 body.cyber-theme .empty-workspace h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.75rem;
   letter-spacing: 0.1em;
   margin-bottom: 0.75rem;
@@ -674,7 +674,7 @@ body.cyber-theme .empty-workspace-actions {
 
 body.cyber-theme .empty-workspace .btn-primary {
   padding: 0.9rem 2rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.82rem;
   letter-spacing: 0.1em;
   border-radius: 12px;
@@ -696,7 +696,7 @@ body.cyber-theme .cyber-footer {
 body.cyber-theme .cyber-footer::after {
   content: '⌘K COMMAND';
   color: rgba(0, 240, 255, 0.4);
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.6rem;
 }
 

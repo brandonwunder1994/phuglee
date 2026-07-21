@@ -403,9 +403,11 @@ body.has-shell-chrome .shell-footer {
 }
 
 .shell-footer-brand {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  letter-spacing: 0.12em;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
   color: var(--phuglee-cream);
 }
 

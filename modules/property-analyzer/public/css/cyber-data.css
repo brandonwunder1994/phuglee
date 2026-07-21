@@ -67,7 +67,7 @@ body.cyber-theme .cmd-palette-input-wrap {
 }
 
 body.cyber-theme .cmd-palette-input-wrap > span {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -112,7 +112,7 @@ body.cyber-theme .cmd-palette-item {
 }
 
 body.cyber-theme .cmd-palette-item > span {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.72rem;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -219,7 +219,7 @@ body.cyber-theme .bulk-edit-count {
 }
 
 body.cyber-theme .bulk-edit-label {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.58rem;
   letter-spacing: 0.14em;
   color: var(--muted-foreground);
@@ -295,7 +295,7 @@ body.cyber-theme .bulk-check-wrap input {
 
 /* ── Edit mode toggle ── */
 body.cyber-theme .results-edit-toggle {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.1em;
@@ -358,7 +358,7 @@ body.cyber-theme .table-view thead {
 
 body.cyber-theme .table-view thead th {
   padding: 0.75rem 1rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -439,7 +439,7 @@ body.cyber-theme .table-view .score-badge {
   min-width: 38px;
   height: 30px;
   border-radius: 8px;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;

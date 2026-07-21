@@ -29,7 +29,7 @@ body.heat-theme {
 
 body.heat-theme .sidebar-title,
 body.heat-theme .command-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 400;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -96,7 +96,7 @@ body.heat-theme .empty-workspace {
 }
 
 body.heat-theme .empty-workspace h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.85rem;
   font-weight: 400;
   letter-spacing: 0.04em;

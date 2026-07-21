@@ -136,8 +136,8 @@
   display: inline-flex;
   align-items: baseline;
   gap: 0.12rem;
-  font-family: var(--font-display);
-  letter-spacing: 0.03em;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  letter-spacing: -0.01em;
   color: var(--phuglee-cream);
 }
 
@@ -170,7 +170,7 @@
 }
 
 .uc-goal-countdown strong {
-  font-family: var(--font-display);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
   font-size: 1.05rem;
   font-weight: 400;
   color: var(--phuglee-gold);
@@ -264,7 +264,7 @@
 }
 
 .uc-kpi-value {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 0.98rem;
   font-weight: 400;
   letter-spacing: 0.02em;

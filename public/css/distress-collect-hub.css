@@ -24,18 +24,22 @@
 
 .collect-hub-title {
   margin: 0 0 0.55rem;
-  font-family: var(--font-display);
-  font-size: clamp(2.4rem, 9vw, 4rem);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1.05;
+  font-family: var(--font-body);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  line-height: 1.2;
   color: var(--phuglee-cream);
 }
 
 /* legacy class if referenced elsewhere */
 .collect-hub-hero .landing-title {
-  font-size: clamp(2.4rem, 9vw, 4rem);
+  font-family: var(--font-body);
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: none;
   color: var(--phuglee-cream);
   background: none;
   -webkit-background-clip: unset;
@@ -87,11 +91,11 @@
 
 .collect-desk-primary-title {
   margin: 0 0 0.55rem;
-  font-family: var(--font-display);
-  font-size: clamp(1.35rem, 3vw, 1.75rem);
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
   color: var(--phuglee-cream);
 }
 
@@ -171,7 +175,7 @@
 }
 
 .collect-desk-tracker-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.05rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -337,7 +341,7 @@
 }
 
 .collect-proof-num {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.35rem;
   letter-spacing: 0.02em;
   color: var(--phuglee-cream);
@@ -398,7 +402,7 @@
 }
 
 .collect-tools-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(1.25rem, 3.5vw, 1.65rem);
   letter-spacing: 0.05em;
   text-transform: uppercase;

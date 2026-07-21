@@ -121,7 +121,7 @@
 
     .hud-bar .sys-id {
       color: var(--copper-bright);
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 0.85rem;
       letter-spacing: 0.06em;
       text-transform: none;
@@ -331,7 +331,7 @@
     }
 
     .hero h1 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: clamp(2.8rem, 5.5vw, 4.2rem);
       font-weight: 600;
       line-height: 1.05;
@@ -366,7 +366,7 @@
     }
 
     .hero-stat-num {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 3.5rem;
       font-weight: 600;
       line-height: 1;
@@ -428,7 +428,7 @@
     }
 
     .step-num {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 0.9rem;
       font-weight: 600;
       letter-spacing: 0.02em;
@@ -445,7 +445,7 @@
     }
 
     .card-head h2 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.35rem;
       font-weight: 600;
       letter-spacing: 0.01em;
@@ -626,7 +626,7 @@
     .file-drop:hover .drop-icon { transform: scale(1.06) rotate(-3deg); }
 
     .file-drop .label {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-weight: 700;
       font-size: 0.95rem;
     }
@@ -729,7 +729,7 @@
     }
 
     .progress-top h2 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1rem;
       font-weight: 700;
     }
@@ -963,7 +963,7 @@
     }
 
     .property-modal-title {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1rem;
       font-weight: 700;
       display: flex;
@@ -1333,7 +1333,7 @@
     }
 
     .agent-grid-head h3 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.05rem;
       font-weight: 600;
       color: var(--copper-bright);
@@ -1468,7 +1468,7 @@
     }
 
     .preview-header h3 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 0.9rem;
       font-weight: 700;
       display: flex;
@@ -1688,7 +1688,7 @@
     }
 
     .inspector-name {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.05rem;
       font-weight: 700;
       margin-bottom: 0.25rem;
@@ -1709,7 +1709,7 @@
 
     .col-location .property-title-text {
       font-weight: 600;
-      font-family: var(--font-display);
+      font-family: var(--font-body);
     }
 
     .inspector-badges { margin: 0.5rem 0 0.65rem; }
@@ -1966,7 +1966,7 @@
     }
 
     .results-header h3 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 0.95rem;
       font-weight: 700;
     }
@@ -2528,7 +2528,7 @@
     }
 
     .score-display-val {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.35rem;
       color: var(--copper-bright);
       line-height: 1;
@@ -2718,7 +2718,7 @@
     }
 
     .learned-rules-head h4 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 0.82rem;
       font-weight: 600;
       color: var(--copper-bright);
@@ -2901,7 +2901,7 @@
     }
 
     .quick-read-headline {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.15rem;
       font-weight: 700;
       line-height: 1.25;
@@ -3259,7 +3259,7 @@
     }
 
     .summary-val {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 2rem;
       font-weight: 600;
       line-height: 1;
@@ -3313,7 +3313,7 @@
     }
 
     .summary-actions h2 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 0.95rem;
       font-weight: 700;
     }
@@ -3497,7 +3497,7 @@
       z-index: 1;
     }
     .hud-scan-title-block h2 {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.15rem;
       font-weight: 700;
       letter-spacing: -0.02em;
@@ -3730,7 +3730,7 @@
       margin-bottom: 0.2rem;
     }
     .hud-metric strong {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.35rem;
       font-weight: 700;
       letter-spacing: -0.02em;
@@ -3826,7 +3826,7 @@
       margin-bottom: 0.15rem;
     }
     .pipeline-chip-val {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.1rem;
       font-weight: 700;
       line-height: 1.1;
@@ -4017,7 +4017,7 @@
     }
 
     .gauge-num {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 1.5rem;
       font-weight: 800;
       line-height: 1;
@@ -4353,7 +4353,7 @@
       flex-shrink: 0;
     }
     .command-title {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 18px;
       font-weight: 600;
       line-height: 1.25;
@@ -4521,7 +4521,7 @@
     }
 
     .sidebar-title {
-      font-family: var(--font-display);
+      font-family: var(--font-body);
       font-size: 18px;
       font-weight: 600;
       letter-spacing: -0.02em;
@@ -4861,7 +4861,7 @@
   margin-bottom: var(--space-sm);
 }
 .scan-progress-header h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 20px;
   font-weight: 600;
   margin: 0;
@@ -4941,7 +4941,7 @@
   .summary-hero-row { grid-template-columns: repeat(3, 1fr); }
 }
 .summary-hero-kpi .summary-val {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 28px;
   font-weight: 600;
 }
@@ -4983,7 +4983,7 @@
   margin-bottom: var(--space-sm);
 }
 .results-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 16px;
   font-weight: 600;
   margin: 0;
@@ -5263,7 +5263,7 @@
 }
 .scan-import-drop-title {
   margin: 0 0 0.35rem;
-  font-family: var(--font-display, inherit);
+  font-family: var(--font-body);
   font-size: 1.15rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;

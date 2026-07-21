@@ -60,7 +60,7 @@ body {
 }
 
 .landing-logo {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 400;
   font-size: 1.25rem;
   letter-spacing: 0.08em;
@@ -115,7 +115,7 @@ body {
 }
 
 .landing-hero h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(2rem, 4.5vw, 3rem);
   font-weight: 600;
   line-height: 1.15;
@@ -210,7 +210,7 @@ body {
 
 .landing-steps h2,
 .landing-features h2 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.65rem;
   text-align: center;
   margin-bottom: 2rem;
@@ -234,7 +234,7 @@ body {
 }
 
 .landing-step-num {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 2rem;
   font-weight: 600;
   color: var(--amber);

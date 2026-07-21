@@ -63,16 +63,18 @@
 }
 
 .vault-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.85rem, 5vw, 2.5rem);
-  letter-spacing: 0.05em;
-  line-height: 1.08;
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-transform: none;
   color: var(--phuglee-cream);
   margin: 0 0 0.85rem;
 }
 
 .vault-title--desk {
-  font-size: clamp(1.65rem, 3.5vw, 2.1rem);
+  font-size: 1.35rem;
   margin-bottom: 0.3rem;
 }
 
@@ -963,7 +965,7 @@
 
 .vault-drawer-title {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1.05rem;
   letter-spacing: 0.04em;
   line-height: 1.15;
@@ -1183,7 +1185,7 @@
   z-index: 1;
   margin: 0;
   padding: 2.1rem 0.9rem 0.7rem;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(0.95rem, 2.4vw, 1.15rem);
   letter-spacing: 0.03em;
   line-height: 1.2;
@@ -1987,7 +1989,7 @@
 
 .vault-manual-comp-title {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 1rem;
   letter-spacing: 0.04em;
   color: var(--phuglee-cream);

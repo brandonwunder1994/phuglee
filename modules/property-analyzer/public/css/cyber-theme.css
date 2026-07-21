@@ -73,7 +73,7 @@ body.cyber-theme .sidebar-logo {
 }
 
 body.cyber-theme .sidebar-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 15px;
   letter-spacing: 0.06em;
@@ -135,7 +135,7 @@ body.cyber-theme .command-bar-brand {
 }
 
 body.cyber-theme .command-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 17px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -681,7 +681,7 @@ body.cyber-theme .cyber-dialog .tool-modal-head h2,
 body.cyber-theme .cyber-dialog .property-modal-title,
 body.cyber-theme .cyber-dialog .score-edit-header h3,
 body.cyber-theme .cyber-dialog h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-size: 0.85rem;
