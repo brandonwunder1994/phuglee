@@ -373,14 +373,22 @@
 
 .uc-dialog--psa {
   max-width: min(32rem, calc(100vw - 1.5rem));
-  max-height: min(92dvh, 100%);
-  overflow: visible;
+  /* Cap to the visible viewport — zoomed browsers still need an inner scrollport. */
+  max-height: min(92dvh, 100svh);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .uc-dialog--psa .uc-edit-form {
-  max-height: min(92dvh, 100%);
+  flex: 1 1 auto;
+  min-height: 0; /* flex child must shrink so overflow-y:auto can scroll */
+  max-height: none;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   /* Bound the single grid column so nowrap rows can't widen the modal (no L/R scroll). */
   grid-template-columns: minmax(0, 1fr);
 }
@@ -418,10 +426,17 @@
   background: var(--glass-bg-solid, var(--vault-surface-raised, #1a1a1a));
 }
 
-.uc-psa-seller-count {
+.uc-psa-seller-count,
+.uc-psa-deal-type {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
   margin-bottom: 0.75rem;
+}
+
+.uc-psa-deal-type {
+  flex-direction: column;
+  gap: 0.35rem;
 }
 
 .uc-psa-radio {
@@ -439,9 +454,13 @@
   min-width: 0;
   margin: 0.4rem 0 0;
   padding: 0.25rem;
-  max-height: 17rem;
+  /* Shorter when zoomed so the property menu stays scrollable inside the dialog. */
+  max-height: min(12.5rem, 40dvh);
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   border: 1px solid var(--vault-border-strong, rgba(255, 255, 255, 0.18));
   border-radius: 10px;
   background: var(--bg-elevated, var(--vault-surface-raised, #161616));

@@ -376,6 +376,49 @@ test('searchActiveVaultLeads ranks street addresses over phone digit matches', (
   assert.equal(byTokens[0].address, '7731 Cedar Hollow Rd');
 });
 
+test('searchActiveVaultLeads includes under_contract CRM pipeline leads for Send New PSA', () => {
+  store.upsertLead({
+    ...fixtureDistressed,
+    leadId: 'psa-search-maddox',
+    address: '4679 Maddox St',
+    city: 'Beaumont',
+    state: 'TX',
+    zip: '77705',
+    catalogStatus: 'under_contract',
+    priorityScore: 80
+  });
+  store.upsertLead({
+    ...fixtureWM,
+    leadId: 'psa-search-rock-ridge',
+    address: '4802 Rock Ridge Ct',
+    city: 'Arlington',
+    state: 'TX',
+    zip: '76017',
+    catalogStatus: 'under_contract',
+    priorityScore: 70
+  });
+  store.upsertLead({
+    ...fixtureLand,
+    leadId: 'psa-search-sold',
+    address: '4679 Sold St',
+    city: 'Beaumont',
+    state: 'TX',
+    zip: '77705',
+    catalogStatus: 'sold',
+    priorityScore: 99
+  });
+
+  const maddox = store.searchActiveVaultLeads('4679 Maddox', { limit: 12 });
+  assert.ok(maddox.some((l) => l.leadId === 'psa-search-maddox'),
+    'GHL pipeline lead marked under_contract must appear in Send New PSA search');
+  assert.ok(!maddox.some((l) => l.leadId === 'psa-search-sold'),
+    'sold leads must stay out of Send New PSA search');
+
+  const rock = store.searchActiveVaultLeads('4802 Rock Ridge', { limit: 12 });
+  assert.ok(rock.some((l) => l.leadId === 'psa-search-rock-ridge'));
+  assert.equal(rock[0].address, '4802 Rock Ridge Ct');
+});
+
 test('queryLeads token AND matches split address terms', () => {
   store.upsertLead({
     ...fixtureDistressed,
