@@ -3,26 +3,26 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee — Analyze</title>
-  <meta name="description" content="Import your bridged list. AI scans Street View and sorts leads into Distressed, Well Maintained, Land, and Blocked — you review every bucket before it hits The Vault.">
-  <meta property="og:title" content="Phuglee — Analyze">
-  <meta property="og:description" content="Step 03 · Analyze — scan Street View, sort leads into buckets, and review before The Vault.">
+  <title>Phuglee â€” Review</title>
+  <meta name="description" content="Import your Filter list. Street View + AI sorts leads into Distressed, Well Maintained, Land, and Blocked â€” you review every bucket before The Vault.">
+  <meta property="og:title" content="Phuglee â€” Review">
+  <meta property="og:description" content="Scan Street View, sort leads into buckets, and review before The Vault.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="/images/phuglee-logo-hd.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Phuglee — Analyze">
+  <meta name="twitter:title" content="Phuglee â€” Review">
   <meta name="twitter:description" content="AI sorts distress into buckets. You review every bucket before The Vault.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet" media="(min-width: 769px)">
   <link rel="stylesheet" href="/css/stateface.css" media="(min-width: 769px)">
   <link rel="stylesheet" href="/css/app.css?v=20260714-mobile">
   <link rel="stylesheet" href="/css/heat-theme.css">
-  <link rel="stylesheet" href="/css/phuglee-components.css">
-  <link rel="stylesheet" href="/css/cyber-review.css?v=20260717-w4-loop">
-  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=typeset1">
-  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=typeset1">
+  <link rel="stylesheet" href="/css/phuglee-components.css?v=typeset1">
+  <!-- Review overlay layout only (cyber theme rules already stripped) -->
+  <link rel="stylesheet" href="/css/cyber-review.css?v=20260721-distill">
+  <link rel="stylesheet" href="/css/phuglee-analyzer.css?v=distill2">
+  <link rel="stylesheet" href="/css/analyze-desk-v2.css?v=distill2">
   <link rel="stylesheet" href="/css/property-profile-v2.css?v=2" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/css/property-profile-v2.css?v=2"></noscript>
   <link rel="stylesheet" href="/css/phuglee-a11y.css">
@@ -30,21 +30,21 @@
 <body class="analyze-phuglee heat-theme">
   <a href="#main" class="phuglee-skip-link">Skip to content</a>
   <div class="app-shell">
-    <aside class="app-sidebar analyze-sidebar" id="appSidebar" aria-label="Main navigation">
+    <!-- Legacy internal sidebar: kept for JS ids (admin overflow, review bridges); hidden when OS rail is injected -->
+    <aside class="app-sidebar analyze-sidebar" id="appSidebar" aria-label="Desk tools" hidden>
       <div class="sidebar-brand">
-        <div class="sidebar-logo" aria-hidden="true">?</div>
+        <div class="sidebar-logo" aria-hidden="true"></div>
         <div>
-          <p class="analyzer-context-step"><a href="/filter">? Filter</a> · Step 03 · Analyze</p>
-          <div class="sidebar-title" id="sidebarTitle">Analyze</div>
-          <div class="sidebar-tagline" id="sidebarTagline">Scan · sort · review</div>
+          <div class="sidebar-title" id="sidebarTitle">Review</div>
+          <div class="sidebar-tagline" id="sidebarTagline">Scan, sort, review</div>
         </div>
       </div>
       <nav class="sidebar-nav">
-        <button type="button" class="sidebar-nav-btn active" data-nav="overview" data-scroll="scanReadySection"><span class="nav-icon">?</span><span>Overview</span></button>
+        <button type="button" class="sidebar-nav-btn active" data-nav="overview" data-scroll="scanReadySection"><span class="nav-icon" aria-hidden="true"></span><span>Overview</span></button>
         <div class="sidebar-nav-group sidebar-admin-only" id="sidebarOverflowGroup" hidden>
           <button type="button" class="sidebar-nav-btn sidebar-nav-toggle" id="sidebarOverflowToggle"
             aria-expanded="false" aria-controls="sidebarOverflowMenu" aria-label="Admin actions" title="Admin actions">
-            <span class="nav-icon">···</span><span>Admin</span><span class="sidebar-chevron" aria-hidden="true">?</span>
+            <span class="nav-icon" aria-hidden="true"></span><span>Admin</span><span class="sidebar-chevron" aria-hidden="true"></span>
           </button>
           <div class="sidebar-overflow-menu" id="sidebarOverflowMenu" role="menu" hidden>
             <div class="sidebar-overflow-section">
@@ -66,7 +66,7 @@
     </aside>
 
     <main class="app-shell-main" id="main">
-  <button type="button" class="analyze-mobile-nav-toggle" id="analyzeMobileNavToggle" aria-expanded="false" aria-controls="appSidebar">Menu</button>
+  <button type="button" class="analyze-mobile-nav-toggle" id="analyzeMobileNavToggle" aria-expanded="false" aria-controls="appSidebar" hidden hidden>Menu</button>
   <span id="hudClock" hidden aria-hidden="true" style="display:none">--:--:--</span>
 
   <div class="live-tier-alert-stack" id="liveTierAlertStack" aria-live="polite" hidden></div>
@@ -75,7 +75,7 @@
     <div class="scan-issue-alert-head">
       <span class="scan-issue-alert-dot" aria-hidden="true"></span>
       <span class="scan-issue-alert-title" id="scanIssueTitle">Scan issue</span>
-      <button type="button" class="scan-issue-alert-dismiss" id="scanIssueDismiss" title="Dismiss until next issue">×</button>
+      <button type="button" class="scan-issue-alert-dismiss" id="scanIssueDismiss" title="Dismiss until next issue">ï¿½</button>
     </div>
     <span class="scan-issue-alert-detail" id="scanIssueDetail"></span>
     <div class="scan-issue-alert-meta" id="scanIssueMeta">
@@ -96,9 +96,9 @@
       <button type="button" id="saveBackupNowBtn"></button>
       <input type="file" id="loadBackupInput" accept=".json,application/json" aria-label="Load JSON backup">
       <div class="command-workers-status" id="commandWorkersStatus" hidden>
-        <span id="commandWorkersLabel">Workers —</span>
+        <span id="commandWorkersLabel">Workers ï¿½</span>
       </div>
-      <div id="backupSizeIndicator" hidden>Backup: —</div>
+      <div id="backupSizeIndicator" hidden>Backup: ï¿½</div>
     </div>
 
     <div class="setup-zone collapsed" id="setupZone" hidden aria-hidden="true"></div>
@@ -112,7 +112,7 @@
 
     <div class="analyze-hero-zone" data-phuglee-reveal>
       <header class="analyze-page-hero">
-        <p class="analyze-step-label">Step 03 · Analyze</p>
+        <p class="analyze-step-label">Review</p>
         <h1 class="analyze-page-title">Scan desk</h1>
         <p class="analyze-page-lead">Upload a list ? Start Scan ? Street View + AI sorts into Distressed, Well Maintained, Land, or Blocked ? Review those groups.</p>
       </header>
@@ -162,7 +162,7 @@
         </div>
         <div class="scan-desk-overflow" id="scanDeskOverflowWrap">
           <button type="button" class="btn-secondary scan-desk-overflow-toggle" id="scanDeskOverflowToggle"
-            aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">···</button>
+            aria-haspopup="true" aria-expanded="false" aria-controls="scanDeskOverflow" title="More tools" aria-label="More tools">ï¿½ï¿½ï¿½</button>
           <div class="scan-desk-overflow-menu" id="scanDeskOverflow" role="menu" hidden>
             <button type="button" class="scan-desk-overflow-item" id="deskExportExcelBtn" role="menuitem" title="Download all leads in this session as an Excel spreadsheet" disabled>Export Excel (all leads)</button>
             <button type="button" class="scan-desk-overflow-item" id="deskExportDialReadyBtn" role="menuitem" title="Download dial-ready columns for your dialer or CRM" disabled>Export dial-ready</button>
@@ -205,7 +205,7 @@
           <span class="live-scan-kpi-label">Scanned</span>
         </div>
         <div class="live-scan-kpi">
-          <span class="live-scan-kpi-value" id="liveScanKpiWorkers">—</span>
+          <span class="live-scan-kpi-value" id="liveScanKpiWorkers">ï¿½</span>
           <span class="live-scan-kpi-label">Workers</span>
         </div>
         <div class="live-scan-kpi live-scan-kpi--residual" id="liveScanKpiReviewWrap" hidden>
@@ -213,7 +213,7 @@
           <span class="live-scan-kpi-label">Needs Review</span>
         </div>
       </div>
-      <p class="live-scan-meta" id="liveScanMeta">Progress auto-saves · workers auto-adjust when APIs cap out</p>
+      <p class="live-scan-meta" id="liveScanMeta">Progress auto-saves ï¿½ workers auto-adjust when APIs cap out</p>
       <ol class="live-scan-feed" id="liveScanFeed"></ol>
       <div class="analyze-scan-legacy" hidden aria-hidden="true">
         <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
@@ -221,7 +221,7 @@
         <span id="statDone">0</span><span id="statRemaining">0</span>
         <span id="statWorkersActive">0</span><span id="statWorkersSet">0</span>
         <span id="statWorkersMetric"></span><span id="statTotal">0</span><span id="statBatch">0</span>
-        <span id="statSuccess">0</span><span id="statSkipped">0</span><span id="statAvg">—</span>
+        <span id="statSuccess">0</span><span id="statSkipped">0</span><span id="statAvg">ï¿½</span>
         <span id="failSvCount">0</span><span id="failGemCount">0</span>
         <div id="agentGridPanel"><div id="agentGrid"></div><div id="agentGridSub"></div><div id="agentWorkerSummary"></div><button id="agentGridCollapseBtn"></button></div>
         <div id="logPanel"></div><button id="scanLogToggle"></button>
@@ -236,7 +236,7 @@
     <section class="summary-section analyze-bucket-board phuglee-panel analyze-panel analyze-global-kpis" id="summarySection" hidden data-phuglee-reveal-child>
       <div class="summary-head">
         <h2 class="analyze-panel-heading">Session buckets</h2>
-        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Awaiting review vs In The Vault — tap a bucket to review, or open The Vault when ready.</p>
+        <p class="summary-intro analyze-panel-lead" id="summaryIntro">Awaiting review vs In The Vault ï¿½ tap a bucket to review, or open The Vault when ready.</p>
       </div>
       <p class="summary-row-label" id="summaryAwaitingLabel">Awaiting review</p>
       <div class="bridge-kpi-grid analyze-metric-strip" id="summaryHeroRow" aria-label="Awaiting manual review">
@@ -272,19 +272,19 @@
       <p class="summary-row-label" id="summaryVaultLabel">In The Vault</p>
       <div class="bridge-kpi-grid analyze-metric-strip summary-vault-row" id="summaryVaultRow" aria-label="Approved leads in The Vault">
         <a class="bridge-kpi bridge-kpi--accent clickable summary-vault-link" id="sumVaultDistressedCard" href="/vault?leadType=distressed" data-vault-lead-type="distressed" title="Open Distressed in The Vault">
-          <span class="bridge-kpi-value" id="sumVaultDistressed">—</span>
+          <span class="bridge-kpi-value" id="sumVaultDistressed">ï¿½</span>
           <span class="bridge-kpi-label">Distressed</span>
         </a>
         <a class="bridge-kpi clickable summary-vault-link" id="sumVaultWellMaintainedCard" href="/vault?leadType=well_maintained" data-vault-lead-type="well_maintained" title="Open Well Maintained in The Vault">
-          <span class="bridge-kpi-value" id="sumVaultWellMaintained">—</span>
+          <span class="bridge-kpi-value" id="sumVaultWellMaintained">ï¿½</span>
           <span class="bridge-kpi-label">Well Maintained</span>
         </a>
         <a class="bridge-kpi clickable summary-vault-link" id="sumVaultLandCard" href="/vault?leadType=land" data-vault-lead-type="land" title="Open Land in The Vault">
-          <span class="bridge-kpi-value" id="sumVaultLand">—</span>
+          <span class="bridge-kpi-value" id="sumVaultLand">ï¿½</span>
           <span class="bridge-kpi-label">Land</span>
         </a>
         <a class="bridge-kpi clickable summary-vault-link" id="sumVaultTotalCard" href="/vault" data-vault-lead-type="" title="Open The Vault">
-          <span class="bridge-kpi-value" id="sumVaultTotal">—</span>
+          <span class="bridge-kpi-value" id="sumVaultTotal">ï¿½</span>
           <span class="bridge-kpi-label">Total</span>
         </a>
       </div>
@@ -355,7 +355,7 @@
     <div class="cmd-palette-dialog">
       <div class="cmd-palette-input-wrap">
         <span>?</span>
-        <input type="text" class="cmd-palette-input" id="cmdPaletteInput" placeholder="Search commands…" autocomplete="off" spellcheck="false">
+        <input type="text" class="cmd-palette-input" id="cmdPaletteInput" placeholder="Search commandsï¿½" autocomplete="off" spellcheck="false">
       </div>
       <div class="cmd-palette-list" id="cmdPaletteList" role="listbox"></div>
     </div>
@@ -367,7 +367,7 @@
     <div class="tool-modal-dialog phuglee-dialog phuglee-dialog-wide">
       <div class="tool-modal-head">
         <h2 id="settingsModalTitle">API Keys &amp; Scan Settings</h2>
-        <button type="button" class="tool-modal-close" id="settingsModalClose" title="Close (Esc)">×</button>
+        <button type="button" class="tool-modal-close" id="settingsModalClose" title="Close (Esc)">ï¿½</button>
       </div>
       <p class="key-note">API keys are configured in <code>.env</code> on this computer. Copy <code>.env.example</code> to <code>.env</code>, add your keys, and restart via <code>launch-analyzer.bat</code>. Open <code>http://distressos.local:3456</code>.</p>
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem;">
@@ -388,7 +388,7 @@
         <label for="streetViewKey">Street View API (server .env)</label>
         <div class="input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <input type="text" id="streetViewKey" readonly placeholder="Checking server…" autocomplete="off">
+          <input type="text" id="streetViewKey" readonly placeholder="Checking serverï¿½" autocomplete="off">
         </div>
         <div id="streetViewKeyHint" class="key-fingerprint"></div>
       </div>
@@ -396,16 +396,16 @@
         <label for="geminiKey">Gemini API (server .env)</label>
         <div class="input-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <input type="text" id="geminiKey" readonly placeholder="Checking server…" autocomplete="off">
+          <input type="text" id="geminiKey" readonly placeholder="Checking serverï¿½" autocomplete="off">
         </div>
         <div id="geminiKeyHint" class="key-fingerprint"></div>
       </div>
       <div class="field" style="margin-top:1rem;">
         <label for="concurrentLimit">Parallel workers <span id="concurrentLimitVal" class="phuglee-mono-accent">25</span></label>
         <input type="range" id="concurrentLimit" min="5" max="50" value="25" style="width:100%;accent-color:var(--copper);">
-        <p class="key-note" style="margin-top:0.35rem;">Band is 5–50. Defaults to 25 (sweet spot); auto-throttles toward 5 on rate limits, then climbs back up. Slide higher only if scans stay clean.</p>
+        <p class="key-note" style="margin-top:0.35rem;">Band is 5ï¿½50. Defaults to 25 (sweet spot); auto-throttles toward 5 on rate limits, then climbs back up. Slide higher only if scans stay clean.</p>
       </div>
-      <p class="key-note" style="margin-top:0.75rem;">Enable <strong>Street View Static API</strong> and <strong>Maps Static API</strong> in Google Cloud (billing required). “Maps Static” alone is not enough for house photos. Application restriction = <strong>None</strong>.</p>
+      <p class="key-note" style="margin-top:0.75rem;">Enable <strong>Street View Static API</strong> and <strong>Maps Static API</strong> in Google Cloud (billing required). ï¿½Maps Staticï¿½ alone is not enough for house photos. Application restriction = <strong>None</strong>.</p>
 
     </div>
   </div>
@@ -415,7 +415,7 @@
     <div class="tool-modal-dialog phuglee-dialog">
       <div class="tool-modal-head">
         <h2 id="uploadModalTitle">Upload Spreadsheet</h2>
-        <button type="button" class="tool-modal-close" id="uploadModalClose" title="Close (Esc)">×</button>
+        <button type="button" class="tool-modal-close" id="uploadModalClose" title="Close (Esc)">ï¿½</button>
       </div>
       <div class="import-lead-type-field">
         <label for="importLeadTypeSelect">Lead type for this import</label>
@@ -430,11 +430,11 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
           <div class="label">Drop your Excel file here</div>
-          <div class="hint">or click anywhere in this box to browse · .xlsx, .xls, .csv</div>
-          <div class="hint" style="margin-top:0.25rem">First Name · Last Name · Phone · Email · Street Address · City · State · Postal Code</div>
+          <div class="hint">or click anywhere in this box to browse ï¿½ .xlsx, .xls, .csv</div>
+          <div class="hint" style="margin-top:0.25rem">First Name ï¿½ Last Name ï¿½ Phone ï¿½ Email ï¿½ Street Address ï¿½ City ï¿½ State ï¿½ Postal Code</div>
         </div>
       </div>
-      <label class="upload-fallback-btn" id="browseFileLabel" for="fileInput">Browse for Excel File…</label>
+      <label class="upload-fallback-btn" id="browseFileLabel" for="fileInput">Browse for Excel Fileï¿½</label>
       <div class="file-info" id="fileInfo"></div>
       <div class="controls" style="margin-top:0.85rem;">
         <button class="btn-clear" id="resetUploadBtn" type="button" disabled title="Clear uploaded file and start over">Reset Upload</button>
@@ -447,7 +447,7 @@
     <div class="tool-modal-dialog phuglee-dialog phuglee-dialog-wide">
       <div class="tool-modal-head">
         <h2 id="brainModalTitle">AI Learned Rules</h2>
-        <button type="button" class="tool-modal-close" id="brainModalClose" title="Close (Esc)">×</button>
+        <button type="button" class="tool-modal-close" id="brainModalClose" title="Close (Esc)">ï¿½</button>
       </div>
       <div class="learned-rules-panel" id="learnedRulesPanel" style="margin-top:0;">
         <div class="learned-rules-head">
@@ -470,25 +470,25 @@
     <div class="tool-modal-dialog phuglee-dialog">
       <div class="tool-modal-head">
         <h2 id="apiUsageModalTitle">API usage and credits</h2>
-        <button type="button" class="tool-modal-close" id="apiUsageModalClose" title="Close (Esc)">×</button>
+        <button type="button" class="tool-modal-close" id="apiUsageModalClose" title="Close (Esc)">ï¿½</button>
       </div>
       <div class="api-usage-modal-body" id="apiUsageSection" aria-live="polite">
         <p class="api-usage-note" id="apiUsageNote">Live usage tracked by this app. Google does not publish exact remaining credits for API keys.</p>
         <div class="api-usage-grid">
           <div class="api-usage-card" id="apiUsageGeminiCard">
             <div class="api-usage-card-label">Gemini (AI scan)</div>
-            <div class="api-usage-card-main" id="apiUsageGeminiMain">—</div>
-            <div class="api-usage-card-sub" id="apiUsageGeminiSub">—</div>
+            <div class="api-usage-card-main" id="apiUsageGeminiMain">ï¿½</div>
+            <div class="api-usage-card-sub" id="apiUsageGeminiSub">ï¿½</div>
             <div class="api-usage-bar" aria-hidden="true"><span class="api-usage-bar-fill" id="apiUsageGeminiBar"></span></div>
           </div>
           <div class="api-usage-card" id="apiUsageMapsCard">
             <div class="api-usage-card-label">Google Maps / Street View</div>
-            <div class="api-usage-card-main" id="apiUsageMapsMain">—</div>
-            <div class="api-usage-card-sub" id="apiUsageMapsSub">—</div>
+            <div class="api-usage-card-main" id="apiUsageMapsMain">ï¿½</div>
+            <div class="api-usage-card-sub" id="apiUsageMapsSub">ï¿½</div>
             <div class="api-usage-bar" aria-hidden="true"><span class="api-usage-bar-fill" id="apiUsageMapsBar"></span></div>
           </div>
         </div>
-        <div class="api-usage-status" id="apiUsageStatus">Checking usage…</div>
+        <div class="api-usage-status" id="apiUsageStatus">Checking usageï¿½</div>
         <div class="api-usage-actions">
           <button type="button" class="btn-secondary btn-sm" id="apiUsageRefreshBtn">Refresh</button>
           <button type="button" class="btn-secondary btn-sm" id="apiUsageClearQuotaBtn" hidden>Clear quota stop flag</button>
@@ -511,10 +511,10 @@
         <div class="property-modal-header-actions">
           <div class="inspector-nav" id="inspectorNav">
             <button type="button" class="inspector-nav-btn" id="prevPropBtn" title="Previous property (? or K)">? Prev</button>
-            <span class="inspector-pos" id="inspectorPos">—</span>
+            <span class="inspector-pos" id="inspectorPos">ï¿½</span>
             <button type="button" class="inspector-nav-btn" id="nextPropBtn" title="Next property (? or J)">Next ?</button>
           </div>
-          <button type="button" class="property-modal-close" id="closePropertyBtn" title="Close (Esc)" aria-label="Close property">×</button>
+          <button type="button" class="property-modal-close" id="closePropertyBtn" title="Close (Esc)" aria-label="Close property">ï¿½</button>
         </div>
       </div>
 
@@ -556,7 +556,7 @@
           <div class="property-distress" id="inspectorGaugePanel">
             <div class="property-distress-main">
               <div class="property-distress-score">
-                <span class="gauge-num property-distress-num" id="gaugeNum">—</span>
+                <span class="gauge-num property-distress-num" id="gaugeNum">ï¿½</span>
                 <span class="property-distress-scale" id="propertyDistressScale">/ 10</span>
               </div>
               <div class="property-distress-lbl">Distress</div>
@@ -583,14 +583,14 @@
     <div class="score-edit-dialog phuglee-dialog">
       <div class="score-edit-header">
         <h3 id="scoreEditTitle">Set Distress Level</h3>
-        <button type="button" class="score-edit-close" id="scoreEditClose" title="Close (Esc)">×</button>
+        <button type="button" class="score-edit-close" id="scoreEditClose" title="Close (Esc)">ï¿½</button>
       </div>
       <div class="score-edit-address" id="scoreEditAddress"></div>
       <div class="score-adjust-panel">
         <div class="score-adjust-title">Pick a level</div>
         <div class="score-ai-note" id="scoreEditAiNote" hidden></div>
         <div class="tier-picker" id="scoreEditTierPicker"></div>
-        <div class="score-adjust-hint">The system reviews this change automatically — approve proposed rules in AI Brain.</div>
+        <div class="score-adjust-hint">The system reviews this change automatically ï¿½ approve proposed rules in AI Brain.</div>
       </div>
       <div class="score-edit-actions">
         <button type="button" class="score-cancel-btn" id="scoreEditCancel">Cancel</button>
@@ -605,9 +605,9 @@
         <div class="review-mode-header-left">
           <span class="review-mode-badge" id="reviewModeBadge">Review</span>
           <span class="review-mode-filter">Filter: <strong id="reviewFilterTag">All</strong></span>
-          <span class="review-mode-progress" id="reviewProgress">—</span>
+          <span class="review-mode-progress" id="reviewProgress">ï¿½</span>
         </div>
-        <span class="review-mode-stats" id="reviewStatsEl">0 kept · 0 changed</span>
+        <span class="review-mode-stats" id="reviewStatsEl">0 kept ï¿½ 0 changed</span>
         <span class="review-mode-checkpoint" id="reviewCheckpointEl" title="Full disk backup every 100 reviews"></span>
         <button type="button" class="review-mode-exit" id="reviewExitBtn" title="Exit review (Esc)">Exit Review</button>
       </header>
@@ -627,8 +627,8 @@
           </div>
         </div>
         <aside class="review-mode-meta">
-          <div class="review-meta-name" id="reviewMetaName">—</div>
-          <div class="review-meta-street" id="reviewMetaStreet">—</div>
+          <div class="review-meta-name" id="reviewMetaName">ï¿½</div>
+          <div class="review-meta-street" id="reviewMetaStreet">ï¿½</div>
           <div class="review-meta-badges" id="reviewMetaBadges"></div>
           <div class="review-meta-analysis" id="reviewMetaAnalysis"></div>
         </aside>
@@ -649,11 +649,11 @@
       </div>
 
       <footer class="review-action-bar review-glass-bar" id="reviewActionBar">
-        <button type="button" class="review-action keep" id="reviewKeepBtn" title="AI got it right — advance (1)">Keep <kbd>1</kbd></button>
+        <button type="button" class="review-action keep" id="reviewKeepBtn" title="AI got it right ï¿½ advance (1)">Keep <kbd>1</kbd></button>
         <button type="button" class="review-action change-tier" id="reviewChangeBtn" title="Change tier (2)">Well Maintained <kbd>2</kbd></button>
         <button type="button" class="review-action vacant" id="reviewLandBtn" title="Mark as land / vacant lot (3)" hidden>Land <kbd>3</kbd></button>
-        <button type="button" class="review-action defer-later" id="reviewDeferBtn" title="Can't decide now — send to Needs Review queue (4)">Later <kbd>4</kbd></button>
-        <button type="button" class="review-action blurred" id="reviewBlurredBtn" title="Move to Blocked Image list only — not Needs Review (5)">Blocked <kbd>5</kbd></button>
+        <button type="button" class="review-action defer-later" id="reviewDeferBtn" title="Can't decide now ï¿½ send to Needs Review queue (4)">Later <kbd>4</kbd></button>
+        <button type="button" class="review-action blurred" id="reviewBlurredBtn" title="Move to Blocked Image list only ï¿½ not Needs Review (5)">Blocked <kbd>5</kbd></button>
         <button type="button" class="review-action satellite-only" id="reviewSatelliteOnlyBtn" title="Park for satellite-only re-scan later (7)">Satellite Only <kbd>7</kbd></button>
         <button type="button" class="review-action undo" id="reviewUndoBtn" title="Undo last change (6)" disabled>Undo <kbd>6</kbd></button>
       </footer>
@@ -662,7 +662,7 @@
 
   <div class="review-tier-pick-overlay" id="reviewTierPickOverlay" hidden aria-modal="true" role="dialog" aria-label="Choose home distress level">
     <div class="review-tier-pick-dialog phuglee-dialog">
-      <h3>This is a home — pick distress level</h3>
+      <h3>This is a home ï¿½ pick distress level</h3>
       <p>Choose whether this property is distressed (work the lead) or well maintained (skip).</p>
       <div class="review-tier-pick-btns">
         <button type="button" class="review-tier-pick-btn distressed" data-review-tier="distressed">Distressed</button>
@@ -675,7 +675,7 @@
   <div class="image-lightbox" id="imageLightbox" hidden>
     <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
     <div class="lightbox-content">
-      <button type="button" class="lightbox-close" id="lightboxClose" title="Close (Esc)">×</button>
+      <button type="button" class="lightbox-close" id="lightboxClose" title="Close (Esc)">ï¿½</button>
       <span class="lightbox-label" id="lightboxLabel">Property image</span>
       <img class="lightbox-img" id="lightboxImg" alt="Enlarged property view">
     </div>

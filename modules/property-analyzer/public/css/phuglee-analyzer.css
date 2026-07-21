@@ -46,10 +46,8 @@ body.heat-theme.analyzer-embedded {
 }
 
 body.analyze-phuglee .cyber-grid {
-  opacity: 0.08;
-  background-image:
-    linear-gradient(rgba(229, 132, 53, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(229, 132, 53, 0.04) 1px, transparent 1px);
+  display: none !important;
+  opacity: 0;
 }
 
 /* ── Sidebar — charcoal glass, orange active rail, cream labels ── */
@@ -880,24 +878,24 @@ body.analyze-phuglee .main-workspace.visible {
   display: flex;
 }
 
-/* Large page title — Filter parity */
+/* Quiet product page title */
 .analyze-page-heading {
-  text-align: center;
+  text-align: left;
   width: 100%;
-  margin: 0 auto 1.25rem;
+  margin: 0 auto 1rem;
   max-width: 960px;
 }
 
 .analyze-page-heading-title {
   margin: 0;
   font-family: var(--font-body);
-  font-size: clamp(2.75rem, 9vw, 4.5rem);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  line-height: 0.95;
-  text-transform: uppercase;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-transform: none;
   color: var(--phuglee-cream, #f5f2e4);
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-shadow: none;
   text-wrap: balance;
 }
 
@@ -925,10 +923,11 @@ body.analyze-phuglee .main-workspace.visible {
 .analyze-page-title {
   margin: 0 0 0.65rem;
   font-family: var(--font-body);
-  font-size: clamp(1.75rem, 4.5vw, 2.5rem);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  line-height: 1.05;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  text-transform: none;
+  line-height: 1.25;
   color: var(--phuglee-cream);
   text-wrap: balance;
 }

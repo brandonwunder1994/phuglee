@@ -125,27 +125,39 @@ body.analyzer-embedded .analyze-page-hero {
   display: none;
 }
 
-/* Large REVIEW title (Filter parity) */
+/* Quiet product page title (shell rail already says Review) */
 body.analyzer-embedded .analyze-page-heading,
 body.has-shell-chrome.analyzer-embedded .analyze-page-heading {
   display: block;
-  text-align: center;
+  text-align: left;
   width: 100%;
-  margin: 0 0 1.25rem;
+  margin: 0 0 1rem;
 }
 
 body.analyzer-embedded .analyze-page-heading-title,
 body.has-shell-chrome.analyzer-embedded .analyze-page-heading-title {
   margin: 0;
-  font-family: var(--font-display, "Anton", sans-serif);
-  font-size: clamp(3rem, 8vw, 4.75rem);
-  font-weight: 400;
-  letter-spacing: 0.04em;
-  line-height: 0.95;
-  text-transform: uppercase;
+  font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-transform: none;
   color: var(--phuglee-cream, #f5f2e4);
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
+  text-shadow: none;
   text-wrap: balance;
+}
+
+/* Dual hero / Step 03 marketing chrome — shell owns IA */
+body.analyzer-embedded .analyze-page-hero,
+body.analyzer-embedded .analyze-step-label,
+body.analyzer-embedded .analyzer-context-step {
+  display: none !important;
+}
+
+/* Internal Analyze sidebar — OS left rail owns navigation */
+body.analyzer-embedded .analyze-mobile-nav-toggle {
+  display: none !important;
 }
 
 body.analyzer-embedded .analyze-hero-zone {
@@ -208,22 +220,21 @@ body.analyzer-embedded .empty-workspace.phuglee-panel {
 }
 
 body.analyzer-embedded .prop-card.card-cyber {
-  border-radius: var(--card-radius, 14px) !important;
+  border-radius: var(--radius-md, 8px) !important;
   border: 1px solid var(--glass-border) !important;
-  background: var(--glass-fill) !important;
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)) !important;
-  box-shadow: var(--glass-shadow) !important;
+  background: var(--phuglee-black-mid, #121212) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
   transition:
-    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1)),
-    box-shadow var(--card-duration, 0.28s) ease,
-    border-color var(--card-duration, 0.28s) ease !important;
+    border-color 0.18s ease,
+    box-shadow 0.18s ease !important;
 }
 
 body.analyzer-embedded .prop-card.card-cyber:hover {
-  transform: translateY(-3px) scale(1.008) !important;
+  transform: none !important;
   border-color: var(--glass-border-hover) !important;
-  box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28) !important;
 }
 
 body.analyzer-embedded .card-thumb {
