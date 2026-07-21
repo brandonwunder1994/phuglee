@@ -845,29 +845,29 @@
         <td><span class="uc-stage" data-stage="${esc(d.stage)}">${esc(stage)}</span></td>
         <td class="uc-money">${esc(money(d.purchasePrice))}</td>
         <td class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</td>
-        <td>${statusChip({ label: 'Title', yn: d.titleOpened, text: d.titleOpenedLabel })}</td>
-        <td>${statusChip({ label: 'EMD', yn: d.sellerEmdSubmitted, text: d.sellerEmdLabel })}</td>
-        <td>${statusChip({
+        <td class="uc-col-ops">${statusChip({ label: 'Title', yn: d.titleOpened, text: d.titleOpenedLabel })}</td>
+        <td class="uc-col-ops">${statusChip({ label: 'EMD', yn: d.sellerEmdSubmitted, text: d.sellerEmdLabel })}</td>
+        <td class="uc-col-ops">${statusChip({
           kind: 'access',
           label: 'Access',
           value: d.accessType,
           text: d.accessDisplay || d.accessLabel
         })}</td>
-        <td>${statusChip({
+        <td class="uc-col-ops">${statusChip({
           kind: 'vacancy',
           label: 'Vacancy',
           value: d.vacancy,
           text: d.vacancyLabel
         })}</td>
-        <td>${statusChip({ label: 'Photos', yn: d.photosAvailable, text: d.photosLabel })}</td>
-        <td>
+        <td class="uc-col-ops">${statusChip({ label: 'Photos', yn: d.photosAvailable, text: d.photosLabel })}</td>
+        <td class="uc-col-ops">
           <button type="button" class="uc-rehab-cell uc-status-action" data-action="view-rehab" title="View rehab info">
             ${statusChip({ label: 'Rehab', yn: d.rehabInfoReady, text: d.rehabInfoLabel })}
             <span class="uc-rehab-link">View</span>
           </button>
         </td>
-        <td>${statusChip({ label: 'Buyer', yn: d.buyerFound, text: d.buyerFoundLabel })}</td>
-        <td>${statusChip({ label: 'Buyer EMD', yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel })}</td>
+        <td class="uc-col-ops">${statusChip({ label: 'Buyer', yn: d.buyerFound, text: d.buyerFoundLabel })}</td>
+        <td class="uc-col-ops">${statusChip({ label: 'Buyer EMD', yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel })}</td>
         <td>
           <button type="button" class="uc-funded-cell uc-status-action" data-action="view-funded" title="Funded breakdown">
             ${statusChip({ label: 'Funded', yn: d.funded, text: d.fundedLabel })}
@@ -4374,6 +4374,17 @@
     }
 
     $('uc-tbody')?.addEventListener('click', handleDealBoardClick);
+    const opsToggle = $('uc-ops-toggle');
+    if (opsToggle) {
+      opsToggle.addEventListener('click', () => {
+        const on = opsToggle.getAttribute('aria-pressed') !== 'true';
+        opsToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+        opsToggle.textContent = on ? 'Hide ops' : 'Ops details';
+        $('uc-table')?.classList.toggle('uc-show-ops', on);
+        $('uc-cards')?.classList.toggle('uc-show-ops-cards', on);
+        document.body.classList.toggle('uc-show-ops-cards', on);
+      });
+    }
     $('uc-cards')?.addEventListener('click', handleDealBoardClick);
     $('uc-waiting-tbody')?.addEventListener('click', handleDealBoardClick);
     $('uc-waiting-cards')?.addEventListener('click', handleDealBoardClick);

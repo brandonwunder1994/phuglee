@@ -2953,3 +2953,88 @@ body.uc-drawer-open {
   font-size: 0.85rem;
   margin: 0;
 }
+
+/* distill-uc-v1 */
+/* Quieter glance: primary KPIs only; secondary behind disclosure */
+.uc-kpi-row--primary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+.uc-kpi-sep { display: none; }
+.uc-kpi-more {
+  margin-top: 0.45rem;
+}
+.uc-kpi-more-summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--vault-muted, #a89f92);
+  list-style: none;
+  user-select: none;
+}
+.uc-kpi-more-summary::-webkit-details-marker { display: none; }
+.uc-kpi-more[open] .uc-kpi-more-summary {
+  color: var(--phuglee-cream, #f5f2e4);
+  margin-bottom: 0.4rem;
+}
+.uc-kpi-row--secondary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+@media (max-width: 720px) {
+  .uc-kpi-row--primary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Ops checklist columns hidden until toggle */
+.uc-table:not(.uc-show-ops) .uc-col-ops,
+.uc-table:not(.uc-show-ops) td.uc-col-ops {
+  display: none !important;
+}
+.uc-ops-toggle {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 0.4rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(174, 163, 143, 0.28);
+  background: transparent;
+  color: var(--phuglee-cream, #f5f2e4);
+  cursor: pointer;
+}
+.uc-ops-toggle[aria-pressed="true"] {
+  border-color: rgba(229, 132, 53, 0.45);
+  background: rgba(229, 132, 53, 0.12);
+  color: var(--phuglee-gold, #eeb746);
+}
+
+/* Cards: checklist not the loudest layer */
+.uc-deal-card-checklist {
+  display: none;
+}
+.uc-show-ops-cards .uc-deal-card-checklist {
+  display: grid;
+}
+.uc-deal-card-quick {
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+}
+
+/* Hero quieter */
+.uc-hero .vault-eyebrow { display: none; }
+.uc-hero .vault-hero-sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: var(--vault-muted, #a89f92);
+}
+.uc-goal-ends { display: none; }
+
+@media (max-width: 900px) {
+  .uc-table:not(.uc-show-ops) th:nth-child(3),
+  .uc-table:not(.uc-show-ops) td:nth-child(3) {
+    /* keep purchase price */
+  }
+}
