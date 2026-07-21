@@ -80,7 +80,7 @@ test('DESK-05: victory flash-download + slogans; data-format csv', () => {
   assert.match(html, /id="bridge-victory-download"[^>]*data-action="flash-download"/);
   assert.match(html, /id="bridge-victory-download"[^>]*data-format="csv"/);
   assert.match(html, /List staged/);
-  assert.match(html, /Download for Analyze/);
+  assert.match(html, /Download for Review/);
   assert.match(html, /Scrub next city/);
   assert.match(html, /id="bridge-victory-next"/);
 });

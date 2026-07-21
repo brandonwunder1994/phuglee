@@ -109,7 +109,7 @@ test('VICTORY-73: strip mount + actions', () => {
   assert.match(html, /id="bridge-victory-next"/);
   assert.match(html, /List staged/);
   assert.match(html, /Kept leads are ready/);
-  assert.match(html, /Download for Analyze/);
+  assert.match(html, /Download for Review/);
   assert.match(html, /Scrub next city/);
   assert.equal(html.includes('Shift advanced'), false);
 });

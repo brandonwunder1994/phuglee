@@ -1237,12 +1237,12 @@
           return;
         }
         // Safer desk reset: soft confirm before auto-save wipes working set.
-        // Cancel keeps results so operator can Download for Analyze first.
+        // Cancel keeps results so operator can Download for Review first.
         const kept = keptRowCount();
         const ok = window.confirm(
           `All Train groups decided · ${kept.toLocaleString()} kept row(s).\n\n` +
           `Stage this list and clear the desk for the next city?\n\n` +
-          `After save, Download for Analyze stays on the victory strip. ` +
+          `After save, Download for Review stays on the victory strip. ` +
           `Cancel keeps results on screen so you can export first.`
         );
         if (!ok) {
@@ -1889,7 +1889,7 @@
         }
         if (!parts.length) {
           if (stats.noDistress) parts.push(`${stats.noDistress} no distress signal`);
-          if (stats.alreadyImported) parts.push(`${stats.alreadyImported} already in Analyze`);
+          if (stats.alreadyImported) parts.push(`${stats.alreadyImported} already in Review`);
           if (stats.deduplicated) parts.push(`${stats.deduplicated} duplicates`);
         }
         const detail = parts.length ? ` Breakdown: ${parts.join(', ')}.` : '';
@@ -3141,7 +3141,7 @@
       ['kept', 'kept'],
       ['no-distress', 'no distress'],
       ['discarded', 'discarded'],
-      ['already-in-Analyze', 'already in Analyze']
+      ['already-in-Analyze', 'already in Review']
     ];
     for (let i = 0; i < order.length; i++) {
       const key = order[i][0];
@@ -3253,7 +3253,7 @@
     duplicate: 'Deduped',
     'Near-duplicate within upload': 'Deduped',
     already_imported: 'Already in Vault',
-    'Already imported in Analyze': 'Already in Vault',
+    'Already imported in Review': 'Already in Vault',
     'Already in Vault': 'Already in Vault',
     no_distress_signal: 'No distress signal',
     'No distressed signal (generic code violation)': 'No distress signal',
@@ -3302,7 +3302,7 @@
     );
     const already = Math.max(
       Number(s.alreadyImported) || 0,
-      reasonCount(['already_imported', 'Already imported in Analyze'])
+      reasonCount(['already_imported', 'Already imported in Review'])
     );
     const noAddress = reasonCount(['no_address', 'No usable street address']);
     const blank = reasonCount(['blank_row', 'Blank or empty row']);
@@ -3421,14 +3421,14 @@
     }
     const idx = Number(meta.importIndexCount);
     if (Number.isFinite(idx) && idx > 0) {
-      chips.push(`<span class="bridge-proof-chip">${idx.toLocaleString()} in Analyze index</span>`);
+      chips.push(`<span class="bridge-proof-chip">${idx.toLocaleString()} in Review index</span>`);
     }
     const needsReview = Number(s.needsReview) || Number(s.lowConfidence) || 0;
     if (needsReview > 0) {
       chips.push(`<span class="bridge-proof-chip">Needs review · ${needsReview.toLocaleString()}</span>`);
     }
-    // Independence proof (LIST-03 / IND) — chip + stub clean path keep "nothing was sent to Analyze"
-    chips.push('<span class="bridge-proof-chip">Nothing sent to Analyze</span>');
+    // Independence proof (LIST-03 / IND) — chip + stub clean path keep "nothing was sent to Review"
+    chips.push('<span class="bridge-proof-chip">Nothing sent to Review</span>');
     return chips.join('');
   }
 
@@ -3921,8 +3921,8 @@
     const n = visible.length;
     if (downloadAllCsvBtn) {
       downloadAllCsvBtn.textContent = filtered
-        ? 'Download for Analyze (filtered)'
-        : 'Download for Analyze';
+        ? 'Download for Review (filtered)'
+        : 'Download for Review';
       downloadAllCsvBtn.disabled = n === 0;
     }
     if (downloadAllXlsxBtn) {
@@ -4104,7 +4104,7 @@
             : 'No code violation lists in inventory. Click CV again or All to clear the filter.';
       } else {
         listsEmpty.textContent =
-          'No scans staged yet. Scrub a city list, then Save list to add it here. Use Download for Analyze when ready.';
+          'No scans staged yet. Scrub a city list, then Save list to add it here. Use Download for Review when ready.';
       }
     }
     setHidden(listsEmpty, visible.length > 0);
@@ -5582,7 +5582,7 @@
       if (data.stub) {
         setHidden(stubNote, false);
         stubNote.textContent =
-          'Stub / edge process path. Save the list below — nothing was sent to Analyze.';
+          'Stub / edge process path. Save the list below — nothing was sent to Review.';
       } else {
         setHidden(stubNote, true);
         stubNote.textContent = '';

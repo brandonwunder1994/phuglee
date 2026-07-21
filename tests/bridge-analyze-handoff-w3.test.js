@@ -1,6 +1,6 @@
 /**
  * Wave 3 — Analyze path (Decision A): manual import only.
- * Static contracts for primary Download for Analyze, post-save checklist,
+ * Static contracts for primary Download for Review, post-save checklist,
  * and honest loading copy when skip-already-imported is off.
  */
 const { test } = require('node:test');
@@ -14,27 +14,27 @@ const js = fs.readFileSync(path.join(ROOT, 'public', 'js', 'bridge.js'), 'utf8')
 const css = fs.readFileSync(path.join(ROOT, 'public', 'css', 'bridge.css'), 'utf8');
 
 const BANNED_CTAS = [
-  'Send to Analyze',
-  'Push to Analyze',
-  'Import to Analyzer',
-  'Open in Analyze',
-  'Push to Analyzer'
+  'Send to Review',
+  'Push to Review',
+  'Import to Reviewr',
+  'Open in Review',
+  'Push to Reviewr'
 ];
 
 // ---------------------------------------------------------------------------
-// 3.1 Primary Download for Analyze
+// 3.1 Primary Download for Review
 // ---------------------------------------------------------------------------
 
-test('W3-3.1: victory primary is Download for Analyze (csv flash-download)', () => {
+test('W3-3.1: victory primary is Download for Review (csv flash-download)', () => {
   assert.match(html, /id="bridge-victory-download"[^>]*data-action="flash-download"/);
   assert.match(html, /id="bridge-victory-download"[^>]*data-format="csv"/);
-  assert.match(html, /id="bridge-victory-download"[^>]*>\s*Download for Analyze\s*</);
+  assert.match(html, /id="bridge-victory-download"[^>]*>\s*Download for Review\s*</);
   assert.equal(html.includes('Filter Data'), false, 'legacy Filter Data label must be gone');
 });
 
-test('W3-3.1: scan-history primary CSV is Download for Analyze', () => {
-  assert.match(html, /id="bridge-download-all-csv"[^>]*>\s*Download for Analyze\s*</);
-  assert.match(js, /Download for Analyze \(filtered\)|Download for Analyze/);
+test('W3-3.1: scan-history primary CSV is Download for Review', () => {
+  assert.match(html, /id="bridge-download-all-csv"[^>]*>\s*Download for Review\s*</);
+  assert.match(js, /Download for Review \(filtered\)|Download for Review/);
 });
 
 test('W3-3.1: Full Excel + batch 5k live under Advanced export details', () => {
@@ -63,17 +63,17 @@ test('W3-3.1: CSS advanced export + checklist hooks', () => {
 
 test('W3-3.2: victory checklist has four Analyze import steps', () => {
   assert.match(html, /id="bridge-victory-checklist"/);
-  assert.match(html, /Download for Analyze/);
+  assert.match(html, /Download for Review/);
   assert.match(html, /href="\/analyzer\/"/);
   assert.match(html, /Import the downloaded file/);
   assert.match(html, /Start review scan/);
 });
 
 test('W3-3.2: independence phrases still present (HTML + JS)', () => {
-  assert.match(html, /Nothing was sent to Analyze automatically/);
-  assert.match(js, /nothing was sent to Analyze/i);
+  assert.match(html, /Nothing was sent to Review automatically/);
+  assert.match(js, /nothing was sent to Review/i);
   // Save panel still teaches boundary
-  assert.match(html, /Nothing is sent to Analyze/);
+  assert.match(html, /Nothing is sent to Review/);
 });
 
 test('W3-3.2: no banned Analyze push CTAs', () => {
@@ -83,7 +83,7 @@ test('W3-3.2: no banned Analyze push CTAs', () => {
   }
 });
 
-test('W3-3.2: Open Analyze is a link only (no data transfer)', () => {
+test('W3-3.2: Open Review is a link only (no data transfer)', () => {
   assert.match(html, /class="bridge-victory-analyze-link"[^>]*href="\/analyzer\/"/);
   assert.equal(js.includes('bridge-analyzer-push'), false);
   assert.equal(
@@ -97,39 +97,38 @@ test('W3-3.2: Open Analyze is a link only (no data transfer)', () => {
 // 3.3 Loading copy honesty
 // ---------------------------------------------------------------------------
 
-test('W3-3.3: Cross-checking Analyze only via getLoadingSteps when skip-imported on', () => {
+test('W3-3.3: getLoadingSteps adds Vault skip slogan (not Review push theater)', () => {
   assert.match(js, /function getLoadingSteps\s*\(/);
-  assert.match(js, /LOADING_STEP_ANALYZE_CROSSCHECK/);
-  assert.match(js, /Cross-checking Analyze…/);
-  // Must gate on skipAlreadyImportedEl.checked
-  const start = js.indexOf('function getLoadingSteps');
-  assert.ok(start >= 0);
-  const body = js.slice(start, start + 800);
-  assert.match(body, /skipAlreadyImportedEl/);
-  assert.match(body, /\.checked/);
+  assert.match(js, /LOADING_STEP_VAULT_SKIP/);
+  assert.match(js, /Skipping addresses already in Vault…/);
   // startLoadingAnimation snapshots getLoadingSteps()
   assert.match(js, /const loadingSteps = getLoadingSteps\s*\(\s*\)/);
 });
 
-test('W3-3.3: base loading steps do not hardcode Analyze cross-check', () => {
+test('W3-3.3: base loading steps do not hardcode Review cross-check', () => {
   const start = js.indexOf('const LOADING_STEPS_BASE');
   assert.ok(start >= 0, 'LOADING_STEPS_BASE required');
   const end = js.indexOf('];', start);
   const base = js.slice(start, end + 2);
   assert.equal(
-    base.includes('Cross-checking Analyze'),
+    base.includes('Cross-checking Review'),
     false,
-    'LOADING_STEPS_BASE must not include Cross-checking Analyze'
+    'LOADING_STEPS_BASE must not include Cross-checking Review'
+  );
+  assert.equal(
+    base.includes('Skipping addresses already in Vault'),
+    false,
+    'Vault skip is injected by getLoadingSteps, not BASE'
   );
 });
 
-test('W3-3.3: workflow strip teaches Download for Analyze manual import', () => {
+test('W3-3.3: workflow strip teaches Download for Review manual import', () => {
   assert.match(
     html,
     /Process → \(Train\) → Save list → Download/
   );
-  assert.match(html, /Download for Analyze/);
-  assert.match(html, /manual Analyze import/i);
+  assert.match(html, /Download for Review/);
+  assert.match(html, /manual Review import/i);
 });
 
 test('W3 cache bust: bridge.js and bridge.css bumped', () => {

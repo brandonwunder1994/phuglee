@@ -34,17 +34,17 @@
       <div class="bridge-victory-main">
         <p class="bridge-victory-title" id="bridge-victory-title">List staged</p>
         <p class="bridge-victory-meta" id="bridge-victory-meta"></p>
-        <p class="bridge-victory-boundary">Kept leads are ready — Download for Analyze, then import manually.</p>
-        <ol id="bridge-victory-checklist" class="bridge-victory-checklist" aria-label="Next steps for Analyze">
-          <li><strong>Download for Analyze</strong> — address CSV this button exports</li>
-          <li><a class="bridge-victory-analyze-link" href="/analyzer/" target="_blank" rel="noopener noreferrer">Open Analyze</a> — data is not transferred</li>
-          <li>Import the downloaded file in Analyze</li>
+        <p class="bridge-victory-boundary">Kept leads are ready — Download for Review, then import manually.</p>
+        <ol id="bridge-victory-checklist" class="bridge-victory-checklist" aria-label="Next steps for Review">
+          <li><strong>Download for Review</strong> — address CSV this button exports</li>
+          <li><a class="bridge-victory-analyze-link" href="/analyzer/" target="_blank" rel="noopener noreferrer">Open Review</a> — data is not transferred</li>
+          <li>Import the downloaded file in Review</li>
           <li>Start review scan</li>
         </ol>
-        <p class="bridge-victory-independence">Nothing was sent to Analyze automatically. Manual import only.</p>
+        <p class="bridge-victory-independence">Nothing was sent to Review automatically. Manual import only.</p>
       </div>
       <div class="bridge-victory-actions">
-        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-victory-download" hidden data-action="flash-download" data-format="csv" title="Address CSV for Analyze import">Download for Analyze</button>
+        <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-victory-download" hidden data-action="flash-download" data-format="csv" title="Address CSV for Review import">Download for Review</button>
         <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-victory-next">Scrub next city</button>
       </div>
     </div>
@@ -286,7 +286,7 @@
             <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-process" disabled>Scrub it</button>
             <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-clear-file" hidden>Clear files</button>
           </div>
-          <p class="bridge-vault-skip-hint">Addresses already in The Vault are always skipped.</p>
+          <p class="bridge-vault-skip-hint">Addresses already in Houses are always skipped.</p>
           <p class="bridge-ocr-cap-hint">Scanned PDFs: OCR reads up to 12 pages. Split longer packets or upload Excel/CSV.</p>
         </div>
       </div>
@@ -352,7 +352,7 @@
 
       <section class="bridge-save-panel bridge-save-panel--climax" id="bridge-save-panel" hidden aria-labelledby="bridge-save-heading">
         <h3 id="bridge-save-heading">Stage this scrub</h3>
-        <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, use Download for Analyze (address CSV) and import it in Analyze yourself. Nothing is sent to Analyze.</p>
+        <p class="bridge-panel-lead">Stage this kept list for your multi-city shift. When ready, use Download for Review (address CSV) and import it in Review yourself. Nothing is sent to Review.</p>
         <div class="bridge-save-row">
           <label class="bridge-save-name" for="bridge-list-name">List name
             <input type="text" id="bridge-list-name" class="phuglee-input" maxlength="120" placeholder="e.g. Marana - Code Violation - Jul 9" autocomplete="off" />
@@ -363,7 +363,7 @@
       </section>
       </div><!-- /bridge-mission-surface -->
 
-      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download for Analyze → manual Analyze import</p>
+      <p id="bridge-workflow-strip" class="bridge-workflow-strip bridge-panel-lead">Workflow: Process → (Train) → Save list → Download for Review → manual Review import</p>
 
       <div id="bridge-train-wrap" hidden>
         <div id="bridge-train-mission" class="bridge-train-mission" hidden>
@@ -485,7 +485,7 @@
 
       <section class="bridge-attach-panel bridge-attach-panel--scrap" id="bridge-attach-panel" hidden aria-labelledby="bridge-attach-heading">
         <h3 id="bridge-attach-heading">Optional - Attach to city profile</h3>
-        <p class="bridge-panel-lead">Log this response on the Form Forge city profile for turnaround tracking. This does not send leads to Analyze.</p>
+        <p class="bridge-panel-lead">Log this response on the Form Forge city profile for turnaround tracking. This does not send leads to Review.</p>
         <div class="bridge-attach-row">
           <button type="button" class="phuglee-btn phuglee-btn-secondary" id="bridge-attach">Attach versioned dataset</button>
         </div>
@@ -508,7 +508,7 @@
         <div class="bridge-lists-details-body">
       <div class="bridge-lists-header">
                 <div class="bridge-lists-toolbar" id="bridge-lists-toolbar" hidden>
-          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv" title="Address CSV for Analyze import: Street Address, City, State, Postal Code">Download for Analyze</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary" id="bridge-download-all-csv" title="Address CSV for Review import: Street Address, City, State, Postal Code">Download for Review</button>
           <details class="bridge-export-advanced" id="bridge-export-advanced">
             <summary class="bridge-export-advanced-summary">Advanced export</summary>
             <div class="bridge-export-advanced-body">
@@ -523,7 +523,7 @@
         </div>
       <div id="bridge-inventory-hud" class="bridge-inventory-hud" hidden
            role="region" aria-label="Scan history summary"></div>
-      <div id="bridge-lists-empty" class="bridge-lists-empty">No scans staged yet. Scrub a city list, then Save list to add it here. Use Download for Analyze when ready.</div>
+      <div id="bridge-lists-empty" class="bridge-lists-empty">No scans staged yet. Scrub a city list, then Save list to add it here. Use Download for Review when ready.</div>
       <div id="bridge-lists-wrap" class="bridge-lists-wrap" hidden>
         <table class="bridge-lists-table" id="bridge-lists-table">
           <thead>
@@ -609,10 +609,10 @@
   <script src="/js/settings-menu.js?v=5" defer></script>
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
-  <script src="/js/shell-nav.js?v=35-brad-full" defer></script>
+  <script src="/js/shell-nav.js?v=36-clarify-ia" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
   <script src="/js/bridge-train.js?v=7" defer></script>
   <script src="/js/bridge-scrub-feed.js?v=1" defer></script>
-  <script src="/js/bridge.js?v=100" defer></script>
+  <script src="/js/bridge.js?v=101" defer></script>
 </body>
 </html>

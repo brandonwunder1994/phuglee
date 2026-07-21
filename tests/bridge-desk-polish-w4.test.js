@@ -58,15 +58,15 @@ test('W4-4.3: auto-save soft-confirms before desk reset path', () => {
   assert.ok(start >= 0);
   const body = js.slice(start, start + 1800);
   assert.match(body, /window\.confirm\s*\(/);
-  assert.match(body, /Download for Analyze/i);
+  assert.match(body, /Download for Review/i);
   assert.match(body, /saveCurrentList\s*\(\s*\{\s*auto:\s*true\s*\}\s*\)/);
 });
 
-test('W4-4.3: victory strip receives auto flag and Download for Analyze stays primary', () => {
+test('W4-4.3: victory strip receives auto flag and Download for Review stays primary', () => {
   assert.match(js, /showVictoryStrip\s*\(/);
   assert.match(js, /auto:\s*(?:true|auto|!!?auto|victoryMeta)/);
   assert.match(js, /List auto-saved/);
-  assert.match(html, /id=["']bridge-victory-download["'][^>]*>\s*Download for Analyze\s*</);
+  assert.match(html, /id=["']bridge-victory-download["'][^>]*>\s*Download for Review\s*</);
 });
 
 // ---------------------------------------------------------------------------

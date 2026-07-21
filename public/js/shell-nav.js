@@ -215,7 +215,7 @@
     }
     const metaLine = onAnalyzer
       ? ''
-      : '<span class="shell-footer-meta">Distress OS · Collect. Filter. Analyze.</span>';
+      : '<span class="shell-footer-meta">Distress OS · Request. Filter. Review.</span>';
     const trustLine = onAnalyzer
       ? ''
       : '<p class="shell-footer-trust">Public records only · Your data stays on your machine</p>';
@@ -232,7 +232,7 @@
       <a href="/filter" class="shell-footer-link">Filter</a>
       <a href="/analyzer/" class="shell-footer-link">Review</a>
       <a href="/government-lists" class="shell-footer-link">Government Lists</a>
-      <a href="/vault" class="shell-footer-link">The Vault</a>
+      <a href="/vault" class="shell-footer-link">Houses</a>
     </nav>
   </div>
   ${trustLine}

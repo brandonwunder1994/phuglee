@@ -15,7 +15,7 @@
     kept: 'Kept · distress',
     'no-distress': 'No distress · dropped',
     discarded: 'Discarded',
-    'already-in-Analyze': 'Already in Analyze'
+    'already-in-Analyze': 'Already in Review'
   };
 
   var STATUS_KEYS = ['kept', 'no-distress', 'discarded', 'already-in-Analyze'];
@@ -64,7 +64,7 @@
     var s = String(reason || '').trim();
     if (!s) return '';
     // Drop common prefixes for chip suffix
-    s = s.replace(/^Already imported in Analyze$/i, '').trim();
+    s = s.replace(/^Already imported in Review$/i, '').trim();
     if (s.length > 48) s = s.slice(0, 48) + '…';
     return s;
   }
@@ -309,7 +309,7 @@
     ];
     var already = num(summary.alreadyImported);
     if (already > 0) {
-      parts.push('Already in Analyze ' + already);
+      parts.push('Already in Review ' + already);
     }
     return parts.join(' · ');
   }
