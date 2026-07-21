@@ -1233,7 +1233,13 @@ test('Send New PSA dialog CSS keeps an inner vertical scrollport when zoomed', (
   const psaBlock = css.match(/\.uc-dialog--psa\s*\{[^}]+\}/);
   assert.ok(psaBlock, 'expected .uc-dialog--psa rule');
   assert.match(psaBlock[0], /overflow:\s*hidden/);
-  assert.match(psaBlock[0], /max-height:\s*min\(92dvh,\s*100svh\)/);
+  assert.match(psaBlock[0], /max-height:\s*min\(85dvh,\s*40rem\)/);
+  assert.equal(
+    /display\s*:\s*flex/.test(psaBlock[0]),
+    false,
+    'closed .uc-dialog--psa must not set display:flex'
+  );
+  assert.match(css, /\.uc-dialog--psa\[open\]|\.uc-dialog--psa:modal/);
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*min-height:\s*0/s);
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*overflow-y:\s*auto/s);
   assert.match(css, /\.uc-psa-results\s*\{[^}]*max-height:\s*min\(12\.5rem,\s*40dvh\)/s);
@@ -1241,13 +1247,4 @@ test('Send New PSA dialog CSS keeps an inner vertical scrollport when zoomed', (
   assert.match(html, /name="uc-psa-deal-type"[^>]*value="cash"/);
   assert.match(html, /name="uc-psa-deal-type"[^>]*value="subject_to"/);
   assert.match(html, /under-contract\.js\?v=57-layout-fix/);
-  /* Closed PSA dialog must not force display:flex (bleeds over the board) */
-  const psaRule = css.match(/\.uc-dialog--psa\s*\{[^}]+\}/);
-  assert.ok(psaRule, 'expected .uc-dialog--psa rule');
-  assert.equal(
-    /display\s*:\s*flex/.test(psaRule[0]),
-    false,
-    'closed .uc-dialog--psa must not set display:flex'
-  );
-  assert.match(css, /\.uc-dialog--psa\[open\]|\.uc-dialog--psa:modal/);
 });
