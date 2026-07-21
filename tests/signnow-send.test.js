@@ -538,4 +538,27 @@ describe('subject-to PSA wiring', () => {
     assert.match(copy.subject, /Purchase Contract/);
     assert.match(copy.message, /subject-to/i);
   });
+
+  it('infers amendment original date from PSA document when desk field is empty', () => {
+    const {
+      resolveOriginalAgreementDate,
+      resolveAmendmentDefaults
+    } = require('../lib/leads-platform/contracts');
+    const deal = {
+      dealId: 'd-moody',
+      dealType: 'subject_to',
+      originalAgreementDate: '',
+      documents: [{
+        id: 'doc1',
+        kind: 'purchase_contract',
+        name: 'Subject-To Purchase Agreement.pdf',
+        label: 'subto',
+        uploadedAt: '2026-07-10T15:30:00.000Z'
+      }]
+    };
+    const date = resolveOriginalAgreementDate(deal, null);
+    assert.equal(date, '7/10/2026');
+    const defs = resolveAmendmentDefaults(deal, null, 'seller');
+    assert.equal(defs.originalAgreementDate, '7/10/2026');
+  });
 });

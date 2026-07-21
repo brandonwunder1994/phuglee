@@ -3255,6 +3255,30 @@
     openJvConfirm(deal);
   }
 
+  function inferPsaDateFromDeal(deal, contact) {
+    const fromApiSeller = deal?.amendmentDefaults?.seller?.originalAgreementDate;
+    const fromApiBuyer = deal?.amendmentDefaults?.end_buyer?.originalAgreementDate;
+    if (fromApiSeller || fromApiBuyer) return fromApiSeller || fromApiBuyer || '';
+    const direct = deal?.originalAgreementDate
+      || deal?.agreementDate
+      || deal?.contractDate
+      || contact?.contractSignedDate
+      || deal?.cashPsaSend?.signedAt
+      || deal?.subtoPsaSend?.signedAt
+      || '';
+    if (direct) return direct;
+    const docs = Array.isArray(deal?.documents) ? deal.documents : [];
+    const psa = docs.find((d) => {
+      const kind = String(d?.kind || '').toLowerCase();
+      const label = String(d?.label || '').toLowerCase();
+      const name = String(d?.name || '').toLowerCase();
+      return kind === 'purchase_contract' || kind === 'subto' || label === 'subto'
+        || (/\b(purchase|psa|sub\s*-?\s*to|subject\s*-?\s*to)\b/.test(name)
+          && !/\b(amendment|addendum|assignment|aoc|jv)\b/.test(name));
+    });
+    return psa?.signedAt || psa?.uploadedAt || '';
+  }
+
   function amendmentPartyDefaults(deal, contact, party) {
     const key = party === 'end_buyer' ? 'end_buyer' : 'seller';
     const fromApi = deal?.amendmentDefaults?.[key] || {};
@@ -3262,8 +3286,7 @@
       const ba = deal?.buyerAssignment || {};
       return {
         originalAgreementDate: fromApi.originalAgreementDate
-          || deal?.originalAgreementDate
-          || contact?.contractSignedDate
+          || inferPsaDateFromDeal(deal, contact)
           || '',
         sellers: [{
           name: fromApi.counterpartyName
@@ -3292,8 +3315,7 @@
     }
     return {
       originalAgreementDate: fromApi.originalAgreementDate
-        || deal?.originalAgreementDate
-        || contact?.contractSignedDate
+        || inferPsaDateFromDeal(deal, contact)
         || '',
       sellers
     };
@@ -3352,8 +3374,21 @@
     syncAmendmentSellerCountUi();
     const hint = $('uc-amendment-orig-hint');
     if (hint) {
+      const hasPsaDoc = Array.isArray(deal?.documents)
+        && deal.documents.some((d) => {
+          const kind = String(d?.kind || '').toLowerCase();
+          const label = String(d?.label || '').toLowerCase();
+          const name = String(d?.name || '').toLowerCase();
+          return kind === 'purchase_contract' || kind === 'subto' || label === 'subto'
+            || (/\b(purchase|psa|sub\s*-?\s*to|subject\s*-?\s*to)\b/.test(name)
+              && !/\b(amendment|addendum|assignment|aoc|jv)\b/.test(name));
+        });
       if (defs.originalAgreementDate) {
-        hint.textContent = 'Locked to the PSA / GHL contract signed date — not editable';
+        hint.textContent = hasPsaDoc && !deal?.originalAgreementDate
+          ? 'Using the date from the PSA in Documents — locked for this send'
+          : 'Locked to the PSA / GHL contract signed date — not editable';
+      } else if (hasPsaDoc) {
+        hint.textContent = 'PSA is in Documents but no signed date was found — reopen this deal (or re-upload the PSA) so the date can load';
       } else if (deal?.dealType === 'subject_to') {
         hint.textContent = 'No PSA signed date yet — attach the signed SubTo or set the signed date before sending an amendment';
       } else {
