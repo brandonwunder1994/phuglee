@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=19-underline-hug">
   <link rel="stylesheet" href="/css/vault.css?v=29-gates">
-  <link rel="stylesheet" href="/css/under-contract.css?v=131-gif-draft">
+  <link rel="stylesheet" href="/css/under-contract.css?v=132-amd-status">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=4"></script>
@@ -852,6 +852,8 @@
           <input type="email" id="uc-amendment-buyer-email" class="phuglee-input" autocomplete="email">
         </label>
       </div>
+      <!-- Lives inside the modal so errors stay visible (page toasts paint under dialog top-layer). -->
+      <p id="uc-amendment-status" class="uc-form-status" hidden role="alert"></p>
       <div class="uc-edit-actions">
         <button type="submit" id="uc-amendment-submit" value="save" class="phuglee-btn phuglee-btn-primary">Send Amendment</button>
         <button type="button" id="uc-amendment-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
@@ -1021,6 +1023,6 @@
   <script src="/js/command-palette.js?v=6-retire-map" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=131-gif-draft" defer></script>
+  <script src="/js/under-contract.js?v=132-amd-status" defer></script>
 </body>
 </html>
