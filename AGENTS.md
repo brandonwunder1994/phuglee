@@ -1,5 +1,13 @@
 # Distress OS / Phuglee — Agent Rules
 
+## Campaigns → SMS (admin)
+
+- UI: `/campaigns/sms` — admin only (rail **Campaigns → SMS**).
+- Live sends **off** unless `SMS_CAMPAIGNS_LIVE=true` + confirm `SEND`. Auto also needs `SMS_CAMPAIGNS_AUTO=true`.
+- Spec/plan: `docs/superpowers/specs/2026-07-23-campaigns-sms-design.md`, `docs/superpowers/plans/2026-07-23-campaigns-sms.md`.
+- Go-live checklist: `docs/campaigns/SMS-GO-LIVE.md`.
+- Never claim SMS is live without the env flag proof and an intentional send.
+
 ## ZERO TOLERANCE: Never claim working / live / fixed without proof
 
 **This is the top rule for the entire Phuglee folder. It overrides convenience.**

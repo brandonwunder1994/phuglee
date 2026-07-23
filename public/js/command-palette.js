@@ -14,6 +14,7 @@
     { group: 'Leads', label: 'Land', href: '/land-vault', meta: 'Vacant lots · Land Desk · Max plan' },
     { group: 'Dispo', label: 'Under Contract', href: '/under-contract', meta: 'Proof desk', contractDeskOnly: true },
     { group: 'Dispo', label: 'Buyers', href: '/buyers', meta: 'Buy-box matcher', contractDeskOnly: true },
+    { group: 'Campaigns', label: 'SMS', href: '/campaigns/sms', meta: 'Text blast tracker', adminOnly: true },
     { group: 'Settings', label: 'Operating Costs', href: '/operating-costs', meta: 'Railway · GHL · APIs', adminOnly: true },
     { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
     { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
