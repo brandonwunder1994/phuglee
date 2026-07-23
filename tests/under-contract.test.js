@@ -91,9 +91,11 @@ test('mapGhlStageName maps DTS stages', () => {
   assert.equal(sync.mapGhlStageName('✅ Seller Signed | ➡️ Send To Title'), 'under_contract');
   assert.equal(sync.mapGhlStageName('Contract Signed'), 'under_contract');
   assert.equal(sync.mapGhlStageName('🔎 Escrow Opened + Looking for Buyers'), 'under_contract');
-  assert.equal(sync.mapGhlStageName('📮 AOC Sent to Cash Buyer'), 'buyer_found');
-  assert.equal(sync.mapGhlStageName('✅ AOC Signed | ➡️ Send to Title'), 'buyer_found');
+  assert.equal(sync.mapGhlStageName('📮 AOC Sent to Cash Buyer'), 'buyer_signed_aoc');
+  assert.equal(sync.mapGhlStageName('✅ AOC Signed | ➡️ Send to Title'), 'buyer_signed_aoc');
+  assert.equal(sync.mapGhlStageName('Buyer Signed AOC'), 'buyer_signed_aoc');
   assert.equal(sync.mapGhlStageName('🏁 In Line to Close'), 'buyer_found');
+  assert.equal(sync.mapGhlStageName('Buyer Submitted EMD'), 'buyer_found');
   assert.equal(sync.mapGhlStageName('🥳 Funded'), 'funded');
   assert.equal(sync.mapGhlStageName('Terminated'), 'terminated');
   assert.equal(sync.mapGhlStageName('🚫 Not Interested'), null);

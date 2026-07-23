@@ -401,10 +401,7 @@
   background: color-mix(in srgb, #c9e4c9 80%, #fff);
 }
 
-.uc-stage[data-stage="contract_sent"] {
-  color: #1a2e1a;
-  background: color-mix(in srgb, #c9e4c9 70%, #fff);
-}
+/* Waiting chip kept for waiting-section rows; stage badge uses solid palette above */
 
 .uc-waiting-seller {
   margin: 0.35rem 0 0;
@@ -888,39 +885,64 @@
   line-height: 1.2;
 }
 
+/*
+ * Board / table / card stage badges — solid fills aligned with kanban column accents
+ * (pipeline.css pipe-col[data-stage=…]). Profile hero uses .uc-stage--outline separately.
+ */
 .uc-stage {
   display: inline-block;
-  padding: 0.12rem 0.4rem;
+  padding: 0.14rem 0.45rem;
   border-radius: 3px;
   font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  background: rgba(238, 183, 70, 0.12);
-  color: var(--phuglee-gold);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.25;
   white-space: nowrap;
+  border: 1px solid transparent;
+  /* Default = under_contract (gold) — matches dispo gold column */
+  background: #6b4e12;
+  border-color: #eeb746;
+  color: #fff4d4;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
 }
 
-/* Buyer Signed AOC — soft sky; same translucent treatment as under-contract gold */
+.uc-stage[data-stage="under_contract"] {
+  background: #6b4e12;
+  border-color: #eeb746;
+  color: #fff4d4;
+}
+
+/* Buyer Signed AOC — soft sky / kanban dispo blue */
 .uc-stage[data-stage="buyer_signed_aoc"] {
-  background: rgba(90, 170, 220, 0.14);
-  color: #8ec8e8;
+  background: #1a4a6e;
+  border-color: #6ec4f0;
+  color: #e5f6ff;
 }
 
-/* Buyer Submitted EMD — deeper blue, same soft-badge pattern */
+/* Buyer Submitted EMD — deeper blue */
 .uc-stage[data-stage="buyer_found"] {
-  background: rgba(59, 111, 181, 0.2);
-  color: #9ec0ef;
+  background: #1a3558;
+  border-color: #7aa8e8;
+  color: #e8f1ff;
 }
 
-/* Funded — soft green, same translucent badge treatment */
+/* Funded — green */
 .uc-stage[data-stage="funded"] {
-  background: rgba(47, 158, 95, 0.16);
-  color: #7fd99a;
+  background: #1f6b42;
+  border-color: #6ee7a0;
+  color: #eafff2;
 }
 
 .uc-stage[data-stage="terminated"] {
-  background: rgba(180, 80, 80, 0.14);
-  color: #e08a8a;
+  background: #6b2a2a;
+  border-color: #f0a0a0;
+  color: #ffe8e8;
+}
+
+.uc-stage[data-stage="contract_sent"] {
+  background: #6b3a14;
+  border-color: #e58435;
+  color: #ffecd9;
 }
 
 .uc-money {
