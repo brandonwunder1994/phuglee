@@ -6419,6 +6419,71 @@ body.uc-drawer-open {
   color: var(--phuglee-cream, #f5f2e4) !important;
 }
 
+/* Staged GIF draft — selected in picker, not sent until Send */
+.uc-gif-draft {
+  margin: 0 0 0.5rem;
+  padding: 0.55rem 0.65rem;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--phuglee-gold, #eeb746) 35%, var(--vault-border, #333));
+  background: color-mix(in srgb, var(--phuglee-gold, #eeb746) 8%, #0c0b0a);
+}
+
+.uc-gif-draft[hidden] {
+  display: none !important;
+}
+
+.uc-gif-draft-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.uc-gif-draft-img {
+  width: 4.5rem;
+  height: 4.5rem;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #000;
+  flex-shrink: 0;
+}
+
+.uc-gif-draft-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.uc-gif-draft-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--phuglee-gold, #eeb746);
+}
+
+.uc-gif-draft-title {
+  font-size: 0.8rem;
+  color: var(--phuglee-cream, #f5f2e4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.uc-gif-draft-hint {
+  font-size: 0.7rem;
+  color: var(--phuglee-meta-text, #b0a99c);
+}
+
+.uc-gif-draft-clear {
+  flex-shrink: 0;
+}
+
+.uc-gif-tile.is-selected {
+  outline: 2px solid var(--phuglee-gold, #eeb746);
+  outline-offset: 2px;
+}
+
 .uc-gif-picker {
   display: flex;
   flex-direction: column;

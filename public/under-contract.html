@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=19-underline-hug">
   <link rel="stylesheet" href="/css/vault.css?v=29-gates">
-  <link rel="stylesheet" href="/css/under-contract.css?v=130-scroll-gap-fix">
+  <link rel="stylesheet" href="/css/under-contract.css?v=131-gif-draft">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=4"></script>
@@ -482,6 +482,17 @@
                     </div>
                     <div id="uc-gif-status" class="uc-gif-status" hidden></div>
                     <div id="uc-gif-results" class="uc-gif-results" role="listbox" aria-label="GIF results"></div>
+                  </div>
+                  <div id="uc-gif-draft" class="uc-gif-draft" hidden>
+                    <div class="uc-gif-draft-inner">
+                      <img id="uc-gif-draft-img" class="uc-gif-draft-img" src="" alt="Selected GIF preview">
+                      <div class="uc-gif-draft-meta">
+                        <strong class="uc-gif-draft-label">GIF ready</strong>
+                        <span id="uc-gif-draft-title" class="uc-gif-draft-title"></span>
+                        <span class="uc-gif-draft-hint">Remove to pick another · Send when ready</span>
+                      </div>
+                      <button type="button" id="uc-gif-draft-clear" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm uc-gif-draft-clear" aria-label="Remove selected GIF">Remove</button>
+                    </div>
                   </div>
                   <div class="uc-convo-compose uc-team-compose">
                     <button type="button" id="uc-gif-toggle" class="phuglee-btn phuglee-btn-ghost uc-gif-toggle" title="GIF picker" aria-expanded="false" aria-controls="uc-gif-picker">GIF</button>
@@ -1010,6 +1021,6 @@
   <script src="/js/command-palette.js?v=6-retire-map" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=128-uc-kpi" defer></script>
+  <script src="/js/under-contract.js?v=131-gif-draft" defer></script>
 </body>
 </html>
