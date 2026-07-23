@@ -214,7 +214,10 @@ test('proofTotals reports pending signatures and average funded assignment fee',
     { dealId: 'c', stage: 'funded', assignmentFee: null }, // no fee → excluded from average
     { dealId: 'd', stage: 'contract_sent', assignmentFee: 5000 },
     { dealId: 'e', stage: 'contract_sent' },
-    { dealId: 'f', stage: 'under_contract', assignmentFee: 8000 }
+    { dealId: 'f', stage: 'under_contract', assignmentFee: 8000 },
+    { dealId: 'g', stage: 'buyer_signed_aoc', assignmentFee: 4000 },
+    { dealId: 'h', stage: 'buyer_found', assignmentFee: 6000 },
+    { dealId: 'i', stage: 'terminated', assignmentFee: 99000 } // never counts as pending
   ];
   const totals = contracts.proofTotals(deals);
   assert.equal(totals.pendingSignatures, 2);
@@ -222,6 +225,45 @@ test('proofTotals reports pending signatures and average funded assignment fee',
   assert.equal(totals.closedAssignmentFees, 30000);
   assert.equal(totals.fundedFeeCount, 2);
   assert.equal(totals.avgFundedAssignmentFee, 15000);
+  // Open pipeline only (not funded, not terminated)
+  assert.equal(totals.openAssignmentFees, 8000 + 4000 + 6000);
+  // Pending Assignments = every non-terminated dispo fee combined (includes funded)
+  assert.equal(totals.pendingAssignmentFees, 10000 + 20000 + 8000 + 4000 + 6000);
+});
+
+test('proofTotals derives assignment fee from selected/best offer when stored fee missing', () => {
+  const deals = [
+    {
+      dealId: 'o1',
+      stage: 'under_contract',
+      purchasePrice: 100000,
+      selectedBuyerOfferId: 'pick',
+      buyerOffers: [
+        { id: 'low', offerAmount: 110000 },
+        { id: 'pick', offerAmount: 125000 }
+      ]
+    },
+    {
+      dealId: 'o2',
+      stage: 'buyer_found',
+      purchasePrice: 80000,
+      // no selected → highest offer
+      buyerOffers: [
+        { id: 'a', offerAmount: 90000 },
+        { id: 'b', offerAmount: 95000 }
+      ]
+    },
+    {
+      dealId: 'o3',
+      stage: 'terminated',
+      purchasePrice: 50000,
+      buyerOffers: [{ id: 'x', offerAmount: 70000 }]
+    }
+  ];
+  const totals = contracts.proofTotals(deals);
+  // 125k−100k = 25k; 95k−80k = 15k; terminated ignored
+  assert.equal(totals.pendingAssignmentFees, 25000 + 15000);
+  assert.equal(totals.openAssignmentFees, 25000 + 15000);
 });
 
 test('ensureDealContractParcel seeds APN and legal from mock REAPI', async () => {
