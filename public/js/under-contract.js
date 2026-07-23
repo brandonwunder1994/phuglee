@@ -3469,6 +3469,7 @@
     $('uc-sms-input').value = '';
     if ($('uc-photo-sms-input')) $('uc-photo-sms-input').value = '';
     if ($('uc-team-input')) $('uc-team-input').value = '';
+    clearPendingTeamGif();
     syncProfileSmsPulse();
     syncProfileTabSummaries(deal);
     showProfileTab(state.profileTab || 'overview');
@@ -3638,7 +3639,8 @@
     const dealId = state.activeDealId;
     const input = $('uc-team-input');
     const text = (input?.value || '').trim();
-    let gif = opts.gif || null;
+    // Prefer explicit gif, then staged draft, then a lone pasted GIF URL in the box.
+    let gif = opts.gif || pendingTeamGif || null;
     let body = opts.body != null ? String(opts.body) : text;
     if (!gif && body) {
       const asGif = parseStandaloneGifUrl(body);
@@ -3659,6 +3661,7 @@
         body: JSON.stringify(payload)
       });
       if (input && !opts.keepInput) input.value = '';
+      clearPendingTeamGif();
       closeGifPicker();
       if (Array.isArray(data.unreadTeam)) {
         state.unreadTeam = data.unreadTeam;
@@ -3680,8 +3683,10 @@
   }
 
   // ── GIF picker (Discord-style, Giphy rating=r) ──
+  // Click a result → stage draft in compose; Send posts it. Remove to swap.
   let gifSearchTimer = null;
   let gifPickerOpen = false;
+  let pendingTeamGif = null;
 
   function setGifStatus(msg, isError = false) {
     const el = $('uc-gif-status');
@@ -3710,7 +3715,7 @@
     box.innerHTML = items.map((g, i) => {
       const src = esc(g.previewUrl || g.url);
       const title = esc(g.title || 'GIF');
-      return `<div class="uc-gif-tile" role="option" tabindex="0" data-gif-idx="${i}" title="${title}" aria-label="Send GIF: ${title}">
+      return `<div class="uc-gif-tile" role="option" tabindex="0" data-gif-idx="${i}" title="${title}" aria-label="Add GIF to message: ${title}">
         <img class="uc-gif-tile-img" src="${src}" alt="" loading="lazy" decoding="async" draggable="false">
       </div>`;
     }).join('');
@@ -3778,9 +3783,43 @@
     else openGifPicker();
   }
 
-  async function sendGifFromPicker(gif) {
+  function renderPendingTeamGif() {
+    const wrap = $('uc-gif-draft');
+    const img = $('uc-gif-draft-img');
+    const titleEl = $('uc-gif-draft-title');
+    if (!wrap || !img) return;
+    if (!pendingTeamGif || !pendingTeamGif.url) {
+      wrap.hidden = true;
+      img.removeAttribute('src');
+      if (titleEl) titleEl.textContent = '';
+      return;
+    }
+    wrap.hidden = false;
+    img.src = pendingTeamGif.previewUrl || pendingTeamGif.url;
+    img.alt = pendingTeamGif.title ? `Selected GIF: ${pendingTeamGif.title}` : 'Selected GIF preview';
+    if (titleEl) titleEl.textContent = pendingTeamGif.title || 'GIF';
+  }
+
+  function clearPendingTeamGif() {
+    pendingTeamGif = null;
+    renderPendingTeamGif();
+  }
+
+  /** Stage a GIF in the compose draft — does not send until the user hits Send. */
+  function stageGifInCompose(gif) {
     if (!gif || !gif.url) return;
-    await sendTeamMessage({ gif, body: '', keepInput: true });
+    pendingTeamGif = {
+      url: String(gif.url),
+      previewUrl: String(gif.previewUrl || gif.url),
+      title: String(gif.title || '').slice(0, 160),
+      provider: String(gif.provider || 'giphy').slice(0, 32),
+      id: String(gif.id || '').slice(0, 80)
+    };
+    renderPendingTeamGif();
+    closeGifPicker();
+    // Keep optional caption text; focus compose so Enter/Send is obvious.
+    requestAnimationFrame(() => $('uc-team-input')?.focus?.());
+    showToast('GIF added — hit Send when ready');
   }
 
   function openFundedView(deal) {
@@ -6273,6 +6312,11 @@
       ev.preventDefault();
       closeGifPicker();
     });
+    $('uc-gif-draft-clear')?.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      clearPendingTeamGif();
+      showToast('GIF removed');
+    });
     $('uc-gif-search')?.addEventListener('input', () => {
       if (gifSearchTimer) clearTimeout(gifSearchTimer);
       gifSearchTimer = setTimeout(() => {
@@ -6291,8 +6335,10 @@
       const idx = Number(tile.getAttribute('data-gif-idx'));
       const gif = box?._gifItems?.[idx];
       if (!gif) return;
-      tile.classList.add('is-sending');
-      sendGifFromPicker(gif).finally(() => tile.classList.remove('is-sending'));
+      tile.classList.add('is-selected');
+      stageGifInCompose(gif);
+      // Selection flash; draft lives in compose until Send or Remove.
+      requestAnimationFrame(() => tile.classList.remove('is-selected'));
     };
     $('uc-gif-results')?.addEventListener('click', (ev) => {
       const tile = ev.target.closest('.uc-gif-tile');

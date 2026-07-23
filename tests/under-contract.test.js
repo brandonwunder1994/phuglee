@@ -843,6 +843,19 @@ test('team chat GIF attachment + giphy client + admin gif routes', async () => {
   } finally {
     if (prevKey != null) process.env.GIPHY_API_KEY = prevKey;
   }
+
+  // GIF click stages a draft in compose — does not auto-send.
+  const html = fs.readFileSync(path.join(__dirname, '..', 'public', 'under-contract.html'), 'utf8');
+  const js = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'under-contract.js'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '..', 'public', 'css', 'under-contract.css'), 'utf8');
+  assert.match(html, /id="uc-gif-draft"/);
+  assert.match(html, /id="uc-gif-draft-clear"/);
+  assert.match(js, /function stageGifInCompose\s*\(/);
+  assert.match(js, /function clearPendingTeamGif\s*\(/);
+  assert.match(js, /pendingTeamGif/);
+  assert.match(js, /stageGifInCompose\(gif\)/);
+  assert.doesNotMatch(js, /function sendGifFromPicker\s*\(/);
+  assert.match(css, /\.uc-gif-draft/);
 });
 
 test('pre-UC GHL upsert hides Vault lead; pipeline board includes it', async () => {
