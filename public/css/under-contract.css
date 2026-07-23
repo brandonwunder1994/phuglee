@@ -1562,7 +1562,7 @@ img.uc-profile-hero {
   z-index: 1;
 }
 
-/* Minimal profile chrome — close X only (no Edit / AOC / Actions bar) */
+/* Minimal profile chrome — Edit + close X (top right) */
 .uc-drawer.uc-profile .uc-drawer-head.uc-profile-head--minimal,
 .uc-drawer.uc-profile .uc-profile-head--minimal {
   position: absolute;
@@ -1581,6 +1581,41 @@ img.uc-profile-hero {
   background: transparent;
   backdrop-filter: none;
   pointer-events: none;
+}
+
+.uc-drawer.uc-profile .uc-profile-head-actions {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.uc-drawer.uc-profile .uc-profile-edit-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.35rem;
+  margin: 0;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--vault-border, #333) 70%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--vault-surface, #141414) 88%, transparent);
+  color: var(--phuglee-cream, #f5f2e4);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.uc-drawer.uc-profile .uc-profile-edit-btn:hover,
+.uc-drawer.uc-profile .uc-profile-edit-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--phuglee-orange, #e58435) 55%, transparent);
+  color: var(--phuglee-cream, #f5f2e4);
+  outline: none;
 }
 
 .uc-drawer.uc-profile .uc-profile-close-x {
@@ -3115,12 +3150,10 @@ body.uc-drawer-open {
 }
 #uc-profile-primary[hidden],
 #uc-profile-primary.uc-profile-sr-only,
-#uc-drawer-edit.uc-profile-sr-only,
 #uc-drawer-buyer-found.uc-profile-sr-only,
 #uc-drawer-send-jv.uc-profile-sr-only,
 #uc-drawer-amendment.uc-profile-sr-only,
-.uc-drawer.uc-profile .uc-drawer-more,
-.uc-drawer.uc-profile .uc-drawer-head-actions:not(.uc-profile-close-x) {
+.uc-drawer.uc-profile .uc-drawer-more {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
