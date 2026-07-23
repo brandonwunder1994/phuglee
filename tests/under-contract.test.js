@@ -779,6 +779,72 @@ test('team messages + unread list for other user', () => {
   assert.equal(desk, true);
 });
 
+test('team chat GIF attachment + giphy client + admin gif routes', async () => {
+  const deal = contracts.upsertDeal({
+    address: '911 Meme Ave',
+    city: 'Phoenix',
+    state: 'AZ',
+    stage: 'under_contract',
+    assignmentFee: 10000,
+    photoCost: 0
+  });
+  const gifUrl = 'https://media.giphy.com/media/xT4uQulxzV39haRFjG/giphy.gif';
+  const { message } = contracts.addTeamMessage(deal.dealId, {
+    fromUser: 'admin',
+    body: '',
+    gif: { url: gifUrl, title: 'test meme', provider: 'giphy', id: 'xT4uQulxzV39haRFjG' }
+  });
+  assert.ok(message.gif);
+  assert.equal(message.gif.url, gifUrl);
+  assert.ok(message.body === 'test meme' || message.body === 'GIF');
+
+  const blocked = contracts.normalizeGifAttachment({
+    url: 'https://evil.example/hack.gif'
+  });
+  assert.equal(blocked, null);
+
+  const giphy = require('../lib/leads-platform/giphy-client');
+  assert.equal(typeof giphy.searchGifs, 'function');
+  assert.equal(typeof giphy.isConfigured, 'function');
+
+  const statusUrl = new URL('http://127.0.0.1/api/leads/admin/gifs/status');
+  const statusRes = mockRes();
+  const handledStatus = await api.handle(
+    adminReq('/api/leads/admin/gifs/status'),
+    statusRes,
+    '/api/leads/admin/gifs/status',
+    statusUrl
+  );
+  assert.equal(handledStatus, true);
+  assert.equal(statusRes.statusCode, 200);
+  const statusBody = JSON.parse(statusRes.body);
+  assert.equal(statusBody.ok, true);
+  assert.equal(statusBody.provider, 'giphy');
+  assert.equal(typeof statusBody.configured, 'boolean');
+
+  // Without a key, search returns 503 GIPHY_NOT_CONFIGURED (not a silent 404).
+  const prevKey = process.env.GIPHY_API_KEY;
+  delete process.env.GIPHY_API_KEY;
+  delete process.env.GIPHY_KEY;
+  try {
+    const searchPath = '/api/leads/admin/gifs/search?q=test&limit=2';
+    const searchUrl = new URL(`http://127.0.0.1${searchPath}`);
+    const searchRes = mockRes();
+    const handledSearch = await api.handle(
+      adminReq(searchPath),
+      searchRes,
+      '/api/leads/admin/gifs/search',
+      searchUrl
+    );
+    assert.equal(handledSearch, true);
+    assert.equal(searchRes.statusCode, 503);
+    const searchBody = JSON.parse(searchRes.body);
+    assert.equal(searchBody.code, 'GIPHY_NOT_CONFIGURED');
+  } finally {
+    if (prevKey != null) process.env.GIPHY_API_KEY = prevKey;
+  }
+});
+
 test('pre-UC GHL upsert hides Vault lead; pipeline board includes it', async () => {
   const lead = store.upsertLead({
     address: '77 Pipeline Rd',
