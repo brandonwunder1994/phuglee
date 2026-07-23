@@ -2931,7 +2931,7 @@
     return d;
   }
 
-  /** Plain phone/email rows with Copy + Edit for the dispo desk. */
+  /** Plain phone/email rows with Copy (edit via profile Edit dialog). */
   function overviewSellerContactHtml(deal, contact) {
     const { phone, email } = overviewSellerContact(deal, contact);
     const phoneDisplay = formatSellerPhoneDisplay(phone);
@@ -2961,25 +2961,21 @@
           `</span>` +
           emailCopy +
         `</div>` +
-        `<div class="uc-snap-contact-actions">` +
-          `<button type="button" class="uc-snap-edit-contact phuglee-btn phuglee-btn-ghost phuglee-btn-sm" id="uc-seller-contact-edit">Edit contact</button>` +
-        `</div>` +
-        `<div class="uc-snap-contact-form" id="uc-seller-contact-form" hidden>` +
-          `<label class="uc-snap-contact-field">` +
-            `<span class="vault-field-label">Phone</span>` +
-            `<input type="tel" id="uc-seller-phone-input" class="phuglee-input" value="${esc(phoneDisplay || phone)}" autocomplete="tel" placeholder="(806) 831-9386">` +
-          `</label>` +
-          `<label class="uc-snap-contact-field">` +
-            `<span class="vault-field-label">Email</span>` +
-            `<input type="email" id="uc-seller-email-input" class="phuglee-input" value="${esc(email)}" autocomplete="email" placeholder="seller@email.com">` +
-          `</label>` +
-          `<div class="uc-snap-contact-form-actions">` +
-            `<button type="button" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm" id="uc-seller-contact-save">Save</button>` +
-            `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" id="uc-seller-contact-cancel">Cancel</button>` +
-          `</div>` +
-        `</div>` +
       `</div>`
     );
+  }
+
+  /** Normalize desk phone input to (XXX) XXX-XXXX when digits are US 10/11. */
+  function normalizeSellerPhoneInput(raw) {
+    const phoneRaw = String(raw || '').trim();
+    const phoneDigits = phoneRaw.replace(/\D/g, '');
+    if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
+      return formatSellerPhoneDisplay(phoneDigits);
+    }
+    if (phoneDigits.length === 10) {
+      return formatSellerPhoneDisplay(phoneDigits);
+    }
+    return phoneRaw;
   }
 
   async function copySellerContactText(text, label) {
@@ -2993,58 +2989,6 @@
       showToast(`${label || 'Copied'} copied`);
     } catch (_) {
       showToast(value);
-    }
-  }
-
-  function setSellerContactFormOpen(open) {
-    const form = $('uc-seller-contact-form');
-    const editBtn = $('uc-seller-contact-edit');
-    if (form) form.hidden = !open;
-    if (editBtn) editBtn.hidden = !!open;
-  }
-
-  async function saveSellerContactFromOverview() {
-    const dealId = state.activeDealId;
-    if (!dealId) {
-      showToast('Open a property first');
-      return;
-    }
-    const phoneRaw = ($('uc-seller-phone-input')?.value || '').trim();
-    const emailRaw = ($('uc-seller-email-input')?.value || '').trim().toLowerCase();
-    const phoneDigits = phoneRaw.replace(/\D/g, '');
-    let phone = phoneRaw;
-    if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
-      phone = formatSellerPhoneDisplay(phoneDigits);
-    } else if (phoneDigits.length === 10) {
-      phone = formatSellerPhoneDisplay(phoneDigits);
-    }
-    const btn = $('uc-seller-contact-save');
-    if (btn) btn.disabled = true;
-    try {
-      const data = await saveDealFields(dealId, {
-        phone: phone || '',
-        email: emailRaw || '',
-        ownerEmail: emailRaw || ''
-      });
-      if (data.deal) {
-        mergeDealIntoState(data.deal);
-        state.profile = { ...(state.profile || {}), ...data.deal };
-      }
-      // Keep live contact summary in sync for display
-      if (state.contact) {
-        state.contact = {
-          ...state.contact,
-          phone: phone || state.contact.phone || '',
-          email: emailRaw || state.contact.email || ''
-        };
-      }
-      renderOverviewSnapshot(state.profile, state.contact);
-      setSellerContactFormOpen(false);
-      showToast('Seller contact saved');
-    } catch (err) {
-      showToast(err.message || 'Could not save contact');
-    } finally {
-      if (btn) btn.disabled = false;
     }
   }
 
@@ -3334,19 +3278,6 @@
               ? 'Email'
               : 'Value';
           copySellerContactText(text, label).catch(() => {});
-          return;
-        }
-        if (ev.target.closest('#uc-seller-contact-edit')) {
-          setSellerContactFormOpen(true);
-          requestAnimationFrame(() => $('uc-seller-phone-input')?.focus());
-          return;
-        }
-        if (ev.target.closest('#uc-seller-contact-cancel')) {
-          setSellerContactFormOpen(false);
-          return;
-        }
-        if (ev.target.closest('#uc-seller-contact-save')) {
-          saveSellerContactFromOverview().catch((e) => showToast(e.message || 'Save failed'));
         }
       });
     }
@@ -6179,6 +6110,11 @@
     $('uc-edit-purchase').value = deal.purchasePrice ?? '';
     $('uc-edit-fee').value = deal.assignmentFee ?? '';
     $('uc-edit-buyer').value = deal.cashBuyerName || '';
+    // Seller contact: same source as Overview Parties card (GHL contact then deal)
+    const contactInfo = overviewSellerContact(deal, state.contact);
+    const phoneDisplay = formatSellerPhoneDisplay(contactInfo.phone) || contactInfo.phone || '';
+    if ($('uc-edit-phone')) $('uc-edit-phone').value = phoneDisplay;
+    if ($('uc-edit-email')) $('uc-edit-email').value = contactInfo.email || '';
     $('uc-edit-closing').value = deal.closingDate || '';
     $('uc-edit-access').value = deal.accessType || '';
     $('uc-edit-access-detail').value = deal.accessDetail || '';
@@ -6207,12 +6143,17 @@
       showToast('No deal selected — close and open Edit again');
       return;
     }
+    const sellerPhone = normalizeSellerPhoneInput($('uc-edit-phone')?.value || '');
+    const sellerEmail = ($('uc-edit-email')?.value || '').trim().toLowerCase();
     const body = {
       stage: $('uc-edit-stage').value,
       dealType: $('uc-edit-deal-type')?.value || '',
       purchasePrice: $('uc-edit-purchase').value === '' ? null : Number($('uc-edit-purchase').value),
       assignmentFee: $('uc-edit-fee').value === '' ? null : Number($('uc-edit-fee').value),
       cashBuyerName: $('uc-edit-buyer').value.trim(),
+      phone: sellerPhone,
+      email: sellerEmail,
+      ownerEmail: sellerEmail,
       closingDate: $('uc-edit-closing').value.trim(),
       accessType: $('uc-edit-access').value,
       accessDetail: $('uc-edit-access-detail').value.trim(),

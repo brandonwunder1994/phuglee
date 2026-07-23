@@ -7200,7 +7200,7 @@ body.uc-drawer-open {
   margin-top: 0.15rem;
 }
 
-/* Seller phone / email under name — dispo desk scan + copy + edit */
+/* Seller phone / email under name — dispo desk scan + copy (edit via Edit dialog) */
 .uc-snap-contact-block {
   display: flex;
   flex-direction: column;
@@ -7259,39 +7259,6 @@ body.uc-drawer-open {
 
 .uc-snap-copy:active {
   transform: translateY(0.5px);
-}
-
-.uc-snap-contact-actions {
-  margin-top: 0.25rem;
-}
-
-.uc-snap-contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 0.45rem;
-  padding: 0.65rem 0.7rem;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--vault-border, #333) 80%, transparent);
-  background: color-mix(in srgb, var(--vault-surface, #1a1a1a) 70%, transparent);
-}
-
-.uc-snap-contact-form[hidden] {
-  display: none !important;
-}
-
-.uc-snap-contact-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 0;
-}
-
-.uc-snap-contact-form-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.15rem;
 }
 
 /* Marketing chip — same scale as cash / subto badges, sits in hero badge row */
