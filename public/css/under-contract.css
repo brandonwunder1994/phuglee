@@ -625,6 +625,33 @@
   margin-bottom: 0.5rem;
 }
 
+/* In-dialog status — native <dialog> top-layer hides page-level toasts */
+.uc-form-status,
+.uc-dialog-toast {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(232, 160, 160, 0.45);
+  background: rgba(120, 40, 40, 0.35);
+  color: #f3c4c4;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.uc-form-status[data-kind="info"],
+.uc-dialog-toast[data-kind="info"] {
+  border-color: rgba(174, 163, 143, 0.4);
+  background: rgba(40, 40, 36, 0.9);
+  color: var(--phuglee-cream, #f2efe8);
+}
+
+.uc-form-status[data-kind="ok"],
+.uc-dialog-toast[data-kind="ok"] {
+  border-color: rgba(120, 180, 130, 0.45);
+  background: rgba(30, 70, 40, 0.4);
+  color: #c8e6c9;
+}
+
 .uc-empty {
   padding: 2rem 1rem;
   text-align: center;

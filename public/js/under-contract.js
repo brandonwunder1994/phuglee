@@ -129,13 +129,52 @@
   }
 
   function showToast(msg, ms = 3200) {
+    const hold = Math.max(3200, Number(ms) || 3200, String(msg || '').length > 80 ? 7000 : 3200);
+    // Modal <dialog> uses the browser top layer — page toasts (even high z-index)
+    // paint underneath. Mirror the message into the open dialog so sends/errors
+    // are never silent while a form is open.
+    const openDialog = document.querySelector('dialog.uc-dialog[open], dialog[open].uc-dialog');
+    if (openDialog) {
+      const dedicated = openDialog.querySelector('#uc-amendment-status, #uc-psa-error, [data-uc-dialog-status]');
+      let banner = dedicated || openDialog.querySelector('[data-uc-dialog-toast]');
+      if (!banner) {
+        banner = document.createElement('p');
+        banner.dataset.ucDialogToast = '1';
+        banner.className = 'uc-dialog-toast';
+        banner.setAttribute('role', 'status');
+        const form = openDialog.querySelector('form.uc-edit-form') || openDialog.querySelector('form') || openDialog;
+        const actions = form.querySelector('.uc-edit-actions');
+        if (actions) form.insertBefore(banner, actions);
+        else form.appendChild(banner);
+      }
+      banner.textContent = msg;
+      banner.hidden = false;
+      if (banner.dataset) banner.dataset.kind = /fail|error|missing|required|limit/i.test(String(msg || ''))
+        ? 'error'
+        : 'info';
+      clearTimeout(showToast._dlgT);
+      showToast._dlgT = setTimeout(() => { banner.hidden = true; }, hold);
+    }
     const el = $('uc-toast');
     if (!el) return;
     el.textContent = msg;
     el.hidden = false;
     clearTimeout(showToast._t);
-    const hold = Math.max(3200, Number(ms) || 3200, String(msg || '').length > 80 ? 7000 : 3200);
     showToast._t = setTimeout(() => { el.hidden = true; }, hold);
+  }
+
+  function setAmendmentStatus(msg, kind = 'error') {
+    const el = $('uc-amendment-status');
+    if (!el) return;
+    if (!msg) {
+      el.hidden = true;
+      el.textContent = '';
+      el.removeAttribute('data-kind');
+      return;
+    }
+    el.hidden = false;
+    el.textContent = msg;
+    el.dataset.kind = kind;
   }
 
   function money(n) {
@@ -4911,11 +4950,15 @@
     const sel = $('uc-doc-kind');
     if (sel) sel.value = kind === 'purchase_contract' ? 'psa' : kind;
     if (kind === 'amendment') {
-      if (state.profile) openAmendment(state.profile);
+      const deal = state.profile || state.deals.find((d) => d.dealId === dealId);
+      if (deal) openAmendment(deal);
+      else showToast('Open a property first, then send the Amendment', 7000);
       return;
     }
     if (kind === 'aoc') {
-      if (state.profile) openAocAction(state.profile);
+      const deal = state.profile || state.deals.find((d) => d.dealId === dealId);
+      if (deal) openAocAction(deal);
+      else showToast('Open a property first, then send the AOC', 7000);
       return;
     }
     if (kind === 'jv') {
@@ -5535,6 +5578,7 @@
     $('uc-amendment-title').textContent = full.address ? `Amendment — ${full.address}` : 'Send Amendment';
     $('uc-amendment-terms').value = '';
     if ($('uc-amendment-party')) $('uc-amendment-party').value = 'seller';
+    setAmendmentStatus('');
     const submitBtn = $('uc-amendment-submit');
     if (submitBtn) {
       submitBtn.disabled = false;
@@ -5596,16 +5640,20 @@
     const partyType = $('uc-amendment-party')?.value || 'seller';
     const terms = $('uc-amendment-terms').value.trim();
     const origDate = ($('uc-amendment-orig-date')?.value || '').trim();
+    setAmendmentStatus('');
     if (!id) {
+      setAmendmentStatus('Deal missing — close and open Amendment again');
       showToast('Deal missing — close and open Amendment again', 7000);
       return;
     }
     if (!terms) {
+      setAmendmentStatus('Enter amendment terms first');
       showToast('Enter amendment terms first', 7000);
       $('uc-amendment-terms')?.focus();
       return;
     }
     if (!origDate) {
+      setAmendmentStatus('Original PSA signed date is missing — open the deal or attach the signed PSA first');
       showToast('Original PSA signed date is missing — Sync from GHL or set it on the deal first', 9000);
       return;
     }
@@ -5616,6 +5664,7 @@
       const name = ($('uc-amendment-buyer-name')?.value || '').trim();
       const email = ($('uc-amendment-buyer-email')?.value || '').trim();
       if (!name || !email) {
+        setAmendmentStatus('End buyer name and email are required');
         showToast('End buyer name and email are required', 7000);
         return;
       }
@@ -5625,6 +5674,7 @@
       const s1Name = ($('uc-amendment-s1-name')?.value || '').trim();
       const s1Email = ($('uc-amendment-s1-email')?.value || '').trim();
       if (!s1Name || !s1Email) {
+        setAmendmentStatus('Seller 1 name and email are required');
         showToast('Seller 1 name and email are required', 7000);
         return;
       }
@@ -5633,6 +5683,7 @@
         const s2Name = ($('uc-amendment-s2-name')?.value || '').trim();
         const s2Email = ($('uc-amendment-s2-email')?.value || '').trim();
         if (!s2Name || !s2Email) {
+          setAmendmentStatus('Seller 2 name and email are required');
           showToast('Seller 2 name and email are required', 7000);
           return;
         }
@@ -5647,6 +5698,7 @@
       btn.disabled = true;
       btn.textContent = 'Sending…';
     }
+    setAmendmentStatus('Sending amendment via SignNow…', 'info');
     showToast('Sending amendment via SignNow…', 12000);
 
     const body = {
@@ -5664,6 +5716,7 @@
         method: 'POST',
         body: JSON.stringify(body)
       });
+      setAmendmentStatus(data.amendment?.message || 'Amendment sent via SignNow', 'ok');
       $('uc-amendment-dialog').close();
       showToast(data.amendment?.message || 'Amendment sent via SignNow');
       await loadDeals();
@@ -5671,7 +5724,12 @@
         renderProfile(data.deal, state.contact);
       }
     } catch (err) {
-      showToast(err.message || 'Send Amendment failed', 9000);
+      const raw = String(err.message || 'Send Amendment failed');
+      const friendly = /429|rate limit/i.test(raw)
+        ? 'SignNow rate limit hit (500 API calls/hour). Wait until the next hour, then click Send Amendment again — the form stays ready.'
+        : raw;
+      setAmendmentStatus(friendly, 'error');
+      showToast(friendly, 12000);
       if (btn) {
         btn.disabled = false;
         btn.textContent = prevLabel;
