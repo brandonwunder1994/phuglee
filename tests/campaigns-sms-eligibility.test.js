@@ -16,7 +16,7 @@ test('classTagForLeadType maps lead types', () => {
 
 test('suppress: not interested blocks', () => {
   const r = evaluateContactEligibility({
-    tags: ['code violation', 'not interested'],
+    tags: ['phuglee', 'code violation', 'not interested'],
     dndSms: false,
     hasOpenDts: false,
     smsCount: 0,
@@ -30,7 +30,7 @@ test('suppress: not interested blocks', () => {
 
 test('open DTS blocks', () => {
   const r = evaluateContactEligibility({
-    tags: ['code violation'],
+    tags: ['phuglee', 'code violation'],
     dndSms: false,
     hasOpenDts: true,
     smsCount: 2,
@@ -46,7 +46,7 @@ test('cooldown 4 days', () => {
   const now = Date.parse('2026-07-23T12:00:00Z');
   const recent = new Date(now - 2 * 86400000).toISOString();
   const r = evaluateContactEligibility({
-    tags: ['code violation'],
+    tags: ['phuglee', 'code violation'],
     dndSms: false,
     hasOpenDts: false,
     smsCount: 1,
@@ -60,7 +60,7 @@ test('cooldown 4 days', () => {
 
 test('max 12 blocks', () => {
   const r = evaluateContactEligibility({
-    tags: ['code violation'],
+    tags: ['phuglee', 'code violation'],
     dndSms: false,
     hasOpenDts: false,
     smsCount: SMS_MAX_TOUCHES,

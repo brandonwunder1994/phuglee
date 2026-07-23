@@ -48,9 +48,10 @@
     if (!ul) return;
     const p = data.policy || {};
     const items = [
+      `KPI scope: ${p.kpiScope || 'contacts tagged phuglee only'}`,
+      `Phuglee tag: ${p.phugleeTag || 'phuglee'} · source: ${p.sourceTag || 'code violation'}`,
       `Spacing: ${p.spacingDays || 4} days between cold texts`,
       `Hard stop: ${p.maxTouches || 12} texts or reply`,
-      `Source tag: ${p.sourceTag || 'code violation'}`,
       `Live env: ${data.live ? 'ON' : 'OFF'} · Auto env: ${data.autoEnv ? 'ON' : 'OFF'}`,
       `Auto state: ${data.autoState && data.autoState.enabled ? 'enabled' : 'paused'}`,
       'Exclusions: ' + (p.exclusions || []).join(', ')

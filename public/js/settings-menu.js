@@ -113,6 +113,9 @@
       '<div class="shell-settings-section" data-admin-only>' +
         '<div class="shell-settings-section-label">Admin</div>' +
         analyzerItems +
+        '<a href="/campaigns/sms" class="shell-settings-item" role="menuitem">' +
+          '<span class="shell-settings-item-icon">✉</span> Campaigns · SMS' +
+        '</a>' +
         '<a href="/operating-costs" class="shell-settings-item" role="menuitem">' +
           '<span class="shell-settings-item-icon">$</span> Operating Costs' +
         '</a>' +
