@@ -14,8 +14,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/shell-bundle.css?v=15-polish">
-  <link rel="stylesheet" href="/css/vault.css?v=28-typeset">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=19-underline-hug">
+  <link rel="stylesheet" href="/css/vault.css?v=30-no-pulls">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js"></script>
@@ -30,21 +30,22 @@
   <main id="main" class="vault-main vault-main--app">
     <section id="vault-gate" class="vault-gate" hidden aria-labelledby="vault-gate-title">
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">Houses · Max plan</p>
-        <h1 id="vault-gate-title" class="vault-title">Upgrade to unlock curated house leads</h1>
+        <p class="vault-gate-badge">Houses · Max plan</p>
+        <h1 id="vault-gate-title" class="vault-title">Curated house leads</h1>
         <p class="vault-lead vault-lead--honest">
-          <strong>Max plan only.</strong> Houses is our done-for-you house leads database — pre-scrubbed, scored, and ready to dial.
-          Land lots live under <a href="/land-vault">Leads → Land</a>. Pro includes the full DIY toolkit; Max adds curated inventory from our pipeline.
+          <strong>Max plan only.</strong> Pre-scrubbed house inventory — scored and dial-ready from our pipeline.
+          Pro keeps the full DIY toolkit; Max adds done-for-you leads.
         </p>
         <ul class="vault-perks">
           <li>Distressed and code-violation house leads</li>
-          <li>Stack motivation signals to surface top priorities</li>
+          <li>Stack motivation signals for top dials</li>
           <li>Owner contact and property context when available</li>
-          <li>Export selections for your dialer or CRM</li>
+          <li>Export selections for dialer or CRM</li>
         </ul>
         <div class="vault-cta-row">
           <a href="mailto:team@distressos.com?subject=Distress%20OS%20Max%20Plan" class="phuglee-btn phuglee-btn-primary vault-upgrade-btn">Upgrade to Max — $297/mo</a>
-          <p class="vault-price-note">Full DIY toolkit on Pro · Done-for-you leads on Max</p>
+          <p class="vault-price-note">Pro = DIY toolkit · Max = curated inventory</p>
+          <a class="vault-switch-link" href="/land-vault">Looking for lots? Open Land</a>
         </div>
       </div>
     </section>
@@ -52,9 +53,8 @@
     <div id="vault-app" class="vault-app" hidden>
       <header id="vault-hero" class="vault-hero">
         <div class="vault-hero-copy">
-          <p class="vault-eyebrow">Houses</p>
-          <h1 class="vault-title vault-title--desk">Curated house leads</h1>
-          <p class="vault-hero-sub">40%+ equity · independently owned · $500K max value · SFH &amp; multi-unit</p>
+          <h1 class="vault-title vault-title--desk">Houses</h1>
+          <p class="vault-hero-sub">40%+ equity · independently owned · $500K max · SFH &amp; multi-unit</p>
         </div>
         <div id="vault-kpis" class="vault-kpis" aria-label="Catalog snapshot">
           <div class="vault-kpi"><span class="vault-kpi-val" data-kpi="total">—</span><span class="vault-kpi-label">Inventory</span></div>
@@ -172,21 +172,6 @@
             </label>
           </details>
 
-          <div class="vault-field">
-            <span class="vault-field-label">Saved pulls</span>
-            <p class="vault-field-hint">Save your filter stack · reload anytime · export the pack</p>
-            <div class="vault-preset-row">
-              <select id="vault-presets" class="phuglee-select"><option value="">Load pull…</option></select>
-            </div>
-            <div class="vault-preset-save-row">
-              <input type="text" id="vault-preset-name" class="phuglee-input" placeholder="e.g. TX distressed phone" maxlength="48" autocomplete="off">
-              <button type="button" id="vault-save-preset" class="phuglee-btn phuglee-btn-ghost">Save</button>
-            </div>
-            <div class="vault-preset-actions">
-              <button type="button" id="vault-export-pull" class="phuglee-btn phuglee-btn-secondary" disabled>Export pull</button>
-              <button type="button" id="vault-delete-preset" class="phuglee-btn phuglee-btn-ghost" disabled>Delete</button>
-            </div>
-          </div>
           <button type="button" id="vault-clear-filters" class="phuglee-btn phuglee-btn-ghost vault-clear-btn">Clear filters</button>
         </aside>
 
@@ -285,11 +270,12 @@
   <div id="distress-os-footer-mount"></div>
   <script src="/js/phuglee-motion.js?v=2-route" defer></script>
   <script src="/js/phuglee-states.js?v=2-route" defer></script>
-  <script src="/js/settings-menu.js?v=5" defer></script>
+  <script src="/js/settings-menu.js?v=7-retire-map" defer></script>
   <script src="/js/command-palette.js" defer></script>
   <script src="/js/distress-status.js" defer></script>
-  <script src="/js/shell-nav.js?v=36-clarify-ia" defer></script>
+  <script src="/js/shell-nav.js?v=42-no-footer" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/vault-app.js?v=27" defer></script>
+  <script src="/js/vault-app.js?v=28-no-pulls" defer></script>
 </body>
 </html>
+ml>

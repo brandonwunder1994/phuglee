@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phuglee — Under Contract</title>
+  <title>Phuglee â€” Under Contract</title>
   <meta name="description" content="Track under-contract deals, assignment fees, and closes.">
   <script src="/js/theme.js?v=distress2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/shell-bundle.css?v=15-polish">
-  <link rel="stylesheet" href="/css/vault.css?v=28-typeset">
-  <link rel="stylesheet" href="/css/under-contract.css?v=58-modal-fix">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=19-underline-hug">
+  <link rel="stylesheet" href="/css/vault.css?v=29-gates">
+  <link rel="stylesheet" href="/css/under-contract.css?v=130-scroll-gap-fix">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=4"></script>
@@ -25,8 +25,8 @@
   <main id="main" class="vault-main vault-main--app uc-main">
     <section id="uc-gate" class="vault-gate" hidden>
       <div class="vault-gate-inner">
-        <p class="vault-eyebrow">Contract desk</p>
-        <h1 class="vault-title">Under Contract</h1>
+        <p class="vault-gate-badge">Contract desk</p>
+        <p class="vault-title" role="heading" aria-level="1">Under Contract</p>
         <p class="vault-lead">Sign in as admin or disposition partner to track contracts and assignment fees.</p>
         <a href="/" class="phuglee-btn phuglee-btn-primary">Back home</a>
       </div>
@@ -41,18 +41,37 @@
       <header class="uc-hero">
         <div>
           <h1 class="vault-title vault-title--desk">Under Contract</h1>
-          <p class="vault-hero-sub">Deal board · contracts · assignment fees</p>
         </div>
         <div class="uc-hero-actions">
-          <button type="button" id="uc-sync-ghl" class="phuglee-btn phuglee-btn-primary" data-admin-only>Sync from GHL</button>
-          <a href="/vault" class="phuglee-btn phuglee-btn-ghost" data-admin-only>Open Houses</a>
-          <a href="/buyers" class="phuglee-btn phuglee-btn-ghost" id="uc-buyers-link">Buyers</a>
+          <button type="button" id="uc-send-new-psa" class="phuglee-btn phuglee-btn-primary">Send New PSA</button>
         </div>
       </header>
 
-      <p id="uc-ghl-status" class="uc-ghl-status" hidden data-admin-only></p>
-
       <section class="uc-glance" aria-label="Status overview">
+        <div class="uc-goal uc-goal--money" id="uc-money-goal">
+          <div class="uc-goal-line">
+            <span class="uc-goal-kicker">$100k goal</span>
+            <span class="uc-goal-fraction uc-goal-fraction--money">
+              <strong id="uc-money-current">$0</strong>
+              <span class="uc-goal-of">of</span>
+              <span id="uc-money-target">$100k</span>
+            </span>
+            <span class="uc-goal-remaining-money" id="uc-money-remaining">$100,000 to go</span>
+            <span class="uc-goal-pct" id="uc-money-pct">0% to goal</span>
+          </div>
+          <div
+            class="uc-goal-bar uc-goal-bar--money"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            aria-label="Progress toward $100,000 total funded"
+            id="uc-money-bar"
+          >
+            <div class="uc-goal-bar-fill uc-goal-bar-fill--money" id="uc-money-bar-fill"></div>
+          </div>
+        </div>
+
         <div class="uc-goal" id="uc-goal">
           <div class="uc-goal-line">
             <span class="uc-goal-kicker">60-day goal</span>
@@ -90,7 +109,6 @@
         <div class="uc-board-head">
           <h2 id="uc-board-title" class="uc-board-title">Deals</h2>
           <div class="uc-board-tools">
-            <button type="button" id="uc-send-new-psa" class="phuglee-btn phuglee-btn-primary">Send New PSA</button>
             <div class="uc-view-toggle" role="group" aria-label="Board view">
               <button type="button" id="uc-view-table" class="uc-view-btn is-active" data-view="table" aria-current="true">Table</button>
               <a href="/pipeline" id="uc-view-kanban" class="uc-view-btn" data-view="kanban">Kanban</a>
@@ -99,7 +117,7 @@
           </div>
         </div>
         <div id="uc-empty" class="uc-empty" hidden>
-          <p>No deals yet. Sync from GHL or send a new PSA from a Houses lead.</p>
+          <p>No deals yet. Send a new PSA to get started.</p>
         </div>
         <div class="uc-table-wrap" id="uc-table-wrap">
           <table class="uc-table" id="uc-table" hidden>
@@ -109,16 +127,11 @@
                 <th>Stage</th>
                 <th>Purchase Price</th>
                 <th>Closing Date</th>
-                <th>Title Opened?</th>
-                <th>EMD Submitted?</th>
                 <th>Access</th>
                 <th>Vacancy</th>
                 <th>Photos?</th>
-                <th>Rehab Info?</th>
                 <th>Buyer?</th>
                 <th>Buyer EMD?</th>
-                <th>Funded</th>
-                <th></th>
               </tr>
             </thead>
             <tbody id="uc-tbody"></tbody>
@@ -150,6 +163,29 @@
           <div id="uc-waiting-cards" class="uc-cards" hidden aria-label="Waiting for signature deals"></div>
         </div>
       </section>
+
+      <section class="uc-board uc-board--funded" id="uc-funded-section" aria-labelledby="uc-funded-section-title" hidden>
+        <div class="uc-board-head">
+          <h2 id="uc-funded-section-title" class="uc-board-title">Funded</h2>
+          <p id="uc-funded-section-count" class="uc-board-count"></p>
+        </div>
+        <p class="uc-funded-lead">Closed deals — property, stage, close date, end buyer, and assignment spread.</p>
+        <div class="uc-table-wrap" id="uc-funded-table-wrap">
+          <table class="uc-table uc-table--funded" id="uc-funded-table" hidden>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Stage</th>
+                <th>Closing Date</th>
+                <th>End Buyer</th>
+                <th>Assignment</th>
+              </tr>
+            </thead>
+            <tbody id="uc-funded-tbody"></tbody>
+          </table>
+          <div id="uc-funded-cards" class="uc-cards" hidden aria-label="Funded deals"></div>
+        </div>
+      </section>
     </div>
   </main>
 
@@ -161,6 +197,7 @@
         <span class="vault-field-label">Stage</span>
         <select id="uc-edit-stage" class="phuglee-select">
           <option value="under_contract">Under contract</option>
+          <option value="buyer_signed_aoc">Buyer Signed AOC</option>
           <option value="buyer_found">Buyer Submitted EMD</option>
           <option value="funded">Funded / paid</option>
           <option value="terminated">Terminated</option>
@@ -169,7 +206,7 @@
       <label class="vault-field">
         <span class="vault-field-label">Deal type</span>
         <select id="uc-edit-deal-type" class="phuglee-select">
-          <option value="">— unset —</option>
+          <option value="">â€” unset â€”</option>
           <option value="cash">Cash deal</option>
           <option value="subject_to">Subject-to deal</option>
         </select>
@@ -261,261 +298,303 @@
     </form>
   </dialog>
 
-  <div id="uc-drawer-backdrop" class="uc-drawer-backdrop" hidden></div>
-  <aside id="uc-drawer" class="uc-drawer" hidden aria-label="Contract profile">
-    <div class="uc-drawer-head">
-      <h2 id="uc-drawer-title">Contract profile</h2>
-      <div class="uc-drawer-head-actions">
-        <button type="button" id="uc-drawer-edit" class="phuglee-btn phuglee-btn-primary">Edit</button>
-        <details class="uc-drawer-more">
-          <summary class="phuglee-btn phuglee-btn-secondary uc-drawer-more-summary">Actions</summary>
-          <div class="uc-drawer-more-menu" role="group" aria-label="Deal actions">
-            <button type="button" id="uc-drawer-buyer-found" class="phuglee-btn phuglee-btn-secondary">Send AOC</button>
-            <button type="button" id="uc-drawer-send-jv" class="phuglee-btn phuglee-btn-secondary">Complete JV</button>
-            <button type="button" id="uc-drawer-amendment" class="phuglee-btn phuglee-btn-secondary">Amendment</button>
+  <div id="uc-drawer-backdrop" class="uc-drawer-backdrop uc-profile-backdrop" hidden></div>
+  <div
+    id="uc-drawer"
+    class="uc-drawer uc-profile"
+    hidden
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="uc-drawer-title"
+  >
+    <!-- Close-only chrome. Send Doc / Send AOC / JV / Amendment live on Documents + existing dialogs. -->
+    <div class="uc-drawer-head uc-profile-head uc-profile-head--minimal">
+      <h2 id="uc-drawer-title" class="uc-profile-sr-only">Contract profile</h2>
+      <span id="uc-profile-stage-chip" class="uc-stage" hidden></span>
+      <!-- Hidden hooks for JS that still references these IDs (never shown) -->
+      <button type="button" id="uc-drawer-edit" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Edit</button>
+      <button type="button" id="uc-profile-primary" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true" data-primary-action="edit">Edit</button>
+      <button type="button" id="uc-drawer-buyer-found" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Send AOC</button>
+      <button type="button" id="uc-drawer-send-jv" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Complete JV</button>
+      <button type="button" id="uc-drawer-amendment" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Amendment</button>
+      <button type="button" id="uc-drawer-close" class="uc-profile-close-x" aria-label="Close profile">&times;</button>
+    </div>
+    <div class="uc-drawer-body uc-profile-body">
+      <!-- Tabs are the stable chrome: always first in the body so they never hop. -->
+      <nav class="uc-profile-tabs" role="tablist" aria-label="Deal sections">
+        <button type="button" role="tab" id="uc-tab-overview" aria-controls="uc-panel-overview" data-tab="overview" aria-selected="true" tabindex="0">Overview</button>
+        <button type="button" role="tab" id="uc-tab-comms" aria-controls="uc-panel-comms" data-tab="comms" aria-selected="false" tabindex="-1">Comms</button>
+        <button type="button" role="tab" id="uc-tab-docs" aria-controls="uc-panel-docs" data-tab="docs" aria-selected="false" tabindex="-1">Documents</button>
+        <button type="button" role="tab" id="uc-tab-media" aria-controls="uc-panel-media" data-tab="media" aria-selected="false" tabindex="-1">Pics + Rehab Info</button>
+        <button type="button" role="tab" id="uc-tab-walkthroughs" aria-controls="uc-panel-walkthroughs" data-tab="walkthroughs" aria-selected="false" tabindex="-1">Walkthroughs</button>
+        <button type="button" role="tab" id="uc-tab-buyers" aria-controls="uc-panel-buyers" data-tab="buyers" aria-selected="false" tabindex="-1">Offers</button>
+      </nav>
+
+      <div id="uc-panel-overview" class="uc-profile-tabpanel is-active" role="tabpanel" data-tab="overview" aria-labelledby="uc-tab-overview">
+        <!-- Hero lives only on Overview so other tabs don't shift the menu bar. -->
+        <div id="uc-drawer-hero" class="uc-drawer-hero uc-profile-hero-band"></div>
+        <div id="uc-walkthrough-alert" class="uc-walkthrough-alert" hidden role="status"></div>
+        <div id="uc-drawer-facts" class="uc-drawer-facts uc-brief"></div>
+      </div>
+
+      <div id="uc-panel-docs" class="uc-profile-tabpanel uc-profile-tabpanel--docs" role="tabpanel" data-tab="docs" aria-labelledby="uc-tab-docs" hidden>
+        <section class="uc-tab-section uc-docs-simple" id="uc-docs-instrument" aria-label="Documents">
+          <div class="uc-docs-scroll">
+            <div class="uc-tab-toolbar uc-docs-toolbar">
+              <span class="uc-tab-toolbar-meta" id="uc-docs-toolbar-meta">Documents</span>
+            </div>
+
+            <section class="uc-docs-bucket" aria-labelledby="uc-docs-signed-heading">
+              <h3 id="uc-docs-signed-heading" class="uc-brief-section-title">Signed</h3>
+              <ul id="uc-docs-signed-list" class="uc-docs-bucket-list" aria-label="Signed documents"></ul>
+            </section>
+
+            <section class="uc-docs-bucket" aria-labelledby="uc-docs-pending-heading">
+              <h3 id="uc-docs-pending-heading" class="uc-brief-section-title">Pending signatures</h3>
+              <ul id="uc-docs-pending-list" class="uc-docs-bucket-list" aria-label="Pending signatures"></ul>
+            </section>
           </div>
-        </details>
-        <button type="button" id="uc-drawer-close" class="phuglee-btn phuglee-btn-ghost">Close</button>
+
+          <div class="uc-docs-footer-cta">
+            <button type="button" id="uc-docs-send-doc" class="phuglee-btn phuglee-btn-primary uc-docs-send-cta">Send Doc</button>
+          </div>
+
+          <!-- Hidden select kept for sendPackageKind / sendDocumentFromPanel compatibility -->
+          <select id="uc-doc-kind" class="uc-docs-kind-hidden" hidden aria-hidden="true" tabindex="-1">
+            <option value="psa">Purchase Agreement</option>
+            <option value="jv">JV Agreement</option>
+            <option value="aoc">AOC</option>
+            <option value="amendment">Amendment</option>
+          </select>
+        </section>
+      </div>
+
+      <div id="uc-panel-walkthroughs" class="uc-profile-tabpanel" role="tabpanel" data-tab="walkthroughs" aria-labelledby="uc-tab-walkthroughs" hidden>
+        <div class="uc-walk-page">
+          <div class="uc-walk-kpis" aria-label="Access and vacancy">
+            <div class="uc-walk-kpi">
+              <span class="uc-walk-kpi-label">Access</span>
+              <div id="uc-walk-kpi-access" class="uc-walk-kpi-chip uc-snap-chip">—</div>
+            </div>
+            <div class="uc-walk-kpi">
+              <span class="uc-walk-kpi-label">Vacancy</span>
+              <div id="uc-walk-kpi-vacancy" class="uc-walk-kpi-chip uc-snap-chip">—</div>
+            </div>
+          </div>
+
+          <section class="uc-walk-section" aria-labelledby="uc-walk-list-title">
+            <header class="uc-walk-section-head">
+              <div>
+                <h3 id="uc-walk-list-title" class="uc-walk-section-title">Walkthroughs</h3>
+                <p class="uc-walk-section-sub">Track buyer showings on this property.</p>
+              </div>
+              <button type="button" id="uc-walk-add" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm">Add Walkthrough</button>
+            </header>
+            <div id="uc-walk-list" class="uc-walk-list" aria-live="polite"></div>
+          </section>
+        </div>
+      </div>
+
+      <div id="uc-panel-buyers" class="uc-profile-tabpanel" role="tabpanel" data-tab="buyers" aria-labelledby="uc-tab-buyers" hidden>
+        <section id="uc-buyers-section" class="uc-tab-section uc-buyer-offers uc-instrument" aria-label="Buyer offers">
+          <div class="uc-tab-toolbar">
+            <span class="uc-tab-toolbar-meta" id="uc-buyer-offers-hint">Disposition market</span>
+            <button type="button" id="uc-buyer-offer-add" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm">Add offer</button>
+          </div>
+          <div id="uc-offer-walker-presets" class="uc-offer-walker-presets" hidden aria-label="Buyers who walked this property"></div>
+          <div id="uc-buyers-econ" class="uc-buyers-econ" hidden aria-label="Deal economics"></div>
+          <div id="uc-buyers-leader" class="uc-buyers-leader" hidden aria-label="Leading offer"></div>
+          <div id="uc-buyer-offers-list" class="uc-buyer-offers-list"></div>
+        </section>
+      </div>
+
+      <div id="uc-panel-comms" class="uc-profile-tabpanel uc-profile-tabpanel--comms" role="tabpanel" data-tab="comms" aria-labelledby="uc-tab-comms" hidden>
+        <div id="uc-communication-section" class="uc-comm-shell uc-comm-shell--premium uc-comm-shell--chat uc-instrument" aria-label="Communication desk">
+          <aside class="uc-comm-rail" aria-label="Channels">
+            <p class="uc-comm-rail-title">Messages</p>
+            <div class="uc-comm-channels" role="tablist" aria-label="Communication channel" aria-orientation="vertical">
+              <button type="button" role="tab" id="uc-channel-seller" data-channel="seller" class="uc-comm-channel is-active" aria-selected="true" aria-controls="uc-convo-section" tabindex="0">
+                <span class="uc-comm-channel-ico" aria-hidden="true">💬</span>
+                <span class="uc-comm-channel-text">
+                  <span class="uc-comm-channel-label">Seller</span>
+                  <span class="uc-comm-channel-hint">SMS</span>
+                </span>
+                <span id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text"></span>
+              </button>
+              <button type="button" role="tab" id="uc-channel-internal" data-channel="internal" class="uc-comm-channel" aria-selected="false" aria-controls="uc-team-section" tabindex="-1">
+                <span class="uc-comm-channel-ico" aria-hidden="true">👥</span>
+                <span class="uc-comm-channel-text">
+                  <span class="uc-comm-channel-label">Internal</span>
+                  <span class="uc-comm-channel-hint">Team</span>
+                </span>
+              </button>
+              <button type="button" role="tab" id="uc-channel-photo" data-channel="photo" class="uc-comm-channel" aria-selected="false" aria-controls="uc-photo-convo-section" tabindex="-1">
+                <span class="uc-comm-channel-ico" aria-hidden="true">📷</span>
+                <span class="uc-comm-channel-text">
+                  <span class="uc-comm-channel-label">Photographer</span>
+                  <span class="uc-comm-channel-hint">Shoot</span>
+                </span>
+              </button>
+            </div>
+          </aside>
+
+          <div class="uc-comm-stage">
+            <section id="uc-convo-section" class="uc-comm-channel-pane is-open uc-comm-mode--seller" role="tabpanel" data-channel="seller" aria-labelledby="uc-channel-seller" aria-label="Seller SMS">
+              <div class="uc-comm-pane-inner">
+                <header class="uc-comm-mode-header">
+                  <div class="uc-comm-mode-identity">
+                    <strong id="uc-seller-mode-name" class="uc-comm-mode-name">Seller</strong>
+                    <span id="uc-convo-meta" class="uc-comm-mode-sub"></span>
+                  </div>
+                  <div class="uc-comm-actions">
+                    <button type="button" id="uc-sms-save-all-media" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" hidden>Save all media</button>
+                    <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm uc-sms-mark-read" hidden title="Mark seller texts as read">Mark read</button>
+                  </div>
+                </header>
+                <div id="uc-convo-thread" class="uc-convo-thread"></div>
+                <div class="uc-comm-compose-block">
+                  <div class="uc-convo-compose">
+                    <textarea id="uc-sms-input" class="phuglee-textarea" rows="2" placeholder="Message seller…"></textarea>
+                    <button type="button" id="uc-sms-send" class="phuglee-btn phuglee-btn-primary">Send</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="uc-team-section" class="uc-comm-channel-pane uc-comm-mode--internal" role="tabpanel" data-channel="internal" aria-labelledby="uc-channel-internal" aria-label="Internal team messages" hidden>
+              <div class="uc-comm-pane-inner">
+                <header class="uc-comm-mode-header">
+                  <div class="uc-comm-mode-identity">
+                    <strong class="uc-comm-mode-name">Internal</strong>
+                    <span class="uc-comm-mode-sub">Brandon &amp; Brad · this deal</span>
+                  </div>
+                </header>
+                <div id="uc-team-thread" class="uc-convo-thread uc-team-thread"></div>
+                <div class="uc-comm-compose-block uc-team-compose-block">
+                  <div id="uc-gif-picker" class="uc-gif-picker" hidden>
+                    <div class="uc-gif-picker-head">
+                      <strong class="uc-gif-picker-title">GIFs</strong>
+                      <span class="uc-gif-picker-meta">Search · no work filter</span>
+                      <button type="button" id="uc-gif-picker-close" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" aria-label="Close GIF picker">Close</button>
+                    </div>
+                    <div class="uc-gif-picker-search-row">
+                      <input type="search" id="uc-gif-search" class="phuglee-input uc-gif-search" placeholder="Search GIFs…" autocomplete="off" enterkeyhint="search">
+                    </div>
+                    <div id="uc-gif-status" class="uc-gif-status" hidden></div>
+                    <div id="uc-gif-results" class="uc-gif-results" role="listbox" aria-label="GIF results"></div>
+                  </div>
+                  <div class="uc-convo-compose uc-team-compose">
+                    <button type="button" id="uc-gif-toggle" class="phuglee-btn phuglee-btn-ghost uc-gif-toggle" title="GIF picker" aria-expanded="false" aria-controls="uc-gif-picker">GIF</button>
+                    <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Note for the team… or paste a GIF URL"></textarea>
+                    <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="uc-photo-convo-section" class="uc-comm-channel-pane uc-comm-mode--photo" role="tabpanel" data-channel="photo" aria-labelledby="uc-channel-photo" aria-label="Photographer SMS" hidden>
+              <div class="uc-comm-pane-inner">
+                <header class="uc-comm-mode-header">
+                  <div class="uc-comm-mode-identity">
+                    <strong id="uc-photo-mode-name" class="uc-comm-mode-name">Photographer</strong>
+                    <span id="uc-photo-convo-meta" class="uc-comm-mode-sub">Schedule or text logistics</span>
+                  </div>
+                  <div class="uc-comm-actions">
+                    <span id="uc-photo-media-count" class="uc-comm-job-chip" hidden>0 media</span>
+                    <button type="button" id="uc-photo-copy-url-sms" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm" hidden>Copy upload URL</button>
+                  </div>
+                </header>
+                <div id="uc-photo-job-banner" class="uc-comm-job-banner uc-comm-job-strip" hidden></div>
+                <div id="uc-photo-thread" class="uc-convo-thread"></div>
+                <div class="uc-comm-compose-block">
+                  <div class="uc-convo-compose">
+                    <textarea id="uc-photo-sms-input" class="phuglee-textarea" rows="2" placeholder="Message photographer…"></textarea>
+                    <button type="button" id="uc-photo-sms-send" class="phuglee-btn phuglee-btn-primary">Send</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div id="uc-panel-media" class="uc-profile-tabpanel" role="tabpanel" data-tab="media" aria-labelledby="uc-tab-media" hidden>
+        <div class="uc-pics-rehab" id="uc-pics-rehab">
+
+          <section class="uc-pics-card" aria-labelledby="uc-pics-title">
+            <header class="uc-pics-card-head">
+              <div class="uc-pics-card-titles">
+                <h3 id="uc-pics-title" class="uc-pics-card-title">Pictures</h3>
+                <p class="uc-pics-card-sub">Seller texts, photographer shoots, and anything you upload — all in one place.</p>
+              </div>
+              <div class="uc-pics-card-actions">
+                <span id="uc-media-count-meta" class="uc-pics-count">0 photos</span>
+                <button type="button" id="uc-media-desk-upload" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm">Upload</button>
+                <input type="file" id="uc-media-desk-file" accept="image/*,video/*" multiple hidden>
+                <a id="uc-media-zip" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" href="#" hidden>Download ZIP</a>
+              </div>
+            </header>
+            <div
+              id="uc-evidence-drop"
+              class="uc-pics-drop"
+              tabindex="0"
+              aria-label="Property pictures — drop files to upload"
+            >
+              <div id="uc-media-grid" class="uc-pics-grid" aria-label="Property pictures"></div>
+            </div>
+          </section>
+
+          <section class="uc-rehab-card" aria-labelledby="uc-rehab-title">
+            <header class="uc-pics-card-head">
+              <div class="uc-pics-card-titles">
+                <h3 id="uc-rehab-title" class="uc-pics-card-title">Rehab info</h3>
+                <p class="uc-pics-card-sub">Systems notes for this property — age and condition.</p>
+              </div>
+              <div class="uc-pics-card-actions">
+                <button type="button" id="uc-rehab-save" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm">Save rehab</button>
+              </div>
+            </header>
+            <div class="uc-rehab-fields">
+              <label class="vault-field">
+                <span class="vault-field-label">Roof age + condition</span>
+                <input type="text" id="uc-rehab-roof" class="phuglee-input" placeholder="e.g. 12 yrs · fair, some granules missing" autocomplete="off">
+              </label>
+              <label class="vault-field">
+                <span class="vault-field-label">AC age + condition</span>
+                <input type="text" id="uc-rehab-ac" class="phuglee-input" placeholder="e.g. 5 yrs · good" autocomplete="off">
+              </label>
+              <label class="vault-field">
+                <span class="vault-field-label">Foundation condition</span>
+                <input type="text" id="uc-rehab-foundation" class="phuglee-input" placeholder="e.g. solid · no visible cracks" autocomplete="off">
+              </label>
+              <label class="vault-field">
+                <span class="vault-field-label">Plumbing condition</span>
+                <input type="text" id="uc-rehab-plumbing" class="phuglee-input" placeholder="e.g. copper · no leaks noted" autocomplete="off">
+              </label>
+              <label class="vault-field">
+                <span class="vault-field-label">Electrical condition</span>
+                <input type="text" id="uc-rehab-electrical" class="phuglee-input" placeholder="e.g. 200 amp · updated panel" autocomplete="off">
+              </label>
+              <label class="vault-field uc-rehab-notes">
+                <span class="vault-field-label">Additional notes</span>
+                <textarea id="uc-rehab-other" class="phuglee-textarea" rows="4" placeholder="Anything else buyers or dispo should know…"></textarea>
+              </label>
+            </div>
+          </section>
+
+        </div>
       </div>
     </div>
-    <div class="uc-drawer-body">
-      <div id="uc-drawer-hero" class="uc-drawer-hero"></div>
-      <dl id="uc-drawer-facts" class="uc-facts"></dl>
-
-      <section class="uc-panel uc-docs" aria-label="Contract documents">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Documents</span>
-          <span class="uc-panel-hint">Upload or send via SignNow</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-docs-refresh-sn" class="phuglee-btn phuglee-btn-ghost">Refresh signed</button>
-          </div>
-          <div id="uc-docs-list" class="uc-docs-list"></div>
-          <div id="uc-doc-viewer" class="uc-doc-viewer" hidden>
-            <div class="uc-doc-viewer-bar">
-              <strong id="uc-doc-viewer-title">Document</strong>
-              <div class="uc-doc-viewer-actions">
-                <a id="uc-doc-open-tab" class="phuglee-btn phuglee-btn-ghost" href="#" target="_blank" rel="noopener">Open tab</a>
-                <button type="button" id="uc-doc-close-viewer" class="phuglee-btn phuglee-btn-ghost">Close preview</button>
-              </div>
-            </div>
-            <iframe id="uc-doc-frame" class="uc-doc-frame" title="Document preview"></iframe>
-          </div>
-          <div class="uc-docs-upload">
-            <label class="vault-field uc-docs-kind">
-              <span class="vault-field-label">Upload type</span>
-              <select id="uc-doc-upload-kind" class="phuglee-select">
-                <option value="purchase_contract">Purchase contract</option>
-                <option value="addendum">Addendum</option>
-                <option value="amendment">Amendment</option>
-                <option value="aoc">AOC</option>
-                <option value="jv">JV agreement</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-            <label class="vault-field uc-docs-upload-file">
-              <span class="vault-field-label">File</span>
-              <input type="file" id="uc-doc-upload-file" class="phuglee-input" accept=".pdf,.doc,.docx,image/*,application/pdf">
-            </label>
-            <button type="button" id="uc-doc-upload" class="phuglee-btn phuglee-btn-secondary">Upload</button>
-          </div>
-          <div class="uc-docs-send">
-            <label class="vault-field uc-docs-kind">
-              <span class="vault-field-label">Send via SignNow</span>
-              <select id="uc-doc-kind" class="phuglee-select">
-                <option value="psa">Purchase contract (Cash or SubTo)</option>
-                <option value="aoc">AOC (assignment)</option>
-                <option value="jv">JV agreement</option>
-                <option value="amendment">Amendment</option>
-              </select>
-            </label>
-            <button type="button" id="uc-doc-send" class="phuglee-btn phuglee-btn-primary">Send Document</button>
-          </div>
-          <p id="uc-docs-pending" class="uc-docs-pending" hidden></p>
-        </div>
-      </section>
-
-      <section id="uc-buyers-section" class="uc-panel uc-buyer-offers" aria-label="Buyer offers">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Buyers</span>
-          <span class="uc-panel-hint" id="uc-buyer-offers-hint">Offers pitched on this property</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div id="uc-buyer-offers-list" class="uc-buyer-offers-list"></div>
-          <div class="uc-panel-toolbar uc-buyer-offers-toolbar">
-            <button type="button" id="uc-buyer-offer-add" class="phuglee-btn phuglee-btn-secondary">Add another buyer</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="uc-investor-base-section" class="uc-panel uc-investor-base" aria-label="Investor Base">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Investor Base</span>
-          <span class="uc-panel-hint" id="uc-investor-base-hint">Marketing site URL for this property</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div id="uc-investor-base-body" class="uc-investor-base-body"></div>
-        </div>
-      </section>
-
-      <section id="uc-communication-section" class="uc-panel uc-communication" aria-label="Communication">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Communication</span>
-          <span class="uc-panel-hint">Seller · Internal · Photographer</span>
-        </button>
-        <div class="uc-panel-body uc-comm-body" hidden>
-          <section id="uc-convo-section" class="uc-panel uc-convo uc-panel--nested" aria-label="Seller SMS">
-            <button type="button" class="uc-panel-summary" aria-expanded="false">
-              <span class="uc-panel-title">Seller <button type="button" id="uc-sms-pulse" class="uc-sms-pulse" hidden title="Unread seller text" aria-label="Unread seller text">●</button></span>
-              <span class="uc-panel-hint">Seller texts</span>
-              <span id="uc-convo-meta" class="uc-convo-meta"></span>
-            </button>
-            <div class="uc-panel-body" hidden>
-              <div class="uc-panel-toolbar">
-                <button type="button" id="uc-sms-save-all-media" class="phuglee-btn phuglee-btn-ghost" hidden>Save all media</button>
-                <button type="button" id="uc-sms-mark-read" class="phuglee-btn phuglee-btn-ghost uc-sms-mark-read" hidden title="Mark seller texts as read">Mark as read</button>
-                <button type="button" id="uc-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
-              </div>
-              <div id="uc-convo-thread" class="uc-convo-thread"></div>
-              <div class="uc-convo-compose">
-                <textarea id="uc-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the seller?"></textarea>
-                <button type="button" id="uc-sms-send" class="phuglee-btn phuglee-btn-primary">Send to seller</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="uc-panel uc-team uc-panel--nested" aria-label="Internal team messages" id="uc-team-section">
-            <button type="button" class="uc-panel-summary" aria-expanded="false">
-              <span class="uc-panel-title">Internal</span>
-              <span class="uc-panel-hint">Team messages on this property</span>
-            </button>
-            <div class="uc-panel-body" hidden>
-              <div id="uc-team-thread" class="uc-convo-thread uc-team-thread"></div>
-              <div class="uc-convo-compose">
-                <textarea id="uc-team-input" class="phuglee-textarea" rows="2" placeholder="Message your teammate?"></textarea>
-                <button type="button" id="uc-team-send" class="phuglee-btn phuglee-btn-primary">Send</button>
-              </div>
-            </div>
-          </section>
-
-          <section id="uc-photo-convo-section" class="uc-panel uc-convo uc-photo-convo uc-panel--nested" aria-label="Photographer SMS">
-            <button type="button" class="uc-panel-summary" aria-expanded="false">
-              <span class="uc-panel-title">Photographer</span>
-              <span class="uc-panel-hint" id="uc-photo-convo-meta">Photographer texts</span>
-            </button>
-            <div class="uc-panel-body" hidden>
-              <div class="uc-panel-toolbar">
-                <button type="button" id="uc-photo-copy-url-sms" class="phuglee-btn phuglee-btn-ghost" hidden>Copy upload URL</button>
-                <button type="button" id="uc-photo-sms-refresh" class="phuglee-btn phuglee-btn-ghost">Refresh</button>
-              </div>
-              <div id="uc-photo-thread" class="uc-convo-thread"></div>
-              <div class="uc-convo-compose">
-                <textarea id="uc-photo-sms-input" class="phuglee-textarea" rows="2" placeholder="Text the photographer?"></textarea>
-                <button type="button" id="uc-photo-sms-send" class="phuglee-btn phuglee-btn-primary">Send to photographer</button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </section>
-
-      <section class="uc-panel uc-media" aria-label="Seller media">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Media</span>
-          <span class="uc-panel-hint">Seller + photographer photos</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-media-desk-upload" class="phuglee-btn phuglee-btn-ghost">Upload</button>
-            <input type="file" id="uc-media-desk-file" accept="image/*,video/*" multiple hidden>
-            <a id="uc-media-zip" class="phuglee-btn phuglee-btn-secondary" href="#" hidden>Download ZIP</a>
-          </div>
-          <div id="uc-media-grid" class="uc-media-grid"></div>
-        </div>
-      </section>
-
-      <section class="uc-panel uc-rehab" aria-label="Rehab info">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Rehab info</span>
-          <span class="uc-panel-hint">Roof, AC, foundation, systems for dispo</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-rehab-save" class="phuglee-btn phuglee-btn-secondary">Save rehab</button>
-          </div>
-          <div class="uc-rehab-grid">
-            <label class="vault-field">
-              <span class="vault-field-label">Roof age &amp; condition</span>
-              <input type="text" id="uc-rehab-roof" class="phuglee-input" placeholder="e.g. 8 yrs, fair">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">AC age &amp; condition</span>
-              <input type="text" id="uc-rehab-ac" class="phuglee-input" placeholder="e.g. 5 yrs, good">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Foundation</span>
-              <input type="text" id="uc-rehab-foundation" class="phuglee-input">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Electrical</span>
-              <input type="text" id="uc-rehab-electrical" class="phuglee-input">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Plumbing</span>
-              <input type="text" id="uc-rehab-plumbing" class="phuglee-input">
-            </label>
-            <label class="vault-field uc-rehab-other">
-              <span class="vault-field-label">Anything else for dispo</span>
-              <textarea id="uc-rehab-other" class="phuglee-textarea" rows="3" placeholder="Custom notes buyers need to know?"></textarea>
-            </label>
-          </div>
-        </div>
-      </section>
-
-      <section id="uc-condition-scan" class="uc-panel uc-condition-scan" aria-label="AI condition scan">
-        <button type="button" class="uc-panel-summary" aria-expanded="false">
-          <span class="uc-panel-title">Condition Scan</span>
-          <span class="uc-panel-hint" id="uc-scan-meta">Rehab cost estimate from photos</span>
-        </button>
-        <div class="uc-panel-body" hidden>
-          <div class="uc-panel-toolbar">
-            <button type="button" id="uc-scan-run" class="phuglee-btn phuglee-btn-secondary">Rescan</button>
-          </div>
-          <div class="uc-scan-controls">
-            <label class="vault-field">
-              <span class="vault-field-label">Finish grade</span>
-              <select id="uc-scan-finish" class="phuglee-select">
-                <option value="investor">Investor</option>
-                <option value="retail">Retail</option>
-              </select>
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Living sqft</span>
-              <input type="number" id="uc-scan-sqft" class="phuglee-input" min="200" max="20000" placeholder="confirm">
-            </label>
-            <label class="vault-field">
-              <span class="vault-field-label">Contingency %</span>
-              <input type="number" id="uc-scan-contingency" class="phuglee-input" min="0" max="25" step="1" value="10">
-            </label>
-            <button type="button" id="uc-scan-apply-opts" class="phuglee-btn phuglee-btn-ghost">Apply / reprice</button>
-          </div>
-          <div id="uc-scan-summary" class="uc-scan-summary"></div>
-          <div id="uc-scan-walk" class="uc-scan-walk" hidden></div>
-          <div id="uc-scan-lines" class="uc-scan-lines"></div>
-          <p id="uc-scan-provenance" class="uc-scan-provenance"></p>
-        </div>
-      </section>
-    </div>
-  </aside>
+  </div>
 
   <dialog id="uc-buyer-dialog" class="uc-dialog uc-dialog--aoc">
     <form method="dialog" id="uc-buyer-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-buyer-title">Send AOC</h3>
-        <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-buyer-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-buyer-deal-id" value="">
-      <p class="uc-jv-lead" id="uc-aoc-property-line">Property address is filled from this deal. Fill buyer name/phone/email below — they fill address, then sign, date, By, and Its.</p>
+      <p class="uc-jv-lead" id="uc-aoc-property-line">Property address is filled from this deal. Fill buyer name/phone/email below â€” they fill address, then sign, date, By, and Its.</p>
       <label class="vault-field">
         <span class="vault-field-label">Buyer name</span>
         <input type="text" id="uc-aoc-buyer-name" class="phuglee-input" required autocomplete="name">
@@ -579,7 +658,7 @@
     <form method="dialog" id="uc-jv-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-jv-title">Send JV agreement</h3>
-        <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-jv-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-jv-deal-id" value="">
       <div id="uc-jv-resend-body" class="uc-jv-resend-body">
@@ -596,7 +675,7 @@
     <form method="dialog" id="uc-aoc-remind-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-aoc-remind-title">Send AOC reminder</h3>
-        <button type="button" id="uc-aoc-remind-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-aoc-remind-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-aoc-remind-deal-id" value="">
       <div id="uc-aoc-remind-body" class="uc-jv-resend-body">
@@ -613,12 +692,12 @@
     <form method="dialog" id="uc-psa-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-psa-title">Send New PSA</h3>
-        <button type="button" id="uc-psa-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-psa-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <p class="uc-jv-lead">Pick a Vault lead, confirm seller(s), then send the Cash Purchase Agreement via SignNow. Closing is 14 days from the effective date on the contract. The deal appears under Waiting for Signatures until signed.</p>
 
       <fieldset class="uc-psa-step" data-psa-step="1">
-        <legend class="uc-psa-step-label">1 · Vault property</legend>
+        <legend class="uc-psa-step-label">1 Â· Vault property</legend>
         <div class="uc-psa-search-block">
           <label class="vault-field uc-psa-search-label">
             <span class="vault-field-label">Search address or owner</span>
@@ -630,8 +709,8 @@
       </fieldset>
 
       <fieldset class="uc-psa-step" data-psa-step="2">
-        <legend class="uc-psa-step-label">2 · Sellers</legend>
-        <p class="uc-field-hint">Confirm Seller 1 name and email — Vault email is pulled in when available.</p>
+        <legend class="uc-psa-step-label">2 Â· Sellers</legend>
+        <p class="uc-field-hint">Confirm Seller 1 name and email â€” Vault email is pulled in when available.</p>
         <div class="uc-psa-seller-count" role="radiogroup" aria-label="Number of sellers">
           <label class="uc-psa-radio"><input type="radio" name="uc-psa-seller-count" value="1" checked> 1 seller</label>
           <label class="uc-psa-radio"><input type="radio" name="uc-psa-seller-count" value="2"> 2 sellers</label>
@@ -657,7 +736,7 @@
       </fieldset>
 
       <fieldset class="uc-psa-step" data-psa-step="3">
-        <legend class="uc-psa-step-label">3 · Agreement type</legend>
+        <legend class="uc-psa-step-label">3 Â· Agreement type</legend>
         <p class="uc-field-hint">Choose which SignNow purchase agreement to send.</p>
         <div class="uc-psa-deal-type" role="radiogroup" aria-label="Purchase agreement type">
           <label class="uc-psa-radio">
@@ -672,7 +751,7 @@
       </fieldset>
 
       <fieldset class="uc-psa-step" data-psa-step="4">
-        <legend class="uc-psa-step-label">4 · PSA terms</legend>
+        <legend class="uc-psa-step-label">4 Â· PSA terms</legend>
         <label class="vault-field">
           <span class="vault-field-label">Purchase price</span>
           <input type="text" id="uc-psa-price" class="phuglee-input" inputmode="decimal" required placeholder="$85,000.00">
@@ -708,7 +787,7 @@
     <form method="post" action="#" id="uc-amendment-form" class="uc-edit-form">
       <div class="uc-dialog-head">
         <h3 id="uc-amendment-title">Send Amendment</h3>
-        <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">×</button>
+        <button type="button" id="uc-amendment-close" class="uc-dialog-x" aria-label="Close">Ã—</button>
       </div>
       <input type="hidden" id="uc-amendment-deal-id" value="">
       <p class="uc-jv-lead">Wunderhaus signs as Buyer (real signature). Sellers are prefilled from the Cash PSA when available.</p>
@@ -819,6 +898,101 @@
     </div>
   </dialog>
 
+  <dialog id="uc-docs-send-type-dialog" class="uc-dialog uc-dialog--docs-send" aria-labelledby="uc-docs-send-type-title">
+    <form method="dialog" class="uc-edit-form" id="uc-docs-send-type-form">
+      <h3 id="uc-docs-send-type-title">Send document</h3>
+      <p class="uc-docs-send-type-hint">What do you want to send?</p>
+      <div class="uc-docs-send-type-grid" role="radiogroup" aria-label="Document type">
+        <label class="uc-docs-send-type-opt">
+          <input type="radio" name="uc-docs-send-type" value="psa" checked>
+          <span>Purchase Agreement</span>
+        </label>
+        <!-- JV auto-completes when signed PSA is imported — no manual send -->
+        <label class="uc-docs-send-type-opt">
+          <input type="radio" name="uc-docs-send-type" value="aoc">
+          <span>AOC</span>
+        </label>
+        <label class="uc-docs-send-type-opt">
+          <input type="radio" name="uc-docs-send-type" value="amendment">
+          <span>Amendment</span>
+        </label>
+      </div>
+      <div class="uc-edit-actions">
+        <button type="submit" value="cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+        <button type="button" id="uc-docs-send-type-continue" class="phuglee-btn phuglee-btn-primary">Continue</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="uc-note-dialog" class="uc-dialog" aria-labelledby="uc-note-dialog-title">
+    <form method="dialog" id="uc-note-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-note-dialog-title">Add a Note</h3>
+        <button type="submit" value="cancel" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <label class="vault-field">
+        <span class="vault-field-label">Note</span>
+        <textarea id="uc-note-input" class="phuglee-textarea" rows="5" placeholder="Quick note for this file…"></textarea>
+      </label>
+      <div class="uc-edit-actions">
+        <button type="submit" value="cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+        <button type="button" id="uc-note-clear" class="phuglee-btn phuglee-btn-ghost" hidden>Clear note</button>
+        <button type="button" id="uc-note-save" class="phuglee-btn phuglee-btn-primary">Save note</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="uc-walk-dialog" class="uc-dialog" aria-labelledby="uc-walk-dialog-title">
+    <form method="dialog" id="uc-walk-form" class="uc-edit-form">
+      <div class="uc-dialog-head">
+        <h3 id="uc-walk-dialog-title">Add Walkthrough</h3>
+        <button type="button" id="uc-walk-close" class="uc-dialog-x" aria-label="Close">×</button>
+      </div>
+      <p class="uc-jv-lead">Who is walking the property, and when? Contact info carries over when you add an offer.</p>
+      <label class="vault-field">
+        <span class="vault-field-label">Buyer name</span>
+        <input type="text" id="uc-walk-buyer" class="phuglee-input" placeholder="Buyer name" required autocomplete="name">
+      </label>
+      <div class="uc-walk-datetime-row">
+        <label class="vault-field">
+          <span class="vault-field-label">Phone</span>
+          <input type="tel" id="uc-walk-phone" class="phuglee-input" placeholder="555-…" autocomplete="tel">
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Email</span>
+          <input type="email" id="uc-walk-email" class="phuglee-input" placeholder="buyer@…" autocomplete="email">
+        </label>
+      </div>
+      <div class="uc-walk-datetime-row">
+        <label class="vault-field">
+          <span class="vault-field-label">Date</span>
+          <input type="date" id="uc-walk-date" class="phuglee-input" required>
+        </label>
+        <label class="vault-field">
+          <span class="vault-field-label">Time</span>
+          <input type="time" id="uc-walk-time" class="phuglee-input" required>
+        </label>
+      </div>
+      <div class="uc-edit-actions">
+        <button type="button" id="uc-walk-cancel" class="phuglee-btn phuglee-btn-ghost">Cancel</button>
+        <button type="button" id="uc-walk-save" class="phuglee-btn phuglee-btn-primary">Save walkthrough</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="uc-doc-view-dialog" class="uc-dialog uc-dialog--doc-view" aria-labelledby="uc-doc-view-title">
+    <div class="uc-doc-view-shell">
+      <div class="uc-doc-view-bar">
+        <h3 id="uc-doc-view-title">Document</h3>
+        <div class="uc-doc-view-bar-actions">
+          <a id="uc-doc-view-open-tab" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" href="#" target="_blank" rel="noopener">Open tab</a>
+          <button type="button" id="uc-doc-view-close" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm">Close</button>
+        </div>
+      </div>
+      <iframe id="uc-doc-view-frame" class="uc-doc-view-frame" title="Document preview"></iframe>
+    </div>
+  </dialog>
+
   <div id="uc-lightbox" class="uc-lightbox" hidden role="dialog" aria-modal="true" aria-label="Media viewer">
     <button type="button" id="uc-lightbox-close" class="uc-lightbox-close" aria-label="Close photo">?</button>
     <button type="button" id="uc-lightbox-prev" class="uc-lightbox-nav uc-lightbox-prev" aria-label="Previous photo">?</button>
@@ -830,12 +1004,12 @@
     <p id="uc-lightbox-caption" class="uc-lightbox-caption"></p>
   </div>
 
-  <script src="/js/settings-menu.js?v=5" defer></script>
-  <script src="/js/shell-nav.js?v=36-clarify-ia" defer></script>
+  <script src="/js/settings-menu.js?v=7-retire-map" defer></script>
+  <script src="/js/shell-nav.js?v=42-no-footer" defer></script>
   <script src="/js/team-alert-banner.js?v=1" defer></script>
-  <script src="/js/command-palette.js?v=4" defer></script>
+  <script src="/js/command-palette.js?v=6-retire-map" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=58-amendment-psa-date" defer></script>
+  <script src="/js/under-contract.js?v=128-uc-kpi" defer></script>
 </body>
 </html>
