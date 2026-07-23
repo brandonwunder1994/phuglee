@@ -7,6 +7,7 @@
     "start": "node server.js",
     "restart": "powershell -ExecutionPolicy Bypass -File scripts/restart.ps1",
     "test": "node --test tests/**/*.test.js",
+    "build:shell": "node scripts/build-shell-bundle.mjs",
     "verify": "powershell -ExecutionPolicy Bypass -File scripts/verify.ps1",
     "verify:live": "powershell -ExecutionPolicy Bypass -File scripts/verify-live.ps1",
     "verify:mobile": "powershell -ExecutionPolicy Bypass -File scripts/verify-mobile.ps1"

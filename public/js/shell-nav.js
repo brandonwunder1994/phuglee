@@ -1,4 +1,7 @@
 (function () {
+  /** Document-level Escape for mobile nav — bind once across remounts. */
+  let documentEscapeBound = false;
+
   const DASHBOARD_LINK = { id: 'command', label: 'Dashboard', href: '/command' };
 
   /** Data desk order: Request → Filter → Review → Government Lists (Pre-liens lives on GL page). */
@@ -461,9 +464,12 @@
       link.addEventListener('click', () => closeMobileNav());
     });
 
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeMobileNav();
-    });
+    if (!documentEscapeBound) {
+      documentEscapeBound = true;
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMobileNav();
+      });
+    }
   }
 
   function mount() {

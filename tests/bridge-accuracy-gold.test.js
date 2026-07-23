@@ -210,12 +210,12 @@ test('ACC-01: gold water-hostile ignores active type suppress (water never type-
     assert.ok(
       result.rows.every(
         (row) =>
-          row.distressedSignalTag === UPLOAD_TYPES.water_shut_off.defaultTag ||
+          row.distressedSignalTag === 'Water Shut Off – High Value Distress Signal' ||
           String(row.distressedSignalTag || '').includes('Water Shut Off')
       )
     );
   } finally {
-    saveBrain(emptyBrain());
+    saveBrain(emptyBrain(), { allowEmptyWipe: true });
   }
 });
 

@@ -1,8 +1,10 @@
 (function () {
   'use strict';
 
-  const CATALOG_URL = '/data/government-lists/catalog.json';
+  const META_URL = '/api/gov-lists/meta';
+  const SOURCES_URL = '/api/gov-lists/sources';
   const PLAYBOOKS_URL = '/api/gov-playbooks';
+  const LAST_STATE_KEY = 'gl-last-state';
   const ROW_HEIGHT = 44;
   const OVERSCAN = 8;
 
@@ -14,8 +16,7 @@
     { id: 'lis_pendens', label: 'Pre-foreclosure (LP / NOD)' },
     { id: 'probate', label: 'Probate' },
     { id: 'fire', label: 'Fire' },
-    { id: 'eviction', label: 'Evictions' },
-    { id: 'water_shutoff', label: 'Water shutoffs' }
+    { id: 'eviction', label: 'Evictions' }
   ];
 
   const state = {
@@ -295,7 +296,11 @@
   function clearChip(kind) {
     if (kind === 'search' && $('gl-search')) $('gl-search').value = '';
     if (kind === 'type' && $('gl-type')) $('gl-type').value = '';
-    if (kind === 'state' && $('gl-state')) $('gl-state').value = '';
+    if (kind === 'state' && $('gl-state')) {
+      $('gl-state').value = '';
+      loadSourcesForState('').then(() => applyFilters()).catch(() => applyFilters());
+      return;
+    }
     if (kind === 'method' && $('gl-method')) $('gl-method').value = '';
     if (kind === 'verify' && $('gl-verify')) $('gl-verify').value = '';
     if (kind === 'hasEmail' && $('gl-has-email')) $('gl-has-email').checked = false;
@@ -515,7 +520,7 @@
     const rows = selectedRows();
     if (!rows.length) return;
     const types = new Set(rows.map((r) => r.listType));
-    const allCollect = [...types].every((t) => t === 'code_violation' || t === 'water_shutoff');
+    const allCollect = [...types].every((t) => t === 'code_violation');
     const allPreLien = [...types].every((t) => t === 'pre_lien');
     if (allCollect) { window.open('/collect', '_blank', 'noopener'); showToast(`Opening Collect for ${rows.length} row${rows.length === 1 ? '' : 's'}`); return; }
     if (allPreLien) { window.open('/pre-liens', '_blank', 'noopener'); showToast(`Opening Pre-liens for ${rows.length} row${rows.length === 1 ? '' : 's'}`); return; }
@@ -551,7 +556,7 @@
         ? '<span class="gl-needsmail-note">No send-to email yet — find the clerk/code-enforcement address before sending.</span>'
         : '—');
 
-    const collectLink = (src.listType === 'code_violation' || src.listType === 'water_shutoff')
+    const collectLink = (src.listType === 'code_violation')
       ? `<a class="phuglee-btn phuglee-btn-primary" href="/collect">Open Collect</a>` : '';
     const preLienLink = src.listType === 'pre_lien'
       ? `<a class="phuglee-btn phuglee-btn-primary" href="/pre-liens">Open Pre-liens desk</a>` : '';
@@ -845,7 +850,17 @@
 
     const searchEl = $('gl-search');
     if (searchEl) searchEl.addEventListener('input', applyFilters);
-    ['gl-state', 'gl-method', 'gl-verify', 'gl-has-email', 'gl-hide-playbook'].forEach((id) => {
+    const stateEl = $('gl-state');
+    if (stateEl) {
+      stateEl.addEventListener('change', () => {
+        const st = stateEl.value || '';
+        loadSourcesForState(st).then(() => applyFilters()).catch((err) => {
+          console.warn(err);
+          showToast('Could not load sources for that state');
+        });
+      });
+    }
+    ['gl-method', 'gl-verify', 'gl-has-email', 'gl-hide-playbook'].forEach((id) => {
       const el = $(id);
       if (el) el.addEventListener('change', applyFilters);
     });
@@ -959,33 +974,71 @@
     $('gl-pb-delete')?.addEventListener('click', deleteActivePlaybook);
   }
 
+  function priorityMap() {
+    const priority = {};
+    state.listTypes.forEach((t) => { priority[t.id] = t.priority || 99; });
+    return priority;
+  }
+
+  function rebuildById() {
+    state.byId = new Map();
+    state.merged.concat(state.howto).forEach((s) => state.byId.set(s.id, s));
+  }
+
+  /**
+   * Load sources for one state (Wave 1). Empty state clears the table.
+   */
+  async function loadSourcesForState(st) {
+    const code = String(st || '').trim().toUpperCase();
+    if (!code) {
+      state.merged = [];
+      rebuildById();
+      const count = $('gl-count');
+      if (count) count.textContent = 'Pick a state to load sources';
+      return;
+    }
+
+    try {
+      localStorage.setItem(LAST_STATE_KEY, code);
+    } catch (_) { /* ignore */ }
+
+    const res = await fetch(`${SOURCES_URL}?state=${encodeURIComponent(code)}`, { cache: 'default' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const raw = (data && data.sources) || [];
+    const priority = priorityMap();
+    state.merged = GLN ? GLN.mergeSources(raw, priority) : raw.slice();
+    rebuildById();
+  }
+
   async function init() {
     bind();
     ensureListSlots();
 
     try {
-      const res = await fetch(CATALOG_URL, { cache: 'no-store' });
+      const res = await fetch(META_URL, { cache: 'default' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const catalog = await res.json();
-      state.catalog = catalog;
-      state.listTypes = catalog.listTypes || [];
-      state.methods = catalog.methods || [];
-      renderResearchProgress(catalog);
+      const payload = await res.json();
+      const meta = (payload && payload.meta) || payload || {};
+      state.catalog = meta;
+      state.listTypes = meta.listTypes || [];
+      state.methods = meta.methods || [];
+      renderResearchProgress(meta);
 
-      const priority = {};
-      state.listTypes.forEach((t) => { priority[t.id] = t.priority || 99; });
+      const howtoRaw = meta.howto || [];
+      state.howto = howtoRaw.map((s) => Object.assign({}, s, {
+        state: GLN ? GLN.normalizeState(s.state) : s.state
+      }));
+      state.merged = [];
+      rebuildById();
 
-      const raw = catalog.sources || [];
-      const nonPlaybook = raw.filter((s) => !s.isPlaybook);
-      state.merged = GLN ? GLN.mergeSources(nonPlaybook, priority) : nonPlaybook.slice();
-      state.howto = raw.filter((s) => s.isPlaybook).map((s) => Object.assign({}, s, { state: GLN ? GLN.normalizeState(s.state) : s.state }));
-
-      state.byId = new Map();
-      state.merged.concat(state.howto).forEach((s) => state.byId.set(s.id, s));
+      const stateOpts = Object.keys(meta.stateCounts || {})
+        .sort()
+        .map((v) => ({ value: v, label: v, count: meta.stateCounts[v] }));
 
       fillSelect($('gl-type'), state.listTypes.map((t) => ({ value: t.id, label: t.label })), 'All types');
       fillSelect($('gl-method'), state.methods.map((m) => ({ value: m.id, label: m.label })), 'All methods');
-      fillSelect($('gl-state'), computeStates(state.merged), 'All states');
+      fillSelect($('gl-state'), stateOpts, 'Pick a state…');
       fillSelect($('gl-verify'), [
         { value: 'verified', label: 'Verified' },
         { value: 'pdf_only', label: 'PDF only' },
@@ -996,6 +1049,23 @@
 
       readUrl();
       updateSortHeaders();
+
+      let initialState = ($('gl-state') && $('gl-state').value) || '';
+      if (!initialState) {
+        try { initialState = localStorage.getItem(LAST_STATE_KEY) || ''; } catch (_) { initialState = ''; }
+        if (initialState && $('gl-state') && stateOpts.some((o) => o.value === initialState)) {
+          $('gl-state').value = initialState;
+        } else {
+          initialState = ($('gl-state') && $('gl-state').value) || '';
+        }
+      }
+
+      if (initialState) {
+        await loadSourcesForState(initialState);
+      } else {
+        const count = $('gl-count');
+        if (count) count.textContent = 'Pick a state to load sources';
+      }
 
       try { await loadPlaybooks(); }
       catch (err) { console.warn(err); showToast('Playbooks failed to load — sources still available'); }

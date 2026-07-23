@@ -63,7 +63,16 @@ def _serve() -> None:
             _log(f"Waitress failed ({exc}); falling back to Flask")
 
     _log(f"Form Forge (flask) binding {bind_host}:{PORT}")
-    app.run(host=bind_host, port=PORT, debug=False, use_reloader=False, threaded=True)
+    # Distress OS loads env via Node; skip Flask dotenv so a Windows-1252 root .env
+    # cannot crash boot (UnicodeDecodeError on non-UTF-8).
+    app.run(
+        host=bind_host,
+        port=PORT,
+        debug=False,
+        use_reloader=False,
+        threaded=True,
+        load_dotenv=False,
+    )
 
 
 def main() -> None:
