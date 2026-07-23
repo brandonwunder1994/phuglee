@@ -64,7 +64,7 @@ test('dry-run never calls sendSms', async () => {
     address1: '1 Main',
     city: 'Austin',
     state: 'TX',
-    tags: ['code violation']
+    tags: ['phuglee', 'code violation']
   }]);
   const r = await executeSend({ touch: 0, dryRun: true, ghl, dripMs: 0 });
   assert.equal(r.dryRun, true);
