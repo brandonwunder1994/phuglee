@@ -91,6 +91,12 @@ function getOperatingCostsApi() {
   return operatingCostsApiModule;
 }
 
+let campaignsSmsApiModule;
+function getCampaignsSmsApi() {
+  if (!campaignsSmsApiModule) campaignsSmsApiModule = require('./lib/campaigns/api');
+  return campaignsSmsApiModule;
+}
+
 let buyersApiModule = null;
 function getBuyersApi() {
   if (!buyersApiModule) buyersApiModule = require('./lib/buyers/api');
@@ -500,6 +506,11 @@ async function handleRequest(req, res) {
     if (handled) return;
   }
 
+  if (pathname.startsWith('/api/admin/campaigns/sms')) {
+    const handled = await getCampaignsSmsApi().handle(req, res, pathname, url);
+    if (handled) return;
+  }
+
   if (pathname.startsWith('/api/buyers')) {
     const handled = await getBuyersApi().handle(req, res, pathname);
     if (handled) return;
@@ -642,6 +653,12 @@ async function handleRequest(req, res) {
     } else {
       serveLibAsBrowser(res, path.join(config.ROOT, 'lib', 'bridge-schema.js'), 'DistressBridgeSchema');
     }
+    return;
+  }
+
+  // Admin Campaigns → SMS (pretty path)
+  if ((req.method === 'GET' || req.method === 'HEAD') && pathname === '/campaigns/sms') {
+    serveStatic('/campaigns-sms.html', req, res);
     return;
   }
 
