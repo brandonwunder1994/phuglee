@@ -200,6 +200,28 @@
   border-color: rgba(90, 170, 220, 0.22);
 }
 
+/* Buyer Signed AOC — soft sky (matches board badge + dispo blue) */
+.pipe-col[data-stage="buyer_signed_aoc"] {
+  border-color: rgba(90, 170, 220, 0.4);
+  box-shadow: inset 0 3px 0 0 rgba(90, 170, 220, 0.75);
+}
+
+.pipe-col[data-stage="buyer_signed_aoc"] .pipe-col-side,
+.pipe-col[data-stage="buyer_signed_aoc"] .pipe-col-title {
+  color: #8ec8e8;
+}
+
+/* Buyer Submitted EMD — dark blue */
+.pipe-col[data-stage="buyer_found"] {
+  border-color: rgba(59, 111, 181, 0.55);
+  box-shadow: inset 0 3px 0 0 rgba(59, 111, 181, 0.85);
+}
+
+.pipe-col[data-stage="buyer_found"] .pipe-col-side,
+.pipe-col[data-stage="buyer_found"] .pipe-col-title {
+  color: #9ec0ef;
+}
+
 .pipe-col[data-stage="terminated"] {
   border-color: rgba(180, 80, 80, 0.4);
   box-shadow: inset 0 3px 0 0 rgba(180, 80, 80, 0.7);
@@ -214,7 +236,7 @@
 }
 
 .pipe-col[data-stage="funded"] {
-  box-shadow: inset 0 3px 0 0 rgba(80, 180, 120, 0.8);
+  box-shadow: inset 0 3px 0 0 rgba(61, 214, 140, 0.85);
 }
 
 .pipe-col-head {

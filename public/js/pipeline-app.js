@@ -9,11 +9,12 @@
     { id: 'verbal_offer', label: 'Verbal offer', side: 'acq' },
     { id: 'contract_sent', label: 'Contract sent', side: 'acq' },
     { id: 'under_contract', label: 'Under contract', side: 'dispo' },
+    { id: 'buyer_signed_aoc', label: 'Buyer Signed AOC', side: 'dispo' },
     { id: 'buyer_found', label: 'Buyer Submitted EMD', side: 'dispo' },
     { id: 'funded', label: 'Funded', side: 'dispo' },
     { id: 'terminated', label: 'Terminated', side: 'dispo' }
   ];
-  const DISPO = new Set(['under_contract', 'buyer_found', 'funded', 'terminated']);
+  const DISPO = new Set(['under_contract', 'buyer_signed_aoc', 'buyer_found', 'funded', 'terminated']);
 
   const state = { deals: [], ghlConfigured: false };
 
@@ -197,7 +198,7 @@
     if (status && isAdmin()) {
       status.hidden = false;
       status.textContent = state.ghlConfigured
-        ? 'GHL connected · Sync: Interested → Warm → Verbal → Contract sent → Under contract → Buyer EMD → Funded → Terminated'
+        ? 'GHL connected · Sync: Interested → Warm → Verbal → Contract sent → Under contract → Buyer Signed AOC → Buyer EMD → Funded → Terminated'
         : 'GHL not configured — set GHL_API_KEY and GHL_LOCATION_ID';
     }
     renderBoard(state.deals);

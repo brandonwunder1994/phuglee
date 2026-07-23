@@ -544,7 +544,7 @@
     if (fromMeta.length) return fromMeta;
     return [
       'Pre-foreclosure', 'Tax delinquent', 'Vacant', 'Code violation',
-      'Water shut-off', 'Probate / estate', 'Absentee owner', 'High equity',
+      'Probate / estate', 'Absentee owner', 'High equity',
       'Long Open Case', 'Repeat Enforcement', 'Chronic Property',
       'Liens', 'Bankruptcy', 'Divorce', 'Fire damage'
     ];
@@ -573,34 +573,6 @@
     }
   }
 
-  function renderPresetSelect() {
-    const sel = $('vault-presets');
-    if (!sel) return;
-    const prev = sel.value;
-    const presets = state.overlays.presets || [];
-    sel.innerHTML = '<option value="">Load pull…</option>' + presets.map((p, i) =>
-      `<option value="${i}">${esc(p.name || `Pull ${i + 1}`)}</option>`
-    ).join('');
-    if (prev !== '' && presets[Number(prev)]) sel.value = prev;
-    updatePullActions();
-  }
-
-  function selectedPullIndex() {
-    const sel = $('vault-presets');
-    if (!sel || sel.value === '') return -1;
-    const idx = Number(sel.value);
-    return Number.isFinite(idx) ? idx : -1;
-  }
-
-  function updatePullActions() {
-    const idx = selectedPullIndex();
-    const has = idx >= 0;
-    const del = $('vault-delete-preset');
-    const exp = $('vault-export-pull');
-    if (del) del.disabled = !has;
-    if (exp) exp.disabled = !has;
-  }
-
   function applyListFacets(data = {}) {
     state.byTypeFiltered = data.byTypeFiltered || null;
     state.statesFiltered = Array.isArray(data.statesFiltered) ? data.statesFiltered : null;
@@ -623,7 +595,6 @@
     renderSyncStatus();
     applyListFacets(data);
     renderSignalChips();
-    renderPresetSelect();
     renderResults();
     renderPagination();
     renderResultsMeta();
@@ -3075,88 +3046,6 @@
       if (e.key === 'Enter') {
         e.preventDefault();
         applyRadiusFromAddress();
-      }
-    });
-
-    $('vault-presets')?.addEventListener('change', (e) => {
-      const idx = e.target.value;
-      updatePullActions();
-      if (idx === '') return;
-      const preset = state.overlays.presets[Number(idx)];
-      if (!preset?.filters) return;
-      if (preset.name && $('vault-preset-name')) $('vault-preset-name').value = preset.name;
-      applyFilterSnapshot(preset.filters);
-      showToast(`Loaded pull: ${preset.name || 'Untitled'}`);
-    });
-
-    $('vault-save-preset')?.addEventListener('click', async () => {
-      const input = $('vault-preset-name');
-      const name = (input?.value || '').trim();
-      if (!name) {
-        showToast('Name this pull');
-        input?.focus();
-        return;
-      }
-      try {
-        const presets = [...(state.overlays.presets || [])];
-        const existingIdx = presets.findIndex((p) => String(p.name || '').toLowerCase() === name.toLowerCase());
-        const entry = {
-          id: existingIdx >= 0 ? presets[existingIdx].id : undefined,
-          name,
-          createdAt: existingIdx >= 0 ? presets[existingIdx].createdAt : undefined,
-          filters: currentFilterSnapshot()
-        };
-        if (existingIdx >= 0) presets[existingIdx] = { ...presets[existingIdx], ...entry };
-        else presets.push(entry);
-        const data = await fetchJson('/api/leads/user/presets', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ presets })
-        });
-        state.overlays.presets = data.presets || presets;
-        renderPresetSelect();
-        const sel = $('vault-presets');
-        if (sel) {
-          const idx = (state.overlays.presets || []).findIndex((p) => p.name === name);
-          if (idx >= 0) sel.value = String(idx);
-        }
-        updatePullActions();
-        showToast(existingIdx >= 0 ? 'Pull updated' : 'Pull saved');
-      } catch (err) {
-        showToast(err.message || 'Could not save pull');
-      }
-    });
-
-    $('vault-delete-preset')?.addEventListener('click', async () => {
-      const idx = selectedPullIndex();
-      if (idx < 0) return;
-      const presets = [...(state.overlays.presets || [])];
-      const removed = presets.splice(idx, 1)[0];
-      try {
-        const data = await fetchJson('/api/leads/user/presets', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ presets })
-        });
-        state.overlays.presets = data.presets || presets;
-        renderPresetSelect();
-        if ($('vault-preset-name')) $('vault-preset-name').value = '';
-        showToast(`Deleted ${removed?.name || 'pull'}`);
-      } catch (err) {
-        showToast(err.message || 'Could not delete pull');
-      }
-    });
-
-    $('vault-export-pull')?.addEventListener('click', async () => {
-      const idx = selectedPullIndex();
-      if (idx < 0) return;
-      const preset = state.overlays.presets[idx];
-      if (!preset?.filters) return;
-      try {
-        applyFilterSnapshot(preset.filters);
-        await exportMatchingFilters(preset.name || '', preset.filters);
-      } catch (err) {
-        showToast(err.message || 'Export failed');
       }
     });
 

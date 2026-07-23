@@ -6,6 +6,7 @@
   const STAGE_LABELS = {
     contract_sent: 'Waiting for Signatures',
     under_contract: 'Under contract',
+    buyer_signed_aoc: 'Buyer Signed AOC',
     buyer_found: 'Buyer Submitted EMD',
     funded: 'Funded',
     terminated: 'Terminated'
@@ -14,12 +15,13 @@
   const STAGE_PROCESS_RANK = {
     funded: 0,
     buyer_found: 1,
-    under_contract: 2,
-    contract_sent: 3,
-    verbal_offer: 4,
-    warm: 5,
-    interested: 6,
-    terminated: 7
+    buyer_signed_aoc: 2,
+    under_contract: 3,
+    contract_sent: 4,
+    verbal_offer: 5,
+    warm: 6,
+    interested: 7,
+    terminated: 8
   };
   const DOC_LABELS = {
     purchase_contract: 'Purchase contract',
@@ -58,11 +60,21 @@
       index: 0
     },
     buyerOffers: [],
+    selectedBuyerOfferId: null,
     buyerOfferEditIds: {},
     buyerOfferDrafts: [],
     investorBaseUrl: '',
-    investorBaseEditing: false
+    investorBaseEditing: false,
+    profileTab: 'overview',
+    commChannel: 'seller',
+    mediaRoomFilter: 'all',
+    mediaActiveId: null,
+    /** Per-deal/channel thread scrollTop — open restores, never jumps to bottom. */
+    threadScroll: Object.create(null)
   };
+
+  /** Element to restore focus to when the profile dialog closes. */
+  let profileReturnFocus = null;
 
   function teamUserKey() {
     const u = sessionUser();
@@ -313,10 +325,23 @@
     state.mediaLightbox = { items: [], index: 0 };
   }
 
+  const MONEY_GOAL_TARGET = 100000;
+
   function renderKpis(totals) {
     const t = totals || {};
     const by = t.byStage || {};
-    $('uc-kpi-uc').textContent = String(by.under_contract || t.underContract || 0);
+    // Under Contract KPI = any dispo stage except terminated
+    // (under contract, signed AOC, submitted EMD, funded)
+    const ucKpi =
+      (Number(by.under_contract) || 0) +
+      (Number(by.buyer_signed_aoc) || 0) +
+      (Number(by.buyer_found) || 0) +
+      (Number(by.funded) || 0);
+    const ucFallback =
+      (Number(t.openCount) || 0) + (Number(t.funded ?? t.closedCount) || 0);
+    $('uc-kpi-uc').textContent = String(
+      Object.keys(by).length ? ucKpi : (ucFallback || t.underContract || 0)
+    );
     if ($('uc-kpi-pending-sign')) {
       // Server total; renderTable overrides with the live Waiting-for-Signatures group count.
       $('uc-kpi-pending-sign').textContent = String(t.pendingSignatures ?? by.contract_sent ?? 0);
@@ -329,6 +354,41 @@
     if ($('uc-kpi-avg-funded')) {
       $('uc-kpi-avg-funded').textContent = money(t.avgFundedAssignmentFee ?? 0);
     }
+    renderMoneyGoal(t);
+  }
+
+  /** Lifetime Total Funded → $100k (same source as Command Center). */
+  function renderMoneyGoal(totals) {
+    const panel = $('uc-money-goal');
+    if (!panel) return;
+    const t = totals || {};
+    let funded = Number(t.closedAssignmentFees ?? t.totalAssignmentFees ?? 0);
+    if (!Number.isFinite(funded) || funded < 0) funded = 0;
+    const pct = Math.min(100, Math.round((funded / MONEY_GOAL_TARGET) * 100));
+    const met = funded >= MONEY_GOAL_TARGET;
+    const remaining = Math.max(0, MONEY_GOAL_TARGET - funded);
+
+    if ($('uc-money-current')) $('uc-money-current').textContent = money(funded);
+    if ($('uc-money-target')) $('uc-money-target').textContent = '$100k';
+    if ($('uc-money-pct')) {
+      $('uc-money-pct').textContent = met ? 'Goal hit — keep going' : `${pct}% to goal`;
+    }
+    if ($('uc-money-remaining')) {
+      $('uc-money-remaining').textContent = met ? '' : `${money(remaining)} to go`;
+      $('uc-money-remaining').hidden = met;
+    }
+
+    const fill = $('uc-money-bar-fill');
+    const bar = $('uc-money-bar');
+    if (fill) {
+      const widthPct = met ? 100 : funded > 0 ? Math.max(pct, 3) : 0;
+      fill.style.width = `${widthPct}%`;
+    }
+    if (bar) {
+      bar.setAttribute('aria-valuenow', String(pct));
+      bar.setAttribute('aria-valuetext', `${money(funded)} of $100,000 total funded (${pct}%)`);
+    }
+    panel.classList.toggle('is-met', met);
   }
 
   function formatCountdown(msRemaining, expired) {
@@ -464,6 +524,37 @@
     return new Date(ms).toLocaleString('en-US', opts);
   }
 
+  /**
+   * Overview-only closing date: "Tuesday, July 15, 2026"
+   * (weekday + long month). Board/contracts keep numeric display.
+   */
+  function formatOverviewClosingDate(raw) {
+    const s = String(raw || '').trim();
+    if (!s || s === '—') return '—';
+    let d = null;
+    const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) {
+      d = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]), 12, 0, 0);
+    } else {
+      const slash = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+      if (slash) {
+        let yy = Number(slash[3]);
+        if (yy < 100) yy += 2000;
+        d = new Date(yy, Number(slash[1]) - 1, Number(slash[2]), 12, 0, 0);
+      } else {
+        const ms = Date.parse(s);
+        if (Number.isFinite(ms)) d = new Date(ms);
+      }
+    }
+    if (!d || Number.isNaN(d.getTime())) return s;
+    return d.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
   function formatUcRelative(value) {
     const ms = parseSmsMs(value);
     if (!Number.isFinite(ms)) return '';
@@ -562,46 +653,75 @@
     return score;
   }
 
-  /** Closer to funding first; stable within stage — ignore updatedAt churn. */
-  function compareDealsByProcess(a, b) {
-    const rankA = STAGE_PROCESS_RANK[a?.stage] ?? 50;
-    const rankB = STAGE_PROCESS_RANK[b?.stage] ?? 50;
-    if (rankA !== rankB) return rankA - rankB;
-
-    const progressDiff = dealProcessProgressScore(b) - dealProcessProgressScore(a);
-    if (progressDiff) return progressDiff;
-
-    if (a?.stage === 'funded') {
-      const fundedCmp = String(b?.fundedAt || '').localeCompare(String(a?.fundedAt || ''));
-      if (fundedCmp) return fundedCmp;
+  /** Parse board closing date → ms; missing/invalid sorts last. */
+  function closingSortKey(deal) {
+    const raw = String(deal?.closingDate || deal?.closingDisplay || '').trim();
+    if (!raw || raw === '—') return Number.POSITIVE_INFINITY;
+    const iso = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) {
+      return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]), 12, 0, 0).getTime();
     }
+    const slash = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if (slash) {
+      let yy = Number(slash[3]);
+      if (yy < 100) yy += 2000;
+      return new Date(yy, Number(slash[1]) - 1, Number(slash[2]), 12, 0, 0).getTime();
+    }
+    const ms = Date.parse(raw);
+    return Number.isFinite(ms) ? ms : Number.POSITIVE_INFINITY;
+  }
 
+  /** Soonest closing first — priority board order. */
+  function compareDealsByClosing(a, b) {
+    const ka = closingSortKey(a);
+    const kb = closingSortKey(b);
+    if (ka !== kb) return ka - kb;
     const createdCmp = String(a?.createdAt || '').localeCompare(String(b?.createdAt || ''));
     if (createdCmp) return createdCmp;
-
     return String(a?.dealId || '').localeCompare(String(b?.dealId || ''));
   }
 
-  function sortDealsByProcess(deals) {
-    return (deals || []).slice().sort(compareDealsByProcess);
+  function sortDealsByClosing(deals) {
+    return (deals || []).slice().sort(compareDealsByClosing);
   }
 
-  /** Scannable status chip for board table + cards. */
+  /** End buyer name for board rows (no profile offers required). */
+  function boardEndBuyerName(deal) {
+    const cash = String(deal?.cashBuyerName || '').trim();
+    if (cash && !isPlaceholderBuyerName(cash)) return cash;
+    const ba = deal?.buyerAssignment || {};
+    const entity = String(ba.buyerEntity || ba.buyerContactName || '').trim();
+    if (entity && !isPlaceholderBuyerName(entity)) return entity;
+    const offers = Array.isArray(deal?.buyerOffers) ? deal.buyerOffers : [];
+    const selectedId = deal?.selectedBuyerOfferId;
+    const selected = selectedId
+      ? offers.find((o) => String(o?.id || '') === String(selectedId))
+      : null;
+    const ordered = selected ? [selected, ...offers] : offers;
+    for (const o of ordered) {
+      const n = String(o?.buyerName || '').trim();
+      if (n && !isPlaceholderBuyerName(n)) return n;
+    }
+    return '';
+  }
+
+  /** Scannable status chip for board table + cards. Omit label when empty (board columns have headers). */
   function statusChip(opts) {
     const label = opts.label || '';
+    const labelHtml = label ? `<span class="uc-status-label">${esc(label)}</span>` : '';
     const kind = opts.kind || 'yn';
     if (kind === 'access') {
       return (
-        `<span class="uc-status uc-status--access" data-access="${esc(opts.value || '')}">` +
-        `<span class="uc-status-label">${esc(label)}</span>` +
+        `<span class="uc-status uc-status--access${label ? '' : ' uc-status--value-only'}" data-access="${esc(opts.value || '')}">` +
+        labelHtml +
         `<span class="uc-status-value">${esc(opts.text || '—')}</span>` +
         `</span>`
       );
     }
     if (kind === 'vacancy') {
       return (
-        `<span class="uc-status uc-status--vacancy" data-vacancy="${esc(opts.value || '')}">` +
-        `<span class="uc-status-label">${esc(label)}</span>` +
+        `<span class="uc-status uc-status--vacancy${label ? '' : ' uc-status--value-only'}" data-vacancy="${esc(opts.value || '')}">` +
+        labelHtml +
         `<span class="uc-status-value">${esc(opts.text || '—')}</span>` +
         `</span>`
       );
@@ -609,40 +729,29 @@
     const yn = statusYn(opts.yn);
     const text = opts.text || (yn === 'yes' ? 'Yes' : yn === 'no' ? 'No' : '—');
     return (
-      `<span class="uc-status uc-status--yn" data-yn="${esc(yn)}">` +
-      `<span class="uc-status-label">${esc(label)}</span>` +
+      `<span class="uc-status uc-status--yn${label ? '' : ' uc-status--value-only'}" data-yn="${esc(yn)}">` +
+      labelHtml +
       `<span class="uc-status-value">${esc(text)}</span>` +
       `</span>`
     );
   }
 
   function dealChecklistHtml(d) {
+    // Values only — column/card context supplies meaning
     return (
-      statusChip({ label: 'Title', yn: d.titleOpened, text: d.titleOpenedLabel }) +
-      statusChip({ label: 'EMD', yn: d.sellerEmdSubmitted, text: d.sellerEmdLabel }) +
       statusChip({
         kind: 'access',
-        label: 'Access',
         value: d.accessType,
         text: d.accessDisplay || d.accessLabel
       }) +
       statusChip({
         kind: 'vacancy',
-        label: 'Vacancy',
         value: d.vacancy,
         text: d.vacancyLabel
       }) +
-      statusChip({ label: 'Photos', yn: d.photosAvailable, text: d.photosLabel }) +
-      `<button type="button" class="uc-rehab-cell uc-status-action" data-action="view-rehab" title="View rehab info">` +
-      statusChip({ label: 'Rehab', yn: d.rehabInfoReady, text: d.rehabInfoLabel }) +
-      `<span class="uc-rehab-link">View</span>` +
-      `</button>` +
-      statusChip({ label: 'Buyer', yn: d.buyerFound, text: d.buyerFoundLabel }) +
-      statusChip({ label: 'Buyer EMD', yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel }) +
-      `<button type="button" class="uc-funded-cell uc-status-action" data-action="view-funded" title="Funded breakdown">` +
-      statusChip({ label: 'Funded', yn: d.funded, text: d.fundedLabel }) +
-      `<span class="uc-funded-link">View</span>` +
-      `</button>`
+      statusChip({ yn: d.photosAvailable, text: d.photosLabel }) +
+      statusChip({ yn: d.buyerFound, text: d.buyerFoundLabel }) +
+      statusChip({ yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel })
     );
   }
 
@@ -660,12 +769,11 @@
   }
 
   function dispoQuickActionsHtml(d) {
+    // Board is read-only for sends — AOC / JV / Amendment live on Docs auto-flows + profile Docs tab.
     if (isWaitingForSignatures(d)) {
       return '<span class="uc-waiting-chip">Waiting for Signatures</span>';
     }
-    return `${aocQuickBtnHtml(d)}
-      ${jvQuickBtnHtml(d)}
-      <button type="button" class="uc-quick-btn uc-quick-btn--amd" data-action="amendment">Amendment</button>`;
+    return '';
   }
 
   function renderWaitingSection(waiting) {
@@ -677,7 +785,7 @@
     const lead = document.querySelector('#uc-waiting-section .uc-waiting-lead');
     if (!section || !tbody) return;
 
-    const deals = sortDealsByProcess(waiting || []);
+    const deals = sortDealsByClosing(waiting || []);
     if (!deals.length) {
       section.hidden = true;
       tbody.innerHTML = '';
@@ -699,9 +807,6 @@
     const adminOpen = canOpenWaitingDeal();
     tbody.innerHTML = deals.map((d) => {
       const { street, cityLine } = propertyLines(d);
-      const releaseBtn = isAdmin()
-        ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
-        : '';
       const openBtn = adminOpen
         ? '<button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>'
         : '<span class="uc-waiting-locked" title="Admin only">On tracker</span>';
@@ -731,7 +836,6 @@
         <td>
           <div class="uc-row-actions">
             ${openBtn}
-            ${releaseBtn}
           </div>
         </td>
       </tr>`;
@@ -740,9 +844,6 @@
     if (cards) {
       cards.innerHTML = deals.map((d) => {
         const { street, cityLine } = propertyLines(d);
-        const releaseBtn = isAdmin()
-          ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
-          : '';
         const openBtn = adminOpen
           ? '<button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>'
           : '<span class="uc-waiting-locked" title="Admin only">On tracker</span>';
@@ -767,7 +868,86 @@
           ${adminOpen ? `<p class="uc-waiting-seller">${esc(d.ownerName || d.sellerNames || '—')}</p>` : ''}
           <div class="uc-row-actions uc-deal-card-actions">
             ${openBtn}
-            ${releaseBtn}
+          </div>
+        </article>`;
+      }).join('');
+    }
+  }
+
+  function renderFundedSection(funded) {
+    const section = $('uc-funded-section');
+    const tbody = $('uc-funded-tbody');
+    const table = $('uc-funded-table');
+    const cards = $('uc-funded-cards');
+    const count = $('uc-funded-section-count');
+    if (!section || !tbody) return;
+
+    const deals = sortDealsByClosing(funded || []);
+    if (!deals.length) {
+      section.hidden = true;
+      tbody.innerHTML = '';
+      if (cards) cards.innerHTML = '';
+      return;
+    }
+
+    section.hidden = false;
+    if (count) count.textContent = `${deals.length} deal${deals.length === 1 ? '' : 's'}`;
+    if (table) table.hidden = false;
+    if (cards) cards.hidden = false;
+
+    tbody.innerHTML = deals.map((d) => {
+      const { street, cityLine } = propertyLines(d);
+      const stage = STAGE_LABELS[d.stage] || d.stage || 'Funded';
+      const endBuyer = boardEndBuyerName(d) || '—';
+      return `<tr data-deal-id="${esc(d.dealId)}" class="uc-row-clickable">
+        <td class="uc-property-cell">
+          <div class="uc-property-block">
+            <div class="uc-property-main">
+              <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
+                ${thumbHtml(d, 'uc-thumb')}
+              </button>
+              <button type="button" class="uc-property-btn" data-action="open">
+                <span class="uc-property-text">
+                  <span class="uc-addr">${esc(street)}</span>
+                  <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+                </span>
+              </button>
+              ${dealTypeBadgeHtml(d)}
+            </div>
+          </div>
+        </td>
+        <td><span class="uc-stage" data-stage="${esc(d.stage || 'funded')}">${esc(stage)}</span></td>
+        <td class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</td>
+        <td class="uc-end-buyer-cell">${esc(endBuyer)}</td>
+        <td class="uc-money">${esc(money(d.assignmentFee))}</td>
+      </tr>`;
+    }).join('');
+
+    if (cards) {
+      cards.innerHTML = deals.map((d) => {
+        const { street, cityLine } = propertyLines(d);
+        const stage = STAGE_LABELS[d.stage] || d.stage || 'Funded';
+        const endBuyer = boardEndBuyerName(d) || '—';
+        return `<article class="uc-deal-card uc-deal-card--funded" data-deal-id="${esc(d.dealId)}">
+          <div class="uc-deal-card-head">
+            <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
+              ${thumbHtml(d, 'uc-thumb')}
+            </button>
+            <button type="button" class="uc-property-btn" data-action="open">
+              <span class="uc-property-text">
+                <span class="uc-addr">${esc(street)}</span>
+                <span class="uc-addr-meta">${esc(cityLine || '—')}</span>
+              </span>
+            </button>
+          </div>
+          <div class="uc-deal-card-meta">
+            <span class="uc-stage" data-stage="${esc(d.stage || 'funded')}">${esc(stage)}</span>
+            <span class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</span>
+          </div>
+          <p class="uc-funded-buyer">${esc(endBuyer)}</p>
+          <p class="uc-funded-spread uc-money">${esc(money(d.assignmentFee))}</p>
+          <div class="uc-row-actions uc-deal-card-actions">
+            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>
           </div>
         </article>`;
       }).join('');
@@ -782,11 +962,13 @@
     const count = $('uc-board-count');
     if (!tbody) return;
 
-    // Contract Tracker: dispo stages in main table; contract_sent in Waiting section
-    const DISPO = new Set(['under_contract', 'buyer_found', 'funded', 'terminated']);
+    // Active dispo (not funded) in main table; contract_sent → Waiting; funded → Funded section.
+    // Sorted soonest closing → latest so upcoming closes surface first.
+    const ACTIVE = new Set(['under_contract', 'buyer_signed_aoc', 'buyer_found', 'terminated']);
     const all = Array.isArray(deals) ? deals : [];
     const waiting = all.filter((d) => isWaitingForSignatures(d));
-    deals = sortDealsByProcess(all.filter((d) => DISPO.has(d.stage)));
+    const funded = all.filter((d) => String(d?.stage || '') === 'funded');
+    deals = sortDealsByClosing(all.filter((d) => ACTIVE.has(d.stage)));
 
     // Pending Signatures KPI mirrors the Waiting-for-Signatures group exactly.
     if ($('uc-kpi-pending-sign')) {
@@ -794,6 +976,7 @@
     }
 
     renderWaitingSection(waiting);
+    renderFundedSection(funded);
 
     if (!deals.length) {
       if (table) table.hidden = true;
@@ -801,8 +984,10 @@
         cards.hidden = true;
         cards.innerHTML = '';
       }
-      empty.hidden = waiting.length > 0;
-      if (count) count.textContent = waiting.length ? '0 under contract' : '0 deals';
+      empty.hidden = waiting.length > 0 || funded.length > 0;
+      if (count) {
+        count.textContent = (waiting.length || funded.length) ? '0 open deals' : '0 deals';
+      }
       tbody.innerHTML = '';
       return;
     }
@@ -815,9 +1000,6 @@
     tbody.innerHTML = deals.map((d) => {
       const { street, cityLine } = propertyLines(d);
       const stage = STAGE_LABELS[d.stage] || d.stage || '—';
-      const releaseBtn = isAdmin()
-        ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
-        : '';
       return `<tr data-deal-id="${esc(d.dealId)}" class="uc-row-clickable">
         <td class="uc-property-cell">
           <div class="uc-property-block">
@@ -845,41 +1027,19 @@
         <td><span class="uc-stage" data-stage="${esc(d.stage)}">${esc(stage)}</span></td>
         <td class="uc-money">${esc(money(d.purchasePrice))}</td>
         <td class="uc-closing-cell">${esc(d.closingDisplay || d.closingDate || '—')}</td>
-        <td>${statusChip({ label: 'Title', yn: d.titleOpened, text: d.titleOpenedLabel })}</td>
-        <td>${statusChip({ label: 'EMD', yn: d.sellerEmdSubmitted, text: d.sellerEmdLabel })}</td>
         <td>${statusChip({
           kind: 'access',
-          label: 'Access',
           value: d.accessType,
           text: d.accessDisplay || d.accessLabel
         })}</td>
         <td>${statusChip({
           kind: 'vacancy',
-          label: 'Vacancy',
           value: d.vacancy,
           text: d.vacancyLabel
         })}</td>
-        <td>${statusChip({ label: 'Photos', yn: d.photosAvailable, text: d.photosLabel })}</td>
-        <td>
-          <button type="button" class="uc-rehab-cell uc-status-action" data-action="view-rehab" title="View rehab info">
-            ${statusChip({ label: 'Rehab', yn: d.rehabInfoReady, text: d.rehabInfoLabel })}
-            <span class="uc-rehab-link">View</span>
-          </button>
-        </td>
-        <td>${statusChip({ label: 'Buyer', yn: d.buyerFound, text: d.buyerFoundLabel })}</td>
-        <td>${statusChip({ label: 'Buyer EMD', yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel })}</td>
-        <td>
-          <button type="button" class="uc-funded-cell uc-status-action" data-action="view-funded" title="Funded breakdown">
-            ${statusChip({ label: 'Funded', yn: d.funded, text: d.fundedLabel })}
-            <span class="uc-funded-link">View</span>
-          </button>
-        </td>
-        <td>
-          <div class="uc-row-actions">
-            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="edit">Edit</button>
-            ${releaseBtn}
-          </div>
-        </td>
+        <td>${statusChip({ yn: d.photosAvailable, text: d.photosLabel })}</td>
+        <td>${statusChip({ yn: d.buyerFound, text: d.buyerFoundLabel })}</td>
+        <td>${statusChip({ yn: d.buyerEmdSubmitted, text: d.buyerEmdLabel })}</td>
       </tr>`;
     }).join('');
 
@@ -887,9 +1047,6 @@
       cards.innerHTML = deals.map((d) => {
         const { street, cityLine } = propertyLines(d);
         const stage = STAGE_LABELS[d.stage] || d.stage || '—';
-        const releaseBtn = isAdmin()
-          ? '<button type="button" class="phuglee-btn phuglee-btn-ghost uc-release-btn" data-action="release" data-admin-only>Release</button>'
-          : '';
         return `<article class="uc-deal-card" data-deal-id="${esc(d.dealId)}">
           <div class="uc-deal-card-head">
             <button type="button" class="uc-thumb-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">
@@ -919,9 +1076,7 @@
             ${dispoQuickActionsHtml(d)}
           </div>
           <div class="uc-row-actions uc-deal-card-actions">
-            <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="edit">Edit</button>
             <button type="button" class="phuglee-btn phuglee-btn-ghost" data-action="open">Open</button>
-            ${releaseBtn}
           </div>
         </article>`;
       }).join('');
@@ -1040,21 +1195,6 @@
       }
     }).catch(() => { /* ignore flag errors */ });
 
-    const status = $('uc-ghl-status');
-    const syncBtn = $('uc-sync-ghl');
-    if (status) {
-      if (!state.ghlConfigured) {
-        status.hidden = false;
-        status.classList.add('is-warn');
-        status.textContent = 'GHL not configured — set GHL_API_KEY and GHL_LOCATION_ID, then Sync.';
-      } else {
-        status.hidden = false;
-        status.classList.remove('is-warn');
-        status.textContent = 'GHL connected · Sync pulls DTS Seller Signed → Funded · Open a deal to text from the last outbound line.';
-      }
-    }
-    if (syncBtn) syncBtn.disabled = false;
-
     if (!opts.silent && !state.deepLinkHandled) {
       state.deepLinkHandled = true;
       await handleDeepLink();
@@ -1124,6 +1264,14 @@
     pulse.title = tip;
     pulse.setAttribute('aria-label', tip);
     syncMarkReadButton(unread);
+    // Keep Comms tab unread chip in sync with seller SMS pulse
+    const commsTab = $('uc-tab-comms');
+    if (commsTab) {
+      commsTab.classList.toggle('has-unread', unread);
+      commsTab.setAttribute('data-summary', unread ? '1' : '0');
+      if (unread) commsTab.setAttribute('aria-label', 'Comms, unread seller texts');
+      else commsTab.removeAttribute('aria-label');
+    }
   }
 
   function syncMarkReadButton(unreadExplicit) {
@@ -1133,14 +1281,13 @@
       || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId))
       || null;
     const unread = unreadExplicit != null ? !!unreadExplicit : !!(deal?.sellerSmsUnread);
-    // Always show while a deal is open so the control is discoverable.
-    btn.hidden = !state.activeDealId;
+    // Only when there is unread seller SMS (premium Comms: actions context-only)
+    btn.hidden = !state.activeDealId || !unread;
     btn.disabled = false;
     btn.classList.toggle('is-unread', unread);
     btn.setAttribute('aria-pressed', unread ? 'false' : 'true');
-    btn.title = unread
-      ? 'Mark seller texts as read (clear unread badge)'
-      : 'Seller texts already marked read — click to confirm';
+    btn.textContent = 'Mark read';
+    btn.title = 'Mark seller texts as read';
     btn.textContent = unread ? 'Mark as read' : 'Marked read';
   }
 
@@ -1187,36 +1334,313 @@
     if (btn) btn.setAttribute('aria-expanded', next ? 'true' : 'false');
     if (body) body.hidden = !next;
     if (next) {
-      // Threads rendered while collapsed sit at scrollTop 0 — jump to latest when opened.
+      // Restore last read position (do not force-jump to newest).
       requestAnimationFrame(() => scrollOpenCommunicationThreads(panel));
     }
     return panel;
   }
 
-  /** Scroll message lists to the newest message (chat-style bottom). */
+  const PROFILE_TABS = ['overview', 'comms', 'docs', 'media', 'walkthroughs', 'buyers'];
+
+  function prefersReducedMotion() {
+    try {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /** Flash only meaningful state changes (send / sign import / scan) — not decoration. */
+  function flashState(el) {
+    if (!el || prefersReducedMotion()) return;
+    el.classList.remove('uc-flash-state');
+    void el.offsetWidth;
+    el.classList.add('uc-flash-state');
+    const done = () => {
+      el.classList.remove('uc-flash-state');
+      el.removeEventListener('animationend', done);
+    };
+    el.addEventListener('animationend', done);
+  }
+
+  function scrollInstrumentIntoView(el) {
+    if (!el) return;
+    try {
+      el.scrollIntoView({
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+        block: 'nearest'
+      });
+    } catch (_) {
+      el.scrollIntoView(true);
+    }
+  }
+
+  /**
+   * Cross-tab deep link: open instrument, optional channel, scroll + flash target.
+   * Used by Overview blockers, SMS pulse, primary CTA, and board open opts.
+   */
+  function navigateProfileInstrument(tabId, opts = {}) {
+    const tab = PROFILE_TABS.includes(tabId) ? tabId : 'overview';
+    showProfileTab(tab);
+    if (tab === 'comms' || opts.channel) {
+      showCommChannel(opts.channel || (tab === 'comms' ? 'seller' : state.commChannel) || 'seller');
+    }
+    requestAnimationFrame(() => {
+      let focusEl = null;
+      const focus = opts.focus || '';
+      if (focus === 'docs-attention' || focus === 'docs-packages' || opts.packageKey) {
+        focusEl = opts.packageKey
+          ? document.querySelector(
+            `#uc-docs-pending-list .uc-docs-row[data-pkg-key="${CSS.escape(opts.packageKey)}"], ` +
+            `#uc-docs-signed-list .uc-docs-row[data-pkg-key="${CSS.escape(opts.packageKey)}"]`
+          )
+          : ($('uc-docs-pending-list') || $('uc-docs-instrument') || $('uc-panel-docs'));
+      } else if (focus === 'buyers-leader' || tab === 'buyers') {
+        focusEl = $('uc-buyers-leader') || $('uc-buyers-econ') || $('uc-panel-buyers');
+      } else if (focus === 'scan' || focus === 'media-hero') {
+        focusEl = $('uc-evidence-hero') || $('uc-scan-lines') || $('uc-evidence-instrument');
+      } else if (tab === 'media') {
+        focusEl = $('uc-evidence-instrument') || $('uc-media-rooms');
+      } else if (tab === 'comms') {
+        focusEl = $('uc-convo-thread') || document.querySelector('.uc-comm-shell');
+      } else if (focus === 'overview-snap' || tab === 'overview') {
+        focusEl = document.querySelector('#uc-drawer-facts .uc-snap-section') || $('uc-drawer-facts');
+      } else if (tab === 'docs') {
+        focusEl = $('uc-docs-pending-list') || $('uc-docs-instrument') || $('uc-panel-docs');
+      }
+      if (opts.el) focusEl = opts.el;
+      scrollInstrumentIntoView(focusEl);
+      if (opts.flash !== false) flashState(focusEl);
+    });
+    return tab;
+  }
+
+  function showProfileTab(tabId) {
+    const tab = PROFILE_TABS.includes(tabId) ? tabId : 'overview';
+    state.profileTab = tab;
+    document.querySelectorAll('.uc-profile-tabs [role="tab"]').forEach((btn) => {
+      const on = btn.getAttribute('data-tab') === tab;
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+      btn.tabIndex = on ? 0 : -1;
+    });
+    document.querySelectorAll('.uc-profile-tabpanel').forEach((panel) => {
+      const on = panel.getAttribute('data-tab') === tab;
+      panel.hidden = !on;
+      panel.classList.toggle('is-active', on);
+    });
+    // Comms: hide property hero so the thread owns the modal (big visual change)
+    const drawer = $('uc-drawer');
+    if (drawer) drawer.classList.toggle('uc-comms-focus', tab === 'comms');
+    // Tab sections are always open (no accordion). Comms still needs channel visibility.
+    if (tab === 'comms') {
+      showCommChannel(state.commChannel || 'seller');
+      // Phone-style: open Comms on the latest message.
+      requestAnimationFrame(() => pinActiveCommThreadToLatest());
+    }
+    if (tab === 'walkthroughs') {
+      renderWalkthroughs(state.profile);
+    }
+    if (tab === 'buyers') {
+      renderBuyerOffers();
+    }
+    return tab;
+  }
+
+  function pinActiveCommThreadToLatest() {
+    const ch = state.commChannel || 'seller';
+    if (ch === 'seller') scrollThreadToLatest($('uc-convo-thread'));
+    else if (ch === 'internal') scrollThreadToLatest($('uc-team-thread'));
+    else if (ch === 'photo') scrollThreadToLatest($('uc-photo-thread'));
+  }
+
+  const COMM_CHANNELS = ['seller', 'internal', 'photo'];
+
+  function showCommChannel(channel) {
+    // Snapshot the channel we're leaving before switching panes.
+    saveThreadScroll($('uc-convo-thread'));
+    saveThreadScroll($('uc-team-thread'));
+    saveThreadScroll($('uc-photo-thread'));
+    const ch = COMM_CHANNELS.includes(channel) ? channel : 'seller';
+    state.commChannel = ch;
+    const map = {
+      seller: 'uc-convo-section',
+      internal: 'uc-team-section',
+      photo: 'uc-photo-convo-section'
+    };
+    Object.entries(map).forEach(([key, id]) => {
+      const el = $(id);
+      if (!el) return;
+      const on = key === ch;
+      el.hidden = !on;
+      if (on) setPanelOpen(el, true);
+    });
+    document.querySelectorAll('.uc-comm-channel').forEach((btn) => {
+      const on = btn.getAttribute('data-channel') === ch;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-selected', on ? 'true' : 'false');
+      btn.tabIndex = on ? 0 : -1;
+    });
+    // Phone-style: switching channels lands on the newest message.
+    requestAnimationFrame(() => pinActiveCommThreadToLatest());
+    return ch;
+  }
+
+  function bindCommChannels() {
+    const list = document.querySelector('#uc-drawer .uc-comm-channels');
+    if (!list || list.dataset.bound === '1') return;
+    list.dataset.bound = '1';
+    list.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-channel]');
+      if (!btn || !list.contains(btn)) return;
+      showCommChannel(btn.getAttribute('data-channel'));
+      btn.focus();
+    });
+    list.addEventListener('keydown', (ev) => {
+      const tabs = Array.from(list.querySelectorAll('[data-channel]'));
+      const i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      let next = -1;
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') next = (i + 1) % tabs.length;
+      else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length;
+      else if (ev.key === 'Home') next = 0;
+      else if (ev.key === 'End') next = tabs.length - 1;
+      else return;
+      ev.preventDefault();
+      const t = tabs[next];
+      showCommChannel(t.getAttribute('data-channel'));
+      t.focus();
+    });
+  }
+
+  function defaultProfileTab(deal, opts = {}) {
+    // Explicit deep-links only — normal board open always lands on Overview
+    if (opts.scrollToSms) return { tab: 'comms', channel: 'seller' };
+    if (opts.scrollToTeam) return { tab: 'comms', channel: 'internal' };
+    return { tab: 'overview' };
+  }
+
+  function bindProfileTabs() {
+    const tablist = document.querySelector('#uc-drawer .uc-profile-tabs');
+    if (!tablist || tablist.dataset.bound === '1') return;
+    tablist.dataset.bound = '1';
+    tablist.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[role="tab"]');
+      if (!btn || !tablist.contains(btn)) return;
+      showProfileTab(btn.getAttribute('data-tab'));
+      btn.focus();
+    });
+    tablist.addEventListener('keydown', (ev) => {
+      const tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+      const i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      let next = -1;
+      if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') next = (i + 1) % tabs.length;
+      else if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') next = (i - 1 + tabs.length) % tabs.length;
+      else if (ev.key === 'Home') next = 0;
+      else if (ev.key === 'End') next = tabs.length - 1;
+      else return;
+      ev.preventDefault();
+      const t = tabs[next];
+      showProfileTab(t.getAttribute('data-tab'));
+      t.focus();
+    });
+  }
+
+  function channelForThreadEl(box) {
+    if (!box) return state.commChannel || 'seller';
+    if (box.id === 'uc-team-thread') return 'internal';
+    if (box.id === 'uc-photo-thread') return 'photo';
+    if (box.id === 'uc-convo-thread') return 'seller';
+    return state.commChannel || 'seller';
+  }
+
+  function threadScrollKey(channel) {
+    return `${state.activeDealId || ''}:${channel || state.commChannel || 'seller'}`;
+  }
+
+  function saveThreadScroll(box) {
+    if (!box || !state.activeDealId) return;
+    try {
+      state.threadScroll[threadScrollKey(channelForThreadEl(box))] = box.scrollTop;
+    } catch (_) { /* ignore */ }
+  }
+
+  /** Cancel pending pin-to-bottom jobs for a thread (user is reading history). */
+  function cancelThreadPin(box) {
+    if (!box) return;
+    box._pinGen = (box._pinGen || 0) + 1;
+  }
+
+  /**
+   * Pin to latest message. Used on open / send / channel switch only.
+   * Delayed image re-pins are cancelled if the user scrolls up (reading history).
+   */
   function scrollThreadToLatest(box) {
     if (!box) return;
-    const go = () => {
+    const gen = (box._pinGen = (box._pinGen || 0) + 1);
+    const hardGo = () => {
+      if (box._pinGen !== gen) return;
       try {
         box.scrollTop = box.scrollHeight;
+        saveThreadScroll(box);
       } catch (_) { /* ignore */ }
     };
-    go();
+    // Soft go: only follow if still near the bottom (never yank history readers).
+    const softGo = () => {
+      if (box._pinGen !== gen) return;
+      if (!isThreadNearBottom(box, 140)) return;
+      hardGo();
+    };
+    hardGo();
     requestAnimationFrame(() => {
-      go();
-      requestAnimationFrame(go);
+      hardGo();
+      requestAnimationFrame(hardGo);
     });
     box.querySelectorAll('img, video').forEach((el) => {
       if (el.tagName === 'IMG' && !el.complete) {
-        el.addEventListener('load', go, { once: true });
-        el.addEventListener('error', go, { once: true });
+        el.addEventListener('load', softGo, { once: true });
+        el.addEventListener('error', softGo, { once: true });
       }
       if (el.tagName === 'VIDEO') {
-        el.addEventListener('loadedmetadata', go, { once: true });
+        el.addEventListener('loadedmetadata', softGo, { once: true });
       }
     });
-    setTimeout(go, 50);
-    setTimeout(go, 200);
+    setTimeout(softGo, 50);
+    setTimeout(softGo, 200);
+    setTimeout(softGo, 450);
+  }
+
+  /** After re-render while reading: restore exact scrollTop — never jump to bottom. */
+  function applyPreservedScroll(box, prevScroll) {
+    if (!box) return;
+    cancelThreadPin(box);
+    const go = () => {
+      try {
+        box.scrollTop = prevScroll;
+        saveThreadScroll(box);
+      } catch (_) { /* ignore */ }
+    };
+    go();
+    requestAnimationFrame(go);
+  }
+
+  /** Live tail: only if already at bottom before paint (new msgs while following). */
+  function followBottomIfWasThere(box, wasNearBottom) {
+    if (!box) return;
+    if (wasNearBottom) {
+      // One-shot pin — no multi-timeout yank chain.
+      cancelThreadPin(box);
+      try {
+        box.scrollTop = box.scrollHeight;
+        saveThreadScroll(box);
+      } catch (_) { /* ignore */ }
+      requestAnimationFrame(() => {
+        try {
+          box.scrollTop = box.scrollHeight;
+          saveThreadScroll(box);
+        } catch (_) { /* ignore */ }
+      });
+    }
   }
 
   function scrollOpenCommunicationThreads(panel) {
@@ -1231,10 +1655,22 @@
     if (id === 'uc-photo-convo-section' || id === 'uc-communication-section') {
       scrollThreadToLatest($('uc-photo-thread'));
     }
-    // Nested panel without id: still try known threads if visible
     if (!id && panel.classList.contains('uc-convo')) {
       scrollThreadToLatest(panel.querySelector('.uc-convo-thread'));
     }
+  }
+
+  function bindThreadScrollMemory() {
+    ['uc-convo-thread', 'uc-team-thread', 'uc-photo-thread'].forEach((id) => {
+      const el = $(id);
+      if (!el || el.dataset.scrollMemBound === '1') return;
+      el.dataset.scrollMemBound = '1';
+      el.addEventListener('scroll', () => {
+        saveThreadScroll(el);
+        // User moved away from bottom → cancel any pending open/image pin jobs.
+        if (!isThreadNearBottom(el, 140)) cancelThreadPin(el);
+      }, { passive: true });
+    });
   }
 
   function expandPanel(el) {
@@ -1286,16 +1722,19 @@
       pulse.hidden = false;
       pulse.classList.add('is-flash');
     }
-    const section = expandPanel($('uc-convo-section'));
+    showProfileTab('comms');
+    showCommChannel('seller');
+    const section = $('uc-convo-section');
     section?.classList.add('uc-convo--alert');
     setTimeout(() => $('uc-convo-section')?.classList.remove('uc-convo--alert'), 2500);
   }
 
   function scrollToSellerSms() {
     requestAnimationFrame(() => {
-      expandPanel($('uc-communication-section'));
-      const section = expandPanel($('uc-convo-section'));
-      section?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showProfileTab('comms');
+      showCommChannel('seller');
+      $('uc-convo-section')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      // Unread SMS deep-link: jump to latest so the alert is visible.
       scrollThreadToLatest($('uc-convo-thread'));
       $('uc-sms-input')?.focus?.();
     });
@@ -1329,10 +1768,10 @@
   }
 
   function isThreadNearBottom(el, thresholdPx = 96) {
-    if (!el) return true;
-    // Hidden / zero-height threads (collapsed panels) must treat as "at bottom"
-    // so the next paint pins to latest when the panel opens.
-    if (el.clientHeight < 8 || el.scrollHeight <= el.clientHeight + 4) return true;
+    if (!el) return false;
+    // Hidden / zero-height threads: not "near bottom" — open restores memory instead.
+    if (el.clientHeight < 8) return false;
+    if (el.scrollHeight <= el.clientHeight + 4) return true;
     return (el.scrollHeight - el.scrollTop - el.clientHeight) <= thresholdPx;
   }
 
@@ -1408,11 +1847,87 @@
     return /\.(mp4|mov|webm|m4v)(\?|$)/i.test(String(url || ''));
   }
 
+  function mediaRoomKey(m) {
+    const room = String(m?.aiLabel?.room || '').trim().toLowerCase().replace(/\s+/g, '_');
+    return room || 'unlabeled';
+  }
+
+  function mediaRoomLabel(key) {
+    if (!key || key === 'all') return 'All';
+    if (key === 'unlabeled') return 'Unlabeled';
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function filteredMediaList(list) {
+    const media = Array.isArray(list) ? list : [];
+    const filter = state.mediaRoomFilter || 'all';
+    if (filter === 'all') return media;
+    return media.filter((m) => mediaRoomKey(m) === filter);
+  }
+
+  function setEvidenceStage(mediaItem) {
+    // Legacy stage preview removed — Pics tab is a single gallery now.
+    state.mediaActiveId = mediaItem?.id || null;
+    document.querySelectorAll('#uc-media-grid .uc-media-card.is-active').forEach((el) => el.classList.remove('is-active'));
+    if (mediaItem?.id) {
+      document.querySelector(`#uc-media-grid .uc-media-card[data-media-id="${CSS.escape(String(mediaItem.id))}"]`)
+        ?.classList.add('is-active');
+    }
+  }
+
+  function mediaSourceLabel(m) {
+    const src = String(m?.uploadSource || m?.source || '').toLowerCase();
+    if (src === 'photographer' || src === 'photo') return 'Photographer';
+    if (src === 'desk' || src === 'upload' || src === 'manual') return 'Upload';
+    if (src === 'seller' || src === 'sms') return 'Seller';
+    if (src && src !== 'seller') return src.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    return '';
+  }
+
+  function openEvidenceFromMediaIds(mediaIds) {
+    const media = state.profile?.sellerMedia || [];
+    const ids = Array.isArray(mediaIds) ? mediaIds.map(String) : [];
+    const hit = media.find((m) => ids.includes(String(m.id)));
+    if (hit) {
+      if (hit.aiLabel?.room) state.mediaRoomFilter = mediaRoomKey(hit);
+      renderMedia(media);
+      setEvidenceStage(hit);
+      openMediaLightbox(media, hit.id);
+      return;
+    }
+    showToast('No cited photos linked to this line');
+  }
+
+  function renderMediaRooms(media) {
+    const box = $('uc-media-rooms');
+    if (!box) return;
+    const counts = { all: media.length };
+    for (const m of media) {
+      const k = mediaRoomKey(m);
+      counts[k] = (counts[k] || 0) + 1;
+    }
+    const keys = Object.keys(counts).filter((k) => k !== 'all').sort((a, b) => {
+      if (a === 'unlabeled') return 1;
+      if (b === 'unlabeled') return -1;
+      return a.localeCompare(b);
+    });
+    const filter = state.mediaRoomFilter || 'all';
+    if (filter !== 'all' && !counts[filter]) state.mediaRoomFilter = 'all';
+    const active = state.mediaRoomFilter || 'all';
+    const chips = [{ key: 'all', n: counts.all }, ...keys.map((k) => ({ key: k, n: counts[k] }))];
+    box.innerHTML = chips.map((c) =>
+      `<button type="button" class="uc-media-room-chip${c.key === active ? ' is-active' : ''}" data-room="${esc(c.key)}" role="tab" aria-selected="${c.key === active ? 'true' : 'false'}">${esc(mediaRoomLabel(c.key))} <span>${c.n}</span></button>`
+    ).join('');
+  }
+
   function renderMedia(list) {
     const box = $('uc-media-grid');
     const zip = $('uc-media-zip');
+    const countMeta = $('uc-media-count-meta');
+    const drop = $('uc-evidence-drop');
     if (!box) return;
     const media = Array.isArray(list) ? list : (state.profile?.sellerMedia || []);
+    if (state.profile) state.profile.sellerMedia = media;
     if (zip) {
       if (media.length && state.activeDealId) {
         zip.hidden = false;
@@ -1423,31 +1938,47 @@
         zip.removeAttribute('href');
       }
     }
+    if (countMeta) {
+      countMeta.textContent = media.length
+        ? `${media.length} photo${media.length === 1 ? '' : 's'}`
+        : '0 photos';
+    }
+    if (drop) drop.classList.toggle('is-empty', !media.length);
+
     if (!media.length) {
-      box.innerHTML = '<p class="uc-media-empty">No saved media yet. Hover a photo/video in Seller texts and click Save, or Upload from desk.</p>';
+      box.innerHTML =
+        `<div class="uc-pics-empty">` +
+          `<strong>No pictures yet</strong>` +
+          `<p>Drop photos here, use Upload, or save media from Seller / Photographer texts in Comms.</p>` +
+        `</div>`;
+      state.mediaActiveId = null;
+      syncProfileTabSummaries(state.profile);
       return;
     }
+
     box.innerHTML = media.map((m) => {
       const video = m.kind === 'video' || isVideoUrl(m.viewUrl || m.name, m.mimeType);
       const src = m.viewUrl || '';
       const preview = video
         ? `<video src="${esc(src)}" muted playsinline preload="metadata"></video>`
-        : `<img src="${esc(src)}" alt="${esc(m.name || 'Media')}" loading="lazy">`;
-      const label = m.aiLabel?.room
-        ? `<span class="uc-media-ai">${esc(m.aiLabel.room)}${m.aiLabel.severity ? ' · sev ' + m.aiLabel.severity : ''}</span>`
-        : '';
-      const srcChip = m.uploadSource && m.uploadSource !== 'seller'
-        ? `<span class="uc-media-src">${esc(m.uploadSource)}</span>`
-        : '';
-      return `<div class="uc-media-card" data-media-id="${esc(m.id)}" data-media-open="1" title="Click to enlarge">
-        ${preview}
-        <div class="uc-media-card-meta">${srcChip}${label}</div>
-        <div class="uc-media-card-actions">
-          <a href="${esc(m.downloadUrl || (src + (src.includes('?') ? '&' : '?') + 'download=1'))}" download>Download</a>
-          <button type="button" data-media-action="remove">Remove</button>
-        </div>
-      </div>`;
+        : `<img src="${esc(src)}" alt="${esc(m.name || 'Property photo')}" loading="lazy">`;
+      const source = mediaSourceLabel(m);
+      const srcChip = source ? `<span class="uc-pics-src">${esc(source)}</span>` : '';
+      const active = state.mediaActiveId && String(state.mediaActiveId) === String(m.id) ? ' is-active' : '';
+      const dl = m.downloadUrl || (src + (src.includes('?') ? '&' : '?') + 'download=1');
+      return (
+        `<article class="uc-media-card uc-pics-tile${active}" data-media-id="${esc(m.id)}" data-media-open="1" title="Open picture">` +
+          `${preview}` +
+          `<div class="uc-media-card-meta">${srcChip}</div>` +
+          `<div class="uc-media-card-actions">` +
+            `<a href="${esc(dl)}" download>Download</a>` +
+            `<button type="button" data-media-action="remove">Remove</button>` +
+          `</div>` +
+        `</article>`
+      );
     }).join('');
+
+    syncProfileTabSummaries(state.profile);
   }
 
   function uploadUrlFromDeal(deal) {
@@ -1482,55 +2013,88 @@
   }
 
   function renderConditionScan(deal) {
+    // Condition-scan UI removed from Pics + Rehab tab — keep no-op for older callers.
+    if (!$('uc-scan-summary') && !$('uc-evidence-hero-total') && !$('uc-scan-lines')) return;
     const scan = deal?.conditionScan;
     const summary = $('uc-scan-summary');
     const linesBox = $('uc-scan-lines');
     const walk = $('uc-scan-walk');
     const prov = $('uc-scan-provenance');
     const meta = $('uc-scan-meta');
+    const heroTotal = $('uc-evidence-hero-total');
+    const heroSub = $('uc-evidence-hero-sub');
+    const heroStats = $('uc-evidence-hero-stats');
     if ($('uc-scan-finish') && scan?.finishGrade) $('uc-scan-finish').value = scan.finishGrade;
     if ($('uc-scan-sqft') && scan?.livingSqft) $('uc-scan-sqft').value = scan.livingSqft;
     if ($('uc-scan-contingency') && scan?.contingencyPct != null) $('uc-scan-contingency').value = scan.contingencyPct;
 
-    if (!scan || scan.status === 'idle' || (!scan.lines?.length && scan.status !== 'labeling' && scan.status !== 'scanning')) {
-      if (summary) {
-        summary.innerHTML = `<p>No scan yet. Save media (seller SMS, photographer, or desk upload) then hit Rescan.</p>` +
-          `<p class="uc-docs-meta">Status: ${esc(scan?.status || 'idle')}${scan?.jobError ? ' · ' + esc(scan.jobError) : ''}</p>`;
+    const labeledCount = Array.isArray(deal?.sellerMedia)
+      ? deal.sellerMedia.filter((m) => m.aiLabel?.room).length
+      : (scan?.labeledCount || 0);
+    const mediaCount = Array.isArray(deal?.sellerMedia) ? deal.sellerMedia.length : (scan?.mediaCount || 0);
+
+    if (!scan || scan.status === 'idle' || (!scan.lines?.length && scan.status !== 'labeling' && scan.status !== 'scanning' && scan.status !== 'queued')) {
+      if (heroTotal) heroTotal.textContent = '—';
+      if (heroSub) {
+        heroSub.textContent = mediaCount
+          ? `${mediaCount} photo${mediaCount === 1 ? '' : 's'} on deal · run Rescan for an estimate`
+          : 'Add photos, then Rescan for a screening-grade rehab number';
       }
-      if (linesBox) linesBox.innerHTML = '';
+      if (heroStats) {
+        heroStats.hidden = true;
+        heroStats.innerHTML = '';
+      }
+      if (summary) {
+        summary.hidden = true;
+        summary.innerHTML = '';
+      }
+      if (linesBox) {
+        linesBox.innerHTML = mediaCount
+          ? '<div class="uc-empty-workflow" style="min-height:5rem;padding:1rem"><strong class="uc-empty-workflow-title">No estimate lines yet</strong><p class="uc-empty-workflow-body">Photos are ready. Hit Rescan to build cited rehab lines.</p></div>'
+          : '<div class="uc-empty-workflow" style="min-height:5rem;padding:1rem"><strong class="uc-empty-workflow-title">No line items</strong><p class="uc-empty-workflow-body">Evidence photos drive the estimate. Upload or save from Comms first.</p></div>';
+      }
       if (walk) { walk.hidden = true; walk.innerHTML = ''; }
       if (prov) prov.textContent = '';
-      if (meta) meta.textContent = 'Screening-grade estimate from photos + cost book (not a contractor bid)';
+      if (meta) meta.textContent = 'Evidence · screening estimate (not a contractor bid)';
       return;
     }
 
-    const labeledCount = Array.isArray(deal?.sellerMedia)
-      ? deal.sellerMedia.filter((m) => m.aiLabel?.room).length
-      : (scan.labeledCount || 0);
-    const mediaCount = Array.isArray(deal?.sellerMedia) ? deal.sellerMedia.length : (scan.mediaCount || 0);
-    const quotaNote = scan.jobError && /quota|billing|429/i.test(scan.jobError)
-      ? `<p class="uc-scan-warn">Gemini quota hit — labeled ${labeledCount}/${mediaCount} photos. Fix the GEMINI_API_KEY billing/quota on Railway, then hit Rescan to finish the rest.</p>`
-      : (scan.jobError
-        ? `<p class="uc-scan-warn">${esc(scan.jobError)}</p>`
-        : (labeledCount < mediaCount && mediaCount
-          ? `<p class="uc-docs-meta">Labeled ${labeledCount}/${mediaCount} photos — Rescan to finish unlabeled.</p>`
-          : ''));
+    const conf = scan.confidence || '—';
+    const mid = scan.totals?.withContingency ?? scan.totals?.active;
+    if (heroTotal) heroTotal.textContent = moneyPlain(mid);
+    if (heroSub) {
+      if (scan.status === 'labeling' || scan.status === 'scanning' || scan.status === 'queued') {
+        heroSub.textContent = `${scan.status}… labeling photos / building lines`;
+      } else {
+        heroSub.textContent = [
+          scan.finishGrade || 'investor',
+          conf !== '—' ? `${conf} confidence` : '',
+          labeledCount || mediaCount ? `${labeledCount}/${mediaCount || '?'} labeled` : ''
+        ].filter(Boolean).join(' · ');
+      }
+    }
+    if (heroStats) {
+      heroStats.hidden = false;
+      heroStats.innerHTML =
+        `<div><span>Active</span><strong class="uc-money-display">${moneyPlain(scan.totals?.active)}</strong></div>` +
+        `<div><span>+ Cont. ${esc(String(scan.contingencyPct ?? 10))}%</span><strong class="uc-money-display">${moneyPlain(scan.totals?.withContingency)}</strong></div>` +
+        `<div><span>Voided</span><strong class="uc-money-display">${moneyPlain(scan.totals?.voided)}</strong></div>` +
+        `<div><span>Confidence</span><strong class="uc-scan-conf uc-scan-conf--${esc(conf)}">${esc(conf)}</strong></div>`;
+    }
 
-    if (scan.status === 'labeling' || scan.status === 'scanning' || scan.status === 'queued') {
-      if (summary) summary.innerHTML = `<p><strong>${esc(scan.status)}…</strong> AI is labeling photos / building lines.</p>${quotaNote}`;
-    } else if (summary) {
-      const conf = scan.confidence || '—';
-      summary.innerHTML =
-        `<div class="uc-scan-totals">` +
-        `<div><span>Active</span><strong>${moneyPlain(scan.totals?.active)}</strong></div>` +
-        `<div><span>+ Cont. (${esc(String(scan.contingencyPct ?? 10))}%)</span><strong>${moneyPlain(scan.totals?.withContingency)}</strong></div>` +
-        `<div><span>Voided</span><strong>${moneyPlain(scan.totals?.voided)}</strong></div>` +
-        `<div><span>Confidence</span><strong class="uc-scan-conf uc-scan-conf--${esc(conf)}">${esc(conf)}</strong></div>` +
-        `</div>` +
-        `<p>${esc(scan.summary || '')}</p>` +
-        `<p class="uc-docs-meta">${esc(scan.honestyLabel || '')} · labeled ${labeledCount}/${mediaCount || '?'}</p>` +
-        quotaNote +
-        (scan.overPurchaseWarn ? '<p class="uc-scan-warn">Rehab mid is high vs purchase — double-check scope.</p>' : '');
+    const quotaNote = scan.jobError && /quota|billing|429/i.test(scan.jobError)
+      ? `<p class="uc-scan-warn">Gemini quota hit — labeled ${labeledCount}/${mediaCount}. Fix GEMINI_API_KEY billing, then Rescan.</p>`
+      : (scan.jobError ? `<p class="uc-scan-warn">${esc(scan.jobError)}</p>` : '');
+
+    if (summary) {
+      const hasNotes = Boolean(scan.summary || scan.honestyLabel || quotaNote || scan.overPurchaseWarn);
+      summary.hidden = !hasNotes;
+      summary.innerHTML = hasNotes
+        ? (scan.summary ? `<p>${esc(scan.summary)}</p>` : '') +
+          (scan.honestyLabel ? `<p class="uc-docs-meta">${esc(scan.honestyLabel)}</p>` : '') +
+          quotaNote +
+          (scan.overPurchaseWarn ? '<p class="uc-scan-warn">Rehab mid is high vs purchase — double-check scope.</p>' : '')
+        : '';
     }
 
     if (walk && Array.isArray(scan.walkOrder) && scan.walkOrder.length) {
@@ -1543,17 +2107,22 @@
       walk.innerHTML = '';
     }
 
-    const lines = Array.isArray(scan.lines) ? scan.lines : [];
+    const lines = (Array.isArray(scan.lines) ? scan.lines.slice() : []).sort((a, b) => {
+      const av = a.voided ? -1 : Number(a.total) || 0;
+      const bv = b.voided ? -1 : Number(b.total) || 0;
+      return bv - av;
+    });
     if (linesBox) {
       linesBox.innerHTML = lines.map((l) => {
         const faded = l.voided ? ' is-voided' : '';
-        return `<div class="uc-scan-line${faded}" data-line-id="${esc(l.id)}">
+        const cites = Array.isArray(l.mediaIds) ? l.mediaIds.length : 0;
+        return `<div class="uc-scan-line${faded}${cites ? ' is-citable' : ''}" data-line-id="${esc(l.id)}" data-media-ids="${esc((l.mediaIds || []).join(','))}" tabindex="${cites ? '0' : '-1'}">
           <div class="uc-scan-line-main">
             <strong>${esc(l.label)}</strong>
             <span class="uc-scan-cat">${esc(l.category)}</span>
-            <span>${esc(String(l.qty))} ${esc(l.unit)} · ${moneyPlain(l.total)}</span>
+            <span class="uc-money-display">${moneyPlain(l.total)}</span>
           </div>
-          <div class="uc-scan-line-meta">cite ${esc((l.mediaIds || []).length)} photo(s)${l.note ? ' · ' + esc(l.note) : ''}</div>
+          <div class="uc-scan-line-meta">${esc(String(l.qty))} ${esc(l.unit)} · ${cites ? cites + ' photo' + (cites === 1 ? '' : 's') : 'no photos'}${l.note ? ' · ' + esc(l.note) : ''}</div>
           <button type="button" class="phuglee-btn phuglee-btn-ghost uc-scan-void-btn" data-line-void="${esc(l.id)}" data-voided="${l.voided ? '0' : '1'}">${l.voided ? 'Restore' : 'Void'}</button>
         </div>`;
       }).join('') || '<p class="uc-docs-meta">No cited rehab lines yet.</p>';
@@ -1567,7 +2136,7 @@
         scan.scannedAt ? `scanned ${scan.scannedAt}` : ''
       ].filter(Boolean).join(' · ');
     }
-    if (meta) meta.textContent = `Status: ${scan.status || 'ready'} · finish ${scan.finishGrade || 'investor'}`;
+    if (meta) meta.textContent = `Evidence · ${scan.status || 'ready'} · ${scan.finishGrade || 'investor'}`;
   }
 
   async function schedulePhotographer() {
@@ -1617,6 +2186,7 @@
         state.profile = { ...state.profile, ...data.deal };
         renderMedia(state.profile.sellerMedia || []);
         renderConditionScan(state.profile);
+        flashState($('uc-evidence-hero') || $('uc-scan-lines') || $('uc-evidence-instrument'));
       } else {
         // poll profile shortly
         setTimeout(() => refreshProfileScan(), 2500);
@@ -1712,43 +2282,157 @@
     setTimeout(() => refreshProfileScan(), 3000);
   }
 
+  function sellerDisplayName(deal) {
+    const d = deal || state.profile || {};
+    const c = state.contact || {};
+    const name = d.ownerName || d.sellerNames || c.sellersName || c.name || '';
+    const first = String(name).split(/[,&]/)[0].trim();
+    return first || 'Seller';
+  }
+
+  function photographerDisplayName(deal) {
+    const sched = (deal || state.profile)?.photographerSchedule;
+    return String(sched?.photographerName || '').trim() || 'Photographer';
+  }
+
+  function meDisplayName() {
+    return teamDisplayName(teamUserKey()) || 'You';
+  }
+
+  function dayKeyFromWhen(raw) {
+    if (!raw) return '';
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return '';
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
+
+  function dayLabelFromWhen(raw) {
+    if (!raw) return '';
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return '';
+    const today = new Date();
+    const yday = new Date();
+    yday.setDate(today.getDate() - 1);
+    const sameDay = (a, b) =>
+      a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    if (sameDay(d, today)) return 'Today';
+    if (sameDay(d, yday)) return 'Yesterday';
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function convoDaySep(label) {
+    return `<div class="uc-convo-day" role="separator"><span>${esc(label)}</span></div>`;
+  }
+
+  function syncSellerModeHeader(deal) {
+    const nameEl = $('uc-seller-mode-name');
+    const meta = $('uc-convo-meta');
+    const name = sellerDisplayName(deal);
+    if (nameEl) nameEl.textContent = name;
+    if (!meta) return;
+    const phone = deal?.phone || state.contact?.phone || state.toNumber || '';
+    const bits = [];
+    if (phone) bits.push(phone);
+    if (state.fromNumber && state.toNumber) bits.push(`${state.fromNumber} → ${state.toNumber}`);
+    if (deal?.sellerSmsUnread) bits.push('Unread inbound');
+    meta.textContent = bits.join(' · ') || 'Seller SMS on this deal';
+  }
+
   function syncPhotoConvoMeta(deal) {
     const meta = $('uc-photo-convo-meta');
+    const nameEl = $('uc-photo-mode-name');
+    const chip = $('uc-photo-media-count');
+    const banner = $('uc-photo-job-banner');
     const sched = deal?.photographerSchedule;
-    if (!meta) return;
-    if (sched?.photographerName) {
-      meta.textContent = `Texting ${sched.photographerName}${sched.photographerPhone ? ' · ' + sched.photographerPhone : ''}`;
-    } else {
-      meta.textContent = 'Photographer texts';
+    const name = photographerDisplayName(deal);
+    if (nameEl) nameEl.textContent = name;
+    if (meta) {
+      if (sched?.photographerName) {
+        meta.textContent = [
+          sched.photographerPhone || '',
+          sched.date || sched.scheduledDate || '',
+          sched.time || sched.scheduledTime || ''
+        ].filter(Boolean).join(' · ') || 'Field logistics SMS';
+      } else {
+        meta.textContent = 'Schedule a shoot or text logistics';
+      }
+    }
+    const mediaN = Array.isArray(deal?.sellerMedia)
+      ? deal.sellerMedia.filter((m) => m.uploadSource === 'photographer' || m.uploadSource === 'photo').length
+      : 0;
+    const allMedia = Array.isArray(deal?.sellerMedia) ? deal.sellerMedia.length : 0;
+    if (chip) {
+      if (allMedia) {
+        chip.hidden = false;
+        chip.textContent = mediaN
+          ? `${mediaN} photographer · ${allMedia} total`
+          : `${allMedia} media on deal`;
+      } else {
+        chip.hidden = true;
+      }
+    }
+    if (banner) {
+      const scheduled = Boolean(sched?.scheduled && (sched?.uploadToken || sched?.uploadUrl));
+      if (scheduled) {
+        banner.hidden = false;
+        banner.innerHTML = `<strong>Job live</strong> · ${esc(name)}${sched.date || sched.scheduledDate ? ' · ' + esc(String(sched.date || sched.scheduledDate)) : ''}${sched.time || sched.scheduledTime ? ' ' + esc(String(sched.time || sched.scheduledTime)) : ''}${sched.uploadUrl ? ' · upload link ready' : ''}`;
+      } else if (sched?.photographerName) {
+        banner.hidden = false;
+        banner.innerHTML = `<strong>Contact on file</strong> · ${esc(name)} · no active upload link`;
+      } else {
+        banner.hidden = true;
+        banner.innerHTML = '';
+      }
     }
   }
 
-  function renderPhotographerMessages() {
+  function renderPhotographerMessages(opts = {}) {
     const box = $('uc-photo-thread');
     if (!box) return;
+    const forceScroll = opts.forceScroll === true;
+    const stickToBottom = isThreadNearBottom(box);
+    const prevScroll = box.scrollTop;
     const list = state.photographerMessages || [];
+    const photoName = photographerDisplayName();
+    const me = meDisplayName();
     if (!list.length) {
-      box.innerHTML = '<p class="uc-convo-empty">No photographer texts yet.</p>';
+      box.innerHTML = `<div class="uc-convo-empty"><strong>No photographer texts yet</strong><span>Schedule or text logistics below.</span></div>`;
       return;
     }
-    box.innerHTML = list.map((m) => {
+    let lastDay = '';
+    const parts = [];
+    for (const m of list) {
+      const day = dayKeyFromWhen(m.dateAdded);
+      if (day && day !== lastDay) {
+        parts.push(convoDaySep(dayLabelFromWhen(m.dateAdded)));
+        lastDay = day;
+      }
       const outbound = m.direction === 'outbound' || m.direction === 'out';
       const when = formatUcWhen(m.dateAdded);
       const body = (m.body || '').trim();
-      return `<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
+      parts.push(`<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
         <div class="uc-bubble-body">${body ? esc(body) : esc('(no text)')}</div>
-        <div class="uc-bubble-meta">${outbound ? 'You' : 'Photographer'}${when ? ' · ' + esc(when) : ''}</div>
-      </div>`;
-    }).join('');
-    scrollThreadToLatest(box);
+        <div class="uc-bubble-meta">${esc(outbound ? me : photoName)}${when ? ' · ' + esc(when) : ''}</div>
+      </div>`);
+    }
+    box.innerHTML = parts.join('');
+    if (opts.keepScroll === true) {
+      if (stickToBottom) followBottomIfWasThere(box, true);
+      else applyPreservedScroll(box, prevScroll);
+    } else {
+      scrollThreadToLatest(box);
+    }
   }
 
-  async function loadPhotographerMessages(dealId) {
+  async function loadPhotographerMessages(dealId, opts = {}) {
     if (!dealId) return;
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/photographer/messages`);
       state.photographerMessages = data.messages || [];
-      renderPhotographerMessages();
+      renderPhotographerMessages({
+        forceScroll: opts.forceScroll === true,
+        keepScroll: opts.keepScroll === true && opts.forceScroll !== true
+      });
       if (data.photographerName || data.warning) {
         const meta = $('uc-photo-convo-meta');
         if (meta && data.photographerName) {
@@ -1759,7 +2443,7 @@
       }
     } catch (_) {
       state.photographerMessages = [];
-      renderPhotographerMessages();
+      renderPhotographerMessages({ forceScroll: opts.forceScroll === true });
     }
   }
 
@@ -1777,7 +2461,7 @@
       });
       input.value = '';
       showToast('Photographer SMS sent');
-      await loadPhotographerMessages(dealId);
+      await loadPhotographerMessages(dealId, { forceScroll: true });
     } catch (err) {
       showToast(err.message || 'Send failed');
     } finally {
@@ -1789,15 +2473,24 @@
     const box = $('uc-convo-thread');
     if (!box) return;
     const forceScroll = opts.forceScroll === true;
-    const stickToBottom = forceScroll || isThreadNearBottom(box);
+    const stickToBottom = isThreadNearBottom(box);
     const prevScroll = box.scrollTop;
+    const sellerName = sellerDisplayName();
+    const me = meDisplayName();
     if (!state.messages.length) {
-      box.innerHTML = '<p class="uc-convo-empty">No SMS yet. Send the first message below.</p>';
+      box.innerHTML = `<div class="uc-convo-empty"><strong>No texts on this deal yet</strong><span>Message the seller below.</span></div>`;
       syncSaveAllMediaButton();
       return;
     }
     const dealId = state.activeDealId;
-    box.innerHTML = state.messages.map((m) => {
+    let lastDay = '';
+    const parts = [];
+    for (const m of state.messages) {
+      const day = dayKeyFromWhen(m.dateAdded);
+      if (day && day !== lastDay) {
+        parts.push(convoDaySep(dayLabelFromWhen(m.dateAdded)));
+        lastDay = day;
+      }
       const outbound = m.direction === 'outbound' || m.direction === 'out';
       const when = formatUcWhen(m.dateAdded);
       const body = (m.body || '').trim();
@@ -1816,13 +2509,19 @@
           </figure>`;
         }).join('')}</div>`
         : '';
-      return `<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
+      parts.push(`<div class="uc-bubble ${outbound ? 'uc-bubble--out' : 'uc-bubble--in'}">
         <div class="uc-bubble-body">${body ? esc(body) : (attHtml ? '' : esc('(no text)'))}${attHtml}</div>
-        <div class="uc-bubble-meta">${outbound ? 'You' : 'Them'}${when ? ' · ' + esc(when) + ' AZ' : ''}</div>
-      </div>`;
-    }).join('');
-    if (stickToBottom) scrollThreadToLatest(box);
-    else box.scrollTop = prevScroll;
+        <div class="uc-bubble-meta">${esc(outbound ? me : sellerName)}${when ? ' · ' + esc(when) : ''}</div>
+      </div>`);
+    }
+    box.innerHTML = parts.join('');
+    // Open/send → pin latest. Poll/re-render → preserve scroll (only soft-follow if was at bottom).
+    if (opts.keepScroll === true) {
+      if (stickToBottom) followBottomIfWasThere(box, true);
+      else applyPreservedScroll(box, prevScroll);
+    } else {
+      scrollThreadToLatest(box);
+    }
     syncSaveAllMediaButton();
   }
 
@@ -1831,13 +2530,19 @@
     state.messages = data.messages || [];
     state.fromNumber = data.fromNumber || null;
     state.toNumber = data.toNumber || null;
-    const meta = $('uc-convo-meta');
-    if (meta) {
-      meta.textContent = state.fromNumber && state.toNumber
-        ? `From ${state.fromNumber} → ${state.toNumber}`
-        : (data.warning || 'SMS numbers resolving…');
+    if (data.deal) {
+      state.profile = { ...(state.profile || {}), ...data.deal };
     }
-    renderMessages({ forceScroll: opts.forceScroll === true });
+    syncSellerModeHeader(state.profile);
+    if (data.warning && $('uc-convo-meta') && !state.toNumber) {
+      $('uc-convo-meta').textContent = data.warning;
+    }
+    // Silent poll / background refresh: never yank scroll. Open/send use forceScroll.
+    const keepScroll = opts.keepScroll === true || (opts.silent === true && opts.forceScroll !== true);
+    renderMessages({
+      forceScroll: opts.forceScroll === true,
+      keepScroll
+    });
     // Opening/polling must NOT clear unread — only Mark as read or a reply does.
     const boardChanged = applySellerSmsDealPatch(data.deal, data.unreadSellerSms);
     if (boardChanged) renderTable(state.deals);
@@ -1955,6 +2660,161 @@
     showToast('Removed from Media');
   }
 
+  function getProfileFocusables() {
+    const root = $('uc-drawer');
+    if (!root || root.hidden) return [];
+    const sel = [
+      'a[href]',
+      'button:not([disabled])',
+      'input:not([disabled]):not([type="hidden"])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      'summary',
+      '[tabindex]:not([tabindex="-1"])'
+    ].join(',');
+    return Array.from(root.querySelectorAll(sel)).filter((el) => {
+      if (el.closest('[hidden]')) return false;
+      if (el.getAttribute('aria-hidden') === 'true') return false;
+      if (el.tabIndex < 0) return false;
+      const style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden') return false;
+      const rect = el.getBoundingClientRect();
+      if (rect.width === 0 && rect.height === 0) return false;
+      return true;
+    });
+  }
+
+  function anyBlockingOverlayOpen() {
+    if ($('uc-lightbox') && !$('uc-lightbox').hidden) return true;
+    const dialogIds = [
+      'uc-release-dialog',
+      'uc-buyer-dialog',
+      'uc-jv-dialog',
+      'uc-amendment-dialog',
+      'uc-edit-dialog',
+      'uc-funded-dialog',
+      'uc-aoc-remind-dialog',
+      'uc-psa-dialog',
+      'uc-rehab-view-dialog'
+    ];
+    return dialogIds.some((id) => {
+      const d = $(id);
+      return d && d.open;
+    });
+  }
+
+  function handleProfileFocusTrap(ev) {
+    if (ev.key !== 'Tab') return;
+    const drawer = $('uc-drawer');
+    if (!drawer || drawer.hidden) return;
+    if (anyBlockingOverlayOpen()) return;
+    const focusables = getProfileFocusables();
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = document.activeElement;
+    if (ev.shiftKey) {
+      if (active === first || !drawer.contains(active)) {
+        ev.preventDefault();
+        last.focus();
+      }
+    } else if (active === last || !drawer.contains(active)) {
+      ev.preventDefault();
+      first.focus();
+    }
+  }
+
+  function syncProfilePrimaryCta(deal) {
+    // Header chrome removed — primary/edit stay off-screen hooks only.
+    const btn = $('uc-profile-primary');
+    if (!btn) return;
+    const stage = String(deal?.stage || '');
+    const waiting = isWaitingForSignatures(deal) || stage === 'contract_sent';
+    let action = 'edit';
+    if (waiting) action = 'docs';
+    else if (stage === 'under_contract') action = 'aoc';
+    else if (stage === 'buyer_found') action = 'jv';
+    btn.dataset.primaryAction = action;
+    btn.hidden = true;
+    btn.setAttribute('aria-hidden', 'true');
+    const editBtn = $('uc-drawer-edit');
+    if (editBtn) {
+      editBtn.hidden = true;
+      editBtn.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  function runProfilePrimaryAction() {
+    const deal = state.profile
+      || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId));
+    if (!deal) {
+      showToast('Open a property first');
+      return;
+    }
+    const action = $('uc-profile-primary')?.dataset.primaryAction || 'edit';
+    if (action === 'aoc') {
+      openAocAction(deal);
+      return;
+    }
+    if (action === 'jv') {
+      openSendJv(deal);
+      return;
+    }
+    if (action === 'refresh-signed') {
+      navigateProfileInstrument('docs', { focus: 'docs-attention', flash: false });
+      refreshSignedDocuments();
+      return;
+    }
+    if (action === 'docs') {
+      navigateProfileInstrument('docs', { focus: 'docs-attention' });
+      return;
+    }
+    openEdit(deal);
+  }
+
+  function syncProfileTabSummaries(deal) {
+    const d = deal || state.profile;
+    const docs = Array.isArray(d?.documents) ? d.documents.length : 0;
+    const buyers = Array.isArray(state.buyerOffers)
+      ? state.buyerOffers.length
+      : (Array.isArray(d?.buyerOffers) ? d.buyerOffers.length : 0);
+    const media = Array.isArray(d?.sellerMedia) ? d.sellerMedia.length : 0;
+    const unread = !!(d?.sellerSmsUnread);
+
+    function setCountTab(id, base, count) {
+      const el = $(id);
+      if (!el) return;
+      const n = Number(count) || 0;
+      el.textContent = n > 0 ? base + ' (' + n + ')' : base;
+      el.setAttribute('data-summary', String(n));
+    }
+
+    const walks = Array.isArray(d?.walkthroughs) ? d.walkthroughs.length : 0;
+
+    setCountTab('uc-tab-docs', 'Documents', docs);
+    setCountTab('uc-tab-buyers', 'Offers', buyers);
+    setCountTab('uc-tab-walkthroughs', 'Walkthroughs', walks);
+    setCountTab('uc-tab-media', 'Pics + Rehab Info', media);
+
+    const overview = $('uc-tab-overview');
+    if (overview) {
+      overview.textContent = 'Overview';
+      overview.removeAttribute('data-summary');
+    }
+
+    const comms = $('uc-tab-comms');
+    if (comms) {
+      comms.textContent = 'Comms';
+      comms.setAttribute('data-summary', unread ? '1' : '0');
+      comms.classList.toggle('has-unread', unread);
+      if (unread) {
+        comms.setAttribute('aria-label', 'Comms, unread seller texts');
+      } else {
+        comms.removeAttribute('aria-label');
+      }
+    }
+  }
+
   function syncWaitingForSignaturesUi(deal) {
     const waiting = isWaitingForSignatures(deal);
     const actionsMore = document.querySelector('#uc-drawer .uc-drawer-more');
@@ -1967,65 +2827,633 @@
     });
   }
 
+  /** Seller display names for Overview snapshot (1–2). */
+  function overviewSellerNames(deal, contact) {
+    const out = [];
+    const push = (n) => {
+      const name = String(n || '').trim();
+      if (!name || out.includes(name)) return;
+      out.push(name);
+    };
+    const sellers = Array.isArray(deal?.contractSellers) ? deal.contractSellers : [];
+    for (const s of sellers) {
+      push(s?.name);
+      if (out.length >= 2) return out;
+    }
+    const joined = String(
+      deal?.sellerNames || deal?.ownerName || contact?.sellersName || contact?.name || ''
+    ).trim();
+    if (joined) {
+      const parts = joined.split(/\s*\/\s*|\s+and\s+|\s*&\s*/i).map((p) => p.trim()).filter(Boolean);
+      for (const p of parts) {
+        push(p);
+        if (out.length >= 2) break;
+      }
+    }
+    if (!out.length && deal?.ownerName) push(deal.ownerName);
+    return out.slice(0, 2);
+  }
+
+  function isPlaceholderBuyerName(name) {
+    const n = String(name || '').trim();
+    if (!n) return true;
+    // Board "buyer found" labels / yes-no leakage must never show as a person
+    return /^(yes|no|y|n|—|-|n\/a|na|none|unset|unknown|true|false|buyer found)$/i.test(n);
+  }
+
+  /**
+   * End buyer for Overview: leading Buyers-tab offer, else real cashBuyerName.
+   * Returns null when none — UI shows "No".
+   */
+  function overviewEndBuyerInfo(deal) {
+    const offers = typeof sortedBuyerOffers === 'function' ? sortedBuyerOffers() : [];
+    const leader = offers[0] || null;
+    const offerName = String(leader?.buyerName || '').trim();
+    const cashName = String(deal?.cashBuyerName || '').trim();
+
+    let name = '';
+    let offer = null;
+    if (!isPlaceholderBuyerName(offerName)) {
+      name = offerName;
+      offer = leader;
+    } else if (!isPlaceholderBuyerName(cashName)) {
+      name = cashName;
+      offer = leader;
+    }
+    if (!name) return null;
+
+    const amount = offer && typeof offerAmountNum === 'function'
+      ? offerAmountNum(offer)
+      : (offer && Number.isFinite(Number(offer.offerAmount)) ? Number(offer.offerAmount) : null);
+
+    return {
+      name,
+      offerAmount: amount,
+      offerCount: offers.length
+    };
+  }
+
+  /** @deprecated use overviewEndBuyerInfo — kept name for tests that may reference buyer label path */
+  function overviewEndBuyerName(deal) {
+    const info = overviewEndBuyerInfo(deal);
+    return info ? info.name : '';
+  }
+
+  /** End buyer purchase = our lockup + assignment when both numbers exist. */
+  function overviewEndBuyerPrice(deal) {
+    const p = Number(deal?.purchasePrice);
+    const a = Number(deal?.assignmentFee);
+    if (!Number.isFinite(p) || !Number.isFinite(a)) return null;
+    return p + a;
+  }
+
+  /** Property image for profile atmosphere (street view / thumb / first media). */
+  function profileAtmosphereUrl(deal) {
+    const base = photoUrl(deal);
+    if (base) return base;
+    const media = Array.isArray(deal?.sellerMedia) ? deal.sellerMedia : [];
+    for (const m of media) {
+      const u = m?.viewUrl || m?.downloadUrl || m?.thumbUrl;
+      if (u) return u;
+    }
+    return '';
+  }
+
+  function applyProfileAtmosphere(deal) {
+    const drawer = $('uc-drawer');
+    if (!drawer || !drawer.classList.contains('uc-profile')) return;
+    const url = profileAtmosphereUrl(deal);
+    if (url) {
+      // Escape quotes in URL for CSS
+      const safe = String(url).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      drawer.style.setProperty('--uc-profile-photo', `url("${safe}")`);
+      drawer.classList.add('has-deal-photo');
+    } else {
+      drawer.style.removeProperty('--uc-profile-photo');
+      drawer.classList.remove('has-deal-photo');
+    }
+  }
+
+  function hasInvestorBaseUrl(deal) {
+    const u = String(deal?.investorBaseUrl || state.investorBaseUrl || '').trim();
+    if (!u) return false;
+    if (/^https?:\/\/\/?$/i.test(u) || u === 'https://' || u === 'http://') return false;
+    return true;
+  }
+
+  function marketingBannerHtml(deal) {
+    const yes = hasInvestorBaseUrl(deal);
+    return (
+      `<span id="uc-marketing-banner" class="uc-marketing-banner uc-marketing-chip ${yes ? 'is-yes' : 'is-no'}"` +
+        ` role="status" title="Started marketing? ${yes ? 'Yes — InvestorBase URL set' : 'No — add Investor site URL'}">` +
+        `<span class="uc-marketing-banner-label">Marketing to Buyers:</span>` +
+        `<strong class="uc-marketing-banner-value">${yes ? 'Yes' : 'No'}</strong>` +
+      `</span>`
+    );
+  }
+
+  function syncMarketingBanner(deal) {
+    const host = $('uc-drawer-hero')?.querySelector('.uc-profile-hero-badges');
+    if (!host) return;
+    const existing = $('uc-marketing-banner');
+    const html = marketingBannerHtml(deal || state.profile);
+    if (existing) {
+      existing.outerHTML = html;
+    } else {
+      // Sit to the right of cash / subto (and any trust-fund badge)
+      host.insertAdjacentHTML('beforeend', html);
+    }
+  }
+
+  function renderOverviewSnapshot(deal, contact) {
+    const root = $('uc-drawer-facts');
+    if (!root) return;
+    const sellers = overviewSellerNames(deal, contact);
+    const sellerLine = sellers.length ? sellers.join(' · ') : '—';
+    const endBuyer = overviewEndBuyerInfo(deal);
+    const endPrice = overviewEndBuyerPrice(deal);
+    const notesRaw = String(deal?.notes || '');
+    const closingRaw = deal?.closingDate || contact?.closingDate || deal?.closingDisplay || '';
+    const closing = formatOverviewClosingDate(closingRaw);
+    const accessText = deal.accessDisplay || deal.accessLabel || '—';
+    const accessDetail = String(deal.accessDetail || '').trim();
+
+    const endBuyerHtml = endBuyer
+      ? `<strong class="uc-snap-value">${esc(endBuyer.name)}</strong>` +
+        (endBuyer.offerAmount != null
+          ? `<span class="uc-snap-sub uc-money-display">${esc(money(endBuyer.offerAmount))} offer${endBuyer.offerCount > 1 ? ' · lead of ' + endBuyer.offerCount : ''}</span>`
+          : '')
+      : `<strong class="uc-snap-value is-empty">No</strong>`;
+
+    root.innerHTML =
+      `<section class="uc-snap-section" aria-label="Parties">
+        <h3 class="uc-brief-section-title">Parties</h3>
+        <div class="uc-snap-grid uc-snap-grid--parties">
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">Seller${sellers.length > 1 ? 's' : ''}</h4>
+            <strong class="uc-snap-value">${esc(sellerLine)}</strong>
+          </div>
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">End Buyer</h4>
+            ${endBuyerHtml}
+          </div>
+        </div>
+      </section>
+
+      <section class="uc-snap-section" aria-label="Deal breakdown">
+        <h3 class="uc-brief-section-title">Deal Breakdown</h3>
+        <div class="uc-snap-econ">
+          <div class="uc-snap-econ-cell">
+            <h4 class="uc-snap-label">Our Price</h4>
+            <strong class="uc-money-display">${esc(money(deal.purchasePrice))}</strong>
+          </div>
+          <div class="uc-snap-econ-cell">
+            <h4 class="uc-snap-label">End Buyer Price</h4>
+            <strong class="uc-money-display">${esc(endPrice == null ? '—' : money(endPrice))}</strong>
+          </div>
+          <div class="uc-snap-econ-cell uc-snap-econ-cell--assignment">
+            <h4 class="uc-snap-label">Assignment Fee</h4>
+            <strong class="uc-money-display uc-snap-assignment">${esc(money(deal.assignmentFee))}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="uc-snap-section" aria-label="Buyer walkthrough">
+        <h3 class="uc-brief-section-title">Buyer Walkthrough</h3>
+        <div class="uc-snap-grid uc-snap-grid--parties">
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">Access</h4>
+            <div class="uc-snap-chip">
+              ${statusChip({
+                kind: 'access',
+                label: 'Access',
+                value: deal.accessType,
+                text: accessDetail && accessDetail !== accessText
+                  ? `${accessText} · ${accessDetail}`
+                  : accessText
+              })}
+            </div>
+          </div>
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">Vacancy</h4>
+            <div class="uc-snap-chip">${statusChip({ kind: 'vacancy', label: 'Vacancy', value: deal.vacancy, text: deal.vacancyLabel })}</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="uc-snap-section" aria-label="Close and status">
+        <h3 class="uc-brief-section-title">Close &amp; Status</h3>
+        <div class="uc-snap-status">
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">Closing Date</h4>
+            <strong class="uc-snap-value">${esc(closing)}</strong>
+          </div>
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">Title Open</h4>
+            <div class="uc-snap-chip">${statusChip({ label: 'Title', yn: deal.titleOpened, text: deal.titleOpenedLabel })}</div>
+          </div>
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">Our EMD</h4>
+            <div class="uc-snap-chip">${statusChip({ label: 'EMD', yn: deal.sellerEmdSubmitted, text: deal.sellerEmdLabel })}</div>
+          </div>
+          <div class="uc-snap-field">
+            <h4 class="uc-snap-label">Buyer EMD</h4>
+            <div class="uc-snap-chip">${statusChip({ label: 'Buyer EMD', yn: deal.buyerEmdSubmitted, text: deal.buyerEmdLabel })}</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="uc-snap-section uc-snap-section--notes" aria-label="Notes">
+        <h3 class="uc-brief-section-title">Notes</h3>
+        ${notesRaw
+          ? `<div class="uc-snap-note-card" id="uc-overview-note-card">
+              <p class="uc-snap-note-body">${esc(notesRaw)}</p>
+            </div>
+            <button type="button" id="uc-overview-note-open" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm" data-note-mode="edit">Edit note</button>`
+          : `<button type="button" id="uc-overview-note-open" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm" data-note-mode="add">Add a Note</button>`}
+      </section>`;
+  }
+
+  function openNoteDialog() {
+    const dlg = $('uc-note-dialog');
+    if (!dlg) return;
+    const existing = String(state.profile?.notes || '').trim();
+    const title = $('uc-note-dialog-title');
+    if (title) title.textContent = existing ? 'Edit note' : 'Add a Note';
+    if ($('uc-note-input')) $('uc-note-input').value = existing;
+    const clearBtn = $('uc-note-clear');
+    if (clearBtn) clearBtn.hidden = !existing;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');
+    requestAnimationFrame(() => $('uc-note-input')?.focus());
+  }
+
+  function closeNoteDialog() {
+    const dlg = $('uc-note-dialog');
+    if (dlg?.open) dlg.close();
+    else dlg?.removeAttribute('open');
+  }
+
+  async function saveOverviewNotes(notesExplicit) {
+    const dealId = state.activeDealId;
+    if (!dealId) {
+      showToast('Open a property first');
+      return;
+    }
+    const notes = notesExplicit != null
+      ? String(notesExplicit).trim()
+      : ($('uc-note-input')?.value || '').trim();
+    const btn = $('uc-note-save');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await saveDealFields(dealId, { notes });
+      if (data.deal) {
+        mergeDealIntoState(data.deal);
+        state.profile = { ...(state.profile || {}), ...data.deal };
+      }
+      renderOverviewSnapshot(state.profile, state.contact);
+      closeNoteDialog();
+      showToast(notes ? 'Note saved' : 'Note cleared');
+    } catch (err) {
+      showToast(err.message || 'Could not save note');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  function bindOverviewNotes() {
+    const facts = $('uc-drawer-facts');
+    if (facts && facts.dataset.notesBound !== '1') {
+      facts.dataset.notesBound = '1';
+      facts.addEventListener('click', (ev) => {
+        if (ev.target.closest('#uc-overview-note-open')) {
+          openNoteDialog();
+        }
+      });
+    }
+    const save = $('uc-note-save');
+    if (save && save.dataset.bound !== '1') {
+      save.dataset.bound = '1';
+      save.addEventListener('click', () => {
+        saveOverviewNotes().catch((e) => showToast(e.message || 'Save failed'));
+      });
+    }
+    const clear = $('uc-note-clear');
+    if (clear && clear.dataset.bound !== '1') {
+      clear.dataset.bound = '1';
+      clear.addEventListener('click', () => {
+        if ($('uc-note-input')) $('uc-note-input').value = '';
+        saveOverviewNotes('').catch((e) => showToast(e.message || 'Clear failed'));
+      });
+    }
+  }
+
+  /* ── Walkthroughs ─────────────────────────────────────────────── */
+
+  function walkthroughList(deal) {
+    const list = Array.isArray(deal?.walkthroughs) ? deal.walkthroughs.slice() : [];
+    return list.sort((a, b) => String(a.at || '').localeCompare(String(b.at || '')));
+  }
+
+  function localDayKey(d) {
+    const x = d instanceof Date ? d : new Date(d);
+    if (Number.isNaN(x.getTime())) return '';
+    const y = x.getFullYear();
+    const m = String(x.getMonth() + 1).padStart(2, '0');
+    const day = String(x.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function walkthroughUrgencyClient(deal, now = new Date()) {
+    const list = walkthroughList(deal);
+    if (!list.length) return { kind: null, walkthrough: null };
+    const today = localDayKey(now);
+    const tomorrow = localDayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+    const todayHit = list.find((w) => localDayKey(w.at) === today);
+    if (todayHit) return { kind: 'today', walkthrough: todayHit };
+    const tomHit = list.find((w) => localDayKey(w.at) === tomorrow);
+    if (tomHit) return { kind: 'tomorrow', walkthrough: tomHit };
+    return { kind: null, walkthrough: null };
+  }
+
+  function formatWalkWhen(iso) {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '—';
+    return d.toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
+  function renderWalkthroughAlert(deal) {
+    const el = $('uc-walkthrough-alert');
+    if (!el) return;
+    const { kind, walkthrough } = walkthroughUrgencyClient(deal);
+    if (!kind || !walkthrough) {
+      el.hidden = true;
+      el.innerHTML = '';
+      el.className = 'uc-walkthrough-alert';
+      return;
+    }
+    const buyer = walkthrough.buyerName || 'Buyer';
+    const when = formatWalkWhen(walkthrough.at);
+    el.hidden = false;
+    el.className = `uc-walkthrough-alert is-${kind}`;
+    if (kind === 'today') {
+      el.innerHTML =
+        `<strong>Walkthrough today</strong>` +
+        `<span>${esc(buyer)} · ${esc(when)}</span>` +
+        `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-action="goto-walkthroughs">View</button>`;
+    } else {
+      el.innerHTML =
+        `<strong>Walkthrough tomorrow</strong>` +
+        `<span>${esc(buyer)} · ${esc(when)}</span>` +
+        `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-action="goto-walkthroughs">View</button>`;
+    }
+  }
+
+  function renderWalkthroughs(deal) {
+    const d = deal || state.profile || {};
+    const accessEl = $('uc-walk-kpi-access');
+    const vacEl = $('uc-walk-kpi-vacancy');
+    if (accessEl) {
+      const accessText = d.accessDisplay || d.accessLabel || '—';
+      const detail = String(d.accessDetail || '').trim();
+      const text = detail && detail !== accessText
+        ? `${accessText} · ${detail}`
+        : accessText;
+      // Match Overview orange status chips
+      accessEl.innerHTML = statusChip({
+        kind: 'access',
+        label: 'Access',
+        value: d.accessType,
+        text
+      });
+    }
+    if (vacEl) {
+      vacEl.innerHTML = statusChip({
+        kind: 'vacancy',
+        label: 'Vacancy',
+        value: d.vacancy,
+        text: d.vacancyLabel || d.vacancy || '—'
+      });
+    }
+
+    const box = $('uc-walk-list');
+    if (!box) return;
+    const list = walkthroughList(d);
+    if (!list.length) {
+      box.innerHTML =
+        `<div class="uc-walk-empty">` +
+          `<strong>No walkthroughs scheduled</strong>` +
+          `<p>Add a buyer name and time so the desk can track showings.</p>` +
+        `</div>`;
+      syncProfileTabSummaries(d);
+      return;
+    }
+    const now = new Date();
+    const today = localDayKey(now);
+    const tomorrow = localDayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+    box.innerHTML = list.map((w) => {
+      const day = localDayKey(w.at);
+      let badge = '';
+      if (day === today) badge = '<span class="uc-walk-badge is-today">Today</span>';
+      else if (day === tomorrow) badge = '<span class="uc-walk-badge is-tomorrow">Tomorrow</span>';
+      else if (new Date(w.at) < now) badge = '<span class="uc-walk-badge is-past">Past</span>';
+      const contactBits = [w.phone, w.email].filter(Boolean).join(' · ');
+      return (
+        `<article class="uc-walk-row" data-walk-id="${esc(w.id)}">` +
+          `<div class="uc-walk-row-main">` +
+            `<strong class="uc-walk-buyer">${esc(w.buyerName || '—')}${badge}</strong>` +
+            `<span class="uc-walk-when">${esc(formatWalkWhen(w.at))}</span>` +
+            (contactBits ? `<span class="uc-walk-contact">${esc(contactBits)}</span>` : '') +
+          `</div>` +
+          `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-walk-action="remove" data-walk-id="${esc(w.id)}">Remove</button>` +
+        `</article>`
+      );
+    }).join('');
+    syncProfileTabSummaries(d);
+    renderOfferWalkerPresets();
+  }
+
+  function openWalkDialog() {
+    const dlg = $('uc-walk-dialog');
+    if (!dlg) return;
+    if ($('uc-walk-buyer')) $('uc-walk-buyer').value = '';
+    if ($('uc-walk-phone')) $('uc-walk-phone').value = '';
+    if ($('uc-walk-email')) $('uc-walk-email').value = '';
+    const now = new Date();
+    if ($('uc-walk-date')) $('uc-walk-date').value = localDayKey(now);
+    if ($('uc-walk-time')) {
+      const t = new Date(now.getTime() + 60 * 60 * 1000);
+      $('uc-walk-time').value =
+        `${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`;
+    }
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');
+    requestAnimationFrame(() => $('uc-walk-buyer')?.focus());
+  }
+
+  function closeWalkDialog() {
+    const dlg = $('uc-walk-dialog');
+    if (dlg?.open) dlg.close();
+    else dlg?.removeAttribute('open');
+  }
+
+  async function saveWalkthrough() {
+    const dealId = state.activeDealId;
+    if (!dealId) {
+      showToast('Open a property first');
+      return;
+    }
+    const buyerName = ($('uc-walk-buyer')?.value || '').trim();
+    const phone = ($('uc-walk-phone')?.value || '').trim();
+    const email = ($('uc-walk-email')?.value || '').trim().toLowerCase();
+    const date = ($('uc-walk-date')?.value || '').trim();
+    const time = ($('uc-walk-time')?.value || '').trim();
+    if (!buyerName) {
+      showToast('Enter the buyer name');
+      $('uc-walk-buyer')?.focus();
+      return;
+    }
+    if (!date || !time) {
+      showToast('Pick a date and time');
+      return;
+    }
+    const at = new Date(`${date}T${time}:00`);
+    if (Number.isNaN(at.getTime())) {
+      showToast('Invalid date or time');
+      return;
+    }
+    const btn = $('uc-walk-save');
+    if (btn) btn.disabled = true;
+    try {
+      const next = walkthroughList(state.profile).concat([{
+        buyerName,
+        phone,
+        email,
+        at: at.toISOString(),
+        createdBy: teamUserKey()
+      }]);
+      const data = await saveDealFields(dealId, { walkthroughs: next });
+      if (data.deal) {
+        mergeDealIntoState(data.deal);
+        state.profile = { ...(state.profile || {}), ...data.deal };
+      }
+      renderWalkthroughs(state.profile);
+      renderWalkthroughAlert(state.profile);
+      closeWalkDialog();
+      showToast('Walkthrough scheduled');
+    } catch (err) {
+      showToast(err.message || 'Could not save walkthrough');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function removeWalkthrough(id) {
+    const dealId = state.activeDealId;
+    if (!dealId || !id) return;
+    const next = walkthroughList(state.profile).filter((w) => w.id !== id);
+    try {
+      const data = await saveDealFields(dealId, { walkthroughs: next });
+      if (data.deal) {
+        mergeDealIntoState(data.deal);
+        state.profile = { ...(state.profile || {}), ...data.deal };
+      }
+      renderWalkthroughs(state.profile);
+      renderWalkthroughAlert(state.profile);
+      showToast('Walkthrough removed');
+    } catch (err) {
+      showToast(err.message || 'Could not remove walkthrough');
+    }
+  }
+
+  function bindWalkthroughs() {
+    $('uc-walk-add')?.addEventListener('click', () => openWalkDialog());
+    $('uc-walk-save')?.addEventListener('click', () => {
+      saveWalkthrough().catch((e) => showToast(e.message || 'Save failed'));
+    });
+    // type=button + explicit close — required fields block method=dialog cancel submits
+    $('uc-walk-cancel')?.addEventListener('click', () => closeWalkDialog());
+    $('uc-walk-close')?.addEventListener('click', () => closeWalkDialog());
+    $('uc-walk-dialog')?.addEventListener('cancel', (ev) => {
+      // Escape key
+      ev.preventDefault();
+      closeWalkDialog();
+    });
+    $('uc-walk-list')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-walk-action="remove"]');
+      if (!btn) return;
+      removeWalkthrough(btn.getAttribute('data-walk-id')).catch(() => {});
+    });
+    $('uc-walkthrough-alert')?.addEventListener('click', (ev) => {
+      if (ev.target.closest('[data-action="goto-walkthroughs"]')) {
+        showProfileTab('walkthroughs');
+      }
+    });
+    // Prevent accidental form submit (Enter in a field) from fighting required validation
+    $('uc-walk-form')?.addEventListener('submit', (ev) => {
+      ev.preventDefault();
+    });
+  }
+
   function renderProfile(deal, contact) {
     state.profile = deal;
     state.contact = contact;
     const drawer = $('uc-drawer');
     const backdrop = $('uc-drawer-backdrop');
     if (!drawer) return;
+    const wasHidden = drawer.hidden;
+    if (wasHidden) {
+      profileReturnFocus = document.activeElement;
+    }
     drawer.hidden = false;
     if (backdrop) backdrop.hidden = false;
     document.body.classList.add('uc-drawer-open');
     syncDrawerJvButton(deal);
     syncDrawerAocButton(deal);
     syncWaitingForSignaturesUi(deal);
+    syncProfilePrimaryCta(deal);
+    applyProfileAtmosphere(deal);
 
     $('uc-drawer-title').textContent = deal.address || 'Contract profile';
     const url = photoUrl(deal);
     const heroPhoto = url
       ? `<button type="button" class="uc-profile-hero-btn" data-action="zoom-photo" title="Expand photo" aria-label="Expand property photo">${thumbHtml(deal, 'uc-profile-hero')}</button>`
       : thumbHtml(deal, 'uc-profile-hero');
+
+    state.investorBaseUrl = deal.investorBaseUrl || '';
+    state.investorBaseEditing = false;
+
     $('uc-drawer-hero').innerHTML = heroPhoto +
       `<div class="uc-profile-hero-copy">
-        <p class="uc-stage" data-stage="${esc(deal.stage)}">${esc(STAGE_LABELS[deal.stage] || deal.stage)}</p>
+        <div class="uc-profile-hero-stage-row">
+          <span class="uc-stage uc-stage--outline" data-stage="${esc(deal.stage)}">${esc(STAGE_LABELS[deal.stage] || deal.stage)}</span>
+        </div>
         <h2>${esc(deal.address || '—')}</h2>
         <p>${esc([deal.city, deal.state, deal.zip].filter(Boolean).join(', '))}</p>
         <div class="uc-profile-hero-badges">
           ${dealTypeBadgeHtml(deal)}
+          ${marketingBannerHtml(deal)}
           ${trustFundBadgeHtml(deal.buyerMatch || deal.trustFundMatch ? deal : (state.deals.find((x) => x.dealId === deal.dealId) || deal))}
+          <div id="uc-hero-investorbase" class="uc-hero-ib" aria-label="Investorbase link"></div>
         </div>
       </div>`;
 
-    const rows = [
-      ['Deal type', deal.dealTypeLabel || (deal.dealType === 'cash' ? 'Cash deal' : deal.dealType === 'subject_to' ? 'Subject-to deal' : '— unset —')],
-      ['Owner / seller', deal.ownerName || contact?.sellersName || contact?.name || '—'],
-      ['Phone', deal.phone || contact?.phone || '—'],
-      ['Email', deal.email || contact?.email || '—'],
-      ['Purchase price', money(deal.purchasePrice)],
-      ['Assignment fee', money(deal.assignmentFee)],
-      ['Photo cost', money(deal.photoCost ?? 0)],
-      ['Funded', deal.fundedLabel || '—'],
-      ['Buyer EMD?', deal.buyerFoundLabel || '—'],
-      ['Cash buyer', deal.cashBuyerName || contact?.cashBuyerName || '—'],
-      ['Closing', deal.closingDate || contact?.closingDate || '—'],
-      ['EMD Submitted?', deal.sellerEmdLabel || '—'],
-      ['Buyer EMD?', deal.buyerEmdLabel || '—'],
-      ['Access', deal.accessDisplay || deal.accessLabel || '—'],
-      ['Vacancy', deal.vacancyLabel || '—'],
-      ['Photos?', deal.photosLabel || '—'],
-      ['Notes', deal.notes || '—']
-    ];
-    $('uc-drawer-facts').innerHTML = rows.map(([k, v]) =>
-      `<div class="uc-fact"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`
-    ).join('');
-
-    fillRehabForm(deal.rehabInfo || {});
+    // Buyer offers ready for Buyers tab (and any shared state)
     state.buyerOffers = Array.isArray(deal.buyerOffers) ? deal.buyerOffers.slice() : [];
+    state.selectedBuyerOfferId = deal.selectedBuyerOfferId || null;
     state.buyerOfferEditIds = {};
     state.buyerOfferDrafts = [];
+    renderOverviewSnapshot(deal, contact);
+    renderWalkthroughAlert(deal);
+    fillRehabForm(deal.rehabInfo || {});
     renderBuyerOffers();
-    state.investorBaseUrl = deal.investorBaseUrl || '';
-    state.investorBaseEditing = !state.investorBaseUrl;
+    renderWalkthroughs(deal);
     renderInvestorBase();
     state.teamMessages = deal.teamMessages || [];
     renderTeamMessages();
@@ -2033,15 +3461,22 @@
     renderMedia(deal.sellerMedia || []);
     renderPhotographerSection(deal);
     syncPhotoConvoMeta(deal);
+    syncSellerModeHeader(deal);
     renderConditionScan(deal);
     loadPhotographerMessages(deal.dealId);
-    renderDocsPending(deal);
     closeDocViewer();
     $('uc-convo-thread').innerHTML = '<p class="uc-convo-empty">Loading conversation…</p>';
     $('uc-sms-input').value = '';
     if ($('uc-photo-sms-input')) $('uc-photo-sms-input').value = '';
     if ($('uc-team-input')) $('uc-team-input').value = '';
     syncProfileSmsPulse();
+    syncProfileTabSummaries(deal);
+    showProfileTab(state.profileTab || 'overview');
+    if (wasHidden) {
+      requestAnimationFrame(() => {
+        ($('uc-drawer-close') || $('uc-profile-primary') || getProfileFocusables()[0])?.focus?.();
+      });
+    }
   }
 
   const TEAM_REACTIONS = [
@@ -2061,15 +3496,24 @@
   function renderTeamMessages(opts = {}) {
     const box = $('uc-team-thread');
     if (!box) return;
+    const forceScroll = opts.forceScroll === true;
     const keepScroll = opts.keepScroll === true;
     const prevScroll = box.scrollTop;
+    const stickToBottom = isThreadNearBottom(box);
     const msgs = state.teamMessages || [];
     if (!msgs.length) {
-      box.innerHTML = '<p class="uc-convo-empty">No internal messages yet. Message Brandon or Brad here.</p>';
+      box.innerHTML = `<div class="uc-convo-empty"><strong>No internal notes yet</strong><span>Keep access, buyers, and decisions here.</span></div>`;
       return;
     }
     const me = teamUserKey();
-    box.innerHTML = msgs.map((m) => {
+    let lastDay = '';
+    const parts = [];
+    for (const m of msgs) {
+      const day = dayKeyFromWhen(m.createdAt);
+      if (day && day !== lastDay) {
+        parts.push(convoDaySep(dayLabelFromWhen(m.createdAt)));
+        lastDay = day;
+      }
       const mine = m.fromUser === me;
       const when = formatUcWhen(m.createdAt);
       const reactions = m.reactions || {};
@@ -2083,8 +3527,16 @@
         const mineOn = !!(reactions[r.key] && reactions[r.key][me]);
         return `<button type="button" class="uc-react-btn${mineOn ? ' is-on' : ''}" data-action="team-react" data-msg-id="${esc(m.id)}" data-emoji="${esc(r.key)}" title="${esc(r.label)}" aria-label="${esc(r.label)}" aria-pressed="${mineOn ? 'true' : 'false'}">${r.emoji}</button>`;
       }).join('');
-      return `<div class="uc-bubble ${mine ? 'uc-bubble--out' : 'uc-bubble--in'}" data-team-msg-id="${esc(m.id)}">
-        <div class="uc-bubble-body">${esc(m.body)}</div>
+      const gif = m.gif && m.gif.url ? m.gif : null;
+      const bodyText = (m.body || '').trim();
+      // Hide default "GIF" / title placeholder when the message is gif-only
+      const showText = bodyText && !(gif && (bodyText === 'GIF' || bodyText === (gif.title || '').trim()));
+      const gifHtml = gif
+        ? `<figure class="uc-bubble-gif"><img src="${esc(gif.url)}" alt="${esc(gif.title || 'GIF')}" loading="lazy" decoding="async"></figure>`
+        : '';
+      const textHtml = showText ? `<div class="uc-bubble-body-text">${esc(bodyText)}</div>` : '';
+      parts.push(`<div class="uc-bubble ${mine ? 'uc-bubble--out' : 'uc-bubble--in'}${gif && !showText ? ' uc-bubble-gif-only' : ''}" data-team-msg-id="${esc(m.id)}">
+        <div class="uc-bubble-body">${textHtml}${gifHtml}</div>
         <div class="uc-bubble-meta">${esc(teamDisplayName(m.fromUser))}${when ? ' · ' + esc(when) : ''}</div>
         <div class="uc-react-row">
           ${appliedHtml ? `<div class="uc-react-applied" role="group" aria-label="Current reactions">${appliedHtml}</div>` : ''}
@@ -2093,10 +3545,16 @@
             <div class="uc-react-picker" role="group" aria-label="Add reaction">${pickerHtml}</div>
           </div>
         </div>
-      </div>`;
-    }).join('');
-    if (keepScroll) box.scrollTop = prevScroll;
-    else scrollThreadToLatest(box);
+      </div>`);
+    }
+    box.innerHTML = parts.join('');
+    if (keepScroll) {
+      if (stickToBottom) followBottomIfWasThere(box, true);
+      else applyPreservedScroll(box, prevScroll);
+    } else {
+      // Open / send / channel switch — phone-style latest
+      scrollThreadToLatest(box);
+    }
   }
 
   async function toggleTeamReaction(messageId, emojiKey) {
@@ -2145,19 +3603,63 @@
     } catch (_) { /* ignore */ }
   }
 
-  async function sendTeamMessage() {
+  /** Detect a lone pasted GIF/media URL from Giphy/Tenor/Klipy (normalize share links → media). */
+  function parseStandaloneGifUrl(text) {
+    const t = String(text || '').trim();
+    if (!t || /\s/.test(t)) return null;
+    try {
+      const u = new URL(t);
+      if (u.protocol !== 'https:') return null;
+      const h = u.hostname.toLowerCase();
+      let provider = '';
+      if (h === 'giphy.com' || h.endsWith('.giphy.com')) provider = 'giphy';
+      else if (h === 'tenor.com' || h.endsWith('.tenor.com')) provider = 'tenor';
+      else if (h === 'klipy.com' || h.endsWith('.klipy.com')) provider = 'klipy';
+      else return null;
+
+      let mediaUrl = t;
+      // giphy.com/gifs/slug-ID → direct media
+      if (provider === 'giphy' && /giphy\.com$/i.test(h)) {
+        const m = u.pathname.match(/\/gifs\/(?:[\w-]+-)?([a-zA-Z0-9]+)/);
+        if (m) mediaUrl = `https://media.giphy.com/media/${m[1]}/giphy.gif`;
+      }
+      // media.giphy.com/media/ID/... already fine
+      if (provider === 'tenor' && !/\.(gif|mp4|webp)(\?|$)/i.test(u.pathname) && !h.startsWith('media')) {
+        // share page — keep host allowlisted URL; may not animate but still stores
+        mediaUrl = t;
+      }
+      return { url: mediaUrl, previewUrl: mediaUrl, title: '', provider };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function sendTeamMessage(opts = {}) {
     const dealId = state.activeDealId;
     const input = $('uc-team-input');
     const text = (input?.value || '').trim();
-    if (!dealId || !text) return;
+    let gif = opts.gif || null;
+    let body = opts.body != null ? String(opts.body) : text;
+    if (!gif && body) {
+      const asGif = parseStandaloneGifUrl(body);
+      if (asGif) {
+        gif = asGif;
+        body = '';
+      }
+    }
+    if (!dealId || (!body.trim() && !gif)) return;
     const btn = $('uc-team-send');
     if (btn) btn.disabled = true;
     try {
+      const payload = {};
+      if (body.trim()) payload.body = body.trim();
+      if (gif && gif.url) payload.gif = gif;
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/team-messages`, {
         method: 'POST',
-        body: JSON.stringify({ body: text })
+        body: JSON.stringify(payload)
       });
-      input.value = '';
+      if (input && !opts.keepInput) input.value = '';
+      closeGifPicker();
       if (Array.isArray(data.unreadTeam)) {
         state.unreadTeam = data.unreadTeam;
         renderTeamBanner();
@@ -2167,14 +3669,118 @@
         state.profile = { ...(state.profile || {}), ...data.deal };
         const idx = state.deals.findIndex((d) => d.dealId === dealId);
         if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...data.deal };
-        renderTeamMessages();
+        renderTeamMessages({ forceScroll: true });
       }
-      showToast('Team message sent');
+      showToast(gif ? 'GIF sent' : 'Team message sent');
     } catch (err) {
       showToast(err.message || 'Could not send team message');
     } finally {
       if (btn) btn.disabled = false;
     }
+  }
+
+  // ── GIF picker (Discord-style, Giphy rating=r) ──
+  let gifSearchTimer = null;
+  let gifPickerOpen = false;
+
+  function setGifStatus(msg, isError = false) {
+    const el = $('uc-gif-status');
+    if (!el) return;
+    if (!msg) {
+      el.hidden = true;
+      el.textContent = '';
+      el.classList.remove('is-error');
+      return;
+    }
+    el.hidden = false;
+    el.textContent = msg;
+    el.classList.toggle('is-error', !!isError);
+  }
+
+  function renderGifResults(list) {
+    const box = $('uc-gif-results');
+    if (!box) return;
+    const items = Array.isArray(list) ? list : [];
+    if (!items.length) {
+      box.innerHTML = '';
+      box._gifItems = [];
+      return;
+    }
+    // Use <div> tiles (not <button>) so global button / phuglee styles can't crush layout.
+    box.innerHTML = items.map((g, i) => {
+      const src = esc(g.previewUrl || g.url);
+      const title = esc(g.title || 'GIF');
+      return `<div class="uc-gif-tile" role="option" tabindex="0" data-gif-idx="${i}" title="${title}" aria-label="Send GIF: ${title}">
+        <img class="uc-gif-tile-img" src="${src}" alt="" loading="lazy" decoding="async" draggable="false">
+      </div>`;
+    }).join('');
+    box._gifItems = items;
+  }
+
+  async function loadGifs(query) {
+    const q = String(query || '').trim();
+    setGifStatus(q ? `Searching “${q}”…` : 'Loading trending…');
+    try {
+      // Load many results; CSS shows ~6 large tiles at a time (2×3) with scroll for more.
+      const path = q
+        ? `/api/leads/admin/gifs/search?q=${encodeURIComponent(q)}&limit=30`
+        : '/api/leads/admin/gifs/trending?limit=30';
+      const data = await api(path);
+      const list = data.results || [];
+      renderGifResults(list);
+      if (!list.length) {
+        setGifStatus(q ? 'No GIFs for that search.' : 'No trending GIFs right now.');
+      } else {
+        setGifStatus(q ? `${list.length} results · scroll for more` : `Trending · ${list.length} · scroll for more`);
+      }
+    } catch (err) {
+      renderGifResults([]);
+      const msg = err?.message || 'GIF search failed';
+      if (String(err?.code || '').includes('GIPHY') || /GIPHY_API_KEY|not configured/i.test(msg)) {
+        setGifStatus('Add GIPHY_API_KEY to server .env (free at developers.giphy.com). You can still paste a GIF URL in the box.', true);
+      } else {
+        setGifStatus(msg, true);
+      }
+    }
+  }
+
+  function openGifPicker() {
+    const panel = $('uc-gif-picker');
+    const toggle = $('uc-gif-toggle');
+    if (!panel) return;
+    panel.hidden = false;
+    gifPickerOpen = true;
+    toggle?.classList.add('is-open');
+    toggle?.setAttribute('aria-expanded', 'true');
+    const search = $('uc-gif-search');
+    if (search) {
+      search.value = '';
+      requestAnimationFrame(() => search.focus());
+    }
+    loadGifs('');
+  }
+
+  function closeGifPicker() {
+    const panel = $('uc-gif-picker');
+    const toggle = $('uc-gif-toggle');
+    if (panel) panel.hidden = true;
+    gifPickerOpen = false;
+    toggle?.classList.remove('is-open');
+    toggle?.setAttribute('aria-expanded', 'false');
+    if (gifSearchTimer) {
+      clearTimeout(gifSearchTimer);
+      gifSearchTimer = null;
+    }
+  }
+
+  function toggleGifPicker() {
+    if (gifPickerOpen) closeGifPicker();
+    else openGifPicker();
+  }
+
+  async function sendGifFromPicker(gif) {
+    if (!gif || !gif.url) return;
+    await sendTeamMessage({ gif, body: '', keepInput: true });
   }
 
   function openFundedView(deal) {
@@ -2257,8 +3863,8 @@
     if (!hint) return;
     const n = (state.buyerOffers || []).length;
     hint.textContent = n
-      ? `${n} offer${n === 1 ? '' : 's'} on this property`
-      : 'Offers pitched on this property';
+      ? `Disposition market · ${n} offer${n === 1 ? '' : 's'}`
+      : 'Disposition market · no offers yet';
   }
 
   function parseOfferAmountInput(raw) {
@@ -2266,23 +3872,231 @@
     return Number.isFinite(n) ? n : null;
   }
 
+  function sortedBuyerOffers() {
+    return (Array.isArray(state.buyerOffers) ? state.buyerOffers.slice() : []).sort((a, b) => {
+      const na = Number(a?.offerAmount);
+      const nb = Number(b?.offerAmount);
+      const av = Number.isFinite(na) ? na : -1;
+      const bv = Number.isFinite(nb) ? nb : -1;
+      return bv - av;
+    });
+  }
+
+  function offerAmountNum(offer) {
+    const n = Number(offer?.offerAmount);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function formatSpread(amount, purchase) {
+    if (amount == null || purchase == null || !Number.isFinite(purchase)) return '—';
+    const delta = amount - purchase;
+    const sign = delta > 0 ? '+' : '';
+    return `${sign}${money(delta)} vs purchase`;
+  }
+
+  function renderBuyersEconomics(offers) {
+    const el = $('uc-buyers-econ');
+    if (!el) return;
+    const deal = state.profile || {};
+    const purchase = Number(deal.purchasePrice);
+    const leader = offers[0] || null;
+    const best = leader ? offerAmountNum(leader) : null;
+    const assignFee = (best != null && Number.isFinite(purchase)) ? (best - purchase) : null;
+    const hasAny = Number.isFinite(purchase) || best != null;
+    if (!hasAny) {
+      el.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
+    el.hidden = false;
+    const feeCls = assignFee == null ? '' : (assignFee >= 0 ? 'is-up' : 'is-down');
+    const buyerName = (leader?.buyerName || '').trim();
+    const buyerLine = buyerName
+      ? `<em class="uc-buyers-econ-buyer">${esc(buyerName)}</em>`
+      : '';
+    el.innerHTML =
+      `<div class="uc-buyers-econ-cell">` +
+        `<span>Purchase price</span>` +
+        `<strong class="uc-money-display">${esc(Number.isFinite(purchase) ? money(purchase) : '—')}</strong>` +
+      `</div>` +
+      `<div class="uc-buyers-econ-cell uc-buyers-econ-cell--best">` +
+        `<span>Best offer</span>` +
+        `<strong class="uc-money-display">${esc(best != null ? money(best) : '—')}</strong>` +
+        buyerLine +
+      `</div>` +
+      `<div class="uc-buyers-econ-cell ${feeCls}">` +
+        `<span>Assignment fee</span>` +
+        `<strong class="uc-money-display">${esc(assignFee != null ? money(assignFee) : '—')}</strong>` +
+      `</div>`;
+  }
+
+  function renderBuyersLeader(offers) {
+    const el = $('uc-buyers-leader');
+    if (!el) return;
+    const leader = offers[0];
+    const amount = leader ? offerAmountNum(leader) : null;
+    if (!leader || amount == null) {
+      el.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
+    const deal = state.profile || {};
+    const purchase = Number(deal.purchasePrice);
+    const second = offers[1] ? offerAmountNum(offers[1]) : null;
+    const vsNext = second != null
+      ? ` · ${money(amount - second)} over #2`
+      : (offers.length === 1 ? ' · sole offer' : '');
+    const fee = Number.isFinite(purchase) ? amount - purchase : null;
+    const waiting = isWaitingForSignatures(deal);
+    const isSelected = state.selectedBuyerOfferId && state.selectedBuyerOfferId === leader.id;
+    el.hidden = false;
+    el.classList.toggle('is-selected', Boolean(isSelected));
+    el.innerHTML =
+      `<div class="uc-buyers-leader-copy">` +
+        `<span class="uc-buyers-leader-kicker">Leading offer</span>` +
+        `<strong class="uc-buyers-leader-amount uc-money-display">${esc(money(amount))}</strong>` +
+        `<span class="uc-buyers-leader-name">${esc(leader.buyerName || 'Unnamed buyer')}` +
+          (fee != null ? ` · fee ${esc(money(fee))}` : '') +
+          `${esc(vsNext)}</span>` +
+      `</div>` +
+      `<div class="uc-buyers-leader-actions">` +
+        (waiting
+          ? ''
+          : `<button type="button" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm" data-buyer-offer-action="send-aoc" data-offer-id="${esc(leader.id)}">Send AOC</button>`) +
+        `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-buyer-offer-action="edit" data-offer-id="${esc(leader.id)}">Edit</button>` +
+      `</div>`;
+  }
+
+  function buyerContactLine(offer) {
+    const bits = [];
+    if (offer?.phone) bits.push(String(offer.phone));
+    if (offer?.email) bits.push(String(offer.email));
+    return bits.join(' · ');
+  }
+
+  /** Unique walkers on this deal (for Offers presets). Most recent walk first. */
+  function uniqueWalkersFromDeal(deal) {
+    const list = walkthroughList(deal || state.profile);
+    const byKey = new Map();
+    // Newest last so older get overwritten; then reverse for display
+    for (const w of list) {
+      const name = String(w.buyerName || '').trim();
+      if (!name) continue;
+      const key = `${name.toLowerCase()}|${String(w.phone || '').replace(/\D/g, '')}|${String(w.email || '').toLowerCase()}`;
+      byKey.set(key, {
+        walkId: w.id,
+        buyerName: name,
+        phone: w.phone || '',
+        email: w.email || '',
+        at: w.at
+      });
+    }
+    return Array.from(byKey.values()).sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
+  }
+
+  function renderOfferWalkerPresets() {
+    const el = $('uc-offer-walker-presets');
+    if (!el) return;
+    const walkers = uniqueWalkersFromDeal(state.profile);
+    if (!walkers.length) {
+      el.hidden = true;
+      el.innerHTML = '';
+      return;
+    }
+    el.hidden = false;
+    el.innerHTML =
+      `<div class="uc-offer-walker-presets-head">` +
+        `<span class="uc-offer-walker-presets-label">Walked this property</span>` +
+        `<span class="uc-offer-walker-presets-hint">Tap to start an offer with their contact</span>` +
+      `</div>` +
+      `<div class="uc-offer-walker-chips">` +
+        walkers.map((w) => {
+          const sub = [w.phone, w.email].filter(Boolean).join(' · ');
+          return (
+            `<button type="button" class="uc-offer-walker-chip" data-walker-pick="${esc(w.walkId)}"` +
+              ` title="${esc(sub || 'Add offer from walker')}">` +
+              `<strong>${esc(w.buyerName)}</strong>` +
+              (sub ? `<span>${esc(sub)}</span>` : '') +
+            `</button>`
+          );
+        }).join('') +
+      `</div>`;
+  }
+
+  function addOfferFromWalker(walkId) {
+    const walkers = uniqueWalkersFromDeal(state.profile);
+    const w = walkers.find((x) => String(x.walkId) === String(walkId))
+      || walkthroughList(state.profile).find((x) => String(x.id) === String(walkId));
+    if (!w) {
+      showToast('Walker not found');
+      return;
+    }
+    state.buyerOfferDrafts = (state.buyerOfferDrafts || []).concat([{
+      id: buyerOfferDraftId(),
+      buyerName: w.buyerName || '',
+      offerAmount: '',
+      phone: w.phone || '',
+      email: w.email || '',
+      fromWalkId: w.walkId || w.id || ''
+    }]);
+    renderBuyerOffers();
+    const list = $('uc-buyer-offers-list');
+    const last = list?.querySelector('.uc-buyer-offer-row.is-draft:last-child .uc-buyer-offer-amount');
+    last?.focus();
+    showToast(`Offer started for ${w.buyerName || 'buyer'}`);
+  }
+
   function renderBuyerOffers() {
     const box = $('uc-buyer-offers-list');
     if (!box) return;
-    const offers = Array.isArray(state.buyerOffers) ? state.buyerOffers : [];
+    const offers = sortedBuyerOffers();
     const drafts = Array.isArray(state.buyerOfferDrafts) ? state.buyerOfferDrafts : [];
+    const purchase = Number(state.profile?.purchasePrice);
+    const selectedId = state.selectedBuyerOfferId || null;
     const parts = [];
 
+    renderOfferWalkerPresets();
+    renderBuyersEconomics(offers);
+    renderBuyersLeader(offers);
+
     if (!offers.length && !drafts.length) {
-      parts.push('<p class="uc-buyer-offers-empty">No buyer offers yet. Add who pitched and at what price.</p>');
+      const walkers = uniqueWalkersFromDeal(state.profile);
+      parts.push(
+        `<div class="uc-buyer-offers-empty uc-empty-workflow">` +
+          `<strong class="uc-empty-workflow-title">No offers yet</strong>` +
+          `<p class="uc-empty-workflow-body">` +
+            (walkers.length
+              ? 'Pick someone who already walked (above), or add an offer with bid, phone, and email.'
+              : 'Add who offered, bid, phone, and email. Highest bid leads. Select a row (gold) to mark who you’re moving forward with.') +
+          `</p>` +
+        `</div>`
+      );
+      box.innerHTML = parts.join('');
+      box.classList.add('is-empty');
+      syncBuyerOffersHint();
+      syncProfileTabSummaries(state.profile);
+      return;
+    }
+    box.classList.remove('is-empty');
+
+    if (offers.length) {
+      parts.push(
+        `<div class="uc-buyers-board-head" aria-hidden="true">` +
+          `<span>#</span><span>Buyer</span><span>Offer</span><span>Contact</span><span></span>` +
+        `</div>`
+      );
     }
 
-    for (const offer of offers) {
+    offers.forEach((offer, index) => {
       const id = offer.id;
+      const rank = index + 1;
       const editing = Boolean(state.buyerOfferEditIds[id]);
+      const amount = offerAmountNum(offer);
+      const isSelected = selectedId && selectedId === id;
       if (editing) {
         parts.push(
           `<div class="uc-buyer-offer-row is-editing" data-offer-id="${esc(id)}">` +
+            `<span class="uc-buyer-rank">${rank}</span>` +
             `<label class="vault-field">` +
               `<span class="vault-field-label">Buyer name</span>` +
               `<input type="text" class="phuglee-input uc-buyer-offer-name" value="${esc(offer.buyerName || '')}" autocomplete="off">` +
@@ -2291,30 +4105,51 @@
               `<span class="vault-field-label">Offer amount</span>` +
               `<input type="text" inputmode="decimal" class="phuglee-input uc-buyer-offer-amount" value="${esc(offer.offerAmount ?? '')}" placeholder="88000">` +
             `</label>` +
+            `<label class="vault-field">` +
+              `<span class="vault-field-label">Phone</span>` +
+              `<input type="tel" class="phuglee-input uc-buyer-offer-phone" value="${esc(offer.phone || '')}" placeholder="555-…" autocomplete="tel">` +
+            `</label>` +
+            `<label class="vault-field">` +
+              `<span class="vault-field-label">Email</span>` +
+              `<input type="email" class="phuglee-input uc-buyer-offer-email" value="${esc(offer.email || '')}" placeholder="buyer@…" autocomplete="email">` +
+            `</label>` +
             `<div class="uc-buyer-offer-actions">` +
-              `<button type="button" class="phuglee-btn phuglee-btn-primary" data-buyer-offer-action="save">Save</button>` +
-              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="cancel">Cancel</button>` +
-              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="remove">Remove</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm" data-buyer-offer-action="save">Save</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-buyer-offer-action="cancel">Cancel</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-buyer-offer-action="remove">Remove</button>` +
             `</div>` +
           `</div>`
         );
       } else {
+        const isLead = rank === 1;
+        const contact = buyerContactLine(offer);
         parts.push(
-          `<div class="uc-buyer-offer-row is-locked" data-offer-id="${esc(id)}">` +
-            `<p class="uc-buyer-offer-locked-name">${esc(offer.buyerName || '—')}</p>` +
-            `<p class="uc-buyer-offer-locked-amount">${esc(money(offer.offerAmount))}</p>` +
+          `<div class="uc-buyer-offer-row is-locked${isLead ? ' is-leader' : ''}${isSelected ? ' is-selected' : ''}" data-offer-id="${esc(id)}" data-buyer-offer-action="select" role="button" tabindex="0" aria-pressed="${isSelected ? 'true' : 'false'}" title="Select end buyer (gold highlight only)">` +
+            `<span class="uc-buyer-rank" title="Rank">${rank}</span>` +
+            `<div class="uc-buyer-offer-main">` +
+              `<p class="uc-buyer-offer-locked-name">${esc(offer.buyerName || '—')}` +
+                `${isLead ? ' <span class="uc-buyer-lead-tag">Best</span>' : ''}` +
+                `${isSelected ? ' <span class="uc-buyer-selected-tag">Selected</span>' : ''}` +
+              `</p>` +
+              (Number.isFinite(purchase) && amount != null
+                ? `<p class="uc-buyer-offer-spread">${esc(formatSpread(amount, purchase))}</p>`
+                : '') +
+            `</div>` +
+            `<p class="uc-buyer-offer-locked-amount uc-money-display">${esc(money(offer.offerAmount))}</p>` +
+            `<p class="uc-buyer-offer-contact">${esc(contact || '—')}</p>` +
             `<div class="uc-buyer-offer-actions">` +
-              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="edit">Edit</button>` +
-              `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="remove">Remove</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-buyer-offer-action="edit">Edit</button>` +
+              `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-buyer-offer-action="remove">Remove</button>` +
             `</div>` +
           `</div>`
         );
       }
-    }
+    });
 
     for (const draft of drafts) {
       parts.push(
         `<div class="uc-buyer-offer-row is-draft" data-offer-id="${esc(draft.id)}" data-draft="1">` +
+          `<span class="uc-buyer-rank">+</span>` +
           `<label class="vault-field">` +
             `<span class="vault-field-label">Buyer name</span>` +
             `<input type="text" class="phuglee-input uc-buyer-offer-name" value="${esc(draft.buyerName || '')}" placeholder="Buyer name" autocomplete="off">` +
@@ -2323,9 +4158,17 @@
             `<span class="vault-field-label">Offer amount</span>` +
             `<input type="text" inputmode="decimal" class="phuglee-input uc-buyer-offer-amount" value="${esc(draft.offerAmount ?? '')}" placeholder="88000">` +
           `</label>` +
+          `<label class="vault-field">` +
+            `<span class="vault-field-label">Phone</span>` +
+            `<input type="tel" class="phuglee-input uc-buyer-offer-phone" value="${esc(draft.phone || '')}" placeholder="555-…" autocomplete="tel">` +
+          `</label>` +
+          `<label class="vault-field">` +
+            `<span class="vault-field-label">Email</span>` +
+            `<input type="email" class="phuglee-input uc-buyer-offer-email" value="${esc(draft.email || '')}" placeholder="buyer@…" autocomplete="email">` +
+          `</label>` +
           `<div class="uc-buyer-offer-actions">` +
-            `<button type="button" class="phuglee-btn phuglee-btn-primary" data-buyer-offer-action="save">Save</button>` +
-            `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-buyer-offer-action="remove">Remove</button>` +
+            `<button type="button" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm" data-buyer-offer-action="save">Save</button>` +
+            `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" data-buyer-offer-action="remove">Remove</button>` +
           `</div>` +
         `</div>`
       );
@@ -2333,23 +4176,68 @@
 
     box.innerHTML = parts.join('');
     syncBuyerOffersHint();
+    syncProfileTabSummaries(state.profile);
   }
 
   function readBuyerOfferRow(row) {
     const name = (row.querySelector('.uc-buyer-offer-name')?.value || '').trim();
     const amount = parseOfferAmountInput(row.querySelector('.uc-buyer-offer-amount')?.value);
-    return { buyerName: name, offerAmount: amount };
+    const phone = (row.querySelector('.uc-buyer-offer-phone')?.value || '').trim();
+    const email = (row.querySelector('.uc-buyer-offer-email')?.value || '').trim().toLowerCase();
+    return { buyerName: name, offerAmount: amount, phone, email };
   }
 
-  async function persistBuyerOffers(nextList, toastMsg) {
+  /**
+   * Push saved offer into Buyers catalog under "Need to Verify Buy Box".
+   * Option B: does NOT create GHL contact on select — only catalog row on save.
+   */
+  async function ensureCatalogBuyerFromOffer(offer) {
+    if (!offer?.buyerName) return null;
+    try {
+      const data = await api('/api/buyers', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: offer.buyerName,
+          phone: offer.phone || '',
+          email: offer.email || '',
+          contactPhone: offer.phone || '',
+          contactEmail: offer.email || '',
+          contactName: offer.buyerName,
+          fromDealOffer: true,
+          needVerifyBuyBox: true,
+          verificationStatus: 'need_verify_buy_box',
+          oneLiner: `From deal offer · ${money(offer.offerAmount) || 'offer'}`,
+          notes: `UC deal offer on ${state.profile?.address || state.activeDealId || 'deal'}`
+        })
+      });
+      return data.buyer || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function persistBuyerOffers(nextList, toastMsg, opts = {}) {
     const dealId = state.activeDealId;
     if (!dealId) {
       showToast('Open a property first, then save');
       return null;
     }
-    const data = await saveDealFields(dealId, { buyerOffers: nextList });
+    let selectedId = state.selectedBuyerOfferId;
+    if (selectedId && !nextList.some((o) => o.id === selectedId)) {
+      selectedId = null;
+    }
+    const patch = { buyerOffers: nextList };
+    if (Object.prototype.hasOwnProperty.call(opts, 'selectedBuyerOfferId') || selectedId !== state.selectedBuyerOfferId) {
+      patch.selectedBuyerOfferId = selectedId;
+    }
+    const data = await saveDealFields(dealId, patch);
     const saved = Array.isArray(data.deal?.buyerOffers) ? data.deal.buyerOffers : nextList;
     state.buyerOffers = saved.slice();
+    if (data.deal && Object.prototype.hasOwnProperty.call(data.deal, 'selectedBuyerOfferId')) {
+      state.selectedBuyerOfferId = data.deal.selectedBuyerOfferId || null;
+    } else {
+      state.selectedBuyerOfferId = selectedId;
+    }
     if (data.deal) {
       mergeDealIntoState(data.deal);
       state.profile = { ...(state.profile || {}), ...data.deal };
@@ -2357,14 +4245,49 @@
     state.buyerOfferEditIds = {};
     showToast(toastMsg || 'Buyer offer saved');
     renderBuyerOffers();
+    // Keep Overview end-buyer card in sync with Buyers tab
+    if (state.profile) renderOverviewSnapshot(state.profile, state.contact);
     return data;
+  }
+
+  async function selectBuyerOffer(offerId) {
+    const id = String(offerId || '').trim();
+    if (!id) return;
+    const exists = (state.buyerOffers || []).some((o) => o.id === id);
+    if (!exists) {
+      showToast('Offer not found');
+      return;
+    }
+    // Gold highlight only — no GHL contact, no Comms channel, no SMS side effects
+    const next = state.selectedBuyerOfferId === id ? null : id;
+    state.selectedBuyerOfferId = next;
+    try {
+      const dealId = state.activeDealId;
+      if (!dealId) {
+        renderBuyerOffers();
+        return;
+      }
+      const data = await saveDealFields(dealId, { selectedBuyerOfferId: next });
+      if (data.deal) {
+        mergeDealIntoState(data.deal);
+        state.profile = { ...(state.profile || {}), ...data.deal };
+        state.selectedBuyerOfferId = data.deal.selectedBuyerOfferId || null;
+      }
+      renderBuyerOffers();
+      showToast(next ? 'Buyer selected' : 'Selection cleared');
+    } catch (err) {
+      showToast(err.message || 'Could not update selection');
+      renderBuyerOffers();
+    }
   }
 
   function addBuyerOfferDraft() {
     state.buyerOfferDrafts = (state.buyerOfferDrafts || []).concat([{
       id: buyerOfferDraftId(),
       buyerName: '',
-      offerAmount: ''
+      offerAmount: '',
+      phone: '',
+      email: ''
     }]);
     renderBuyerOffers();
     const list = $('uc-buyer-offers-list');
@@ -2374,11 +4297,49 @@
 
   async function onBuyerOfferAction(ev) {
     const btn = ev.target.closest('[data-buyer-offer-action]');
-    if (!btn) return;
-    const row = btn.closest('.uc-buyer-offer-row');
+    const rowClick = !btn && ev.target.closest('.uc-buyer-offer-row.is-locked[data-buyer-offer-action="select"]');
+    const actionEl = btn || rowClick;
+    if (!actionEl) return;
+    const action = actionEl.getAttribute('data-buyer-offer-action');
+    const row = actionEl.closest('.uc-buyer-offer-row');
+    const id = row?.getAttribute('data-offer-id')
+      || actionEl.getAttribute('data-offer-id')
+      || '';
+
+    if (action === 'select') {
+      // Don't select when clicking Edit/Remove
+      if (ev.target && ev.target.closest && ev.target.closest('.uc-buyer-offer-actions button, .uc-buyer-offer-actions')) {
+        // Allow only if the click landed on the actions container itself with no button
+        if (ev.target.closest('button[data-buyer-offer-action]')) return;
+      }
+      if (ev.target && ev.target.closest && ev.target.closest('button[data-buyer-offer-action="edit"], button[data-buyer-offer-action="remove"]')) {
+        return;
+      }
+      await selectBuyerOffer(id);
+      return;
+    }
+
+    if (action === 'send-aoc') {
+      const deal = state.profile
+        || (state.activeDealId && state.deals.find((d) => d.dealId === state.activeDealId));
+      if (!deal) {
+        showToast('Open a property first');
+        return;
+      }
+      openAocAction(deal);
+      return;
+    }
+
+    if (!row && action === 'edit' && id) {
+      state.buyerOfferEditIds = { ...(state.buyerOfferEditIds || {}), [id]: true };
+      renderBuyerOffers();
+      requestAnimationFrame(() => {
+        document.querySelector(`.uc-buyer-offer-row[data-offer-id="${CSS.escape(id)}"] .uc-buyer-offer-name`)?.focus();
+      });
+      return;
+    }
+
     if (!row) return;
-    const action = btn.getAttribute('data-buyer-offer-action');
-    const id = row.getAttribute('data-offer-id') || '';
     const isDraft = row.getAttribute('data-draft') === '1';
 
     if (action === 'edit') {
@@ -2400,8 +4361,9 @@
         return;
       }
       const next = (state.buyerOffers || []).filter((o) => o.id !== id);
+      if (state.selectedBuyerOfferId === id) state.selectedBuyerOfferId = null;
       try {
-        await persistBuyerOffers(next, 'Buyer offer removed');
+        await persistBuyerOffers(next, 'Buyer offer removed', { selectedBuyerOfferId: state.selectedBuyerOfferId });
       } catch (err) {
         showToast(err.message || 'Could not remove buyer offer');
       }
@@ -2420,34 +4382,51 @@
         row.querySelector('.uc-buyer-offer-amount')?.focus();
         return;
       }
-      btn.disabled = true;
+      if (btn) btn.disabled = true;
       try {
         let next;
+        let savedOffer = null;
         if (isDraft) {
-          next = (state.buyerOffers || []).concat([{
+          savedOffer = {
             buyerName: parsed.buyerName,
             offerAmount: parsed.offerAmount,
+            phone: parsed.phone,
+            email: parsed.email,
             updatedBy: teamUserKey()
-          }]);
+          };
+          next = (state.buyerOffers || []).concat([savedOffer]);
           state.buyerOfferDrafts = (state.buyerOfferDrafts || []).filter((d) => d.id !== id);
         } else {
-          next = (state.buyerOffers || []).map((o) => (
-            o.id === id
-              ? {
-                ...o,
-                buyerName: parsed.buyerName,
-                offerAmount: parsed.offerAmount,
-                updatedBy: teamUserKey(),
-                updatedAt: new Date().toISOString()
-              }
-              : o
-          ));
+          next = (state.buyerOffers || []).map((o) => {
+            if (o.id !== id) return o;
+            savedOffer = {
+              ...o,
+              buyerName: parsed.buyerName,
+              offerAmount: parsed.offerAmount,
+              phone: parsed.phone,
+              email: parsed.email,
+              updatedBy: teamUserKey(),
+              updatedAt: new Date().toISOString()
+            };
+            return savedOffer;
+          });
         }
-        await persistBuyerOffers(next, 'Buyer offer saved');
+        // Catalog: land in Need to Verify Buy Box (idempotent-ish by name/email)
+        const catalogBuyer = await ensureCatalogBuyerFromOffer(savedOffer || parsed);
+        if (catalogBuyer?.id && savedOffer) {
+          next = next.map((o) => {
+            const match = o === savedOffer
+              || (o.buyerName === savedOffer.buyerName && o.offerAmount === savedOffer.offerAmount);
+            return match ? { ...o, catalogBuyerId: catalogBuyer.id } : o;
+          });
+        }
+        await persistBuyerOffers(next, catalogBuyer
+          ? 'Offer saved · buyer queued to verify buy box'
+          : 'Buyer offer saved');
       } catch (err) {
         showToast(err.message || 'Could not save buyer offer');
       } finally {
-        btn.disabled = false;
+        if (btn) btn.disabled = false;
       }
     }
   }
@@ -2459,49 +4438,26 @@
     return `https://${raw}`;
   }
 
-  function syncInvestorBaseHint() {
-    const hint = $('uc-investor-base-hint');
-    if (!hint) return;
-    hint.textContent = state.investorBaseUrl
-      ? 'Marketing URL saved'
-      : 'Marketing site URL for this property';
-  }
-
   function renderInvestorBase() {
-    const box = $('uc-investor-base-body');
+    const box = $('uc-hero-investorbase');
     if (!box) return;
-    const url = state.investorBaseUrl || '';
-    const editing = Boolean(state.investorBaseEditing) || !url;
-
-    if (editing) {
+    const url = state.investorBaseUrl || state.profile?.investorBaseUrl || '';
+    const href = investorBaseHref(url);
+    // Same row as CASH / Marketing chips — compact inline control
+    if (url && !state.investorBaseEditing) {
       box.innerHTML =
-        `<div class="uc-investor-base-row is-editing">` +
-          `<label class="vault-field">` +
-            `<span class="vault-field-label">Marketing URL</span>` +
-            `<input type="url" id="uc-investor-base-input" class="phuglee-input" value="${esc(url)}" placeholder="https://…" autocomplete="off">` +
-          `</label>` +
-          `<div class="uc-investor-base-actions">` +
-            `<button type="button" class="phuglee-btn phuglee-btn-primary" data-investor-base-action="save">Save</button>` +
-            (url
-              ? `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="cancel">Cancel</button>`
-              : '') +
-            (url
-              ? `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="clear">Clear</button>`
-              : '') +
-          `</div>` +
-        `</div>`;
+        `<span class="uc-hero-ib-label">Investorbase:</span>` +
+        `<a class="uc-hero-ib-link" href="${esc(href)}" target="_blank" rel="noopener noreferrer" title="${esc(url)}">${esc(url)}</a>` +
+        `<button type="button" class="uc-hero-ib-btn" data-investor-base-action="edit" title="Edit link">Edit</button>`;
     } else {
-      const href = investorBaseHref(url);
       box.innerHTML =
-        `<div class="uc-investor-base-row is-locked">` +
-          `<p class="uc-investor-base-url"><a href="${esc(href)}" target="_blank" rel="noopener noreferrer">${esc(url)}</a></p>` +
-          `<div class="uc-investor-base-actions">` +
-            `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="edit">Edit</button>` +
-            `<button type="button" class="phuglee-btn phuglee-btn-ghost" data-investor-base-action="clear">Clear</button>` +
-          `</div>` +
-        `</div>`;
+        `<span class="uc-hero-ib-label">Investorbase:</span>` +
+        `<input type="url" id="uc-investor-base-input" class="uc-hero-ib-input" value="${esc(url)}" placeholder="https://…" autocomplete="off">` +
+        `<button type="button" class="uc-hero-ib-btn uc-hero-ib-btn--save" data-investor-base-action="save">Save</button>` +
+        (url
+          ? `<button type="button" class="uc-hero-ib-btn" data-investor-base-action="cancel">Cancel</button>`
+          : '');
     }
-    syncInvestorBaseHint();
   }
 
   async function persistInvestorBaseUrl(nextUrl, toastMsg) {
@@ -2513,13 +4469,14 @@
     const data = await saveDealFields(dealId, { investorBaseUrl: nextUrl });
     const saved = data.deal?.investorBaseUrl != null ? data.deal.investorBaseUrl : nextUrl;
     state.investorBaseUrl = saved || '';
-    state.investorBaseEditing = !state.investorBaseUrl;
+    state.investorBaseEditing = false;
     if (data.deal) {
       mergeDealIntoState(data.deal);
       state.profile = { ...(state.profile || {}), ...data.deal };
     }
-    showToast(toastMsg || 'Investor Base URL saved');
+    showToast(toastMsg || 'Investorbase link saved');
     renderInvestorBase();
+    syncMarketingBanner(state.profile);
     return data;
   }
 
@@ -2544,9 +4501,9 @@
     if (action === 'clear') {
       btn.disabled = true;
       try {
-        await persistInvestorBaseUrl('', 'Investor Base URL cleared');
+        await persistInvestorBaseUrl('', 'Investorbase link cleared');
       } catch (err) {
-        showToast(err.message || 'Could not clear URL');
+        showToast(err.message || 'Could not clear link');
       } finally {
         btn.disabled = false;
       }
@@ -2557,15 +4514,15 @@
       const input = $('uc-investor-base-input');
       const next = (input?.value || '').trim();
       if (!next) {
-        showToast('Paste the marketing URL first');
+        showToast('Paste the Investorbase link first');
         input?.focus();
         return;
       }
       btn.disabled = true;
       try {
-        await persistInvestorBaseUrl(next, 'Investor Base URL saved');
+        await persistInvestorBaseUrl(next, 'Investorbase link saved');
       } catch (err) {
-        showToast(err.message || 'Could not save URL');
+        showToast(err.message || 'Could not save link');
       } finally {
         btn.disabled = false;
       }
@@ -2577,12 +4534,12 @@
     if (!dialog || !deal) return;
     const rehab = deal.rehabInfo || {};
     const rows = [
-      ['Roof age & condition', rehab.roof],
-      ['AC age & condition', rehab.ac],
-      ['Foundation', rehab.foundation],
-      ['Electrical', rehab.electrical],
-      ['Plumbing', rehab.plumbing],
-      ['Anything else', rehab.other]
+      ['Roof age + condition', rehab.roof],
+      ['AC age + condition', rehab.ac],
+      ['Foundation condition', rehab.foundation],
+      ['Plumbing condition', rehab.plumbing],
+      ['Electrical condition', rehab.electrical],
+      ['Additional notes', rehab.other]
     ];
     const hasAny = rows.some(([, v]) => String(v || '').trim());
     $('uc-rehab-view-title').textContent = 'Rehab info';
@@ -2605,41 +4562,225 @@
     $('uc-rehab-view-dialog')?.close();
   }
 
-  function renderDocuments(docs) {
-    const box = $('uc-docs-list');
-    if (!box) return;
-    if (!docs.length) {
-      box.innerHTML = '<p class="uc-docs-empty">No documents yet. Upload a file below, or send via SignNow — signed PDFs return here automatically.</p>';
-      return;
+  /** Universal display order: Purchase Agreement → JV → AOC → Amendments */
+  const PACKAGE_SLOTS = [
+    {
+      key: 'psa',
+      title: 'Purchase Agreement',
+      sendKind: 'psa',
+      docKinds: ['purchase_contract'],
+      pendingKinds: ['purchase_contract', 'psa', 'cash', 'subto', 'subject_to']
+    },
+    {
+      key: 'jv',
+      title: 'JV Agreement',
+      sendKind: 'jv',
+      docKinds: ['jv'],
+      pendingKinds: ['jv']
+    },
+    {
+      key: 'aoc',
+      title: 'AOC',
+      sendKind: 'aoc',
+      docKinds: ['aoc'],
+      pendingKinds: ['aoc']
+    },
+    {
+      key: 'amendment',
+      title: 'Amendment',
+      sendKind: 'amendment',
+      docKinds: ['amendment'],
+      pendingKinds: ['amendment']
     }
-    box.innerHTML = docs.map((d) => {
-      const kind = DOC_LABELS[d.kind] || d.label || d.kind || 'Document';
-      const name = String(d.name || d.label || 'Document').trim() || 'Document';
-      const src = d.source === 'signnow' ? ' · SignNow' : (d.source === 'ghl' ? ' · GHL' : '');
-      return `<div class="uc-doc-row" data-doc-id="${esc(d.id)}">
-        <div class="uc-doc-row-main">
-          <span class="uc-doc-name" title="${esc(name)}">${esc(name)}</span>
-          <span class="uc-doc-kind">${esc(kind)}${esc(src)}</span>
-        </div>
-        <div class="uc-doc-row-actions">
-          <button type="button" class="phuglee-btn phuglee-btn-secondary" data-doc-action="view">View</button>
-          ${d.source !== 'ghl' ? '<button type="button" class="phuglee-btn phuglee-btn-ghost" data-doc-action="delete">Remove</button>' : ''}
-        </div>
-      </div>`;
-    }).join('');
+  ];
+
+  /** Formal UI labels for Documents desk (same as PACKAGE_SLOTS titles). */
+  const DOCS_UI_LABELS = {
+    psa: 'Purchase Agreement',
+    jv: 'JV Agreement',
+    aoc: 'AOC',
+    amendment: 'Amendment'
+  };
+
+  function pendingKindKey(p) {
+    return String(p?.kind || p?.templateKey || '').toLowerCase().replace(/[\s-]+/g, '_');
   }
 
-  function renderDocsPending(deal) {
-    const el = $('uc-docs-pending');
-    if (!el) return;
+  function matchPendingForSlot(pending, slot) {
+    return pending.filter((p) => {
+      const k = pendingKindKey(p);
+      return slot.pendingKinds.some((pk) => k === pk || k.includes(pk) || pk.includes(k));
+    });
+  }
+
+  function matchDocsForSlot(docs, slot) {
+    return docs.filter((d) => slot.docKinds.includes(String(d?.kind || '')));
+  }
+
+  function buildPackageModel(deal) {
+    const docs = Array.isArray(deal?.documents) ? deal.documents : [];
     const pending = Array.isArray(deal?.signNowPending) ? deal.signNowPending : [];
-    if (!pending.length) {
-      el.hidden = true;
-      el.textContent = '';
+    return PACKAGE_SLOTS.map((slot) => {
+      const matchedDocs = matchDocsForSlot(docs, slot);
+      const matchedPending = matchPendingForSlot(pending, slot);
+      let status = 'missing';
+      let meta = 'Not sent';
+      let primaryDoc = matchedDocs[0] || null;
+      if (matchedDocs.length) {
+        status = 'complete';
+        const src = primaryDoc?.source === 'signnow' ? 'SignNow' : (primaryDoc?.source === 'ghl' ? 'GHL' : 'Uploaded');
+        meta = `${matchedDocs.length} file${matchedDocs.length === 1 ? '' : 's'} · ${src}`;
+      } else if (matchedPending.length) {
+        status = 'pending';
+        const p = matchedPending[0];
+        const invitees = Array.isArray(p.invitees) ? p.invitees : [];
+        const who = invitees.map((i) => i.email).filter(Boolean).slice(0, 2).join(', ');
+        meta = who
+          ? `Awaiting signatures · ${who}`
+          : (p.documentName ? `Awaiting · ${p.documentName}` : 'Awaiting signatures');
+        if (p.openedByEmail) meta += ` · opened by ${p.openedByEmail}`;
+      }
+      return {
+        ...slot,
+        status,
+        meta,
+        primaryDoc,
+        matchedDocs,
+        matchedPending
+      };
+    });
+  }
+
+  function docsUiLabel(pkg) {
+    return DOCS_UI_LABELS[pkg?.key] || pkg?.title || 'Document';
+  }
+
+  /**
+   * Real document preview (PDF/image embed) so the card looks like the actual file.
+   * Full-size modal still opens on click. Placeholder paper only when no file URL.
+   */
+  function docsThumbHtml(pkg, bucket, label) {
+    const doc = pkg.primaryDoc;
+    const viewUrl = doc?.viewUrl || '';
+    const mime = String(doc?.mimeType || doc?.contentType || '').toLowerCase();
+    const name = String(doc?.name || doc?.label || viewUrl || '');
+    const isImage = mime.startsWith('image/')
+      || /\.(jpe?g|png|gif|webp|bmp)(\?|#|$)/i.test(name);
+    const short =
+      pkg.key === 'psa' ? 'PSA'
+        : pkg.key === 'aoc' ? 'AOC'
+          : pkg.key === 'jv' ? 'JV'
+            : pkg.key === 'amendment' ? 'AMD'
+              : 'DOC';
+
+    if (viewUrl) {
+      let viewport;
+      if (isImage) {
+        viewport = (
+          `<span class="uc-docs-thumb-viewport is-image" aria-hidden="true">` +
+            `<img class="uc-docs-thumb-real" src="${esc(viewUrl)}" alt="" loading="lazy" decoding="async">` +
+          `</span>`
+        );
+      } else {
+        // Live PDF page — no toolbar chrome; scaled to fit the card
+        const pdfSrc = viewUrl.includes('#')
+          ? viewUrl
+          : `${viewUrl}#toolbar=0&navpanes=0&scrollbar=0&view=FitH&zoom=page-width`;
+        viewport = (
+          `<span class="uc-docs-thumb-viewport is-pdf" aria-hidden="true">` +
+            `<iframe class="uc-docs-thumb-real" src="${esc(pdfSrc)}" title="${esc(label)}" tabindex="-1" loading="lazy"></iframe>` +
+          `</span>`
+        );
+      }
+      return (
+        `<button type="button" class="uc-docs-thumb is-${esc(bucket)} is-preview is-live"` +
+          ` data-pkg-key="${esc(pkg.key)}"` +
+          ` data-docs-bucket="${esc(bucket)}"` +
+          ` data-doc-id="${esc(doc?.id || '')}"` +
+          ` aria-label="Open ${esc(label)} preview">` +
+          viewport +
+          `<span class="uc-docs-thumb-caption">Open full preview</span>` +
+        `</button>`
+      );
+    }
+
+    const paper = (
+      `<span class="uc-docs-thumb-paper" aria-hidden="true">` +
+        `<span class="uc-docs-thumb-badge">${esc(short)}</span>` +
+        `<span class="uc-docs-thumb-title">${esc(label)}</span>` +
+        `<span class="uc-docs-thumb-lines"></span>` +
+      `</span>`
+    );
+    return (
+      `<div class="uc-docs-thumb is-${esc(bucket)} is-placeholder">` +
+        paper +
+        `<span class="uc-docs-thumb-caption">${bucket === 'pending' ? 'Awaiting signatures' : 'No file yet'}</span>` +
+      `</div>`
+    );
+  }
+
+  function docsRowHtml(pkg, bucket) {
+    const label = docsUiLabel(pkg);
+    // Label chip is display-only; preview thumb below opens the modal
+    return (
+      `<li class="uc-docs-bucket-item">` +
+        `<div class="uc-docs-card is-${esc(bucket)}">` +
+          `<div class="uc-docs-row is-${esc(bucket)}" data-pkg-key="${esc(pkg.key)}">` +
+            `<span class="uc-docs-row-label">${esc(label)}</span>` +
+          `</div>` +
+          docsThumbHtml(pkg, bucket, label) +
+        `</div>` +
+      `</li>`
+    );
+  }
+
+  function renderDocsDesk(deal) {
+    const pendingList = $('uc-docs-pending-list');
+    const signedList = $('uc-docs-signed-list');
+    if (!pendingList && !signedList) return;
+
+    const packages = buildPackageModel(deal || state.profile);
+    const pending = packages.filter((p) => p.status === 'pending');
+    const signed = packages.filter((p) => p.status === 'complete');
+
+    if (pendingList) {
+      pendingList.innerHTML = pending.length
+        ? pending.map((p) => docsRowHtml(p, 'pending')).join('')
+        : `<li class="uc-docs-bucket-empty">Nothing waiting on signatures.</li>`;
+    }
+    if (signedList) {
+      signedList.innerHTML = signed.length
+        ? signed.map((p) => docsRowHtml(p, 'signed')).join('')
+        : `<li class="uc-docs-bucket-empty">No signed packages on this deal yet.</li>`;
+    }
+
+    const meta = $('uc-docs-toolbar-meta');
+    if (meta) {
+      meta.textContent = `${pending.length} pending · ${signed.length} signed`;
+    }
+  }
+
+  function renderDocuments(docs) {
+    if (state.profile && Array.isArray(docs)) state.profile.documents = docs;
+    const deal = state.profile || {};
+    renderDocsDesk(deal);
+    syncProfileTabSummaries(state.profile);
+  }
+
+  function onDocsDeskClick(ev) {
+    // Only the preview thumbnail opens the modal (not the type label chip)
+    const thumb = ev.target.closest('button.uc-docs-thumb[data-pkg-key]');
+    if (!thumb) return;
+    const key = thumb.getAttribute('data-pkg-key');
+    const packages = buildPackageModel(state.profile);
+    const pkg = packages.find((p) => p.key === key);
+    if (!pkg) return;
+    const doc = pkg.primaryDoc;
+    if (doc?.viewUrl) {
+      openDocViewerModal(doc, docsUiLabel(pkg));
       return;
     }
-    el.hidden = false;
-    el.textContent = `${pending.length} SignNow package${pending.length === 1 ? '' : 's'} awaiting signatures — signed copies auto-import into Documents (you can still Refresh signed).`;
+    showToast('No preview available for this package yet');
   }
 
   async function autoSyncSignedDocuments(opts = {}) {
@@ -2658,7 +4799,6 @@
         const idx = state.deals.findIndex((d) => d.dealId === dealId);
         if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...data.deal };
         renderDocuments(data.deal.documents || []);
-        renderDocsPending(data.deal);
         syncDrawerJvButton(data.deal);
         syncDrawerAocButton(data.deal);
       }
@@ -2669,108 +4809,68 @@
   }
 
   function closeDocViewer() {
-    const viewer = $('uc-doc-viewer');
-    const frame = $('uc-doc-frame');
-    if (viewer) viewer.hidden = true;
+    closeDocViewerModal();
+  }
+
+  function closeDocViewerModal() {
+    const dlg = $('uc-doc-view-dialog');
+    const frame = $('uc-doc-view-frame');
     if (frame) frame.removeAttribute('src');
+    if (dlg?.open) dlg.close();
   }
 
-  function openDocViewer(doc) {
-    const viewer = $('uc-doc-viewer');
-    const frame = $('uc-doc-frame');
-    const title = $('uc-doc-viewer-title');
-    const openTab = $('uc-doc-open-tab');
-    if (!viewer || !frame || !doc?.viewUrl) return;
-    expandPanel(viewer);
-    title.textContent = doc.name || 'Document';
-    openTab.href = doc.viewUrl;
+  function openDocViewer(doc, label) {
+    openDocViewerModal(doc, label);
+  }
+
+  function openDocViewerModal(doc, label) {
+    const dlg = $('uc-doc-view-dialog');
+    const frame = $('uc-doc-view-frame');
+    const title = $('uc-doc-view-title');
+    const openTab = $('uc-doc-view-open-tab');
+    if (!dlg || !frame || !doc?.viewUrl) {
+      showToast('No preview URL for this document');
+      return;
+    }
+    if (title) title.textContent = label || doc.name || 'Document';
+    if (openTab) openTab.href = doc.viewUrl;
     frame.src = doc.viewUrl;
-    viewer.hidden = false;
-    viewer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');
   }
 
-  const MAX_DOC_UPLOAD_BYTES = 18 * 1024 * 1024;
+  function sendPackageKind(sendKind) {
+    const sel = $('uc-doc-kind');
+    if (sel && sendKind) sel.value = sendKind;
+    return sendDocumentFromPanel(sendKind);
+  }
 
-  async function uploadDocumentFromPanel(fileOverride) {
+  function openDocsSendTypeModal() {
+    const dlg = $('uc-docs-send-type-dialog');
+    if (!dlg) return;
+    const first = dlg.querySelector('input[name="uc-docs-send-type"][value="psa"]');
+    if (first) first.checked = true;
+    if (typeof dlg.showModal === 'function') dlg.showModal();
+    else dlg.setAttribute('open', '');
+  }
+
+  function continueDocsSendType() {
+    const dlg = $('uc-docs-send-type-dialog');
+    const picked = dlg?.querySelector('input[name="uc-docs-send-type"]:checked')?.value || 'psa';
+    if (dlg?.open) dlg.close();
+    else if (dlg) dlg.removeAttribute('open');
+    sendDocumentFromPanel(picked);
+  }
+
+  async function sendDocumentFromPanel(kindOverride) {
     const dealId = state.activeDealId;
     if (!dealId) {
       showToast('Open a property first');
       return;
     }
-    const input = $('uc-doc-upload-file');
-    const file = fileOverride || input?.files?.[0];
-    if (!file) {
-      // One-click path: open the picker (matches media desk UX)
-      if (input && !fileOverride) {
-        input.click();
-        return;
-      }
-      showToast('Choose a file to upload');
-      return;
-    }
-    if (file.size > MAX_DOC_UPLOAD_BYTES) {
-      showToast('Document too large (max 18MB)');
-      if (input) input.value = '';
-      return;
-    }
-    const kind = $('uc-doc-upload-kind')?.value || 'purchase_contract';
-    const btn = $('uc-doc-upload');
-    if (btn) {
-      btn.disabled = true;
-      btn.dataset.busy = '1';
-      btn.textContent = 'Uploading…';
-    }
-    try {
-      const contentBase64 = await new Promise((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => {
-          const s = String(r.result || '');
-          resolve(s.includes(',') ? s.split(',')[1] : s);
-        };
-        r.onerror = () => reject(new Error('Could not read file'));
-        r.readAsDataURL(file);
-      });
-      if (!contentBase64) throw new Error('Could not read file');
-      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/documents`, {
-        method: 'POST',
-        body: JSON.stringify({
-          kind,
-          name: file.name,
-          mimeType: file.type || 'application/pdf',
-          contentBase64,
-          source: 'local'
-        })
-      });
-      if (data.deal) {
-        state.profile = data.deal;
-        renderDocuments(data.deal.documents || []);
-        renderDocsPending(data.deal);
-      } else if (data.document) {
-        const docs = Array.isArray(state.profile?.documents) ? state.profile.documents.slice() : [];
-        docs.unshift(data.document);
-        if (state.profile) state.profile.documents = docs;
-        renderDocuments(docs);
-      }
-      if (input) input.value = '';
-      showToast(`Uploaded ${file.name}`);
-    } catch (err) {
-      const msg = err.code === 'PAYLOAD_TOO_LARGE'
-        ? 'Document too large (max 18MB)'
-        : (err.message || 'Upload failed');
-      showToast(msg);
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        delete btn.dataset.busy;
-        btn.textContent = 'Upload';
-      }
-    }
-  }
-
-  async function sendDocumentFromPanel() {
-    const dealId = state.activeDealId;
-    if (!dealId) return;
-    const kind = $('uc-doc-kind')?.value || 'aoc';
+    const kind = kindOverride || $('uc-doc-kind')?.value || 'aoc';
+    const sel = $('uc-doc-kind');
+    if (sel) sel.value = kind === 'purchase_contract' ? 'psa' : kind;
     if (kind === 'amendment') {
       if (state.profile) openAmendment(state.profile);
       return;
@@ -2780,7 +4880,7 @@
       return;
     }
     if (kind === 'jv') {
-      if (state.profile) openSendJv(state.profile);
+      showToast('JV auto-completes when the signed Purchase Agreement is imported — no manual send', 6000);
       return;
     }
     if (kind === 'psa' || kind === 'purchase_contract') {
@@ -2836,6 +4936,7 @@
       if (data.deal && state.activeDealId === deal.dealId) {
         state.profile = data.deal;
         renderProfile(data.deal, state.contact);
+        flashState($('uc-docs-pending-list') || $('uc-docs-instrument'));
       }
     } catch (err) {
       showToast(err.message || 'Send purchase contract failed');
@@ -2859,7 +4960,9 @@
       if (data.deal) {
         state.profile = data.deal;
         renderDocuments(data.deal.documents || []);
-        renderDocsPending(data.deal);
+      }
+      if (n > 0) {
+        flashState($('uc-docs-signed-list') || $('uc-docs-instrument'));
       }
     } catch (err) {
       showToast(err.message || 'SignNow refresh failed');
@@ -2898,25 +5001,34 @@
       return;
     }
     state.activeDealId = dealId;
+    state.profileTab = 'overview';
+    state.commChannel = 'seller';
     const buyersLink = $('uc-buyers-link') || $('uc-trust-funds-link');
     if (buyersLink) buyersLink.href = `/buyers?deal=${encodeURIComponent(dealId)}`;
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}`);
       renderProfile(data.deal, data.contact);
-      await loadMessages(dealId, { silent: true, forceScroll: true });
-      // Delayed pin — images + nested panel layout settle after first paint
-      setTimeout(() => scrollThreadToLatest($('uc-convo-thread')), 100);
+      const d = defaultProfileTab(data.deal, opts);
+      showProfileTab(d.tab);
+      if (d.channel) showCommChannel(d.channel);
+      // Phone-style: load lands on the latest message in each thread.
+      await loadMessages(dealId, { silent: true, forceScroll: true, pinLatest: true });
+      requestAnimationFrame(() => {
+        scrollThreadToLatest($('uc-convo-thread'));
+        scrollThreadToLatest($('uc-team-thread'));
+        scrollThreadToLatest($('uc-photo-thread'));
+      });
       startPoll();
       if (opts.markTeamRead) await markTeamMessagesRead(dealId);
       if (opts.scrollToTeam) {
         requestAnimationFrame(() => {
-          expandPanel($('uc-communication-section'));
-          const team = expandPanel($('uc-team-section'));
-          team?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          navigateProfileInstrument('comms', { channel: 'internal', flash: false });
           scrollThreadToLatest($('uc-team-thread'));
+          $('uc-team-input')?.focus?.();
         });
       }
       if (opts.scrollToSms) {
+        navigateProfileInstrument('comms', { channel: 'seller', flash: false });
         pulseSellerSmsSection();
         scrollToSellerSms();
       }
@@ -2937,10 +5049,20 @@
     closeDrawerMoreMenu();
     const drawer = $('uc-drawer');
     const backdrop = $('uc-drawer-backdrop');
-    if (drawer) drawer.hidden = true;
+    if (drawer) {
+      drawer.classList.remove('uc-comms-focus');
+      drawer.hidden = true;
+    }
     if (backdrop) backdrop.hidden = true;
     document.body.classList.remove('uc-drawer-open');
+    const returnEl = profileReturnFocus;
+    profileReturnFocus = null;
     ensureBoardPoll();
+    if (returnEl && typeof returnEl.focus === 'function') {
+      requestAnimationFrame(() => {
+        try { returnEl.focus(); } catch (_) { /* ignore */ }
+      });
+    }
   }
 
   function openBuyerFound(deal) {
@@ -3162,94 +5284,50 @@
     });
   }
 
+  /** JV auto-runs after signed PSA import — no manual Complete JV control. */
   function jvQuickBtnHtml(deal) {
     const { sent, signed } = jvState(deal);
-    const cls = ['uc-quick-btn', 'uc-quick-btn--jv'];
-    if (signed) cls.push('uc-quick-btn--jv-signed');
-    else if (sent) cls.push('uc-quick-btn--jv-sent');
-    const label = signed ? 'JV signed' : (sent ? 'JV done' : 'Complete JV');
-    const title = signed
-      ? 'JV already signed — click to redo with confirmation'
-      : (sent ? 'JV already completed — click to redo with confirmation' : 'Complete JV — auto-sign both parties and import PDF');
-    return `<button type="button" class="${cls.join(' ')}" data-action="send-jv" title="${esc(title)}">${esc(label)}</button>`;
+    if (signed) {
+      return `<span class="uc-quick-btn uc-quick-btn--jv uc-quick-btn--jv-signed" title="JV auto-completed after signed PSA">JV signed</span>`;
+    }
+    if (sent) {
+      return `<span class="uc-quick-btn uc-quick-btn--jv uc-quick-btn--jv-sent" title="JV in progress / on file">JV done</span>`;
+    }
+    return `<span class="uc-quick-btn uc-quick-btn--jv" title="JV auto-sends when signed PSA is imported">JV auto</span>`;
   }
 
   function syncDrawerJvButton(deal) {
     const btn = $('uc-drawer-send-jv');
     if (!btn) return;
+    // Hidden control — JV auto-completes after signed PSA import.
+    btn.hidden = true;
+    btn.setAttribute('aria-hidden', 'true');
+    btn.tabIndex = -1;
     const { sent, signed } = jvState(deal);
     btn.classList.toggle('uc-btn-jv-signed', signed);
     btn.classList.toggle('uc-btn-jv-sent', sent && !signed);
-    btn.textContent = signed ? 'JV signed' : (sent ? 'JV done' : 'Complete JV');
+    btn.textContent = signed ? 'JV signed' : (sent ? 'JV done' : 'JV auto');
   }
 
   async function doSendJv(deal) {
-    if (!deal?.dealId) return;
-    const body = {
-      salesPartner: 'brandon',
-      disposPartner: 'brad',
-      salesName: JV_PARTIES.sales.name,
-      salesCompany: JV_PARTIES.sales.company,
-      salesEmail: JV_PARTIES.sales.email,
-      disposName: JV_PARTIES.dispos.name,
-      disposCompany: JV_PARTIES.dispos.company,
-      disposEmail: JV_PARTIES.dispos.email
-    };
-    try {
-      showToast('Completing JV (auto-sign + import)…', 8000);
-      const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/send-jv`, {
-        method: 'POST',
-        body: JSON.stringify(body)
-      });
-      showToast(data.jv?.message || 'JV signed and imported into this deal', 7000);
-      await loadDeals();
-      if (state.activeDealId === deal.dealId && data.deal) {
-        renderProfile(data.deal, state.contact);
-      }
-    } catch (err) {
-      showToast(err.message || 'Send JV failed', 9000);
+    // Manual Complete JV removed — kept as no-op safety if something still calls it.
+    showToast('JV auto-completes when the signed Purchase Agreement is imported', 5000);
+    if (deal?.dealId) {
+      try {
+        await api(`/api/leads/admin/contracts/${encodeURIComponent(deal.dealId)}/sync-signnow`, {
+          method: 'POST',
+          body: '{}'
+        });
+        await loadDeals();
+      } catch (_) { /* ignore */ }
     }
   }
 
   function openJvConfirm(deal) {
-    const { sent, signed, jv } = jvState(deal);
-    $('uc-jv-deal-id').value = deal.dealId;
-    const body = $('uc-jv-resend-body');
-    const confirmBtn = $('uc-jv-confirm');
-    const addr = deal.address || 'this property';
-
-    if (sent) {
-      $('uc-jv-title').textContent = deal.address ? `Redo JV — ${deal.address}` : 'Redo JV agreement';
-      if (confirmBtn) confirmBtn.textContent = 'Yes, redo JV';
-      const who = (jv && jv.requestedBy) ? jv.requestedBy : 'unknown';
-      const sentWhen = formatJvWhen(jv?.requestedAt) || 'unknown time';
-      const doneWhen = signed
-        ? (formatJvWhen(jv?.signedAt) || 'completed (time unknown)')
-        : 'Not completed yet';
-      if (body) {
-        body.innerHTML = `
-          <p>This deal already has a JV on file.</p>
-          <p>Create a fresh auto-signed JV and import it again?</p>
-          <ul class="uc-jv-resend-meta">
-            <li><strong>Originally run by:</strong> ${esc(who)}</li>
-            <li><strong>Run at:</strong> ${esc(sentWhen)}</li>
-            <li><strong>Completed:</strong> ${esc(doneWhen)}</li>
-          </ul>
-          <p class="uc-jv-resend-note">No SignNow invites — Brandon + Brad signatures/dates/initials auto-apply and the PDF imports into Documents.</p>`;
-      }
-    } else {
-      $('uc-jv-title').textContent = deal.address ? `Complete JV — ${deal.address}` : 'Complete JV agreement';
-      if (confirmBtn) confirmBtn.textContent = 'Yes, complete JV';
-      if (body) {
-        body.innerHTML = `
-          <p>Complete the JV agreement for <strong>${esc(addr)}</strong>?</p>
-          <p class="uc-jv-resend-note">Property fills automatically. Brandon + Brad (BL) signatures and dates apply automatically. PDF imports into this deal — no email signing.</p>`;
-      }
-    }
-    $('uc-jv-dialog')?.showModal();
+    // Manual Complete JV retired — JV auto-runs after signed PSA import.
+    doSendJv(deal);
   }
 
-  /** Always confirm before send (first send or resend). */
   function openSendJv(deal) {
     if (!deal?.dealId) return;
     openJvConfirm(deal);
@@ -4009,6 +6087,7 @@
   }
 
   function bind() {
+    bindThreadScrollMemory();
     $('uc-buyer-form')?.addEventListener('submit', submitBuyerFound);
     $('uc-jv-form')?.addEventListener('submit', submitSendJv);
     $('uc-amendment-form')?.addEventListener('submit', submitAmendment);
@@ -4072,17 +6151,46 @@
     $('uc-release-close')?.addEventListener('click', closeReleaseConfirm);
     $('uc-rehab-save')?.addEventListener('click', () => { saveRehab(); });
     $('uc-buyer-offer-add')?.addEventListener('click', () => { addBuyerOfferDraft(); });
+    $('uc-offer-walker-presets')?.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('[data-walker-pick]');
+      if (!btn) return;
+      addOfferFromWalker(btn.getAttribute('data-walker-pick'));
+    });
+    bindWalkthroughs();
     $('uc-buyer-offers-list')?.addEventListener('click', (ev) => {
       onBuyerOfferAction(ev).catch((err) => showToast(err.message || 'Buyer offer action failed'));
     });
-    $('uc-investor-base-body')?.addEventListener('click', (ev) => {
-      onInvestorBaseAction(ev).catch((err) => showToast(err.message || 'Investor Base action failed'));
+    $('uc-buyer-offers-list')?.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      const row = ev.target.closest('.uc-buyer-offer-row.is-locked[data-buyer-offer-action="select"]');
+      if (!row || ev.target.closest('button, input, textarea, a')) return;
+      ev.preventDefault();
+      onBuyerOfferAction({ target: row, preventDefault() {}, stopPropagation() {} })
+        .catch((err) => showToast(err.message || 'Buyer offer action failed'));
+    });
+    $('uc-buyers-leader')?.addEventListener('click', (ev) => {
+      onBuyerOfferAction(ev).catch((err) => showToast(err.message || 'Buyer offer action failed'));
+    });
+    bindOverviewNotes();
+    // Investorbase link lives in the hero; re-bind via delegation on drawer hero
+    $('uc-drawer')?.addEventListener('click', (ev) => {
+      if (!ev.target.closest('#uc-hero-investorbase')) return;
+      onInvestorBaseAction(ev).catch((err) => showToast(err.message || 'Investorbase action failed'));
+    });
+    $('uc-drawer')?.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter') return;
+      if (!ev.target.closest('#uc-investor-base-input')) return;
+      ev.preventDefault();
+      const fake = { target: document.querySelector('[data-investor-base-action="save"]') || ev.target };
+      // trigger save
+      const btn = document.querySelector('#uc-hero-investorbase [data-investor-base-action="save"]');
+      if (btn) {
+        onInvestorBaseAction({ target: btn, preventDefault() {}, stopPropagation() {} })
+          .catch((err) => showToast(err.message || 'Save failed'));
+      }
     });
     $('uc-photo-copy-url-sms')?.addEventListener('click', () => { copyUploadUrl(); });
     $('uc-photo-sms-send')?.addEventListener('click', () => { sendPhotographerSms(); });
-    $('uc-photo-sms-refresh')?.addEventListener('click', () => {
-      if (state.activeDealId) loadPhotographerMessages(state.activeDealId);
-    });
     $('uc-photo-sms-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -4091,24 +6199,114 @@
     });
     $('uc-scan-run')?.addEventListener('click', () => { runRehabScan({ sync: false }); });
     $('uc-scan-apply-opts')?.addEventListener('click', () => { applyScanOptions(); });
+    $('uc-scan-assumptions-toggle')?.addEventListener('click', () => {
+      const panel = $('uc-scan-assumptions');
+      const btn = $('uc-scan-assumptions-toggle');
+      if (!panel) return;
+      const next = panel.hidden;
+      panel.hidden = !next;
+      if (btn) btn.setAttribute('aria-expanded', next ? 'true' : 'false');
+    });
     $('uc-scan-lines')?.addEventListener('click', (ev) => {
       const btn = ev.target.closest('[data-line-void]');
-      if (!btn) return;
-      const id = btn.getAttribute('data-line-void');
-      const voided = btn.getAttribute('data-voided') !== '0';
-      voidScanLine(id, voided);
+      if (btn) {
+        const id = btn.getAttribute('data-line-void');
+        const voided = btn.getAttribute('data-voided') !== '0';
+        voidScanLine(id, voided);
+        return;
+      }
+      const line = ev.target.closest('.uc-scan-line[data-media-ids]');
+      if (!line) return;
+      const raw = line.getAttribute('data-media-ids') || '';
+      const ids = raw.split(',').map((s) => s.trim()).filter(Boolean);
+      if (ids.length) openEvidenceFromMediaIds(ids);
+    });
+    $('uc-media-rooms')?.addEventListener('click', (ev) => {
+      const chip = ev.target.closest('[data-room]');
+      if (!chip) return;
+      state.mediaRoomFilter = chip.getAttribute('data-room') || 'all';
+      renderMedia(state.profile?.sellerMedia || []);
     });
     $('uc-media-desk-upload')?.addEventListener('click', () => $('uc-media-desk-file')?.click());
     $('uc-media-desk-file')?.addEventListener('change', (ev) => {
       deskUploadMedia(ev.target.files).catch((err) => showToast(err.message || 'Upload failed'));
       ev.target.value = '';
     });
+    const drop = $('uc-evidence-drop');
+    if (drop && drop.dataset.bound !== '1') {
+      drop.dataset.bound = '1';
+      ['dragenter', 'dragover'].forEach((type) => {
+        drop.addEventListener(type, (ev) => {
+          ev.preventDefault();
+          drop.classList.add('is-dragover');
+        });
+      });
+      ['dragleave', 'drop'].forEach((type) => {
+        drop.addEventListener(type, (ev) => {
+          ev.preventDefault();
+          if (type === 'dragleave' && drop.contains(ev.relatedTarget)) return;
+          drop.classList.remove('is-dragover');
+        });
+      });
+      drop.addEventListener('drop', (ev) => {
+        ev.preventDefault();
+        drop.classList.remove('is-dragover');
+        const files = ev.dataTransfer?.files;
+        if (files?.length) {
+          deskUploadMedia(files).catch((err) => showToast(err.message || 'Upload failed'));
+        }
+      });
+    }
+    // SMS pulse is a span badge on the Seller channel control (not nested button-in-button).
     $('uc-sms-pulse')?.addEventListener('click', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       scrollToSellerSms();
     });
+    bindCommChannels();
     $('uc-team-send')?.addEventListener('click', () => { sendTeamMessage(); });
+    $('uc-gif-toggle')?.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      toggleGifPicker();
+    });
+    $('uc-gif-picker-close')?.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      closeGifPicker();
+    });
+    $('uc-gif-search')?.addEventListener('input', () => {
+      if (gifSearchTimer) clearTimeout(gifSearchTimer);
+      gifSearchTimer = setTimeout(() => {
+        loadGifs($('uc-gif-search')?.value || '');
+      }, 280);
+    });
+    $('uc-gif-search')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeGifPicker();
+      }
+    });
+    const onGifTileActivate = (tile) => {
+      if (!tile) return;
+      const box = $('uc-gif-results');
+      const idx = Number(tile.getAttribute('data-gif-idx'));
+      const gif = box?._gifItems?.[idx];
+      if (!gif) return;
+      tile.classList.add('is-sending');
+      sendGifFromPicker(gif).finally(() => tile.classList.remove('is-sending'));
+    };
+    $('uc-gif-results')?.addEventListener('click', (ev) => {
+      const tile = ev.target.closest('.uc-gif-tile');
+      if (!tile) return;
+      ev.preventDefault();
+      onGifTileActivate(tile);
+    });
+    $('uc-gif-results')?.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      const tile = ev.target.closest('.uc-gif-tile');
+      if (!tile) return;
+      ev.preventDefault();
+      onGifTileActivate(tile);
+    });
     $('uc-team-thread')?.addEventListener('click', (ev) => {
       const reactTrigger = ev.target.closest('.uc-react-trigger');
       if (reactTrigger) {
@@ -4151,6 +6349,7 @@
         el.classList.remove('is-open');
         el.querySelector('.uc-react-trigger')?.setAttribute('aria-expanded', 'false');
       });
+      if (gifPickerOpen) closeGifPicker();
     });
     $('uc-team-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -4202,23 +6401,33 @@
       ev.preventDefault();
       cancelEdit();
     });
+    bindProfileTabs();
+    $('uc-profile-primary')?.addEventListener('click', () => {
+      runProfilePrimaryAction();
+    });
+    document.addEventListener('keydown', handleProfileFocusTrap);
     $('uc-drawer-close')?.addEventListener('click', closeProfile);
     $('uc-drawer-backdrop')?.addEventListener('click', closeProfile);
     $('uc-drawer')?.addEventListener('click', (ev) => {
       const summary = ev.target.closest('.uc-panel > .uc-panel-summary');
       if (!summary || !ev.currentTarget.contains(summary)) return;
-      // Nested controls inside the header (e.g. unread pulse) handle themselves.
+      // Nested controls inside the header handle themselves.
       if (ev.target.closest('a, input, select, textarea, label') && ev.target !== summary) return;
-      if (ev.target.closest('#uc-sms-pulse')) return;
+      if (ev.target.closest('#uc-sms-pulse') || ev.target.closest('.uc-comm-channels')) return;
       ev.preventDefault();
-      togglePanel(summary.closest('.uc-panel'));
+      const panel = summary.closest('.uc-panel');
+      // Top-level panels inside tabpanels are always open — tabs replaced accordion as primary IA.
+      // Comms channels use showCommChannel (no nested accordion).
+      if (
+        panel?.parentElement?.classList?.contains('uc-profile-tabpanel')
+        || panel?.classList?.contains('uc-comm-channel-pane')
+      ) {
+        setPanelOpen(panel, true);
+        return;
+      }
+      togglePanel(panel);
     });
     $('uc-sms-send')?.addEventListener('click', () => { sendSms(); });
-    $('uc-sms-refresh')?.addEventListener('click', () => {
-      if (state.activeDealId) {
-        loadMessages(state.activeDealId, { forceScroll: true }).catch((e) => showToast(e.message));
-      }
-    });
     $('uc-sms-mark-read')?.addEventListener('click', () => {
       markSellerSmsRead().catch((e) => showToast(e.message || 'Could not mark read'));
     });
@@ -4249,7 +6458,9 @@
       const card = ev.target.closest('.uc-media-card[data-media-id]');
       if (!card) return;
       ev.preventDefault();
-      openMediaLightbox(state.profile?.sellerMedia || [], card.getAttribute('data-media-id'));
+      const id = card.getAttribute('data-media-id');
+      const media = state.profile?.sellerMedia || [];
+      openMediaLightbox(media, id);
     });
     $('uc-sms-input')?.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
@@ -4257,29 +6468,23 @@
         sendSms();
       }
     });
-    $('uc-doc-send')?.addEventListener('click', () => { sendDocumentFromPanel(); });
-    $('uc-doc-upload')?.addEventListener('click', () => {
-      if ($('uc-doc-upload')?.dataset.busy === '1') return;
-      uploadDocumentFromPanel();
+    $('uc-docs-send-doc')?.addEventListener('click', () => { openDocsSendTypeModal(); });
+    $('uc-docs-send-type-continue')?.addEventListener('click', () => { continueDocsSendType(); });
+    $('uc-docs-send-type-dialog')?.addEventListener('click', (ev) => {
+      // Click backdrop (dialog itself) cancels
+      if (ev.target === $('uc-docs-send-type-dialog')) {
+        $('uc-docs-send-type-dialog').close?.();
+      }
     });
-    // Auto-upload when a file is chosen (picker path or native input)
-    $('uc-doc-upload-file')?.addEventListener('change', () => {
-      if ($('uc-doc-upload')?.dataset.busy === '1') return;
-      const input = $('uc-doc-upload-file');
-      const file = input?.files?.[0];
-      if (!file) return;
-      uploadDocumentFromPanel(file).catch((err) => showToast(err.message || 'Upload failed'));
+    $('uc-docs-pending-list')?.addEventListener('click', onDocsDeskClick);
+    $('uc-docs-signed-list')?.addEventListener('click', onDocsDeskClick);
+    $('uc-doc-view-close')?.addEventListener('click', closeDocViewerModal);
+    $('uc-doc-view-dialog')?.addEventListener('click', (ev) => {
+      if (ev.target === $('uc-doc-view-dialog')) closeDocViewerModal();
     });
-    $('uc-docs-refresh-sn')?.addEventListener('click', () => { refreshSignedDocuments(); });
-    $('uc-doc-close-viewer')?.addEventListener('click', closeDocViewer);
-    $('uc-docs-list')?.addEventListener('click', (ev) => {
-      const btn = ev.target.closest('[data-doc-action]');
-      const row = ev.target.closest('[data-doc-id]');
-      if (!btn || !row) return;
-      const docId = row.getAttribute('data-doc-id');
-      const doc = (state.profile?.documents || []).find((d) => d.id === docId);
-      if (btn.dataset.docAction === 'view' && doc) openDocViewer(doc);
-      if (btn.dataset.docAction === 'delete') deleteDocument(docId);
+    $('uc-doc-view-dialog')?.addEventListener('close', () => {
+      const frame = $('uc-doc-view-frame');
+      if (frame) frame.removeAttribute('src');
     });
     $('uc-lightbox-close')?.addEventListener('click', closePhotoLightbox);
     $('uc-lightbox-prev')?.addEventListener('click', (e) => {
@@ -4333,6 +6538,9 @@
       if ($('uc-amendment-dialog')?.open) return;
       if ($('uc-edit-dialog')?.open) return;
       if ($('uc-funded-dialog')?.open) return;
+      if ($('uc-aoc-remind-dialog')?.open) return;
+      if ($('uc-psa-dialog')?.open) return;
+      if ($('uc-rehab-view-dialog')?.open) return;
       closeProfile();
     });
 
