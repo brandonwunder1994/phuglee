@@ -7200,6 +7200,23 @@ body.uc-drawer-open {
   margin-top: 0.15rem;
 }
 
+/* Seller phone / email under name — dispo desk scan */
+.uc-snap-contact {
+  display: block;
+}
+
+.uc-snap-contact-link {
+  color: var(--phuglee-cream, #f5f2e4);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+  word-break: break-all;
+}
+
+.uc-snap-contact-link:hover,
+.uc-snap-contact-link:focus-visible {
+  color: var(--phuglee-accent, #f0c14b);
+}
+
 /* Marketing chip — same scale as cash / subto badges, sits in hero badge row */
 .uc-marketing-banner,
 .uc-marketing-chip {
