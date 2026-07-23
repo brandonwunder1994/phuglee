@@ -7247,6 +7247,7 @@ body.uc-drawer-open {
   appearance: none;
   margin: 0;
   padding: 0.18rem 0.42rem;
+  min-width: 3.1rem;
   border-radius: 4px;
   border: 1px solid color-mix(in srgb, var(--vault-border, #444) 85%, transparent);
   background: color-mix(in srgb, var(--vault-surface, #1a1a1a) 88%, #000);
@@ -7256,6 +7257,12 @@ body.uc-drawer-open {
   letter-spacing: 0.02em;
   line-height: 1.2;
   cursor: pointer;
+  transition:
+    color 0.12s ease,
+    border-color 0.12s ease,
+    background 0.12s ease,
+    box-shadow 0.12s ease,
+    transform 0.12s ease;
 }
 
 .uc-snap-copy:hover,
@@ -7266,7 +7273,41 @@ body.uc-drawer-open {
 }
 
 .uc-snap-copy:active {
-  transform: translateY(0.5px);
+  transform: scale(0.94);
+}
+
+/* Strong feedback after successful clipboard write */
+.uc-snap-copy.is-copied {
+  color: #1a1408;
+  background: var(--phuglee-accent, #f0c14b);
+  border-color: color-mix(in srgb, var(--phuglee-accent, #f0c14b) 80%, #fff);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--phuglee-accent, #f0c14b) 55%, transparent),
+    0 0 14px color-mix(in srgb, var(--phuglee-accent, #f0c14b) 45%, transparent);
+  animation: uc-snap-copy-pop 0.42s ease;
+}
+
+@keyframes uc-snap-copy-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.12);
+  }
+  70% {
+    transform: scale(0.97);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uc-snap-copy,
+  .uc-snap-copy.is-copied {
+    transition: none;
+    animation: none;
+  }
 }
 
 /* Marketing chip — same scale as cash / subto badges, sits in hero badge row */

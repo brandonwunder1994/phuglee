@@ -2982,7 +2982,7 @@
     return phoneRaw;
   }
 
-  async function copySellerContactText(text, label) {
+  async function copySellerContactText(text, label, btn) {
     const value = String(text || '').trim();
     if (!value) {
       showToast(`No ${label || 'value'} to copy`);
@@ -2990,10 +2990,34 @@
     }
     try {
       await navigator.clipboard.writeText(value);
-      showToast(`${label || 'Copied'} copied`);
+      signalCopyButton(btn, label);
+      showToast(`${label || 'Value'} copied`);
     } catch (_) {
       showToast(value);
     }
+  }
+
+  /** Visible “you copied it” pulse on the Copy control (phone/email). */
+  function signalCopyButton(btn, label) {
+    if (!btn || !btn.classList) return;
+    const original = btn.getAttribute('data-copy-label') || btn.textContent || 'Copy';
+    if (!btn.getAttribute('data-copy-label')) {
+      btn.setAttribute('data-copy-label', original.trim() || 'Copy');
+    }
+    btn.classList.remove('is-copied');
+    // Restart CSS animation if already mid-feedback
+    void btn.offsetWidth;
+    btn.classList.add('is-copied');
+    btn.textContent = 'Copied';
+    btn.setAttribute('aria-label', `${label || 'Value'} copied`);
+    if (btn._copyResetTimer) clearTimeout(btn._copyResetTimer);
+    btn._copyResetTimer = setTimeout(() => {
+      btn.classList.remove('is-copied');
+      btn.textContent = btn.getAttribute('data-copy-label') || 'Copy';
+      const kind = /phone/i.test(label || '') ? 'phone' : /email/i.test(label || '') ? 'email' : 'value';
+      btn.setAttribute('aria-label', `Copy ${kind}`);
+      btn._copyResetTimer = null;
+    }, 1400);
   }
 
   function isPlaceholderBuyerName(name) {
@@ -3281,7 +3305,7 @@
             : /email/i.test(copyBtn.getAttribute('aria-label') || '')
               ? 'Email'
               : 'Value';
-          copySellerContactText(text, label).catch(() => {});
+          copySellerContactText(text, label, copyBtn).catch(() => {});
         }
       });
     }
