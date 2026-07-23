@@ -7200,21 +7200,98 @@ body.uc-drawer-open {
   margin-top: 0.15rem;
 }
 
-/* Seller phone / email under name — dispo desk scan */
+/* Seller phone / email under name — dispo desk scan + copy + edit */
+.uc-snap-contact-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.35rem;
+  min-width: 0;
+}
+
+.uc-snap-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
 .uc-snap-contact {
   display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-top: 0;
 }
 
-.uc-snap-contact-link {
+.uc-snap-contact-label {
+  color: var(--vault-muted);
+}
+
+.uc-snap-contact-val {
   color: var(--phuglee-cream, #f5f2e4);
-  text-decoration: underline;
-  text-underline-offset: 0.12em;
-  word-break: break-all;
+  font-weight: 500;
+  text-decoration: none;
+  word-break: break-word;
 }
 
-.uc-snap-contact-link:hover,
-.uc-snap-contact-link:focus-visible {
-  color: var(--phuglee-accent, #f0c14b);
+.uc-snap-copy {
+  flex: 0 0 auto;
+  appearance: none;
+  margin: 0;
+  padding: 0.18rem 0.42rem;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--vault-border, #444) 85%, transparent);
+  background: color-mix(in srgb, var(--vault-surface, #1a1a1a) 88%, #000);
+  color: var(--vault-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.uc-snap-copy:hover,
+.uc-snap-copy:focus-visible {
+  color: var(--phuglee-cream, #f5f2e4);
+  border-color: color-mix(in srgb, var(--phuglee-accent, #f0c14b) 55%, var(--vault-border, #444));
+  outline: none;
+}
+
+.uc-snap-copy:active {
+  transform: translateY(0.5px);
+}
+
+.uc-snap-contact-actions {
+  margin-top: 0.25rem;
+}
+
+.uc-snap-contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  padding: 0.65rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--vault-border, #333) 80%, transparent);
+  background: color-mix(in srgb, var(--vault-surface, #1a1a1a) 70%, transparent);
+}
+
+.uc-snap-contact-form[hidden] {
+  display: none !important;
+}
+
+.uc-snap-contact-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.uc-snap-contact-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
 }
 
 /* Marketing chip — same scale as cash / subto badges, sits in hero badge row */

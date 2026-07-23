@@ -2897,15 +2897,15 @@
 
   /**
    * Seller phone + email for Overview Parties card (dispo desk needs these at a glance).
-   * Prefer deal fields, then contact, then first contractSeller email.
+   * Prefer live GHL contact, then deal fields, then first contractSeller email.
    */
   function overviewSellerContact(deal, contact) {
     const c = contact || {};
     const phone = String(
-      deal?.phone || c.phone || (Array.isArray(c.phones) ? c.phones[0] : '') || ''
+      c.phone || deal?.phone || (Array.isArray(c.phones) ? c.phones[0] : '') || ''
     ).trim();
     let email = String(
-      deal?.ownerEmail || deal?.email || c.email || ''
+      c.email || deal?.ownerEmail || deal?.email || ''
     ).trim();
     if (!email && Array.isArray(deal?.contractSellers)) {
       for (const s of deal.contractSellers) {
@@ -2919,20 +2919,133 @@
     return { phone, email };
   }
 
-  /** Clickable phone/email lines under seller name on Overview. */
+  /** US phone display: (XXX) XXX-XXXX — strips leading +1 / country 1. */
+  function formatSellerPhoneDisplay(raw) {
+    const digits = String(raw || '').replace(/\D/g, '');
+    if (!digits) return '';
+    let d = digits;
+    if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
+    if (d.length === 10) {
+      return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+    }
+    return d;
+  }
+
+  /** Plain phone/email rows with Copy + Edit for the dispo desk. */
   function overviewSellerContactHtml(deal, contact) {
     const { phone, email } = overviewSellerContact(deal, contact);
-    const telHref = phone.replace(/[^\d+]/g, '');
-    const phoneHtml = phone
-      ? `<a class="uc-snap-contact-link" href="tel:${esc(telHref)}">${esc(phone)}</a>`
+    const phoneDisplay = formatSellerPhoneDisplay(phone);
+    const phoneVal = phoneDisplay
+      ? `<span class="uc-snap-contact-val">${esc(phoneDisplay)}</span>`
       : `<span class="uc-snap-value is-empty">—</span>`;
-    const emailHtml = email
-      ? `<a class="uc-snap-contact-link" href="mailto:${esc(email)}">${esc(email)}</a>`
+    const emailVal = email
+      ? `<span class="uc-snap-contact-val">${esc(email)}</span>`
       : `<span class="uc-snap-value is-empty">—</span>`;
+    const phoneCopy = phoneDisplay
+      ? `<button type="button" class="uc-snap-copy" data-copy-text="${esc(phoneDisplay)}" title="Copy phone" aria-label="Copy phone">Copy</button>`
+      : '';
+    const emailCopy = email
+      ? `<button type="button" class="uc-snap-copy" data-copy-text="${esc(email)}" title="Copy email" aria-label="Copy email">Copy</button>`
+      : '';
     return (
-      `<span class="uc-snap-sub uc-snap-contact">Phone ${phoneHtml}</span>` +
-      `<span class="uc-snap-sub uc-snap-contact">Email ${emailHtml}</span>`
+      `<div class="uc-snap-contact-block">` +
+        `<div class="uc-snap-contact-row">` +
+          `<span class="uc-snap-sub uc-snap-contact">` +
+            `<span class="uc-snap-contact-label">Phone</span> ${phoneVal}` +
+          `</span>` +
+          phoneCopy +
+        `</div>` +
+        `<div class="uc-snap-contact-row">` +
+          `<span class="uc-snap-sub uc-snap-contact">` +
+            `<span class="uc-snap-contact-label">Email</span> ${emailVal}` +
+          `</span>` +
+          emailCopy +
+        `</div>` +
+        `<div class="uc-snap-contact-actions">` +
+          `<button type="button" class="uc-snap-edit-contact phuglee-btn phuglee-btn-ghost phuglee-btn-sm" id="uc-seller-contact-edit">Edit contact</button>` +
+        `</div>` +
+        `<div class="uc-snap-contact-form" id="uc-seller-contact-form" hidden>` +
+          `<label class="uc-snap-contact-field">` +
+            `<span class="vault-field-label">Phone</span>` +
+            `<input type="tel" id="uc-seller-phone-input" class="phuglee-input" value="${esc(phoneDisplay || phone)}" autocomplete="tel" placeholder="(806) 831-9386">` +
+          `</label>` +
+          `<label class="uc-snap-contact-field">` +
+            `<span class="vault-field-label">Email</span>` +
+            `<input type="email" id="uc-seller-email-input" class="phuglee-input" value="${esc(email)}" autocomplete="email" placeholder="seller@email.com">` +
+          `</label>` +
+          `<div class="uc-snap-contact-form-actions">` +
+            `<button type="button" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm" id="uc-seller-contact-save">Save</button>` +
+            `<button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" id="uc-seller-contact-cancel">Cancel</button>` +
+          `</div>` +
+        `</div>` +
+      `</div>`
     );
+  }
+
+  async function copySellerContactText(text, label) {
+    const value = String(text || '').trim();
+    if (!value) {
+      showToast(`No ${label || 'value'} to copy`);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast(`${label || 'Copied'} copied`);
+    } catch (_) {
+      showToast(value);
+    }
+  }
+
+  function setSellerContactFormOpen(open) {
+    const form = $('uc-seller-contact-form');
+    const editBtn = $('uc-seller-contact-edit');
+    if (form) form.hidden = !open;
+    if (editBtn) editBtn.hidden = !!open;
+  }
+
+  async function saveSellerContactFromOverview() {
+    const dealId = state.activeDealId;
+    if (!dealId) {
+      showToast('Open a property first');
+      return;
+    }
+    const phoneRaw = ($('uc-seller-phone-input')?.value || '').trim();
+    const emailRaw = ($('uc-seller-email-input')?.value || '').trim().toLowerCase();
+    const phoneDigits = phoneRaw.replace(/\D/g, '');
+    let phone = phoneRaw;
+    if (phoneDigits.length === 11 && phoneDigits.startsWith('1')) {
+      phone = formatSellerPhoneDisplay(phoneDigits);
+    } else if (phoneDigits.length === 10) {
+      phone = formatSellerPhoneDisplay(phoneDigits);
+    }
+    const btn = $('uc-seller-contact-save');
+    if (btn) btn.disabled = true;
+    try {
+      const data = await saveDealFields(dealId, {
+        phone: phone || '',
+        email: emailRaw || '',
+        ownerEmail: emailRaw || ''
+      });
+      if (data.deal) {
+        mergeDealIntoState(data.deal);
+        state.profile = { ...(state.profile || {}), ...data.deal };
+      }
+      // Keep live contact summary in sync for display
+      if (state.contact) {
+        state.contact = {
+          ...state.contact,
+          phone: phone || state.contact.phone || '',
+          email: emailRaw || state.contact.email || ''
+        };
+      }
+      renderOverviewSnapshot(state.profile, state.contact);
+      setSellerContactFormOpen(false);
+      showToast('Seller contact saved');
+    } catch (err) {
+      showToast(err.message || 'Could not save contact');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   }
 
   function isPlaceholderBuyerName(name) {
@@ -3210,6 +3323,30 @@
       facts.addEventListener('click', (ev) => {
         if (ev.target.closest('#uc-overview-note-open')) {
           openNoteDialog();
+          return;
+        }
+        const copyBtn = ev.target.closest('.uc-snap-copy[data-copy-text]');
+        if (copyBtn) {
+          const text = copyBtn.getAttribute('data-copy-text') || '';
+          const label = /phone/i.test(copyBtn.getAttribute('aria-label') || '')
+            ? 'Phone'
+            : /email/i.test(copyBtn.getAttribute('aria-label') || '')
+              ? 'Email'
+              : 'Value';
+          copySellerContactText(text, label).catch(() => {});
+          return;
+        }
+        if (ev.target.closest('#uc-seller-contact-edit')) {
+          setSellerContactFormOpen(true);
+          requestAnimationFrame(() => $('uc-seller-phone-input')?.focus());
+          return;
+        }
+        if (ev.target.closest('#uc-seller-contact-cancel')) {
+          setSellerContactFormOpen(false);
+          return;
+        }
+        if (ev.target.closest('#uc-seller-contact-save')) {
+          saveSellerContactFromOverview().catch((e) => showToast(e.message || 'Save failed'));
         }
       });
     }
