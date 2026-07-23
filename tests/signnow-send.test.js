@@ -322,8 +322,8 @@ describe('signnow-send helpers', () => {
     );
     const jvHandler = apiSrc.slice(
       apiSrc.indexOf('const jvSendMatch'),
-      apiSrc.indexOf('const amendmentSendMatch') > 0
-        ? apiSrc.indexOf('const amendmentSendMatch')
+      apiSrc.indexOf('const amendmentMatch') > 0
+        ? apiSrc.indexOf('const amendmentMatch')
         : apiSrc.indexOf('const sendDocMatch')
     );
     assert.doesNotMatch(jvHandler, /alertJvSent/);
@@ -346,6 +346,36 @@ describe('signnow-send helpers', () => {
       contractsSrc.indexOf('function pushSignNowPendingMany')
     );
     assert.doesNotMatch(rehydrate, /consider\(deal\.jvAgreement/);
+  });
+
+  it('amendment alerts never list auto-stamped Wunderhaus as awaiting', () => {
+    const teamNotify = require('../lib/leads-platform/team-notify');
+    const filtered = teamNotify.filterAwaitingSigners([
+      'Wunderhaus Group LLC (Buyer)',
+      'Seller (gina@example.com)',
+      'Brandon Wunder'
+    ]);
+    assert.deepEqual(filtered, ['Seller (gina@example.com)']);
+
+    const fromInvitees = teamNotify.awaitingLabelsFromInvitees(
+      [
+        { role: 'Buyer', email: 'brandon@wunderhausgroup.com' },
+        { role: 'Seller 1', email: 'gina@example.com' }
+      ],
+      ['Wunderhaus Group LLC (Buyer)', 'Seller (fallback)']
+    );
+    assert.deepEqual(fromInvitees, ['Seller 1 (gina@example.com)']);
+
+    const apiSrc = require('fs').readFileSync(
+      require('path').join(__dirname, '../lib/leads-platform/api.js'),
+      'utf8'
+    );
+    const amdHandler = apiSrc.slice(
+      apiSrc.indexOf('const amendmentMatch'),
+      apiSrc.indexOf('const sendDocMatch')
+    );
+    assert.doesNotMatch(amdHandler, /Wunderhaus Group LLC \(Buyer\)/);
+    assert.match(amdHandler, /awaitingLabelsFromInvitees/);
   });
 
   it('auto-imports signed SignNow docs via syncPendingSignNowAcrossDeals export', () => {
