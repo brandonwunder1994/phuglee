@@ -386,7 +386,11 @@
       $('uc-kpi-pending-sign').textContent = String(t.pendingSignatures ?? by.contract_sent ?? 0);
     }
     if ($('uc-kpi-open-fees')) {
-      $('uc-kpi-open-fees').textContent = money(t.openAssignmentFees || 0);
+      // Pending Assignments = all non-terminated dispo deals' assignment fees combined
+      const pending = t.pendingAssignmentFees != null
+        ? t.pendingAssignmentFees
+        : t.openAssignmentFees;
+      $('uc-kpi-open-fees').textContent = money(pending || 0);
     }
     $('uc-kpi-funded').textContent = String(by.funded || t.funded || t.closedCount || 0);
     $('uc-kpi-fees').textContent = money(t.closedAssignmentFees ?? t.totalAssignmentFees ?? 0);
