@@ -370,6 +370,44 @@ test('ghl opportunity upsert merges by ghlOpportunityId and may link lead', () =
   });
 });
 
+test('GHL sync refreshes ownerEmail/email/phone from CRM contact', async () => {
+  const pipeline = {
+    id: 'pipe-contact',
+    name: 'DTS Pipeline',
+    stages: [{ id: 'st1', name: 'Seller Signed | Send To Title' }]
+  };
+  const opp = {
+    id: 'opp-contact-refresh',
+    contactId: 'c-contact-1',
+    pipelineStageId: 'st1',
+    name: '910 Delaware Avenue Ohio',
+    _stageName: 'Seller Signed | Send To Title'
+  };
+  const first = await sync.upsertDealFromOpportunity(opp, pipeline, {
+    address1: '910 Delaware Avenue',
+    city: 'Youngstown',
+    state: 'OH',
+    email: 'old@example.com',
+    phone: '+18065551212',
+    contractPrice: '50000'
+  });
+  assert.equal(first.email, 'old@example.com');
+  assert.equal(first.ownerEmail, 'old@example.com');
+
+  const refreshed = await sync.upsertDealFromOpportunity(opp, pipeline, {
+    address1: '910 Delaware Avenue',
+    city: 'Youngstown',
+    state: 'OH',
+    email: 'correct@crm.example',
+    phone: '8068319386',
+    contractPrice: '50000'
+  });
+  assert.equal(refreshed.dealId, first.dealId);
+  assert.equal(refreshed.email, 'correct@crm.example');
+  assert.equal(refreshed.ownerEmail, 'correct@crm.example');
+  assert.ok(String(refreshed.phone || '').includes('806') || String(refreshed.phone || '').includes('831'));
+});
+
 test('admin contracts list requires admin', async () => {
   const forbidden = mockRes();
   const url = new URL('http://127.0.0.1/api/leads/admin/contracts');
@@ -1322,8 +1360,8 @@ test('Send New PSA dialog CSS keeps an inner vertical scrollport when zoomed', (
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*min-height:\s*0/s);
   assert.match(css, /\.uc-dialog--psa\s+\.uc-edit-form\s*\{[^}]*overflow-y:\s*auto/s);
   assert.match(css, /\.uc-psa-results\s*\{[^}]*max-height:\s*min\(12\.5rem,\s*40dvh\)/s);
-  assert.match(html, /under-contract\.css\?v=134-seller-contact/);
+  assert.match(html, /under-contract\.css\?v=136-seller-sync/);
   assert.match(html, /name="uc-psa-deal-type"[^>]*value="cash"/);
   assert.match(html, /name="uc-psa-deal-type"[^>]*value="subject_to"/);
-  assert.match(html, /under-contract\.js\?v=134-seller-contact/);
+  assert.match(html, /under-contract\.js\?v=136-seller-sync/);
 });
