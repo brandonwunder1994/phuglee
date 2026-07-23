@@ -2895,6 +2895,46 @@
     return out.slice(0, 2);
   }
 
+  /**
+   * Seller phone + email for Overview Parties card (dispo desk needs these at a glance).
+   * Prefer deal fields, then contact, then first contractSeller email.
+   */
+  function overviewSellerContact(deal, contact) {
+    const c = contact || {};
+    const phone = String(
+      deal?.phone || c.phone || (Array.isArray(c.phones) ? c.phones[0] : '') || ''
+    ).trim();
+    let email = String(
+      deal?.ownerEmail || deal?.email || c.email || ''
+    ).trim();
+    if (!email && Array.isArray(deal?.contractSellers)) {
+      for (const s of deal.contractSellers) {
+        const e = String(s?.email || '').trim();
+        if (e) {
+          email = e;
+          break;
+        }
+      }
+    }
+    return { phone, email };
+  }
+
+  /** Clickable phone/email lines under seller name on Overview. */
+  function overviewSellerContactHtml(deal, contact) {
+    const { phone, email } = overviewSellerContact(deal, contact);
+    const telHref = phone.replace(/[^\d+]/g, '');
+    const phoneHtml = phone
+      ? `<a class="uc-snap-contact-link" href="tel:${esc(telHref)}">${esc(phone)}</a>`
+      : `<span class="uc-snap-value is-empty">—</span>`;
+    const emailHtml = email
+      ? `<a class="uc-snap-contact-link" href="mailto:${esc(email)}">${esc(email)}</a>`
+      : `<span class="uc-snap-value is-empty">—</span>`;
+    return (
+      `<span class="uc-snap-sub uc-snap-contact">Phone ${phoneHtml}</span>` +
+      `<span class="uc-snap-sub uc-snap-contact">Email ${emailHtml}</span>`
+    );
+  }
+
   function isPlaceholderBuyerName(name) {
     const n = String(name || '').trim();
     if (!n) return true;
@@ -3033,6 +3073,7 @@
           <div class="uc-snap-field">
             <h4 class="uc-snap-label">Seller${sellers.length > 1 ? 's' : ''}</h4>
             <strong class="uc-snap-value">${esc(sellerLine)}</strong>
+            ${overviewSellerContactHtml(deal, contact)}
           </div>
           <div class="uc-snap-field">
             <h4 class="uc-snap-label">End Buyer</h4>
