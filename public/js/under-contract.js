@@ -2764,22 +2764,24 @@
   }
 
   function syncProfilePrimaryCta(deal) {
-    // Header chrome removed — primary/edit stay off-screen hooks only.
+    // Keep legacy primary hook off-screen; Edit stays visible next to close X.
     const btn = $('uc-profile-primary');
-    if (!btn) return;
-    const stage = String(deal?.stage || '');
-    const waiting = isWaitingForSignatures(deal) || stage === 'contract_sent';
-    let action = 'edit';
-    if (waiting) action = 'docs';
-    else if (stage === 'under_contract') action = 'aoc';
-    else if (stage === 'buyer_found') action = 'jv';
-    btn.dataset.primaryAction = action;
-    btn.hidden = true;
-    btn.setAttribute('aria-hidden', 'true');
+    if (btn) {
+      const stage = String(deal?.stage || '');
+      const waiting = isWaitingForSignatures(deal) || stage === 'contract_sent';
+      let action = 'edit';
+      if (waiting) action = 'docs';
+      else if (stage === 'under_contract') action = 'aoc';
+      else if (stage === 'buyer_found') action = 'jv';
+      btn.dataset.primaryAction = action;
+      btn.hidden = true;
+      btn.setAttribute('aria-hidden', 'true');
+    }
     const editBtn = $('uc-drawer-edit');
     if (editBtn) {
-      editBtn.hidden = true;
-      editBtn.setAttribute('aria-hidden', 'true');
+      editBtn.hidden = false;
+      editBtn.removeAttribute('aria-hidden');
+      editBtn.disabled = false;
     }
   }
 

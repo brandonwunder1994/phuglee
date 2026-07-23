@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=19-underline-hug">
   <link rel="stylesheet" href="/css/vault.css?v=29-gates">
-  <link rel="stylesheet" href="/css/under-contract.css?v=132-amd-status">
+  <link rel="stylesheet" href="/css/under-contract.css?v=133-profile-edit">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=4"></script>
@@ -307,17 +307,19 @@
     aria-modal="true"
     aria-labelledby="uc-drawer-title"
   >
-    <!-- Close-only chrome. Send Doc / Send AOC / JV / Amendment live on Documents + existing dialogs. -->
+    <!-- Edit + close chrome. Send Doc / Send AOC / JV / Amendment live on Documents + existing dialogs. -->
     <div class="uc-drawer-head uc-profile-head uc-profile-head--minimal">
       <h2 id="uc-drawer-title" class="uc-profile-sr-only">Contract profile</h2>
       <span id="uc-profile-stage-chip" class="uc-stage" hidden></span>
       <!-- Hidden hooks for JS that still references these IDs (never shown) -->
-      <button type="button" id="uc-drawer-edit" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Edit</button>
       <button type="button" id="uc-profile-primary" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true" data-primary-action="edit">Edit</button>
       <button type="button" id="uc-drawer-buyer-found" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Send AOC</button>
       <button type="button" id="uc-drawer-send-jv" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Complete JV</button>
       <button type="button" id="uc-drawer-amendment" class="uc-profile-sr-only" tabindex="-1" aria-hidden="true">Amendment</button>
-      <button type="button" id="uc-drawer-close" class="uc-profile-close-x" aria-label="Close profile">&times;</button>
+      <div class="uc-profile-head-actions" role="group" aria-label="Profile actions">
+        <button type="button" id="uc-drawer-edit" class="uc-profile-edit-btn">Edit</button>
+        <button type="button" id="uc-drawer-close" class="uc-profile-close-x" aria-label="Close profile">&times;</button>
+      </div>
     </div>
     <div class="uc-drawer-body uc-profile-body">
       <!-- Tabs are the stable chrome: always first in the body so they never hop. -->
@@ -1023,6 +1025,6 @@
   <script src="/js/command-palette.js?v=6-retire-map" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=132-amd-status" defer></script>
+  <script src="/js/under-contract.js?v=133-profile-edit" defer></script>
 </body>
 </html>
