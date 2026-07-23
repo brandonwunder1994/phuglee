@@ -699,7 +699,7 @@ test('processUpload suppress_type drops otherwise-strong violation rows', async 
     assert.ok(result.rows.some((row) => row.streetAddress === '456 Oak Ave'));
     assert.ok(result.processingMeta.brainAppliedRuleIds.includes('tr_suppress_weeds'));
   } finally {
-    saveBrain(emptyBrain());
+    saveBrain(emptyBrain(), { allowEmptyWipe: true });
   }
 });
 
@@ -806,7 +806,7 @@ test('processUpload promote_type keeps generic type as Strong', async () => {
     assert.equal(result.rows[0].distressedSignalTag, STRONG_DISTRESSED_TAG);
     assert.ok(result.processingMeta.brainAppliedRuleIds.includes('tr_promote_fence'));
   } finally {
-    saveBrain(emptyBrain());
+    saveBrain(emptyBrain(), { allowEmptyWipe: true });
   }
 });
 
@@ -849,7 +849,7 @@ test('processUpload water_shut_off ignores type suppress (BRAIN-03)', async () =
     assert.equal(result.stats.kept, baseline.stats.kept);
     assert.ok(
       result.rows.every((row) =>
-        row.distressedSignalTag === UPLOAD_TYPES.water_shut_off.defaultTag ||
+        row.distressedSignalTag === 'Water Shut Off – High Value Distress Signal' ||
         row.distressedSignalTag.includes('Water Shut Off')
       )
     );
@@ -857,7 +857,7 @@ test('processUpload water_shut_off ignores type suppress (BRAIN-03)', async () =
     assert.ok(!result.processingMeta.brainAppliedRuleIds.includes('tr_suppress_water'));
     assert.ok(!result.processingMeta.brainAppliedRuleIds.includes('tr_suppress_utility'));
   } finally {
-    saveBrain(emptyBrain());
+    saveBrain(emptyBrain(), { allowEmptyWipe: true });
   }
 });
 

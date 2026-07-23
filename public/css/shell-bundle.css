@@ -1,13 +1,3366 @@
-/* Shared shell CSS — one round trip for app chrome (tokens → a11y). */
-@import url('/css/tokens.css?v=shell3-no-topbar');
-@import url('/css/distress-glass.css?v=typeset1');
-@import url('/css/phuglee-components.css?v=typeset1');
-@import url('/css/phuglee-shell.css?v=1');
-@import url('/css/shell.css');
-@import url('/css/shell-nav.css?v=typeset1');
-@import url('/css/team-alert-banner.css?v=1');
-@import url('/css/settings-menu.css?v=typeset1');
-@import url('/css/command-palette.css');
-@import url('/css/distress-status.css');
-@import url('/css/phuglee-a11y.css');
-@import url('/css/mobile-baseline.css?v=2');
+/* shell-bundle generated — do not hand-edit; run: node scripts/build-shell-bundle.mjs */
+
+/* === tokens.css === */
+:root {
+  /* ── Phuglee Signature Brand (v1.3) — logo-ground-truth ── */
+  --phuglee-black: #0d0d0d;
+  --phuglee-black-mid: #121212;
+  --phuglee-charcoal: #353630;
+  --phuglee-olive: #282827;
+  --phuglee-earth: #24180a;
+
+  --phuglee-taupe: #aea38f;
+  --phuglee-taupe-mid: #a59a88;
+  --phuglee-taupe-light: #aca18e;
+  --phuglee-stone: #9c968a;
+  --phuglee-stone-warm: #aaa18f;
+  --phuglee-meta-text: #b0a99c;
+
+  --phuglee-cream: #f5f2e4;
+  --phuglee-cream-soft: #f5f3ec;
+  --phuglee-white: #ffffff;
+
+  --phuglee-orange: #e58435;
+  --phuglee-terracotta: #ac6b32;
+  --phuglee-gold: #eeb746;
+
+  /* Territory map heat (homepage Live coverage) */
+  --territory-heat-low: #8a4a18;
+  --territory-heat-mid: #e58435;
+  --territory-heat-high: #eeb746;
+  --territory-heat-glow: rgba(238, 183, 70, 0.22);
+  --territory-soon: #3a4658;
+  --territory-blocked: #8f2a2a;
+  --territory-blocked-accent: #c84848;
+
+  --phuglee-success: #3dd68c;
+  --phuglee-danger: #f87171;
+  --phuglee-warn: #eeb746;
+
+  /* Surfaces (legacy — migrate to phuglee in later phases) */
+  --bg-deep: #080605;
+  --bg-mid: #14100c;
+  --bg-card: #12100d;
+  --bg-elevated: #1a1612;
+
+  /* Heat accents → phuglee aliases */
+  --ember: var(--phuglee-orange);
+  --flame: var(--phuglee-orange);
+  --heat-core: var(--phuglee-gold);
+  --ash: var(--phuglee-stone);
+
+  /* Logo palette → phuglee aliases */
+  --cream: var(--phuglee-cream);
+  --stone: var(--phuglee-taupe);
+  --logo-charcoal: var(--phuglee-charcoal);
+  --logo-ember: var(--phuglee-orange);
+  --logo-gold: var(--phuglee-gold);
+
+  /* Text */
+  --text: var(--phuglee-cream);
+  --text-muted: #a89f92;
+
+  /* Chrome */
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hot: rgba(229, 132, 53, 0.35);
+
+  /* Status */
+  --status-up: var(--phuglee-success);
+  --status-down: var(--phuglee-danger);
+  --heat-ok: var(--phuglee-success);
+  --heat-warn: var(--phuglee-gold);
+  --heat-danger: var(--phuglee-danger);
+  --heat-info: #6ba3b8;
+
+  /* Typography */
+  --font-display: 'Anton', sans-serif;
+  --font-body: 'Outfit', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+  /* Type scale (phuglee) */
+  --text-display-xl: clamp(3.5rem, 12vw, 7rem);
+  --text-display-lg: clamp(2.25rem, 7vw, 3.5rem);
+  --text-display-md: clamp(1.5rem, 4vw, 2.25rem);
+  --text-display-sm: clamp(1.25rem, 3vw, 1.65rem);
+  --text-body-lg: 1.125rem;
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-eyebrow: 0.72rem;
+
+  /* Layout */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --nav-h: auto;
+
+  /* App shell — left rail only (no title top bar) */
+  --shell-rail-width: 240px;
+  --shell-topbar-height: 0px;
+  /* Back-compat: sticky desks / embeds still read this as top chrome height */
+  --distress-nav-offset: var(--shell-topbar-height);
+
+  /* Shadows (phuglee) — layered for raised premium depth */
+  --shadow-panel:
+    0 2px 4px rgba(0, 0, 0, 0.22),
+    0 8px 20px rgba(0, 0, 0, 0.32),
+    0 28px 72px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  --shadow-cta:
+    0 2px 6px rgba(0, 0, 0, 0.25),
+    0 6px 18px rgba(229, 132, 53, 0.38),
+    0 16px 42px rgba(229, 132, 53, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+  --shadow-cta-hover:
+    0 4px 10px rgba(0, 0, 0, 0.28),
+    0 10px 28px rgba(229, 132, 53, 0.42),
+    0 22px 56px rgba(229, 132, 53, 0.28),
+    0 0 48px rgba(229, 132, 53, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  --shadow-glow-orange: 0 0 48px rgba(229, 132, 53, 0.28);
+  --shadow-glow-gold: 0 0 36px rgba(238, 183, 70, 0.16);
+  --shadow-btn-glass:
+    0 2px 6px rgba(0, 0, 0, 0.28),
+    0 10px 28px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18);
+
+  /* Form Forge legacy aliases */
+  --bg: var(--bg-deep);
+  --surface: var(--bg-card);
+  --surface2: var(--bg-elevated);
+  --surface3: var(--bg-mid);
+  --muted: var(--text-muted);
+  --gold: var(--ember);
+  --gold-bright: var(--flame);
+  --gold-dim: #9a4a02;
+  --display: var(--font-display);
+  --body: var(--font-body);
+
+  /* Property Analyzer legacy aliases */
+  --background: var(--bg-deep);
+  --foreground: var(--text);
+  --card: var(--bg-card);
+  --accent: var(--ember);
+  --accent-foreground: var(--bg-deep);
+  --accent-cool: #5eb3c8;
+  --ring: var(--ember);
+  --radius: 12px;
+
+  /* Distress OS glass system — premium frosted elevation (raised cards) */
+  --glass-blur: 36px;
+  --glass-saturate: 170%;
+  --glass-bg: rgba(16, 14, 12, 0.42);
+  --glass-bg-elevated: rgba(22, 18, 14, 0.58);
+  --glass-bg-chrome: rgba(12, 11, 10, 0.78);
+  --glass-bg-solid: rgba(16, 14, 12, 0.92);
+  /* Borders: hairline taupe by default; orange only for strong/hover emphasis */
+  --glass-border: rgba(174, 163, 143, 0.16);
+  --glass-border-chrome: rgba(174, 163, 143, 0.14);
+  --glass-border-strong: rgba(229, 132, 53, 0.28);
+  --glass-border-hover: rgba(229, 132, 53, 0.42);
+  --glass-edge-shine: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 30%,
+    rgba(238, 183, 70, 0.28) 50%,
+    rgba(255, 255, 255, 0.1) 70%,
+    transparent 100%
+  );
+  --glass-fill:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.05) 0%, transparent 42%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.04) 0%, transparent 48%),
+    var(--glass-bg);
+  --glass-fill-elevated:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.07) 0%, transparent 40%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 50%),
+    var(--glass-bg-elevated);
+  /* Default card: depth without orange halo */
+  --glass-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.28),
+    0 6px 16px rgba(0, 0, 0, 0.32),
+    0 20px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22);
+  /* Hover / elevated: lift without competing glow */
+  --glass-shadow-float:
+    0 2px 4px rgba(0, 0, 0, 0.28),
+    0 10px 24px rgba(0, 0, 0, 0.38),
+    0 28px 64px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  --glass-shadow-featured:
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    0 12px 28px rgba(0, 0, 0, 0.4),
+    0 28px 64px rgba(0, 0, 0, 0.5),
+    0 0 32px rgba(229, 132, 53, 0.12),
+    0 0 0 1px rgba(229, 132, 53, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --zone-solid-bg: rgba(8, 6, 5, 0.94);
+  --zone-solid-border: rgba(255, 255, 255, 0.06);
+
+  /* Card rhythm */
+  --card-pad-y: 1.5rem;
+  --card-pad-x: 1.65rem;
+  --card-radius: 14px;
+  --card-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --card-duration: 0.28s;
+
+  /* Z-index scale (Filter + shell)
+     Order: bg → main → sticky HUD → typeahead → dialog → toast
+     Shell chrome (nav 1000, settings 1100, auth 1300, palette 2000) sits in sticky→dialog band.
+     Page-local stacking (typeahead) uses lower band; global overlays use dialog/toast.
+     Consumers must use var(--z-*) — no new ad-hoc 9999/12000 islands. */
+  --z-bg: 0;
+  --z-main: 1;
+  --z-sticky: 1000;      /* shell-nav, sticky HUD band */
+  --z-typeahead: 40;     /* in-panel menus above panel children (bridge city search) */
+  --z-typeahead-menu: 50;
+  --z-dialog: 10000;     /* native dialogs / history / type confirm */
+  --z-toast: 12000;      /* scanned toast and ephemeral full-screen confirms */
+  /* Shell overlay aliases (declare only — wire consumers in later phases) */
+  --z-shell-nav: var(--z-sticky);
+  --z-settings: 1100;
+  --z-auth: 1300;
+  --z-command-palette: 2000;
+
+  /* Desk density (Filter ops chrome; shared for later pages)
+     Desk panels use existing --glass-* ; density via --desk-pad-* not a second glass system */
+  --desk-gap: 0.65rem;
+  --desk-pad-y: 0.85rem;
+  --desk-pad-x: 1rem;
+  --control-h: 2.5rem;
+  --control-h-sm: 2rem;
+
+  /* Chip / pill surfaces */
+  --chip-pad-y: 0.4rem;
+  --chip-pad-x: 0.75rem;
+  --chip-radius: var(--radius-sm);
+  --chip-bg: rgba(0, 0, 0, 0.28);
+  --chip-border: rgba(174, 163, 143, 0.16);
+  --chip-bg-selected: linear-gradient(135deg, var(--phuglee-gold) 0%, var(--phuglee-orange) 55%, var(--phuglee-terracotta) 100%);
+  --chip-fg-selected: var(--phuglee-black);
+
+  /* Dense table / feed rows */
+  --row-pad-y: 0.55rem;
+  --row-border: rgba(174, 163, 143, 0.12);
+  --row-hover-bg: rgba(229, 132, 53, 0.08);
+
+  /* Status surfaces — always map to canonical semantics (TOKENS-04)
+     Foreground colors alias --phuglee-success|warn|danger only.
+     Backgrounds use rgba derived from those brand hexes (no second palette). */
+  --status-success-fg: var(--phuglee-success);
+  --status-warn-fg: var(--phuglee-warn);
+  --status-danger-fg: var(--phuglee-danger);
+  --status-success-bg: rgba(61, 214, 140, 0.12);   /* #3dd68c @ 12% */
+  --status-danger-bg: rgba(248, 113, 113, 0.12);    /* #f87171 @ 12% */
+}
+
+/* Light theme — first-class, not washed-out dark */
+[data-theme="light"] {
+  --phuglee-black: #f0ece2;
+  --phuglee-black-mid: #e8e4da;
+  --phuglee-charcoal: #d8d2c6;
+  --phuglee-olive: #cfc9bc;
+  --phuglee-earth: #e5dfd2;
+
+  --phuglee-cream: #1a1612;
+  --phuglee-cream-soft: #2a241c;
+  --phuglee-white: #0d0d0d;
+
+  --phuglee-stone: #6b6358;
+  --phuglee-stone-warm: #5c554c;
+  --phuglee-meta-text: #7a7268;
+  --phuglee-taupe-mid: #6e665c;
+
+  --bg-deep: #ebe6dc;
+  --bg-mid: #e3ddd2;
+  --bg-card: #f5f2ec;
+  --bg-elevated: #ffffff;
+
+  --text: #1a1612;
+  --text-muted: #6b6358;
+
+  --border: rgba(26, 22, 18, 0.1);
+  --border-hot: rgba(229, 132, 53, 0.45);
+
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-elevated: rgba(255, 255, 255, 0.78);
+  --glass-bg-chrome: rgba(245, 242, 236, 0.88);
+  --glass-bg-solid: rgba(255, 255, 255, 0.94);
+  --glass-border: rgba(172, 107, 50, 0.16);
+  --glass-border-chrome: rgba(26, 22, 18, 0.1);
+  --glass-border-strong: rgba(229, 132, 53, 0.35);
+  --glass-border-hover: rgba(229, 132, 53, 0.55);
+  --glass-fill:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.72) 0%, transparent 40%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.06) 0%, transparent 45%),
+    var(--glass-bg);
+  --glass-fill-elevated:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.85) 0%, transparent 38%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.08) 0%, transparent 45%),
+    var(--glass-bg-elevated);
+  --glass-shadow:
+    0 4px 12px rgba(26, 22, 18, 0.06),
+    0 18px 48px rgba(26, 22, 18, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(26, 22, 18, 0.04);
+  --glass-shadow-float:
+    0 8px 20px rgba(26, 22, 18, 0.08),
+    0 28px 64px rgba(26, 22, 18, 0.14),
+    0 0 32px rgba(229, 132, 53, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --glass-shadow-featured:
+    0 8px 24px rgba(26, 22, 18, 0.1),
+    0 28px 64px rgba(26, 22, 18, 0.14),
+    0 0 40px rgba(229, 132, 53, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --zone-solid-bg: #ffffff;
+  --zone-solid-border: rgba(26, 22, 18, 0.08);
+
+  --shadow-panel:
+    0 4px 12px rgba(26, 22, 18, 0.06),
+    0 16px 48px rgba(26, 22, 18, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow-glow-orange: 0 0 32px rgba(229, 132, 53, 0.2);
+  --shadow-glow-gold: 0 0 28px rgba(238, 183, 70, 0.14);
+
+  /* Desk surface overrides (chip/row only — status fg stays brand-bright) */
+  --chip-bg: rgba(26, 22, 18, 0.06);
+  --chip-border: rgba(26, 22, 18, 0.12);
+  --row-border: rgba(26, 22, 18, 0.1);
+  --row-hover-bg: rgba(229, 132, 53, 0.1);
+}
+
+[data-theme="light"] .premium-bg-photo,
+[data-theme="light"] .logo-page-photo,
+[data-theme="light"] .heat-field {
+  opacity: 0.35;
+}
+
+[data-theme="light"] .shell-nav-wrap {
+  background: var(--glass-bg-chrome);
+}
+
+/* === distress-glass.css === */
+/* Distress OS — premium glass elevation system (look only) */
+
+.distress-glass {
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius, 14px);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+}
+
+.distress-glass--float {
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
+}
+
+.distress-glass--chrome {
+  background: var(--glass-bg-chrome);
+  border-color: var(--glass-border-chrome);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+.distress-solid-zone {
+  background: var(--zone-solid-bg);
+  border: 1px solid var(--zone-solid-border);
+  border-radius: var(--card-radius, 14px);
+}
+
+/* ── Primary glass card primitive ── */
+.distress-glass-card {
+  position: relative;
+  isolation: isolate;
+  padding: var(--card-pad-y, 1.5rem) var(--card-pad-x, 1.65rem);
+  border-radius: var(--card-radius, 14px);
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+  transition:
+    border-color var(--card-duration, 0.28s) ease,
+    box-shadow var(--card-duration, 0.28s) ease,
+    transform var(--card-duration, 0.28s) var(--card-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+    background var(--card-duration, 0.28s) ease;
+}
+
+/* Soft ambient + grain */
+.distress-glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 85% 50% at 50% -8%, rgba(229, 132, 53, 0.09), transparent 55%),
+    repeating-linear-gradient(
+      -3deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.008) 3px,
+      rgba(255, 255, 255, 0.008) 4px
+    );
+  z-index: 0;
+}
+
+/* Hairline gold top edge */
+.distress-glass-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: var(--glass-edge-shine);
+  opacity: 0.9;
+  box-shadow: 0 0 16px rgba(229, 132, 53, 0.22);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: var(--card-radius, 14px) var(--card-radius, 14px) 0 0;
+}
+
+.distress-glass-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.distress-glass-card:hover {
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float);
+}
+
+.distress-glass-card.is-interactive {
+  cursor: pointer;
+}
+
+.distress-glass-card.is-interactive:hover {
+  transform: translateY(-3px) scale(1.008);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold);
+}
+
+.distress-glass-card.is-interactive:active {
+  transform: translateY(-1px) scale(0.995);
+}
+
+.distress-glass-card.is-selected,
+.distress-glass-card[aria-checked="true"],
+.distress-glass-card[data-selected="true"] {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+}
+
+.distress-glass-card.is-selected::after,
+.distress-glass-card[aria-checked="true"]::after,
+.distress-glass-card[data-selected="true"]::after {
+  left: 4%;
+  right: 4%;
+  opacity: 1;
+  box-shadow: 0 0 20px rgba(229, 132, 53, 0.35);
+}
+
+/* Compact / dense card */
+.distress-glass-card--compact {
+  padding: 1rem 1.15rem;
+  border-radius: 12px;
+}
+
+/* Featured / hero card */
+.distress-glass-card--featured {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+  padding: 1.75rem 1.85rem;
+}
+
+/* Icon chip for elegant icons inside glass cards */
+.distress-glass-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  color: var(--phuglee-gold);
+  background:
+    linear-gradient(145deg, rgba(229, 132, 53, 0.16), rgba(238, 183, 70, 0.04));
+  border: 1px solid rgba(238, 183, 70, 0.28);
+  box-shadow:
+    0 0 20px rgba(229, 132, 53, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.distress-glass-icon--sm {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+/* Card title / meta helpers for consistent hierarchy */
+.distress-glass-kicker {
+  margin: 0 0 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+}
+
+.distress-glass-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-body);
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  color: var(--phuglee-cream);
+  text-wrap: balance;
+}
+
+.distress-glass-body {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.distress-glass-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  text-decoration: none;
+  transition: color 0.2s ease, gap 0.2s ease, text-shadow 0.2s ease;
+}
+
+.distress-glass-cta:hover {
+  color: var(--phuglee-gold);
+  gap: 0.55rem;
+  text-shadow: 0 0 18px rgba(229, 132, 53, 0.35);
+}
+
+.distress-monitor {
+  position: relative;
+  border-radius: 14px;
+  padding: 0.65rem 0.65rem 1.75rem;
+  background: linear-gradient(165deg, #2a2a28 0%, #141412 100%);
+  border: 1px solid rgba(174, 163, 143, 0.22);
+  box-shadow:
+    0 32px 80px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.distress-monitor::after {
+  content: '';
+  position: absolute;
+  bottom: 0.55rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36%;
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(174, 163, 143, 0.25);
+}
+
+.distress-monitor-screen {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  background: var(--phuglee-black);
+  aspect-ratio: 16 / 10;
+  position: relative;
+}
+
+.distress-monitor-screen img,
+.distress-monitor-screen .monitor-ui {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.distress-pipeline-rail {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 2rem 0;
+  border-radius: var(--card-radius, 14px);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-fill);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+}
+
+.distress-pipeline-node {
+  flex: 1;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  position: relative;
+  border-right: 1px solid var(--glass-border);
+  transition: background 0.25s ease;
+}
+
+.distress-pipeline-node:last-child {
+  border-right: none;
+}
+
+.distress-pipeline-node:hover {
+  background: rgba(229, 132, 53, 0.06);
+}
+
+.distress-pipeline-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--phuglee-orange);
+  border: 1px solid rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.1);
+  box-shadow: 0 0 16px rgba(229, 132, 53, 0.12);
+  margin-bottom: 0.5rem;
+}
+
+.distress-pipeline-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--phuglee-cream);
+}
+
+.distress-pipeline-sub {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .distress-glass-card,
+  .distress-glass-card.is-interactive:hover,
+  .distress-glass-card.is-interactive:active {
+    transform: none;
+    transition: none;
+  }
+}
+
+
+/* === phuglee-components.css === */
+/* Phuglee Signature Brand — components (v1.3) */
+
+/* ── Pattern background utility ── */
+.phuglee-pattern-bg {
+  position: relative;
+}
+
+.phuglee-pattern-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--phuglee-pattern-opacity, 0.06);
+  background-image: url('/images/phuglee-pattern.svg');
+  background-size: 280px 280px;
+  background-repeat: repeat;
+  z-index: 0;
+}
+
+.phuglee-pattern-bg--subtle {
+  --phuglee-pattern-opacity: 0.04;
+}
+
+.phuglee-pattern-bg--medium {
+  --phuglee-pattern-opacity: 0.07;
+}
+
+.phuglee-pattern-bg--strong {
+  --phuglee-pattern-opacity: 0.1;
+}
+
+/* ── Typography ── */
+.phuglee-eyebrow {
+  font-size: var(--text-eyebrow);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange);
+  margin-bottom: 0.75rem;
+}
+
+.phuglee-hero-title {
+  font-family: var(--font-body);
+  font-size: var(--text-display-lg);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 0.95;
+  color: var(--phuglee-cream);
+}
+
+.phuglee-tagline {
+  font-size: var(--text-body-lg);
+  line-height: 1.65;
+  color: var(--phuglee-cream);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.85),
+    0 4px 18px rgba(0, 0, 0, 0.65);
+}
+
+/* ── Buttons — product UI (Outfit, not Anton display) ── */
+.phuglee-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  text-decoration: none;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  isolation: isolate;
+  transition:
+    transform var(--card-duration) var(--card-ease),
+    box-shadow var(--card-duration) ease,
+    border-color var(--card-duration) ease,
+    background var(--card-duration) ease,
+    color var(--card-duration) ease,
+    filter var(--card-duration) ease;
+}
+
+/* Dense desk size — tighter padding for ops chrome */
+.phuglee-btn-sm {
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  border-radius: 8px;
+  padding: 0.5rem 0.95rem;
+}
+
+.phuglee-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-btn:disabled,
+.phuglee-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* Primary gem — gold→orange→terracotta (auth/home DNA) */
+.phuglee-btn-primary {
+  position: relative;
+  overflow: hidden;
+  padding: 0.75rem 1.35rem;
+  color: var(--phuglee-black);
+  font-weight: 600;
+  background: linear-gradient(
+    145deg,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-gold) 18%,
+    var(--phuglee-orange) 55%,
+    var(--phuglee-terracotta) 100%
+  );
+  box-shadow: var(--shadow-cta);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.phuglee-btn-primary.phuglee-btn-sm {
+  padding: 0.55rem 1.1rem;
+}
+
+.phuglee-btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    transparent 45%
+  );
+  opacity: 0.85;
+}
+
+/* BUTTONS-03: hover-only sheen; capped lift for desk */
+.phuglee-btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.24) 50%,
+    transparent 62%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.55s var(--card-ease);
+  pointer-events: none;
+}
+
+.phuglee-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-cta-hover, var(--shadow-cta)), var(--shadow-glow-orange);
+  filter: brightness(1.04);
+}
+
+.phuglee-btn-primary:hover:not(:disabled)::after {
+  transform: translateX(120%);
+}
+
+.phuglee-btn-primary:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--shadow-cta),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.99);
+  filter: brightness(0.98);
+  box-shadow: var(--shadow-cta);
+}
+
+/* Secondary — glass fill + gold-tint border + top hairline */
+.phuglee-btn-secondary {
+  position: relative;
+  overflow: hidden;
+  padding: 0.88rem 1.55rem;
+  color: var(--phuglee-cream);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.1) 0%, transparent 42%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.08) 0%, transparent 50%),
+    rgba(18, 16, 14, 0.45);
+  border: 1px solid rgba(238, 183, 70, 0.28);
+  box-shadow: var(--shadow-btn-glass, var(--glass-shadow));
+  backdrop-filter: blur(18px) saturate(155%);
+  -webkit-backdrop-filter: blur(18px) saturate(155%);
+}
+
+.phuglee-btn-secondary.phuglee-btn-sm {
+  padding: 0.5rem 1rem;
+}
+
+.phuglee-btn-secondary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.35),
+    transparent
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.phuglee-btn-secondary:hover:not(:disabled) {
+  border-color: var(--glass-border-hover);
+  color: var(--phuglee-gold);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.12) 0%, transparent 42%),
+    linear-gradient(165deg, rgba(229, 132, 53, 0.14) 0%, transparent 50%),
+    rgba(28, 22, 16, 0.55);
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    0 16px 40px rgba(0, 0, 0, 0.4),
+    0 0 28px rgba(229, 132, 53, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.phuglee-btn-secondary:focus-visible {
+  outline: none;
+  border-color: var(--glass-border-hover);
+  box-shadow:
+    var(--shadow-btn-glass, var(--glass-shadow)),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+
+/* Ghost — text-only cream → orange */
+.phuglee-btn-ghost {
+  padding: 0.5rem 0.75rem;
+  color: var(--phuglee-cream);
+  background: transparent;
+  box-shadow: none;
+  border: 1px solid transparent;
+}
+
+.phuglee-btn-ghost.phuglee-btn-sm {
+  padding: 0.35rem 0.55rem;
+}
+
+.phuglee-btn-ghost:hover:not(:disabled) {
+  color: var(--phuglee-orange);
+}
+
+.phuglee-btn-ghost:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-btn-ghost:active:not(:disabled) {
+  color: var(--phuglee-terracotta);
+  transform: translateY(1px);
+}
+
+/* Danger — glass danger treatment via --phuglee-danger */
+.phuglee-btn-danger {
+  position: relative;
+  overflow: hidden;
+  padding: 0.85rem 1.5rem;
+  color: var(--phuglee-danger);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.06) 0%, transparent 40%),
+    var(--status-danger-bg, rgba(248, 113, 113, 0.12));
+  border: 1px solid color-mix(in srgb, var(--phuglee-danger) 35%, transparent);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.28),
+    0 0 20px color-mix(in srgb, var(--phuglee-danger) 10%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.phuglee-btn-danger.phuglee-btn-sm {
+  padding: 0.5rem 1rem;
+}
+
+.phuglee-btn-danger:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--phuglee-danger) 55%, transparent);
+  color: var(--phuglee-danger);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.35),
+    0 0 28px color-mix(in srgb, var(--phuglee-danger) 18%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.phuglee-btn-danger:focus-visible {
+  outline: none;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.28),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-btn-danger:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.96);
+}
+
+/* ── Panels — premium raised glass ── */
+.phuglee-panel {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--card-radius, 16px);
+  padding: var(--card-pad-y, 1.5rem) var(--card-pad-x, 1.65rem);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  transition:
+    border-color var(--card-duration) ease,
+    transform var(--card-duration) var(--card-ease),
+    box-shadow var(--card-duration) ease,
+    background var(--card-duration) ease;
+}
+
+/* Soft ambient wash — restrained (no orange fog on every panel) */
+.phuglee-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -12%, rgba(255, 255, 255, 0.04), transparent 55%),
+    radial-gradient(ellipse 70% 40% at 100% 100%, rgba(0, 0, 0, 0.18), transparent 50%);
+  opacity: 0.9;
+  z-index: 0;
+}
+
+/* Quiet top hairline — not a neon beam */
+.phuglee-panel::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: var(--glass-edge-shine);
+  opacity: 0.55;
+  box-shadow: none;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.phuglee-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Structural panels: border feedback only — no float (float = cheap card grid) */
+.phuglee-panel:hover {
+  border-color: rgba(174, 163, 143, 0.28);
+  box-shadow: var(--glass-shadow);
+  transform: none;
+}
+
+/* Interactive / clickable cards */
+.phuglee-panel.is-interactive,
+.phuglee-panel--interactive {
+  cursor: pointer;
+}
+
+.phuglee-panel.is-interactive:hover,
+.phuglee-panel--interactive:hover {
+  transform: translateY(-3px) scale(1.008);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-float), var(--shadow-glow-gold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phuglee-btn,
+  .phuglee-btn-primary,
+  .phuglee-btn-secondary,
+  .phuglee-btn-ghost,
+  .phuglee-btn-danger,
+  .phuglee-panel,
+  .phuglee-panel.is-interactive,
+  .phuglee-panel--interactive {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease !important;
+  }
+
+  .phuglee-btn:hover:not(:disabled),
+  .phuglee-btn-primary:hover:not(:disabled),
+  .phuglee-btn-secondary:hover:not(:disabled),
+  .phuglee-btn-ghost:hover:not(:disabled),
+  .phuglee-btn-danger:hover:not(:disabled),
+  .phuglee-btn:active:not(:disabled),
+  .phuglee-btn-primary:active:not(:disabled),
+  .phuglee-btn-secondary:active:not(:disabled),
+  .phuglee-btn-ghost:active:not(:disabled),
+  .phuglee-btn-danger:active:not(:disabled),
+  .phuglee-panel:hover,
+  .phuglee-panel.is-interactive:hover,
+  .phuglee-panel--interactive:hover {
+    transform: none !important;
+  }
+
+  .phuglee-btn-primary::after {
+    display: none;
+  }
+}
+
+.phuglee-panel.is-interactive:active,
+.phuglee-panel--interactive:active {
+  transform: translateY(-1px) scale(0.997);
+}
+
+.phuglee-panel-featured {
+  border-color: var(--glass-border-strong);
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-featured);
+}
+
+.phuglee-panel-featured::after {
+  left: 4%;
+  right: 4%;
+  opacity: 1;
+  box-shadow: 0 0 22px rgba(229, 132, 53, 0.4);
+}
+
+.phuglee-panel-featured:hover {
+  border-color: rgba(229, 132, 53, 0.7);
+  box-shadow: var(--glass-shadow-featured), var(--shadow-glow-orange);
+  transform: translateY(-2px);
+}
+
+.phuglee-panel-exclusive {
+  border-style: dashed;
+  border-color: rgba(172, 107, 50, 0.55);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.04) 0%, transparent 40%),
+    linear-gradient(165deg, rgba(172, 107, 50, 0.08) 0%, transparent 50%),
+    var(--glass-bg);
+}
+
+.phuglee-panel-vault {
+  border-color: rgba(201, 162, 39, 0.48);
+  box-shadow: var(--glass-shadow), 0 0 32px rgba(201, 162, 39, 0.14);
+}
+
+.phuglee-panel-vault::after {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(201, 162, 39, 0.35),
+    rgba(238, 183, 70, 0.7),
+    rgba(201, 162, 39, 0.35),
+    transparent
+  );
+}
+
+.phuglee-panel-vault:hover {
+  border-color: #c9a227;
+  box-shadow: var(--glass-shadow-float), 0 0 40px rgba(201, 162, 39, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Elevated float variant (modals, overlays) */
+.phuglee-panel.distress-glass--float,
+.phuglee-panel--float {
+  background: var(--glass-fill-elevated);
+  box-shadow: var(--glass-shadow-float);
+}
+
+/* Desk-safe: no hover thrash for all-day ops sections */
+.phuglee-panel--static,
+.phuglee-panel.phuglee-panel--static {
+  transform: none;
+}
+
+.phuglee-panel--static:hover,
+.phuglee-panel.phuglee-panel--static:hover {
+  transform: none;
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Dense ops padding — same glass DNA, tighter chrome */
+.phuglee-panel--dense,
+.phuglee-panel.phuglee-panel--dense {
+  padding: var(--desk-pad-y, 0.85rem) var(--desk-pad-x, 1rem);
+}
+
+/* ── Chips — radio face selection (FORMS-02 / FORMS-03) ── */
+.phuglee-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.phuglee-chip {
+  position: relative;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Visually hidden radio — preserve semantics; do not restyle as checkbox */
+.phuglee-chip input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.phuglee-chip-face {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h, 2.5rem);
+  padding: var(--chip-pad-y, 0.4rem) var(--chip-pad-x, 0.75rem);
+  font-family: var(--font-body);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--phuglee-taupe-mid);
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.06) 0%, transparent 45%),
+    var(--chip-bg, rgba(0, 0, 0, 0.28));
+  border: 1px solid var(--chip-border, rgba(174, 163, 143, 0.16));
+  border-radius: var(--radius-pill, 999px);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(14px) saturate(150%);
+  -webkit-backdrop-filter: blur(14px) saturate(150%);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Hover — warmer, not full selected energy */
+.phuglee-chip:hover .phuglee-chip-face {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.4);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 14px rgba(229, 132, 53, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Selected — auth-tab gold→orange→terracotta energy */
+.phuglee-chip input:checked + .phuglee-chip-face {
+  color: var(--phuglee-black);
+  background: linear-gradient(
+    135deg,
+    var(--phuglee-gold) 0%,
+    var(--phuglee-orange) 55%,
+    var(--phuglee-terracotta) 100%
+  );
+  border-color: rgba(238, 183, 70, 0.35);
+  box-shadow: 0 2px 12px rgba(229, 132, 53, 0.28);
+  transform: none;
+}
+
+.phuglee-chip input:focus-visible + .phuglee-chip-face {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.24),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+.phuglee-chip input:checked:focus-visible + .phuglee-chip-face {
+  box-shadow:
+    0 2px 12px rgba(229, 132, 53, 0.28),
+    var(--phuglee-focus-ring, 0 0 0 3px rgba(229, 132, 53, 0.5));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phuglee-chip-face {
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease !important;
+  }
+
+  .phuglee-chip:hover .phuglee-chip-face {
+    transform: none !important;
+  }
+}
+
+/* ── Inputs ── */
+.phuglee-input,
+.phuglee-textarea,
+.phuglee-select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.7rem 0.95rem;
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--phuglee-cream);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(174, 163, 143, 0.24);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.phuglee-input:hover,
+.phuglee-textarea:hover,
+.phuglee-select:hover {
+  border-color: rgba(174, 163, 143, 0.38);
+}
+
+.phuglee-input:focus,
+.phuglee-textarea:focus,
+.phuglee-select:focus {
+  outline: none;
+  border-color: var(--phuglee-orange);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 3px rgba(229, 132, 53, 0.16);
+}
+
+.phuglee-input::placeholder,
+.phuglee-textarea::placeholder {
+  color: rgba(174, 163, 143, 0.72);
+}
+
+.phuglee-input:disabled,
+.phuglee-input[disabled],
+.phuglee-select:disabled,
+.phuglee-select[disabled],
+.phuglee-textarea:disabled,
+.phuglee-textarea[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.phuglee-input:disabled:focus,
+.phuglee-input[disabled]:focus,
+.phuglee-select:disabled:focus,
+.phuglee-select[disabled]:focus,
+.phuglee-textarea:disabled:focus,
+.phuglee-textarea[disabled]:focus {
+  border-color: var(--phuglee-stone-warm);
+  box-shadow: none;
+}
+
+/* ── Modals ── */
+.phuglee-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 13, 13, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 900;
+}
+
+.phuglee-modal-panel {
+  animation: phuglee-modal-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes phuglee-modal-rise {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* ── States ── */
+.phuglee-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.phuglee-loading-state .phuglee-loading-bar {
+  width: min(280px, 72vw);
+}
+
+.phuglee-loading-copy {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--phuglee-meta-text);
+}
+
+.phuglee-loading-bar {
+  height: 3px;
+  background: var(--phuglee-charcoal);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.phuglee-loading-bar::after {
+  content: '';
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--phuglee-terracotta), var(--phuglee-orange));
+  border-radius: inherit;
+  animation: phuglee-loading-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes phuglee-loading-pulse {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+.phuglee-empty-state {
+  position: relative;
+  text-align: center;
+  padding: 2.5rem 1.75rem;
+  overflow: hidden;
+}
+
+.phuglee-empty-state--compact {
+  padding: 1.25rem 1rem;
+}
+
+.phuglee-empty-state--compact::before {
+  width: min(120px, 36vw);
+  height: min(120px, 36vw);
+  opacity: 0.06;
+}
+
+.phuglee-empty-state::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(200px, 50vw);
+  height: min(200px, 50vw);
+  transform: translate(-50%, -62%);
+  pointer-events: none;
+  opacity: 0.08;
+  background-image: url('/images/phuglee-pattern.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.phuglee-empty-state > * {
+  position: relative;
+  z-index: 1;
+}
+
+.phuglee-empty-state h2,
+.phuglee-empty-state .phuglee-empty-title {
+  font-family: var(--font-body);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  text-transform: none;
+  color: var(--phuglee-cream);
+  margin-bottom: 0.65rem;
+}
+
+.phuglee-empty-state--compact h2,
+.phuglee-empty-state--compact .phuglee-empty-title {
+  font-size: clamp(1.1rem, 3vw, 1.35rem);
+  margin-bottom: 0.4rem;
+}
+
+.phuglee-empty-state p,
+.phuglee-empty-state .phuglee-empty-lead {
+  color: var(--phuglee-stone);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 32rem;
+  margin: 0 auto 1.25rem;
+}
+
+.phuglee-empty-state--compact p,
+.phuglee-empty-state--compact .phuglee-empty-lead {
+  font-size: 0.88rem;
+  margin-bottom: 0.85rem;
+}
+
+.phuglee-empty {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  color: var(--phuglee-stone);
+}
+
+/* Status wraps — semantic tokens only (STATES-03) */
+.phuglee-error-wrap,
+.phuglee-success-wrap,
+.phuglee-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.phuglee-error-wrap {
+  background: var(--status-danger-bg, rgba(248, 113, 113, 0.12));
+  border: 1px solid color-mix(in srgb, var(--phuglee-danger) 35%, transparent);
+}
+
+.phuglee-success-wrap {
+  background: var(--status-success-bg, rgba(61, 214, 140, 0.12));
+  border: 1px solid color-mix(in srgb, var(--phuglee-success) 35%, transparent);
+}
+
+.phuglee-status {
+  gap: 0.35rem;
+  padding: 0.7rem 0.95rem;
+  font-size: var(--text-body-sm);
+  line-height: 1.5;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--chip-border, rgba(174, 163, 143, 0.16));
+  color: var(--phuglee-taupe-mid);
+}
+
+.phuglee-status--error {
+  color: var(--phuglee-danger);
+  background: var(--status-danger-bg, rgba(248, 113, 113, 0.12));
+  border-color: color-mix(in srgb, var(--phuglee-danger) 35%, transparent);
+}
+
+.phuglee-status--success {
+  color: var(--phuglee-success);
+  background: var(--status-success-bg, rgba(61, 214, 140, 0.12));
+  border-color: color-mix(in srgb, var(--phuglee-success) 35%, transparent);
+}
+
+.phuglee-status--warn {
+  color: var(--phuglee-warn);
+  background: rgba(238, 183, 70, 0.12);
+  border-color: color-mix(in srgb, var(--phuglee-warn) 35%, transparent);
+}
+
+.phuglee-error-wrap[hidden],
+.phuglee-success-wrap[hidden],
+.phuglee-status[hidden] {
+  display: none;
+}
+
+.phuglee-error {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  line-height: 1.5;
+  color: var(--phuglee-danger);
+}
+
+.phuglee-success {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  line-height: 1.5;
+  color: var(--phuglee-success);
+}
+
+.phuglee-error-retry {
+  font-size: 0.78rem;
+  padding: 0.55rem 1rem;
+}
+
+/* Shell nav page-transition loading strip */
+.shell-loading-strip {
+  position: fixed;
+  top: var(--distress-nav-offset, 0px);
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 1rem 0.5rem;
+  background: rgba(13, 13, 13, 0.92);
+  border-bottom: 1px solid rgba(229, 132, 53, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  pointer-events: none;
+}
+
+.shell-loading-strip[hidden] {
+  display: none;
+}
+
+.shell-loading-strip .phuglee-loading-bar {
+  width: min(320px, 90vw);
+}
+
+.shell-loading-strip .phuglee-loading-copy {
+  font-size: 0.72rem;
+}
+
+/* ── Logo SVG variants (injected by phuglee-logo.js) ── */
+.phuglee-logo-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.phuglee-logo-svg--hero {
+  width: min(408px, 72vw);
+}
+
+body:not(.home-page) .phuglee-logo-svg--hero {
+  animation: phuglee-logo-float 6s ease-in-out infinite;
+}
+
+.phuglee-logo-svg--watermark {
+  width: 120px;
+  opacity: 0.08;
+}
+
+.phuglee-logo-svg--inline {
+  width: 48px;
+}
+
+@keyframes phuglee-logo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* ── Motion reveal (phuglee-motion.js) — marketing only ── */
+[data-phuglee-reveal]:not(.phuglee-reveal-active) > [data-phuglee-reveal-child],
+[data-phuglee-reveal]:not(.phuglee-reveal-active) > *:not(script):not(style) {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+[data-phuglee-reveal] > [data-phuglee-reveal-child],
+[data-phuglee-reveal] > *:not(script):not(style) {
+  transition:
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-phuglee-reveal].phuglee-reveal-active .phuglee-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Product desks: instant paint — no stagger theater (Linear/Stripe style) */
+body.phuglee-app [data-phuglee-reveal] > *,
+body.bridge-page [data-phuglee-reveal] > *,
+body.command-page [data-phuglee-reveal] > *,
+body.collect-page [data-phuglee-reveal] > *,
+body.vault-page [data-phuglee-reveal] > *,
+body.has-shell-chrome [data-phuglee-reveal] > * {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-phuglee-reveal] > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .phuglee-btn-primary::after {
+    display: none;
+  }
+
+  .phuglee-btn-primary:hover,
+  .phuglee-btn-secondary:hover,
+  .phuglee-btn-ghost:hover,
+  .phuglee-btn-danger:hover,
+  .phuglee-btn-primary:active,
+  .phuglee-btn-secondary:active,
+  .phuglee-btn-ghost:active,
+  .phuglee-btn-danger:active,
+  .phuglee-panel:hover,
+  .phuglee-panel-featured:hover,
+  .phuglee-panel-vault:hover,
+  .phuglee-panel.is-interactive:hover,
+  .phuglee-panel--interactive:hover,
+  .phuglee-panel.is-interactive:active,
+  .phuglee-panel--interactive:active {
+    transform: none;
+    filter: none;
+  }
+
+  .phuglee-modal-panel,
+  .auth-modal,
+  .tool-modal-dialog.cyber-dialog {
+    animation: none;
+  }
+
+  .phuglee-logo-svg--hero,
+  body.home-page .logo-ember-float .landing-logo-slot,
+  body.home-page .logo-ember-float .logo-ember-backdrop {
+    animation: none !important;
+  }
+
+  .logo-ember-halo-layer {
+    animation: none !important;
+    opacity: 0.82;
+  }
+
+  .logo-ember-canvas {
+    display: none;
+  }
+
+  .phuglee-loading-bar::after {
+    animation: none;
+    width: 100%;
+  }
+}
+
+/* === phuglee-shell.css === */
+/* Phuglee app shell — unified ops war room chrome (Phase 3 Wave 1) */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body.phuglee-app,
+body.command-page,
+body.bridge-page,
+body.collect-page,
+body.vault-page,
+body.has-premium-bg {
+  font-family: var(--font-body);
+  background: var(--phuglee-black);
+  color: var(--phuglee-cream);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.distress-os-embedded {
+  padding-top: 0;
+}
+
+/* Single atmosphere layer — replaces premium-bg + heat-field stack */
+.phuglee-shell-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--phuglee-black);
+}
+
+.phuglee-shell-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: var(--shell-photo-opacity, 0.22);
+  background: url('/images/home-hero-distressed.jpg') center 42% / cover no-repeat;
+  filter: grayscale(28%) contrast(1.12) brightness(0.48) saturate(0.7);
+}
+
+.phuglee-shell-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -8%, rgba(229, 132, 53, 0.14) 0%, transparent 58%),
+    radial-gradient(ellipse 45% 38% at 92% 88%, rgba(172, 107, 50, 0.08) 0%, transparent 52%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 18%, rgba(0, 0, 0, 0.2) 40%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+.phuglee-shell-bg--subtle {
+  --shell-photo-opacity: 0.12;
+}
+
+.phuglee-shell-bg--medium {
+  --shell-photo-opacity: 0.2;
+}
+
+.phuglee-shell-bg--strong {
+  --shell-photo-opacity: 0.28;
+}
+
+.phuglee-shell-main,
+.shell-main,
+.command-main,
+.bridge-main,
+.collect-main,
+.vault-main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Legacy hooks — keep class names working if markup not yet migrated */
+.has-premium-bg .premium-bg,
+.has-premium-bg .heat-field {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* === shell.css === */
+/* Shell utilities — nav chrome lives in shell-nav.css */
+
+.shell-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.shell-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.shell-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ash);
+}
+
+.shell-status-pill.up {
+  border-color: rgba(61, 214, 140, 0.3);
+  color: #b8f0d0;
+}
+
+.shell-status-pill.up .shell-status-dot {
+  background: var(--status-up);
+  box-shadow: 0 0 8px rgba(61, 214, 140, 0.6);
+}
+
+.shell-status-pill.down {
+  border-color: rgba(248, 113, 113, 0.3);
+  color: #fecaca;
+}
+
+.shell-status-pill.down .shell-status-dot {
+  background: var(--status-down);
+}
+
+@media (max-width: 768px) {
+  .shell-status {
+    margin-left: auto;
+  }
+}
+
+/* === shell-nav.css === */
+/* Distress OS — product shell: left rail only (no title top bar) */
+
+:root {
+  --shell-rail-width: 240px;
+  --shell-topbar-height: 0px;
+  --distress-nav-offset: 0px;
+}
+
+body.has-shell-chrome {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: 0;
+  padding-left: var(--shell-rail-width);
+  box-sizing: border-box;
+}
+
+body.has-shell-chrome .shell-footer {
+  margin-top: auto;
+}
+
+/* ── Chrome root ── */
+.shell-chrome {
+  position: relative;
+  z-index: 1000;
+}
+
+/* ── Left rail ── */
+.shell-rail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--shell-rail-width);
+  z-index: 1002;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem 0.7rem 1rem;
+  background:
+    linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(13, 13, 13, 0.99) 100%);
+  border-right: 1px solid rgba(174, 163, 143, 0.1);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.22);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Brand lockup — centered SaaS product mark (not a tiny left-aligned tag) */
+.shell-rail .shell-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  text-decoration: none;
+  color: var(--phuglee-cream);
+  line-height: 0;
+  width: 100%;
+  margin: 0 0 0.35rem;
+  padding: 1rem 0.85rem 1.05rem;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.1);
+  box-sizing: border-box;
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+.shell-rail .shell-brand:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 14px rgba(229, 132, 53, 0.18));
+}
+
+.shell-rail .shell-brand:focus-visible {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm, 4px);
+}
+
+.shell-brand-logo,
+.shell-rail .shell-brand-logo {
+  display: block;
+  width: auto;
+  height: 44px;
+  max-width: min(12.5rem, 92%);
+  margin: 0 auto;
+  object-fit: contain;
+  object-position: center;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.35));
+}
+
+.shell-rail-nav,
+.shell-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.shell-rail-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 0.65rem 0.35rem 0.15rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.1);
+}
+
+.shell-rail-footer .shell-nav-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
+}
+
+.shell-rail-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.shell-rail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.shell-rail-section-label {
+  /* Don't stretch across the rail — underline must hug the text only */
+  align-self: flex-start;
+  display: inline-block;
+  width: max-content;
+  max-width: calc(100% - 1.1rem);
+  margin: 0.35rem 0.65rem 0.15rem;
+  padding: 0 0 0.28rem;
+  font-family: var(--font-body);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe-mid, var(--phuglee-stone));
+  opacity: 0.9;
+  user-select: none;
+  border-bottom: 1px solid rgba(174, 163, 143, 0.4);
+}
+
+.shell-rail-section.is-active-section .shell-rail-section-label {
+  color: var(--phuglee-orange, #e58435);
+  opacity: 1;
+  border-bottom-color: rgba(229, 132, 53, 0.55);
+}
+
+.shell-rail-section-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+/* Rail nav links */
+.shell-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.65rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  text-decoration: none;
+  color: var(--phuglee-stone);
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid transparent;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.shell-link-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.78;
+  color: currentColor;
+}
+
+.shell-link-icon svg {
+  display: block;
+}
+
+.shell-link-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shell-link:hover {
+  color: var(--phuglee-cream);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.shell-link:hover .shell-link-icon {
+  opacity: 0.95;
+}
+
+.shell-link:focus-visible {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 1px;
+}
+
+.shell-link.active {
+  color: var(--phuglee-cream);
+  background: rgba(229, 132, 53, 0.12);
+  border-color: rgba(229, 132, 53, 0.22);
+}
+
+.shell-link.active .shell-link-icon {
+  opacity: 1;
+  color: var(--phuglee-orange);
+}
+
+.shell-sign-out {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  color: var(--phuglee-stone);
+  background: transparent;
+}
+
+.shell-sign-out:hover {
+  color: var(--phuglee-danger);
+  background: rgba(248, 113, 113, 0.08);
+}
+
+/* Jump / page-title top bar removed — settings live in .shell-rail-footer */
+
+.shell-nav-menu-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  display: none;
+  position: fixed;
+  top: max(0.65rem, env(safe-area-inset-top, 0px));
+  left: max(0.65rem, env(safe-area-inset-left, 0px));
+  z-index: 1003;
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--phuglee-cream);
+  background: rgba(13, 13, 13, 0.88);
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.shell-nav-menu-btn:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(22, 18, 14, 0.95);
+}
+
+.shell-nav-menu-btn:focus-visible {
+  outline: 2px solid var(--phuglee-orange);
+  outline-offset: 2px;
+}
+
+.shell-nav-menu-bars,
+.shell-nav-menu-bars::before,
+.shell-nav-menu-bars::after {
+  display: block;
+  width: 1.05rem;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.shell-nav-menu-bars {
+  position: relative;
+}
+
+.shell-nav-menu-bars::before,
+.shell-nav-menu-bars::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.shell-nav-menu-bars::before {
+  top: -5px;
+}
+
+.shell-nav-menu-bars::after {
+  top: 5px;
+}
+
+.shell-chrome.is-nav-open .shell-nav-menu-bars {
+  background: transparent;
+}
+
+.shell-chrome.is-nav-open .shell-nav-menu-bars::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.shell-chrome.is-nav-open .shell-nav-menu-bars::after {
+  top: 0;
+  transform: rotate(-45deg);
+}
+
+.shell-rail-backdrop {
+  display: none;
+}
+
+/* Loading strip — content column only */
+.shell-loading-strip {
+  position: fixed;
+  top: 0;
+  left: var(--shell-rail-width);
+  right: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.35rem 1rem;
+  background: rgba(13, 13, 13, 0.92);
+  border-bottom: 1px solid rgba(174, 163, 143, 0.1);
+}
+
+.shell-loading-strip[hidden] {
+  display: none !important;
+}
+
+/* ── Team banner under top chrome ── */
+.shell-team-banner {
+  position: sticky;
+  top: var(--distress-nav-offset, 52px);
+  z-index: 55;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.shell-team-banner[hidden] {
+  display: none !important;
+}
+
+.shell-team-banner-btn {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(220, 60, 60, 0.45);
+  background: linear-gradient(180deg, #c62828 0%, #9b1c1c 100%);
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(155, 28, 28, 0.25);
+}
+
+.shell-team-banner-btn:hover {
+  filter: brightness(1.06);
+}
+
+/* ── Global footer ── */
+.shell-footer {
+  position: relative;
+  border-top: 1px solid rgba(174, 163, 143, 0.15);
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(36, 24, 10, 0.28) 100%),
+    var(--phuglee-black);
+  overflow: hidden;
+}
+
+.shell-footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 100% at 50% 100%, rgba(172, 107, 50, 0.08), transparent 70%);
+}
+
+.shell-footer-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 1rem;
+}
+
+.shell-footer-brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.shell-footer-brand {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--phuglee-cream);
+}
+
+.shell-footer-meta {
+  font-size: 0.75rem;
+  color: var(--phuglee-stone);
+  letter-spacing: 0.06em;
+}
+
+.shell-footer-trust {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  padding: 0 1.5rem 1.15rem;
+  max-width: 1200px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: var(--phuglee-stone);
+  opacity: 0.85;
+}
+
+.shell-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.shell-footer-link {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--phuglee-taupe);
+  transition: color 0.2s ease;
+}
+
+.shell-footer-link:hover {
+  color: var(--phuglee-orange);
+}
+
+/* Embedded module chrome (analyzer / forge) */
+body.distress-os-embedded .topbar {
+  display: none !important;
+}
+
+body.distress-os-embedded.analyzer-embedded .app-sidebar {
+  top: var(--distress-nav-offset, 52px);
+  height: calc(100vh - var(--distress-nav-offset, 52px));
+}
+
+/* ── Tablet / mobile: rail becomes drawer ── */
+@media (max-width: 900px) {
+  body.has-shell-chrome {
+    padding-left: 0;
+  }
+
+  .shell-rail {
+    transform: translateX(-105%);
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: none;
+  }
+
+  .shell-chrome.is-nav-open .shell-rail {
+    transform: translateX(0);
+    box-shadow: 12px 0 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .shell-loading-strip {
+    left: 0;
+  }
+
+  .shell-nav-menu-btn {
+    display: inline-flex;
+  }
+
+  .shell-rail-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1001;
+    background: rgba(0, 0, 0, 0.48);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .shell-rail-backdrop[hidden] {
+    display: none !important;
+  }
+
+  .shell-link {
+    min-height: 44px;
+  }
+
+  .shell-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .shell-footer-trust {
+    text-align: left;
+    padding-bottom: 1.35rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .shell-rail {
+    padding-top: max(0.85rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/*
+ * SaaS navigation feel (Linear / Stripe / GitHub):
+ * - No content slide-in on every page
+ * - Thin top progress while the next page loads
+ * - Cross-document view transition when supported; rail stays put
+ */
+body.has-shell-chrome > main,
+body.has-shell-chrome .bridge-main,
+body.has-shell-chrome .collect-landing,
+body.has-shell-chrome .command-main,
+body.has-shell-chrome .app-shell-main,
+body.has-shell-chrome .vault-main,
+body.has-shell-chrome .hub-main {
+  animation: none;
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+.shell-rail {
+  view-transition-name: phuglee-shell-rail;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.14s;
+  animation-timing-function: ease-out;
+}
+
+::view-transition-old(phuglee-shell-rail),
+::view-transition-new(phuglee-shell-rail) {
+  animation: none;
+  mix-blend-mode: normal;
+  height: 100%;
+  overflow: clip;
+}
+
+.shell-loading-strip {
+  position: fixed;
+  top: 0;
+  left: var(--shell-rail-width, 240px);
+  right: 0;
+  z-index: 1100;
+  height: 2px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.shell-loading-strip[hidden] {
+  display: none !important;
+}
+
+.shell-loading-strip .phuglee-loading-bar {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border-radius: 0;
+  background: rgba(174, 163, 143, 0.12);
+}
+
+.shell-loading-strip .phuglee-loading-bar::after {
+  width: 35%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--phuglee-orange, #e58435),
+    var(--phuglee-gold, #eeb746),
+    transparent
+  );
+  animation: shell-route-progress 0.85s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.shell-loading-strip .phuglee-loading-copy {
+  display: none !important;
+}
+
+@keyframes shell-route-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(320%);
+  }
+}
+
+body.shell-nav-loading {
+  cursor: progress;
+}
+
+body.shell-nav-loading .shell-link.active {
+  opacity: 0.85;
+}
+
+@media (max-width: 900px) {
+  .shell-loading-strip {
+    left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-link,
+  .shell-nav-menu-btn,
+  .shell-rail {
+    transition: none;
+  }
+
+  @view-transition {
+    navigation: none;
+  }
+
+  .shell-loading-strip .phuglee-loading-bar::after {
+    animation: none;
+    width: 100%;
+    opacity: 0.55;
+    transform: none;
+  }
+}
+
+.shell-nav-wrap {
+  /* superseded by .shell-chrome */
+}
+
+.shell-nav-row2 {
+  display: none !important;
+}
+
+
+/* === team-alert-banner.css === */
+/* Site-wide team message alert banner */
+.shell-team-banner {
+  position: sticky;
+  top: var(--distress-nav-offset, 0px);
+  z-index: 55;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.shell-team-banner[hidden] {
+  display: none !important;
+}
+
+.shell-team-banner-btn {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(220, 60, 60, 0.45);
+  background: linear-gradient(180deg, #c62828 0%, #9b1c1c 100%);
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(155, 28, 28, 0.25);
+}
+
+.shell-team-banner-btn:hover {
+  filter: brightness(1.06);
+}
+
+.home-page .shell-team-banner {
+  top: 0;
+}
+
+
+/* === settings-menu.css === */
+/* Distress OS — Settings dropdown + billings panel */
+
+.shell-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.5rem;
+}
+
+.shell-cmd-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-stone);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.shell-cmd-hint:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.35);
+  background: rgba(229, 132, 53, 0.08);
+}
+
+.shell-cmd-hint kbd {
+  font: inherit;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.shell-settings {
+  position: relative;
+  /* Dropdown uses position:fixed so rail overflow cannot clip it */
+  z-index: 1;
+}
+
+.shell-settings-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--phuglee-stone);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.shell-settings-trigger:hover,
+.shell-settings-trigger[aria-expanded="true"] {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.4);
+  background: rgba(229, 132, 53, 0.1);
+  box-shadow: 0 0 20px rgba(229, 132, 53, 0.12);
+}
+
+.shell-settings-trigger svg,
+.shell-settings-trigger .shell-settings-gear {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+}
+
+.shell-settings-trigger .shell-settings-gear {
+  /* Slight weight so the cog reads at nav scale */
+  stroke-width: 1.7;
+}
+
+.shell-settings-trigger:hover .shell-settings-gear,
+.shell-settings-trigger[aria-expanded="true"] .shell-settings-gear {
+  filter: drop-shadow(0 0 5px rgba(229, 132, 53, 0.35));
+}
+
+.shell-settings-dropdown {
+  /* Fixed + JS viewport clamp — escapes .shell-rail overflow clip when gear is in footer */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: auto;
+  bottom: auto;
+  min-width: 280px;
+  max-width: min(320px, calc(100vw - 1rem));
+  max-height: min(420px, calc(100dvh - 1rem));
+  max-height: min(420px, calc(100vh - 1rem));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-elevated);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: var(--glass-shadow-float);
+  z-index: 1200;
+  animation: settings-drop-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shell-settings-dropdown[hidden] {
+  display: none !important;
+}
+
+@keyframes settings-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.shell-settings-section {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.shell-settings-section:last-child {
+  border-bottom: none;
+}
+
+.shell-settings-section-label {
+  padding: 0.35rem 0.75rem 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe-mid);
+}
+
+.shell-settings-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--phuglee-cream);
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.shell-settings-item:hover {
+  background: rgba(229, 132, 53, 0.1);
+  color: var(--phuglee-cream);
+}
+
+.shell-settings-item.danger:hover {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--phuglee-danger);
+}
+
+.shell-settings-item-icon {
+  width: 1.25rem;
+  text-align: center;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.shell-billing-card {
+  margin: 0.35rem 0.5rem 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(229, 132, 53, 0.12) 0%, rgba(0, 0, 0, 0.35) 100%);
+  border: 1px solid rgba(229, 132, 53, 0.25);
+}
+
+.shell-billing-tier {
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--phuglee-orange);
+}
+
+.shell-billing-meta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+.shell-theme-toggle {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem 0.5rem;
+}
+
+.shell-theme-btn {
+  flex: 1;
+  padding: 0.45rem 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--phuglee-stone);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shell-theme-btn:hover {
+  color: var(--phuglee-cream);
+  border-color: rgba(229, 132, 53, 0.3);
+}
+
+.shell-theme-btn.is-active {
+  color: var(--phuglee-cream);
+  border-color: var(--phuglee-orange);
+  background: rgba(229, 132, 53, 0.15);
+  box-shadow: 0 0 16px rgba(229, 132, 53, 0.15);
+}
+
+@media (max-width: 768px) {
+  .shell-cmd-hint {
+    display: none;
+  }
+
+  .shell-settings-dropdown {
+    /* Bottom sheet on small screens — full width, never clipped */
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0;
+    max-height: min(70dvh, 520px) !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell-settings-dropdown {
+    animation: none;
+  }
+}
+
+/* === command-palette.css === */
+/* Distress OS — Command palette (⌘K) */
+
+.cmd-palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(8, 6, 5, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: cmd-fade-in 0.15s ease both;
+}
+
+.cmd-palette-backdrop[hidden] {
+  display: none;
+}
+
+@keyframes cmd-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.cmd-palette {
+  position: fixed;
+  top: 18vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 2rem));
+  z-index: 2001;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-elevated);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+  overflow: hidden;
+  animation: cmd-rise 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.cmd-palette[hidden] {
+  display: none;
+}
+
+@keyframes cmd-rise {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.cmd-palette-head {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.cmd-palette-head svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--phuglee-orange);
+  flex-shrink: 0;
+}
+
+.cmd-palette-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--phuglee-cream);
+  outline: none;
+}
+
+.cmd-palette-input::placeholder {
+  color: var(--phuglee-stone);
+}
+
+.cmd-palette-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid var(--glass-border);
+  color: var(--phuglee-stone);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.cmd-palette-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0.35rem;
+}
+
+.cmd-palette-group-label {
+  padding: 0.5rem 0.75rem 0.25rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--phuglee-taupe-mid);
+}
+
+.cmd-palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--phuglee-cream);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.cmd-palette-item:hover,
+.cmd-palette-item.is-highlighted {
+  background: rgba(229, 132, 53, 0.12);
+}
+
+.cmd-palette-item-meta {
+  font-size: 0.72rem;
+  color: var(--phuglee-stone);
+  font-family: var(--font-mono);
+}
+
+.cmd-palette-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmd-palette-backdrop,
+  .cmd-palette {
+    animation: none;
+  }
+}
+
+/* === distress-status.css === */
+/* Distress OS — bottom status bar */
+
+.distress-status-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--phuglee-stone);
+  background: rgba(13, 13, 13, 0.88);
+  border-top: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+}
+
+.distress-status-bar[hidden] {
+  display: none;
+}
+
+.distress-status-left,
+.distress-status-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.distress-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.distress-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--phuglee-stone);
+}
+
+.distress-status-dot.is-up {
+  background: var(--phuglee-success);
+  box-shadow: 0 0 8px rgba(61, 214, 140, 0.5);
+}
+
+.distress-status-dot.is-down {
+  background: var(--phuglee-danger);
+}
+
+.distress-status-brand {
+  color: var(--phuglee-taupe);
+  text-transform: uppercase;
+}
+
+body.has-status-bar {
+  padding-bottom: 28px;
+}
+
+body.has-status-bar.distress-os-embedded .app-shell,
+body.has-status-bar.distress-os-embedded .map-layout {
+  padding-bottom: 28px;
+}
+
+@media (max-width: 600px) {
+  .distress-status-bar {
+    font-size: 0.58rem;
+    padding: 0.3rem 0.75rem;
+  }
+
+  .distress-status-right .distress-status-pill:nth-child(n+2) {
+    display: none;
+  }
+}
+
+/* === phuglee-a11y.css === */
+/* Phuglee A11y & Performance — Phase 30 (BRAND-31–32) */
+
+:root {
+  --phuglee-focus-ring: 0 0 0 3px rgba(229, 132, 53, 0.5);
+  --phuglee-meta-text: #b0a99c;
+}
+
+/* Skip to main content */
+.phuglee-skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 10000;
+  padding: 0.55rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--phuglee-black);
+  background: var(--phuglee-orange);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 0.2s ease;
+}
+
+.phuglee-skip-link:focus {
+  transform: translateY(0);
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+}
+
+/* Global focus rings — orange 3px glow */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible,
+summary:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+}
+
+.shell-link:focus-visible,
+.shell-sublink:focus-visible,
+.shell-brand:focus-visible {
+  outline: none;
+  box-shadow: var(--phuglee-focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+/* WCAG AA contrast — meta text on black */
+.phuglee-loading-copy,
+.shell-loading-strip .phuglee-loading-copy,
+.shell-footer-copy,
+.shell-status-label,
+.shell-sublink:not(.active),
+.shell-link:not(.active):not(.shell-sign-out) {
+  color: var(--phuglee-meta-text);
+}
+
+/* Orange CTA on charcoal passes AA for large text */
+.phuglee-btn-primary,
+.btn.seal,
+.btn.primary {
+  color: var(--phuglee-black);
+}
+
+/* Logo slot reserves space before SVG inject (CLS) */
+[data-phuglee-logo] {
+  min-height: 1px;
+}
+
+[data-phuglee-logo="hero"] {
+  min-height: clamp(200px, 40vh, 480px);
+}
+
+/* Global reduced-motion audit */
+@media (prefers-reduced-motion: reduce) {
+  .heat-glow,
+  .heat-field .heat-glow,
+  .logo-page-photo,
+  .premium-bg-photo,
+  .landing-logo,
+  body.home-page .logo-ember-float .landing-logo-slot,
+  body.home-page .logo-ember-float .logo-ember-backdrop,
+  .logo-ember-halo-layer,
+  .collect-choice-body,
+  .auth-overlay,
+  .auth-modal,
+  .auth-success-gold-ring {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* === mobile-baseline.css === */
+/* Phuglee — shared mobile / touch baseline (2026)
+   Loaded via shell-bundle + home. Page CSS may refine; this sets the floor:
+   overflow, safe areas, iOS input zoom, touch targets, hover-none affordances. */
+
+:root {
+  --phuglee-touch-min: 44px;
+  --phuglee-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --phuglee-safe-top: env(safe-area-inset-top, 0px);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+img {
+  height: auto;
+}
+
+svg:not([width]):not([height]) {
+  max-width: 100%;
+}
+
+/* Touch devices: never hide primary actions behind hover */
+@media (hover: none) {
+  .auth-pricing-select {
+    opacity: 0.9 !important;
+  }
+
+  .uc-att-save,
+  .uc-media-card-actions,
+  .uc-att-tile .uc-att-save {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .pdf-thumb-overlay {
+    opacity: 1 !important;
+    background: rgba(8, 12, 20, 0.4) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .shell-nav-menu-btn,
+  .shell-nav-palette-btn {
+    min-width: var(--phuglee-touch-min);
+    min-height: var(--phuglee-touch-min);
+    width: var(--phuglee-touch-min);
+    height: var(--phuglee-touch-min);
+    box-sizing: border-box;
+  }
+
+  .shell-links .shell-link {
+    min-height: var(--phuglee-touch-min);
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .shell-footer-inner {
+    padding-bottom: calc(1rem + var(--phuglee-safe-bottom));
+  }
+
+  .phuglee-btn,
+  .btn.primary,
+  .btn.seal,
+  button.phuglee-btn-primary,
+  .btn.accent,
+  .btn.secondary {
+    min-height: var(--phuglee-touch-min);
+  }
+
+  /* Beat page-specific rem sizes so iOS never zooms on focus */
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /* High-frequency controls across desks */
+  .bridge-list-action,
+  .bridge-pagination-btn,
+  .bridge-history-dialog-close,
+  .bridge-date-chip,
+  .bridge-type-chip-face,
+  .bridge-pipeline-step,
+  .vault-type-tab,
+  .vault-signal-chip,
+  .vault-export-btn,
+  .uc-quick-btn,
+  .collect-city-toolbar-btn,
+  .command-tool-chip,
+  .command-checklist-dismiss,
+  .phuglee-chip,
+  .phuglee-select {
+    min-height: var(--phuglee-touch-min);
+    box-sizing: border-box;
+  }
+
+  .bridge-history-dialog-close {
+    min-width: var(--phuglee-touch-min);
+    width: var(--phuglee-touch-min);
+    height: var(--phuglee-touch-min);
+  }
+
+  .bridge-pagination-btn {
+    min-width: var(--phuglee-touch-min);
+  }
+
+  .bridge-datetime-picker input[type='date'],
+  .bridge-city-search.phuglee-input,
+  .bridge-toolbar-field .phuglee-select,
+  .bridge-row select.phuglee-select {
+    font-size: 16px !important;
+    min-height: var(--phuglee-touch-min);
+  }
+
+  .bridge-table-wrap,
+  .vault-table-wrap,
+  .uc-table-wrap,
+  .oc-table-wrap,
+  [data-table-scroll] {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Sticky strips under shell nav when embedded */
+  body.has-shell-chrome .vault-action-strip {
+    top: 0;
+  }
+
+  body.has-shell-chrome .command-bar,
+  body.analyzer-embedded .command-bar {
+    top: var(--distress-nav-offset, 56px);
+  }
+}
+
+@media (max-width: 480px) {
+  .shell-rail .shell-brand-logo {
+    height: 34px;
+    max-width: min(10rem, 72%);
+  }
+
+  .shell-footer-links {
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+  }
+
+  .bridge-main,
+  .vault-main,
+  .command-main,
+  .collect-landing,
+  .uc-main {
+    padding-left: max(0.85rem, env(safe-area-inset-left, 0px));
+    padding-right: max(0.85rem, env(safe-area-inset-right, 0px));
+  }
+}
+
+/* topbar title removed */
+

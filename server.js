@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const zlib = require('zlib');
 // Load local .env before config consumers read process.env (gitignored secrets).
 require('./lib/load-env').loadEnvFile();
 const config = require('./lib/config');
@@ -10,6 +11,7 @@ const { isAnalyzerRequest, proxyToAnalyzer, checkAnalyzerHealth } = require('./l
 const { rejectUnauthorizedModule } = require('./lib/module-auth-gate');
 const { ensureForgeRunning, stopForgeProcess } = require('./lib/forge-process');
 const { ensureAnalyzerRunning, stopAnalyzerProcess } = require('./lib/analyzer-process');
+const { clientAcceptsGzip, gzippableExt } = require('./lib/static-gzip');
 let embeddedAnalyzerModule;
 function getEmbeddedAnalyzer() {
   if (!embeddedAnalyzerModule) embeddedAnalyzerModule = require('./lib/embedded-analyzer');
@@ -38,6 +40,7 @@ const { CACHE_NONE, cacheControlForExt } = require('./lib/static-cache');
 /** Login/register abuse protection (in-memory; resets on restart). */
 const AUTH_BODY_MAX = 64 * 1024;
 const loginAttempts = new Map(); // key -> { count, resetAt }
+const { authRateLimitOk: authRateLimitOkMap } = require('./lib/auth-rate-limit');
 
 function clientIp(req) {
   const xf = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
@@ -45,16 +48,7 @@ function clientIp(req) {
 }
 
 function authRateLimitOk(req, username) {
-  const now = Date.now();
-  const key = `${clientIp(req)}|${String(username || '').toLowerCase()}`;
-  let row = loginAttempts.get(key);
-  if (!row || row.resetAt < now) {
-    row = { count: 0, resetAt: now + 15 * 60 * 1000 };
-    loginAttempts.set(key, row);
-  }
-  row.count += 1;
-  // 20 attempts / 15 min per IP+username
-  return row.count <= 20;
+  return authRateLimitOkMap(loginAttempts, clientIp(req), username);
 }
 
 async function readJsonBodyCapped(req, maxBytes = AUTH_BODY_MAX) {
@@ -165,19 +159,10 @@ function serveStatic(urlPath, req, res) {
     'Accept-Ranges': 'bytes'
   };
 
-  // HEAD: metadata only (browsers probe video size this way)
-  if (req && req.method === 'HEAD') {
-    res.writeHead(200, {
-      ...baseHeaders,
-      'Content-Length': String(size)
-    });
-    res.end();
-    return;
-  }
-
   // Range support for <video> progressive playback (esp. larger files like analyze.mp4)
+  // (HEAD for media still uses size below when no range.)
   const range = req && req.headers && req.headers.range;
-  if (range) {
+  if (range && req.method !== 'HEAD') {
     const match = /^bytes=(\d*)-(\d*)$/.exec(String(range));
     if (!match) {
       res.writeHead(416, {
@@ -208,11 +193,46 @@ function serveStatic(urlPath, req, res) {
     return;
   }
 
+  const acceptEnc = (req && req.headers && req.headers['accept-encoding']) || '';
+  const wantGzip = clientAcceptsGzip(acceptEnc) && gzippableExt(ext) && size > 0 && size < 20 * 1024 * 1024;
+
+  if (wantGzip) {
+    try {
+      const raw = fs.readFileSync(file);
+      const compressed = zlib.gzipSync(raw, { level: 6 });
+      res.writeHead(200, {
+        ...baseHeaders,
+        'Content-Encoding': 'gzip',
+        Vary: 'Accept-Encoding',
+        'Content-Length': String(compressed.length)
+      });
+      if (req && req.method === 'HEAD') {
+        res.end();
+        return;
+      }
+      res.end(compressed);
+      return;
+    } catch (err) {
+      console.warn('[static] gzip failed, sending raw:', err.message);
+    }
+  }
+
   res.writeHead(200, {
     ...baseHeaders,
     'Content-Length': String(size)
   });
-  fs.createReadStream(file).pipe(res);
+  if (req && req.method === 'HEAD') {
+    res.end();
+    return;
+  }
+  const stream = fs.createReadStream(file);
+  stream.on('error', () => {
+    try {
+      if (!res.headersSent) send(res, 500, 'Read error');
+      else res.destroy();
+    } catch (_) { /* ignore */ }
+  });
+  stream.pipe(res);
 }
 
 function isDistressStatic(pathname) {
@@ -293,9 +313,12 @@ async function handleRequest(req, res) {
       analyzerHealth = await checkAnalyzerHealth();
     }
     const [forge, analyzer] = await Promise.all([checkForgeHealth(), Promise.resolve(analyzerHealth)]);
+    const modulesReady = !!(forge.ok && analyzer.ok);
     // Shallow: always 200 for Railway basic healthcheck (modules reported in body).
+    // modulesReady lets operators/UI know Collect/Review are actually usable.
     send(res, 200, JSON.stringify({
       ok: true,
+      modulesReady,
       service: 'distress-os',
       version: '1.1.0',
       modules: {
@@ -492,6 +515,40 @@ async function handleRequest(req, res) {
     if (handled) return;
   }
 
+  // Wave 1: government lists meta + per-state sources (avoid 7.5 MB full dump on open)
+  if (pathname.startsWith('/api/gov-lists') && (req.method === 'GET' || req.method === 'HEAD')) {
+    try {
+      const govLists = require('./lib/gov-lists-catalog');
+      if (pathname === '/api/gov-lists/meta') {
+        const meta = govLists.getMeta();
+        send(res, 200, JSON.stringify({ ok: true, meta }), 'application/json', {
+          'Cache-Control': 'public, max-age=300, must-revalidate'
+        });
+        return;
+      }
+      if (pathname === '/api/gov-lists/sources') {
+        const stateQ = url.searchParams.get('state') || '';
+        const listType = url.searchParams.get('listType') || '';
+        const result = govLists.getSources({ state: stateQ, listType });
+        send(res, 200, JSON.stringify({ ok: true, ...result }), 'application/json', {
+          'Cache-Control': 'public, max-age=300, must-revalidate'
+        });
+        return;
+      }
+      send(res, 404, JSON.stringify({ ok: false, error: 'Not found' }), 'application/json');
+      return;
+    } catch (err) {
+      const code = err && err.code;
+      const status = code === 'STATE_REQUIRED' ? 400 : code === 'CATALOG_MISSING' ? 404 : 500;
+      send(res, status, JSON.stringify({
+        ok: false,
+        error: err.message || 'gov-lists error',
+        code: code || 'GOV_LISTS_ERROR'
+      }), 'application/json');
+      return;
+    }
+  }
+
   if (isForgeRequest(pathname)) {
     if (rejectUnauthorizedModule(req, res, 'Form Forge')) return;
     proxyToForge(req, res, pathname, url.search);
@@ -505,6 +562,16 @@ async function handleRequest(req, res) {
       return;
     }
     proxyToAnalyzer(req, res, pathname, url.search);
+    return;
+  }
+
+  // Wave 2: Trust Funds is not a second product — send bookmarks to Buyers.
+  if (pathname === '/trust-funds') {
+    res.writeHead(302, {
+      Location: '/buyers',
+      'Cache-Control': 'no-store'
+    });
+    res.end();
     return;
   }
 

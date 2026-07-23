@@ -91,6 +91,15 @@
     window.location.replace('/?login=1&return=' + encodeURIComponent(returnUrl));
   }
 
+  function afterAuthenticated(user) {
+    if (user) enforceRestrictedPath(user);
+    if (sessionApi() && typeof sessionApi().guardProtectedPage === 'function') {
+      window.addEventListener('pageshow', function (event) {
+        if (event.persisted) sessionApi().guardProtectedPage();
+      });
+    }
+  }
+
   if (!isLoggedIn()) {
     try {
       if (sessionStorage.getItem('phuglee_logout') === '1') {
@@ -98,6 +107,18 @@
         return;
       }
     } catch (_) {}
+    var api = sessionApi();
+    // Cookie may still be valid (new tab / empty sessionStorage) — hydrate before bounce.
+    if (api && typeof api.syncSessionFromServerCookie === 'function') {
+      api.syncSessionFromServerCookie().then(function (data) {
+        if (data && data.username) {
+          afterAuthenticated(data.username);
+          return;
+        }
+        redirectToSignIn();
+      });
+      return;
+    }
     redirectToSignIn();
     return;
   }
@@ -105,16 +126,12 @@
   var sessionUser = getSessionUser();
 
   if (sessionUser) {
-    enforceRestrictedPath(sessionUser);
+    afterAuthenticated(sessionUser);
   } else if (sessionApi() && typeof sessionApi().syncSessionFromServerCookie === 'function') {
     sessionApi().syncSessionFromServerCookie().then(function (data) {
-      if (data && data.username) enforceRestrictedPath(data.username);
+      if (data && data.username) afterAuthenticated(data.username);
     });
-  }
-
-  if (sessionApi() && typeof sessionApi().guardProtectedPage === 'function') {
-    window.addEventListener('pageshow', function (event) {
-      if (event.persisted) sessionApi().guardProtectedPage();
-    });
+  } else {
+    afterAuthenticated(sessionUser);
   }
 })();

@@ -81,6 +81,10 @@
 
   function mount() {
     if (!isAuthenticated()) return;
+    if (pollTimer != null) {
+      window.clearInterval(pollTimer);
+      pollTimer = null;
+    }
     poll();
     pollTimer = window.setInterval(poll, 30000);
   }

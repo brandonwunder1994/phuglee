@@ -1,7 +1,11 @@
 (function (root) {
   'use strict';
 
-  const STATES_GEO_URL = '/forge/static/geo/us-states.geojson';
+  // Prefer public geo (works when Form Forge is down); Forge path as fallback.
+  const STATES_GEO_URLS = [
+    '/data/geo/us-states.geojson',
+    '/forge/static/geo/us-states.geojson'
+  ];
   const ABBR = {
     Alabama: 'AL', Alaska: 'AK', Arizona: 'AZ', Arkansas: 'AR', California: 'CA',
     Colorado: 'CO', Connecticut: 'CT', Delaware: 'DE', Florida: 'FL', Georgia: 'GA',
@@ -77,9 +81,21 @@
 
     let geo;
     try {
-      const res = await fetch(STATES_GEO_URL, { cache: 'force-cache' });
-      if (!res.ok) throw new Error('geo missing');
-      geo = await res.json();
+      let lastErr = null;
+      for (const url of STATES_GEO_URLS) {
+        try {
+          const res = await fetch(url, { cache: 'force-cache' });
+          if (res.ok) {
+            geo = await res.json();
+            lastErr = null;
+            break;
+          }
+          lastErr = new Error('HTTP ' + res.status + ' ' + url);
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+      if (!geo) throw lastErr || new Error('geo missing');
     } catch (_) {
       host.innerHTML = '<p class="tf-map-fallback">Map unavailable — use state filter chips.</p>';
       return null;
