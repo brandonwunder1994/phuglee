@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
   <link rel="stylesheet" href="/css/vault.css?v=28-typeset">
-  <link rel="stylesheet" href="/css/campaigns-sms.css?v=1">
+  <link rel="stylesheet" href="/css/campaigns-sms.css?v=2-backfill-tracker">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=6-campaigns"></script>
@@ -45,6 +45,28 @@
       </header>
 
       <p id="csms-status" class="csms-status" role="status" aria-live="polite"></p>
+
+      <!-- TEMP: one-time vault→GHL tag backfill tracker — remove after load completes -->
+      <section id="csms-backfill" class="csms-backfill" aria-label="KPI load progress" hidden>
+        <div class="csms-backfill-head">
+          <div>
+            <p class="csms-backfill-kicker">Temporary tracker</p>
+            <h2 class="csms-section-title csms-backfill-title">KPI base load progress</h2>
+            <p class="csms-backfill-note">One-time vault → GHL <code>phuglee</code> tag pass so outcome KPIs count the right contacts. Future vault imports keep this current — delete this panel when done.</p>
+          </div>
+          <strong id="csms-backfill-pct" class="csms-backfill-pct">—%</strong>
+        </div>
+        <div class="csms-backfill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="csms-backfill-bar">
+          <div id="csms-backfill-fill" class="csms-backfill-fill"></div>
+        </div>
+        <div class="csms-backfill-meta" id="csms-backfill-meta">
+          <span id="csms-backfill-counts">Processed — / —</span>
+          <span id="csms-backfill-tagged">Tagged —</span>
+          <span id="csms-backfill-skipped">Skipped —</span>
+          <span id="csms-backfill-ghl">GHL phuglee —</span>
+          <span id="csms-backfill-updated">Updated —</span>
+        </div>
+      </section>
 
       <section class="csms-kpis" aria-label="Outcome KPIs">
         <article class="csms-kpi"><span class="csms-kpi-label">Interested</span><strong id="kpi-interested" class="csms-kpi-value">—</strong></article>
@@ -115,7 +137,7 @@
     </div>
   </main>
 
-  <script src="/js/shell-nav.js?v=44-campaigns" defer></script>
-  <script src="/js/campaigns-sms.js?v=1" defer></script>
+  <script src="/js/shell-nav.js?v=45-campaigns-under-leads" defer></script>
+  <script src="/js/campaigns-sms.js?v=2-backfill-tracker" defer></script>
 </body>
 </html>

@@ -17,6 +17,7 @@ const path = require('path');
 const ghl = require('../lib/leads-platform/ghl-client');
 const { PHUGLEE_TAG, SOURCE_TAG, classTagForLeadType } = require('../lib/campaigns/sms-policy');
 const { setContactMap } = require('../lib/campaigns/sms-store');
+const { writeBackfillProgress } = require('../lib/campaigns/sms-backfill-progress');
 
 const ROOT = path.join(__dirname, '..');
 const INDEX = path.join(ROOT, 'data', 'leads-catalog', 'index.json');
@@ -173,6 +174,36 @@ async function main() {
     `Backfill phuglee tags mode=${args.dryRun ? 'DRY-RUN' : 'LIVE'} leads=${leads.length} resume=${!!args.resume}\n`
   );
 
+  function flushProgressUi() {
+    const processed = Object.keys(cp.done || {}).length;
+    let tagged = 0;
+    let skipped = 0;
+    for (const id of Object.keys(cp.done || {})) {
+      const row = cp.done[id] || {};
+      if (row.contactId && !row.skipped) tagged += 1;
+      else if (row.skipped) skipped += 1;
+    }
+    const pct = leads.length ? Math.round((1000 * processed) / leads.length) / 10 : 0;
+    try {
+      writeBackfillProgress({
+        total: leads.length,
+        processed,
+        tagged,
+        skipped,
+        already: stats.already,
+        found: stats.found,
+        failed: stats.failed,
+        percent: pct,
+        complete: processed >= leads.length,
+        mode: args.dryRun ? 'dry-run' : 'live'
+      });
+    } catch (_) {
+      /* non-fatal */
+    }
+  }
+
+  flushProgressUi();
+
   let i = 0;
   for (const row of leads) {
     i += 1;
@@ -240,12 +271,14 @@ async function main() {
         `  progress ${i}/${leads.length} found=${stats.found} missing=${stats.missing} tagged=${stats.tagged} already=${stats.already}\n`
       );
       saveCheckpoint(cp);
+      flushProgressUi();
     }
   }
 
   stats.finishedAt = new Date().toISOString();
   cp.stats = stats;
   saveCheckpoint(cp);
+  flushProgressUi();
   console.log(JSON.stringify(stats, null, 2));
   process.stderr.write(`Checkpoint: ${CHECKPOINT}\n`);
 }
