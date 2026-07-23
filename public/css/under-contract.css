@@ -2422,6 +2422,14 @@ body.uc-drawer-open {
   line-height: 1.4;
 }
 
+/* Preserve blank lines / multi-paragraph messages from the compose box */
+.uc-bubble-body,
+.uc-bubble-body-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
 .uc-bubble--in {
   align-self: flex-start;
   background: rgba(255, 255, 255, 0.08);

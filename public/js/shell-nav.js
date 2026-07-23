@@ -24,6 +24,11 @@
     { id: 'land-vault', label: 'Land', href: '/land-vault' }
   ];
 
+  /** Admin-only campaigns desk */
+  const CAMPAIGN_LINKS = [
+    { id: 'campaigns-sms', label: 'SMS', href: '/campaigns/sms' }
+  ];
+
   const FORGE_LINKS = [
     { id: 'forge-desk', label: 'PDF Filler', href: '/forge/' },
     { id: 'forge-portal', label: 'Track Progress', href: '/forge/portal' },
@@ -58,6 +63,8 @@
       '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 6.5 8 3l5.5 3.5v6.5H2.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.5 13V9h3v4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>',
     'land-vault':
       '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2 11.5 5.5 6l2.5 3.2L10.5 5.5 14 11.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 13h12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+    'campaigns-sms':
+      '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M2.5 3.5h11v7.5H8l-2.5 2v-2H2.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
     default:
       '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="5.2" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>'
   };
@@ -134,6 +141,7 @@
     if (p === '/under-contract') return 'under-contract';
     if (p === '/buyers' || p === '/trust-funds') return 'buyers';
     if (p === '/operating-costs') return 'operating-costs';
+    if (p === '/campaigns/sms' || p === '/campaigns-sms.html') return 'campaigns-sms';
     if (p === '/government-lists') return 'government-lists';
     if (p === '/pre-liens') return 'pre-liens';
     if (p === '/filter' || p === '/bridge') return 'bridge';
@@ -196,7 +204,12 @@
     const p = normalizePath(pathname);
     if (p === '/heat') return 'How It Works';
     if (p === '/operating-costs') return 'Operating Costs';
+    if (p === '/campaigns/sms' || p === '/campaigns-sms.html') return 'SMS';
     return 'Phuglee';
+  }
+
+  function isCampaignsSectionActive(current) {
+    return CAMPAIGN_LINKS.some((l) => l.id === current);
   }
 
   function buildFooter(pathname) {
@@ -326,8 +339,17 @@
         current,
         sectionActive: isDataSectionActive(current)
       });
-      // Dashboard → Leads → Dispo → Data
-      railBody = dashboardHtml + leadsHtml + dispoHtml + dataHtml;
+      const campaignsHtml = isAdminUser()
+        ? buildRailSection({
+            id: 'campaigns',
+            label: 'Campaigns',
+            links: CAMPAIGN_LINKS,
+            current,
+            sectionActive: isCampaignsSectionActive(current)
+          })
+        : '';
+      // Dashboard → Leads → Dispo → Data → Campaigns (admin)
+      railBody = dashboardHtml + leadsHtml + dispoHtml + dataHtml + campaignsHtml;
     }
 
     const railFooterHtml = isAuthenticated()

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phuglee — Campaigns SMS</title>
+  <meta name="description" content="Admin SMS campaign tracker and dry-run blast control.">
+  <script src="/js/theme.js?v=distress2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
+  <link rel="stylesheet" href="/css/vault.css?v=28-typeset">
+  <link rel="stylesheet" href="/css/campaigns-sms.css?v=1">
+  <script src="/js/auth-session.js"></script>
+  <script src="/js/auth-config.js"></script>
+  <script src="/js/auth-guard.js?v=6-campaigns"></script>
+</head>
+<body class="phuglee-app has-premium-bg vault-page csms-page">
+  <a href="#main" class="phuglee-skip-link">Skip to content</a>
+  <div class="phuglee-shell-bg phuglee-shell-bg--subtle" aria-hidden="true"></div>
+  <div id="distress-os-nav-mount"></div>
+
+  <main id="main" class="vault-main vault-main--app csms-main">
+    <section id="csms-gate" class="vault-gate" hidden>
+      <div class="vault-gate-inner">
+        <p class="vault-eyebrow">Admin</p>
+        <h1 class="vault-title">Campaigns · SMS</h1>
+        <p class="vault-lead">Sign in as admin to track and run text campaigns.</p>
+        <a href="/" class="phuglee-btn phuglee-btn-primary">Back home</a>
+      </div>
+    </section>
+
+    <div id="csms-app" class="csms-app" hidden>
+      <header class="csms-hero">
+        <div>
+          <p class="vault-eyebrow">Campaigns</p>
+          <h1 class="vault-title vault-title--desk">SMS</h1>
+          <p class="vault-hero-sub">Track outreach · dry-run blasts · live only when flag is on</p>
+        </div>
+        <div class="csms-hero-actions">
+          <span id="csms-live-badge" class="csms-badge csms-badge--dry" role="status">DRY MODE</span>
+          <button type="button" id="csms-refresh" class="phuglee-btn phuglee-btn-primary">Refresh</button>
+        </div>
+      </header>
+
+      <p id="csms-status" class="csms-status" role="status" aria-live="polite"></p>
+
+      <section class="csms-kpis" aria-label="Outcome KPIs">
+        <article class="csms-kpi"><span class="csms-kpi-label">Interested</span><strong id="kpi-interested" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">Not interested</span><strong id="kpi-ni" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">DNC / DND</span><strong id="kpi-dnc" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">Wrong number</span><strong id="kpi-wrong" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">Follow up</span><strong id="kpi-fu" class="csms-kpi-value">—</strong></article>
+      </section>
+
+      <section class="csms-kpis csms-kpis--funnel" aria-label="Funnel KPIs">
+        <article class="csms-kpi"><span class="csms-kpi-label">Eligible now</span><strong id="kpi-eligible" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">Never texted (0)</span><strong id="kpi-zero" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">In sequence (1–11)</span><strong id="kpi-seq" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">At max (12)</span><strong id="kpi-max" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi"><span class="csms-kpi-label">Sent this week</span><strong id="kpi-week" class="csms-kpi-value">—</strong></article>
+      </section>
+
+      <section class="csms-policy" aria-label="Policy">
+        <h2 class="csms-section-title">Policy</h2>
+        <ul id="csms-policy-list" class="csms-policy-list"></ul>
+        <p id="csms-queue" class="csms-meta"></p>
+      </section>
+
+      <section class="csms-actions" aria-label="Actions">
+        <h2 class="csms-section-title">Actions</h2>
+        <div class="csms-action-row">
+          <label class="csms-field">
+            <span>Touch count (current sms_count)</span>
+            <input type="number" id="csms-touch" min="0" max="11" value="0" class="csms-input" />
+          </label>
+          <label class="csms-field">
+            <span>Limit</span>
+            <input type="number" id="csms-limit" min="1" max="2000" value="100" class="csms-input" />
+          </label>
+          <button type="button" id="csms-preview" class="phuglee-btn">Preview</button>
+          <button type="button" id="csms-dry" class="phuglee-btn phuglee-btn-primary">Dry-run</button>
+          <button type="button" id="csms-send" class="phuglee-btn csms-btn-danger" disabled title="Requires SMS_CAMPAIGNS_LIVE=true">Send live</button>
+        </div>
+        <div class="csms-action-row">
+          <label class="csms-check">
+            <input type="checkbox" id="csms-auto" disabled />
+            <span>Auto sequence enabled (Option B — requires LIVE + SMS_CAMPAIGNS_AUTO)</span>
+          </label>
+        </div>
+        <pre id="csms-result" class="csms-result" hidden></pre>
+      </section>
+
+      <section class="csms-runs" aria-label="Run history">
+        <h2 class="csms-section-title">Run history</h2>
+        <div class="csms-table-wrap">
+          <table class="csms-table">
+            <thead>
+              <tr>
+                <th>When</th>
+                <th>Mode</th>
+                <th>Touch</th>
+                <th>Sent</th>
+                <th>Skipped</th>
+                <th>Failed</th>
+              </tr>
+            </thead>
+            <tbody id="csms-runs-body">
+              <tr><td colspan="6">No runs yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="/js/shell-nav.js?v=44-campaigns" defer></script>
+  <script src="/js/campaigns-sms.js?v=1" defer></script>
+</body>
+</html>
