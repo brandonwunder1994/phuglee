@@ -348,8 +348,8 @@
             sectionActive: isCampaignsSectionActive(current)
           })
         : '';
-      // Dashboard → Leads → Dispo → Data → Campaigns (admin)
-      railBody = dashboardHtml + leadsHtml + dispoHtml + dataHtml + campaignsHtml;
+      // Dashboard → Leads → Campaigns (admin) → Dispo → Data
+      railBody = dashboardHtml + leadsHtml + campaignsHtml + dispoHtml + dataHtml;
     }
 
     const railFooterHtml = isAuthenticated()

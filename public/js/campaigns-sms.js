@@ -76,6 +76,82 @@
     $('kpi-week').textContent = fmt(f.sentThisWeek);
   }
 
+  let backfillPollTimer = null;
+
+  function fmtNum(n) {
+    if (n == null || Number.isNaN(Number(n))) return '—';
+    return Number(n).toLocaleString('en-US');
+  }
+
+  function renderBackfillProgress(bp) {
+    const root = $('csms-backfill');
+    if (!root) return;
+    // Always show temp panel while tracker ships (hide only if API omits it entirely)
+    if (!bp) {
+      root.hidden = true;
+      return;
+    }
+    root.hidden = false;
+    const pct = Number.isFinite(Number(bp.percent)) ? Number(bp.percent) : 0;
+    const pctEl = $('csms-backfill-pct');
+    const fill = $('csms-backfill-fill');
+    const bar = $('csms-backfill-bar');
+    if (pctEl) {
+      pctEl.textContent = `${pct}%`;
+      pctEl.classList.toggle('is-complete', !!bp.complete || pct >= 100);
+    }
+    if (fill) {
+      fill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
+      fill.classList.toggle('is-complete', !!bp.complete || pct >= 100);
+    }
+    if (bar) bar.setAttribute('aria-valuenow', String(Math.round(pct)));
+    const counts = $('csms-backfill-counts');
+    if (counts) {
+      counts.textContent = `Processed ${fmtNum(bp.processed)} / ${fmtNum(bp.vaultTotal)} vault leads`;
+    }
+    const tagged = $('csms-backfill-tagged');
+    if (tagged) tagged.textContent = `Tagged in GHL ${fmtNum(bp.tagged)}`;
+    const skipped = $('csms-backfill-skipped');
+    if (skipped) skipped.textContent = `Skipped ${fmtNum(bp.skipped)}`;
+    const ghl = $('csms-backfill-ghl');
+    if (ghl) {
+      const cov = bp.ghlCoveragePct != null ? ` · ~${bp.ghlCoveragePct}% of vault` : '';
+      ghl.textContent = `GHL phuglee contacts ${fmtNum(bp.ghlPhugleeTagged)}${cov}`;
+    }
+    const updated = $('csms-backfill-updated');
+    if (updated) {
+      let when = '—';
+      if (bp.updatedAt) {
+        try {
+          when = new Date(bp.updatedAt).toLocaleString();
+        } catch (_) {
+          when = String(bp.updatedAt);
+        }
+      }
+      updated.textContent = `Updated ${when} · source ${bp.source || '—'}`;
+    }
+
+    // Auto-poll while incomplete so refresh isn't required
+    if (backfillPollTimer) {
+      clearInterval(backfillPollTimer);
+      backfillPollTimer = null;
+    }
+    if (!bp.complete && pct < 100) {
+      backfillPollTimer = setInterval(() => {
+        pollBackfillOnly();
+      }, 12000);
+    }
+  }
+
+  async function pollBackfillOnly() {
+    try {
+      const data = await api('/api/admin/campaigns/sms/backfill-progress');
+      if (data.backfillProgress) renderBackfillProgress(data.backfillProgress);
+    } catch (_) {
+      /* ignore poll errors */
+    }
+  }
+
   function renderBadge(live) {
     const b = $('csms-live-badge');
     if (!b) return;
@@ -110,10 +186,18 @@
   async function refresh() {
     setStatus('Loading…');
     try {
+      // Progress first so the bar updates even if full KPI fetch is slow
+      try {
+        const prog = await api('/api/admin/campaigns/sms/backfill-progress');
+        if (prog.backfillProgress) renderBackfillProgress(prog.backfillProgress);
+      } catch (_) {
+        /* non-fatal */
+      }
       const data = await api('/api/admin/campaigns/sms/overview');
       renderBadge(!!data.live);
       renderPolicy(data);
       renderKpis(data);
+      if (data.backfillProgress) renderBackfillProgress(data.backfillProgress);
       const sendBtn = $('csms-send');
       if (sendBtn) {
         sendBtn.disabled = !data.live;
@@ -128,7 +212,13 @@
       }
       const runs = await api('/api/admin/campaigns/sms/runs?limit=20');
       renderRuns(runs.runs || []);
-      setStatus(data.kpis && data.kpis.cached ? 'Updated (cached KPIs)' : 'Updated');
+      const bp = data.backfillProgress;
+      const pctNote = bp && bp.vaultTotal
+        ? ` · base load ${bp.percent}% (${fmtNum(bp.processed)}/${fmtNum(bp.vaultTotal)})`
+        : '';
+      setStatus(
+        (data.kpis && data.kpis.cached ? 'Updated (cached KPIs)' : 'Updated') + pctNote
+      );
     } catch (err) {
       setStatus(err.message || 'Failed to load');
     }
