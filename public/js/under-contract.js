@@ -1519,6 +1519,10 @@
       btn.setAttribute('aria-selected', on ? 'true' : 'false');
       btn.tabIndex = on ? 0 : -1;
     });
+    // Opening Internal = reading the alert — clear team unread for this deal.
+    if (ch === 'internal' && state.activeDealId) {
+      markTeamMessagesRead(state.activeDealId).catch(() => {});
+    }
     // Phone-style: switching channels lands on the newest message.
     requestAnimationFrame(() => pinActiveCommThreadToLatest());
     return ch;
@@ -3733,6 +3737,12 @@
 
   async function markTeamMessagesRead(dealId) {
     if (!dealId) return;
+    // Optimistic: drop this deal from the red banner immediately.
+    const before = state.unreadTeam || [];
+    if (before.some((it) => it.dealId === dealId)) {
+      state.unreadTeam = before.filter((it) => it.dealId !== dealId);
+      renderTeamBanner();
+    }
     try {
       const data = await api(`/api/leads/admin/contracts/${encodeURIComponent(dealId)}/team-messages/read`, {
         method: 'POST',
@@ -3749,7 +3759,7 @@
         }
         const idx = state.deals.findIndex((d) => d.dealId === dealId);
         if (idx >= 0) state.deals[idx] = { ...state.deals[idx], ...data.deal };
-        renderTeamMessages();
+        if (state.commChannel === 'internal') renderTeamMessages();
       }
     } catch (_) { /* ignore */ }
   }
@@ -5212,7 +5222,12 @@
         scrollThreadToLatest($('uc-photo-thread'));
       });
       startPoll();
-      if (opts.markTeamRead) await markTeamMessagesRead(dealId);
+      // Banner deep-link / open-from-alert always marks read; also mark when this deal
+      // is already on the unread list so opening the property clears the alert.
+      const hasUnreadForDeal = (state.unreadTeam || []).some((it) => it.dealId === dealId);
+      if (opts.markTeamRead || opts.scrollToTeam || hasUnreadForDeal) {
+        await markTeamMessagesRead(dealId);
+      }
       if (opts.scrollToTeam) {
         requestAnimationFrame(() => {
           navigateProfileInstrument('comms', { channel: 'internal', flash: false });
@@ -6880,6 +6895,18 @@
       }
     }
   }
+
+  // Shell team banner + other pages can open Internal and clear unread in-app.
+  window.PhugleeUnderContract = {
+    openTeamAlert(dealId) {
+      const id = String(dealId || '').trim();
+      if (!id) return Promise.resolve();
+      return openProfile(id, { scrollToTeam: true, markTeamRead: true });
+    },
+    markTeamRead(dealId) {
+      return markTeamMessagesRead(dealId);
+    }
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

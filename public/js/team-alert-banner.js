@@ -1,7 +1,7 @@
 /**
  * Site-wide Contract Tracker team-message alert banner.
  * Shows a sticky red bar for admin/brad whenever unreadTeam has items.
- * Click → /under-contract?deal=<id>
+ * Click → mark that deal's team thread read, then open Internal on the deal.
  */
 (function () {
   'use strict';
@@ -9,6 +9,7 @@
   const POLL_MS = 12000;
   let timer = null;
   let lastPayload = [];
+  let clickBusy = false;
 
   function isDeskUser() {
     try {
@@ -29,6 +30,62 @@
     if (user === 'brad') return 'Brad';
     if (user === 'admin') return 'Brandon';
     return user || 'Teammate';
+  }
+
+  async function markDealTeamRead(dealId) {
+    const id = String(dealId || '').trim();
+    if (!id) return null;
+    try {
+      const res = await fetch(
+        `/api/leads/admin/contracts/${encodeURIComponent(id)}/team-messages/read`,
+        {
+          method: 'POST',
+          credentials: 'same-origin',
+          cache: 'no-store',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: '{}'
+        }
+      );
+      if (!res.ok) return null;
+      return await res.json().catch(() => null);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async function onBannerClick() {
+    if (clickBusy) return;
+    clickBusy = true;
+    try {
+      const first = lastPayload[0];
+      const dealId = first?.dealId || '';
+      // Optimistic clear for the deal we're opening so the red bar drops immediately.
+      if (dealId) {
+        lastPayload = lastPayload.filter((it) => it.dealId !== dealId);
+        render(lastPayload);
+        const data = await markDealTeamRead(dealId);
+        if (Array.isArray(data?.unreadTeam)) {
+          render(data.unreadTeam);
+        }
+      }
+      // Prefer in-page open on Contract Tracker (no full reload, still marks + scrolls).
+      if (dealId && window.PhugleeUnderContract?.openTeamAlert) {
+        try {
+          await window.PhugleeUnderContract.openTeamAlert(dealId);
+          return;
+        } catch (_) { /* fall through to navigation */ }
+      }
+      if (dealId) {
+        window.location.href = `/under-contract?deal=${encodeURIComponent(dealId)}`;
+      } else {
+        window.location.href = '/under-contract';
+      }
+    } finally {
+      clickBusy = false;
+    }
   }
 
   function ensureEl() {
@@ -53,12 +110,7 @@
     }
 
     el.querySelector('#shell-team-banner-btn')?.addEventListener('click', () => {
-      const first = lastPayload[0];
-      if (first?.dealId) {
-        window.location.href = `/under-contract?deal=${encodeURIComponent(first.dealId)}`;
-      } else {
-        window.location.href = '/under-contract';
-      }
+      onBannerClick().catch(() => {});
     });
     return el;
   }
