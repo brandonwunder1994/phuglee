@@ -10,7 +10,11 @@
   var path = normalizePath(window.location.pathname);
   var DISPOS_USER = 'brad';
   /** Settings only — Brad can open every other product page. */
-  var DISPOS_DENIED_PATHS = { '/operating-costs': true };
+  var DISPOS_DENIED_PATHS = {
+    '/operating-costs': true,
+    '/campaigns/sms': true,
+    '/campaigns-sms.html': true
+  };
   var DISPOS_HOME = '/under-contract';
   var VAULT_ONLY_USER = 'matt';
   var VAULT_ONLY_PATHS = { '/vault': true, '/land-vault': true };
