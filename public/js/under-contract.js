@@ -3028,32 +3028,71 @@
   }
 
   /**
-   * End buyer for Overview: leading Buyers-tab offer, else real cashBuyerName.
+   * Offers for a deal, highest amount first.
+   * Uses live profile state when this deal is open; otherwise deal.buyerOffers.
+   */
+  function dealBuyerOffersSorted(deal) {
+    const openId = state.activeDealId || state.profile?.dealId;
+    const dealId = deal?.dealId;
+    if (dealId && openId && dealId === openId && Array.isArray(state.buyerOffers)) {
+      return typeof sortedBuyerOffers === 'function'
+        ? sortedBuyerOffers()
+        : state.buyerOffers.slice().sort((a, b) => {
+          const na = Number(a?.offerAmount);
+          const nb = Number(b?.offerAmount);
+          return (Number.isFinite(nb) ? nb : -1) - (Number.isFinite(na) ? na : -1);
+        });
+    }
+    const list = Array.isArray(deal?.buyerOffers) ? deal.buyerOffers.slice() : [];
+    return list.sort((a, b) => {
+      const na = Number(a?.offerAmount);
+      const nb = Number(b?.offerAmount);
+      return (Number.isFinite(nb) ? nb : -1) - (Number.isFinite(na) ? na : -1);
+    });
+  }
+
+  /**
+   * Selected offer if set, else highest offer (the one we pick / best).
+   */
+  function resolvePickedBuyerOffer(deal) {
+    const offers = dealBuyerOffersSorted(deal);
+    const openId = state.activeDealId || state.profile?.dealId;
+    const selectedId = (deal?.dealId && openId && deal.dealId === openId && state.selectedBuyerOfferId)
+      ? state.selectedBuyerOfferId
+      : (deal?.selectedBuyerOfferId || null);
+    let picked = null;
+    if (selectedId) {
+      picked = offers.find((o) => String(o?.id || '') === String(selectedId)) || null;
+    }
+    if (!picked) picked = offers[0] || null;
+    return { offer: picked, offers, selectedId: selectedId || null };
+  }
+
+  /**
+   * End buyer for Overview: selected/best offer, else real cashBuyerName.
    * Returns null when none — UI shows "No".
    */
   function overviewEndBuyerInfo(deal) {
-    const offers = typeof sortedBuyerOffers === 'function' ? sortedBuyerOffers() : [];
-    const leader = offers[0] || null;
-    const offerName = String(leader?.buyerName || '').trim();
+    const { offer: picked, offers } = resolvePickedBuyerOffer(deal);
+    const offerName = String(picked?.buyerName || '').trim();
     const cashName = String(deal?.cashBuyerName || '').trim();
 
     let name = '';
-    let offer = null;
     if (!isPlaceholderBuyerName(offerName)) {
       name = offerName;
-      offer = leader;
     } else if (!isPlaceholderBuyerName(cashName)) {
       name = cashName;
-      offer = leader;
     }
-    if (!name) return null;
 
-    const amount = offer && typeof offerAmountNum === 'function'
-      ? offerAmountNum(offer)
-      : (offer && Number.isFinite(Number(offer.offerAmount)) ? Number(offer.offerAmount) : null);
+    const amount = picked && typeof offerAmountNum === 'function'
+      ? offerAmountNum(picked)
+      : (picked && Number.isFinite(Number(picked.offerAmount)) ? Number(picked.offerAmount) : null);
+
+    // Price can exist without a display name (unnamed offer)
+    if (!name && amount == null) return null;
 
     return {
-      name,
+      name: name || (amount != null ? 'Offer' : ''),
       offerAmount: amount,
       offerCount: offers.length
     };
@@ -3065,12 +3104,43 @@
     return info ? info.name : '';
   }
 
-  /** End buyer purchase = our lockup + assignment when both numbers exist. */
+  /** End buyer price KPI = selected offer amount, else highest offer. */
   function overviewEndBuyerPrice(deal) {
-    const p = Number(deal?.purchasePrice);
-    const a = Number(deal?.assignmentFee);
-    if (!Number.isFinite(p) || !Number.isFinite(a)) return null;
-    return p + a;
+    const { offer: picked } = resolvePickedBuyerOffer(deal);
+    if (!picked) return null;
+    if (typeof offerAmountNum === 'function') return offerAmountNum(picked);
+    const n = Number(picked.offerAmount);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /**
+   * Assignment fee always = end buyer price − our locked purchase price.
+   * Never use a manual assignment edit field.
+   */
+  function overviewAssignmentFee(deal) {
+    const end = overviewEndBuyerPrice(deal);
+    const purchase = Number(deal?.purchasePrice);
+    if (end == null || !Number.isFinite(purchase)) return null;
+    return end - purchase;
+  }
+
+  /** Persistable fee from offers + purchase (null when not derivable). */
+  function deriveAssignmentFeeFromOffers(deal, offersList, selectedId) {
+    const purchase = Number(deal?.purchasePrice);
+    if (!Number.isFinite(purchase)) return null;
+    const list = (Array.isArray(offersList) ? offersList.slice() : []).sort((a, b) => {
+      const na = Number(a?.offerAmount);
+      const nb = Number(b?.offerAmount);
+      return (Number.isFinite(nb) ? nb : -1) - (Number.isFinite(na) ? na : -1);
+    });
+    let picked = null;
+    if (selectedId) {
+      picked = list.find((o) => String(o?.id || '') === String(selectedId)) || null;
+    }
+    if (!picked) picked = list[0] || null;
+    const amount = picked ? (typeof offerAmountNum === 'function' ? offerAmountNum(picked) : Number(picked.offerAmount)) : null;
+    if (amount == null || !Number.isFinite(amount)) return null;
+    return amount - purchase;
   }
 
   /** Property image for profile atmosphere (street view / thumb / first media). */
@@ -3138,6 +3208,7 @@
     const sellerLine = sellers.length ? sellers.join(' · ') : '—';
     const endBuyer = overviewEndBuyerInfo(deal);
     const endPrice = overviewEndBuyerPrice(deal);
+    const assignmentFee = overviewAssignmentFee(deal);
     const notesRaw = String(deal?.notes || '');
     const closingRaw = deal?.closingDate || contact?.closingDate || deal?.closingDisplay || '';
     const closing = formatOverviewClosingDate(closingRaw);
@@ -3180,7 +3251,7 @@
           </div>
           <div class="uc-snap-econ-cell uc-snap-econ-cell--assignment">
             <h4 class="uc-snap-label">Assignment Fee</h4>
-            <strong class="uc-money-display uc-snap-assignment">${esc(money(deal.assignmentFee))}</strong>
+            <strong class="uc-money-display uc-snap-assignment">${esc(assignmentFee == null ? '—' : money(assignmentFee))}</strong>
           </div>
         </div>
       </section>
@@ -4122,10 +4193,17 @@
     if (!el) return;
     const deal = state.profile || {};
     const purchase = Number(deal.purchasePrice);
-    const leader = offers[0] || null;
-    const best = leader ? offerAmountNum(leader) : null;
-    const assignFee = (best != null && Number.isFinite(purchase)) ? (best - purchase) : null;
-    const hasAny = Number.isFinite(purchase) || best != null;
+    // Prefer selected offer (the one we pick), else highest
+    const selectedId = state.selectedBuyerOfferId;
+    let picked = selectedId
+      ? (offers || []).find((o) => String(o?.id || '') === String(selectedId))
+      : null;
+    if (!picked) picked = offers[0] || null;
+    const endBuyerPrice = picked ? offerAmountNum(picked) : null;
+    const assignFee = (endBuyerPrice != null && Number.isFinite(purchase))
+      ? (endBuyerPrice - purchase)
+      : null;
+    const hasAny = Number.isFinite(purchase) || endBuyerPrice != null;
     if (!hasAny) {
       el.hidden = true;
       el.innerHTML = '';
@@ -4133,7 +4211,9 @@
     }
     el.hidden = false;
     const feeCls = assignFee == null ? '' : (assignFee >= 0 ? 'is-up' : 'is-down');
-    const buyerName = (leader?.buyerName || '').trim();
+    const buyerName = (picked?.buyerName || '').trim();
+    const isPicked = selectedId && picked && String(picked.id) === String(selectedId);
+    const priceLabel = isPicked ? 'Selected offer' : 'Best offer';
     const buyerLine = buyerName
       ? `<em class="uc-buyers-econ-buyer">${esc(buyerName)}</em>`
       : '';
@@ -4143,8 +4223,8 @@
         `<strong class="uc-money-display">${esc(Number.isFinite(purchase) ? money(purchase) : '—')}</strong>` +
       `</div>` +
       `<div class="uc-buyers-econ-cell uc-buyers-econ-cell--best">` +
-        `<span>Best offer</span>` +
-        `<strong class="uc-money-display">${esc(best != null ? money(best) : '—')}</strong>` +
+        `<span>${esc(priceLabel)}</span>` +
+        `<strong class="uc-money-display">${esc(endBuyerPrice != null ? money(endBuyerPrice) : '—')}</strong>` +
         buyerLine +
       `</div>` +
       `<div class="uc-buyers-econ-cell ${feeCls}">` +
@@ -4446,12 +4526,21 @@
       return null;
     }
     let selectedId = state.selectedBuyerOfferId;
+    if (Object.prototype.hasOwnProperty.call(opts, 'selectedBuyerOfferId')) {
+      selectedId = opts.selectedBuyerOfferId;
+    }
     if (selectedId && !nextList.some((o) => o.id === selectedId)) {
       selectedId = null;
     }
+    const dealForFee = state.profile || {};
+    const derivedFee = deriveAssignmentFeeFromOffers(dealForFee, nextList, selectedId);
     const patch = { buyerOffers: nextList };
     if (Object.prototype.hasOwnProperty.call(opts, 'selectedBuyerOfferId') || selectedId !== state.selectedBuyerOfferId) {
       patch.selectedBuyerOfferId = selectedId;
+    }
+    // Keep board/payout assignmentFee in sync: end buyer − our lockup
+    if (derivedFee != null) {
+      patch.assignmentFee = derivedFee;
     }
     const data = await saveDealFields(dealId, patch);
     const saved = Array.isArray(data.deal?.buyerOffers) ? data.deal.buyerOffers : nextList;
@@ -4490,13 +4579,21 @@
         renderBuyerOffers();
         return;
       }
-      const data = await saveDealFields(dealId, { selectedBuyerOfferId: next });
+      const derivedFee = deriveAssignmentFeeFromOffers(
+        state.profile || {},
+        state.buyerOffers || [],
+        next
+      );
+      const patch = { selectedBuyerOfferId: next };
+      if (derivedFee != null) patch.assignmentFee = derivedFee;
+      const data = await saveDealFields(dealId, patch);
       if (data.deal) {
         mergeDealIntoState(data.deal);
         state.profile = { ...(state.profile || {}), ...data.deal };
         state.selectedBuyerOfferId = data.deal.selectedBuyerOfferId || null;
       }
       renderBuyerOffers();
+      if (state.profile) renderOverviewSnapshot(state.profile, state.contact);
       showToast(next ? 'Buyer selected' : 'Selection cleared');
     } catch (err) {
       showToast(err.message || 'Could not update selection');
@@ -6147,7 +6244,6 @@
     $('uc-edit-stage').value = deal.stage || 'under_contract';
     if ($('uc-edit-deal-type')) $('uc-edit-deal-type').value = deal.dealType || '';
     $('uc-edit-purchase').value = deal.purchasePrice ?? '';
-    $('uc-edit-fee').value = deal.assignmentFee ?? '';
     $('uc-edit-buyer').value = deal.cashBuyerName || '';
     // Seller contact: same source as Overview Parties card (GHL contact then deal)
     const contactInfo = overviewSellerContact(deal, state.contact);
@@ -6184,11 +6280,17 @@
     }
     const sellerPhone = normalizeSellerPhoneInput($('uc-edit-phone')?.value || '');
     const sellerEmail = ($('uc-edit-email')?.value || '').trim().toLowerCase();
+    const purchasePrice = $('uc-edit-purchase').value === '' ? null : Number($('uc-edit-purchase').value);
+    // Assignment fee is derived only: end buyer (selected/best offer) − our lockup
+    const derivedFee = deriveAssignmentFeeFromOffers(
+      { ...(state.profile || {}), purchasePrice },
+      state.buyerOffers || (state.profile && state.profile.buyerOffers) || [],
+      state.selectedBuyerOfferId || (state.profile && state.profile.selectedBuyerOfferId) || null
+    );
     const body = {
       stage: $('uc-edit-stage').value,
       dealType: $('uc-edit-deal-type')?.value || '',
-      purchasePrice: $('uc-edit-purchase').value === '' ? null : Number($('uc-edit-purchase').value),
-      assignmentFee: $('uc-edit-fee').value === '' ? null : Number($('uc-edit-fee').value),
+      purchasePrice,
       cashBuyerName: $('uc-edit-buyer').value.trim(),
       phone: sellerPhone,
       email: sellerEmail,
@@ -6208,6 +6310,7 @@
       })(),
       notes: $('uc-edit-notes').value.trim()
     };
+    if (derivedFee != null) body.assignmentFee = derivedFee;
     if (body.photoCost === undefined) delete body.photoCost;
     const saveBtn = $('uc-edit-save');
     if (saveBtn) saveBtn.disabled = true;
