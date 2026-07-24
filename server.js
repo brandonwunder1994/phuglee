@@ -506,6 +506,12 @@ async function handleRequest(req, res) {
     if (handled) return;
   }
 
+  // GHL workflow webhook — auto-tag person:dnc / system:landline (no admin session)
+  if (pathname.startsWith('/api/webhooks/ghl/')) {
+    const handled = await getCampaignsSmsApi().handleWebhook(req, res, pathname, url);
+    if (handled) return;
+  }
+
   if (pathname.startsWith('/api/admin/campaigns/sms')) {
     const handled = await getCampaignsSmsApi().handle(req, res, pathname, url);
     if (handled) return;

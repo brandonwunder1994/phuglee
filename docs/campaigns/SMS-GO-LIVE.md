@@ -28,6 +28,10 @@
 - Unset `SMS_CAMPAIGNS_LIVE`
 - Pause auto on `/campaigns/sms`
 - Exclude tags: not interested, dnc, dnd, interested, follow up, wrong number
+- Auto-tags (optional but recommended): `person:dnc` (human opt-out), `system:landline` (can't SMS)
+  - In Phuglee: **Preview DNC tags** → **Tag DNC split in GHL**
+  - Ongoing webhook: `POST https://<host>/api/webhooks/ghl/sms-dnd-tags` (optional secret `GHL_SMS_TAG_WEBHOOK_SECRET`)
+  - GHL workflow examples: inbound body STOP → Custom Webhook with `{ "contactId": "{{contact.id}}", "body": "{{message.body}}" }`; failed SMS → `{ "contactId": "{{contact.id}}", "status": "failed", "error": "landline" }`
 
 ## Policy (locked)
 

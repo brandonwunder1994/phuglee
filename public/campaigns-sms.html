@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
   <link rel="stylesheet" href="/css/vault.css?v=28-typeset">
-  <link rel="stylesheet" href="/css/campaigns-sms.css?v=4-dnc-split">
+  <link rel="stylesheet" href="/css/campaigns-sms.css?v=5-auto-tag">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=6-campaigns"></script>
@@ -120,6 +120,14 @@
             <span>Auto sequence enabled (Option B — requires LIVE + SMS_CAMPAIGNS_AUTO)</span>
           </label>
         </div>
+        <div class="csms-action-row csms-action-row--tagger">
+          <button type="button" id="csms-tag-dry" class="phuglee-btn">Preview DNC tags</button>
+          <button type="button" id="csms-tag-apply" class="phuglee-btn phuglee-btn-primary">Tag DNC split in GHL</button>
+          <p class="csms-meta csms-tagger-help">
+            Writes CRM tags <code>person:dnc</code> (asked out) and <code>system:landline</code> (can’t text).
+            Use GHL smart lists / filters on those tags. Webhook for ongoing: <code>POST /api/webhooks/ghl/sms-dnd-tags</code>
+          </p>
+        </div>
         <pre id="csms-result" class="csms-result" hidden></pre>
       </section>
 
@@ -147,6 +155,6 @@
   </main>
 
   <script src="/js/shell-nav.js?v=45-campaigns-under-leads" defer></script>
-  <script src="/js/campaigns-sms.js?v=4-dnc-split" defer></script>
+  <script src="/js/campaigns-sms.js?v=5-auto-tag" defer></script>
 </body>
 </html>

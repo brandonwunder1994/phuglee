@@ -329,6 +329,42 @@
     }
   }
 
+  async function onTagDnc(dryRun) {
+    const live = !dryRun;
+    if (live) {
+      const ok = window.confirm(
+        'Write person:dnc and system:landline tags on matching phuglee contacts in GHL?\n\n'
+        + 'Preview first if you have not. This can take several minutes.'
+      );
+      if (!ok) {
+        setStatus('Tag apply cancelled');
+        return;
+      }
+    }
+    setStatus(dryRun ? 'Previewing DNC tags…' : 'Tagging contacts in GHL…');
+    try {
+      const data = await api('/api/admin/campaigns/sms/auto-tag-dnc', {
+        method: 'POST',
+        body: JSON.stringify({
+          dryRun: !!dryRun,
+          maxContacts: 8000,
+          delayMs: 350
+        })
+      });
+      showResult(data);
+      const s = data.summary || {};
+      setStatus(
+        (dryRun ? 'Preview: ' : 'Tagged: ')
+        + `person ${fmtNum(s.personTagged)} · system ${fmtNum(s.systemTagged)}`
+        + ` · already ok ${fmtNum(s.alreadyOk)} · scanned ${fmtNum(s.scanned)}`
+        + (s.failed ? ` · failed ${fmtNum(s.failed)}` : '')
+      );
+      if (!dryRun) refresh();
+    } catch (err) {
+      setStatus(err.message || 'Tag request failed');
+    }
+  }
+
   function init() {
     const gate = $('csms-gate');
     const app = $('csms-app');
@@ -344,6 +380,8 @@
     $('csms-dry')?.addEventListener('click', onDry);
     $('csms-send')?.addEventListener('click', onSend);
     $('csms-auto')?.addEventListener('change', onAutoChange);
+    $('csms-tag-dry')?.addEventListener('click', () => onTagDnc(true));
+    $('csms-tag-apply')?.addEventListener('click', () => onTagDnc(false));
     refresh();
   }
 

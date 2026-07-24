@@ -179,6 +179,24 @@
   color: var(--text-muted, #a89b88);
 }
 
+.csms-action-row--tagger {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+
+.csms-tagger-help {
+  margin: 0;
+  max-width: 40rem;
+  line-height: 1.4;
+}
+
+.csms-tagger-help code {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 0.78em;
+  color: #e0d0b0;
+}
+
 .csms-section-title {
   font-size: 0.95rem;
   font-weight: 600;
