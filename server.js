@@ -532,7 +532,7 @@ async function handleRequest(req, res) {
     if (handled) return;
   }
 
-  // Wave 1: government lists meta + per-state sources (avoid 7.5 MB full dump on open)
+  // Government lists meta + sources (state=all or omit for nationwide; optional listType)
   if (pathname.startsWith('/api/gov-lists') && (req.method === 'GET' || req.method === 'HEAD')) {
     try {
       const govLists = require('./lib/gov-lists-catalog');

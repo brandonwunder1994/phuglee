@@ -16,15 +16,28 @@ test('getMeta has no sources array and reports stateCounts', () => {
   assert.ok((meta.listTypeCounts.pre_lien || 0) + (meta.listTypeCounts.code_violation || 0) > 0);
 });
 
-test('getSources requires state and returns only that state', () => {
-  assert.throws(() => getSources({}), /state/i);
-  assert.throws(() => getSources({ state: '' }), /state/i);
+test('getSources with TX returns only that state', () => {
   const { sources, total, state } = getSources({ state: 'TX' });
   assert.equal(state, 'TX');
   assert.ok(sources.length > 0);
   assert.equal(sources.length, total);
   assert.ok(sources.every((s) => String(s.state || '').toUpperCase() === 'TX'));
   assert.ok(sources.every((s) => !s.isPlaybook));
+});
+
+test('getSources with empty/all returns nationwide catalog', () => {
+  const allA = getSources({ state: '' });
+  const allB = getSources({ state: 'all' });
+  const meta = getMeta();
+  assert.equal(allA.state, 'all');
+  assert.equal(allB.state, 'all');
+  assert.equal(allA.total, allB.total);
+  assert.ok(allA.total >= meta.sourceCount - 50);
+  assert.ok(allA.total > 5000);
+  assert.ok(allA.sources.every((s) => !s.isPlaybook));
+  // Includes multiple states
+  const states = new Set(allA.sources.map((s) => s.state));
+  assert.ok(states.size > 20);
 });
 
 test('getSources maps full state names into TX (research + forge rows)', () => {

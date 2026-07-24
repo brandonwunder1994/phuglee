@@ -268,25 +268,17 @@
   }
 
   // ── Counts ──
-  function catalogReadySummary() {
-    const n = Number(state.catalog && state.catalog.sourceCount) || 0;
-    const states = state.catalog && state.catalog.stateCounts
-      ? Object.keys(state.catalog.stateCounts).length
-      : 0;
-    if (n <= 0) return 'Catalog loading…';
-    return `${n.toLocaleString()} sources live · ${states} states — pick a state to open the table`;
-  }
-
   function renderCounts() {
-    const st = ($('gl-state') && $('gl-state').value) || '';
     let txt;
-    if (!st && !state.merged.length) {
-      txt = catalogReadySummary();
-    } else if (state.filtered.length) {
+    if (state.filtered.length) {
       const places = new Set(state.filtered.map((s) => `${(s.city || s.county || '').toLowerCase()}|${s.state}`)).size;
-      txt = `${state.filtered.length.toLocaleString()} sources · ${places.toLocaleString()} places`;
-    } else {
+      const st = ($('gl-state') && $('gl-state').value) || '';
+      const scope = st ? st : 'all states';
+      txt = `${state.filtered.length.toLocaleString()} sources · ${places.toLocaleString()} places · ${scope}`;
+    } else if (state.merged.length) {
       txt = '0 sources match filters';
+    } else {
+      txt = 'Loading sources…';
     }
     const tb = $('gl-toolbar-count');
     if (tb) tb.textContent = txt;
@@ -1005,27 +997,28 @@
   }
 
   /**
-   * Load sources for one state (Wave 1). Empty state clears the table.
+   * Load sources for one state, or nationwide when st is empty / "all".
+   * Nationwide lets list-type clicks show every state before filtering down.
    */
   async function loadSourcesForState(st) {
-    const code = String(st || '').trim().toUpperCase();
-    if (!code) {
-      state.merged = [];
-      rebuildById();
-      applyFilters();
-      return;
-    }
+    const raw = String(st || '').trim();
+    const allStates = !raw || /^all$/i.test(raw) || raw === '*';
+    const code = allStates ? '' : (GLN ? GLN.normalizeState(raw) : raw.toUpperCase());
 
     try {
-      localStorage.setItem(LAST_STATE_KEY, code);
+      if (code) localStorage.setItem(LAST_STATE_KEY, code);
+      else localStorage.removeItem(LAST_STATE_KEY);
     } catch (_) { /* ignore */ }
 
-    const res = await fetch(`${SOURCES_URL}?state=${encodeURIComponent(code)}`, { cache: 'default' });
+    const qs = code
+      ? `?state=${encodeURIComponent(code)}`
+      : '?state=all';
+    const res = await fetch(`${SOURCES_URL}${qs}`, { cache: 'default' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const raw = (data && data.sources) || [];
+    const rows = (data && data.sources) || [];
     const priority = priorityMap();
-    state.merged = GLN ? GLN.mergeSources(raw, priority) : raw.slice();
+    state.merged = GLN ? GLN.mergeSources(rows, priority) : rows.slice();
     rebuildById();
   }
 
@@ -1056,7 +1049,7 @@
 
       fillSelect($('gl-type'), state.listTypes.map((t) => ({ value: t.id, label: t.label })), 'All types');
       fillSelect($('gl-method'), state.methods.map((m) => ({ value: m.id, label: m.label })), 'All methods');
-      fillSelect($('gl-state'), stateOpts, 'Pick a state…');
+      fillSelect($('gl-state'), stateOpts, 'All states');
       fillSelect($('gl-verify'), [
         { value: 'verified', label: 'Verified' },
         { value: 'pdf_only', label: 'PDF only' },
@@ -1068,31 +1061,15 @@
       readUrl();
       updateSortHeaders();
 
+      // Default: all states so list-type rail shows nationwide rows.
+      // URL ?state=TX still narrows; blank / All states = full catalog.
       let initialState = ($('gl-state') && $('gl-state').value) || '';
-      if (!initialState) {
-        try { initialState = localStorage.getItem(LAST_STATE_KEY) || ''; } catch (_) { initialState = ''; }
-        if (initialState && $('gl-state') && stateOpts.some((o) => o.value === initialState)) {
-          $('gl-state').value = initialState;
-        } else {
-          initialState = ($('gl-state') && $('gl-state').value) || '';
-        }
+      if (initialState && $('gl-state') && !stateOpts.some((o) => o.value === initialState)) {
+        initialState = '';
+        if ($('gl-state')) $('gl-state').value = '';
       }
-
-      if (initialState) {
-        await loadSourcesForState(initialState);
-      } else {
-        // Data is loaded in meta — don't show a blank "0 sources" void.
-        // Prefer last-used or TX so the table fills on first paint.
-        const preferred = ['TX', 'OH', 'FL', 'CA', 'PA'].find((c) =>
-          stateOpts.some((o) => o.value === c)
-        );
-        if (preferred && $('gl-state')) {
-          $('gl-state').value = preferred;
-          await loadSourcesForState(preferred);
-        } else {
-          applyFilters();
-        }
-      }
+      await loadSourcesForState(initialState);
+      applyFilters();
 
       try { await loadPlaybooks(); }
       catch (err) { console.warn(err); showToast('Playbooks failed to load — sources still available'); }
