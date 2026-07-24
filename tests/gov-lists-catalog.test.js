@@ -12,6 +12,8 @@ test('getMeta has no sources array and reports stateCounts', () => {
   assert.ok(meta.stateCounts.TX > 0);
   assert.ok(Array.isArray(meta.listTypes));
   assert.ok(Array.isArray(meta.howto));
+  assert.ok(meta.listTypeCounts && typeof meta.listTypeCounts === 'object');
+  assert.ok((meta.listTypeCounts.pre_lien || 0) + (meta.listTypeCounts.code_violation || 0) > 0);
 });
 
 test('getSources requires state and returns only that state', () => {
