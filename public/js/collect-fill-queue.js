@@ -80,7 +80,12 @@
       }
       body.innerHTML = items
         .map(function (it) {
-          var href = '#/fill/work/' + encodeURIComponent(it.id);
+          // Full-page Records Desk (normal document scroll) — not an iframe nest.
+          var href =
+            root.PhugleeCollectWorkspace &&
+            typeof root.PhugleeCollectWorkspace.fillFormPageUrl === 'function'
+              ? root.PhugleeCollectWorkspace.fillFormPageUrl(it.id)
+              : '/forge/?returnTo=collect&open=' + encodeURIComponent(it.id);
           return (
             '<tr>' +
             '<td>' +
@@ -121,7 +126,7 @@
       return;
     }
     if (kind === 'work') {
-      // collect-workspace.js owns the embed
+      // collect-workspace.js redirects #/fill/work/:id to full-page Records Desk
       return;
     }
     var h = (location.hash || '').replace(/^#/, '');

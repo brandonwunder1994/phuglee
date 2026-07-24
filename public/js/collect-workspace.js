@@ -1,5 +1,7 @@
 /**
- * Embed fill / portal tools inside Collect so work stays on Request.
+ * Request desk workspace routing.
+ * Fill form opens as a normal full page (no nested iframe scroll).
+ * Portal queue still uses the in-page workspace when needed.
  * Hash: #/fill/work/<cityId> | #/portal
  */
 (function (root) {
@@ -22,6 +24,16 @@
     hideAllMainViews();
     var desk = $('collect-desk-home');
     if (desk) desk.hidden = false;
+  }
+
+  /** Full-page Records Desk URL for one-city fill (document scroll, shell nav). */
+  function fillFormPageUrl(cityId) {
+    return (
+      '/forge/?returnTo=collect&open=' +
+      encodeURIComponent(cityId) +
+      '#city=' +
+      encodeURIComponent(cityId)
+    );
   }
 
   function parseWorkspaceHash() {
@@ -64,13 +76,8 @@
     if (!ws) return false;
 
     if (ws.mode === 'fill-work' && ws.cityId) {
-      openWorkspace({
-        title: 'Fill form',
-        sub: 'Still on Request — fill and save, then return to the needs-fill list.',
-        src: '/forge/?returnTo=collect&embed=1&open=' + encodeURIComponent(ws.cityId),
-        backHref: '/collect#/fill/pdf',
-        backHash: '#/fill/pdf'
-      });
+      // Full page — same document scroll as any other desk page (no iframe nest).
+      location.replace(fillFormPageUrl(ws.cityId));
       return true;
     }
     if (ws.mode === 'portal') {
@@ -120,6 +127,7 @@
     openWorkspace: openWorkspace,
     routeFromHash: routeFromHash,
     parseWorkspaceHash: parseWorkspaceHash,
+    fillFormPageUrl: fillFormPageUrl,
     boot: boot
   };
 

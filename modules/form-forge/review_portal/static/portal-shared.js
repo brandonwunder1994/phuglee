@@ -138,14 +138,18 @@ window.PortalShared = {
       }
       if (params.get("returnTo") !== "collect") return;
       if (document.getElementById("forge-return-collect")) return;
+      // Full-page fill opens with ?open= — send operators back to the needs-fill list.
+      const fromFill = !!params.get("open");
+      const backHref = fromFill ? "/collect#/fill/pdf" : "/collect";
+      const note = fromFill ? "PDF needs fill" : "Request desk";
       const bar = document.createElement("div");
       bar.id = "forge-return-collect";
       bar.className = "forge-return-collect";
       bar.setAttribute("role", "navigation");
       bar.setAttribute("aria-label", "Back to Request desk");
       bar.innerHTML =
-        '<a class="forge-return-collect-link" href="/collect" target="_parent">← Request</a>' +
-        '<span class="forge-return-collect-note">Request desk</span>';
+        `<a class="forge-return-collect-link" href="${backHref}">← Request</a>` +
+        `<span class="forge-return-collect-note">${note}</span>`;
       document.body.insertBefore(bar, document.body.firstChild);
     } catch (_) {
       /* ignore */
