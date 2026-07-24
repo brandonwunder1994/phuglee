@@ -8,12 +8,34 @@
   padding: 1.75rem 1.5rem 3rem;
 }
 
+/* Hero actions — PDF filler entry */
+.collect-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.collect-hero-hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--phuglee-taupe-mid);
+  max-width: 36rem;
+}
+
 /* Bulk lanes — Phase 1 command center */
 .collect-lanes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.85rem;
   margin-bottom: 1rem;
+}
+
+.collect-lane--highlight {
+  border-color: color-mix(in oklab, var(--phuglee-gold) 45%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--phuglee-gold) 22%, transparent);
 }
 
 .collect-lanes-loading {

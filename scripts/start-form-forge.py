@@ -14,6 +14,7 @@ sys.path.insert(0, str(FORGE_ROOT))
 
 from review_portal.app import app  # noqa: E402
 from review_portal.data_guard import ensure_daily_snapshot, verify_integrity  # noqa: E402
+from review_portal.govlist_pdf_promote import ensure_govlist_pdf_promote_on_boot  # noqa: E402
 
 PORT = int(os.environ.get("FORM_FORGE_PORT", "8787"))
 HOST = os.environ.get("FORM_FORGE_HOST", "127.0.0.1")
@@ -34,6 +35,8 @@ def _log(msg: str) -> None:
 def _run_backup_check() -> None:
     """Run snapshot/integrity off the critical path so Flask binds immediately."""
     try:
+        # Volume-safe: merge Government List PDF cities into registry + fill queue.
+        ensure_govlist_pdf_promote_on_boot()
         snap = ensure_daily_snapshot()
         report = verify_integrity()
         _log(f"Data backup: {snap}")
