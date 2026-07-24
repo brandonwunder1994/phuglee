@@ -183,15 +183,6 @@
     return matchLink(normalizePath(pathname), '/analyzer/');
   }
 
-  /** Ops desks: chrome only — no marketing/link footer (matches Analyze / Collect). */
-  function isOpsDeskNoFooterPath(pathname) {
-    const p = normalizePath(pathname || window.location.pathname);
-    if (isAnalyzerPath(p)) return true;
-    if (matchLink(p, '/filter') || matchLink(p, '/bridge')) return true;
-    if (matchLink(p, '/collect')) return true;
-    return false;
-  }
-
   function iconFor(id) {
     return ICONS[id] || ICONS.default;
   }
@@ -212,68 +203,20 @@
     return CAMPAIGN_LINKS.some((l) => l.id === current);
   }
 
-  function buildFooter(pathname) {
-    const onAnalyzer = isAnalyzerPath(pathname || window.location.pathname);
-    if (isVaultOnlyUser()) {
-      return `
-<footer class="shell-footer" id="distress-os-footer">
-  <div class="shell-footer-inner">
-    <div class="shell-footer-brand-block">
-      <span class="shell-footer-brand">PHUGLEE</span>
-      <span class="shell-footer-meta">Houses · Land</span>
-    </div>
-    <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/vault" class="shell-footer-link">Houses</a>
-      <a href="/land-vault" class="shell-footer-link">Land</a>
-    </nav>
-  </div>
-</footer>`;
-    }
-    const metaLine = onAnalyzer
-      ? ''
-      : '<span class="shell-footer-meta">Distress OS · Request. Filter. Review.</span>';
-    const trustLine = onAnalyzer
-      ? ''
-      : '<p class="shell-footer-trust">Public records only · Your data stays on your machine</p>';
-    return `
-<footer class="shell-footer" id="distress-os-footer">
-  <div class="shell-footer-inner">
-    <div class="shell-footer-brand-block">
-      <span class="shell-footer-brand">PHUGLEE</span>
-      ${metaLine}
-    </div>
-    <nav class="shell-footer-links" aria-label="Footer">
-      <a href="/heat" class="shell-footer-link">How It Works</a>
-      <a href="/collect" class="shell-footer-link">Request</a>
-      <a href="/filter" class="shell-footer-link">Filter</a>
-      <a href="/analyzer/" class="shell-footer-link">Review</a>
-      <a href="/government-lists" class="shell-footer-link">Government Lists</a>
-      <a href="/vault" class="shell-footer-link">Houses</a>
-    </nav>
-  </div>
-  ${trustLine}
-</footer>`;
+  /**
+   * Footer HTML builder kept for API compatibility / tests.
+   * Site-wide product decision: do not render marketing footer on any page.
+   */
+  function buildFooter(_pathname) {
+    return '';
   }
 
+  /** Never inject shell footer — rail + page content only. */
   function mountFooter() {
-    const path = window.location.pathname;
     const existing = document.getElementById('distress-os-footer');
     const mount = document.getElementById('distress-os-footer-mount');
-
-    if (isOpsDeskNoFooterPath(path)) {
-      existing?.remove();
-      if (mount) mount.innerHTML = '';
-      return;
-    }
-
-    const html = buildFooter(path);
-    if (existing) {
-      existing.outerHTML = html;
-    } else if (mount) {
-      mount.innerHTML = html;
-    } else {
-      document.body.insertAdjacentHTML('beforeend', html);
-    }
+    existing?.remove();
+    if (mount) mount.innerHTML = '';
   }
 
   function buildRailLink(link, current) {
