@@ -8,7 +8,7 @@ import traceback
 import webbrowser
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, jsonify, redirect, request, send_file
 from werkzeug.exceptions import HTTPException
 
 from review_portal.api_errors import json_error
@@ -17,6 +17,8 @@ from review_portal.fillable_detect import suggest_elements
 from review_portal.office_use_boundary import office_use_boundaries
 from review_portal.layout_store import load_layout, save_layout
 from review_portal.pdf_save import save_elements_pdf, save_uploaded_pdf
+from review_portal.raw_upload import import_blank_pdf_from_url
+from review_portal.raw_upload import looks_like_direct_pdf_url
 from review_portal.raw_upload import raw_path as raw_pdf_path
 from review_portal.raw_upload import save_blank_pdf
 from review_portal.bridge_dataset import BridgeDatasetError, city_bridge_datasets, save_bridge_dataset
@@ -57,6 +59,7 @@ from review_portal.submission_tracker import (
     backfill_email_only_submission,
     build_pending_email_only_request_queue,
     build_pending_online_request_queue,
+    build_pending_pdf_fill_queue,
     build_pending_pdf_request_queue,
     build_portal_error_queue,
     clear_city_portal_error,
@@ -167,24 +170,43 @@ def index():
     return send_file(Path(__file__).parent / "static" / "index.html")
 
 
+def _redirect_to_collect(hash_path: str = "") -> object:
+    """Retired Form Forge pages → Collect (works under /forge proxy on Distress OS)."""
+    # Client-side so #hash survives; absolute /collect is the OS shell, not forge root.
+    target = "/collect" + (hash_path if hash_path.startswith("#") else "")
+    html = (
+        "<!DOCTYPE html><html><head><meta charset='utf-8'>"
+        f"<meta http-equiv='refresh' content='0;url={target}'>"
+        f"<script>location.replace({target!r})</script>"
+        f"<title>Moved</title></head><body>"
+        f"<p>This page moved to <a href='{target}'>Request</a>.</p>"
+        "</body></html>"
+    )
+    return html, 302, {"Content-Type": "text/html; charset=utf-8", "Location": "/collect"}
+
+
 @app.route("/map")
 def coverage_map():
-    return send_file(Path(__file__).parent / "static" / "map.html")
+    # Coverage Map retired — Collect is the ops home.
+    return _redirect_to_collect()
 
 
 @app.route("/portal")
 def portal_tracker():
-    return send_file(Path(__file__).parent / "static" / "portal.html")
+    # Old city tracker retired — Collect request tracker.
+    return _redirect_to_collect("#/tracker")
 
 
 @app.route("/portal/request-pdfs")
 def portal_request_pdfs():
-    return send_file(Path(__file__).parent / "static" / "request-pdfs.html")
+    # Classic PDF send retired — Collect PDF fire queue.
+    return _redirect_to_collect("#/fire/pdf")
 
 
 @app.route("/portal/email-only")
 def portal_email_only():
-    return send_file(Path(__file__).parent / "static" / "email-only-requests.html")
+    # Classic email-only retired — Collect email fire queue.
+    return _redirect_to_collect("#/fire/email-only")
 
 
 @app.route("/portal/submit-portals")
@@ -581,6 +603,15 @@ def api_portal_pending_pdf_requests():
     return jsonify(build_pending_pdf_request_queue(registry))
 
 
+@app.route("/api/portal/pending-pdf-fill")
+def api_portal_pending_pdf_fill():
+    """Cities on PDF-email pathway that still need a one-time filled FOIA form."""
+    registry = load_registry()
+    resp = jsonify(build_pending_pdf_fill_queue(registry))
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return resp
+
+
 @app.route("/api/portal/pending-email-only-requests")
 def api_portal_pending_email_only_requests():
     registry = load_registry()
@@ -936,6 +967,43 @@ def api_form_detail(form_id: str):
         return json_error(exc, status=500)
 
 
+def _apply_blank_meta_to_queue_item(queue: dict, form_id: str, meta: dict) -> None:
+    for i in queue.get("items", []):
+        if i["id"] == form_id:
+            i["raw_path"] = meta["raw_path"]
+            i["preview_path"] = meta.get("preview_path", "")
+            i["fillable"] = meta.get("fillable", False)
+            i["field_count"] = meta.get("field_count", 0)
+            i["field_names"] = meta.get("field_names", [])
+            i["blank_uploaded_at"] = meta["uploaded_at"]
+            if i.get("status") != "completed":
+                i["status"] = "pending"
+            break
+
+
+def _sync_registry_blank_pdf(form_id: str, meta: dict) -> None:
+    """Keep portal-registry pdf.raw_path in sync so Collect needs-fill reflects blanks."""
+    try:
+        registry = load_registry()
+        city = find_city(registry, form_id)
+        if not city:
+            return
+        pdf = city.get("pdf") if isinstance(city.get("pdf"), dict) else {}
+        pdf = dict(pdf)
+        pdf["raw_path"] = meta.get("raw_path", "")
+        pdf["preview_path"] = meta.get("preview_path", "") or pdf.get("preview_path", "")
+        pdf["fillable"] = meta.get("fillable", False)
+        pdf["field_count"] = meta.get("field_count", 0)
+        pdf["field_names"] = meta.get("field_names", [])
+        if pdf.get("status") != "completed":
+            pdf["status"] = "pending"
+        city["pdf"] = pdf
+        save_registry(registry)
+    except Exception:
+        # Queue is source of truth for Records Desk; registry sync is best-effort.
+        pass
+
+
 @app.route("/api/upload-blank/<form_id>", methods=["POST"])
 def api_upload_blank(form_id: str):
     queue = _load_queue()
@@ -955,20 +1023,10 @@ def api_upload_blank(form_id: str):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 400
 
-    for i in queue.get("items", []):
-        if i["id"] == form_id:
-            i["raw_path"] = meta["raw_path"]
-            i["preview_path"] = meta.get("preview_path", "")
-            i["fillable"] = meta.get("fillable", False)
-            i["field_count"] = meta.get("field_count", 0)
-            i["field_names"] = meta.get("field_names", [])
-            i["blank_uploaded_at"] = meta["uploaded_at"]
-            if i.get("status") != "completed":
-                i["status"] = "pending"
-            break
-
+    _apply_blank_meta_to_queue_item(queue, form_id, meta)
     queue = sync_queue_from_disk(queue)
     _save_queue(queue)
+    _sync_registry_blank_pdf(form_id, meta)
 
     return jsonify(
         {
@@ -976,6 +1034,57 @@ def api_upload_blank(form_id: str):
             "raw_path": meta["raw_path"],
             "fillable": meta.get("fillable", False),
             "message": f"Blank PDF saved for {item['city']}, {item['state']}. You can now fill it in the editor.",
+        }
+    )
+
+
+@app.route("/api/import-blank-from-url/<form_id>", methods=["POST"])
+def api_import_blank_from_url(form_id: str):
+    """
+    Attach the city's FOIA PDF link as the blank form (no manual download/upload).
+    Body optional: { "url": "https://..." } — defaults to form url / portal_url.
+    """
+    queue = _load_queue()
+    item = next((i for i in queue.get("items", []) if i["id"] == form_id), None)
+    if not item:
+        return jsonify({"error": "not found"}), 404
+
+    body = request.get_json(silent=True) or {}
+    url = str(body.get("url") or item.get("url") or item.get("portal_url") or "").strip()
+    if not url:
+        registry = load_registry()
+        city = find_city(registry, form_id)
+        if city:
+            url = str(city.get("portal_url") or city.get("url") or "").strip()
+            if url and not item.get("url"):
+                item["url"] = url
+
+    if not url:
+        return jsonify({"error": "No FOIA PDF URL on file for this city."}), 400
+
+    try:
+        meta = import_blank_pdf_from_url(item, url)
+    except ValueError as exc:
+        return jsonify({"error": str(exc), "url": url}), 400
+
+    _apply_blank_meta_to_queue_item(queue, form_id, meta)
+    if not item.get("url"):
+        item["url"] = url
+    queue = sync_queue_from_disk(queue)
+    _save_queue(queue)
+    _sync_registry_blank_pdf(form_id, meta)
+
+    return jsonify(
+        {
+            "ok": True,
+            "raw_path": meta["raw_path"],
+            "fillable": meta.get("fillable", False),
+            "source_url": meta.get("source_url", url),
+            "looks_like_direct_pdf": looks_like_direct_pdf_url(url),
+            "message": (
+                f"FOIA PDF attached for {item['city']}, {item['state']}. "
+                "You can fill fields and save like the original batch."
+            ),
         }
     )
 

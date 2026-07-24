@@ -1967,6 +1967,52 @@ def build_pending_email_only_request_queue(registry: dict | None = None) -> dict
     }
 
 
+def is_pdf_fill_needed(city: dict) -> bool:
+    """True when city is on the PDF-email pathway but has no completed filled FOIA PDF."""
+    if city_has_completed_pdf(city):
+        return False
+    return city.get("pathway") == "email_pdf"
+
+
+def pending_pdf_fill_queue_item(city: dict) -> dict:
+    """Lightweight payload for Collect / Records Desk PDF fill intake."""
+    pdf = city.get("pdf") or {}
+    has_raw = bool(pdf.get("raw_path"))
+    if has_raw:
+        reason = "Blank form attached — still needs field fill + save"
+    else:
+        reason = "FOIA PDF link known but not attached yet — open Records Desk and Attach FOIA PDF"
+    city_id = city.get("id", "")
+    return {
+        "id": city_id,
+        "city": city.get("city", ""),
+        "state": city.get("state", ""),
+        "contact_email": city.get("contact_email", "") or "",
+        "has_raw_pdf": has_raw,
+        "pdf_status": str(pdf.get("status") or ""),
+        "reason": reason,
+        "fill_href": f"/forge/?returnTo=collect&open={city_id}",
+    }
+
+
+def build_pending_pdf_fill_queue(registry: dict | None = None) -> dict:
+    """PDF-email pathway cities that still need a one-time filled FOIA form."""
+    data = registry if registry is not None else load_registry()
+    items: list[dict] = []
+    for city in data.get("cities", []):
+        if not is_pdf_fill_needed(city):
+            continue
+        items.append(pending_pdf_fill_queue_item(city))
+    items.sort(key=lambda item: (item.get("state", ""), item.get("city", "")))
+    with_raw = sum(1 for item in items if item.get("has_raw_pdf"))
+    return {
+        "total_pending": len(items),
+        "total_with_blank_form": with_raw,
+        "total_missing_blank": len(items) - with_raw,
+        "items": items,
+    }
+
+
 def audit_email_only_cities(
     *,
     registry: dict | None = None,

@@ -120,4 +120,48 @@ window.PortalShared = {
       window.setTimeout(() => toast.remove(), 280);
     }, duration);
   },
+
+  /**
+   * When opened from Collect bulk desk (?returnTo=collect), show sticky return bar.
+   * When embed=1 or inside an iframe, quiet chrome instead (parent is Request).
+   */
+  injectReturnToCollect() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const embedded =
+        params.get("embed") === "1" ||
+        (window.self !== window.top && params.get("returnTo") === "collect");
+      if (embedded) {
+        document.documentElement.classList.add("forge-embed-in-collect");
+        document.body.classList.add("forge-embed-in-collect");
+        return;
+      }
+      if (params.get("returnTo") !== "collect") return;
+      if (document.getElementById("forge-return-collect")) return;
+      const bar = document.createElement("div");
+      bar.id = "forge-return-collect";
+      bar.className = "forge-return-collect";
+      bar.setAttribute("role", "navigation");
+      bar.setAttribute("aria-label", "Back to Request desk");
+      bar.innerHTML =
+        '<a class="forge-return-collect-link" href="/collect" target="_parent">← Request</a>' +
+        '<span class="forge-return-collect-note">Request desk</span>';
+      document.body.insertBefore(bar, document.body.firstChild);
+    } catch (_) {
+      /* ignore */
+    }
+  },
 };
+
+(function bootReturnToCollect() {
+  function run() {
+    if (window.PortalShared && typeof window.PortalShared.injectReturnToCollect === "function") {
+      window.PortalShared.injectReturnToCollect();
+    }
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", run);
+  } else {
+    run();
+  }
+})();

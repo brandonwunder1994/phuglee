@@ -1848,3 +1848,36 @@ body.portal-page {
     max-height: 32vh;
   }
 }
+
+/* Return bar when opened from Collect bulk desk (?returnTo=collect) */
+.forge-return-collect {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1.25rem;
+  padding: 0.55rem 1rem;
+  background: rgba(12, 10, 8, 0.94);
+  border-bottom: 1px solid rgba(229, 132, 53, 0.35);
+  font-family: Outfit, system-ui, sans-serif;
+}
+
+.forge-return-collect-link {
+  color: #e58435;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+
+.forge-return-collect-link:hover {
+  color: #eeb746;
+  text-decoration: underline;
+}
+
+.forge-return-collect-note {
+  color: rgba(174, 163, 143, 0.9);
+  font-size: 0.75rem;
+}

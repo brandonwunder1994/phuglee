@@ -13,6 +13,7 @@ from review_portal.submission_tracker import (
     SubmissionTrackerError,
     build_cv_monthly_tracker,
     build_pending_online_request_queue,
+    build_pending_pdf_fill_queue,
     build_pending_pdf_request_queue,
     build_portal_error_queue,
     build_submission_kpi,
@@ -20,9 +21,11 @@ from review_portal.submission_tracker import (
     clear_city_portal_error,
     compute_city_average_turnaround,
     city_submission_summary,
+    is_pdf_fill_needed,
     log_response,
     log_submission,
     mark_city_portal_error,
+    pending_pdf_fill_queue_item,
     pending_pdf_queue_item,
     reclassify_city_as_pdf_form,
     portal_city_payload,
@@ -788,6 +791,89 @@ class ApologyQueueConsistencyTests(unittest.TestCase):
             pending_item["apology_email"],
             portal_item["apology_email"],
         )
+
+    def test_pdf_fill_needed_for_email_pdf_without_completed(self) -> None:
+        needs = {
+            "id": "arizona-benson",
+            "city": "Benson",
+            "state": "Arizona",
+            "pathway": "email_pdf",
+            "contact_email": "",
+            "pdf": {},
+        }
+        filled = {
+            "id": "ohio-sidney",
+            "city": "Sidney",
+            "state": "Ohio",
+            "pathway": "email_pdf",
+            "contact_email": "clerk@example.com",
+            "pdf": {
+                "status": "completed",
+                "user_filled_path": "forms/user-filled/Ohio/ohio-sidney.pdf",
+            },
+        }
+        online = {
+            "id": "arizona-marana",
+            "city": "Marana",
+            "state": "Arizona",
+            "pathway": "online",
+            "portal_url": "https://example.com",
+        }
+        self.assertTrue(is_pdf_fill_needed(needs))
+        self.assertFalse(is_pdf_fill_needed(filled))
+        self.assertFalse(is_pdf_fill_needed(online))
+
+    def test_build_pending_pdf_fill_queue_counts_and_reasons(self) -> None:
+        registry = {
+            "cities": [
+                {
+                    "id": "arizona-benson",
+                    "city": "Benson",
+                    "state": "Arizona",
+                    "pathway": "email_pdf",
+                    "contact_email": "",
+                    "pdf": {},
+                },
+                {
+                    "id": "arizona-coolidge",
+                    "city": "Coolidge",
+                    "state": "Arizona",
+                    "pathway": "email_pdf",
+                    "contact_email": "a@b.com",
+                    "pdf": {"raw_path": "forms/raw/Arizona/arizona-coolidge.pdf", "status": "pending"},
+                },
+                {
+                    "id": "ohio-sidney",
+                    "city": "Sidney",
+                    "state": "Ohio",
+                    "pathway": "email_pdf",
+                    "contact_email": "clerk@example.com",
+                    "pdf": {
+                        "status": "completed",
+                        "user_filled_path": "forms/user-filled/Ohio/ohio-sidney.pdf",
+                    },
+                },
+                {
+                    "id": "arizona-marana",
+                    "city": "Marana",
+                    "state": "Arizona",
+                    "pathway": "online",
+                    "portal_url": "https://example.com",
+                },
+            ]
+        }
+        result = build_pending_pdf_fill_queue(registry)
+        self.assertEqual(result["total_pending"], 2)
+        self.assertEqual(result["total_with_blank_form"], 1)
+        self.assertEqual(result["total_missing_blank"], 1)
+        ids = {item["id"] for item in result["items"]}
+        self.assertEqual(ids, {"arizona-benson", "arizona-coolidge"})
+        by_id = {item["id"]: item for item in result["items"]}
+        self.assertFalse(by_id["arizona-benson"]["has_raw_pdf"])
+        self.assertTrue(by_id["arizona-coolidge"]["has_raw_pdf"])
+        self.assertIn("open=arizona-coolidge", by_id["arizona-coolidge"]["fill_href"])
+        item = pending_pdf_fill_queue_item(registry["cities"][0])
+        self.assertIn("No blank", item["reason"])
 
 
 if __name__ == "__main__":

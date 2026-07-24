@@ -3,10 +3,9 @@
 
   var COMMANDS = [
     { group: 'Navigate', label: 'Dashboard', href: '/command', meta: 'Pipeline dashboard' },
-    { group: 'Navigate', label: 'Collect', href: '/collect', meta: 'Hit up the city' },
+    { group: 'Navigate', label: 'Request', href: '/collect', meta: 'Bulk FOIA desk' },
     { group: 'Navigate', label: 'Government Lists', href: '/government-lists', meta: 'Source phonebook' },
     { group: 'Navigate', label: 'Pre-liens', href: '/pre-liens', meta: 'Complaint extract desk' },
-    { group: 'Navigate', label: 'Coverage Map', href: '/forge/map', meta: 'Map' },
     { group: 'Navigate', label: 'How It Works', href: '/heat', meta: 'Guide' },
     { group: 'Navigate', label: 'Filter', href: '/filter', meta: 'Scrub & tag' },
     { group: 'Navigate', label: 'Analyze', href: '/analyzer/', meta: 'Rank & dial' },
@@ -16,10 +15,12 @@
     { group: 'Dispo', label: 'Buyers', href: '/buyers', meta: 'Buy-box matcher', contractDeskOnly: true },
     { group: 'Campaigns', label: 'SMS', href: '/campaigns/sms', meta: 'Text blast tracker', adminOnly: true },
     { group: 'Settings', label: 'Operating Costs', href: '/operating-costs', meta: 'Railway · GHL · APIs', adminOnly: true },
-    { group: 'Workflows', label: 'Start PDF Requests', href: '/forge/portal/request-pdfs', meta: 'Email PDFs' },
-    { group: 'Workflows', label: 'Submit Portals', href: '/forge/portal/submit-portals', meta: 'Online' },
-    { group: 'Workflows', label: 'Email-only Requests', href: '/forge/portal/email-only', meta: 'Plain email' },
-    { group: 'Workflows', label: 'Track Progress', href: '/forge/portal', meta: 'Collect status' }
+    { group: 'Workflows', label: 'Email fire queue', href: '/collect#/fire/email-only', meta: 'Bulk plain email' },
+    { group: 'Workflows', label: 'PDF fire queue', href: '/collect#/fire/pdf', meta: 'Bulk PDF drip' },
+    { group: 'Workflows', label: 'PDF needs fill', href: '/collect#/fill/pdf', meta: 'Attach & fill blanks' },
+    { group: 'Workflows', label: 'Request tracker', href: '/collect#/tracker', meta: 'Sent & returned' },
+    { group: 'Workflows', label: 'Portal walkthrough', href: '/collect#/portal', meta: 'Online portals' },
+    { group: 'Settings', label: 'Portal Errors', href: '/forge/portal/portal-errors', meta: 'Broken portal URLs', adminOnly: true }
   ];
 
   var backdrop = null;

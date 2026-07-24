@@ -1,6 +1,6 @@
-﻿/**
+/**
  * Collect request tracker (Phase 4).
- * Sent + returned dates from Form Forge city payloads (Filter attach ΓåÆ response_at).
+ * Sent + returned dates from Form Forge city payloads (Filter attach → response_at).
  */
 (function (root) {
   'use strict';
@@ -31,7 +31,7 @@
 
   function formatShortDate(value) {
     var ms = parseDateMs(value);
-    if (ms == null) return 'ΓÇö';
+    if (ms == null) return '—';
     try {
       return new Date(ms).toLocaleDateString('en-US', {
         month: 'short',
@@ -47,7 +47,7 @@
     if (channel === 'email_pdf') return 'PDF email';
     if (channel === 'email_only') return 'Email-only';
     if (channel === 'online_portal') return 'Portal';
-    return channel || 'ΓÇö';
+    return channel || '—';
   }
 
   /**
@@ -151,7 +151,7 @@
     return list;
   }
 
-  // ΓöÇΓöÇ Browser UI ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  // ── Browser UI ──────────────────────────────────────────
 
   var state = {
     rows: [],
@@ -205,13 +205,13 @@
     if (statusEl) {
       statusEl.textContent =
         summary.pending +
-        ' pending ┬╖ ' +
+        ' pending · ' +
         summary.overdue +
-        ' overdue ┬╖ ' +
+        ' overdue · ' +
         summary.received +
-        ' received ┬╖ ' +
+        ' received · ' +
         summary.total +
-        ' cities ┬╖ overdue ΓëÑ ' +
+        ' cities · overdue ≥ ' +
         OVERDUE_DAYS +
         'd';
     }
@@ -227,8 +227,8 @@
             ? summary[key]
             : 0;
       btn.setAttribute('data-count', String(n));
-      var label = btn.getAttribute('data-label') || btn.textContent.split('┬╖')[0].trim();
-      btn.textContent = label + ' ┬╖ ' + n;
+      var label = btn.getAttribute('data-label') || btn.textContent.split('·')[0].trim();
+      btn.textContent = label + ' · ' + n;
     });
 
     if (!body) return;
@@ -252,7 +252,7 @@
     body.innerHTML = visible
       .map(function (r) {
         var turn =
-          r.turnaroundDays != null ? r.turnaroundDays + 'd' : r.status === 'received' ? 'ΓÇö' : 'ΓÇö';
+          r.turnaroundDays != null ? r.turnaroundDays + 'd' : r.status === 'received' ? '—' : '—';
         return (
           '<tr class="collect-tracker-row is-' +
           escapeHtml(r.status) +
@@ -288,7 +288,7 @@
   async function loadTracker() {
     showView('tracker');
     var statusEl = $('collect-tracker-status');
-    if (statusEl) statusEl.textContent = 'Loading trackerΓÇª';
+    if (statusEl) statusEl.textContent = 'Loading tracker…';
     try {
       var res = await fetch(CITIES_URL, { cache: 'no-store', credentials: 'same-origin' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
