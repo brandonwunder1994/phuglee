@@ -56,6 +56,265 @@ body.command-page #distress-os-footer-mount {
   max-height: 100%;
 }
 
+/* Goal meters — $100k cash + 60-day fundings (mirrored layout) */
+.command-goals {
+  width: 100%;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+}
+
+.command-goals-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.9rem 1.1rem 0.95rem;
+  border: 1px solid rgba(174, 163, 143, 0.2);
+  border-radius: 12px;
+  background: var(--phuglee-black-mid, #121212);
+}
+
+.command-goals-rule {
+  width: 1px;
+  margin: 0.1rem 1.15rem;
+  align-self: stretch;
+  background: rgba(174, 163, 143, 0.14);
+}
+
+.command-meter {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: 1.1rem 1.55rem 1.2rem;
+  row-gap: 0.35rem;
+  align-content: start;
+}
+
+.command-meter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.75rem;
+  min-width: 0;
+}
+
+.command-meter-row--top {
+  align-items: baseline;
+}
+
+.command-meter-row--mid {
+  align-items: baseline;
+}
+
+.command-meter-label {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--phuglee-meta-text, #b0a99c);
+  line-height: 1.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.command-meter-meta {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--phuglee-meta-text, #b0a99c);
+  line-height: 1.1rem;
+  text-align: right;
+  white-space: nowrap;
+  justify-self: end;
+}
+
+.command-meter-meta--quiet {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.05rem;
+  line-height: 1.15;
+  min-height: 1.55rem;
+}
+
+.command-meter-value {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  min-width: 0;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 1.35rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.55rem;
+  height: 1.55rem;
+  color: var(--phuglee-cream, #f5f2e4);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.command-meter--cash .command-meter-value {
+  color: var(--phuglee-success, #3dd68c);
+}
+
+.command-meter--window .command-meter-value {
+  color: var(--phuglee-gold, #eeb746);
+}
+
+.command-meter-sep {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--phuglee-meta-text, #b0a99c);
+  font-family: var(--font-body, 'Outfit', system-ui, sans-serif);
+}
+
+.command-meter-cap {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--phuglee-cream, #f5f2e4) 70%, transparent);
+}
+
+.command-meter-countdown {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  line-height: 1.15;
+}
+
+.command-meter-countdown strong {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--phuglee-cream, #f5f2e4);
+  font-variant-numeric: tabular-nums;
+}
+
+#command-goal-countdown-label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--phuglee-meta-text, #b0a99c);
+}
+
+.command-meter-ends {
+  font-size: 0.68rem;
+  color: color-mix(in oklab, var(--phuglee-meta-text, #b0a99c) 90%, transparent);
+  line-height: 1.15;
+}
+
+.command-meter-track-slot {
+  display: flex;
+  align-items: center;
+  height: 1.2rem;
+  min-width: 0;
+  padding: 0 0.55rem;
+  box-sizing: border-box;
+}
+
+.command-meter-track {
+  position: relative;
+  width: 100%;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: visible;
+}
+
+.command-meter-fill {
+  position: relative;
+  height: 100%;
+  width: 0%;
+  min-width: 0;
+  border-radius: inherit;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.command-meter-fill--cash {
+  background: var(--phuglee-success, #3dd68c);
+}
+
+.command-meter-fill--window {
+  background: var(--phuglee-gold, #eeb746);
+}
+
+.command-meter-tip {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(50%, -50%);
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 0.62rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #0a0a0a;
+  background: var(--phuglee-success, #3dd68c);
+  box-shadow: 0 0 0 2px rgba(18, 18, 18, 0.9);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.command-meter-tip--dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  background: var(--phuglee-gold, #eeb746);
+  font-size: 0;
+}
+
+.command-meter-fill.is-active .command-meter-tip {
+  opacity: 1;
+}
+
+.command-meter--cash.is-met .command-meter-fill--cash,
+.command-meter--window.is-met .command-meter-fill--window {
+  background: #5bc48a;
+}
+
+.command-meter--cash.is-met .command-meter-tip,
+.command-meter--window.is-met .command-meter-tip {
+  background: #5bc48a;
+}
+
+.command-meter--window.is-met .command-meter-value {
+  color: #5bc48a;
+}
+
+@media (max-width: 720px) {
+  .command-goals-panel {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+    padding: 0.85rem 0.9rem 0.95rem;
+  }
+
+  .command-goals-rule {
+    width: auto;
+    height: 1px;
+    margin: 0;
+  }
+
+  .command-meter {
+    grid-template-rows: 1.1rem 1.55rem 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-meter-fill {
+    transition: none;
+  }
+}
+
 /* Pipeline momentum KPIs */
 .command-metrics {
   display: flex;
@@ -152,7 +411,8 @@ body.command-page #distress-os-footer-mount {
   width: 100%;
   min-height: 0;
   flex: 1 1 auto;
-  max-height: min(58vh, 480px);
+  /* Slightly tighter so goal meters + KPIs + map fit one viewport */
+  max-height: min(50vh, 420px);
 }
 
 .command-map-summary {
@@ -189,7 +449,7 @@ body.command-page #distress-os-footer-mount {
   display: block;
   width: 100%;
   height: auto;
-  max-height: min(48vh, 400px);
+  max-height: min(42vh, 360px);
   overflow: visible;
   margin: 0 auto;
 }
@@ -303,6 +563,41 @@ body.command-page #distress-os-footer-mount {
 @media (prefers-reduced-motion: reduce) {
   .command-map-state {
     transition: none;
+  }
+}
+
+/* Short viewports — keep snapshot readable without page scroll */
+@media (max-height: 700px) {
+  .command-main {
+    padding: 0.5rem 1rem 0.65rem;
+  }
+
+  .command-hub {
+    gap: 0.55rem;
+  }
+
+  .command-metrics {
+    padding: 0.7rem 1rem;
+  }
+
+  .command-metric-value {
+    font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+  }
+
+  .command-goals-panel {
+    padding: 0.7rem 0.8rem 0.8rem;
+  }
+
+  .command-meter-value {
+    font-size: 1.15rem;
+  }
+
+  .command-coverage-map-panel {
+    max-height: min(46vh, 300px);
+  }
+
+  .command-map-svg {
+    max-height: min(38vh, 260px);
   }
 }
 
