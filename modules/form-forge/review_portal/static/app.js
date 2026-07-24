@@ -50,6 +50,25 @@ const listEl = $("#form-list");
 const workspace = $("#workspace");
 const statsEl = $("#stats");
 
+/** When Records Desk is embedded under Distress OS (/forge), API + file URLs must be prefixed. */
+function modulePrefix() {
+  if (typeof window !== "undefined" && window.__DISTRESS_OS_MODULE_PREFIX__) {
+    return String(window.__DISTRESS_OS_MODULE_PREFIX__).replace(/\/$/, "");
+  }
+  const p = (typeof location !== "undefined" && location.pathname) || "";
+  if (p === "/forge" || p.startsWith("/forge/")) return "/forge";
+  return "";
+}
+
+function withModulePrefix(path) {
+  if (!path || typeof path !== "string") return path;
+  if (/^https?:\/\//i.test(path) || path.startsWith("//")) return path;
+  const prefix = modulePrefix();
+  if (!prefix) return path;
+  if (path === prefix || path.startsWith(prefix + "/")) return path;
+  return path.startsWith("/") ? prefix + path : `${prefix}/${path}`;
+}
+
 function normalizeSignatureSize(width, height, pageMetric) {
   const w = width || DEFAULT_SIG.width;
   const h = height || DEFAULT_SIG.height;
@@ -694,7 +713,7 @@ function showWorkspaceError(title, message, retryFn) {
 }
 
 async function apiFetch(url, options = {}) {
-  const res = await fetch(url, { cache: "no-store", ...options });
+  const res = await fetch(withModulePrefix(url), { cache: "no-store", ...options });
   if (!res.ok) {
     let detail = "";
     try {
@@ -1548,16 +1567,43 @@ async function openForm(id, options = {}) {
   const displayPath = editorMode === "saved" ? f.user_filled_path : f.raw_path;
 
   if (!f.raw_path) {
-    workspace.innerHTML = `<div class="empty-state miss-panel">
-      <h2>No PDF yet</h2>
-      <p><strong>${esc(f.city)}, ${esc(f.state)}</strong></p>
-      <p class="tip">Download the blank form from the city, then upload it here.</p>
-      ${f.url ? `<p><a href="${esc(f.url)}" target="_blank" rel="noopener" class="btn ghost sm">FOIA PDF</a></p>` : ""}
-      <label class="upload-blank-btn"><span class="btn accent">Upload Blank PDF</span><input type="file" id="upload-blank-pdf" accept=".pdf" /></label>
-      <label class="upload-label">Or upload already-filled PDF: <input type="file" id="upload-pdf-missing" accept=".pdf" /></label>
-      <p class="save-msg" id="save-msg"></p></div>`;
+    const foiaUrl = f.url || f.portal_url || "";
+    const canImport = !!foiaUrl;
+    workspace.innerHTML = `<div class="empty-state miss-panel miss-panel--attach">
+      <p class="miss-kicker">Records Desk</p>
+      <h2>Attach the blank form</h2>
+      <p class="miss-place"><strong>${esc(f.city)}</strong><span>${esc(f.state)}</span></p>
+      <p class="tip miss-lead">${canImport
+        ? "This city already has a FOIA PDF link. Attach it here so you can place fields and save — same as the original batch."
+        : "No FOIA PDF URL on file. Upload a blank PDF to start filling."}</p>
+      ${canImport ? `
+      <div class="miss-primary">
+        <button type="button" class="btn accent miss-primary-btn" id="btn-import-foia-pdf">Attach FOIA PDF</button>
+        <p class="miss-hint" id="import-foia-hint">Fetches the city form and stores it as this city's blank.</p>
+      </div>
+      <div class="miss-secondary">
+        <a href="${esc(foiaUrl)}" target="_blank" rel="noopener" class="btn ghost sm">Preview FOIA link</a>
+        <label class="upload-blank-btn miss-upload"><span class="btn ghost sm">Upload blank instead</span><input type="file" id="upload-blank-pdf" accept=".pdf" /></label>
+        <label class="upload-blank-btn miss-upload"><span class="btn ghost sm">Upload filled PDF</span><input type="file" id="upload-pdf-missing" accept=".pdf" /></label>
+      </div>
+      ` : `
+      <div class="miss-primary">
+        <label class="upload-blank-btn miss-upload-main"><span class="btn accent miss-primary-btn">Upload Blank PDF</span><input type="file" id="upload-blank-pdf" accept=".pdf" /></label>
+        <label class="upload-blank-btn miss-upload"><span class="btn ghost sm">Upload filled PDF</span><input type="file" id="upload-pdf-missing" accept=".pdf" /></label>
+      </div>
+      `}
+      <p class="save-msg" id="save-msg" hidden></p>
+    </div>`;
     $("#upload-blank-pdf").onchange = (e) => uploadBlankPdf(f, e.target.files[0]);
     $("#upload-pdf-missing").onchange = (e) => uploadPdf(f, e.target.files[0]);
+    const importBtn = $("#btn-import-foia-pdf");
+    if (importBtn) {
+      importBtn.onclick = () => importBlankFromFoiaUrl(f);
+      // Direct .pdf links: attach automatically on open
+      if (/\.pdf($|[?#])/i.test(foiaUrl)) {
+        importBlankFromFoiaUrl(f, { auto: true });
+      }
+    }
     return;
   }
 
@@ -1723,12 +1769,18 @@ async function renderPdf(rawPath, bustCache = false, formToken = openFormToken) 
   wrap.innerHTML = '<p class="loading-pdf">Loading pages…</p>';
   pageMetrics = [];
   destroyPdfDoc();
-  const url = `/api/file/${rawPath}${bustCache ? `?t=${Date.now()}` : ""}`;
+  const filePath = String(rawPath || "").replace(/\\/g, "/").replace(/^\/+/, "");
+  const url = withModulePrefix(`/api/file/${filePath}${bustCache ? `?t=${Date.now()}` : ""}`);
   let pdf;
   try {
     pdf = await pdfjsLib.getDocument(url).promise;
   } catch (err) {
-    throw new Error(err?.message || "PDF file could not be loaded");
+    const detail = err?.message || "PDF file could not be loaded";
+    throw new Error(
+      detail.includes("Missing") || detail.includes("404")
+        ? `Missing PDF at ${url}. Hard-refresh (Ctrl+Shift+R) or re-attach the FOIA PDF.`
+        : detail
+    );
   }
   if (renderToken !== pdfRenderToken || formToken !== openFormToken) {
     try { pdf.destroy(); } catch (_) {}
@@ -2123,10 +2175,64 @@ async function saveForm(f, andNext = false) {
   }
 }
 
+async function importBlankFromFoiaUrl(f, { auto = false } = {}) {
+  if (!f?.id) return;
+  const btn = $("#btn-import-foia-pdf");
+  const msg = $("#save-msg");
+  const hint = $("#import-foia-hint");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = auto ? "Attaching FOIA PDF…" : "Attaching…";
+  }
+  if (hint) {
+    hint.textContent = auto
+      ? "Found a direct PDF link — attaching automatically…"
+      : "Downloading city FOIA PDF…";
+  }
+  if (msg) {
+    msg.hidden = false;
+    msg.textContent = "";
+    msg.className = "save-msg";
+  }
+  try {
+    const res = await fetch(
+      withModulePrefix(`/api/import-blank-from-url/${encodeURIComponent(f.id)}`),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: f.url || f.portal_url || "" }),
+      }
+    );
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Import failed (${res.status})`);
+    if (msg) {
+      msg.textContent = data.message || "FOIA PDF attached.";
+      msg.className = "save-msg ok";
+    }
+    // Reload form into editor with raw_path present
+    await openForm(f.id, { skipDirtyCheck: true });
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Attach FOIA PDF";
+    }
+    if (hint) {
+      hint.textContent =
+        "Could not auto-attach (city may block downloads or the link is a web page). Use Preview FOIA link → save → Upload blank instead.";
+    }
+    if (msg) {
+      msg.hidden = false;
+      msg.textContent = err.message || "Import failed";
+      msg.className = "save-msg err";
+    }
+    if (!auto) showSaveMsg(esc(err.message || "Import failed"), "err");
+  }
+}
+
 async function uploadBlankPdf(f, file) {
   if (!file) return;
   const fd = new FormData(); fd.append("pdf", file);
-  const res = await fetch(`/api/upload-blank/${f.id}`, { method: "POST", body: fd });
+  const res = await fetch(withModulePrefix(`/api/upload-blank/${f.id}`), { method: "POST", body: fd });
   const data = await res.json();
   if (res.ok) { await load(); openForm(f.id, { skipDirtyCheck: true }); }
   else showSaveMsg(data.error || "Upload failed", "err");
@@ -2135,7 +2241,7 @@ async function uploadBlankPdf(f, file) {
 async function uploadPdf(f, file) {
   if (!file) return;
   const fd = new FormData(); fd.append("pdf", file);
-  const res = await fetch(`/api/save/${f.id}`, { method: "POST", body: fd });
+  const res = await fetch(withModulePrefix(`/api/save/${f.id}`), { method: "POST", body: fd });
   const data = await res.json();
   if (res.ok) { clearDraft(f.id); await load(); openForm(f.id, { preferSaved: true, skipDirtyCheck: true }); }
   else showSaveMsg(data.error || "Upload failed", "err");
