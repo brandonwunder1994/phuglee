@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
   <link rel="stylesheet" href="/css/vault.css?v=28-typeset">
-  <link rel="stylesheet" href="/css/campaigns-sms.css?v=2-backfill-tracker">
+  <link rel="stylesheet" href="/css/campaigns-sms.css?v=4-dnc-split">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=6-campaigns"></script>
@@ -71,7 +71,16 @@
       <section class="csms-kpis" aria-label="Outcome KPIs">
         <article class="csms-kpi"><span class="csms-kpi-label">Interested</span><strong id="kpi-interested" class="csms-kpi-value">—</strong></article>
         <article class="csms-kpi"><span class="csms-kpi-label">Not interested</span><strong id="kpi-ni" class="csms-kpi-value">—</strong></article>
-        <article class="csms-kpi"><span class="csms-kpi-label">DNC / DND</span><strong id="kpi-dnc" class="csms-kpi-value">—</strong></article>
+        <article class="csms-kpi" title="People who asked not to be contacted (STOP / DNC language)">
+          <span class="csms-kpi-label">Person DNC</span>
+          <strong id="kpi-person-dnc" class="csms-kpi-value">—</strong>
+          <span class="csms-kpi-hint">Asked not to contact</span>
+        </article>
+        <article class="csms-kpi" title="GHL SMS DND or landline/delivery failure — not a person opt-out">
+          <span class="csms-kpi-label">System / landline</span>
+          <strong id="kpi-system-dnd" class="csms-kpi-value">—</strong>
+          <span class="csms-kpi-hint">Can’t text that line</span>
+        </article>
         <article class="csms-kpi"><span class="csms-kpi-label">Wrong number</span><strong id="kpi-wrong" class="csms-kpi-value">—</strong></article>
         <article class="csms-kpi"><span class="csms-kpi-label">Follow up</span><strong id="kpi-fu" class="csms-kpi-value">—</strong></article>
       </section>
@@ -138,6 +147,6 @@
   </main>
 
   <script src="/js/shell-nav.js?v=45-campaigns-under-leads" defer></script>
-  <script src="/js/campaigns-sms.js?v=3-vault-total" defer></script>
+  <script src="/js/campaigns-sms.js?v=4-dnc-split" defer></script>
 </body>
 </html>

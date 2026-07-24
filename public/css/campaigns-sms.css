@@ -171,6 +171,14 @@
   color: var(--text-primary, #f2ebe0);
 }
 
+.csms-kpi-hint {
+  display: block;
+  margin-top: 0.28rem;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  color: var(--text-muted, #a89b88);
+}
+
 .csms-section-title {
   font-size: 0.95rem;
   font-weight: 600;

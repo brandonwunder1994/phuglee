@@ -54,6 +54,7 @@
       `Hard stop: ${p.maxTouches || 12} texts or reply`,
       `Live env: ${data.live ? 'ON' : 'OFF'} · Auto env: ${data.autoEnv ? 'ON' : 'OFF'}`,
       `Auto state: ${data.autoState && data.autoState.enabled ? 'enabled' : 'paused'}`,
+      p.dncSplit || 'Person DNC vs System/landline: split on tags + GHL SMS DND flag',
       'Exclusions: ' + (p.exclusions || []).join(', ')
     ];
     ul.innerHTML = items.map((t) => `<li>${t}</li>`).join('');
@@ -66,7 +67,24 @@
     const f = (data.kpis && data.kpis.funnel) || {};
     $('kpi-interested').textContent = fmt(o.interested);
     $('kpi-ni').textContent = fmt(o.notInterested);
-    $('kpi-dnc').textContent = fmt(o.dncDnd);
+    // Prefer split KPIs; fall back to legacy combined dncDnd on older API
+    if ($('kpi-person-dnc')) {
+      $('kpi-person-dnc').textContent = fmt(
+        o.personOptOut != null ? o.personOptOut : o.dnc
+      );
+    }
+    if ($('kpi-system-dnd')) {
+      $('kpi-system-dnd').textContent = fmt(
+        o.systemSmsBlock != null ? o.systemSmsBlock : o.dnd
+      );
+    }
+    if ($('kpi-dnc')) {
+      $('kpi-dnc').textContent = fmt(
+        o.dncDnd != null
+          ? o.dncDnd
+          : (Number(o.personOptOut || 0) + Number(o.systemSmsBlock || 0)) || null
+      );
+    }
     $('kpi-wrong').textContent = fmt(o.wrongNumber);
     $('kpi-fu').textContent = fmt(o.followUp);
     $('kpi-eligible').textContent = fmt(f.eligibleNow);
