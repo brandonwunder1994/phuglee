@@ -16,14 +16,17 @@ const fs = require('fs');
 const path = require('path');
 const ghl = require('../lib/leads-platform/ghl-client');
 const { PHUGLEE_TAG, SOURCE_TAG, classTagForLeadType } = require('../lib/campaigns/sms-policy');
-const { setContactMap } = require('../lib/campaigns/sms-store');
-const { writeBackfillProgress } = require('../lib/campaigns/sms-backfill-progress');
+const { setContactMap, dataRoot, ensureDirs } = require('../lib/campaigns/sms-store');
+const {
+  writeBackfillProgress,
+  checkpointPath
+} = require('../lib/campaigns/sms-backfill-progress');
 
-const ROOT = path.join(__dirname, '..');
 // Same catalog the Vault UI uses (PDA_DATA_ROOT / LEADS_CATALOG_ROOT on Railway)
 const { LEADS_CATALOG_ROOT } = require('../lib/config');
 const INDEX = path.join(LEADS_CATALOG_ROOT, 'index.json');
-const CHECKPOINT = path.join(ROOT, 'data', 'campaigns', 'sms', 'backfill-checkpoint.json');
+// Durable checkpoint on volume (PDA_DATA_ROOT/campaigns/sms) — never repo-local only
+const CHECKPOINT = checkpointPath();
 
 const DELAY_MS = 400;
 const TAG_DELAY_MS = 350;
@@ -62,8 +65,10 @@ function loadCheckpoint() {
 }
 
 function saveCheckpoint(cp) {
+  ensureDirs();
   fs.mkdirSync(path.dirname(CHECKPOINT), { recursive: true });
   fs.writeFileSync(CHECKPOINT, JSON.stringify(cp, null, 2), 'utf8');
+  console.log('[backfill] checkpoint →', CHECKPOINT, 'root=', dataRoot());
 }
 
 function phone10(p) {
