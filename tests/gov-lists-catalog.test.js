@@ -27,6 +27,24 @@ test('getSources requires state and returns only that state', () => {
   assert.ok(sources.every((s) => !s.isPlaybook));
 });
 
+test('getSources maps full state names into TX (research + forge rows)', () => {
+  const byCode = getSources({ state: 'TX' });
+  const byName = getSources({ state: 'Texas' });
+  assert.equal(byCode.total, byName.total);
+  // Must include both former TX-code and Texas-name rows (was ~823 vs ~1006)
+  assert.ok(byCode.total > 900, `expected full TX universe, got ${byCode.total}`);
+  assert.ok(byCode.sources.every((s) => s.state === 'TX'));
+});
+
+test('getMeta stateCounts uses normalized 2-letter keys only', () => {
+  const meta = getMeta();
+  assert.ok(meta.stateCounts.TX > 900);
+  assert.equal(meta.stateCounts.Texas, undefined);
+  assert.equal(meta.stateCounts.TEXAS, undefined);
+  // ~50 states + DC, not 69 fragmented keys
+  assert.ok(Object.keys(meta.stateCounts).length <= 60);
+});
+
 test('TX sources payload is far smaller than full catalog source count', () => {
   const meta = getMeta();
   const { total } = getSources({ state: 'TX' });
