@@ -8,6 +8,7 @@ let selectedId = null;
 let editingId = null;
 let pdfDoc = null;
 let pdfScale = 1.35;
+/** Fallback only — real label height is measured per page when the PDF renders. */
 const PAGE_LABEL_H = 28;
 let pageMetrics = [];
 let carryState = null;
@@ -339,18 +340,20 @@ function clearDraftsForUnsavedForms() {
 }
 
 function overlayCoordsFromClient(cx, cy, rect, _el, pointerOffset = { x: 0, y: 0 }) {
+  // Round so the field does not subpixel-jitter after re-render.
   return {
-    xPx: Math.max(0, cx - rect.left - pointerOffset.x),
-    yPx: Math.max(0, cy - rect.top - pointerOffset.y),
+    xPx: Math.max(0, Math.round(cx - rect.left - pointerOffset.x)),
+    yPx: Math.max(0, Math.round(cy - rect.top - pointerOffset.y)),
   };
 }
 
 function overlayCoordsFromGhost(overlay, ghost) {
   const rect = overlay.getBoundingClientRect();
   const g = ghost.getBoundingClientRect();
+  // Ghost and field share the same border-box top-left (matched CSS box model).
   return {
-    xPx: Math.max(0, g.left - rect.left),
-    yPx: Math.max(0, g.top - rect.top),
+    xPx: Math.max(0, Math.round(g.left - rect.left)),
+    yPx: Math.max(0, Math.round(g.top - rect.top)),
   };
 }
 
@@ -1209,6 +1212,10 @@ function bindFieldDrag(node, el, overlay) {
 
     const startX = e.clientX;
     const startY = e.clientY;
+    // Grab offset so the field does not jump to put its top-left under the cursor.
+    const grabRect = overlay.getBoundingClientRect();
+    const grabOffsetX = e.clientX - grabRect.left - el.xPx;
+    const grabOffsetY = e.clientY - grabRect.top - el.yPx;
     let dragging = fromGrip || e.shiftKey;
     const threshold = dragging ? 0 : 5;
 
@@ -1231,7 +1238,10 @@ function bindFieldDrag(node, el, overlay) {
       if (!dragging) return;
       ev.preventDefault();
       const rect = overlay.getBoundingClientRect();
-      const { xPx, yPx } = overlayCoordsFromClient(ev.clientX, ev.clientY, rect);
+      const { xPx, yPx } = overlayCoordsFromClient(ev.clientX, ev.clientY, rect, el, {
+        x: grabOffsetX,
+        y: grabOffsetY,
+      });
       const snapped = snapPosition(xPx, yPx, el.page, el.id);
       el.xPx = snapped.xPx;
       el.yPx = snapped.yPx;
@@ -1246,6 +1256,7 @@ function bindFieldDrag(node, el, overlay) {
       node.releasePointerCapture?.(ev.pointerId);
       if (dragging) {
         node.dataset.wasDragged = "1";
+        // Keep xPx/yPx already applied — re-render without re-fitting position.
         renderElements();
         renderProps();
       }
@@ -1809,16 +1820,30 @@ async function renderPdf(rawPath, bustCache = false, formToken = openFormToken) 
     const overlay = document.createElement("div");
     overlay.className = "overlay";
     overlay.dataset.page = n - 1;
-    overlay.style.top = PAGE_LABEL_H + "px";
     overlay.addEventListener("click", onOverlayClick);
     bindOverlayDnD(overlay);
     layer.appendChild(overlay);
     wrap.appendChild(layer);
 
-    const overlayW = overlay.offsetWidth || viewport.width;
-    const overlayH = overlay.offsetHeight || viewport.height;
-    layer.style.height = PAGE_LABEL_H + overlayH + "px";
-    pageMetrics[n - 1] = { width: viewport.width / pdfScale, height: viewport.height / pdfScale, displayWidth: overlayW, displayHeight: overlayH };
+    // Pin overlay exactly over the canvas (not a hardcoded label height).
+    // Sticky labels + wrong top caused fields to land, then look like they slid up.
+    const labelH = Math.max(0, Math.round(label.offsetHeight || PAGE_LABEL_H));
+    const canvasW = Math.round(canvas.offsetWidth || viewport.width);
+    const canvasH = Math.round(canvas.offsetHeight || viewport.height);
+    overlay.style.top = labelH + "px";
+    overlay.style.left = "0";
+    overlay.style.width = canvasW + "px";
+    overlay.style.height = canvasH + "px";
+    overlay.style.right = "auto";
+    overlay.style.bottom = "auto";
+    layer.style.height = labelH + canvasH + "px";
+    pageMetrics[n - 1] = {
+      width: viewport.width / pdfScale,
+      height: viewport.height / pdfScale,
+      displayWidth: canvasW,
+      displayHeight: canvasH,
+      labelHeight: labelH,
+    };
   }
   if (renderToken !== pdfRenderToken || formToken !== openFormToken) return false;
   $("#page-hint").textContent = `${pdf.numPages} pages — scroll down for more`;
@@ -1850,7 +1875,11 @@ function createElementNode(el, overlay) {
   const node = document.createElement("div");
   const active = isFieldActive(el);
   node.className = `draggable ${el.type}${active ? " selected" : ""}`;
-  node.style.left = el.xPx + "px"; node.style.top = el.yPx + "px";
+  // Integer CSS px — avoid subpixel reflow that looks like a vertical hop after place.
+  node.style.left = Math.round(el.xPx) + "px";
+  node.style.top = Math.round(el.yPx) + "px";
+  el.xPx = Math.round(el.xPx);
+  el.yPx = Math.round(el.yPx);
   node.dataset.id = el.id;
 
   if (el.type === "signature") {
