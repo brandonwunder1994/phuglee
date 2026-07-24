@@ -99,6 +99,18 @@ def api_health():
     return jsonify({"ok": True, "service": "form-forge"})
 
 
+@app.route("/api/portal/promote-govlist-pdfs", methods=["POST"])
+def api_promote_govlist_pdfs():
+    """Idempotent: merge Government List PDF seed into registry + fill queue."""
+    from review_portal.govlist_pdf_promote import apply_govlist_pdf_promote
+
+    body = request.get_json(silent=True) or {}
+    force = bool(body.get("force"))
+    result = apply_govlist_pdf_promote(force=force)
+    status = 200 if result.get("ok") else 500
+    return jsonify(result), status
+
+
 @app.route("/favicon.ico")
 def favicon():
     return "", 204

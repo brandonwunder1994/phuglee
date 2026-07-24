@@ -53,16 +53,19 @@ describe('buildLaneModel', () => {
     });
     assert.equal(model.lanes.length, 4);
     const ids = model.lanes.map((l) => l.id);
-    assert.deepEqual(ids, ['email_only', 'pdf_ready', 'pdf_needs_fill', 'portal']);
-    assert.equal(model.lanes[0].ready, 5);
+    // PDF filler first so operators clear the one-time FOIA backlog
+    assert.deepEqual(ids, ['pdf_needs_fill', 'pdf_ready', 'email_only', 'portal']);
+    assert.equal(model.lanes[0].ready, 0); // needsFillCount default
     assert.equal(model.lanes[1].ready, 20);
+    assert.equal(model.lanes[2].ready, 5);
     assert.equal(model.lanes[3].ready, 8);
-    assert.equal(model.lanes[0].href, '#/fire/email-only');
+    assert.equal(model.lanes[0].href, '#/fill/pdf');
     assert.equal(model.lanes[1].href, '#/fire/pdf');
+    assert.equal(model.lanes[2].href, '#/fire/email-only');
     assert.equal(model.lanes[3].href, '#/portal');
   });
 
-  it('pdf_needs_fill uses needsFillCount until Phase 3 API exists', () => {
+  it('pdf_needs_fill (PDF filler) uses needsFillCount', () => {
     const model = lanes.buildLaneModel({
       emailOnly: { total_pending: 0, total_blocked: 0, total_sent_this_month: 0 },
       pdf: { total_pending: 1, total_blocked: 0, total_sent_this_month: 0 },
@@ -72,6 +75,8 @@ describe('buildLaneModel', () => {
     const fill = model.lanes.find((l) => l.id === 'pdf_needs_fill');
     assert.equal(fill.ready, 7);
     assert.equal(fill.href, '#/fill/pdf');
+    assert.equal(fill.label, 'PDF filler');
+    assert.equal(fill.highlight, true);
   });
 
   it('prefers forge KPI current_month fields for tracker strip', () => {

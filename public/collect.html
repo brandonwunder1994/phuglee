@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
   <link rel="stylesheet" href="/css/collect-records.css?v=16-no-scroll">
-  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=18-workspace-fix">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=19-pdf-filler-btn">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=5-wave0"></script>
@@ -34,6 +34,15 @@
       <header class="collect-hub-hero" data-phuglee-reveal-child>
         <h1 class="collect-hub-title">Request</h1>
         <p class="collect-hub-lead">Bulk public-records requests — email-only, filled PDFs, and portals. One desk.</p>
+        <div class="collect-hero-actions">
+          <a class="phuglee-btn phuglee-btn-primary" id="collect-pdf-filler-btn" href="#/fill/pdf">
+            PDF filler
+          </a>
+          <a class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm" href="#/tracker">Tracker</a>
+        </div>
+        <p class="collect-hero-hint" id="collect-pdf-filler-hint">
+          Open the fill queue to complete FOIA PDFs city by city (Government List PDFs included).
+        </p>
       </header>
 
       <section class="collect-lanes" id="collect-lanes-root" aria-label="Bulk request lanes" data-phuglee-reveal-child>
@@ -291,7 +300,7 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=46-no-footer" defer></script>
   <script src="/js/team-alert-banner.js?v=2-clear-on-open" defer></script>
-  <script src="/js/collect-lanes.js?v=7" defer></script>
+  <script src="/js/collect-lanes.js?v=8-pdf-filler" defer></script>
   <script src="/js/collect-fire-queue.js?v=4" defer></script>
   <script src="/js/collect-fill-queue.js?v=5" defer></script>
   <script src="/js/collect-tracker.js?v=4" defer></script>

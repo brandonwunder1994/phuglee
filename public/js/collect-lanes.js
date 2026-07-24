@@ -45,15 +45,17 @@
     var online = summarizePendingQueue(input.online);
     var needsFill = Math.max(0, Number(input.needsFillCount) || 0);
 
+    // PDF filler first so operators can clear the one-time FOIA fill backlog.
     var lanes = [
       {
-        id: 'email_only',
-        label: 'Email-only',
-        ready: email.ready,
-        blocked: email.blocked,
-        sentThisMonth: email.sentThisMonth,
-        href: '#/fire/email-only',
-        ctaLabel: 'Open email fire queue'
+        id: 'pdf_needs_fill',
+        label: 'PDF filler',
+        ready: needsFill,
+        blocked: 0,
+        sentThisMonth: 0,
+        href: '#/fill/pdf',
+        ctaLabel: needsFill ? 'Fill next PDF' : 'Open PDF filler',
+        highlight: true
       },
       {
         id: 'pdf_ready',
@@ -65,13 +67,13 @@
         ctaLabel: 'Open PDF fire queue'
       },
       {
-        id: 'pdf_needs_fill',
-        label: 'PDF needs fill',
-        ready: needsFill,
-        blocked: 0,
-        sentThisMonth: 0,
-        href: '#/fill/pdf',
-        ctaLabel: 'Open fill queue'
+        id: 'email_only',
+        label: 'Email-only',
+        ready: email.ready,
+        blocked: email.blocked,
+        sentThisMonth: email.sentThisMonth,
+        href: '#/fire/email-only',
+        ctaLabel: 'Open email fire queue'
       },
       {
         id: 'portal',
@@ -175,8 +177,15 @@
     if (!root || !model || !model.lanes) return;
     root.innerHTML = model.lanes
       .map(function (lane) {
+        var extraClass = lane.highlight ? ' collect-lane--highlight' : '';
+        var countLabel =
+          lane.id === 'pdf_needs_fill'
+            ? '</strong> need fill'
+            : '</strong> ready';
         return (
-          '<article class="collect-lane phuglee-panel" data-lane="' +
+          '<article class="collect-lane phuglee-panel' +
+          extraClass +
+          '" data-lane="' +
           escapeHtml(lane.id) +
           '">' +
           '<h2 class="collect-lane-title">' +
@@ -184,12 +193,14 @@
           '</h2>' +
           '<p class="collect-lane-count"><strong>' +
           lane.ready +
-          '</strong> ready' +
+          countLabel +
           (lane.blocked ? ' · ' + lane.blocked + ' blocked' : '') +
           '</p>' +
           '<p class="collect-lane-sent">' +
-          lane.sentThisMonth +
-          ' sent this month</p>' +
+          (lane.id === 'pdf_needs_fill'
+            ? 'One-time FOIA form fill · then monthly drip'
+            : lane.sentThisMonth + ' sent this month') +
+          '</p>' +
           '<a class="phuglee-btn phuglee-btn-primary collect-lane-cta" href="' +
           escapeHtml(lane.href) +
           '">' +
@@ -206,11 +217,29 @@
     var status = document.getElementById('collect-lanes-status');
     var stripBody = document.getElementById('collect-tracker-strip-body');
     var stripLink = document.getElementById('collect-tracker-strip-link');
+    var fillHint = document.getElementById('collect-pdf-filler-hint');
+    var fillBtn = document.getElementById('collect-pdf-filler-btn');
     if (!root) return;
     try {
       var model = await loadLaneModel(opts && opts.fetchImpl);
       if (status) status.remove();
       renderLanes(root, model);
+      var needsFillLane = (model.lanes || []).find(function (l) {
+        return l.id === 'pdf_needs_fill';
+      });
+      var needsFill = needsFillLane ? needsFillLane.ready : 0;
+      if (fillHint) {
+        fillHint.textContent =
+          needsFill > 0
+            ? needsFill +
+              ' cities still need a filled FOIA PDF (incl. Government List promotions). Work them one by one here.'
+            : 'All enrolled PDF cities have a completed form. New research PDFs appear after promote.';
+      }
+      if (fillBtn && needsFill > 0) {
+        fillBtn.textContent = 'PDF filler (' + needsFill + ')';
+      } else if (fillBtn) {
+        fillBtn.textContent = 'PDF filler';
+      }
       if (stripBody) {
         stripBody.textContent =
           model.tracker.total +
