@@ -22,7 +22,11 @@ from review_portal.portal_registry import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-SEED_PATH = ROOT / "data" / "govlist-pdf-promote-seed.json"
+# Seed lives outside data/ — on Railway, data/ is replaced by a volume symlink and
+# image-only files under data/ are deleted when the volume is already populated.
+SEED_PATH = ROOT / "seeds" / "govlist-pdf-promote-seed.json"
+# Legacy path (pre-volume-safe layout) still checked as a fallback.
+LEGACY_SEED_PATH = ROOT / "data" / "govlist-pdf-promote-seed.json"
 QUEUE_PATH = ROOT / "data" / "review-queue.json"
 MARKER_PATH = ROOT / "data" / "govlist-pdf-promote-applied.json"
 
@@ -46,9 +50,19 @@ def _write_json(path: Path, data: dict) -> None:
     write_json_atomic(path, data)
 
 
+def resolve_seed_path(path: Path | None = None) -> Path | None:
+    if path is not None:
+        return path if path.exists() else None
+    if SEED_PATH.exists():
+        return SEED_PATH
+    if LEGACY_SEED_PATH.exists():
+        return LEGACY_SEED_PATH
+    return None
+
+
 def load_seed(path: Path | None = None) -> dict:
-    seed_file = path or SEED_PATH
-    if not seed_file.exists():
+    seed_file = resolve_seed_path(path)
+    if seed_file is None:
         return {"version": 1, "cities": []}
     raw = json.loads(seed_file.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
