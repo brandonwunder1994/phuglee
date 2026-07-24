@@ -107,7 +107,14 @@
     if (bar) bar.setAttribute('aria-valuenow', String(Math.round(pct)));
     const counts = $('csms-backfill-counts');
     if (counts) {
-      counts.textContent = `Processed ${fmtNum(bp.processed)} / ${fmtNum(bp.vaultTotal)} vault leads`;
+      const homes = bp.vaultHomes != null ? bp.vaultHomes : null;
+      const land = bp.vaultLand != null ? bp.vaultLand : null;
+      const mix =
+        homes != null || land != null
+          ? ` (${fmtNum(homes || 0)} homes + ${fmtNum(land || 0)} lots)`
+          : '';
+      counts.textContent =
+        `Processed ${fmtNum(bp.processed)} / ${fmtNum(bp.vaultTotal)} vault leads${mix}`;
     }
     const tagged = $('csms-backfill-tagged');
     if (tagged) tagged.textContent = `Tagged in GHL ${fmtNum(bp.tagged)}`;

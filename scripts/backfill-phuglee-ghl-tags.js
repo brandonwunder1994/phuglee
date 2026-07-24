@@ -20,7 +20,9 @@ const { setContactMap } = require('../lib/campaigns/sms-store');
 const { writeBackfillProgress } = require('../lib/campaigns/sms-backfill-progress');
 
 const ROOT = path.join(__dirname, '..');
-const INDEX = path.join(ROOT, 'data', 'leads-catalog', 'index.json');
+// Same catalog the Vault UI uses (PDA_DATA_ROOT / LEADS_CATALOG_ROOT on Railway)
+const { LEADS_CATALOG_ROOT } = require('../lib/config');
+const INDEX = path.join(LEADS_CATALOG_ROOT, 'index.json');
 const CHECKPOINT = path.join(ROOT, 'data', 'campaigns', 'sms', 'backfill-checkpoint.json');
 
 const DELAY_MS = 400;
