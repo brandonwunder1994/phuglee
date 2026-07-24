@@ -30,6 +30,19 @@ test('command.html is pipeline momentum KPIs + map', () => {
   assert.ok(!html.includes('>Contracts</'));
 });
 
+test('command.html has dual funding goal meters ($100k + 60-day)', () => {
+  const html = read('command.html');
+  assert.ok(html.includes('command-goals'));
+  assert.ok(html.includes('id="command-money-goal"'));
+  assert.ok(html.includes('id="command-deal-goal"'));
+  assert.ok(html.includes('id="command-money-current"'));
+  assert.ok(html.includes('id="command-goal-current"'));
+  assert.ok(html.includes('$100k'));
+  assert.ok(html.includes('60-day fundings'));
+  assert.ok(html.includes('command-money-bar'));
+  assert.ok(html.includes('command-goal-bar'));
+});
+
 test('command.html has no Pipeline header / snapshot lead copy', () => {
   const html = read('command.html');
   assert.ok(!html.includes('command-snapshot-head'));
@@ -64,6 +77,17 @@ test('command-center.js loads contract totals for pipeline KPIs', () => {
   assert.ok(!js.includes('initFirstRunChecklist'));
 });
 
+test('command-center.js drives $100k money goal and 60-day deal goal', () => {
+  const js = read('js/command-center.js');
+  assert.ok(js.includes('MONEY_GOAL_TARGET'));
+  assert.ok(js.includes('100000'));
+  assert.ok(js.includes('applyMoneyGoal'));
+  assert.ok(js.includes('applyDealGoal'));
+  assert.ok(js.includes('data.goal'));
+  assert.ok(js.includes('command-money-bar-fill'));
+  assert.ok(js.includes('command-goal-bar-fill'));
+});
+
 test('command-center.css is centered no-scroll snapshot layout', () => {
   const css = read('css/command-center.css');
   assert.ok(css.includes('command-metrics'));
@@ -78,6 +102,9 @@ test('command-center.css is centered no-scroll snapshot layout', () => {
   assert.ok(css.includes('100dvh') || css.includes('min-height'));
   assert.ok(css.includes('overflow: hidden'));
   assert.ok(css.includes('#distress-os-footer-mount'));
+  assert.ok(css.includes('command-goals'));
+  assert.ok(css.includes('command-meter'));
+  assert.ok(css.includes('command-meter-fill--cash'));
   assert.ok(!css.includes('command-quiet-links'));
   assert.ok(!css.includes('command-pulse-node'));
   assert.ok(!css.includes('command-mission-focus'));
@@ -112,6 +139,6 @@ test('command cache-bust after snapshot layout', () => {
   const html = read('command.html');
   const jsV = html.match(/command-center\.js\?v=(\d+)/);
   const cssV = html.match(/command-center\.css\?v=(\d+)/);
-  assert.ok(jsV && Number(jsV[1]) >= 7, 'command-center.js cache');
-  assert.ok(cssV && Number(cssV[1]) >= 14, 'command-center.css cache');
+  assert.ok(jsV && Number(jsV[1]) >= 9, 'command-center.js cache');
+  assert.ok(cssV && Number(cssV[1]) >= 16, 'command-center.css cache');
 });

@@ -17,7 +17,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
-  <link rel="stylesheet" href="/css/command-center.css?v=15-typeset">
+  <link rel="stylesheet" href="/css/command-center.css?v=16-goals">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=5-wave0"></script>
@@ -30,6 +30,78 @@
 
   <main id="main" class="command-main command-page-ready">
     <div class="command-hub">
+      <section class="command-goals" aria-label="Funding goals">
+        <div class="command-goals-panel">
+          <article class="command-meter command-meter--cash" id="command-money-goal">
+            <div class="command-meter-row command-meter-row--top">
+              <p class="command-meter-label">Total Funded</p>
+              <p class="command-meter-meta" id="command-money-pct">—</p>
+            </div>
+            <div class="command-meter-row command-meter-row--mid">
+              <p class="command-meter-value">
+                <span id="command-money-current">—</span>
+                <span class="command-meter-sep">of</span>
+                <span class="command-meter-cap" id="command-money-target">$100k</span>
+              </p>
+              <p class="command-meter-meta command-meter-meta--quiet" id="command-money-sub" aria-hidden="true"></p>
+            </div>
+            <div class="command-meter-track-slot">
+              <div
+                class="command-meter-track"
+                id="command-money-bar"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                aria-label="Progress toward $100,000 total funded"
+              >
+                <div class="command-meter-fill command-meter-fill--cash" id="command-money-bar-fill" style="width:0%">
+                  <span class="command-meter-tip" aria-hidden="true">$</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <div class="command-goals-rule" aria-hidden="true"></div>
+
+          <article class="command-meter command-meter--window" id="command-deal-goal">
+            <div class="command-meter-row command-meter-row--top">
+              <p class="command-meter-label">60-day fundings</p>
+              <p class="command-meter-meta" id="command-goal-pct">—</p>
+            </div>
+            <div class="command-meter-row command-meter-row--mid">
+              <p class="command-meter-value">
+                <span id="command-goal-current">0</span>
+                <span class="command-meter-sep">/</span>
+                <span class="command-meter-cap" id="command-goal-target">10</span>
+              </p>
+              <p class="command-meter-meta command-meter-meta--quiet">
+                <span class="command-meter-countdown" aria-live="polite">
+                  <strong id="command-goal-countdown">—</strong>
+                  <span id="command-goal-countdown-label">days left</span>
+                </span>
+                <span class="command-meter-ends" id="command-goal-ends"></span>
+              </p>
+            </div>
+            <div class="command-meter-track-slot">
+              <div
+                class="command-meter-track"
+                id="command-goal-bar"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                aria-label="Progress toward 10 funded deals in 60 days"
+              >
+                <div class="command-meter-fill command-meter-fill--window" id="command-goal-bar-fill" style="width:0%">
+                  <span class="command-meter-tip command-meter-tip--dot" aria-hidden="true"></span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <section
         class="command-metrics command-metrics--pipeline"
         aria-label="Under contract, projected fundings, and total funded"
@@ -76,6 +148,6 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=45-campaigns-under-leads" defer></script>
   <script src="/js/team-alert-banner.js?v=2-clear-on-open" defer></script>
-  <script src="/js/command-center.js?v=8" defer></script>
+  <script src="/js/command-center.js?v=9-goals" defer></script>
 </body>
 </html>
