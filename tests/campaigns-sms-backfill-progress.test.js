@@ -32,7 +32,20 @@ describe('campaigns SMS backfill progress durability', () => {
     assert.ok(String(r.source).includes('ghl') || r.source === 'merged' || r.source === 'highwater');
   });
 
-  it('never decreases high-water when GHL reports lower', () => {
+  it('ignores GHL total 0 so rate-limit lies do not wipe progress', () => {
+    persistProgressHighWater({ processed: 10000, tagged: 9000, total: 16000 });
+    const r = getBackfillProgress({ ghlPhugleeTotal: 0, ghlError: '429 Too Many Requests' });
+    assert.ok(r.processed >= 10000, `expected high-water keep, got ${r.processed}`);
+  });
+
+  it('applies seed floor when volume is empty and GHL is down', () => {
+    // Fresh env dir with no high-water
+    process.env.SMS_BACKFILL_SEED_FLOOR = '10000';
+    const r = getBackfillProgress({ ghlPhugleeTotal: null, ghlError: 'GHL rate limited' });
+    assert.ok(r.processed >= 10000, `expected seed floor, got ${r.processed}`);
+  });
+
+  it('never decreases high-water when GHL reports lower positive total', () => {
     persistProgressHighWater({ processed: 10000, tagged: 9000, total: 16000 });
     const r = getBackfillProgress({ ghlPhugleeTotal: 2000 });
     assert.ok(r.processed >= 10000, `high-water should stick, got ${r.processed}`);
