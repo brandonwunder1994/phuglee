@@ -17,8 +17,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
-  <link rel="stylesheet" href="/css/collect-records.css?v=10-typeset">
-  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=13-tracker">
+  <link rel="stylesheet" href="/css/collect-records.css?v=16-no-scroll">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=18-workspace-fix">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=5-wave0"></script>
@@ -33,53 +33,125 @@
     <div class="collect-hub" id="collect-desk-home">
       <header class="collect-hub-hero" data-phuglee-reveal-child>
         <h1 class="collect-hub-title">Request</h1>
-        <p class="collect-hub-lead">Pull distressed property lists straight from public records — days before aggregators drip the same addresses to everyone else.</p>
+        <p class="collect-hub-lead">Bulk public-records requests — email-only, filled PDFs, and portals. One desk.</p>
       </header>
 
-      <div class="collect-desk" data-phuglee-reveal-child>
-        <section class="collect-desk-primary phuglee-panel">
-          <p class="collect-desk-kicker">Start a batch</p>
-          <h2 class="collect-desk-primary-title">Request public records</h2>
-          <p class="collect-desk-primary-desc">
-            Pick cities. Choose PDF email, plain email, or portal. Launch the batch —
-            nothing sends until you confirm.
-          </p>
-          <ul class="collect-desk-channels" aria-label="Request channels">
-            <li>PDF email</li>
-            <li>Plain email FOIA</li>
-            <li>Online portal</li>
-          </ul>
-          <button type="button" class="phuglee-btn phuglee-btn-primary collect-desk-cta" id="btn-start-requests">
-            Start Requests
-          </button>
-        </section>
+      <section class="collect-lanes" id="collect-lanes-root" aria-label="Bulk request lanes" data-phuglee-reveal-child>
+        <p class="collect-lanes-loading" id="collect-lanes-status" role="status">Loading queues…</p>
+      </section>
 
-        <aside class="collect-desk-side">
-          <a href="/government-lists" class="collect-desk-tracker" id="collect-source-phonebook">
-            <span class="collect-desk-tracker-label">Need a clerk URL?</span>
-            <span class="collect-desk-tracker-title">Source phonebook</span>
-            <span class="collect-desk-tracker-desc">FOIA portals, PDFs, and emails by city and county.</span>
-            <span class="collect-desk-tracker-cta">Open Government Lists →</span>
-          </a>
-          <a href="/pre-liens" class="collect-desk-tracker" id="collect-pre-liens">
-            <span class="collect-desk-tracker-label">County complaints</span>
-            <span class="collect-desk-tracker-title">Pre-liens</span>
-            <span class="collect-desk-tracker-desc">Extract, match owners, and skip-list from pre-lien PDFs.</span>
-            <span class="collect-desk-tracker-cta">Open Pre-liens →</span>
-          </a>
-          <a href="/collect#/tracker" class="collect-desk-tracker" id="collect-track-progress">
-            <span class="collect-desk-tracker-label">Already waiting?</span>
-            <span class="collect-desk-tracker-title">Track Progress</span>
-            <span class="collect-desk-tracker-desc">Pending, overdue, received · sent + came-back dates.</span>
-            <span class="collect-desk-tracker-cta">Open tracker →</span>
-          </a>
-        </aside>
-      </div>
+      <aside class="collect-tracker-strip phuglee-panel" id="collect-tracker-strip" data-phuglee-reveal-child aria-label="This month">
+        <div class="collect-tracker-strip-copy">
+          <p class="collect-tracker-strip-title">Sent this month</p>
+          <p class="collect-tracker-strip-body" id="collect-tracker-strip-body">—</p>
+        </div>
+        <a class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm collect-tracker-strip-link" id="collect-tracker-strip-link" href="#/tracker">Open tracker</a>
+      </aside>
 
-      <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
+      <details class="collect-secondary phuglee-panel" id="collect-secondary-details" data-phuglee-reveal-child>
+        <summary class="collect-secondary-summary">Single batch / custom cities</summary>
+        <div class="collect-secondary-body">
+          <p class="collect-secondary-desc">Pick specific cities and a workflow (secondary path). Nothing sends until you confirm in the send queue.</p>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary" id="btn-start-requests">Start custom batch</button>
+        </div>
+      </details>
+
+      <aside class="collect-desk-side collect-desk-side--row" data-phuglee-reveal-child>
+        <a href="/government-lists" class="collect-desk-tracker" id="collect-source-phonebook">
+          <span class="collect-desk-tracker-label">Need a clerk URL?</span>
+          <span class="collect-desk-tracker-title">Source phonebook</span>
+          <span class="collect-desk-tracker-desc">FOIA portals, PDFs, and emails by city and county.</span>
+          <span class="collect-desk-tracker-cta">Open Government Lists →</span>
+        </a>
+        <a href="/pre-liens" class="collect-desk-tracker" id="collect-pre-liens">
+          <span class="collect-desk-tracker-label">County complaints</span>
+          <span class="collect-desk-tracker-title">Pre-liens</span>
+          <span class="collect-desk-tracker-desc">Extract, match owners, and skip-list from pre-lien PDFs.</span>
+          <span class="collect-desk-tracker-cta">Open Pre-liens →</span>
+        </a>
+      </aside>
+
+      <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only · Gmail send + fill tool under the hood</p>
     </div>
 
-    <!-- Phase 4 Request tracker (sent / came back / overdue) -->
+    <div class="collect-hub collect-fire-view" id="collect-fire-view" hidden>
+      <header class="collect-fire-head">
+        <a href="/collect" class="collect-fire-back" id="collect-fire-back">← Request desk</a>
+        <h1 class="collect-hub-title" id="collect-fire-title">Fire queue</h1>
+        <p class="collect-hub-lead" id="collect-fire-status">Loading…</p>
+        <p class="collect-fire-progress" id="collect-fire-progress" aria-live="polite"></p>
+      </header>
+
+      <div class="collect-fire-toolbar">
+        <span id="collect-fire-selected-count" class="collect-fire-selected-count">0 selected</span>
+        <div class="collect-fire-toolbar-actions">
+          <button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm" id="collect-fire-select-all">Select all</button>
+          <button type="button" class="phuglee-btn phuglee-btn-secondary phuglee-btn-sm" id="collect-fire-clear">Clear</button>
+          <button type="button" class="phuglee-btn phuglee-btn-primary phuglee-btn-sm" id="collect-fire-send" disabled>Send all (0)</button>
+          <button type="button" class="phuglee-btn phuglee-btn-ghost phuglee-btn-sm" id="collect-fire-stop" hidden>Stop</button>
+        </div>
+      </div>
+
+      <div class="collect-fire-tablewrap">
+        <table class="collect-fire-table" aria-label="Cities ready to send">
+          <thead>
+            <tr>
+              <th scope="col"></th>
+              <th scope="col">Place</th>
+              <th scope="col">Email</th>
+              <th scope="col">Status</th>
+              <th scope="col">Id</th>
+            </tr>
+          </thead>
+          <tbody id="collect-fire-rows"></tbody>
+        </table>
+      </div>
+
+      <div class="collect-fire-blocked phuglee-panel" id="collect-fire-blocked" hidden></div>
+      <p class="collect-hub-trust">Drip uses your Gmail · ~5s between sends · cooldowns enforced server-side</p>
+    </div>
+
+    <div class="collect-hub collect-fire-view" id="collect-fill-view" hidden>
+      <header class="collect-fire-head">
+        <a href="/collect" class="collect-fire-back" id="collect-fill-back">← Request desk</a>
+        <h1 class="collect-hub-title">PDF needs fill</h1>
+        <p class="collect-hub-lead" id="collect-fill-status">Loading…</p>
+      </header>
+      <p class="collect-secondary-desc" style="margin-bottom:1rem">
+        Cities that still need a blank attached or fields filled. Open <strong>Fill</strong> to work right here on Request — when saved complete, they show under <strong>PDF ready</strong> for drip send.
+      </p>
+      <div class="collect-fire-tablewrap">
+        <table class="collect-fire-table" aria-label="Cities needing PDF fill">
+          <thead>
+            <tr>
+              <th scope="col">Place</th>
+              <th scope="col">Email</th>
+              <th scope="col">Why</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody id="collect-fill-rows"></tbody>
+        </table>
+      </div>
+      <p class="collect-hub-trust">New research cities appear after they are enrolled as PDF-email pathway cities</p>
+    </div>
+
+    <div class="collect-workspace" id="collect-workspace-view" hidden>
+      <header class="collect-workspace-bar">
+        <a href="/collect" class="collect-fire-back" id="collect-workspace-back">← Request desk</a>
+        <div class="collect-workspace-bar-copy">
+          <h1 class="collect-workspace-title" id="collect-workspace-title">Request tool</h1>
+          <p class="collect-workspace-sub" id="collect-workspace-sub"></p>
+        </div>
+      </header>
+      <iframe
+        id="collect-workspace-frame"
+        class="collect-workspace-frame"
+        title="Request tool"
+        referrerpolicy="same-origin"
+      ></iframe>
+    </div>
+
     <div class="collect-hub collect-fire-view" id="collect-tracker-view" hidden>
       <header class="collect-fire-head">
         <a href="/collect" class="collect-fire-back" id="collect-tracker-back">← Request desk</a>
@@ -87,8 +159,8 @@
         <p class="collect-hub-lead" id="collect-tracker-status">Loading…</p>
       </header>
       <p class="collect-secondary-desc" style="margin-bottom:0.85rem">
-        Sent dates come from Form Forge submissions. <strong>Came back</strong> is set when you attach a list on Filter.
-        Overdue = sent ≥ 21 days with no return date.
+        Sent dates come from Form Forge submissions. <strong>Came back</strong> is set when you attach a list on Filter
+        (<span class="collect-fire-mono">responseReceivedAt</span>). Overdue = sent ≥ 21 days with no return date.
       </p>
       <div class="collect-tracker-filters" role="toolbar" aria-label="Tracker filters">
         <button type="button" class="collect-tracker-filter is-active" id="collect-tracker-filter-pending" data-label="Pending">Pending</button>
@@ -215,11 +287,15 @@
   <script src="/js/phuglee-motion.js?v=2-route" defer></script>
   <script src="/js/phuglee-states.js?v=2-route" defer></script>
   <script src="/js/settings-menu.js?v=5" defer></script>
-  <script src="/js/command-palette.js?v=4" defer></script>
+  <script src="/js/command-palette.js?v=8-powerhouse" defer></script>
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=46-no-footer" defer></script>
   <script src="/js/team-alert-banner.js?v=2-clear-on-open" defer></script>
-  <script src="/js/collect-tracker.js?v=3" defer></script>
+  <script src="/js/collect-lanes.js?v=7" defer></script>
+  <script src="/js/collect-fire-queue.js?v=4" defer></script>
+  <script src="/js/collect-fill-queue.js?v=5" defer></script>
+  <script src="/js/collect-tracker.js?v=4" defer></script>
+  <script src="/js/collect-workspace.js?v=3" defer></script>
   <script src="/js/collect-records.js?v=5" defer></script>
 </body>
 </html>

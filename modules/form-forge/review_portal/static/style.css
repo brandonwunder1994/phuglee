@@ -807,11 +807,98 @@ kbd {
 }
 .path-line { font-size: 0.65rem; word-break: break-all; opacity: 0.8; }
 
-.miss-panel { max-width: 440px; text-align: center; padding: 2.5rem; margin: auto; }
-.miss-panel h2 { font-family: var(--display); margin-bottom: 0.5rem; color: var(--cream); }
-.upload-blank-btn { display: block; margin: 1.25rem 0 0.5rem; cursor: pointer; }
+.miss-panel {
+  max-width: 28rem;
+  text-align: center;
+  padding: 2rem 1.75rem 1.75rem;
+  margin: auto;
+  border: 1px solid rgba(174, 163, 143, 0.18);
+  border-radius: 16px;
+  background: rgba(12, 10, 8, 0.55);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+}
+.miss-panel h2 {
+  font-family: var(--font-body, Outfit, system-ui, sans-serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.65rem;
+  color: var(--cream);
+}
+.miss-panel--attach .miss-kicker {
+  margin: 0 0 0.45rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--phuglee-orange, #e58435);
+}
+.miss-panel--attach .miss-place {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem 0.55rem;
+  margin: 0 0 0.85rem;
+  color: var(--cream);
+  font-size: 1rem;
+}
+.miss-panel--attach .miss-place span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.miss-panel--attach .miss-lead {
+  margin: 0 auto 1.25rem;
+  max-width: 22rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.miss-primary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 1.15rem;
+}
+.miss-primary-btn,
+.miss-panel--attach .btn.accent.miss-primary-btn {
+  min-width: 12.5rem;
+  min-height: 2.75rem;
+  padding: 0.7rem 1.35rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+.miss-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--muted);
+  max-width: 20rem;
+}
+.miss-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(174, 163, 143, 0.14);
+}
+.miss-upload,
+.upload-blank-btn {
+  display: inline-block;
+  margin: 0;
+  cursor: pointer;
+}
 .upload-blank-btn input { display: none; }
+.miss-upload-main { display: block; margin: 0; }
 .upload-label { display: block; font-size: 0.72rem; color: var(--muted); margin-top: 0.5rem; }
+.miss-panel .save-msg {
+  margin-top: 0.85rem;
+  font-size: 0.82rem;
+}
+.miss-panel .save-msg[hidden] { display: none !important; }
 
 .settings-modal, .sig-modal {
   display: none; position: fixed; inset: 0; z-index: 20000;
@@ -942,3 +1029,67 @@ body.carrying { cursor: copy; }
 .fillable-banner button { flex-shrink: 0; }
 
 .toolbar-save-row { display: none; }
+/* Return bar when opened from Collect bulk desk (?returnTo=collect) */
+.forge-return-collect {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1.25rem;
+  padding: 0.55rem 1rem;
+  background: rgba(12, 10, 8, 0.94);
+  border-bottom: 1px solid rgba(229, 132, 53, 0.35);
+  font-family: Outfit, system-ui, sans-serif;
+}
+.forge-return-collect-link {
+  color: #e58435;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+.forge-return-collect-link:hover { color: #eeb746; text-decoration: underline; }
+.forge-return-collect-note { color: rgba(174, 163, 143, 0.9); font-size: 0.75rem; }
+
+/* Embedded inside Collect Request workspace — quieter chrome */
+html.forge-embed-in-collect .forge-return-collect,
+body.forge-embed-in-collect .forge-return-collect {
+  display: none !important;
+}
+body.forge-embed-in-collect .forge-page-hero,
+body.forge-embed-in-collect .forge-trust-line,
+body.forge-embed-in-collect .bg-vignette,
+body.forge-embed-in-collect .bg-paper-grain {
+  display: none !important;
+}
+/* Drop dual Form Forge branding; Request parent already frames the work */
+body.forge-embed-in-collect .topbar .app-nav,
+body.forge-embed-in-collect .topbar .brand-seal,
+body.forge-embed-in-collect .portal-topbar .topbar-right > a.btn {
+  display: none !important;
+}
+body.forge-embed-in-collect .topbar .brand h1 {
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+body.forge-embed-in-collect .topbar .brand .sub {
+  display: none;
+}
+body.forge-embed-in-collect .topbar {
+  padding: 0.45rem 0.85rem;
+  background: rgba(12, 10, 8, 0.96);
+}
+body.forge-embed-in-collect.stamp-theme {
+  min-height: 100%;
+  background: #0c0a08;
+}
+body.forge-embed-in-collect .layout {
+  height: calc(100vh - 3.25rem);
+  min-height: 0;
+}
+body.forge-embed-in-collect.submit-portals-page .submit-portals-layout,
+body.forge-embed-in-collect.request-pdfs-page .request-pdfs-layout {
+  min-height: calc(100vh - 3.25rem);
+}
