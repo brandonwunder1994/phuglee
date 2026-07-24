@@ -57,6 +57,15 @@ if ($check.ok) {
     if ($wantDeep) { Write-Host "  $deepUrl" }
     if ($check.health) { Write-Host "  $($check.health)" }
     if ($wantDeep -and $check.deep) { Write-Host "  deep: $($check.deep)" }
+    # Campaigns SMS must never silently disappear from the tree or route table
+    $campaignsVerify = Join-Path $root "scripts\verify-campaigns-sms.ps1"
+    if (Test-Path $campaignsVerify) {
+        & powershell -NoProfile -ExecutionPolicy Bypass -File $campaignsVerify | Out-Host
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "Campaigns SMS verify failed — fix before claiming live/ship." -ForegroundColor Red
+            exit 1
+        }
+    }
     exit 0
 }
 

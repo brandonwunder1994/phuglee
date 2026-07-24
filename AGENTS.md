@@ -1,6 +1,26 @@
 # Distress OS / Phuglee — Agent Rules
 
-## Campaigns → SMS (admin)
+## Campaigns → SMS (admin) — PERMANENT FEATURE (do not delete)
+
+**Hard rule:** Railway deploys and ship PRs must **never** remove, orphan, or regress Campaigns → SMS. This has been lost repeatedly when agents branched from stale main, resolved conflicts wrong, or cache-busted `shell-nav` without the Campaigns rail.
+
+### Must always exist on `main` and production
+| Piece | Location |
+|-------|----------|
+| Pretty route | `lib/config.js` → `DISTRESS_ROUTES['/campaigns/sms']` |
+| Static page | `public/campaigns-sms.html` + `public/js/campaigns-sms.js` + `public/css/campaigns-sms.css` |
+| API | `lib/campaigns/*` + `server.js` `/api/admin/campaigns/sms` |
+| Nav | `public/js/shell-nav.js` → admin **Campaigns** section (under Leads, above Dispo) |
+| Settings | `public/js/settings-menu.js` → Campaigns · SMS |
+| Auth | `public/js/auth-guard.js` + roles allow `/campaigns/sms` |
+
+### Ship checklist (every PR that touches nav, config, server, or public HTML)
+1. Branch from **current** `origin/main` (not a week-old ship branch).
+2. Before opening the PR:  
+   `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\verify-campaigns-sms.ps1`
+3. Must exit **0**. If it fails, **restore Campaigns from main** — do not merge.
+4. After merge to Railway: hit `https://…/campaigns/sms` (admin) — page must 200 with Campaigns UI.
+5. Never “simplify” the rail by dropping Campaigns. Never resolve merge conflicts by deleting `lib/campaigns/` or the `/campaigns/sms` route.
 
 - UI: `/campaigns/sms` — admin only (rail **Campaigns → SMS**).
 - Live sends **off** unless `SMS_CAMPAIGNS_LIVE=true` + confirm `SEND`. Auto also needs `SMS_CAMPAIGNS_AUTO=true`.
