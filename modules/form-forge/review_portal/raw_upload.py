@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import json
+import re
+import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 import fitz
 from pypdf import PdfReader
@@ -11,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "forms" / "raw"
 PREVIEWS = ROOT / "forms" / "previews-raw"
 LOG_PATH = ROOT / "data" / "blank-uploads-log.jsonl"
+
+_USER_AGENT = "PhugleeFormForge/1.0 (blank-pdf-import; +https://phuglee.local)"
 
 
 def raw_path(state: str, slug: str) -> Path:
@@ -30,6 +36,76 @@ def is_pdf(data: bytes) -> bool:
         return pages > 0
     except Exception:
         return False
+
+
+def looks_like_direct_pdf_url(url: str) -> bool:
+    """True when the FOIA link is likely a downloadable PDF (not an HTML portal)."""
+    text = str(url or "").strip()
+    if not text:
+        return False
+    try:
+        parsed = urlparse(text)
+    except Exception:
+        return False
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    path = unquote(parsed.path or "").lower()
+    if path.endswith(".pdf"):
+        return True
+    # Some CDNs put .pdf before query only — already covered; also match /file.pdf/
+    if re.search(r"\.pdf($|[/?#])", path):
+        return True
+    return False
+
+
+def fetch_pdf_bytes(url: str, *, timeout: float = 45.0) -> bytes:
+    """Download a FOIA form URL. Raises ValueError on non-PDF or network failure."""
+    text = str(url or "").strip()
+    if not text:
+        raise ValueError("No FOIA PDF URL on file for this city.")
+    if not text.lower().startswith(("http://", "https://")):
+        raise ValueError("FOIA URL must be http(s).")
+
+    req = urllib.request.Request(
+        text,
+        headers={
+            "User-Agent": _USER_AGENT,
+            "Accept": "application/pdf,*/*",
+        },
+        method="GET",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = resp.read()
+            content_type = (resp.headers.get("Content-Type") or "").lower()
+    except urllib.error.HTTPError as exc:
+        raise ValueError(f"City server returned HTTP {exc.code} for FOIA PDF.") from exc
+    except urllib.error.URLError as exc:
+        raise ValueError(f"Could not download FOIA PDF: {exc.reason}") from exc
+    except TimeoutError as exc:
+        raise ValueError("Timed out downloading FOIA PDF from city site.") from exc
+
+    head = data.lstrip()[:64].lower()
+    if "html" in content_type or head.startswith(b"<!doctype") or head.startswith(b"<html"):
+        raise ValueError(
+            "Downloaded file is not a valid PDF. Link returned a web page, not a PDF — "
+            "open FOIA PDF in browser and Save As PDF."
+        )
+    if not is_pdf(data):
+        raise ValueError("Downloaded file is not a valid PDF.")
+    return data
+
+
+def import_blank_pdf_from_url(item: dict, url: str | None = None) -> dict:
+    """
+    Fetch the city's FOIA PDF URL and store it as the blank form (raw_path).
+    Same result as manual Upload Blank PDF.
+    """
+    source = (url or item.get("url") or item.get("portal_url") or "").strip()
+    data = fetch_pdf_bytes(source)
+    meta = save_blank_pdf(item, data)
+    meta["source_url"] = source
+    return meta
 
 
 def pdf_field_info(path: Path) -> tuple[bool, int, list[str]]:
