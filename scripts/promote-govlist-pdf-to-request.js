@@ -29,7 +29,8 @@ const CATALOG_PATHS = [
 ];
 const REGISTRY_PATH = path.join(ROOT, 'modules', 'form-forge', 'data', 'portal-registry.json');
 const QUEUE_PATH = path.join(ROOT, 'modules', 'form-forge', 'data', 'review-queue.json');
-const SEED_PATH = path.join(ROOT, 'modules', 'form-forge', 'data', 'govlist-pdf-promote-seed.json');
+// Outside data/ so Railway volume symlink does not drop the seed on boot.
+const SEED_PATH = path.join(ROOT, 'modules', 'form-forge', 'seeds', 'govlist-pdf-promote-seed.json');
 const REPORT_PATH = path.join(ROOT, 'modules', 'form-forge', 'data', 'promote-govlist-pdf-to-request-last.json');
 
 const US_STATES = {

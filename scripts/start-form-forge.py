@@ -36,7 +36,15 @@ def _run_backup_check() -> None:
     """Run snapshot/integrity off the critical path so Flask binds immediately."""
     try:
         # Volume-safe: merge Government List PDF cities into registry + fill queue.
-        ensure_govlist_pdf_promote_on_boot()
+        result = ensure_govlist_pdf_promote_on_boot()
+        _log(
+            "govlist-pdf-promote "
+            f"seed={result.get('seed_count')} "
+            f"registry+={result.get('registry_added')} "
+            f"queue+={result.get('queue_added')} "
+            f"skipped={result.get('skipped')} "
+            f"reason={result.get('reason') or result.get('error') or 'ok'}"
+        )
         snap = ensure_daily_snapshot()
         report = verify_integrity()
         _log(f"Data backup: {snap}")
@@ -80,6 +88,19 @@ def _serve() -> None:
 
 def main() -> None:
     _log(f"Form Forge starting on {HOST}:{PORT} (python {sys.version.split()[0]})")
+    # Run promote before bind so the first request after deploy already sees new cities.
+    try:
+        result = ensure_govlist_pdf_promote_on_boot()
+        _log(
+            "govlist-pdf-promote(boot) "
+            f"seed={result.get('seed_count')} "
+            f"registry+={result.get('registry_added')} "
+            f"queue+={result.get('queue_added')} "
+            f"skipped={result.get('skipped')} "
+            f"reason={result.get('reason') or result.get('error') or 'ok'}"
+        )
+    except Exception as exc:
+        _log(f"govlist-pdf-promote(boot) failed: {exc}")
     threading.Thread(target=_run_backup_check, name="forge-backup", daemon=True).start()
 
     while True:
