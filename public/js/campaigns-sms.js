@@ -153,15 +153,19 @@
           when = String(bp.updatedAt);
         }
       }
-      updated.textContent = `Updated ${when} · source ${bp.source || '—'}`;
+      let src = `source ${bp.source || '—'}`;
+      if (bp.ghlError) src += ` · GHL warn: ${bp.ghlError}`;
+      updated.textContent = `Updated ${when} · ${src}`;
     }
 
-    // Auto-poll while incomplete so refresh isn't required
+    // Keep polling until complete; also poll when counts look empty so recovery can land
     if (backfillPollTimer) {
       clearInterval(backfillPollTimer);
       backfillPollTimer = null;
     }
-    if (!bp.complete && pct < 100) {
+    const needsPoll = !bp.complete && pct < 100;
+    const recovering = (Number(bp.processed) || 0) === 0 && !bp.ghlError;
+    if (needsPoll || recovering) {
       backfillPollTimer = setInterval(() => {
         pollBackfillOnly();
       }, 12000);
