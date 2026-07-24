@@ -31,7 +31,8 @@
     jv: 'JV agreement',
     other: 'Other'
   };
-  const POLL_MS = 12000;
+  // Board re-fetch only — SMS/SignNow no longer block this endpoint; 30s is enough.
+  const POLL_MS = 30000;
   const MSG_POLL_MS = 5000;
 
   const state = {
@@ -1201,46 +1202,77 @@
       : `${n} new team message(s) — e.g. ${who} on ${addr}`;
   }
 
-  async function loadDeals(opts = {}) {
-    const data = await api('/api/leads/admin/contracts?board=contracts');
-    state.deals = data.deals || [];
-    state.totals = data.totals || null;
-    state.goal = data.goal || null;
-    state.ghlConfigured = !!data.ghlConfigured;
-    state.unreadTeam = data.unreadTeam || [];
-    state.unreadSellerSms = data.unreadSellerSms || [];
-    renderKpis(state.totals);
-    renderGoal(state.goal);
-    renderTable(state.deals);
-    renderTeamBanner();
-    syncProfileSmsPulse();
+  function setBoardLoading(on) {
+    const sk = $('uc-board-skeleton');
+    const empty = $('uc-empty');
+    const table = $('uc-table');
+    const cards = $('uc-cards');
+    const count = $('uc-board-count');
+    if (sk) {
+      sk.hidden = !on;
+      sk.setAttribute('aria-busy', on ? 'true' : 'false');
+      sk.setAttribute('aria-hidden', on ? 'false' : 'true');
+    }
+    if (on) {
+      if (empty) empty.hidden = true;
+      if (table) table.hidden = true;
+      if (cards) cards.hidden = true;
+      if (count) count.textContent = 'Loading…';
+    } else if (count && count.textContent === 'Loading…') {
+      count.textContent = '';
+    }
+  }
 
-    // Cross-ref Trust Funds after first paint so the board stays snappy
-    enrichTrustFundFlags(state.deals).then((flagged) => {
-      if (!flagged || !flagged.length) return;
-      state.deals = flagged;
+  async function loadDeals(opts = {}) {
+    const silent = !!opts.silent;
+    // Silent polls may use the 8s server cache (poll=1). Interactive loads always re-read.
+    const qs = silent
+      ? 'board=contracts&poll=1'
+      : 'board=contracts';
+    if (!silent) setBoardLoading(true);
+    try {
+      const data = await api(`/api/leads/admin/contracts?${qs}`);
+      state.deals = data.deals || [];
+      state.totals = data.totals || null;
+      state.goal = data.goal || null;
+      state.ghlConfigured = !!data.ghlConfigured;
+      state.unreadTeam = data.unreadTeam || [];
+      state.unreadSellerSms = data.unreadSellerSms || [];
+      renderKpis(state.totals);
+      renderGoal(state.goal);
       renderTable(state.deals);
-      if (state.activeDealId) {
-        const open = state.deals.find((d) => d.dealId === state.activeDealId);
-        if (open && state.profile && state.profile.dealId === open.dealId) {
-          // refresh badge in open drawer hero if still viewing this deal
-          const heroCopy = document.querySelector('#uc-drawer-hero .uc-profile-hero-copy');
-          if (heroCopy && !processBuyerFound(open) && open.trustFundMatch && open.trustFundMatch.hit) {
-            let badge = heroCopy.querySelector('.uc-tf-alert');
-            if (!badge) {
-              const html = trustFundBadgeHtml(open);
-              if (html) heroCopy.insertAdjacentHTML('beforeend', html);
+      renderTeamBanner();
+      syncProfileSmsPulse();
+
+      // Cross-ref Trust Funds after first paint so the board stays snappy
+      enrichTrustFundFlags(state.deals).then((flagged) => {
+        if (!flagged || !flagged.length) return;
+        state.deals = flagged;
+        renderTable(state.deals);
+        if (state.activeDealId) {
+          const open = state.deals.find((d) => d.dealId === state.activeDealId);
+          if (open && state.profile && state.profile.dealId === open.dealId) {
+            // refresh badge in open drawer hero if still viewing this deal
+            const heroCopy = document.querySelector('#uc-drawer-hero .uc-profile-hero-copy');
+            if (heroCopy && !processBuyerFound(open) && open.trustFundMatch && open.trustFundMatch.hit) {
+              let badge = heroCopy.querySelector('.uc-tf-alert');
+              if (!badge) {
+                const html = trustFundBadgeHtml(open);
+                if (html) heroCopy.insertAdjacentHTML('beforeend', html);
+              }
+            } else if (heroCopy && processBuyerFound(open)) {
+              heroCopy.querySelectorAll('.uc-tf-alert').forEach((el) => el.remove());
             }
-          } else if (heroCopy && processBuyerFound(open)) {
-            heroCopy.querySelectorAll('.uc-tf-alert').forEach((el) => el.remove());
           }
         }
-      }
-    }).catch(() => { /* ignore flag errors */ });
+      }).catch(() => { /* ignore flag errors */ });
 
-    if (!opts.silent && !state.deepLinkHandled) {
-      state.deepLinkHandled = true;
-      await handleDeepLink();
+      if (!silent && !state.deepLinkHandled) {
+        state.deepLinkHandled = true;
+        await handleDeepLink();
+      }
+    } finally {
+      if (!silent) setBoardLoading(false);
     }
   }
 

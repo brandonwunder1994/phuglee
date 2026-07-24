@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
   <link rel="stylesheet" href="/css/vault.css?v=29-gates">
-  <link rel="stylesheet" href="/css/under-contract.css?v=143-stage-badges">
+  <link rel="stylesheet" href="/css/under-contract.css?v=144-board-skel">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=5-wave0"></script>
@@ -118,6 +118,20 @@
         </div>
         <div id="uc-empty" class="uc-empty" hidden>
           <p>No deals yet. Send a new PSA to get started.</p>
+        </div>
+        <div
+          id="uc-board-skeleton"
+          class="uc-board-skeleton"
+          hidden
+          aria-hidden="true"
+          aria-busy="false"
+          aria-label="Loading deals"
+        >
+          <div class="uc-skel-row"><span class="uc-skel uc-skel--thumb"></span><span class="uc-skel uc-skel--addr"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span></div>
+          <div class="uc-skel-row"><span class="uc-skel uc-skel--thumb"></span><span class="uc-skel uc-skel--addr"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span></div>
+          <div class="uc-skel-row"><span class="uc-skel uc-skel--thumb"></span><span class="uc-skel uc-skel--addr"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span></div>
+          <div class="uc-skel-row"><span class="uc-skel uc-skel--thumb"></span><span class="uc-skel uc-skel--addr"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span></div>
+          <div class="uc-skel-row"><span class="uc-skel uc-skel--thumb"></span><span class="uc-skel uc-skel--addr"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span><span class="uc-skel uc-skel--cell"></span></div>
         </div>
         <div class="uc-table-wrap" id="uc-table-wrap">
           <table class="uc-table" id="uc-table" hidden>
@@ -1029,6 +1043,6 @@
   <script src="/js/command-palette.js?v=6-retire-map" defer></script>
   <script src="/js/buyers-match.js?v=11" defer></script>
   <script src="/js/buyers-deal-flag.js?v=11" defer></script>
-  <script src="/js/under-contract.js?v=142-pending-assignments" defer></script>
+  <script src="/js/under-contract.js?v=144-board-cache" defer></script>
 </body>
 </html>

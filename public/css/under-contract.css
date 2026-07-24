@@ -655,6 +655,68 @@
   color: var(--vault-muted);
 }
 
+/* First-paint board placeholder while contracts list loads */
+.uc-board-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.35rem 0 0.75rem;
+}
+
+.uc-board-skeleton[hidden] {
+  display: none !important;
+}
+
+.uc-skel-row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(8rem, 1.6fr) repeat(3, minmax(3.5rem, 1fr));
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.55rem 0.35rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.uc-skel {
+  display: block;
+  height: 0.7rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.1) 45%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: uc-skel-shimmer 1.15s ease-in-out infinite;
+}
+
+.uc-skel--thumb {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.35rem;
+}
+
+.uc-skel--addr {
+  height: 1.1rem;
+  max-width: 14rem;
+}
+
+.uc-skel--cell {
+  max-width: 5.5rem;
+}
+
+@keyframes uc-skel-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uc-skel {
+    animation: none;
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
 .uc-table-wrap {
   overflow-x: auto;
 }
