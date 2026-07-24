@@ -208,42 +208,103 @@
     )).join('');
   }
 
+  let kpiRepollTimer = null;
+
+  function applyOverview(data) {
+    if (!data) return;
+    renderBadge(!!data.live);
+    renderPolicy(data);
+    renderKpis(data);
+    if (data.backfillProgress) renderBackfillProgress(data.backfillProgress);
+    if (Array.isArray(data.runs)) renderRuns(data.runs);
+    const sendBtn = $('csms-send');
+    if (sendBtn) {
+      sendBtn.disabled = !data.live;
+      sendBtn.title = data.live
+        ? 'Live send — requires typing SEND'
+        : 'Requires SMS_CAMPAIGNS_LIVE=true';
+    }
+    const auto = $('csms-auto');
+    if (auto) {
+      auto.disabled = !data.live || !data.autoEnv;
+      auto.checked = !!(data.autoState && data.autoState.enabled);
+    }
+  }
+
+  function statusFromOverview(data) {
+    const bp = data && data.backfillProgress;
+    const pctNote = bp && bp.vaultTotal
+      ? ` · base load ${bp.percent}% (${fmtNum(bp.processed)}/${fmtNum(bp.vaultTotal)})`
+      : '';
+    const k = data && data.kpis;
+    if (k && k.kpisLoading && !k.funnel?.phugleeContacts && !k.outcomes?.interested) {
+      return 'Desk ready · KPIs loading from GHL…' + pctNote;
+    }
+    if (k && k.kpisLoading) {
+      return 'Updated (refreshing KPIs…)' + pctNote;
+    }
+    if (k && k.cached) {
+      return 'Updated (cached KPIs)' + pctNote;
+    }
+    return 'Updated' + pctNote;
+  }
+
+  function scheduleKpiRepoll(data) {
+    if (kpiRepollTimer) {
+      clearTimeout(kpiRepollTimer);
+      kpiRepollTimer = null;
+    }
+    if (!data || !data.kpis || !data.kpis.kpisLoading) return;
+    // One light follow-up so background recompute can paint without a full hang
+    kpiRepollTimer = setTimeout(() => {
+      api('/api/admin/campaigns/sms/overview')
+        .then((next) => {
+          applyOverview(next);
+          setStatus(statusFromOverview(next));
+          if (next.kpis && next.kpis.kpisLoading) scheduleKpiRepoll(next);
+        })
+        .catch(() => { /* ignore */ });
+    }, 8000);
+  }
+
   async function refresh() {
     setStatus('Loading…');
     try {
-      // Progress first so the bar updates even if full KPI fetch is slow
-      try {
-        const prog = await api('/api/admin/campaigns/sms/backfill-progress');
-        if (prog.backfillProgress) renderBackfillProgress(prog.backfillProgress);
-      } catch (_) {
-        /* non-fatal */
+      // Parallel: progress + overview (KPIs are snapshot-fast; never wait on GHL crawl)
+      const [progSettled, overviewSettled] = await Promise.allSettled([
+        api('/api/admin/campaigns/sms/backfill-progress'),
+        api('/api/admin/campaigns/sms/overview')
+      ]);
+
+      if (progSettled.status === 'fulfilled' && progSettled.value.backfillProgress) {
+        renderBackfillProgress(progSettled.value.backfillProgress);
       }
-      const data = await api('/api/admin/campaigns/sms/overview');
-      renderBadge(!!data.live);
-      renderPolicy(data);
-      renderKpis(data);
-      if (data.backfillProgress) renderBackfillProgress(data.backfillProgress);
-      const sendBtn = $('csms-send');
-      if (sendBtn) {
-        sendBtn.disabled = !data.live;
-        sendBtn.title = data.live
-          ? 'Live send — requires typing SEND'
-          : 'Requires SMS_CAMPAIGNS_LIVE=true';
+
+      if (overviewSettled.status === 'fulfilled') {
+        const data = overviewSettled.value;
+        applyOverview(data);
+        // Runs may already be on overview; otherwise fetch in parallel
+        if (!Array.isArray(data.runs)) {
+          try {
+            const runs = await api('/api/admin/campaigns/sms/runs?limit=20');
+            renderRuns(runs.runs || []);
+          } catch (_) {
+            /* non-fatal */
+          }
+        }
+        setStatus(statusFromOverview(data));
+        scheduleKpiRepoll(data);
+      } else {
+        // Overview failed — still try runs so the desk isn't empty
+        try {
+          const runs = await api('/api/admin/campaigns/sms/runs?limit=20');
+          renderRuns(runs.runs || []);
+        } catch (_) {
+          /* ignore */
+        }
+        const err = overviewSettled.reason;
+        setStatus((err && err.message) || 'Failed to load overview');
       }
-      const auto = $('csms-auto');
-      if (auto) {
-        auto.disabled = !data.live || !data.autoEnv;
-        auto.checked = !!(data.autoState && data.autoState.enabled);
-      }
-      const runs = await api('/api/admin/campaigns/sms/runs?limit=20');
-      renderRuns(runs.runs || []);
-      const bp = data.backfillProgress;
-      const pctNote = bp && bp.vaultTotal
-        ? ` · base load ${bp.percent}% (${fmtNum(bp.processed)}/${fmtNum(bp.vaultTotal)})`
-        : '';
-      setStatus(
-        (data.kpis && data.kpis.cached ? 'Updated (cached KPIs)' : 'Updated') + pctNote
-      );
     } catch (err) {
       setStatus(err.message || 'Failed to load');
     }
