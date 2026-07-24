@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/shell-bundle.css?v=20-wave1-concat">
   <link rel="stylesheet" href="/css/collect-records.css?v=10-typeset">
-  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=12-typeset">
+  <link rel="stylesheet" href="/css/distress-collect-hub.css?v=13-tracker">
   <script src="/js/auth-session.js"></script>
   <script src="/js/auth-config.js"></script>
   <script src="/js/auth-guard.js?v=5-wave0"></script>
@@ -30,7 +30,7 @@
   <div id="distress-os-nav-mount"></div>
 
   <main id="main" class="collect-landing phuglee-pattern-bg phuglee-pattern-bg--medium" data-phuglee-reveal>
-    <div class="collect-hub">
+    <div class="collect-hub" id="collect-desk-home">
       <header class="collect-hub-hero" data-phuglee-reveal-child>
         <h1 class="collect-hub-title">Request</h1>
         <p class="collect-hub-lead">Pull distressed property lists straight from public records — days before aggregators drip the same addresses to everyone else.</p>
@@ -67,16 +67,56 @@
             <span class="collect-desk-tracker-desc">Extract, match owners, and skip-list from pre-lien PDFs.</span>
             <span class="collect-desk-tracker-cta">Open Pre-liens →</span>
           </a>
-          <a href="/forge/portal" class="collect-desk-tracker" id="collect-track-progress">
+          <a href="/collect#/tracker" class="collect-desk-tracker" id="collect-track-progress">
             <span class="collect-desk-tracker-label">Already waiting?</span>
             <span class="collect-desk-tracker-title">Track Progress</span>
-            <span class="collect-desk-tracker-desc">Pending, answered, ready to filter.</span>
+            <span class="collect-desk-tracker-desc">Pending, overdue, received · sent + came-back dates.</span>
             <span class="collect-desk-tracker-cta">Open tracker →</span>
           </a>
         </aside>
       </div>
 
       <p class="collect-hub-trust" data-phuglee-reveal-child>Public records only · Your data stays on your machine</p>
+    </div>
+
+    <!-- Phase 4 Request tracker (sent / came back / overdue) -->
+    <div class="collect-hub collect-fire-view" id="collect-tracker-view" hidden>
+      <header class="collect-fire-head">
+        <a href="/collect" class="collect-fire-back" id="collect-tracker-back">← Request desk</a>
+        <h1 class="collect-hub-title">Request tracker</h1>
+        <p class="collect-hub-lead" id="collect-tracker-status">Loading…</p>
+      </header>
+      <p class="collect-secondary-desc" style="margin-bottom:0.85rem">
+        Sent dates come from Form Forge submissions. <strong>Came back</strong> is set when you attach a list on Filter.
+        Overdue = sent ≥ 21 days with no return date.
+      </p>
+      <div class="collect-tracker-filters" role="toolbar" aria-label="Tracker filters">
+        <button type="button" class="collect-tracker-filter is-active" id="collect-tracker-filter-pending" data-label="Pending">Pending</button>
+        <button type="button" class="collect-tracker-filter" id="collect-tracker-filter-overdue" data-label="Overdue">Overdue</button>
+        <button type="button" class="collect-tracker-filter" id="collect-tracker-filter-received" data-label="Received">Received</button>
+        <button type="button" class="collect-tracker-filter" id="collect-tracker-filter-none" data-label="Not sent">Not sent</button>
+        <button type="button" class="collect-tracker-filter" id="collect-tracker-filter-all" data-label="All">All</button>
+        <label class="collect-tracker-search-wrap">
+          <span class="visually-hidden">Search</span>
+          <input type="search" id="collect-tracker-search" class="collect-tracker-search" placeholder="Search city or state…" autocomplete="off" />
+        </label>
+      </div>
+      <div class="collect-fire-tablewrap">
+        <table class="collect-fire-table" aria-label="Request status by city">
+          <thead>
+            <tr>
+              <th scope="col">Place</th>
+              <th scope="col">Channel</th>
+              <th scope="col">Last sent</th>
+              <th scope="col">Came back</th>
+              <th scope="col">Status</th>
+              <th scope="col">Turnaround</th>
+            </tr>
+          </thead>
+          <tbody id="collect-tracker-rows"></tbody>
+        </table>
+      </div>
+      <p class="collect-hub-trust">Came back dates are set when you attach lists on Filter</p>
     </div>
   </main>
 
@@ -179,6 +219,7 @@
   <script src="/js/distress-status.js" defer></script>
   <script src="/js/shell-nav.js?v=46-no-footer" defer></script>
   <script src="/js/team-alert-banner.js?v=2-clear-on-open" defer></script>
+  <script src="/js/collect-tracker.js?v=3" defer></script>
   <script src="/js/collect-records.js?v=5" defer></script>
 </body>
 </html>
